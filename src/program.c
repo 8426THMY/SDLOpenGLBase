@@ -358,39 +358,7 @@ static unsigned char initLibs(program *prg){
 
 #warning "We're testing physics now, so this stuff isn't necessary."
 static void initResources(const program *prg){
-	/*vectorInit(&loadedSkeleAnims, sizeof(skeletonAnim));
-	skeleAnimLoadSMD("soldier_animations_anims\\jump_float_PRIMARY.smd");
-	//skeleAnimLoadSMD("soldier_animations_anims\\selectionMenu_Anim0l.smd");
-	//skeleAnimLoadSMD("soldier_animations_anims\\competitive_winnerstate_idle.smd");
-	//skeleAnimLoadSMD("scout_animations_anims\\a_runN_PRIMARY.smd");
-	//skeleAnimLoadSMD("scout_animations_anims\\selectionMenu_Anim01.smd");
-	//Someday, this function won't need to exist.
-	//Load all of the models we're using!
-	modelLoad("drNeoCortex.obj");
-	modelLoad("nTrance.obj");
-	modelLoad("neoTwin.obj");
-	modelLoad("cubeQuads.obj");
-	modelLoadSMD("soldier_reference.smd");*/
-	/** The Scout's arms don't work properly because the model's **/
-	/** skeleton has more bones than the animations' skeletons.  **/
-	//modelLoadSMD("scout_reference.smd");
-
-	//Create renderObjects to represent the models we want to draw!
-	/*renderObjCreate(5);
-	renderObjState *currentObj = ((renderObject *)vectorGet(&allRenderObjects, allRenderObjects.size - 1))->states[0];
-	if(loadedSkeleAnims.size > 0){
-		skeleObjAddAnim(currentObj->skeleObj, (skeletonAnim *)vectorGet(&loadedSkeleAnims, 0));
-	}
-	transformStateSetPosX(&currentObj->transform, -2.f);
-
-
-	renderObjCreate(2);
-	currentObj = ((renderObject *)vectorGet(&allRenderObjects, allRenderObjects.size - 1))->states[0];
-	transformStateSetPosX(&currentObj->transform, 2.f);
-
-	renderObjCreate(3);
-	currentObj = ((renderObject *)vectorGet(&allRenderObjects, allRenderObjects.size - 1))->states[0];
-	transformStateSetPosY(&currentObj->transform, -2.f);*/
+	//
 }
 
 /** Are these really worth it? **/
