@@ -9,19 +9,19 @@
 
 #include <string.h>
 
-#include "mathUtil.h"
+#include "utilMath.h"
 
 #include "physicsCollider.h"
 
 
-static unsigned char isMinkowskiFace(const vec3 *A, const vec3 *B, const vec3 *BA,
-                                     const vec3 *C, const vec3 *D, const vec3 *DC);
+static return_t isMinkowskiFace(const vec3 *A, const vec3 *B, const vec3 *BA,
+                                const vec3 *C, const vec3 *D, const vec3 *DC);
 static float edgeDistance(const vec3 *pointA, const vec3 *edgeDirA,
                           const vec3 *pointB, const vec3 *edgeDirB,
                           const vec3 *centroidA);
 
-static unsigned char noSeparatingFace(const colliderMesh *mesh1, const colliderMesh *mesh2, meshFaceData *faceData);
-static unsigned char noSeparatingEdge(const colliderMesh *mesh1, const colliderMesh *mesh2, const vec3 *m1Centroid, meshEdgeData *edgeData);
+static return_t noSeparatingFace(const colliderMesh *mesh1, const colliderMesh *mesh2, meshFaceData *faceData);
+static return_t noSeparatingEdge(const colliderMesh *mesh1, const colliderMesh *mesh2, const vec3 *m1Centroid, meshEdgeData *edgeData);
 
 size_t findIncidentFace(const colliderMesh *mesh, const vec3 *refNormal);
 size_t clipPolygonAgainstFace(const vec3 *refVertex, const vec3 *refNormal,
@@ -112,7 +112,7 @@ size_t colliderMeshSupport(const colliderMesh *mesh, const vec3 *dir){
 
 
 //Return whether two colliderMeshes are colliding.
-unsigned char colliderMeshCollidingSAT(const colliderMesh *mesh1, const colliderMesh *mesh2, const vec3 *m1Centroid, collisionData *cd){
+return_t colliderMeshCollidingSAT(const colliderMesh *mesh1, const colliderMesh *mesh2, const vec3 *m1Centroid, collisionData *cd){
 	//If there are no separating axes, the meshes are colliding!
 	return(noSeparatingFace(mesh1, mesh2, &cd->mesh1Face) &&
 	       noSeparatingFace(mesh2, mesh1, &cd->mesh2Face) &&
@@ -144,7 +144,7 @@ void colliderMeshGenerateContactManifoldSHC(const colliderMesh *mesh1, const col
 
 //If the arcs of the two faces when projected onto a Gauss Map
 //intersect, they form an edge face of the Minkowski difference!
-unsigned char isMinkowskiFace(const vec3 *A, const vec3 *B, const vec3 *BA,
+return_t isMinkowskiFace(const vec3 *A, const vec3 *B, const vec3 *BA,
                               const vec3 *C, const vec3 *D, const vec3 *DC){
 
 	const float BDC = vec3DotVec3(B, DC);
@@ -216,7 +216,7 @@ float edgeDistance(const vec3 *pointA, const vec3 *edgeDirA,
 
 //Make sure there are no points on "mesh2" that are outside
 //"mesh1" and record the face with the highest distance.
-unsigned char noSeparatingFace(const colliderMesh *mesh1, const colliderMesh *mesh2, meshFaceData *faceData){
+return_t noSeparatingFace(const colliderMesh *mesh1, const colliderMesh *mesh2, meshFaceData *faceData){
 	size_t i;
 
 	//Initialise the face data.
@@ -251,7 +251,7 @@ unsigned char noSeparatingFace(const colliderMesh *mesh1, const colliderMesh *me
 	return(1);
 }
 
-static unsigned char noSeparatingEdge(const colliderMesh *mesh1, const colliderMesh *mesh2, const vec3 *m1Centroid, meshEdgeData *edgeData){
+static return_t noSeparatingEdge(const colliderMesh *mesh1, const colliderMesh *mesh2, const vec3 *m1Centroid, meshEdgeData *edgeData){
 	//Initialise the edge data.
 	edgeData->indexA = -1;
 	edgeData->indexB = -1;

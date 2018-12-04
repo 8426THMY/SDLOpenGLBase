@@ -3,7 +3,7 @@
 
 #include <stdlib.h>
 
-#include "settings.h"
+#include "programSettings.h"
 
 
 void stateObjInit(stateObject *stateObj, const size_t stateSize){

@@ -7,6 +7,8 @@
 
 #include <stdio.h>
 
+#include "utilTypes.h"
+
 #include "vec3.h"
 
 
@@ -115,7 +117,7 @@ void colliderMeshCalculateCentroid(const colliderMesh *mesh, vec3 *centroid);
 
 size_t colliderMeshSupport(const colliderMesh *mesh, const vec3 *dir);
 
-unsigned char colliderMeshCollidingSAT(const colliderMesh *mesh1, const colliderMesh *mesh2, const vec3 *m1Centroid, collisionData *cd);
+return_t colliderMeshCollidingSAT(const colliderMesh *mesh1, const colliderMesh *mesh2, const vec3 *m1Centroid, collisionData *cd);
 void colliderMeshGenerateContactManifoldSHC(const colliderMesh *mesh1, const colliderMesh *mesh2, const collisionData *cd, contactManifold *cm);
 
 

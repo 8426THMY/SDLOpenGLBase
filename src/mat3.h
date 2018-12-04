@@ -2,6 +2,8 @@
 #define mat3_h
 
 
+#include "utilTypes.h"
+
 #include "vec3.h"
 #include "vec4.h"
 #include "quat.h"
@@ -24,7 +26,7 @@ void mat3MultiplyMat3(const mat3 *m1, const mat3 *m2, mat3 *out);
 void mat3MultiplyMat3R(const mat3 *m1, const mat3 *m2, mat3 *out);
 
 void mat3Transpose(const mat3 *m, mat3 *out);
-unsigned char mat3Invert(const mat3 *m, mat3 *out);
+return_t mat3Invert(const mat3 *m, mat3 *out);
 
 
 #endif

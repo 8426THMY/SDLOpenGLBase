@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "strUtil.h"
+#include "utilString.h"
 #include "texture.h"
 
 
@@ -20,7 +20,7 @@ void texGroupFrameInit(textureGroupFrame *texGroupFrame){
 	texGroupFrame->height = 1.f;
 }
 
-unsigned char texGroupAnimInit(textureGroupAnim *texGroupAnim){
+return_t texGroupAnimInit(textureGroupAnim *texGroupAnim){
 	texGroupAnim->name = NULL;
 
 	texGroupAnim->frameData.playNum = 0;
@@ -30,7 +30,7 @@ unsigned char texGroupAnimInit(textureGroupAnim *texGroupAnim){
 	return(1);
 }
 
-unsigned char texGroupInit(textureGroup *texGroup){
+return_t texGroupInit(textureGroup *texGroup){
 	texGroup->name = NULL;
 
 	texGroup->texAnims = NULL;
@@ -113,9 +113,9 @@ size_t texGroupLoad(const char *texGroupName){
 					//Get the number of the first frame!
 					frameStart = strtoul(tempEnd, &tempEnd, 10);
 					//If it was successful and we haven't reached the end of the line, try and get the number of the last frame!
-                    if(tempEnd != &line[lineLength]){
+					if(tempEnd != &line[lineLength]){
 						frameEnd = strtoul(tempEnd, NULL, 10);
-                    }
+					}
 					if(frameStart < 0){
 						frameStart = 0;
 					}
@@ -540,8 +540,8 @@ size_t texGroupFindNameIndex(const char *name){
 }
 
 
-unsigned char textureGroupModuleSetup(){
-	unsigned char success = 0;
+return_t textureGroupModuleSetup(){
+	return_t success = 0;
 
 
 	if(loadedTextures.size > 0){

@@ -5,6 +5,8 @@
 #define GLEW_STATIC
 #include <GL/glew.h>
 
+#include "utilTypes.h"
+
 
 typedef struct shader {
 	GLuint shaderID;
@@ -16,7 +18,7 @@ typedef struct shader {
 
 
 void shaderInit(shader *shaderProgram);
-unsigned char shaderLoad(shader *shaderProgram, const char *vertexPath, const char *fragmentPath);
+return_t shaderLoad(shader *shaderProgram, const char *vertexPath, const char *fragmentPath);
 void shaderDelete(shader *shaderProgram);
 
 

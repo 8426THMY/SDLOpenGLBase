@@ -2,15 +2,12 @@
 #define texture_h
 
 
-#define TEXTUREMODULE
-
-
 #include <stdio.h>
 
 #define GLEW_STATIC
 #include <GL/glew.h>
 
-#include "vector.h"
+#include "utilTypes.h"
 
 
 typedef struct texture {
@@ -24,18 +21,12 @@ typedef struct texture {
 
 void textureInit(texture *tex);
 
-size_t textureLoad(const char *imgName);
+return_t textureLoad(texture *tex, const char *imgName);
+return_t textureSetupError();
 
 void textureDelete(texture *tex);
 
 size_t textureFindNameIndex(const char *name);
-
-
-unsigned char textureModuleSetup();
-void textureModuleCleanup();
-
-
-extern vector loadedTextures;
 
 
 #endif

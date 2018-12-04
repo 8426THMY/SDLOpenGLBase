@@ -4,6 +4,8 @@
 
 #include <stdlib.h>
 
+#include "utilTypes.h"
+
 
 typedef struct vector {
 	void *data;
@@ -13,10 +15,10 @@ typedef struct vector {
 } vector;
 
 
-unsigned char vectorInit(vector *v, const size_t elementSize);
+return_t vectorInit(vector *v, const size_t elementSize);
 
-unsigned char vectorResize(vector *v, const size_t capacity);
-unsigned char vectorAdd(vector *v, const void *data, const size_t num);
+return_t vectorResize(vector *v, const size_t capacity);
+return_t vectorAdd(vector *v, const void *data, const size_t num);
 void vectorRemove(vector *v, const size_t pos);
 void *vectorGet(const vector *v, const size_t pos);
 void vectorSet(vector *v, const size_t pos, const void *data, const size_t);

@@ -4,7 +4,7 @@
 #include <stdlib.h>
 
 
-unsigned char frameDataInit(animationFrameData *frameData){
+return_t frameDataInit(animationFrameData *frameData){
 	frameData->playNum = 0;
 
 	frameData->time = NULL;

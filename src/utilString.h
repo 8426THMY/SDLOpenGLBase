@@ -1,5 +1,5 @@
-#ifndef strUtil_h
-#define strUtil_h
+#ifndef utilString_h
+#define utilString_h
 
 
 //These indicate the maximum number of characters

@@ -10,6 +10,8 @@
 #define GLEW_STATIC
 #include <GL/glew.h>
 
+#include "utilTypes.h"
+
 #include "vector.h"
 #include "animation.h"
 
@@ -52,8 +54,8 @@ typedef struct textureGroupAnimInst {
 
 
 void texGroupFrameInit(textureGroupFrame *texGroupFrame);
-unsigned char texGroupAnimInit(textureGroupAnim *texGroupAnim);
-unsigned char texGroupInit(textureGroup *texGroup);
+return_t texGroupAnimInit(textureGroupAnim *texGroupAnim);
+return_t texGroupInit(textureGroup *texGroup);
 void texGroupAnimInstInit(textureGroupAnimInst *animInst, const size_t texGroupPos);
 
 size_t texGroupLoad(const char *texGroupName);
@@ -69,7 +71,7 @@ size_t texGroupFindAnimNameIndex(const textureGroup *texGroup, const char *name)
 size_t texGroupFindNameIndex(const char *name);
 
 
-unsigned char textureGroupModuleSetup();
+return_t textureGroupModuleSetup();
 void textureGroupModuleCleanup();
 
 

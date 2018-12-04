@@ -4,7 +4,7 @@
 #include <string.h>
 #include <math.h>
 
-#include "mathUtil.h"
+#include "utilMath.h"
 
 
 //Initialize the vec3's values to 0!

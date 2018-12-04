@@ -47,7 +47,18 @@ New To-Do List:
 
 5. Storing models, textures, textureGroups and skeletal animations.
 	a. You need a faster way of searching through them.
-	b. Perhaps use something similar to the console command system Dan has?
+	b. Working on a better memory management system. This won't solve the searching problem, though.
+
+6. Console command system.
+	a. Use a trie for this.
+
+7. Conditional rendering system.
+	a. The current plan is to have scenes, which are groups of areas that
+	   can be rendered by a camera. An area is a collection of objects that
+	   are all rendered together. Think of them as areas in Source maps.
+	b. Some scenes, such as the one used for the HUD, will only have one area.
+	c. Areas have an array list allocator that stores pointers to all of the
+	   objects they use. These objects are stored in the global objects array.
 **/
 
 
@@ -122,13 +133,13 @@ typedef struct keyState {
 	// 0  - Not pressed
 	// 1  - Pressed this update
 	// >1 - Held
-	unsigned char state;
+	byte_t state;
 } keyState;
 
 void pollKeyboard(){
 	size_t i;
 	for(i = 0; i < NUM_KEYS; ++i){
-		unsigned char newState = pollKey(i);
+		byte_t newState = pollKey(i);
 		if(newState == 0){
 			keyState[i] == newState;
 		}else if(keyState[i] < 2){
@@ -142,8 +153,8 @@ keyBind binds[NUM_KEYS];
 
 typedef struct keyBind {
 	unsigned int *ids;
-	char **inputs;
+	byte_t **inputs;
 
-	char numCommands;
+	byte_t numCommands;
 } keyBind;
 */

@@ -8,7 +8,7 @@
 #include <string.h>
 #include <math.h>
 
-#include "mathUtil.h"
+#include "utilMath.h"
 
 
 //Initialize the quaternion's values to 0!

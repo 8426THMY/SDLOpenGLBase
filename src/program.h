@@ -7,6 +7,8 @@
 
 #include <SDL2/SDL.h>
 
+#include "utilTypes.h"
+
 #include "vec3.h"
 #include "mat4.h"
 
@@ -22,7 +24,7 @@ typedef struct program {
 
 	shader shaderProgram;
 
-	unsigned char running;
+	return_t running;
 
 	int mouseX;
 	int mouseY;
@@ -35,7 +37,7 @@ typedef struct program {
 } program;
 
 
-unsigned char programInit(program *prg);
+return_t programInit(program *prg);
 void programLoop(program *prg);
 void programClose(program *prg);
 

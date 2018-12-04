@@ -2,7 +2,7 @@
 #define model_h
 
 
-#define MODELMODULE
+#define MODEL_VERTEX_MAX_WEIGHTS 4
 
 
 #include <stdio.h>
@@ -10,14 +10,9 @@
 #define GLEW_STATIC
 #include <GL/glew.h>
 
-#include "vec3.h"
-#include "mat4.h"
-#include "quat.h"
+#include "utilTypes.h"
 
-#include "vector.h"
-#include "animation.h"
 #include "skeleton.h"
-#include "shader.h"
 
 
 typedef struct model {
@@ -36,17 +31,11 @@ typedef struct model {
 
 void modelInit(model *mdl);
 
-size_t modelLoad(const char *mdlName);
-size_t modelLoadSMD(const char *mdlName);
+return_t modelLoadOBJ(model *mdl, const char *mdlName);
+return_t modelLoadSMD(model *mdl, const char *mdlName);
+return_t modelSetupError();
 
 void modelDelete(model *mdl);
-
-
-unsigned char modelModuleSetup();
-void modelModuleCleanup();
-
-
-extern vector loadedModels;
 
 
 #endif

@@ -2,6 +2,8 @@
 #define physicsCollider_h
 
 
+#include "utilTypes.h"
+
 #include "vec3.h"
 #include "mat3.h"
 
@@ -14,10 +16,10 @@
 
 typedef struct physicsCollider {
 	//Stores which type of collider this object is.
-	unsigned char type;
+	byte_t type;
 	//This array should be large enough
-	//tos store any type of collider.
-	char data[MAX_COLLIDER_SIZE];
+	//to store any type of collider.
+	void *data[MAX_COLLIDER_SIZE];
 
 	//The collider's physical properties.
 	float mass;

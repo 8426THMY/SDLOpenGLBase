@@ -10,11 +10,14 @@
 #define GLEW_STATIC
 #include <GL/glew.h>
 
+#include "utilTypes.h"
+
 #include "mat4.h"
 #include "transform.h"
 #include "state.h"
 
 #include "shader.h"
+
 #include "textureGroup.h"
 #include "skeleton.h"
 
@@ -57,7 +60,7 @@ void renderObjStateShift(renderObject *renderObj);
 void renderObjDelete(renderObject *renderObj);
 
 
-unsigned char renderObjModuleSetup();
+return_t renderObjModuleSetup();
 void renderObjModuleCleanup();
 
 

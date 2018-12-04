@@ -1,7 +1,7 @@
 #include "fps.h"
 
 
-#include "settings.h"
+#include "programSettings.h"
 
 
 void fpsInit(fps *framerate, const float updateRate, const float renderRate){

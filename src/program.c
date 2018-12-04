@@ -1,13 +1,17 @@
 #include "program.h"
 
 
+#define MODULE_SETUP_SUCCESS     0
+#define MODULE_CONFIGURE_SUCCESS 0
+
+
 #include <stdio.h>
 
 #include <SDL2/SDL_opengl.h>
 #include <SDL2/SDL_image.h>
 
 #include "vector.h"
-#include "settings.h"
+#include "programSettings.h"
 
 #include "texture.h"
 #include "textureGroup.h"
@@ -22,16 +26,17 @@ static void updateRenderObjects(program *prg);
 static void update(program *prg);
 static void render(program *prg);
 
-static unsigned char initLibs(program *prg);
-static void initResources(const program *prg);
-static unsigned char setupModules();
+static return_t initLibs(program *prg);
+static return_t setupModules();
 static void cleanupModules();
+static void initResources();
 
 
+#warning "
 static size_t renderState = 0;
 
 
-unsigned char programInit(program *prg){
+return_t programInit(program *prg){
 	prg->windowWidth = 640;
 	prg->windowHeight = 480;
 
@@ -48,7 +53,7 @@ unsigned char programInit(program *prg){
 	fpsInit(&prg->framerate, UPDATE_RATE, FRAME_RATE);
 
 
-	return(initLibs(prg));
+	return(initLibs(prg) && setupModules() && configureModules() && initResources(prg));
 }
 
 void programLoop(program *prg){
@@ -282,7 +287,7 @@ static void render(program *prg){
 }
 
 
-static unsigned char initLibs(program *prg){
+static return_t initLibs(program *prg){
 	//Initialize the SDL2 video subsystem!
 	if(SDL_Init(SDL_INIT_VIDEO) != 0){
 		printf("Unable to initialize SDL2 video subsystem!\n"
@@ -346,58 +351,51 @@ static unsigned char initLibs(program *prg){
 	//mat4Orthographic(&prg->projectionMatrix, -5.f, 5.f, -5.f, 5.f, 0.1f, 100.f);
 
 
-	if(!setupModules()){
-		return(0);
-	}
-
-	initResources(prg);
-
-
 	return(1);
 }
 
 #warning "We're testing physics now, so this stuff isn't necessary."
-static void initResources(const program *prg){
+static void initResources(){
 	//
 }
 
-/** Are these really worth it? **/
-static unsigned char setupModules(){
-	#ifdef TEXTUREMODULE
-	if(!textureModuleSetup()){
-		return(0);
+//Set up the allocators for our modules.
+static return_t setupModules(){
+	#ifdef MODULETEXTURE
+	if(!moduleTextureSetup()){
+		return(MODULETEXTURE_SETUP_FAIL);
 	}
 	#endif
-	#ifdef TEXTUREGROUPMODULE
+	/*#ifdef TEXTUREGROUPMODULE
 	if(!textureGroupModuleSetup()){
 		return(0);
 	}
-	#endif
-	#ifdef MODELMODULE
-	if(!modelModuleSetup()){
-		return(0);
+	#endif*/
+	#ifdef MODULEMODEL
+	if(!moduleModelSetup()){
+		return(MODULEMODEL_SETUP_FAIL);
 	}
 	#endif
-	#ifdef RENDEROBJMODULE
-	if(!renderObjModuleSetup()){
-		return(0);
+	#ifdef MODULERENDEROBJ
+	if(!moduleRenderObjSetup()){
+		return(MODULERENDEROBJ_SETUP_FAIL);
 	}
 	#endif
 
-	return(1);
+	return(MODULE_SETUP_SUCCESS);
 }
 
 static void cleanupModules(){
-	#ifdef TEXTUREMODULE
-	textureModuleCleanup();
+	#ifdef MODULETEXTURE
+	moduleTextureCleanup();
 	#endif
-	#ifdef TEXTUREGROUPMODULE
+	/*#ifdef TEXTUREGROUPMODULE
 	textureGroupModuleCleanup();
+	#endif*/
+	#ifdef MODULEMODEL
+	moduleModelCleanup();
 	#endif
-	#ifdef MODELMODULE
-	modelModuleCleanup();
-	#endif
-	#ifdef RENDEROBJMODULE
-	renderObjModuleCleanup();
+	#ifdef MODULERENDEROBJECT
+	moduleRenderObjCleanup();
 	#endif
 }

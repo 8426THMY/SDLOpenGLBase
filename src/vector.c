@@ -4,7 +4,7 @@
 #include <string.h>
 
 
-unsigned char vectorInit(vector *v, const size_t elementSize){
+return_t vectorInit(vector *v, const size_t elementSize){
 	v->data = malloc(elementSize);
 	if(v->data == NULL){
 		return(0);
@@ -17,7 +17,7 @@ unsigned char vectorInit(vector *v, const size_t elementSize){
 }
 
 
-unsigned char vectorResize(vector *v, const size_t capacity){
+return_t vectorResize(vector *v, const size_t capacity){
 	void *tempData = realloc(v->data, v->elementSize * capacity);
 	if(tempData != NULL){
 		v->data = tempData;
@@ -29,7 +29,7 @@ unsigned char vectorResize(vector *v, const size_t capacity){
 	return(0);
 }
 
-unsigned char vectorAdd(vector *v, const void *data, const size_t num){
+return_t vectorAdd(vector *v, const void *data, const size_t num){
 	if(num > 0){
 		v->size += num;
 		if(v->size >= v->capacity){

@@ -1,7 +1,7 @@
 #include "renderObject.h"
 
 
-#include "settings.h"
+#include "programSettings.h"
 
 #include "model.h"
 
@@ -181,7 +181,7 @@ void renderObjDelete(renderObject *renderObj){
 }
 
 
-unsigned char renderObjModuleSetup(){
+return_t renderObjModuleSetup(){
 	vectorInit(&allRenderObjects, sizeof(renderObject));
 
 	//We don't need to create an error renderObject since it's

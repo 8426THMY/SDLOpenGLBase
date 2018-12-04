@@ -4,6 +4,8 @@
 
 #include <stdio.h>
 
+#include "utilTypes.h"
+
 
 //Stores frame data for an instance of any sort of animation.
 typedef struct animationFrameData {
@@ -27,7 +29,7 @@ typedef struct animationData {
 } animationData;
 
 
-unsigned char frameDataInit(animationFrameData *frameData);
+return_t frameDataInit(animationFrameData *frameData);
 void animationInit(animationData *anim);
 
 void animationSetAnim(animationData *animData, const size_t playNum, const size_t animNum);

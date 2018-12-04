@@ -4,7 +4,7 @@
 #include <string.h>
 #include <math.h>
 
-#include "mathUtil.h"
+#include "utilMath.h"
 
 
 //Initialize the matrix's values to 0!
@@ -700,7 +700,7 @@ void mat4Transpose(const mat4 *m, mat4 *out){
 }
 
 //Invert a matrix!
-unsigned char mat4Invert(const mat4 *m, mat4 *out){
+return_t mat4Invert(const mat4 *m, mat4 *out){
 	float tempMatrix[16];
 	memcpy(tempMatrix, m, sizeof(tempMatrix));
 

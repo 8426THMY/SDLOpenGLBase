@@ -2,6 +2,8 @@
 #define mat4_h
 
 
+#include "utilTypes.h"
+
 #include "vec3.h"
 #include "vec4.h"
 #include "quat.h"
@@ -59,7 +61,7 @@ void mat4ScaleVec3(mat4 *m, const vec3 *v);
 void mat4ScaleVec4(mat4 *m, const vec4 *v);
 
 void mat4Transpose(const mat4 *m, mat4 *out);
-unsigned char mat4Invert(const mat4 *m, mat4 *out);
+return_t mat4Invert(const mat4 *m, mat4 *out);
 
 void mat4Orthographic(mat4 *m, const float right, const float left, const float bottom, const float top, const float near, const float far);
 void mat4Perspective(mat4 *m, const float fov, const float aspectRatio, const float near, const float far);

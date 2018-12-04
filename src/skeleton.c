@@ -1,9 +1,9 @@
 #include "skeleton.h"
 
 
-#include "settings.h"
+#include "programSettings.h"
 
-#include "strUtil.h"
+#include "utilString.h"
 #warning "Store the skeleObject normally. You need to find a way to indicate that two animations are blending that works when you copy to the next state!"
 #warning "We still need to do animation blending and create bone lookups in case the animation's bones don't match the model's skeleton's (such as with the Scout)."
 vector loadedSkeleAnims;
@@ -21,11 +21,13 @@ static void getBlendStates(const skeleAnimState *animState, const skeleAnimState
 
 //When a model doesn't have a skeleton, it needs to have a single root bone. Rather
 //than create it every time, we can use this. The state is also useful when blending.
-static bone defaultBone = {.name = "root",
-                           .state.pos.x   = 0.f, .state.pos.y   = 0.f, .state.pos.z   = 0.f,
-                           .state.rot.x   = 0.f, .state.rot.y   = 0.f, .state.rot.z   = 0.f, .state.rot.w = 1.f,
-                           .state.scale.x = 1.f, .state.scale.y = 1.f, .state.scale.z = 1.f,
-                           .parent = -1};
+static bone defaultBone = {
+	.name = "root",
+	.state.pos.x   = 0.f, .state.pos.y   = 0.f, .state.pos.z   = 0.f,
+	.state.rot.x   = 0.f, .state.rot.y   = 0.f, .state.rot.z   = 0.f, .state.rot.w = 1.f,
+	.state.scale.x = 1.f, .state.scale.y = 1.f, .state.scale.z = 1.f,
+	.parent = -1
+};
 
 
 void boneInit(bone *bone, char *name, const size_t parent, const boneState *state){
@@ -482,7 +484,7 @@ size_t skeleAnimLoadSMD(const char *skeleAnimName){
 		skeleAnim.frameData.time = malloc(sizeof(*skeleAnim.frameData.time));
 
 		//This indicates what sort of data we're currently supposed to be reading.
-		unsigned char dataType = 0;
+		byte_t dataType = 0;
 		//This variable stores data specific to the type we're currently loading.
 		unsigned int data = 0;
 

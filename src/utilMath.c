@@ -1,4 +1,4 @@
-#include "mathUtil.h"
+#include "utilMath.h"
 
 
 //Fast inverse square root, literally copy-pasted from the Quake III Arena source.

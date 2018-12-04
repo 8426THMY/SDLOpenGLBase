@@ -13,7 +13,7 @@ void shaderInit(shader *shaderProgram){
 	shaderProgram->boneStatesID = 0;
 }
 
-unsigned char shaderLoad(shader *shaderProgram, const char *vertexPath, const char *fragmentPath){
+return_t shaderLoad(shader *shaderProgram, const char *vertexPath, const char *fragmentPath){
 	FILE *shaderFile;
 
 	GLint compiled = GL_FALSE;

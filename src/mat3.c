@@ -4,7 +4,7 @@
 #include <string.h>
 #include <math.h>
 
-#include "mathUtil.h"
+#include "utilMath.h"
 
 
 //Initialize the matrix's values to 0!
@@ -135,7 +135,7 @@ void mat3Transpose(const mat3 *m, mat3 *out){
 }
 
 //Invert a matrix!
-unsigned char mat3Invert(const mat3 *m, mat3 *out){
+return_t mat3Invert(const mat3 *m, mat3 *out){
 	float tempMatrix[9];
 	memcpy(tempMatrix, m, sizeof(tempMatrix));
 

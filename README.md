@@ -1,5 +1,5 @@
 # SDLOpenGLBase
-An application framework I am currently working on using SDL and the OpenGL graphics API. This is very far from completion, meaning most of the code is temporary, but I am working on it actively. Despite that, I will probably only push major changes to Github, so updates will likely be rare.
+An graphical application framework built using SDL2 and the OpenGL graphics API. This is very far from completion, meaning most of the code is temporary, but I am working on it actively. Despite that, I will probably only push major changes to Github, so updates will likely be rare.
 
 Features that need to be completed:
 
@@ -8,6 +8,5 @@ Features that need to be completed:
 * Batched sprite system.
 * Quake-like console.
 * Multi-threading.
-* More efficient memory and resource managers.
 
 Note: In a future commit I'll probably include some of my sample resources so you can actually see what's happening. At the moment, feel free to download the binary if you want to be treated to a black screen.
