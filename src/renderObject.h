@@ -12,6 +12,8 @@
 
 #include "utilTypes.h"
 
+#include "vector.h"
+
 #include "mat4.h"
 #include "transform.h"
 #include "state.h"

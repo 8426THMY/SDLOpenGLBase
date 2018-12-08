@@ -1,6 +1,8 @@
 #include "memoryPool.h"
 
 
+//These functions all do the same thing, but
+//they, but make the code a bit easier to read.
 #define memPoolBlockFreeGetNext(block) memPoolBlockGetValue(block)
 #define memPoolBlockUsedGetData(block) memPoolBlockGetValue(block)
 

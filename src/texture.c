@@ -103,20 +103,19 @@ return_t textureLoad(texture *tex, const char *imgName){
 			strcpy(tex->name, imgName);
 
 			return(1);
+		}
 
 		//Otherwise, print out what went
 		//wrong and delete the texture.
-		}else{
-			printf(
-				"Unable to create OpenGL texture!\n"
-				"Path: %s\n"
-				"Texture ID: %u\n"
-				"Error: %i\n",
-				imgPath, tex->id, openGLError
-			);
+		printf(
+			"Unable to create OpenGL texture!\n"
+			"Path: %s\n"
+			"Texture ID: %u\n"
+			"Error: %i\n",
+			imgPath, tex->id, openGLError
+		);
 
-			textureDelete(tex);
-		}
+		textureDelete(tex);
 
 	//If we could not load the image, print an error message.
 	}else{

@@ -68,6 +68,8 @@ void programLoop(program *prg){
 	unsigned int updates = 0;
 	unsigned int renders = 0;
 
+	Uint32 last_render_time = SDL_GetTicks();
+
 	Uint32 nextPrint = SDL_GetTicks();
 	float nextUpdate = nextPrint;
 	float nextRender = nextUpdate;

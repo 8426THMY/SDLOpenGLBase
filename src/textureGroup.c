@@ -5,7 +5,7 @@
 #define TEXTUREGROUP_PATH_PREFIX_LENGTH sizeof(TEXTUREGROUP_PATH_PREFIX)
 
 
-//This must be at least 1!
+//These must be at least 1!
 #define BASE_INDEX_CAPACITY 1
 #define BASE_ANIM_CAPACITY  1
 
@@ -272,6 +272,7 @@ return_t texGroupLoad(textureGroup *texGroup, const char *texGroupName){
 
 					texGroupAnimInit(tempAnim);
 					//We'll need to allocate some space for the animation's frames.
+					#warning "Ideally, we shouldn't have to do this."
 					tempAnim->animFrames = memoryManagerGlobalAlloc(sizeof(*tempAnim->animFrames));
 					if(tempAnim->animFrames == NULL){
 						/** MALLOC FAILED **/
@@ -526,14 +527,14 @@ return_t texGroupLoad(textureGroup *texGroup, const char *texGroupName){
 			}
 			strcpy(texGroup->name, texGroupName);
 
-		//If the textureGroup referenced
-		//no textures, just delete it.
-		}else{
-			texGroupDelete(texGroup);
+
+			return(1);
 		}
 
+		//If the textureGroup referenced
+		//no textures, just delete it.
+		texGroupDelete(texGroup);
 
-		return(1);
 	}else{
 		printf(
 			"Unable to open textureGroup!\n"

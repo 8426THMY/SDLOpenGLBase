@@ -68,13 +68,6 @@
 //Return whether or not the block is invalid.
 #define memPoolBlockIsInvalid(block)  (memPoolBlockGetFlag(block) == MEMPOOL_FLAG_INVALID)
 
-//Return whether or not the block is active.
-#define memPoolBlockIsActive(block)   (memPoolBlockGetFlag(block) == MEMPOOL_FLAG_ACTIVE)
-//Return whether or not the block is inactive.
-#define memPoolBlockIsInactive(block) (memPoolBlockGetFlag(block) == MEMPOOL_FLAG_INACTIVE)
-//Return whether or not the block is invalid.
-#define memPoolBlockIsInvalid(block)  (memPoolBlockGetFlag(block) == MEMPOOL_FLAG_INVALID)
-
 //Return whether or not the block is free.
 #define memPoolBlockIsFree(block) !memPoolBlockIsActive(block)
 //Return whether or not the block is in use.

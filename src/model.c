@@ -390,6 +390,7 @@ return_t modelLoadOBJ(model *mdl, const char *mdlName){
 		//Otherwise, delete the model.
 		}else{
 			modelDelete(mdl);
+			memoryManagerGlobalFree(mdlPath);
 		}
 
 
@@ -435,7 +436,7 @@ return_t modelLoadSMD(model *mdl, const char *mdlName){
 	memcpy(mdlPath, MODEL_PATH_PREFIX, MODEL_PATH_PREFIX_LENGTH);
 	strcpy(mdlPath + MODEL_PATH_PREFIX_LENGTH, mdlName);
 
-	//Load the textureGroup!
+	//Load the model!
 	FILE *mdlFile = fopen(mdlPath, "r");
 	if(mdlFile != NULL){
 		return_t success = 1;
@@ -852,6 +853,7 @@ return_t modelLoadSMD(model *mdl, const char *mdlName){
 		//Otherwise, delete the model.
 		}else{
 			modelDelete(mdl);
+			memoryManagerGlobalFree(mdlPath);
 		}
 
 

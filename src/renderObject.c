@@ -1,8 +1,6 @@
 #include "renderObject.h"
 
 
-#include "programSettings.h"
-
 #include "model.h"
 
 

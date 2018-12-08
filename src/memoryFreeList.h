@@ -32,6 +32,15 @@
 #endif
 
 
+//Get the block after the one specified.
+#define memFreeListBlockGetNextBlock(block, size) ((void *)(((byte_t *)(block)) + (size)))
+//Get the block before the one specified.
+#define memFreeListBlockGetPrevBlock(block, size) ((void *)(((byte_t *)(block)) - (size)))
+
+//Get the next pointer of a free block.
+#define memFreeListBlockFreeGetNext(block) *((void **)block)
+
+
 //Return the amount of memory required
 //for "num" many blocks of "size" bytes.
 #define memFreeListMemoryForBlocks(num, size) memoryGetRequiredSize((num) * memFreeListGetBlockSize(size))

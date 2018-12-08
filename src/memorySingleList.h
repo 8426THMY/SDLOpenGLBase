@@ -37,6 +37,47 @@
 
 #endif
 
+//We define the active flag as "0x00" so
+//it's easier to loop through sub-arrays.
+#define MEMSINGLELIST_FLAG_ACTIVE   0x00
+#define MEMSINGLELIST_FLAG_INACTIVE 0x01
+//This is used if there are no active elements after the block.
+#define MEMSINGLELIST_FLAG_INVALID  0x02
+
+
+//Get the value of the current segment pointed to by "block".
+#define memSingleListBlockGetValue(block) *((void **)block)
+//Get the value of the current segment pointed to by "block".
+//Unlike the previous definition, this casts to a unsigned integer.
+#define memSingleListBlockFreeGetFlag(block) *((uintptr_t *)block)
+
+//Return the address of the next block in the list.
+#define memSingleListBlockGetNextBlock(block, size) ((void *)(((byte_t *)(block)) + (size)))
+//Return the address of the previous block in the list.
+#define memSingleListBlockGetPrevBlock(block, size) ((void *)(((byte_t *)(block)) - (size)))
+
+//Get the block's next pointer from its flags segment.
+#define memSingleListBlockFreeFlagGetNext(block) ((void **)(((byte_t *)(block)) + MEMSINGLELIST_BLOCK_FREE_FLAG_SIZE))
+//Get the block's flags from its next pointer segment.
+#define memSingleListBlockFreeNextGetFlag(block) ((uintptr_t *)(((byte_t *)(block)) - MEMSINGLELIST_BLOCK_FREE_FLAG_SIZE))
+
+//Get the block's data from its next pointer segment.
+#define memSingleListBlockUsedNextGetData(block) ((void **)(((byte_t *)(block)) + MEMSINGLELIST_BLOCK_USED_NEXT_SIZE))
+//Get the block's next pointer from its data segment.
+#define memSingleListBlockUsedDataGetNext(block) ((void **)(((byte_t *)(block)) - MEMSINGLELIST_BLOCK_USED_NEXT_SIZE))
+
+//Return whether or not the block is active.
+#define memSingleListBlockIsActive(block) (memSingleListBlockGetFlag(block) == MEMSINGLELIST_FLAG_ACTIVE)
+//Return whether or not the block is inactive.
+#define memSingleListBlockIsInactive(block) (memSingleListBlockFreeGetFlag(block) == MEMSINGLELIST_FLAG_INACTIVE)
+//Return whether or not the block is invalid.
+#define memSingleListBlockIsInvalid(block) (memSingleListBlockFreeGetFlag(block) == MEMSINGLELIST_FLAG_INVALID)
+
+//Return whether or not the block is free.
+#define memSingleListBlockIsFree(block) !memSingleListBlockIsActive(block)
+//Return whether or not the block is in use.
+#define memSingleListBlockIsUsed(block) memSingleListBlockIsActive(block)
+
 
 //Return the amount of memory required
 //for "num" many blocks of "size" bytes.

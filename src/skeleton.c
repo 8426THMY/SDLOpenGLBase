@@ -1,14 +1,23 @@
 #include "skeleton.h"
 
 
-#include "programSettings.h"
+#define SKELETON_PATH_PREFIX        ".\\resource\\models\\"
+#define SKELETON_PATH_PREFIX_LENGTH sizeof(SKELETON_PATH_PREFIX)
+
+//This must be at least 1!
+#define BASE_BONE_CAPACITY 1
+
+#define SKELE_ANIM_FRAME_RATE 24.f
+#define SKELE_ANIM_FRAME_TIME (1000.f / SKELE_ANIM_FRAME_RATE)
+
 
 #include "utilString.h"
+
+#include "memoryManager.h"
 
 
 #warning "Store the skeleObject normally. You need to find a way to indicate that two animations are blending that works when you copy to the next state!"
 #warning "We still need to do animation blending and create bone lookups in case the animation's bones don't match the model's skeleton's (such as with the Scout)."
-vector loadedSkeleAnims;
 
 
 //Forward-declare any helper functions!
@@ -30,6 +39,9 @@ static bone defaultBone = {
 	.state.scale.x = 1.f, .state.scale.y = 1.f, .state.scale.z = 1.f,
 	.parent = -1
 };
+
+
+#warning "What if we aren't using the global memory manager?"
 
 
 void boneInit(bone *bone, char *name, const size_t parent, const boneState *state){
@@ -111,10 +123,293 @@ void skeleObjInit(skeletonObject *skeleObj, skeleton *skele){
 
 	//Allocate memory for the transformed bone states!
 	if(skele != NULL && skele->numBones > 0){
-		skeleObj->state = malloc(skele->numBones * sizeof(*skeleObj->state));
+		skeleObj->state = memoryManagerGlobalAlloc(skele->numBones * sizeof(*skeleObj->state));
+		if(skeleObj->state == NULL){
+			/** MALLOC FAILED **/
+		}
 	}else{
 		skeleObj->state = NULL;
 	}
+}
+
+
+/** When loading bone states, they need to be done in order.     **/
+/** Additionally, we should ensure bone states are specified     **/
+/** after "time". If we skip some frames, we should interpolate. **/
+//Load an SMD animation! This is temporary and should
+//be merged with the function in "model.c" or removed.
+return_t skeleAnimLoadSMD(skeletonAnim *skeleAnim, const char *skeleAnimName){
+	skeleAnimInit(skeleAnim);
+
+
+	//Find the full path for the skeleton!
+	const size_t skeleAnimNameLength = strlen(skeleAnimName);
+	char *skeleAnimPath = memoryManagerGlobalAlloc(SKELETON_PATH_PREFIX_LENGTH + skeleAnimNameLength + 1);
+	if(skeleAnimPath == NULL){
+		/** MALLOC FAILED **/
+	}
+	memcpy(skeleAnimPath, SKELETON_PATH_PREFIX, SKELETON_PATH_PREFIX_LENGTH);
+	strcpy(skeleAnimPath + SKELETON_PATH_PREFIX_LENGTH, skeleAnimName);
+
+	//Load the skeleton!
+	FILE *skeleAnimFile = fopen(skeleAnimPath, "r");
+	if(skeleAnimFile != NULL){
+		return_t success = 1;
+
+
+		size_t tempCapacity = BASE_BONE_CAPACITY;
+		//Temporarily stores bones.
+		size_t tempBonesSize = 0;
+		bone *tempBones = memoryManagerGlobalAlloc(BASE_BONE_CAPACITY * sizeof(*tempBones));
+		if(tempBones == NULL){
+			/** MALLOC FAILED **/
+		}
+
+		#warning "Ideally, we shouldn't have to do this."
+		skeleAnim->frames = memoryManagerGlobalAlloc(sizeof(*skeleAnim->frames));
+		if(skeleAnim->frames == NULL){
+			/** MALLOC FAILED **/
+		}
+		skeleAnim->frameData.time = memoryManagerGlobalAlloc(sizeof(*skeleAnim->frameData.time));
+		if(skeleAnim->frameData.time == NULL){
+			/** MALLOC FAILED **/
+		}
+
+		//Store a reference to the current frame that we're loading.
+		boneState *currentFrame = NULL;
+
+		//This indicates what sort of data we're currently supposed to be reading.
+		byte_t dataType = 0;
+		//This variable stores data specific to the type we're currently loading.
+		unsigned int data = 0;
+
+		char lineBuffer[1024];
+		char *line;
+		size_t lineLength;
+
+
+		while(success && (line = readLineFile(skeleAnimFile, &lineBuffer[0], &lineLength)) != NULL){
+			if(dataType == 0){
+				if(strcmp(line, "nodes") == 0){
+					dataType = 1;
+				}else if(strcmp(line, "skeleton") == 0){
+					dataType = 2;
+
+				//If this isn't the version number and the line
+				//isn't empty, it's something we can't handle!
+				}else if(lineLength > 0 && strcmp(line, "version 1") != 0){
+					printf(
+						"Error loading skeletal animtion!\n"
+						"Path: %s\n"
+						"Line: %s\n"
+						"Error: Unexpected identifier!\n",
+						skeleAnimPath, line
+					);
+
+					success = 0;
+				}
+			}else{
+				if(strcmp(line, "end") == 0){
+					//If we've finished identifying the skeleton's
+					//bones, copy the data into our animation object!
+					if(dataType == 1){
+						tempBones = memoryManagerGlobalRealloc(tempBones, tempBonesSize * sizeof(*tempBones));
+						if(tempBones == NULL){
+							/** REALLOC FAILED **/
+						}
+						skeleAnim->boneNames = memoryManagerGlobalAlloc(tempBonesSize * sizeof(*skeleAnim->boneNames));
+						if(skeleAnim->boneNames == NULL){
+							/** MALLOC FAILED **/
+						}
+						skeleAnim->numBones = tempBonesSize;
+
+						size_t i;
+						//Fill the array of bone names!
+						for(i = 0; i < tempBonesSize; ++i){
+							skeleAnim->boneNames[i] = tempBones[i].name;
+						}
+
+						tempCapacity = 1;
+
+					//If we've finished loading the animation, shrink the vectors!
+					}else if(dataType == 2){
+						skeleAnim->frameData.time = memoryManagerGlobalRealloc(skeleAnim->frameData.time, skeleAnim->frameData.numFrames * sizeof(*skeleAnim->frameData.time));
+						if(skeleAnim->frameData.time == NULL){
+							/** REALLOC FAILED **/
+						}
+						skeleAnim->frames = memoryManagerGlobalRealloc(skeleAnim->frames, skeleAnim->frameData.numFrames * sizeof(*skeleAnim->frames));
+						if(skeleAnim->frames == NULL){
+							/** REALLOC FAILED **/
+						}
+
+						skeleAnim->frameData.playNum = -1;
+					}
+
+					dataType = 0;
+					data = 0;
+				}else{
+					if(dataType == 1){
+						char *tokPos = line;
+
+						bone tempBone;
+
+						//Get this bone's ID.
+						size_t boneID = strtoul(tokPos, &tokPos, 10);
+						//Make sure a bone with this ID actually exists.
+						if(boneID == tempBonesSize){
+							size_t boneNameLength;
+							getDelimitedString(tokPos, line + lineLength - tokPos, "\" ", &tokPos, &boneNameLength);
+							//Get the bone's name.
+							tempBone.name = memoryManagerGlobalAlloc(boneNameLength + 1);
+							if(tempBone.name == NULL){
+								/** MALLOC FAILED **/
+							}
+							memcpy(tempBone.name, tokPos, boneNameLength);
+							tempBone.name[boneNameLength] = '\0';
+
+							//Get the ID of this bone's parent.
+							tempBone.parent = strtoul(tokPos + boneNameLength + 1, NULL, 10);
+
+
+							//If we're out of space, allocate some more!
+							if(tempBonesSize >= tempCapacity){
+								tempCapacity = tempBonesSize * 2;
+								tempBones = memoryManagerGlobalRealloc(tempBones, tempCapacity * sizeof(*tempBones));
+								if(tempBones == NULL){
+									/** REALLOC FAILED **/
+								}
+							}
+							//Add the bone to our vector!
+							tempBones[tempBonesSize] = tempBone;
+							++tempBonesSize;
+						}else{
+							printf(
+								"Error loading skeletal animtion!\n"
+								"Path: %s\n"
+								"Line: %s\n"
+								"Error: Found node %u when expecting node %u!\n",
+								skeleAnimPath, line, boneID, tempBonesSize
+							);
+
+							success = 0;
+						}
+					}else if(dataType == 2){
+						//If the line begins with time, get the frame's timestamp!
+						if(memcmp(line, "time ", 5) == 0){
+							unsigned int newTime = strtoul(&line[5], NULL, 10);
+							if(newTime >= data){
+								data = newTime;
+
+								//Allocate memory for the new frame if we have to!
+								if(skeleAnim->frameData.numFrames >= tempCapacity){
+									tempCapacity = skeleAnim->frameData.numFrames * 2;
+									//Resize the time array!
+									skeleAnim->frameData.time = memoryManagerGlobalRealloc(skeleAnim->frameData.time, tempCapacity * sizeof(*skeleAnim->frameData.time));
+									if(skeleAnim->frameData.time == NULL){
+										/** REALLOC FAILED **/
+									}
+									//Resize the frames array!
+									skeleAnim->frames = memoryManagerGlobalRealloc(skeleAnim->frames, tempCapacity * sizeof(*skeleAnim->frames));
+									if(skeleAnim->frames == NULL){
+										/** REALLOC FAILED **/
+									}
+								}
+
+								currentFrame = skeleAnim->frames[skeleAnim->frameData.numFrames];
+								//Allocate memory for each bone state in this frame!
+								currentFrame = memoryManagerGlobalAlloc(skeleAnim->numBones * sizeof(**skeleAnim->frames));
+								if(currentFrame == NULL){
+									/** MALLOC FAILED **/
+								}
+
+								skeleAnim->frameData.time[skeleAnim->frameData.numFrames] = (data + 1) * SKELE_ANIM_FRAME_TIME;
+								++skeleAnim->frameData.numFrames;
+							}else{
+								printf(
+									"Error loading skeletal animtion!\n"
+									"Path: %s\n"
+									"Line: %s\n"
+									"Error: Frame timestamps do not increment sequentially!\n",
+									skeleAnimPath, line
+								);
+
+								success = 0;
+							}
+
+						//Otherwise, we're setting the bone's state!
+						}else{
+							char *tokPos = line;
+
+							//Get this bone's ID.
+							size_t boneID = strtoul(tokPos, &tokPos, 10);
+							if(boneID < tempBonesSize){
+								boneState *currentState = &currentFrame[boneID];
+
+								//Load the bone's position!
+								float x = strtod(tokPos, &tokPos) * 0.05f;
+								float y = strtod(tokPos, &tokPos) * 0.05f;
+								float z = strtod(tokPos, &tokPos) * 0.05f;
+								vec3InitSet(&currentState->pos, x, y, z);
+
+								//Load the bone's rotation!
+								x = strtod(tokPos, &tokPos);
+								y = strtod(tokPos, &tokPos);
+								z = strtod(tokPos, NULL);
+								quatInitEulerRad(&currentState->rot, x, y, z);
+
+								//Set the bone's scale!
+								vec3InitSet(&currentState->scale, 1.f, 1.f, 1.f);
+							}else{
+								printf(
+									"Error loading skeletal animtion!\n"
+									"Path: %s\n"
+									"Line: %s\n"
+									"Error: Found skeletal data for bone %u, which doesn't exist!\n",
+									skeleAnimPath, line, boneID
+								);
+
+								success = 0;
+							}
+						}
+					}
+				}
+			}
+		}
+
+		fclose(skeleAnimFile);
+
+
+		//We don't delete them properly because
+		//we store the bones' names elsewhere.
+		memoryManagerGlobalFree(tempBones);
+
+
+		//If there wasn't an error, add it to the vector!
+		if(success){
+			skeleAnim->name = memoryManagerGlobalRealloc(skeleAnimPath, skeleAnimNameLength + 1);
+			if(skeleAnim->name == NULL){
+				/** REALLOC FAILED **/
+			}
+			strcpy(skeleAnim->name, skeleAnimName);
+
+			return(1);
+		}
+
+		//Otherwise, delete the animation.
+		skeleAnimDelete(skeleAnim);
+
+	}else{
+		printf(
+			"Unable to open skeletal animation file!\n"
+			"Path: %s\n",
+			skeleAnimPath
+		);
+	}
+
+	memoryManagerGlobalFree(skeleAnimPath);
+
+
+	return(0);
 }
 
 
@@ -225,59 +520,20 @@ void skeleAnimStateBlendAdd(skeletonObject *skeleObj, const skeleAnimState *anim
 //Add an animation to the skeletonObject!
 void skeleObjAddAnim(skeletonObject *skeleObj, skeletonAnim *anim){
 	++skeleObj->numAnims;
-	skeleObj->anims = realloc(skeleObj->anims, skeleObj->numAnims * sizeof(*skeleObj->anims));
+	skeleObj->anims = memoryManagerGlobalRealloc(skeleObj->anims, skeleObj->numAnims * sizeof(*skeleObj->anims));
+	if(skeleObj->anims == NULL){
+		/** REALLOC FAILED **/
+	}
 	skeleAnimInstInit(&skeleObj->anims[skeleObj->numAnims - 1]);
 
 	skeleAnimState *animState = skeleObj->anims[0].states[0];
 	animState->anim = anim;
-	animState->skeleState = malloc(anim->numBones * sizeof(*animState->skeleState));
+	animState->skeleState = memoryManagerGlobalAlloc(anim->numBones * sizeof(*animState->skeleState));
+	if(animState->skeleState == NULL){
+		/** MALLOC FAILED **/
+	}
 }
 
-//Merge a bone's state with that of its parent
-//and multiply it by the inverse bind pose state!
-/** Would it be better to use matrices? Merging bone states seems significantly faster   **/
-/** without them, but applying transformations to a vec3 using them is slower. In other  **/
-/** words, we're doing less work on the CPU and sending less stuff to the shader, but    **/
-/** the shader is doing quite a bit more work per vertex than if we were using matrices. **/
-/*
-boneStateAddTransform
-*40
-+15
--12
-
-boneStateAddTransform (with quatNormalizeQuat)
-*52
-+18
--14
-
-
-Note: These can probably be optimised for transformation matrices.
-mat4Translate (not required if we init as a translation matrix, which only uses sets)
-*16
-+12
-
-mat4RotateQuat
-*54
-+30
--5
-
-mat4Scale
-*16
-
-mat4Multiply
-*64
-+48
-
-mat4CreateTransformMatrix
-*70
-+30
--5
-
-mat4AddTransform
-*134
-+78
--5
-*/
 //Accumulate the transformations of every animation!
 void skeleObjGenerateRenderState(skeletonObject *skeleObj){
 	boneState *animState = ((skeleAnimState *)skeleObj->anims[0].states[0])->skeleState;
@@ -285,9 +541,10 @@ void skeleObjGenerateRenderState(skeletonObject *skeleObj){
 	size_t i;
 	//Accumulate the transformations for each bone in the animation!
 	for(i = 0; i < skeleObj->skele->numBones; ++i){
+		const size_t parentID = skeleObj->skele->bones[i].parent;
 		//If this bone has a parent, add its animation transformations to those of its parent!
-		if(skeleObj->skele->bones[i].parent != -1){
-			boneStateAddTransform(&skeleObj->state[skeleObj->skele->bones[i].parent], &animState[i], &skeleObj->state[i]);
+		if(parentID != -1){
+			boneStateAddTransform(&skeleObj->state[parentID], &animState[i], &skeleObj->state[i]);
 
 		//Otherwise, just use it by itself!
 		}else{
@@ -297,31 +554,33 @@ void skeleObjGenerateRenderState(skeletonObject *skeleObj){
 
 	//Append each bone's inverse reference state!
 	for(i = 0; i < skeleObj->skele->numBones; ++i){
-		boneStateAddTransform(&skeleObj->state[i], &skeleObj->skele->bones[i].state, &skeleObj->state[i]);
+		boneState *currentBone = &skeleObj->state[i];
+		boneStateAddTransform(currentBone, &skeleObj->skele->bones[i].state, currentBone);
 	}
 }
 
 
 void boneDelete(bone *bone){
-	if(bone->name != NULL){
-		free(bone->name);
+	//We can't free the default bone's name.
+	if(bone->name != NULL && bone != &defaultBone){
+		memoryManagerGlobalFree(bone->name);
 	}
 }
 
 void skeleDelete(skeleton *skele){
 	if(skele->name != NULL){
-		free(skele->name);
+		memoryManagerGlobalFree(skele->name);
 	}
 
-	//Make sure we don't free the bone vector if its set to "defaultBone"!
+	//Make sure we don't free the bone array if its set to "defaultBone"!
 	if(skele->bones != NULL && skele->bones != &defaultBone){
-		free(skele->bones);
+		memoryManagerGlobalFree(skele->bones);
 	}
 }
 
 void skeleAnimDelete(skeletonAnim *anim){
 	if(anim->name != NULL){
-		free(anim->name);
+		memoryManagerGlobalFree(anim->name);
 	}
 
 	animFrameDataClear(&anim->frameData);
@@ -330,23 +589,25 @@ void skeleAnimDelete(skeletonAnim *anim){
 		size_t i;
 		//Free each bone name!
 		for(i = 0; i < anim->numBones; ++i){
-			if(anim->boneNames[i] != NULL){
-				free(anim->boneNames[i]);
+			char *currentName = anim->boneNames[i];
+			if(currentName != NULL){
+				memoryManagerGlobalFree(currentName);
 			}
 		}
 		//Now free the array!
-		free(anim->boneNames);
+		memoryManagerGlobalFree(anim->boneNames);
 	}
 	if(anim->frames != NULL){
 		size_t i;
 		//Free each bone state!
 		for(i = 0; i < anim->frameData.numFrames; ++i){
-			if(anim->frames[i] != NULL){
-				free(anim->frames[i]);
+			boneState *currentFrame = anim->frames[i];
+			if(currentFrame != NULL){
+				memoryManagerGlobalFree(currentFrame);
 			}
 		}
 		//Now free the array!
-		free(anim->frames);
+		memoryManagerGlobalFree(anim->frames);
 	}
 }
 
@@ -357,11 +618,11 @@ void skeleAnimStateDelete(void *s){
 	}
 
 	if(animState->lookup != NULL){
-		free(animState->lookup);
+		memoryManagerGlobalFree(animState->lookup);
 	}
 
 	if(animState->skeleState != NULL){
-		free(animState->skeleState);
+		memoryManagerGlobalFree(animState->skeleState);
 	}
 }
 
@@ -377,11 +638,11 @@ void skeleObjDelete(skeletonObject *skeleObj){
 			stateObjDelete(&skeleObj->anims[i], &skeleAnimStateDelete);
 		}
 		//Now free the array!
-		free(skeleObj->anims);
+		memoryManagerGlobalFree(skeleObj->anims);
 	}
 
 	if(skeleObj->state != NULL){
-		free(skeleObj->state);
+		memoryManagerGlobalFree(skeleObj->state);
 	}
 }
 
@@ -430,251 +691,36 @@ static void updateBoneStateAdd(const boneState *s1, const boneState *s2, const f
 static void getBlendStates(const skeleAnimState *animState, const skeleAnimState *blendState, const size_t boneNum,
                            const boneState *defState, const boneState **startState, const boneState **endState){
 
-	//If this entity bone appears in the first animation, start blending from the first animation's state!
+	//If this entity bone appears in the first animation,
+	//start blending from the first animation's state!
 	if(animState->lookup == NULL){
 		*startState = &animState->skeleState[boneNum];
-	}else if(animState->lookup[boneNum] < animState->anim->numBones){
-		*startState = &animState->skeleState[animState->lookup[boneNum]];
-
-	//Otherwise, blend from the default state that was specified.
 	}else{
-		*startState = defState;
+		const size_t lookupID = animState->lookup[boneNum];
+
+		if(lookupID < animState->anim->numBones){
+			*startState = &animState->skeleState[lookupID];
+
+		//Otherwise, blend from the default state that was specified.
+		}else{
+			*startState = defState;
+		}
 	}
 
-	//If this entity bone appears in the second animation, blend to the second animation's state!
+	//If this entity bone appears in the second
+	//animation, blend to the second animation's state!
 	if(blendState->lookup == NULL){
 		*endState = &blendState->skeleState[boneNum];
-	}else if(blendState->lookup[boneNum] < blendState->anim->numBones){
-		*endState = &blendState->skeleState[blendState->lookup[boneNum]];
-
-	//Otherwise, blend to the state of the bone before this animation was applied.
 	}else{
-		*endState = defState;
-	}
-}
+		const size_t lookupID = blendState->lookup[boneNum];
 
+		if(lookupID < blendState->anim->numBones){
+			*endState = &blendState->skeleState[lookupID];
 
-/** When loading bone states, they need to be done in order.     **/
-/** Additionally, we should ensure bone states are specified     **/
-/** after "time". If we skip some frames, we should interpolate. **/
-//Load an SMD animation! This is temporary and should ideally be merged with the function in model.c or removed.
-size_t skeleAnimLoadSMD(const char *skeleAnimName){
-	size_t index = loadedSkeleAnims.size;
-
-
-	//Create and initialize the animation!
-	skeletonAnim skeleAnim;
-	skeleAnimInit(&skeleAnim);
-
-
-	//Find the full path for the model!
-	const size_t skeleAnimNameLength = strlen(skeleAnimName);
-	char *skeleAnimPath = malloc(18 + skeleAnimNameLength + 1);
-	memcpy(skeleAnimPath, ".\\resource\\models\\", 18);
-	strcpy(skeleAnimPath + 18, skeleAnimName);
-
-	//Load the textureGroup!
-	FILE *skeleAnimFile = fopen(skeleAnimPath, "r");
-	if(skeleAnimFile != NULL){
-		size_t tempCapacity = 1;
-		//Temporarily stores bones.
-		size_t tempBonesSize = 0;
-		bone *tempBones = malloc(tempCapacity * sizeof(*tempBones));
-
-		/** Ideally, we shouldn't have to do this. **/
-		skeleAnim.frames = malloc(sizeof(*skeleAnim.frames));
-		skeleAnim.frameData.time = malloc(sizeof(*skeleAnim.frameData.time));
-
-		//This indicates what sort of data we're currently supposed to be reading.
-		byte_t dataType = 0;
-		//This variable stores data specific to the type we're currently loading.
-		unsigned int data = 0;
-
-		char lineBuffer[1024];
-		char *line;
-		size_t lineLength;
-
-
-		while((line = readLineFile(skeleAnimFile, &lineBuffer[0], &lineLength)) != NULL && index != -1){
-			if(dataType == 0){
-				if(strcmp(line, "nodes") == 0){
-					dataType = 1;
-				}else if(strcmp(line, "skeleton") == 0){
-					dataType = 2;
-
-				//If this isn't the version number and the line isn't empty, it's something we can't handle!
-				}else if(lineLength > 0 && strcmp(line, "version 1") != 0){
-					printf("Error loading skeletal animtion!\n"
-					       "Path: %s\n"
-					       "Animation ID: %u\n"
-					       "Line: %s\n"
-					       "Error: Unexpected identifier!\n", skeleAnimPath, index, line);
-					index = -1;
-				}
-			}else{
-				if(strcmp(line, "end") == 0){
-					//If we've finished identifying the skeleton's bones, copy the data into our animation object!
-					if(dataType == 1){
-						tempBones = realloc(tempBones, tempBonesSize * sizeof(*tempBones));
-						skeleAnim.boneNames = malloc(tempBonesSize * sizeof(*skeleAnim.boneNames));
-						skeleAnim.numBones = tempBonesSize;
-
-						size_t i;
-						//Fill the array of bone names!
-						for(i = 0; i < tempBonesSize; ++i){
-							skeleAnim.boneNames[i] = tempBones[i].name;
-						}
-
-						tempCapacity = 1;
-
-					//If we've finished loading the animation, shrink the vectors!
-					}else if(dataType == 2){
-						skeleAnim.frameData.time = realloc(skeleAnim.frameData.time, skeleAnim.frameData.numFrames * sizeof(*skeleAnim.frameData.time));
-						skeleAnim.frames = realloc(skeleAnim.frames, skeleAnim.frameData.numFrames * sizeof(*skeleAnim.frames));
-
-						skeleAnim.frameData.playNum = -1;
-					}
-
-					dataType = 0;
-					data = 0;
-				}else{
-					if(dataType == 1){
-						char *tokPos = line;
-
-						bone tempBone;
-
-						//Get this bone's ID.
-						size_t boneID = strtoul(tokPos, &tokPos, 10);
-						//Make sure a bone with this ID actually exists.
-						if(boneID == tempBonesSize){
-							//Get the bone's name.
-							size_t boneNameLength;
-							getDelimitedString(tokPos, line + lineLength - tokPos, "\" ", &tokPos, &boneNameLength);
-							tempBone.name = malloc(boneNameLength + 1);
-							memcpy(tempBone.name, tokPos, boneNameLength);
-							tempBone.name[boneNameLength] = '\0';
-
-							//Get the ID of this bone's parent.
-							tempBone.parent = strtoul(tokPos + boneNameLength + 1, NULL, 10);
-
-
-							//If we're out of space, allocate some more!
-							if(tempBonesSize >= tempCapacity){
-								tempCapacity = tempBonesSize * 2;
-								tempBones = realloc(tempBones, tempCapacity * sizeof(*tempBones));
-							}
-							//Add the bone to our vector!
-							tempBones[tempBonesSize] = tempBone;
-							++tempBonesSize;
-						}else{
-							printf("Error loading skeletal animtion!\n"
-							       "Path: %s\n"
-							       "Animation ID: %u\n"
-							       "Line: %s\n"
-							       "Error: Found node %u when expecting node %u!\n",
-							       skeleAnimPath, index, line, boneID, tempBonesSize);
-							index = -1;
-						}
-					}else if(dataType == 2){
-						//If the line begins with time, get the frame's timestamp!
-						if(memcmp(line, "time ", 5) == 0){
-							unsigned int newTime = strtoul(&line[5], NULL, 10);
-							if(newTime >= data){
-								data = newTime;
-
-								//Allocate memory for the new frame if we have to!
-								if(skeleAnim.frameData.numFrames >= tempCapacity){
-									tempCapacity = skeleAnim.frameData.numFrames * 2;
-									//Resize the time array!
-									skeleAnim.frameData.time = realloc(skeleAnim.frameData.time, tempCapacity * sizeof(*skeleAnim.frameData.time));
-									//Resize the frames array!
-									skeleAnim.frames = realloc(skeleAnim.frames, tempCapacity * sizeof(*skeleAnim.frames));
-								}
-								//Allocate memory for each bone state in this frame!
-								skeleAnim.frames[skeleAnim.frameData.numFrames] = malloc(skeleAnim.numBones * sizeof(**skeleAnim.frames));
-
-								skeleAnim.frameData.time[skeleAnim.frameData.numFrames] = (data + 1) * (1000.f / 24.f);
-								++skeleAnim.frameData.numFrames;
-							}else{
-								printf("Error loading skeletal animtion!\n"
-								       "Path: %s\n"
-								       "Animation ID: %u\n"
-								       "Line: %s\n"
-								       "Error: Frame timestamps do not increment sequentially!\n",
-								       skeleAnimPath, index, line);
-								index = -1;
-							}
-
-						//Otherwise, we're setting the bone's state!
-						}else{
-							char *tokPos = line;
-
-							//Get this bone's ID.
-							size_t boneID = strtoul(tokPos, &tokPos, 10);
-							if(boneID < tempBonesSize){
-								boneState *currentState = &skeleAnim.frames[skeleAnim.frameData.numFrames - 1][boneID];
-
-								//Load the bone's position!
-								float x = strtod(tokPos, &tokPos) * 0.05f;
-								float y = strtod(tokPos, &tokPos) * 0.05f;
-								float z = strtod(tokPos, &tokPos) * 0.05f;
-								vec3InitSet(&currentState->pos, x, y, z);
-
-								//Load the bone's rotation!
-								x = strtod(tokPos, &tokPos);
-								y = strtod(tokPos, &tokPos);
-								z = strtod(tokPos, NULL);
-								quatInitEulerRad(&currentState->rot, x, y, z);
-
-								//Set the bone's scale!
-								vec3InitSet(&currentState->scale, 1.f, 1.f, 1.f);
-							}else{
-								printf("Error loading skeletal animtion!\n"
-									   "Path: %s\n"
-									   "Animation ID: %u\n"
-									   "Line: %s\n"
-									   "Error: Found skeletal data for bone %u, which doesn't exist!\n",
-									   skeleAnimPath, index, line, boneID);
-								index = -1;
-							}
-						}
-					}
-				}
-			}
-		}
-
-
-		//We don't delete them properly because we store the bone names elsewhere.
-		if(tempBones != NULL){
-			free(tempBones);
-		}
-
-
-		//If there wasn't an error, add it to the vector!
-		if(index != -1){
-			skeleAnim.name = malloc(skeleAnimNameLength + 1);
-			strcpy(skeleAnim.name, skeleAnimName);
-
-			vectorAdd(&loadedSkeleAnims, &skeleAnim, 1);
-
-		//Otherwise, delete the animation.
+		//Otherwise, blend to the state of the
+		//bone before this animation was applied.
 		}else{
-			skeleAnimDelete(&skeleAnim);
+			*endState = defState;
 		}
-
-
-		fclose(skeleAnimFile);
-	}else{
-		printf("Unable to open skeletal animation file!\n"
-		       "Path: %s\n"
-		       "Animation ID: %u\n", skeleAnimPath, index);
-		index = -1;
 	}
-
-	if(skeleAnimPath != NULL){
-		free(skeleAnimPath);
-	}
-
-
-	return(index);
 }

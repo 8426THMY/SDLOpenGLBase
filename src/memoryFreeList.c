@@ -4,15 +4,6 @@
 #include "utilTypes.h"
 
 
-//Get the block after the one specified.
-#define memFreeListBlockGetNextBlock(block, size) ((void *)(((byte_t *)(block)) + (size)))
-//Get the block before the one specified.
-#define memFreeListBlockGetPrevBlock(block, size) ((void *)(((byte_t *)(block)) - (size)))
-
-//Get the next pointer of a free block.
-#define memFreeListBlockFreeGetNext(block) *((void **)block)
-
-
 #warning "What if the beginning or end of a memory region is not aligned?"
 #warning "We should go back to using the total memory size as input for init and extend, too."
 

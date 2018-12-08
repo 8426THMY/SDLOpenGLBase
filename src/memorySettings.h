@@ -5,8 +5,8 @@
 #define MEMORY_KIBIBYTE 1024
 #define MEMORY_MEBIBYTE (1024 * MEMORY_KIBIBYTE)
 
-//We use a default heap size of 512 mebibytes.
-#define MEMORY_HEAPSIZE (512 * MEMORY_MEBIBYTE)
+//Define the number of bytes to allocate by default.
+#define MEMORY_HEAPSIZE (64 * MEMORY_MEBIBYTE)
 
 #define MEMORY_USE_GLOBAL_MANAGER
 #define MEMORY_USE_MODULE_MANAGER
@@ -19,10 +19,8 @@
 #define MEMORY_MAX_MODELS     1
 #define MEMORY_MAX_RENDEROBJS 1
 
+
 #define MEMTREE_DEBUG
-
-
-//#error "Modules should allocate a new object, then call the loading function on that object."
 
 
 #endif

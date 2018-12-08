@@ -4,45 +4,12 @@
 #include "utilTypes.h"
 
 
-//We define the active flag as "0x00" so
-//it's easier to loop through sub-arrays.
-#define MEMDOUBLELIST_FLAG_ACTIVE   0x00
-#define MEMDOUBLELIST_FLAG_INACTIVE 0x01
-//This is used if there are no active elements after the block.
-#define MEMDOUBLELIST_FLAG_INVALID  0x02
-
-//Get the value of the current segment pointed to by "block".
-#define memDoubleListBlockGetValue(block) *((void **)block)
 //These functions all do the same thing, but
 //they, but make the code a bit easier to read.
-#define memDoubleListBlockFreeGetFlag(block) *((uintptr_t *)block)
 #define memDoubleListBlockFreeGetNext(block) memDoubleListBlockGetValue(block)
 #define memDoubleListBlockUsedGetNext(block) memDoubleListBlockGetValue(block)
 #define memDoubleListBlockUsedGetPrev(block) memDoubleListBlockGetValue(block)
 #define memDoubleListBlockUsedGetData(block) memDoubleListBlockGetValue(block)
-
-//Return the address of the next block in the list.
-#define memDoubleListBlockGetNextBlock(block, size) ((void *)(((byte_t *)(block)) + (size)))
-//Return the address of the previous block in the list.
-#define memDoubleListBlockGetPrevBlock(block, size) ((void *)(((byte_t *)(block)) - (size)))
-
-//Get the block's next pointer from its flags segment.
-#define memDoubleListBlockFreeFlagGetNext(block) ((void **)(((byte_t *)(block)) + MEMDOUBLELIST_BLOCK_HEADER_SIZE))
-//Get the block's flags from its next pointer segment.
-#define memDoubleListBlockFreeNextGetFlag(block) ((uintptr_t *)(((byte_t *)(block)) - MEMDOUBLELIST_BLOCK_HEADER_SIZE))
-
-//Get the block's data from its next pointer segment.
-#define memDoubleListBlockUsedNextGetPrev(block) ((void **)(((byte_t *)(block)) + MEMDOUBLELIST_BLOCK_USED_NEXT_SIZE))
-//Get the block's previous pointer from its next pointer segment.
-#define memDoubleListBlockUsedNextGetData(block) ((void **)(((byte_t *)(block)) + MEMDOUBLELIST_BLOCK_HEADER_SIZE))
-//Get the block's next pointer from its previous pointer segment.
-#define memDoubleListBlockUsedPrevGetNext(block) ((void **)(((byte_t *)(block)) - MEMDOUBLELIST_BLOCK_USED_NEXT_SIZE))
-//Get the block's data from its previous pointer segment.
-#define memDoubleListBlockUsedPrevGetData(block) ((void **)(((byte_t *)(block)) + MEMDOUBLELIST_BLOCK_USED_PREV_SIZE))
-//Get the block's next pointer from its data segment.
-#define memDoubleListBlockUsedDataGetNext(block) ((void **)(((byte_t *)(block)) - MEMDOUBLELIST_BLOCK_HEADER_SIZE))
-//Get the block's previous pointer from its data segment.
-#define memDoubleListBlockUsedDataGetPrev(block) ((void **)(((byte_t *)(block)) - MEMDOUBLELIST_BLOCK_USED_PREV_SIZE))
 
 //We'll need to remove the active flag from
 //the pointer if we want to get its real value.
@@ -59,18 +26,6 @@
 #define memDoubleListBlockMakeInactive(next) memDoubleListBlockSetFlag(next, MEMDOUBLELIST_FLAG_INACTIVE)
 //Add the "invalid" flag to the pointer specified by "next".
 #define memDoubleListBlockMakeInvalid(next) memDoubleListBlockSetFlag(next, MEMDOUBLELIST_FLAG_INVALID)
-
-//Return whether or not the block is active.
-#define memDoubleListBlockIsActive(block) (memDoubleListBlockGetFlag(block) == MEMDOUBLELIST_FLAG_ACTIVE)
-//Return whether or not the block is inactive.
-#define memDoubleListBlockIsInactive(block) (memDoubleListBlockFreeGetFlag(block) == MEMDOUBLELIST_FLAG_INACTIVE)
-//Return whether or not the block is invalid.
-#define memDoubleListBlockIsInvalid(block) (memDoubleListBlockFreeGetFlag(block) == MEMDOUBLELIST_FLAG_INVALID)
-
-//Return whether or not the block is free.
-#define memDoubleListBlockIsFree(block) !memDoubleListBlockIsActive(block)
-//Return whether or not the block is in use.
-#define memDoubleListBlockIsUsed(block) memDoubleListBlockIsActive(block)
 
 
 #warning "What if the beginning or end of a memory region is not aligned?"

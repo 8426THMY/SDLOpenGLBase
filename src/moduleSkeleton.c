@@ -4,6 +4,8 @@
 memoryPool *skeletonManager;
 
 
+#warning "How are we going to store animations? How about bones?"
+
 #warning "What if we aren't using the global memory manager?"
 
 

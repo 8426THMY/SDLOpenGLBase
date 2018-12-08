@@ -9,8 +9,6 @@
 
 #include "utilTypes.h"
 
-#include "vector.h"
-
 #include "vec3.h"
 #include "quat.h"
 #include "mat4.h"
@@ -110,7 +108,7 @@ void skeleAnimStateInit(skeleAnimState *animState);
 void skeleAnimInstInit(skeletonAnimInst *animInst);
 void skeleObjInit(skeletonObject *skeleObj, skeleton *skele);
 
-/** Loading functions when? **/
+return_t skeleAnimLoadSMD(skeletonAnim *skeleAnim, const char *skeleAnimName);
 
 void boneStateAddTransform(const boneState *b1, const boneState *b2, boneState *out);
 void boneStateConvertToMat4(const boneState *b, mat4 *out);
@@ -128,12 +126,6 @@ void skeleAnimDelete(skeletonAnim *anim);
 void skeleAnimStateDelete(void *s);
 void skeleAnimInstDelete(skeletonAnimInst *animInst);
 void skeleObjDelete(skeletonObject *skeleObj);
-
-
-size_t skeleAnimLoadSMD(const char *skeleAnimName);
-
-
-extern vector loadedSkeleAnims;
 
 
 /*
