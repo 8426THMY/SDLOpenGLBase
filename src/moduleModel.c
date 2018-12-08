@@ -1,4 +1,4 @@
-#include "model.h"
+#include "moduleModel.h"
 
 
 memoryPool *modelManager;
@@ -12,7 +12,8 @@ return_t moduleModelSetup(){
 	//can allocate enough memory for our manager
 	//and the error object can be setup correctly.
 	return(
-		modelManager = memoryManagerGlobalAlloc(MODEL_BASE_MEMORY + sizeof(modelManager)) &&
+		(modelManager = memoryManagerGlobalAlloc(memPoolMemoryForBlocks(MEMORY_MAX_MODELS, sizeof(model)) + sizeof(*modelManager))) != NULL &&
+		memPoolInit(modelManager, modelManager + sizeof(*modelManager), MEMORY_MAX_MODELS, sizeof(model)) &&
 		modelSetupError()
 	);
 }

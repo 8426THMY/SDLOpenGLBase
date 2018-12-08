@@ -4,8 +4,7 @@
 
 #define MODULETEXTURE
 
-#define MODULETEXTURE_SETUP_FAIL     1
-#define MODULETEXTURE_CONFIGURE_FAIL 1
+#define MODULETEXTURE_SETUP_FAIL 1
 
 
 #include "utilTypes.h"
@@ -22,6 +21,9 @@ texture *moduleTextureAlloc();
 void moduleTextureFree(texture *tex);
 
 void moduleTextureCleanup();
+
+
+texture *moduleTextureFind(const char *name);
 
 
 extern memoryPool *textureManager;

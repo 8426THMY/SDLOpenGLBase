@@ -79,7 +79,7 @@ typedef struct skeleAnimState {
 	//How far we are through the blend.
 	float blendTime;
 
-	//Stores which the I.D. of the animation bone that each entity bone relates to.
+	//Stores which the ID of the animation bone that each entity bone relates to.
 	//If the lookup is a NULL pointer, the animation uses the same skeleton as the entity.
 	size_t *lookup;
 

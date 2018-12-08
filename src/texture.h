@@ -29,4 +29,7 @@ void textureDelete(texture *tex);
 size_t textureFindNameIndex(const char *name);
 
 
+extern texture errorTex;
+
+
 #endif

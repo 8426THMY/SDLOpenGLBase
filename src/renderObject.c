@@ -10,7 +10,7 @@ vector allRenderObjects;
 
 
 void renderObjStateInit(renderObjState *objState, const size_t mdlPos){
-	transformStateInit(&objState->transform);
+	/*transformStateInit(&objState->transform);
 
 	//If the model we want to use has been loaded, use it!
 	if(mdlPos < loadedModels.size){
@@ -26,7 +26,7 @@ void renderObjStateInit(renderObjState *objState, const size_t mdlPos){
 	texGroupAnimInstSetAnim(&objState->texGroup, 0);
 
 	objState->skeleObj = malloc(sizeof(*objState->skeleObj));
-	skeleObjInit(objState->skeleObj, &objModel->skele);
+	skeleObjInit(objState->skeleObj, &objModel->skele);*/
 }
 
 /** We'll be able to remove the vector eventually. **/
@@ -84,12 +84,12 @@ void renderObjStateDraw(const renderObjState *objState, const vec3 *camPos, cons
 	/** This stuff should be moved outside of this function! **/
 	glActiveTexture(GL_TEXTURE0);
 	//Bind the texture we're using!
-	textureGroup *tempTexGroup = (textureGroup *)vectorGet(&loadedTextureGroups, objState->texGroup.texGroupPos);
-	glBindTexture(GL_TEXTURE_2D, texGroupGetFrame(tempTexGroup, objState->texGroup.animData.currentAnim, objState->texGroup.animData.currentFrame, shaderProgram->uvOffsetsID));
+	/*textureGroup *tempTexGroup = (textureGroup *)vectorGet(&loadedTextureGroups, objState->texGroup.texGroupPos);
+	glBindTexture(GL_TEXTURE_2D, texGroupGetFrame(tempTexGroup, objState->texGroup.animData.currentAnim, objState->texGroup.animData.currentFrame, shaderProgram->uvOffsetsID));*/
 
 	//Bind the vertex array object for the model!
-	model *tempModel = (model *)vectorGet(&loadedModels, objState->mdlPos);
-	glBindVertexArray(tempModel->vertexArrayID);
+	/*model *tempModel = (model *)vectorGet(&loadedModels, objState->mdlPos);
+	glBindVertexArray(tempModel->vertexArrayID);*/
 
 
 	//We need to convert bone information to matrices so we can send them to the shader!
@@ -144,7 +144,7 @@ void renderObjStateDraw(const renderObjState *objState, const vec3 *camPos, cons
 
 
 	//Draw the model!
-	glDrawElements(GL_TRIANGLES, tempModel->totalIndices, GL_UNSIGNED_INT, 0);
+	//glDrawElements(GL_TRIANGLES, tempModel->totalIndices, GL_UNSIGNED_INT, 0);
 
 
 	/** This stuff should be moved outside of this function too! **/

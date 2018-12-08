@@ -2,9 +2,6 @@
 #define textureGroup_h
 
 
-#define TEXTUREGROUPMODULE
-
-
 #include <stdio.h>
 
 #define GLEW_STATIC
@@ -12,13 +9,13 @@
 
 #include "utilTypes.h"
 
-#include "vector.h"
 #include "animation.h"
+#include "texture.h"
 
 
 //Stores the data for a frame!
 typedef struct textureGroupFrame {
-	//The OpenGL I.D. of the texture used by this frame.
+	//The OpenGL ID of the texture used by this frame.
 	size_t texID;
 
 	//Various frame data.
@@ -54,11 +51,11 @@ typedef struct textureGroupAnimInst {
 
 
 void texGroupFrameInit(textureGroupFrame *texGroupFrame);
-return_t texGroupAnimInit(textureGroupAnim *texGroupAnim);
-return_t texGroupInit(textureGroup *texGroup);
+void texGroupAnimInit(textureGroupAnim *texGroupAnim);
+void texGroupInit(textureGroup *texGroup);
 void texGroupAnimInstInit(textureGroupAnimInst *animInst, const size_t texGroupPos);
 
-size_t texGroupLoad(const char *texGroupName);
+return_t texGroupLoad(textureGroup *texGroup, const char *texGroupName);
 
 void texGroupAnimInstSetAnim(textureGroupAnimInst *animInst, const size_t currentAnim);
 void texGroupAnimInstUpdateAnim(textureGroupAnimInst *animInst, const float time);
@@ -71,11 +68,7 @@ size_t texGroupFindAnimNameIndex(const textureGroup *texGroup, const char *name)
 size_t texGroupFindNameIndex(const char *name);
 
 
-return_t textureGroupModuleSetup();
-void textureGroupModuleCleanup();
-
-
-extern vector loadedTextureGroups;
+extern textureGroup errorTexGroup;
 
 
 #endif

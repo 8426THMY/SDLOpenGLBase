@@ -20,15 +20,15 @@
 #include "memoryManager.h"
 
 
-//By default, the error texture only has a name.
-//We need to set up the other data the hard way.
-static texture errorTex = {
-	.name = "error"
+//This defines a texture to use when we
+//cannot load the correct one. We can't
+//set up its image data here, however.
+texture errorTex = {
+	.name = "error",
+
+	.width = TEXTURE_ERROR_WIDTH,
+	.height = TEXTURE_ERROR_HEIGHT
 };
-
-
-//Forward-declare any helper functions!
-static GLenum createTextureFromPixels(const texture *tex, const void *pixels);
 
 
 #warning "What if we aren't using the global memory manager?"
@@ -45,9 +45,6 @@ void textureInit(texture *tex){
 
 //Load a texture using the image specified by "imgName".
 return_t textureLoad(texture *tex, const char *imgName){
-	return_t success = 0;
-
-
 	textureInit(tex);
 
 	//Find the full path for the texture!
@@ -96,9 +93,20 @@ return_t textureLoad(texture *tex, const char *imgName){
 
 
 		GLenum openGLError = glGetError();
-		//If there was an error, print an
-		//error message and delete the texture.
-		if(openGLError != GL_NO_ERROR){
+		//If we could set up the texture
+		//successfully, set its name!
+		if(openGLError == GL_NO_ERROR){
+			tex->name = memoryManagerGlobalRealloc(imgPath, imgNameLength + 1);
+			if(tex->name == NULL){
+				/** REALLOC FAILED **/
+			}
+			strcpy(tex->name, imgName);
+
+			return(1);
+
+		//Otherwise, print out what went
+		//wrong and delete the texture.
+		}else{
 			printf(
 				"Unable to create OpenGL texture!\n"
 				"Path: %s\n"
@@ -108,8 +116,6 @@ return_t textureLoad(texture *tex, const char *imgName){
 			);
 
 			textureDelete(tex);
-
-			success = 0;
 		}
 
 	//If we could not load the image, print an error message.
@@ -120,27 +126,12 @@ return_t textureLoad(texture *tex, const char *imgName){
 			"Error: %s\n",
 			imgPath, SDL_GetError()
 		);
-
-		success = 0;
 	}
 
-	//If we could set up the texture
-	//successfully, set its name!
-	if(success){
-		tex->name = memoryManagerGlobalRealloc(imgPath, imgNameLength + 1);
-		if(tex->name == NULL){
-			/** REALLOC FAILED **/
-		}
-		strcpy(tex->name, imgName);
-
-	//Otherwise, free the memory
-	//we used to store the path.
-	}else{
-		memoryManagerGlobalFree(imgPath);
-	}
+	memoryManagerGlobalFree(imgPath);
 
 
-	return(success);
+	return(0);
 }
 
 //Set up the error texture!
@@ -167,9 +158,6 @@ return_t textureSetupError(){
 	pixels[3] = 0xFFFFFF00;
 	pixels[4] = 0xFFFF0000;
 	pixels[5] = 0xFFFF00FF;
-
-	errorTex.width = TEXTURE_ERROR_WIDTH;
-	errorTex.height = TEXTURE_ERROR_HEIGHT;
 
 
 	//Create an OpenGL texture using our pixel data.

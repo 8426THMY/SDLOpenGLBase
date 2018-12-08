@@ -13,6 +13,7 @@
 #include "utilTypes.h"
 
 #include "skeleton.h"
+#include "moduleTextureGroup.h"
 
 
 typedef struct model {
@@ -24,8 +25,7 @@ typedef struct model {
 	size_t totalIndices;
 
 	skeleton skele;
-	//This is the position of the default textureGroup that the model should use.
-	size_t texGroupPos;
+	textureGroup *texGroup;
 } model;
 
 
@@ -36,6 +36,9 @@ return_t modelLoadSMD(model *mdl, const char *mdlName);
 return_t modelSetupError();
 
 void modelDelete(model *mdl);
+
+
+extern model errorMdl;
 
 
 #endif

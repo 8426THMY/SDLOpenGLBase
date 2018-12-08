@@ -3,14 +3,22 @@
 
 #include <stdlib.h>
 
+#include "memoryManager.h"
 
-return_t frameDataInit(animationFrameData *frameData){
+
+#warning "What if we aren't using the global memory manager?"
+
+
+//This is used by "error" objects
+//which require animation data.
+float defaultAnimTime = 0.f;
+
+
+void animFrameDataInit(animationFrameData *frameData){
 	frameData->playNum = 0;
 
 	frameData->time = NULL;
 	frameData->numFrames = 0;
-
-	return(1);
 }
 
 void animationInit(animationData *animData){
@@ -24,6 +32,7 @@ void animationInit(animationData *animData){
 }
 
 
+//Change the current animation!
 void animationSetAnim(animationData *animData, const size_t playNum, const size_t animNum){
 	animData->currentPlayNum = playNum;
 
@@ -137,17 +146,17 @@ float animationGetFrameProgress(const animationData *animData, const animationFr
 	if(frameData->time[frameData->numFrames - 1] > 0.f){
 		if(animData->currentFrame != 0){
 			return((animData->animTime - frameData->time[animData->currentFrame - 1]) / (frameData->time[animData->currentFrame] - frameData->time[animData->currentFrame - 1]));
-		}else{
-			return(animData->animTime / frameData->time[animData->currentFrame]);
 		}
+
+		return(animData->animTime / frameData->time[animData->currentFrame]);
 	}
 
 	return(0.f);
 }
 
 
-void frameDataClear(animationFrameData *frameData){
+void animFrameDataClear(animationFrameData *frameData){
 	if(frameData->time != NULL){
-		free(frameData->time);
+		memoryManagerGlobalFree(frameData->time);
 	}
 }

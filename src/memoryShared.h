@@ -16,14 +16,13 @@
 //this will round "block" up to "ALIGNMENT".
 #define memoryAlign(block) ((void *)((((uintptr_t)(block)) + MEMORY_FLAG_MASK) & MEMORY_DATA_MASK))
 
-//Return a pointer to the end of a memory region.
-#define memoryGetEnd(start, size) ((void *)(((byte_t *)(start)) + (size)))
 //Return the size of a memory region. All this really
-//does is subtracts the size of the footer from its size.
+//does is subtracts the size of the object from its size.
 #define memoryGetRegionSize(size) ((size) - sizeof(memoryRegion))
-//Return a pointer to the pool's "region" element.
-//This assumes that "size" includes the actual region.
-#define memoryGetRegion(start, size) ((memoryRegion *)(memoryGetRegionSize(memoryGetEnd(start, size))))
+//Return a pointer to a memory region object using the total size of the region.
+#define memoryGetRegionFromSize(start, size)           ((memoryRegion *)(((byte_t *)(start)) + (size)))
+//Return a pointer to a memory region object using the number of blocks in the region.
+#define memoryGetRegionFromBlocks(start, blocks, size) ((memoryRegion *)(((byte_t *)(start)) + (blocks) * (size)))
 //Return the amount of memory required for a region of "size" bytes.
 #define memoryGetRequiredSize(size) ((size) + sizeof(memoryRegion))
 

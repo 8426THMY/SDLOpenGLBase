@@ -10,15 +10,28 @@
 
 
 #ifndef MEMFREELIST_MEMORY_LEAN
+
 #define MEMFREELIST_BLOCK_HEADER_SIZE ((uintptr_t)memoryAlign(sizeof(void *)))
+//Return the minimum block size for an element of "size" bytes.
+#define memFreeListGetBlockSize(size) ((size_t)memoryAlign( \
+	((size) > MEMFREELIST_BLOCK_HEADER_SIZE) ? \
+	(MEMFREELIST_BLOCK_HEADER_SIZE + (size)) : \
+	MEMFREELIST_BLOCK_HEADER_SIZE \
+))
+
 #else
+
 #define MEMFREELIST_BLOCK_HEADER_SIZE sizeof(void *)
+//Return the minimum block size for an element of "size" bytes.
+#define memFreeListGetBlockSize(size) ( \
+	((size) > MEMFREELIST_BLOCK_HEADER_SIZE) ? \
+	(MEMFREELIST_BLOCK_HEADER_SIZE + (size)) : \
+	MEMFREELIST_BLOCK_HEADER_SIZE \
+)
+
 #endif
 
-//Return the minimum block size for an element of "size" bytes.
-#define memFreeListGetBlockSize(size) (((size) > MEMFREELIST_BLOCK_HEADER_SIZE) ? \
-                                      (size_t)memoryAlign(MEMFREELIST_BLOCK_HEADER_SIZE + (size)) : \
-                                      (size_t)memoryAlign(MEMFREELIST_BLOCK_HEADER_SIZE))
+
 //Return the amount of memory required
 //for "num" many blocks of "size" bytes.
 #define memFreeListMemoryForBlocks(num, size) memoryGetRequiredSize((num) * memFreeListGetBlockSize(size))
@@ -41,15 +54,17 @@ typedef struct memoryFreeList {
 } memoryFreeList;
 
 
-void *memFreeListInit(memoryFreeList *freeList, void *memory, const size_t memorySize, const size_t blockSize);
+void *memFreeListInit(memoryFreeList *freeList, void *memory, const size_t numBlocks, const size_t blockSize);
 
 void *memFreeListAlloc(memoryFreeList *freeList);
 
 void memFreeListFree(memoryFreeList *freeList, void *data);
 
-void *memFreeListExtend(memoryFreeList *freeList, memoryRegion *region, void *memory, const size_t memorySize);
-void memFreeListClearRegion(memoryFreeList *freeList, memoryRegion *region);
+void memFreeListClearRegion(memoryFreeList *freeList, memoryRegion *region, void *next);
+void memFreeListClearLastRegion(memoryFreeList *freeList, memoryRegion *region);
 void memFreeListClear(memoryFreeList *freeList);
+
+void *memFreeListExtend(memoryFreeList *freeList, void *memory, const size_t numBlocks);
 
 void memFreeListDelete(memoryFreeList *freeList);
 

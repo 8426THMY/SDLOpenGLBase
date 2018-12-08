@@ -4,6 +4,8 @@
 #include "programSettings.h"
 
 #include "utilString.h"
+
+
 #warning "Store the skeleObject normally. You need to find a way to indicate that two animations are blending that works when you copy to the next state!"
 #warning "We still need to do animation blending and create bone lookups in case the animation's bones don't match the model's skeleton's (such as with the Scout)."
 vector loadedSkeleAnims;
@@ -75,7 +77,7 @@ void skeleInitSet(skeleton *skele, char *name, bone *bones, const size_t numBone
 void skeleAnimInit(skeletonAnim *anim){
 	anim->name = NULL;
 
-	frameDataInit(&anim->frameData);
+	animFrameDataInit(&anim->frameData);
 
 	anim->boneNames = NULL;
 	anim->frames = NULL;
@@ -322,7 +324,7 @@ void skeleAnimDelete(skeletonAnim *anim){
 		free(anim->name);
 	}
 
-	frameDataClear(&anim->frameData);
+	animFrameDataClear(&anim->frameData);
 
 	if(anim->boneNames != NULL){
 		size_t i;

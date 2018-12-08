@@ -9,20 +9,35 @@
 #include "memoryShared.h"
 
 
-#ifndef MEMSINGLELIST_MEMORY_LEAN
-#define MEMSINGLELIST_BLOCK_HEADER_SIZE ((uintptr_t)memoryAlign(sizeof(void *)))
-#else
-#define MEMSINGLELIST_BLOCK_HEADER_SIZE sizeof(void *)
-#endif
-
 #define MEMSINGLELIST_BLOCK_FREE_FLAG_SIZE MEMSINGLELIST_BLOCK_HEADER_SIZE
 #define MEMSINGLELIST_BLOCK_FREE_NEXT_SIZE sizeof(void *)
 #define MEMSINGLELIST_BLOCK_USED_NEXT_SIZE MEMSINGLELIST_BLOCK_HEADER_SIZE
 
+#ifndef MEMSINGLELIST_MEMORY_LEAN
+
+#define MEMSINGLELIST_BLOCK_HEADER_SIZE ((uintptr_t)memoryAlign(sizeof(void *)))
+#define MEMSINGLELIST_BLOCK_MIN_SIZE (MEMSINGLELIST_BLOCK_HEADER_SIZE + MEMSINGLELIST_BLOCK_FREE_NEXT_SIZE)
 //Return the minimum block size for an element of "size" bytes.
-#define memSingleListGetBlockSize(size) (((size) > MEMSINGLELIST_BLOCK_FREE_NEXT_SIZE) ? \
-                                        (size_t)memoryAlign(MEMSINGLELIST_BLOCK_HEADER_SIZE + (size)) : \
-                                        (size_t)memoryAlign(MEMSINGLELIST_BLOCK_HEADER_SIZE + MEMSINGLELIST_BLOCK_FREE_NEXT_SIZE))
+#define memSingleListGetBlockSize(size) ((size_t)memoryAlign( \
+	((size) > MEMSINGLELIST_BLOCK_FREE_NEXT_SIZE) ? \
+	(MEMSINGLELIST_BLOCK_HEADER_SIZE + (size)) : \
+	MEMSINGLELIST_BLOCK_MIN_SIZE \
+))
+
+#else
+
+#define MEMSINGLELIST_BLOCK_HEADER_SIZE sizeof(void *)
+#define MEMSINGLELIST_BLOCK_MIN_SIZE (MEMSINGLELIST_BLOCK_HEADER_SIZE + MEMSINGLELIST_BLOCK_FREE_NEXT_SIZE)
+//Return the minimum block size for an element of "size" bytes.
+#define memSingleListGetBlockSize(size) ( \
+	((size) > MEMSINGLELIST_BLOCK_FREE_NEXT_SIZE) ? \
+	(MEMSINGLELIST_BLOCK_HEADER_SIZE + (size)) : \
+	MEMSINGLELIST_BLOCK_MIN_SIZE \
+)
+
+#endif
+
+
 //Return the amount of memory required
 //for "num" many blocks of "size" bytes.
 #define memSingleListMemoryForBlocks(num, size) memoryGetRequiredSize((num) * memSingleListGetBlockSize(size))
@@ -45,7 +60,7 @@ typedef struct memorySingleList {
 } memorySingleList;
 
 
-void *memSingleListInit(memorySingleList *singleList, void *memory, const size_t memorySize, const size_t blockSize);
+void *memSingleListInit(memorySingleList *singleList, void *memory, const size_t numBlocks, const size_t blockSize);
 
 void *memSingleListAlloc(memorySingleList *singleList);
 void *memSingleListPrepend(memorySingleList *singleList, void **start);
@@ -54,11 +69,12 @@ void *memSingleListInsertBefore(memorySingleList *singleList, void **start, void
 void *memSingleListInsertAfter(memorySingleList *singleList, void **start, void *data);
 
 void memSingleListFree(memorySingleList *singleList, void **start, void *data, void *prevData);
-void memSingleListFreeInvalidate(memorySingleList *singleList, memoryRegion *region, void **start, void *data, void *prevData);
 
-void *memSingleListExtend(memorySingleList *singleList, memoryRegion *region, void *memory, const size_t memorySize);
-void memSingleListClearRegion(memorySingleList *singleList, memoryRegion *region, uintptr_t flag);
+void memSingleListClearRegion(memorySingleList *singleList, memoryRegion *region, const byte_t flag, void *next);
+void memSingleListClearLastRegion(memorySingleList *singleList, memoryRegion *region);
 void memSingleListClear(memorySingleList *singleList);
+
+void *memSingleListExtend(memorySingleList *singleList, void *memory, const size_t numBlocks);
 
 void memSingleListDelete(memorySingleList *singleList);
 

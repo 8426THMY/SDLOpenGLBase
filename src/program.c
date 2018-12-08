@@ -1,8 +1,7 @@
 #include "program.h"
 
 
-#define MODULE_SETUP_SUCCESS     0
-#define MODULE_CONFIGURE_SUCCESS 0
+#define MODULE_SETUP_SUCCESS 0
 
 
 #include <stdio.h>
@@ -13,10 +12,12 @@
 #include "vector.h"
 #include "programSettings.h"
 
-#include "texture.h"
-#include "textureGroup.h"
-#include "model.h"
-#include "renderObject.h"
+
+#include "moduleTexture.h"
+#include "moduleTextureGroup.h"
+#include "moduleSkeleton.h"
+#include "moduleModel.h"
+//#include "moduleRenderObject.h"
 
 
 //Forward-declare any helper functions!
@@ -32,7 +33,7 @@ static void cleanupModules();
 static void initResources();
 
 
-#warning "
+#warning "This is just used for testing previous states."
 static size_t renderState = 0;
 
 
@@ -53,7 +54,13 @@ return_t programInit(program *prg){
 	fpsInit(&prg->framerate, UPDATE_RATE, FRAME_RATE);
 
 
-	return(initLibs(prg) && setupModules() && configureModules() && initResources(prg));
+	if(initLibs(prg) && setupModules() == MODULE_SETUP_SUCCESS){
+		initResources(prg);
+
+		return(1);
+	}
+
+	return(0);
 }
 
 void programLoop(program *prg){
@@ -208,7 +215,7 @@ static void updateCameras(program *prg){
 }
 
 static void updateRenderObjects(program *prg){
-	size_t a;
+	/*size_t a;
 	//Create a new state for all of our renderObjects!
 	for(a = 0; a < allRenderObjects.size; ++a){
 		renderObject *currentObj = ((renderObject *)vectorGet(&allRenderObjects, a));
@@ -233,18 +240,18 @@ static void updateRenderObjects(program *prg){
 				skeleObjGenerateRenderState(currentState->skeleObj);
 			}
 		}
-	}
+	}*/
 
 
 	//Update the models' positions and rotations!
 	/** Temporary if statement for temporary code. Don't want the program to crash, do we? **/
-	if(allRenderObjects.size > 2){
+	/*if(allRenderObjects.size > 2){
 		renderObjState *currentObj = ((renderObject *)vectorGet(&allRenderObjects, 1))->states[0];
 		transformStateAddRotEulerDeg(&currentObj->transform, 0.f, 0.f, 2.f, prg->framerate.updateDelta);
 
 		currentObj = ((renderObject *)vectorGet(&allRenderObjects, 2))->states[0];
 		transformStateAddRotEulerDeg(&currentObj->transform, 2.f, 2.f, 2.f, prg->framerate.updateDelta);
-	}
+	}*/
 }
 
 /** Don't forget, some modules may not always be loaded! **/
@@ -272,14 +279,14 @@ static void render(program *prg){
 		/*mat4 viewProjectionMatrix = prg->projectionMatrix;
 		cameraStateGenerateViewMatrix((cameraState *)prg->cam.states[renderState], prg->framerate.renderDelta, &viewProjectionMatrix);*/
 
-		size_t i;
+		/*size_t i;
 		//Draw our objects!
 		for(i = 0; i < allRenderObjects.size; ++i){
 			renderObject *currentObj = (renderObject *)vectorGet(&allRenderObjects, i);
 			if(renderState < currentObj->numStates && currentObj->states[renderState] != NULL){
 				renderObjStateDraw(currentObj->states[renderState], NULL, &viewProjectionMatrix, &prg->shaderProgram, prg->framerate.renderDelta);
 			}
-		}
+		}*/
 	}
 
 
@@ -356,21 +363,63 @@ static return_t initLibs(program *prg){
 
 #warning "We're testing physics now, so this stuff isn't necessary."
 static void initResources(){
-	//
+	/*vectorInit(&loadedSkeleAnims, sizeof(skeletonAnim));
+	skeleAnimLoadSMD("soldier_animations_anims\\jump_float_PRIMARY.smd");
+	//skeleAnimLoadSMD("soldier_animations_anims\\selectionMenu_Anim0l.smd");
+	//skeleAnimLoadSMD("soldier_animations_anims\\competitive_winnerstate_idle.smd");
+	//skeleAnimLoadSMD("scout_animations_anims\\a_runN_PRIMARY.smd");
+	//skeleAnimLoadSMD("scout_animations_anims\\selectionMenu_Anim01.smd");
+	//Someday, this function won't need to exist.
+	//Load all of the models we're using!
+	modelLoad("drNeoCortex.obj");
+	modelLoad("nTrance.obj");
+	modelLoad("neoTwin.obj");
+	modelLoad("cubeQuads.obj");
+	modelLoadSMD("soldier_reference.smd");*/
+	/** The Scout's arms don't work properly because the model's **/
+	/** skeleton has more bones than the animations' skeletons.  **/
+	//modelLoadSMD("scout_reference.smd");
+
+	//Create renderObjects to represent the models we want to draw!
+	/*renderObjCreate(5);
+	renderObjState *currentObj = ((renderObject *)vectorGet(&allRenderObjects, allRenderObjects.size - 1))->states[0];
+	if(loadedSkeleAnims.size > 0){
+		skeleObjAddAnim(currentObj->skeleObj, (skeletonAnim *)vectorGet(&loadedSkeleAnims, 0));
+	}
+	transformStateSetPosX(&currentObj->transform, -2.f);
+
+
+	renderObjCreate(2);
+	currentObj = ((renderObject *)vectorGet(&allRenderObjects, allRenderObjects.size - 1))->states[0];
+	transformStateSetPosX(&currentObj->transform, 2.f);
+
+	renderObjCreate(3);
+	currentObj = ((renderObject *)vectorGet(&allRenderObjects, allRenderObjects.size - 1))->states[0];
+	transformStateSetPosY(&currentObj->transform, -2.f);*/
 }
 
 //Set up the allocators for our modules.
+#warning "What if we aren't using the global memory manager?"
 static return_t setupModules(){
+	puts("Beginning setup...\n");
+	memoryManagerGlobalInit(MEMORY_HEAPSIZE);
+	memTreePrintAllSizes(&memManager);
+
 	#ifdef MODULETEXTURE
 	if(!moduleTextureSetup()){
 		return(MODULETEXTURE_SETUP_FAIL);
 	}
 	#endif
-	/*#ifdef TEXTUREGROUPMODULE
-	if(!textureGroupModuleSetup()){
-		return(0);
+	#ifdef MODULETEXGROUP
+	if(!moduleTexGroupSetup()){
+		return(MODULETEXGROUP_SETUP_FAIL);
 	}
-	#endif*/
+	#endif
+	#ifdef MODULESKELETON
+	if(!moduleSkeletonSetup()){
+		return(MODULESKELETON_SETUP_FAIL);
+	}
+	#endif
 	#ifdef MODULEMODEL
 	if(!moduleModelSetup()){
 		return(MODULEMODEL_SETUP_FAIL);
@@ -381,21 +430,33 @@ static return_t setupModules(){
 		return(MODULERENDEROBJ_SETUP_FAIL);
 	}
 	#endif
+	memTreePrintAllSizes(&memManager);
+	puts("Setup complete!\n");
 
 	return(MODULE_SETUP_SUCCESS);
 }
 
 static void cleanupModules(){
-	#ifdef MODULETEXTURE
-	moduleTextureCleanup();
+	puts("Beginning cleanup...\n");
+	memTreePrintAllSizes(&memManager);
+
+	#ifdef MODULERENDEROBJ
+	moduleRenderObjCleanup();
 	#endif
-	/*#ifdef TEXTUREGROUPMODULE
-	textureGroupModuleCleanup();
-	#endif*/
 	#ifdef MODULEMODEL
 	moduleModelCleanup();
 	#endif
-	#ifdef MODULERENDEROBJECT
-	moduleRenderObjCleanup();
+	#ifdef MODULESKELETON
+	moduleSkeletonCleanup();
 	#endif
+	#ifdef MODULETEXGROUP
+	moduleTexGroupCleanup();
+	#endif
+	#ifdef MODULETEXTURE
+	moduleTextureCleanup();
+	#endif
+
+	memTreePrintAllSizes(&memManager);
+	memoryManagerGlobalDelete();
+	puts("Cleanup complete!\n");
 }

@@ -9,21 +9,36 @@
 #include "memoryShared.h"
 
 
-#ifndef MEMDOUBLELIST_MEMORY_LEAN
-#define MEMDOUBLELIST_BLOCK_HEADER_SIZE ((uintptr_t)memoryAlign(sizeof(void *) + sizeof(void *)))
-#else
-#define MEMDOUBLELIST_BLOCK_HEADER_SIZE (sizeof(void *) + sizeof(void *))
-#endif
-
 #define MEMDOUBLELIST_BLOCK_FREE_FLAG_SIZE MEMDOUBLELIST_BLOCK_HEADER_SIZE
 #define MEMDOUBLELIST_BLOCK_FREE_NEXT_SIZE sizeof(void *)
 #define MEMDOUBLELIST_BLOCK_USED_NEXT_SIZE sizeof(void *)
 #define MEMDOUBLELIST_BLOCK_USED_PREV_SIZE (MEMDOUBLELIST_BLOCK_HEADER_SIZE - MEMDOUBLELIST_BLOCK_USED_NEXT_SIZE)
 
+#ifndef MEMDOUBLELIST_MEMORY_LEAN
+
+#define MEMDOUBLELIST_BLOCK_HEADER_SIZE ((uintptr_t)memoryAlign(sizeof(void *) + sizeof(void *)))
+#define MEMDOUBLELIST_BLOCK_MIN_SIZE (MEMDOUBLELIST_BLOCK_HEADER_SIZE + MEMDOUBLELIST_BLOCK_FREE_NEXT_SIZE)
 //Return the minimum block size for an element of "size" bytes.
-#define memDoubleListGetBlockSize(size) (((size) > MEMDOUBLELIST_BLOCK_FREE_NEXT_SIZE) ? \
-                                        (size_t)memoryAlign(MEMDOUBLELIST_BLOCK_HEADER_SIZE + (size)) : \
-                                        (size_t)memoryAlign(MEMDOUBLELIST_BLOCK_HEADER_SIZE + MEMDOUBLELIST_BLOCK_FREE_NEXT_SIZE))
+#define memDoubleListGetBlockSize(size) ((size_t)memoryAlign( \
+	((size) > MEMDOUBLELIST_BLOCK_FREE_NEXT_SIZE) ? \
+	(MEMDOUBLELIST_BLOCK_HEADER_SIZE + (size)) : \
+	MEMDOUBLELIST_BLOCK_MIN_SIZE \
+))
+
+#else
+
+#define MEMDOUBLELIST_BLOCK_HEADER_SIZE (sizeof(void *) + sizeof(void *))
+#define MEMDOUBLELIST_BLOCK_MIN_SIZE (MEMDOUBLELIST_BLOCK_HEADER_SIZE + MEMDOUBLELIST_BLOCK_FREE_NEXT_SIZE)
+//Return the minimum block size for an element of "size" bytes.
+#define memDoubleListGetBlockSize(size) ( \
+	((size) > MEMDOUBLELIST_BLOCK_FREE_NEXT_SIZE) ? \
+	(MEMDOUBLELIST_BLOCK_HEADER_SIZE + (size)) : \
+	MEMDOUBLELIST_BLOCK_MIN_SIZE \
+)
+
+#endif
+
+
 //Return the amount of memory required
 //for "num" many blocks of "size" bytes.
 #define memDoubleListMemoryForBlocks(num, size) memoryGetRequiredSize((num) * memDoubleListGetBlockSize(size))
@@ -46,7 +61,7 @@ typedef struct memoryDoubleList {
 } memoryDoubleList;
 
 
-void *memDoubleListInit(memoryDoubleList *doubleList, void *memory, const size_t memorySize, const size_t blockSize);
+void *memDoubleListInit(memoryDoubleList *doubleList, void *memory, const size_t numBlocks, const size_t blockSize);
 
 void *memDoubleListAlloc(memoryDoubleList *doubleList);
 void *memDoubleListPrepend(memoryDoubleList *doubleList, void **start);
@@ -55,11 +70,12 @@ void *memDoubleListInsertBefore(memoryDoubleList *doubleList, void **start, void
 void *memDoubleListInsertAfter(memoryDoubleList *doubleList, void **start, void *data);
 
 void memDoubleListFree(memoryDoubleList *doubleList, void **start, void *data);
-void memDoubleListFreeInvalidate(memoryDoubleList *doubleList, memoryRegion *region, void **start, void *data);
 
-void *memDoubleListExtend(memoryDoubleList *doubleList, memoryRegion *region, void *memory, const size_t memorySize);
-void memDoubleListClearRegion(memoryDoubleList *doubleList, memoryRegion *region, uintptr_t flag);
+void memDoubleListClearRegion(memoryDoubleList *doubleList, memoryRegion *region, const byte_t flag, void *next);
+void memDoubleListClearLastRegion(memoryDoubleList *doubleList, memoryRegion *region);
 void memDoubleListClear(memoryDoubleList *doubleList);
+
+void *memDoubleListExtend(memoryDoubleList *doubleList, void *memory, const size_t numBlocks);
 
 void memDoubleListDelete(memoryDoubleList *doubleList);
 

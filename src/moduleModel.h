@@ -4,8 +4,7 @@
 
 #define MODULEMODEL
 
-#define MODULEMODEL_SETUP_FAIL     2
-#define MODULEMODEL_CONFIGURE_FAIL 2
+#define MODULEMODEL_SETUP_FAIL 4
 
 
 #include "utilTypes.h"

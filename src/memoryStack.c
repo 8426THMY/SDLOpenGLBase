@@ -7,9 +7,12 @@
 #define MEMSTACK_BLOCK_FOOTER_SIZE sizeof(size_t)
 
 //Get the footer of the next block in the stack.
-#define MEMSTACK_BLOCK_GET_NEXT_MEMSTACK_BLOCK_FOOTER(block, size) ((size_t *)(((byte_t *)block) + size))
+#define memStackBlockGetNextBlockFooter(block, size) ((size_t *)(((byte_t *)block) + size))
 //Get the footer of the last block in the stack.
-#define MEMSTACK_BLOCK_GET_PREV_MEMSTACK_BLOCK_FOOTER(top) ((size_t *)(((byte_t *)top) - MEMSTACK_BLOCK_FOOTER_SIZE))
+#define memStackBlockGetPrevBlockFooter(top) ((size_t *)(((byte_t *)top) - MEMSTACK_BLOCK_FOOTER_SIZE))
+
+
+#warning "What if the beginning or end of a memory region is not aligned?"
 
 
 void *memStackInit(memoryStack *stack, void *memory, const size_t stackSize){
@@ -28,7 +31,7 @@ void *memStackAlloc(memoryStack *stack, const size_t blockSize){
 	const size_t actualBlockSize = blockSize + MEMSTACK_BLOCK_FOOTER_SIZE;
 	if(stack->size >= actualBlockSize){
 		//Store this block's size in its footer.
-		*MEMSTACK_BLOCK_GET_NEXT_MEMSTACK_BLOCK_FOOTER(newBlock, blockSize) = blockSize;
+		*memStackBlockGetNextBlockFooter(newBlock, blockSize) = blockSize;
 
 		//Advance the stack's top pointer and update its size.
 		stack->top = newBlock + actualBlockSize;
@@ -45,7 +48,7 @@ void *memStackAlloc(memoryStack *stack, const size_t blockSize){
 //Free the block at the top of the stack!
 void memStackFreeLast(memoryStack *stack){
 	//Get a pointer to the last block's footer and get its size.
-	size_t *lastBlockFooter = MEMSTACK_BLOCK_GET_PREV_MEMSTACK_BLOCK_FOOTER(stack->top);
+	size_t *lastBlockFooter = memStackBlockGetPrevBlockFooter(stack->top);
 	const size_t lastBlockSize = *lastBlockFooter;
 
 	//Move the top of the stack back and update its size.

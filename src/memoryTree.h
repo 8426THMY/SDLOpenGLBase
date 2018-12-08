@@ -4,6 +4,7 @@
 
 #include <string.h>
 
+#include "memorySettings.h"
 #include "memoryShared.h"
 
 
@@ -12,9 +13,9 @@
 #define MEMTREE_BLOCK_MIN_SIZE (MEMTREE_BLOCK_HEADER_SIZE + MEMTREE_BLOCK_MIN_BODY_SIZE)
 
 //Return the minimum block size for an element of "size" bytes.
-#define memTreeGetBlockSize(size) (((size) > MEMTREE_BLOCK_MIN_BODY_SIZE) ? \
-                                  ((size_t)memoryAlign(MEMTREE_BLOCK_HEADER_SIZE + (size))) : \
-                                  MEMTREE_BLOCK_MIN_SIZE)
+#define memTreeGetBlockSize(size) ((size_t)memoryAlign( \
+	((size) > MEMTREE_BLOCK_MIN_BODY_SIZE) ? (size) : MEMTREE_BLOCK_MIN_BODY_SIZE \
+))
 //Return the amount of memory required for a
 //memory tree with "size" many usable bytes.
 #define memTreeMemoryForSize(size) memoryGetRequiredSize(size)
@@ -35,6 +36,9 @@
 /* first or last block in the linked list. The parent    */
 /* pointers stored in tree nodes are also aligned like   */
 /* this, allowing us to store their colour.              */
+/* Note that the size includes everything after the list */
+/* node, so any tree node, filling or data. It does not  */
+/* include the size of the list node itself.             */
 
 /** It may be worthwhile to investigate solutions such as TLSF. **/
 
@@ -81,10 +85,12 @@ void *memTreeInit(memoryTree *tree, void *memory, const size_t memorySize);
 void *memTreeAlloc(memoryTree *tree, const size_t blockSize);
 void *memTreeRealloc(memoryTree *tree, void *block, const size_t blockSize);
 
-memTreeNode *memTreeSetupMemory(void *memory, const size_t memorySize);
-void *memTreeExtend(memoryTree *tree, memoryRegion *region, void *memory, const size_t memorySize);
-
 void memTreeFree(memoryTree *tree, void *block);
+
+memTreeNode *memTreeClearRegion(void *memory, const size_t memorySize);
+void memTreeClear(memoryTree *tree, void *memory, const size_t memorySize);
+
+void *memTreeExtend(memoryTree *tree, void *memory, const size_t memorySize);
 
 void memTreeDelete(memoryTree *tree);
 
