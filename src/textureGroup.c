@@ -2,7 +2,7 @@
 
 
 #define TEXTUREGROUP_PATH_PREFIX        ".\\resource\\textures\\"
-#define TEXTUREGROUP_PATH_PREFIX_LENGTH sizeof(TEXTUREGROUP_PATH_PREFIX)
+#define TEXTUREGROUP_PATH_PREFIX_LENGTH (sizeof(TEXTUREGROUP_PATH_PREFIX) - 1)
 
 
 //These must be at least 1!
@@ -376,14 +376,17 @@ return_t texGroupLoad(textureGroup *texGroup, const char *texGroupName){
 					GLuint tempTexWidth;
 					GLuint tempTexHeight;
 
-					size_t a;
+					texture **startTex = &textures[tempStartTex];
+					texture **endTex = &textures[tempStartTex];
+					texture **lastTex = &textures[texturesSize];
 					//Loop through all the textures that we need to use!
-					for(a = tempStartTex; a <= tempEndTex; ++a){
+					for(; startTex <= endTex; ++startTex){
 						//If this texture is valid, get its ID, width and height!
-						if(a < texturesSize){
-							tempFrame.texID = textures[a]->id;
-							tempTexWidth    = textures[a]->width;
-							tempTexHeight   = textures[a]->height;
+						if(startTex < lastTex){
+							texture *currentTex = *startTex;
+							tempFrame.texID = currentTex->id;
+							tempTexWidth    = currentTex->width;
+							tempTexHeight   = currentTex->height;
 
 						//Otherwise, get the error texture's!
 						}else{
@@ -617,12 +620,12 @@ void texGroupDelete(textureGroup *texGroup){
 			memoryManagerGlobalFree(texGroup->name);
 		}
 
+		textureGroupAnim *curAnim = texGroup->texAnims;
 		//Delete the textureGroup's animations.
-		if(texGroup->texAnims != NULL && texGroup->texAnims != &defaultTexGroupAnim){
-			size_t i = texGroup->numAnims;
-			while(i > 0){
-				--i;
-				texGroupAnimDelete(&texGroup->texAnims[i]);
+		if(curAnim != NULL && curAnim != &defaultTexGroupAnim){
+			const textureGroupAnim *lastAnim = &texGroup->texAnims[texGroup->numAnims];
+			for(; curAnim < lastAnim; ++curAnim){
+				texGroupAnimDelete(curAnim);
 			}
 			memoryManagerGlobalFree(texGroup->texAnims);
 		}

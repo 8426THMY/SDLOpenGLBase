@@ -2,7 +2,7 @@
 
 
 #define MODEL_PATH_PREFIX        ".\\resource\\models\\"
-#define MODEL_PATH_PREFIX_LENGTH sizeof(MODEL_PATH_PREFIX)
+#define MODEL_PATH_PREFIX_LENGTH (sizeof(MODEL_PATH_PREFIX) - 1)
 
 
 //These must be at least 1!
@@ -251,11 +251,12 @@ return_t modelLoadOBJ(model *mdl, const char *mdlName){
 					memset(&tempVertex.boneWeights[1], 0.f, (MODEL_VERTEX_MAX_WEIGHTS - 1) * sizeof(tempVertex.boneWeights[0]));
 
 
+					const vertex *checkVertex = tempVertices;
 					size_t b;
 					//Check if this vertex already exists!
-					for(b = 0; b < tempVerticesSize; ++b){
+					for(b = 0; b < tempVerticesSize; ++b, ++checkVertex){
 						//Looks like it does, so we don't need to store it again!
-						if(vertexUnique(&tempVertices[b], &tempVertex) == 0){
+						if(vertexUnique(checkVertex, &tempVertex) == 0){
 							break;
 						}
 					}
@@ -654,13 +655,16 @@ return_t modelLoadSMD(model *mdl, const char *mdlName){
 
 									size_t parentPos = -1;
 									float totalWeight = 0.f;
+
+									size_t *curBoneID = tempVertex.boneIDs;
+									float *curBoneWeight = tempVertex.boneWeights;
 									size_t i;
 									//Load all of the links!
-									for(i = 0; i < numLinks; ++i){
+									for(i = 0; i < numLinks; ++i, ++curBoneID, ++curBoneWeight){
 										//Load the bone's ID!
-										tempVertex.boneIDs[i] = strtoul(tokPos, &tokPos, 10);
+										*curBoneID = strtoul(tokPos, &tokPos, 10);
 										//Make sure it exists!
-										if(tempVertex.boneIDs[i] > tempBonesSize){
+										if(*curBoneID > tempBonesSize){
 											printf(
 												"Error loading model!\n"
 												"Path: %s\n"
@@ -670,16 +674,16 @@ return_t modelLoadSMD(model *mdl, const char *mdlName){
 											);
 
 										//If we're loading the parent bone, remember its position!
-										}else if(tempVertex.boneIDs[i] == parentBoneID){
+										}else if(*curBoneID == parentBoneID){
 											parentPos = i;
 										}
 
 										//Load the bone's weights!
-										tempVertex.boneWeights[i] = strtod(tokPos, &tokPos);
-										totalWeight += tempVertex.boneWeights[i];
+										*curBoneWeight = strtod(tokPos, &tokPos);
+										totalWeight += *curBoneWeight;
 										//Make sure the total weight doesn't exceed 1!
 										if(totalWeight > 1.f){
-											tempVertex.boneWeights[i] -= totalWeight - 1.f;
+											*curBoneWeight -= totalWeight - 1.f;
 											totalWeight = 1.f;
 
 											++i;
@@ -692,8 +696,8 @@ return_t modelLoadSMD(model *mdl, const char *mdlName){
 										//If we never loaded the parent bone, see if we can add it!
 										if(parentPos == -1){
 											if(i < MODEL_VERTEX_MAX_WEIGHTS){
-												tempVertex.boneIDs[i] = parentBoneID;
-												tempVertex.boneWeights[i] = 0.f;
+												*curBoneID = parentBoneID;
+												*curBoneWeight = 0.f;
 												parentPos = i;
 												++i;
 
@@ -707,8 +711,8 @@ return_t modelLoadSMD(model *mdl, const char *mdlName){
 									}
 
 									//Make sure we fill the rest with invalid values so we know they aren't used.
-									memset(&tempVertex.boneIDs[i], -1, (MODEL_VERTEX_MAX_WEIGHTS - i) * sizeof(tempVertex.boneIDs[0]));
-									memset(&tempVertex.boneWeights[i], 0.f, (MODEL_VERTEX_MAX_WEIGHTS - i) * sizeof(tempVertex.boneWeights[0]));
+									memset(&curBoneID, -1, (MODEL_VERTEX_MAX_WEIGHTS - i) * sizeof(*tempVertex.boneIDs));
+									memset(&curBoneWeight, 0.f, (MODEL_VERTEX_MAX_WEIGHTS - i) * sizeof(*tempVertex.boneWeights));
 
 								//Otherwise, just bind it to the parent bone.
 								}else{
@@ -721,17 +725,18 @@ return_t modelLoadSMD(model *mdl, const char *mdlName){
 									);
 
 									tempVertex.boneIDs[0] = parentBoneID;
-									memset(&tempVertex.boneIDs[1], -1, (MODEL_VERTEX_MAX_WEIGHTS - 1) * sizeof(tempVertex.boneIDs[0]));
+									memset(&tempVertex.boneIDs[1], -1, (MODEL_VERTEX_MAX_WEIGHTS - 1) * sizeof(*tempVertex.boneIDs));
 									tempVertex.boneWeights[0] = 1.f;
-									memset(&tempVertex.boneWeights[1], 0.f, (MODEL_VERTEX_MAX_WEIGHTS - 1) * sizeof(tempVertex.boneWeights[0]));
+									memset(&tempVertex.boneWeights[1], 0.f, (MODEL_VERTEX_MAX_WEIGHTS - 1) * sizeof(*tempVertex.boneWeights));
 								}
 
 
+								const vertex *checkVertex = tempVertices;
 								size_t i;
 								//Check if this vertex already exists!
-								for(i = 0; i < tempVerticesSize; ++i){
+								for(i = 0; i < tempVerticesSize; ++i, ++checkVertex){
 									//Looks like it does, so we don't need to store it again!
-									if(vertexUnique(&tempVertices[i], &tempVertex) == 0){
+									if(vertexUnique(checkVertex, &tempVertex) == 0){
 										break;
 									}
 								}
@@ -989,11 +994,12 @@ return_t modelSetupError(){
 		memset(&tempVertex.boneWeights[1], 0.f, (MODEL_VERTEX_MAX_WEIGHTS - 1) * sizeof(tempVertex.boneWeights[0]));
 
 
+		const vertex *checkVertex = vertices;
 		size_t b;
 		//Check if this vertex already exists!
-		for(b = 0; b < verticesSize; ++b){
+		for(b = 0; b < verticesSize; ++b, ++checkVertex){
 			//Looks like it does, so we don't need to store it again!
-			if(vertexUnique(&vertices[b], &tempVertex) == 0){
+			if(vertexUnique(checkVertex, &tempVertex) == 0){
 				break;
 			}
 		}

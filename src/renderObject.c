@@ -95,21 +95,26 @@ void renderObjStateDraw(const renderObjState *objState, const vec3 *camPos, cons
 
 	//Generate the skeleton's state!
 	if(objState->skeleObj->numAnims > 0){
-		size_t i;
+		const boneState *curObjBone = objState->skeleObj->state;
+		mat4 *curBoneState = boneStates;
+		const boneState *lastObjBone = &curObjBone[objState->skeleObj->skele->numBones];
 		//Fill up the array!
-		for(i = 0; i < objState->skeleObj->skele->numBones; ++i){
-			boneStateConvertToMat4(&objState->skeleObj->state[i], &boneStates[i]);
+		for(; curObjBone < lastObjBone; ++curObjBone, ++curBoneState){
+			boneStateConvertToMat4(curObjBone, curBoneState);
 		}
 
+		curObjBone = &objState->skeleObj->state[1];
+		const bone *curSkeleBone = &objState->skeleObj->skele->bones[1];
+		lastObjBone = &curObjBone[objState->skeleObj->skele->numBones];
 		//Draw the object's skeleton!
-		for(i = 1; i < objState->skeleObj->skele->numBones; ++i){
-			vec3 curBone, parBone;
+		#warning "This is (obviously) temporary."
+		for(; curObjBone < lastObjBone; ++curObjBone, ++curSkeleBone){
+			const vec3 *parBone;
 			//Use bone states!
-			curBone = objState->skeleObj->state[i].pos;
-			if(objState->skeleObj->skele->bones[i].parent != -1){
-				parBone = objState->skeleObj->state[objState->skeleObj->skele->bones[i].parent].pos;
+			if(curSkeleBone->parent != -1){
+				parBone = &objState->skeleObj->state[curSkeleBone->parent].pos;
 			}else{
-				parBone = curBone;
+				parBone = &curObjBone->pos;
 			}
 
 			//Use matrices!
@@ -123,17 +128,19 @@ void renderObjStateDraw(const renderObjState *objState, const vec3 *camPos, cons
 			}*/
 
 			glBegin(GL_LINES);
-			glVertex3f(parBone.x, parBone.y, parBone.z);
-			glVertex3f(curBone.x, curBone.y, curBone.z);
+			glVertex3f(parBone->x, parBone->y, parBone->z);
+			glVertex3f(curObjBone->pos.x, curObjBone->pos.y, curObjBone->pos.z);
 			glEnd();
 		}
 
 	//This is temporary.
 	}else{
-		size_t i;
+		const boneState *curObjState = objState->skeleObj->state;
+		mat4 *curBoneState = boneStates;
+		const boneState *lastObjState = &objState->skeleObj->state[objState->skeleObj->skele->numBones];
 		//Fill up the array!
-		for(i = 0; i < objState->skeleObj->skele->numBones; ++i){
-			boneStateConvertToMat4(&objState->skeleObj->skele->bones[i].state, &boneStates[i]);
+		for(; curObjState < lastObjState; ++curObjState, ++curBoneState){
+			boneStateConvertToMat4(curObjState, curBoneState);
 		}
 	}
 
@@ -162,10 +169,11 @@ void renderObjStateShift(renderObject *renderObj){
 	interpVec3MoveToNextState(&currentState->transform.scale);
 
 
-	size_t i;
+	skeletonAnimInst *curAnim = currentState->skeleObj->anims;
+	const skeletonAnimInst *lastAnim = &currentState->skeleObj->anims[currentState->skeleObj->numAnims];
 	//We should probably have a function that updates prepares animations for the next update.
-	for(i = 0; i < currentState->skeleObj->numAnims; ++i){
-		stateObjShift(&currentState->skeleObj->anims[i], sizeof(skeleAnimState), NULL, NULL);
+	for(; curAnim < lastAnim; ++curAnim){
+		stateObjShift(curAnim, sizeof(skeleAnimState), NULL, NULL);
 	}
 }
 

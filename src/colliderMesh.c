@@ -23,11 +23,11 @@ static float edgeDistance(const vec3 *pointA, const vec3 *edgeDirA,
 static return_t noSeparatingFace(const colliderMesh *mesh1, const colliderMesh *mesh2, meshFaceData *faceData);
 static return_t noSeparatingEdge(const colliderMesh *mesh1, const colliderMesh *mesh2, const vec3 *m1Centroid, meshEdgeData *edgeData);
 
-size_t findIncidentFace(const colliderMesh *mesh, const vec3 *refNormal);
-size_t clipPolygonAgainstFace(const vec3 *refVertex, const vec3 *refNormal,
+static size_t findIncidentFace(const colliderMesh *mesh, const vec3 *refNormal);
+static size_t clipPolygonAgainstFace(const vec3 *refVertex, const vec3 *refNormal,
                               const vec3 *currentPolygon, vec3 *tempPolygon, size_t numPoints);
-void clipFaceContact(const colliderMesh *mesh1, const colliderMesh *mesh2, const meshFaceData *fd, contactManifold *cm);
-void clipEdgeContact(const colliderMesh *mesh1, const colliderMesh *mesh2, const meshEdgeData *ed, contactManifold *cm);
+static void clipFaceContact(const colliderMesh *mesh1, const colliderMesh *mesh2, const meshFaceData *fd, contactManifold *cm);
+static void clipEdgeContact(const colliderMesh *mesh1, const colliderMesh *mesh2, const meshEdgeData *ed, contactManifold *cm);
 
 
 //Load the collider from a file.
@@ -49,31 +49,40 @@ void colliderMeshSetupProperties(physicsCollider *collider){
 //Calculate the collider's inertia tensor relative to "centroid".
 void colliderMeshCalculateInertia(const physicsCollider *collider, const vec3 *centroid, float inertiaTensor[6]){
 	const colliderMesh *mesh = (colliderMesh *)collider->data;
+	const vec3 *curVertex = mesh->vertices;
+	const float *curMass = mesh->massArray;
+	const vec3 *lastVertex = &mesh->vertices[mesh->numVertices];
+
 	memset(inertiaTensor, 0, 24);
 
-	size_t i;
-	for(i = 0; i < mesh->numVertices; ++i){
-		const vec3 *curVertex = &mesh->vertices[i];
-		const float x = curVertex->x - centroid->x;
-		const float y = curVertex->y - centroid->y;
-		const float z = curVertex->z - centroid->z;
-		const float xx = x * x;
-		const float yy = y * y;
-		const float zz = z * z;
+	if(curMass != NULL){
+		//Add each vertex's contribution to the collider's inertia tensor.
+		for(; curVertex < lastVertex; ++curVertex, ++curMass){
+			const float x = curVertex->x - centroid->x;
+			const float y = curVertex->y - centroid->y;
+			const float z = curVertex->z - centroid->z;
+			const float xx = x * x;
+			const float yy = y * y;
+			const float zz = z * z;
+			const float massValue = *curMass;
 
-		//Add this vertex's contribution to the collider's inertia tensor.
-		if(mesh->massArray != NULL){
-			const float curMass = mesh->massArray[i];
-
-			inertiaTensor[0] += (yy + zz) * curMass;
-			inertiaTensor[1] += (xx + zz) * curMass;
-			inertiaTensor[2] += (xx + yy) * curMass;
-			inertiaTensor[3] -= x * y * curMass;
-			inertiaTensor[4] -= x * z * curMass;
-			inertiaTensor[5] -= y * z * curMass;
-
+			inertiaTensor[0] += (yy + zz) * massValue;
+			inertiaTensor[1] += (xx + zz) * massValue;
+			inertiaTensor[2] += (xx + yy) * massValue;
+			inertiaTensor[3] -= x * y * massValue;
+			inertiaTensor[4] -= x * z * massValue;
+			inertiaTensor[5] -= y * z * massValue;
+		}
+	}else{
 		//If the vertices are not weighted, we can save some multiplications.
-		}else{
+		for(; curVertex < lastVertex; ++curVertex){
+			const float x = curVertex->x - centroid->x;
+			const float y = curVertex->y - centroid->y;
+			const float z = curVertex->z - centroid->z;
+			const float xx = x * x;
+			const float yy = y * y;
+			const float zz = z * z;
+
 			inertiaTensor[0] += yy + zz;
 			inertiaTensor[1] += xx + zz;
 			inertiaTensor[2] += xx + yy;
@@ -91,18 +100,19 @@ void colliderMeshCalculateCentroid(const colliderMesh *mesh, vec3 *centroid){
 
 
 //Return the index of the vertex farthest from the origin in the direction "dir".
-size_t colliderMeshSupport(const colliderMesh *mesh, const vec3 *dir){
-	size_t bestVertex = 0;
-	float bestDistance = vec3DotVec3(&mesh->vertices[0], dir);
+vec3 *colliderMeshSupport(const colliderMesh *mesh, const vec3 *dir){
+	vec3 *curVertex = mesh->vertices;
+	vec3 *bestVertex = curVertex;
+	float bestDistance = vec3DotVec3(curVertex, dir);
+	const vec3 *lastVertex = &mesh->vertices[mesh->numVertices];
 
-	size_t i;
-	for(i = 1; i < mesh->numVertices; ++i){
-		const vec3 *curVertex = &mesh->vertices[i];
+	++curVertex;
+	for(; curVertex < lastVertex; ++curVertex){
 		const float curDistance = vec3DotVec3(curVertex, dir);
 		//If the current vertex is farther in the direction
 		//of "dir" than our current best, store it instead.
 		if(curDistance > bestDistance){
-			bestVertex = i;
+			bestVertex = curVertex;
 			bestDistance = curDistance;
 		}
 	}
@@ -111,12 +121,17 @@ size_t colliderMeshSupport(const colliderMesh *mesh, const vec3 *dir){
 }
 
 
-//Return whether two colliderMeshes are colliding.
+//Return whether two colliderMeshes are
+//colloiding using the Separating Axis Theorem.
+//Credit to Dirk Gregorius for his his GDC 2013
+//presentation on Gauss map optimisations.
 return_t colliderMeshCollidingSAT(const colliderMesh *mesh1, const colliderMesh *mesh2, const vec3 *m1Centroid, collisionData *cd){
 	//If there are no separating axes, the meshes are colliding!
-	return(noSeparatingFace(mesh1, mesh2, &cd->mesh1Face) &&
-	       noSeparatingFace(mesh2, mesh1, &cd->mesh2Face) &&
-	       noSeparatingEdge(mesh1, mesh2, m1Centroid, &cd->meshEdges));
+	return(
+		noSeparatingFace(mesh1, mesh2, &cd->mesh1Face) &&
+		noSeparatingFace(mesh2, mesh1, &cd->mesh2Face) &&
+		noSeparatingEdge(mesh1, mesh2, m1Centroid, &cd->meshEdges)
+	);
 }
 
 //Use the Sutherland-Hodgman clipping algorithm to generate a contact manifold.
@@ -144,8 +159,8 @@ void colliderMeshGenerateContactManifoldSHC(const colliderMesh *mesh1, const col
 
 //If the arcs of the two faces when projected onto a Gauss Map
 //intersect, they form an edge face of the Minkowski difference!
-return_t isMinkowskiFace(const vec3 *A, const vec3 *B, const vec3 *BA,
-                              const vec3 *C, const vec3 *D, const vec3 *DC){
+static return_t isMinkowskiFace(const vec3 *A, const vec3 *B, const vec3 *BA,
+                                const vec3 *C, const vec3 *D, const vec3 *DC){
 
 	const float BDC = vec3DotVec3(B, DC);
 
@@ -178,9 +193,9 @@ return_t isMinkowskiFace(const vec3 *A, const vec3 *B, const vec3 *BA,
 }
 
 //Find the distance between two edges!
-float edgeDistance(const vec3 *pointA, const vec3 *edgeDirA,
-                   const vec3 *pointB, const vec3 *edgeDirB,
-                   const vec3 *centroidA){
+static float edgeDistance(const vec3 *pointA, const vec3 *edgeDirA,
+                          const vec3 *pointB, const vec3 *edgeDirB,
+                          const vec3 *centroidA){
 
 	vec3 edgeNormal;
 	vec3 offset;
@@ -216,23 +231,24 @@ float edgeDistance(const vec3 *pointA, const vec3 *edgeDirA,
 
 //Make sure there are no points on "mesh2" that are outside
 //"mesh1" and record the face with the highest distance.
-return_t noSeparatingFace(const colliderMesh *mesh1, const colliderMesh *mesh2, meshFaceData *faceData){
-	size_t i;
+static return_t noSeparatingFace(const colliderMesh *mesh1, const colliderMesh *mesh2, meshFaceData *faceData){
+	const size_t *curFace = mesh1->faces;
+	const vec3 *curNormal = mesh1->normals;
+	const size_t *lastFace = &mesh1->faces[mesh1->numFaces];
+	size_t i = 0;
 
 	//Initialise the face data.
 	faceData->index = -1;
 	faceData->distance = -INFINITY;
 
-	for(i = 0; i < mesh1->numFaces; ++i){
-		vec3 curNormal;
-		size_t supportIndex;
+	for(; curFace < lastFace; ++curFace, ++curNormal, ++i){
+		vec3 invNormal;
 		float curDistance;
 
-		vec3Negate(&mesh1->normals[i], &curNormal);
+		vec3Negate(curNormal, &invNormal);
 		//Search for a point on "mesh2" in the opposite
 		//direction to the normal of the face on "mesh1".
-		supportIndex = colliderMeshSupport(mesh2, &curNormal);
-		curDistance = vec3DotVec3(&mesh1->vertices[mesh1->edges[mesh1->faces[i]].startVertexIndex], &mesh2->vertices[supportIndex]);
+		curDistance = vec3DotVec3(&mesh1->vertices[mesh1->edges[*curFace].startVertexIndex], colliderMeshSupport(mesh2, &invNormal));
 
 		//If this is the farthest face we've found
 		//so far, record its index and distance.
@@ -252,14 +268,18 @@ return_t noSeparatingFace(const colliderMesh *mesh1, const colliderMesh *mesh2, 
 }
 
 static return_t noSeparatingEdge(const colliderMesh *mesh1, const colliderMesh *mesh2, const vec3 *m1Centroid, meshEdgeData *edgeData){
+	colliderMeshEdge *edgeA = mesh1->edges;
+	const colliderMeshEdge *lastEdgeA = &mesh1->edges[mesh1->numEdges];
+
 	//Initialise the edge data.
-	edgeData->indexA = -1;
-	edgeData->indexB = -1;
+	edgeData->edgeA = NULL;
+	edgeData->edgeB = NULL;
 	edgeData->distance = -INFINITY;
 
-	size_t a;
-	for(a = 0; a < mesh1->numEdges; ++a){
-		const colliderMeshEdge *edgeA = &mesh1->edges[a];
+	for(; edgeA < lastEdgeA; ++edgeA){
+		colliderMeshEdge *edgeB = mesh2->edges;
+		const colliderMeshEdge *lastEdgeB = &mesh2->edges[mesh2->numEdges];
+
 		//Find the normals of the two faces that use this edge.
 		const vec3 *faceA = &mesh1->normals[edgeA->normalIndex];
 		const vec3 *faceB = &mesh1->normals[edgeA->twinNormalIndex];
@@ -268,9 +288,7 @@ static return_t noSeparatingEdge(const colliderMesh *mesh1, const colliderMesh *
 		//Get the normal perpendicular to faces A and B.
 		vec3SubtractVec3From(startVertexA, &mesh1->vertices[edgeA->endVertexIndex], &BA);
 
-		size_t b;
-		for(b = 0; b < mesh2->numEdges; ++b){
-			const colliderMeshEdge *edgeB = &mesh2->edges[b];
+		for(; edgeB < lastEdgeB; ++edgeB){
 			//Find the normals of the two faces that use this edge.
 			const vec3 *faceC = &mesh2->normals[edgeB->normalIndex];
 			const vec3 *faceD = &mesh2->normals[edgeB->twinNormalIndex];
@@ -287,8 +305,8 @@ static return_t noSeparatingEdge(const colliderMesh *mesh1, const colliderMesh *
 				//If this is the farthest edge pair we've found
 				//so far, record the edges' indices and distance.
 				if(curDistance > edgeData->distance){
-					edgeData->indexA = a;
-					edgeData->indexB = b;
+					edgeData->edgeA = edgeA;
+					edgeData->edgeB = edgeB;
 					edgeData->distance = curDistance;
 
 					//If the distance is greater than zero, we can
@@ -306,13 +324,13 @@ static return_t noSeparatingEdge(const colliderMesh *mesh1, const colliderMesh *
 
 
 //Using the normal of the reference face on one object, find the incident face on another.
-size_t findIncidentFace(const colliderMesh *mesh, const vec3 *refNormal){
+static size_t findIncidentFace(const colliderMesh *mesh, const vec3 *refNormal){
+	const vec3 *curNormal = mesh->normals;
 	size_t bestFace = 0;
 	float bestDistance = INFINITY;
 
 	size_t i;
-	for(i = 0; i < mesh->numFaces; ++i){
-		const vec3 *curNormal = &mesh->normals[i];
+	for(i = 0; i < mesh->numFaces; ++i, ++curNormal){
 		const float curDistance = vec3DotVec3(curNormal, refNormal);
 		//If the current face's normal is farther in the direction
 		//of "refNormal" than our current best, store it instead.
@@ -326,30 +344,33 @@ size_t findIncidentFace(const colliderMesh *mesh, const vec3 *refNormal){
 }
 
 //Clip a polygon against a face.
-size_t clipPolygonAgainstFace(const vec3 *refVertex, const vec3 *refNormal,
-                              const vec3 *currentPolygon, vec3 *tempPolygon, size_t numPoints){
+static size_t clipPolygonAgainstFace(const vec3 *refVertex, const vec3 *refNormal,
+                                     const vec3 *currentPolygon, vec3 *tempPolygon, size_t numPoints){
 
 	//Record the new number of points we're keeping.
 	size_t newNumPoints = 0;
 
-	const vec3 *startVertex = &currentPolygon[0];
+	const vec3 *startVertex = currentPolygon;
+	float startDist;
+	const vec3 *endVertex = &currentPolygon[numPoints - 1];
+
 	vec3 planeOffset;
 	//Find the distance from the first vertex of the
 	//current incident edge to the clipping plane!
 	vec3SubtractVec3From(startVertex, refVertex, &planeOffset);
-	float startDist = vec3DotVec3(&planeOffset, refNormal);
+	startDist = vec3DotVec3(&planeOffset, refNormal);
 
 
-	//We loop through the vertices from the end
-	//of the array because it's (probably) faster.
-	do {
-		--numPoints;
+	//Note that we start at the end of the array.
+	while(endVertex > currentPolygon){
+		float endDist;
 
-		const vec3 *endVertex = &currentPolygon[numPoints];
+		--endVertex;
+
 		//Find the distance from the second vertex of the
 		//current incident edge to the clipping plane!
 		vec3SubtractVec3From(endVertex, refVertex, &planeOffset);
-		const float endDist = vec3DotVec3(&planeOffset, refNormal);
+		endDist = vec3DotVec3(&planeOffset, refNormal);
 
 		if(endDist < 0.f){
 			//If the end vertex is outside the clipping region but
@@ -393,14 +414,16 @@ size_t clipPolygonAgainstFace(const vec3 *refVertex, const vec3 *refNormal,
 
 //Clip the vertices of the face on "mesh2" against the normal of
 //the face on "mesh1" (and the normals of its surrounding faces).
-void clipFaceContact(const colliderMesh *mesh1, const colliderMesh *mesh2, const meshFaceData *fd, contactManifold *cm){
+static void clipFaceContact(const colliderMesh *mesh1, const colliderMesh *mesh2, const meshFaceData *fd, contactManifold *cm){
 	const vec3 *refNormal = &mesh1->normals[fd->index];
 	//Find the face on mesh 2 whose normal is most opposite the reference face's.
 	const size_t incFaceIndex = findIncidentFace(mesh2, refNormal);
 
 
 	vec3 polygonData1[MAX_CONTACTS_NUM];
+	vec3 *currentPolygon = polygonData1;
 	vec3 polygonData2[MAX_CONTACTS_NUM];
+	vec3 *tempPolygon = polygonData2;
 	size_t numPoints = 0;
 
 	size_t curIndex = incFaceIndex;
@@ -412,27 +435,29 @@ void clipFaceContact(const colliderMesh *mesh1, const colliderMesh *mesh2, const
 		if(curIncEdge->normalIndex == curIndex){
 			curIndex = curIncEdge->nextIndex;
 
-			polygonData1[numPoints] = mesh2->vertices[curIncEdge->startVertexIndex];
-			++numPoints;
-			polygonData1[numPoints] = mesh2->vertices[curIncEdge->endVertexIndex];
-			++numPoints;
+			*currentPolygon = mesh2->vertices[curIncEdge->startVertexIndex];
+			++currentPolygon;
+			*currentPolygon = mesh2->vertices[curIncEdge->endVertexIndex];
+			++currentPolygon;
 
 		//Otherwise, we'll need to add them in reverse order.
 		}else{
 			curIndex = curIncEdge->twinNextIndex;
 
-			polygonData1[numPoints] = mesh2->vertices[curIncEdge->endVertexIndex];
-			++numPoints;
-			polygonData1[numPoints] = mesh2->vertices[curIncEdge->startVertexIndex];
-			++numPoints;
+			*tempPolygon = mesh2->vertices[curIncEdge->endVertexIndex];
+			++tempPolygon;
+			*tempPolygon = mesh2->vertices[curIncEdge->startVertexIndex];
+			++tempPolygon;
 		}
+		//We always add two contacts.
+		numPoints += 2;
 	} while(curIndex != incFaceIndex);
 
 
 	//Points to the beginning of the array currently in use.
-	vec3 *currentPolygon = polygonData1;
+	currentPolygon = polygonData1;
 	//Points to the beginning of the temporary array.
-	vec3 *tempPolygon = polygonData2;
+	tempPolygon = polygonData2;
 
 	//The current reference vertex is stored outside the
 	//loop so we can use it for the reference face itself.
@@ -473,27 +498,27 @@ void clipFaceContact(const colliderMesh *mesh1, const colliderMesh *mesh2, const
 	} while(curIndex != startFaceIndex);
 
 
-	curIndex = numPoints;
+	const vec3 *incVertex = currentPolygon;
+	const vec3 *lastVertex = &currentPolygon[numPoints];
 	numPoints = 0;
 	//Clip the polygon against the reference face,
 	//storing the points in our collision manifold.
-	do {
-		--curIndex;
-
-		const vec3 *incVertex = &currentPolygon[curIndex];
+	for(; incVertex < lastVertex; ++incVertex){
 		vec3 planeOffset;
+		float vertDist;
+
 		//Find the distance from the second vertex of the
 		//current incident edge to the clipping plane!
 		vec3SubtractVec3From(incVertex, refVertex, &planeOffset);
-		const float vertDist = vec3DotVec3(&planeOffset, refNormal);
+		vertDist = vec3DotVec3(&planeOffset, refNormal);
 
 		//Only keep vertices that are inside the clipping region!
 		if(vertDist > 0.f){
-			cm->points[numPoints] = currentPolygon[curIndex];
+			cm->points[numPoints] = *incVertex;
 			++numPoints;
 		}
 		#warning "In his 2015 GDC presentation, Dirk Gregorius suggests projecting the valid contact points onto the reference face, explaining that it improves coherance. Is this correct?"
-	} while(curIndex > 0);
+	}
 
 	//We'll need to remember the number of contact points we've stored.
 	cm->numPoints = numPoints;
@@ -502,9 +527,9 @@ void clipFaceContact(const colliderMesh *mesh1, const colliderMesh *mesh2, const
 #warning "Implement this."
 //According to Gregorius, If the axis of minimum penetration is realized by an edge
 //pair, the contact point must be the closest points between the minimizing edges.
-void clipEdgeContact(const colliderMesh *mesh1, const colliderMesh *mesh2, const meshEdgeData *ed, contactManifold *cm){
-	const colliderMeshEdge *e1 = &mesh1->edges[ed->indexA];
-	const colliderMeshEdge *e2 = &mesh1->edges[ed->indexB];
+static void clipEdgeContact(const colliderMesh *mesh1, const colliderMesh *mesh2, const meshEdgeData *ed, contactManifold *cm){
+	const colliderMeshEdge *e1 = ed->edgeA;
+	const colliderMeshEdge *e2 = ed->edgeB;
 
 	const vec3 *p1 = &mesh1->vertices[e1->startVertexIndex];
 	const vec3 *p2 = &mesh1->vertices[e1->endVertexIndex];

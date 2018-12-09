@@ -20,33 +20,30 @@ void colliderCalculateInertia(const physicsCollider *collider, const vec3 *centr
 /*void colliderCalculateCentreOfGeometry(const physicsCollider *collider, vec3 *centroid){
 	memset(centroid, 0, sizeof(*centroid));
 
-	size_t i;
-	//Accumulate the weighted positions of each vertex.
-	for(i = 0; i < collider->numVertices; ++i){
-		const vec3 *curVertex = &collider->vertices[i];
+	const vec3 *curVertex = collider->vertices;
+	const float *curMass = collider->massArray;
+	const vec3 *lastVertex = &collider->vertices[collider->numVertices];
+	if(curMass != NULL){
+		//Add each vertex's contribution to the collider's centroid.
+		for(; curVertex < lastVertex; ++curVertex, ++curMass){
+			const float massValue = *curMass;
 
-		//Add this vertex's contribution to the collider's centroid.
-		if(collider->massArray != NULL){
-			const float curMass = collider->massArray[i];
+			centroid->x += curVertex->x * massValue;
+			centroid->y += curVertex->y * massValue;
+			centroid->z += curVertex->z * massValue;
+		}
 
-			centroid->x += curVertex->x * curMass;
-			centroid->y += curVertex->y * curMass;
-			centroid->z += curVertex->z * curMass;
-
+		//Multiply the accumulated positions by the inverse mass to calculate the centroid.
+		vec3MultiplyS(centroid, collider->inverseMass, centroid);
+	}else{
 		//If the vertices are not weighted, we can save some multiplications.
-		}else{
+		for(; curVertex < lastVertex; ++curVertex){
 			centroid->x += curVertex->x;
 			centroid->y += curVertex->y;
 			centroid->z += curVertex->z;
 		}
-	}
 
-	//Multiply the accumulated positions by the inverse mass to calculate the centroid.
-	if(collider->massArray != NULL){
-		vec3MultiplyS(centroid, collider->inverseMass, centroid);
-
-	//If the vertices are not weighted, divide by the total number of them.
-	}else{
+		//If the vertices are not weighted, divide by the total number of them.
 		vec3DivideByS(centroid, collider->numVertices, centroid);
 	}
 }*/

@@ -15,7 +15,7 @@
 //Define the base pool sizes for our object allocators!
 #define MEMORY_MAX_TEXTURES   1
 #define MEMORY_MAX_TEXGROUPS  1
-#define MEMORY_MAX_SKELETONS  1
+#define MEMORY_MAX_SKELEANIMS 1
 #define MEMORY_MAX_MODELS     1
 #define MEMORY_MAX_RENDEROBJS 1
 

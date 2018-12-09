@@ -17,8 +17,8 @@
 
 return_t moduleSkeletonSetup();
 
-skeleton *moduleSkeletonAlloc();
-void moduleSkeletonFree(skeleton *skele);
+skeletonAnim *moduleSkeletonAnimAlloc();
+void moduleSkeletonAnimFree(skeletonAnim *skeleAnim);
 
 void moduleSkeletonCleanup();
 

@@ -2,7 +2,7 @@
 
 
 #define SKELETON_PATH_PREFIX        ".\\resource\\models\\"
-#define SKELETON_PATH_PREFIX_LENGTH sizeof(SKELETON_PATH_PREFIX)
+#define SKELETON_PATH_PREFIX_LENGTH (sizeof(SKELETON_PATH_PREFIX) - 1)
 
 //This must be at least 1!
 #define BASE_BONE_CAPACITY 1
@@ -79,10 +79,11 @@ void skeleInitSet(skeleton *skele, char *name, bone *bones, const size_t numBone
 		skele->numBones = 1;
 	}
 
-	size_t i;
+	bone *curBone = skele->bones;
+	const bone *lastBone = &skele->bones[skele->numBones];
 	//Make sure we invert each bone's state!
-	for(i = 0; i < skele->numBones; ++i){
-		boneStateInvert(&skele->bones[i].state, &skele->bones[i].state);
+	for(; curBone < lastBone; ++curBone){
+		boneStateInvert(&curBone->state, &curBone->state);
 	}
 }
 
@@ -223,10 +224,12 @@ return_t skeleAnimLoadSMD(skeletonAnim *skeleAnim, const char *skeleAnimName){
 						}
 						skeleAnim->numBones = tempBonesSize;
 
-						size_t i;
+						bone *curBone = tempBones;
+						char **curName = skeleAnim->boneNames;
+						const bone *lastBone = &tempBones[tempBonesSize];
 						//Fill the array of bone names!
-						for(i = 0; i < tempBonesSize; ++i){
-							skeleAnim->boneNames[i] = tempBones[i].name;
+						for(; curBone < lastBone; ++curBone, ++curName){
+							*curName = curBone->name;
 						}
 
 						tempCapacity = 1;
@@ -448,12 +451,18 @@ void skeleAnimInstUpdate(skeleAnimState *animState, const float time){
 		animationUpdate(animData, frameData, time);
 		animState->interpTime = animationGetFrameProgress(animData, frameData);
 
-		size_t i;
+		boneState **currentFrame = &animState->anim->frames[animState->animData.currentFrame];
+		boneState **nextFrame = &animState->anim->frames[animState->animData.nextFrame];
+		boneState *curState = animState->skeleState;
+		const boneState *lastState = &animState->skeleState[animState->anim->numBones];
 		//Update each bone's state!
-		for(i = 0; i < animState->anim->numBones; ++i){
-			updateBoneStateSet(&animState->anim->frames[animState->animData.currentFrame][i],
-			                   &animState->anim->frames[animState->animData.nextFrame][i],
-			                   animState->interpTime, &animState->skeleState[i]);
+		for(; curState < lastState; ++currentFrame, ++nextFrame, ++curState){
+			updateBoneStateSet(
+				*currentFrame,
+				*nextFrame,
+				animState->interpTime,
+				curState
+			);
 		}
 	}
 }
@@ -487,32 +496,35 @@ boneState *skeleState;
 
 //blendBone(animState, blendState, state, numStateBones, unchangedState, updateFunc);
 
+#warning "This can be optimised much, much better than this by finding the states and lookup IDs here instead of in getBlendStates."
 void skeleAnimStateBlendSet(skeletonObject *skeleObj, const skeleAnimState *animState, const skeleAnimState *blendState){
+	boneState *curState = skeleObj->state;
 	size_t i;
 	//Loop through all the bones in the entity (or whatever is using the blended animations).
-	for(i = 0; i < skeleObj->skele->numBones; ++i){
+	for(i = 0; i < skeleObj->skele->numBones; ++i, ++curState){
 		const boneState *startState, *endState;
 		//If this is the first blend we've applied, we'll
 		//need to blend to and from the bone's current state.
-		getBlendStates(animState, blendState, i, &skeleObj->state[i], &startState, &endState);
+		getBlendStates(animState, blendState, i, curState, &startState, &endState);
 
 		//Blend between the two states and update the bone!
-		updateBoneStateSet(startState, endState, animState->blendTime, &skeleObj->state[i]);
+		updateBoneStateSet(startState, endState, animState->blendTime, curState);
 	}
 }
 
 /** This function is a duplicate of the one above it, but the last line and default state things are different. **/
 void skeleAnimStateBlendAdd(skeletonObject *skeleObj, const skeleAnimState *animState, const skeleAnimState *blendState){
+	boneState *curState = skeleObj->state;
 	size_t i;
 	//Loop through all the bones in the entity (or whatever is using the blended animations).
-	for(i = 0; i < skeleObj->skele->numBones; ++i){
+	for(i = 0; i < skeleObj->skele->numBones; ++i, ++curState){
 		const boneState *startState, *endState;
 		//If we're appending this to another blend, we'll need to blend to and
 		//from the default state by default, as it applies no transformations.
 		getBlendStates(animState, blendState, i, &defaultBone.state, &startState, &endState);
 
 		//Blend between the two states and update the bone!
-		updateBoneStateAdd(startState, endState, animState->blendTime, &skeleObj->state[i]);
+		updateBoneStateAdd(startState, endState, animState->blendTime, curState);
 	}
 }
 
@@ -538,24 +550,29 @@ void skeleObjAddAnim(skeletonObject *skeleObj, skeletonAnim *anim){
 void skeleObjGenerateRenderState(skeletonObject *skeleObj){
 	boneState *animState = ((skeleAnimState *)skeleObj->anims[0].states[0])->skeleState;
 
-	size_t i;
+	const bone *curSkeleBone = skeleObj->skele->bones;
+	const boneState *curAnimBone = animState;
+	boneState *curObjBone = skeleObj->state;
+	const bone *lastSkeleBone = &skeleObj->skele->bones[skeleObj->skele->numBones];
 	//Accumulate the transformations for each bone in the animation!
-	for(i = 0; i < skeleObj->skele->numBones; ++i){
-		const size_t parentID = skeleObj->skele->bones[i].parent;
+	for(; curSkeleBone < lastSkeleBone; ++curSkeleBone, ++curAnimBone, ++curObjBone){
+		const size_t parentID = curSkeleBone->parent;
 		//If this bone has a parent, add its animation transformations to those of its parent!
 		if(parentID != -1){
-			boneStateAddTransform(&skeleObj->state[parentID], &animState[i], &skeleObj->state[i]);
+			boneStateAddTransform(&skeleObj->state[parentID], curAnimBone, curObjBone);
 
 		//Otherwise, just use it by itself!
 		}else{
-			skeleObj->state[i] = animState[i];
+			*curObjBone = *curAnimBone;
 		}
 	}
 
+	curSkeleBone = skeleObj->skele->bones;
+	curObjBone = skeleObj->state;
+	lastSkeleBone = &skeleObj->skele->bones[skeleObj->skele->numBones];
 	//Append each bone's inverse reference state!
-	for(i = 0; i < skeleObj->skele->numBones; ++i){
-		boneState *currentBone = &skeleObj->state[i];
-		boneStateAddTransform(currentBone, &skeleObj->skele->bones[i].state, currentBone);
+	for(; curSkeleBone < lastSkeleBone; ++curSkeleBone, ++curObjBone){
+		boneStateAddTransform(curObjBone, &curSkeleBone->state, curObjBone);
 	}
 }
 
@@ -585,25 +602,27 @@ void skeleAnimDelete(skeletonAnim *anim){
 
 	animFrameDataClear(&anim->frameData);
 
-	if(anim->boneNames != NULL){
-		size_t i;
+	char **curName = anim->boneNames;
+	if(curName != NULL){
+		char **lastName = &anim->boneNames[anim->numBones];
 		//Free each bone name!
-		for(i = 0; i < anim->numBones; ++i){
-			char *currentName = anim->boneNames[i];
-			if(currentName != NULL){
-				memoryManagerGlobalFree(currentName);
+		for(; curName < lastName; ++curName){
+			char *curNameValue = *curName;
+			if(curNameValue != NULL){
+				memoryManagerGlobalFree(curNameValue);
 			}
 		}
 		//Now free the array!
 		memoryManagerGlobalFree(anim->boneNames);
 	}
-	if(anim->frames != NULL){
-		size_t i;
+	boneState **curFrame = anim->frames;
+	if(curFrame != NULL){
+		boneState **lastFrame = &anim->frames[anim->frameData.numFrames];
 		//Free each bone state!
-		for(i = 0; i < anim->frameData.numFrames; ++i){
-			boneState *currentFrame = anim->frames[i];
-			if(currentFrame != NULL){
-				memoryManagerGlobalFree(currentFrame);
+		for(; curFrame < lastFrame; ++curFrame){
+			boneState *curFrameValue = *curFrame;
+			if(curFrameValue != NULL){
+				memoryManagerGlobalFree(curFrameValue);
 			}
 		}
 		//Now free the array!
@@ -632,10 +651,11 @@ void skeleAnimInstDelete(skeletonAnimInst *animInst){
 
 void skeleObjDelete(skeletonObject *skeleObj){
 	if(skeleObj->anims != NULL){
-		size_t i;
+		skeletonAnimInst *curAnim = skeleObj->anims;
+		skeletonAnimInst *lastAnim = &skeleObj->anims[skeleObj->numAnims];
 		//Free each animation instance!
-		for(i = 0; i < skeleObj->numAnims; ++i){
-			stateObjDelete(&skeleObj->anims[i], &skeleAnimStateDelete);
+		for(; curAnim < lastAnim; ++curAnim){
+			stateObjDelete(curAnim, &skeleAnimStateDelete);
 		}
 		//Now free the array!
 		memoryManagerGlobalFree(skeleObj->anims);

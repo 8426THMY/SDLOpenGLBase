@@ -47,20 +47,17 @@ void rbCalculateCentroid(physicsRigidBody *body){
 	body->mass = 0.f;
 	vec3InitZero(&body->centroid);
 
-	size_t i;
-	for(i = 0; i < body->numColliders; ++i){
-		//Get the physical properties of the current collider.
-		const physicsCollider *curCollider = &body->colliders[i];
-
+	const physicsCollider *curCollider = body->colliders;
+	const physicsCollider *lastCollider = &body->colliders[body->numColliders];
+	//Get the physical properties of each collider.
+	for(; curCollider < lastCollider; ++curCollider){
 		//Accumulate the mass.
 		body->mass += curCollider->mass;
 		//Add this collider's contribution to the rigid body's centroid.
 		vec3AddVec3(&body->centroid, &curCollider->centroid, &body->centroid);
 
 
-		/*//Get the physical properties of the current collider.
-		const physicsCollider *curCollider = &body->colliders[i];
-		const float colliderMass = curCollider->mass;
+		/*const float colliderMass = curCollider->mass;
 		vec3 weightedCentroid;
 		vec3MultiplyS(&curCollider->centroid, colliderMass, &weightedCentroid);
 
@@ -80,11 +77,12 @@ void rbCalculateCentroid(physicsRigidBody *body){
 }
 
 void rbCalculateInertiaTensor(physicsRigidBody *body){
-	size_t i;
-	for(i = 0; i < body->numColliders; ++i){
-		//Get the physical properties of the current collider.
+	const physicsCollider *curCollider = body->colliders;
+	const physicsCollider *lastCollider = &body->colliders[body->numColliders];
+	//Get the physical properties of each collider.
+	for(; curCollider < lastCollider; ++curCollider){
 		float inertiaTensor[6];
-		colliderCalculateInertia(&body->colliders[i], &body->centroid, inertiaTensor);
+		colliderCalculateInertia(curCollider, &body->centroid, inertiaTensor);
 
 		//Add the collider's contribution to the rigid body's inertia tensor.
 		body->inverseInertiaTensor.m[0][0] += inertiaTensor[0];
@@ -95,9 +93,7 @@ void rbCalculateInertiaTensor(physicsRigidBody *body){
 		body->inverseInertiaTensor.m[1][2] += inertiaTensor[5];
 
 
-		/*//Get the physical properties of the current collider.
-		const physicsCollider *curCollider = &body->colliders[i];
-		vec3 centroidDist;
+		/*vec3 centroidDist;
 		vec3SubtractVec3From(&body->centroid, &curCollider->centroid, &centroidDist);
 		//We can multiply by mass here to save three multiplications later.
 		vec3MultiplyS(&centroidDist, &curCollider->mass, &centroidDist);

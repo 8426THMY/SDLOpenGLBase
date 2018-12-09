@@ -46,9 +46,10 @@ typedef struct meshFaceData {
 
 //Stores the index of an edge pair
 //and their distance from each other.
+typedef struct colliderMeshEdge colliderMeshEdge;
 typedef struct meshEdgeData {
-	size_t indexA;
-	size_t indexB;
+	colliderMeshEdge *edgeA;
+	colliderMeshEdge *edgeB;
 	float distance;
 } meshEdgeData;
 
@@ -115,7 +116,7 @@ void colliderMeshSetupProperties(physicsCollider *collider);
 void colliderMeshCalculateInertia(const physicsCollider *collider, const vec3 *centroid, float inertiaTensor[6]);
 void colliderMeshCalculateCentroid(const colliderMesh *mesh, vec3 *centroid);
 
-size_t colliderMeshSupport(const colliderMesh *mesh, const vec3 *dir);
+vec3 *colliderMeshSupport(const colliderMesh *mesh, const vec3 *dir);
 
 return_t colliderMeshCollidingSAT(const colliderMesh *mesh1, const colliderMesh *mesh2, const vec3 *m1Centroid, collisionData *cd);
 void colliderMeshGenerateContactManifoldSHC(const colliderMesh *mesh1, const colliderMesh *mesh2, const collisionData *cd, contactManifold *cm);

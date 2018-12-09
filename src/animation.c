@@ -84,9 +84,11 @@ void animationUpdate(animationData *animData, const animationFrameData *frameDat
 					animData->currentFrame = 0;
 				}
 
+				const float *curTime = &frameData->time[animData->currentFrame];
 				//Find the frame we're up to!
-				while(animData->animTime > frameData->time[animData->currentFrame]){
+				while(animData->animTime > *curTime){
 					++animData->currentFrame;
+					++curTime;
 				}
 
 			//We're animating backwards and we haven't finished looping!
@@ -121,9 +123,11 @@ void animationUpdate(animationData *animData, const animationFrameData *frameDat
 
 				//Make sure we don't run this loop if we're on the first frame.
 				if(animData->animTime > frameData->time[0]){
+					const float *curTime = &frameData->time[animData->currentFrame - 1];
 					//Find the frame we're up to!
-					while(animData->animTime <= frameData->time[animData->currentFrame - 1]){
+					while(animData->animTime <= *curTime){
 						--animData->currentFrame;
+						--curTime;
 					}
 
 				//If we are, just set it!

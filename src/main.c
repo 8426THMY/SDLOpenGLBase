@@ -16,6 +16,10 @@ int main(int argc, char **argv){
 }
 
 
+#error "Go through your functions and give them clearer descriptions."
+#error "It would probably be a good idea to try and clean up your code while you're at it."
+
+
 /**
 New To-Do List:
 
