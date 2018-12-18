@@ -211,8 +211,8 @@ return_t modelLoadOBJ(model *mdl, const char *mdlName){
 				if(tempTexGroupName == NULL){
 					/** REALLOC FAILED **/
 				}
-				//Our line reading function replaces the line break with a null terminator,
-				//so we need to store it too.
+				//Our line reading function replaces the line break
+				//with a null terminator, so we need to store it too.
 				memcpy(tempTexGroupName, line + 7, (lineLength - 6) * sizeof(*tempTexGroupName));
 
 			//Faces.
@@ -254,11 +254,13 @@ return_t modelLoadOBJ(model *mdl, const char *mdlName){
 					const vertex *checkVertex = tempVertices;
 					size_t b;
 					//Check if this vertex already exists!
-					for(b = 0; b < tempVerticesSize; ++b, ++checkVertex){
+					for(b = 0; b < tempVerticesSize; ++b){
 						//Looks like it does, so we don't need to store it again!
 						if(vertexUnique(checkVertex, &tempVertex) == 0){
 							break;
 						}
+
+						++checkVertex;
 					}
 					//The vertex does not exist, so add it to the vector!
 					if(b == tempVerticesSize){
@@ -660,7 +662,7 @@ return_t modelLoadSMD(model *mdl, const char *mdlName){
 									float *curBoneWeight = tempVertex.boneWeights;
 									size_t i;
 									//Load all of the links!
-									for(i = 0; i < numLinks; ++i, ++curBoneID, ++curBoneWeight){
+									for(i = 0; i < numLinks; ++i){
 										//Load the bone's ID!
 										*curBoneID = strtoul(tokPos, &tokPos, 10);
 										//Make sure it exists!
@@ -689,6 +691,9 @@ return_t modelLoadSMD(model *mdl, const char *mdlName){
 											++i;
 											break;
 										}
+
+										++curBoneID;
+										++curBoneWeight;
 									}
 
 									//Make sure the total weight isn't less than 1!
@@ -734,11 +739,13 @@ return_t modelLoadSMD(model *mdl, const char *mdlName){
 								const vertex *checkVertex = tempVertices;
 								size_t i;
 								//Check if this vertex already exists!
-								for(i = 0; i < tempVerticesSize; ++i, ++checkVertex){
+								for(i = 0; i < tempVerticesSize; ++i){
 									//Looks like it does, so we don't need to store it again!
 									if(vertexUnique(checkVertex, &tempVertex) == 0){
 										break;
 									}
+
+									++checkVertex;
 								}
 								//The vertex does not exist, so add it to the vector!
 								if(i == tempVerticesSize){
@@ -997,11 +1004,13 @@ return_t modelSetupError(){
 		const vertex *checkVertex = vertices;
 		size_t b;
 		//Check if this vertex already exists!
-		for(b = 0; b < verticesSize; ++b, ++checkVertex){
+		for(b = 0; b < verticesSize; ++b){
 			//Looks like it does, so we don't need to store it again!
 			if(vertexUnique(checkVertex, &tempVertex) == 0){
 				break;
 			}
+
+			++checkVertex;
 		}
 		//The vertex does not exist, so add it to the vector!
 		if(b == verticesSize){

@@ -229,8 +229,8 @@ void vec4RadToDeg(vec4 *v){
 
 //Perform linear interpolation between two vec4s and store the result in "out"!
 void vec4Lerp(const vec4 *v1, const vec4 *v2, const float time, vec4 *out){
-	out->x = (v2->x - v1->x) * time + v1->x;
-	out->y = (v2->y - v1->y) * time + v1->y;
-	out->z = (v2->z - v1->z) * time + v1->z;
-	out->w = (v2->w - v1->w) * time + v1->w;
+	out->x = floatLerp(v1->x, v2->x, time);
+	out->y = floatLerp(v1->y, v2->y, time);
+	out->z = floatLerp(v1->z, v2->z, time);
+	out->w = floatLerp(v1->w, v2->w, time);
 }

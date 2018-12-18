@@ -7,9 +7,9 @@
 #define MEMSTACK_BLOCK_FOOTER_SIZE sizeof(size_t)
 
 //Get the footer of the next block in the stack.
-#define memStackBlockGetNextBlockFooter(block, size) ((size_t *)(((byte_t *)block) + size))
+#define memStackBlockGetNextBlockFooter(block, size) ((size_t *)memoryAddPointer(block, size))
 //Get the footer of the last block in the stack.
-#define memStackBlockGetPrevBlockFooter(top) ((size_t *)(((byte_t *)top) - MEMSTACK_BLOCK_FOOTER_SIZE))
+#define memStackBlockGetPrevBlockFooter(top) ((size_t *)memorySubPointer(top, MEMSTACK_BLOCK_FOOTER_SIZE))
 
 
 #warning "What if the beginning or end of a memory region is not aligned?"

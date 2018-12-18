@@ -23,7 +23,7 @@ void moduleModelFree(model *mdl);
 void moduleModelCleanup();
 
 
-extern memoryPool *modelManager;
+extern memoryPool modelManager;
 
 
 #endif

@@ -33,9 +33,9 @@
 
 
 //Get the block after the one specified.
-#define memFreeListBlockGetNextBlock(block, size) ((void *)(((byte_t *)(block)) + (size)))
+#define memFreeListBlockGetNextBlock(block, size) memoryAddPointer(block, size)
 //Get the block before the one specified.
-#define memFreeListBlockGetPrevBlock(block, size) ((void *)(((byte_t *)(block)) - (size)))
+#define memFreeListBlockGetPrevBlock(block, size) memorySubPointer(block, size)
 
 //Get the next pointer of a free block.
 #define memFreeListBlockFreeGetNext(block) *((void **)block)

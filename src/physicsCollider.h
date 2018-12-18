@@ -7,11 +7,11 @@
 #include "vec3.h"
 #include "mat3.h"
 
-#include "colliderMesh.h"
+#include "colliderHull.h"
 
 
-#define NUM_COLLIDER_TYPES 1
-#define MAX_COLLIDER_SIZE sizeof(colliderMesh)
+#define COLLIDER_NUM_TYPES 1
+#define COLLIDER_MAX_SIZE sizeof(colliderHull)
 
 
 typedef struct physicsCollider {
@@ -19,7 +19,7 @@ typedef struct physicsCollider {
 	byte_t type;
 	//This array should be large enough
 	//to store any type of collider.
-	void *data[MAX_COLLIDER_SIZE];
+	void *data[COLLIDER_MAX_SIZE];
 
 	//The collider's physical properties.
 	float mass;

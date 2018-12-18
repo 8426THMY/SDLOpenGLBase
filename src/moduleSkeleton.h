@@ -23,7 +23,7 @@ void moduleSkeletonAnimFree(skeletonAnim *skeleAnim);
 void moduleSkeletonCleanup();
 
 
-extern memoryPool *skeletonManager;
+extern memoryPool skeletonManager;
 
 
 #endif

@@ -52,19 +52,19 @@
 #define memSingleListBlockFreeGetFlag(block) *((uintptr_t *)block)
 
 //Return the address of the next block in the list.
-#define memSingleListBlockGetNextBlock(block, size) ((void *)(((byte_t *)(block)) + (size)))
+#define memSingleListBlockGetNextBlock(block, size) memoryAddPointer(block, size)
 //Return the address of the previous block in the list.
-#define memSingleListBlockGetPrevBlock(block, size) ((void *)(((byte_t *)(block)) - (size)))
+#define memSingleListBlockGetPrevBlock(block, size) memorySubPointer(block, size)
 
 //Get the block's next pointer from its flags segment.
-#define memSingleListBlockFreeFlagGetNext(block) ((void **)(((byte_t *)(block)) + MEMSINGLELIST_BLOCK_FREE_FLAG_SIZE))
+#define memSingleListBlockFreeFlagGetNext(block) ((void **)memoryAddPointer(block, MEMSINGLELIST_BLOCK_FREE_FLAG_SIZE))
 //Get the block's flags from its next pointer segment.
-#define memSingleListBlockFreeNextGetFlag(block) ((uintptr_t *)(((byte_t *)(block)) - MEMSINGLELIST_BLOCK_FREE_FLAG_SIZE))
+#define memSingleListBlockFreeNextGetFlag(block) ((uintptr_t *)memorySubPointer(block, MEMSINGLELIST_BLOCK_FREE_FLAG_SIZE))
 
 //Get the block's data from its next pointer segment.
-#define memSingleListBlockUsedNextGetData(block) ((void **)(((byte_t *)(block)) + MEMSINGLELIST_BLOCK_USED_NEXT_SIZE))
+#define memSingleListBlockUsedNextGetData(block) ((void **)memoryAddPointer(block, MEMSINGLELIST_BLOCK_USED_NEXT_SIZE))
 //Get the block's next pointer from its data segment.
-#define memSingleListBlockUsedDataGetNext(block) ((void **)(((byte_t *)(block)) - MEMSINGLELIST_BLOCK_USED_NEXT_SIZE))
+#define memSingleListBlockUsedDataGetNext(block) ((void **)memorySubPointer(block, MEMSINGLELIST_BLOCK_USED_NEXT_SIZE))
 
 //Return whether or not the block is active.
 #define memSingleListBlockIsActive(block) (memSingleListBlockGetFlag(block) == MEMSINGLELIST_FLAG_ACTIVE)

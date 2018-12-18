@@ -127,7 +127,6 @@ return_t texGroupLoad(textureGroup *texGroup, const char *texGroupName){
 		if(texAnims == NULL){
 			/** MALLOC FAILED **/
 		}
-		texGroup->texAnims = texAnims;
 
 		//Store pointers to the animation we're currently working on.
 		textureGroupAnim *tempAnim = NULL;
@@ -146,7 +145,7 @@ return_t texGroupLoad(textureGroup *texGroup, const char *texGroupName){
 		while((line = readLineFile(texGroupFile, &lineBuffer[0], &lineLength)) != NULL){
 			//If we aren't loading an animation, check
 			//for any texture or animation definitions.
-			if(currentAnim != -1){
+			if(currentAnim == -1){
 				//Texture path.
 				if(memcmp(line, "t ", 2) == 0){
 					char *tempName;
@@ -197,6 +196,8 @@ return_t texGroupLoad(textureGroup *texGroup, const char *texGroupName){
 					//This variable stores the name of
 					//the image used by the current frame!
 					char *frameName = NULL;
+					//Store a pointer to the frame name!
+					char *namePointer;
 
 					size_t i;
 					//Loop through all the texture frames we're loading!
@@ -218,13 +219,15 @@ return_t texGroupLoad(textureGroup *texGroup, const char *texGroupName){
 							//Don't forget to add the file extension and the null terminator!
 							memcpy(frameName + nameDotPos + frameNumLength, tempName + nameDotPos, nameLength - nameDotPos);
 							frameName[nameLength + frameNumLength] = '\0';
+
+							namePointer = frameName;
 						}else{
-							frameName = tempName;
+							namePointer = tempName;
 						}
 
 
 						//Check if we've already loaded a texture with this name!
-						texture *tex = moduleTextureFind(frameName);
+						texture *tex = moduleTextureFind(namePointer);
 						//If we couldn't find the texture, load it!
 						if(tex == NULL){
 							//Make sure we can allocate
@@ -234,7 +237,7 @@ return_t texGroupLoad(textureGroup *texGroup, const char *texGroupName){
 							}
 							//If we can't load it, just
 							//use the error texture.
-							if(!textureLoad(tex, frameName)){
+							if(!textureLoad(tex, namePointer)){
 								moduleTextureFree(tex);
 								tex = &errorTex;
 							}

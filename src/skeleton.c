@@ -501,7 +501,7 @@ void skeleAnimStateBlendSet(skeletonObject *skeleObj, const skeleAnimState *anim
 	boneState *curState = skeleObj->state;
 	size_t i;
 	//Loop through all the bones in the entity (or whatever is using the blended animations).
-	for(i = 0; i < skeleObj->skele->numBones; ++i, ++curState){
+	for(i = 0; i < skeleObj->skele->numBones; ++i){
 		const boneState *startState, *endState;
 		//If this is the first blend we've applied, we'll
 		//need to blend to and from the bone's current state.
@@ -509,6 +509,8 @@ void skeleAnimStateBlendSet(skeletonObject *skeleObj, const skeleAnimState *anim
 
 		//Blend between the two states and update the bone!
 		updateBoneStateSet(startState, endState, animState->blendTime, curState);
+
+		++curState;
 	}
 }
 
@@ -517,7 +519,7 @@ void skeleAnimStateBlendAdd(skeletonObject *skeleObj, const skeleAnimState *anim
 	boneState *curState = skeleObj->state;
 	size_t i;
 	//Loop through all the bones in the entity (or whatever is using the blended animations).
-	for(i = 0; i < skeleObj->skele->numBones; ++i, ++curState){
+	for(i = 0; i < skeleObj->skele->numBones; ++i){
 		const boneState *startState, *endState;
 		//If we're appending this to another blend, we'll need to blend to and
 		//from the default state by default, as it applies no transformations.
@@ -525,6 +527,8 @@ void skeleAnimStateBlendAdd(skeletonObject *skeleObj, const skeleAnimState *anim
 
 		//Blend between the two states and update the bone!
 		updateBoneStateAdd(startState, endState, animState->blendTime, curState);
+
+		++curState;
 	}
 }
 

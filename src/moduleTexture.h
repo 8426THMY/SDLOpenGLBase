@@ -26,7 +26,7 @@ void moduleTextureCleanup();
 texture *moduleTextureFind(const char *name);
 
 
-extern memoryPool *textureManager;
+extern memoryPool textureManager;
 
 
 #endif

@@ -232,7 +232,7 @@ void vec3RadToDeg(vec3 *v){
 
 //Perform linear interpolation between two vec3s and store the result in "out"!
 void vec3Lerp(const vec3 *v1, const vec3 *v2, const float time, vec3 *out){
-	out->x = (v2->x - v1->x) * time + v1->x;
-	out->y = (v2->y - v1->y) * time + v1->y;
-	out->z = (v2->z - v1->z) * time + v1->z;
+	out->x = floatLerp(v1->x, v2->x, time);
+	out->y = floatLerp(v1->y, v2->y, time);
+	out->z = floatLerp(v1->z, v2->z, time);
 }

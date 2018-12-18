@@ -362,7 +362,6 @@ static return_t initLibs(program *prg){
 }
 
 #warning "We're testing physics now, so this stuff isn't necessary."
-#warning "It still crashes, though."
 static void initResources(){
 	/*skeleAnimLoadSMD(moduleSkeletonAnimAlloc(), "soldier_animations_anims\\jump_float_PRIMARY.smd");
 	//skeleAnimLoadSMD(moduleSkeletonAnimAlloc(), "soldier_animations_anims\\selectionMenu_Anim0l.smd");
@@ -403,7 +402,6 @@ static void initResources(){
 static return_t setupModules(){
 	puts("Beginning setup...\n");
 	memoryManagerGlobalInit(MEMORY_HEAPSIZE);
-	memTreePrintAllSizes(&memManager);
 
 	#ifdef MODULETEXTURE
 	if(!moduleTextureSetup()){
@@ -430,8 +428,10 @@ static return_t setupModules(){
 		return(MODULERENDEROBJ_SETUP_FAIL);
 	}
 	#endif
+
 	memTreePrintAllSizes(&memManager);
 	puts("Setup complete!\n");
+
 
 	return(MODULE_SETUP_SUCCESS);
 }

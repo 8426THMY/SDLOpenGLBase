@@ -18,11 +18,11 @@
 #define MEMTREE_FLAG_ONLY_MASK   (~MEMTREE_FLAG_ONLY)
 
 //Get the next block's list data from the current one's.
-#define listNodeGetNextList(node, size) ((memTreeListNode *)(((uintptr_t)(node)) + (size) + MEMTREE_BLOCK_HEADER_SIZE))
+#define listNodeGetNextList(node, size) ((memTreeListNode *)memoryAddPointer(node, size))
 //Get the previous block's list data from the current one's.
-#define listNodeGetPrevList(node, size) ((memTreeListNode *)(((uintptr_t)(node)) - MEMTREE_BLOCK_HEADER_SIZE - (size)))
+#define listNodeGetPrevList(node, size) ((memTreeListNode *)memorySubPointer(node, size))
 //Return the tree component of an inactive block from its list component.
-#define listNodeGetTree(node) ((memTreeNode *)(((uintptr_t)(node)) + MEMTREE_BLOCK_HEADER_SIZE))
+#define listNodeGetTree(node) ((memTreeNode *)memoryAddPointer(node, MEMTREE_BLOCK_HEADER_SIZE))
 
 //We'll need to remove the active flag from
 //the size if we want to get its real value.
@@ -71,20 +71,20 @@
 #define TREE_NODE_COLOUR_RED   0x01
 
 //Get the next block's list data from the current one's tree data.
-#define treeNodeGetNextList(node, size) ((memTreeListNode *)(((uintptr_t)node) + (size)))
+#define treeNodeGetNextList(node, size) ((memTreeListNode *)memoryAddPointer(node, (size) + MEMTREE_BLOCK_HEADER_SIZE))
 //Get the previous block's list data from the current one's tree data.
-#define treeNodeGetPrevList(node, size) ((memTreeListNode *)(((uintptr_t)node) - (size)))
+#define treeNodeGetPrevList(node, size) ((memTreeListNode *)memorySubPointer(node, MEMTREE_BLOCK_HEADER_SIZE + (size)))
 //Get the next block's tree data from the current one's tree data.
-#define treeNodeGetNextTree(node, size) ((memTreeNode *)(((uintptr_t)node) + (size) + MEMTREE_BLOCK_HEADER_SIZE))
+#define treeNodeGetNextTree(node, size) ((memTreeNode *)memoryAddPointer(node, size))
 //Get the previous block's tree data from the current one's tree data.
-#define treeNodeGetPrevTree(node, size) ((memTreeNode *)(((uintptr_t)node) - MEMTREE_BLOCK_HEADER_SIZE - (size)))
+#define treeNodeGetPrevTree(node, size) ((memTreeNode *)memorySubPointer(node, size))
 //Return the list component of an inactive block from its tree component.
-#define treeNodeGetList(node) ((memTreeListNode *)(((uintptr_t)(node)) - MEMTREE_BLOCK_HEADER_SIZE))
+#define treeNodeGetList(node) ((memTreeListNode *)memorySubPointer(node, MEMTREE_BLOCK_HEADER_SIZE))
 
 //Return the size of an inactive block from its tree component.
-#define treeNodeGetSize(node) *((size_t *)(((uintptr_t)(node)) - sizeof(size_t)))
+#define treeNodeGetSize(node) *((size_t *)memorySubPointer(node, sizeof(size_t)))
 //Return the size of an inactive block from its tree component.
-#define treeNodeGetPrevSize(node) *((size_t *)(((uintptr_t)(node)) - MEMTREE_BLOCK_HEADER_SIZE))
+#define treeNodeGetPrevSize(node) *((size_t *)memorySubPointer(node, MEMTREE_BLOCK_HEADER_SIZE))
 //Return the size of an inactive block from its tree component.
 #define treeNodeGetFlags(node) listNodeGetFlags(treeNodeGetPrevSize(node))
 
@@ -106,20 +106,26 @@
 //Get a node's colour from its parent pointer.
 #define treeNodeInfoGetColour(info) (((uintptr_t)(info)) & MEMORY_FLAG_MASK)
 
+//Return whether or not the node is black.
+#define treeNodeIsBlack(node, nodeParent) (node == NULL || treeNodeIsBlackFast(node, nodeParent))
+//Return whether or not the node is red.
+#define treeNodeIsRed(node, nodeParent) (node != NULL && treeNodeIsRedFast(node, nodeParent))
 //Since the black flag is defined as zero, we can check if
 //its parent pointer is the same as its parent's actual address.
-#define treeNodeIsBlack(node, nodeParent) ((((memTreeNode *)(node))->parent) == ((memTreeNode *)(nodeParent)))
+#define treeNodeIsBlackFast(node, nodeParent) ((((memTreeNode *)(node))->parent) == ((memTreeNode *)(nodeParent)))
 //Same as above, but checks if the two are not equal.
-#define treeNodeIsRed(node, nodeParent) ((((memTreeNode *)(node))->parent) != ((memTreeNode *)(nodeParent)))
+#define treeNodeIsRedFast(node, nodeParent) ((((memTreeNode *)(node))->parent) != ((memTreeNode *)(nodeParent)))
 //If we want to make a node black and we have the address
 //of its parent, we can just set its parent pointer to that.
 #define treeNodeMakeBlack(parent) ((memTreeNode *)(parent))
 //We can't really do the same the other way around, so do it the slow way.
-#define treeNodeMakeRed(parent) (treeNodeSetColour((parent), TREE_NODE_COLOUR_RED))
+#define treeNodeMakeRed(parent) (treeNodeSetColour(parent, TREE_NODE_COLOUR_RED))
 
 
 #warning "What if the beginning or end of a memory region is not aligned?"
 
+
+static void splitBlock(memoryTree *tree, memTreeListNode *block, const size_t blockSize, const size_t newSize);
 
 static void treeInsert(memoryTree *tree, memTreeNode *node, const size_t nodeSize);
 static void treeDelete(memoryTree *tree, memTreeNode *node);
@@ -152,7 +158,7 @@ void *memTreeInit(memoryTree *tree, void *memory, const size_t memorySize){
 
 void *memTreeAlloc(memoryTree *tree, const size_t blockSize){
 	//Make sure the new block's size is neither too small nor misaligned.
-	const size_t newSize = memTreeGetBlockSize(blockSize);
+	const size_t fullSize = memTreeGetBlockSize(blockSize) + MEMTREE_BLOCK_HEADER_SIZE;
 
 	memTreeNode *newNode = NULL;
 	size_t newBlockSize;
@@ -164,7 +170,7 @@ void *memTreeAlloc(memoryTree *tree, const size_t blockSize){
 
 		memTreeNode *nextNode;
 		//If the new size is smaller than the current node's, go left.
-		if(newSize < currentBlockSize){
+		if(fullSize < currentBlockSize){
 			//This node is the smallest node we've found that
 			//is large enough to store our data, so remember it.
 			newNode = currentNode;
@@ -173,7 +179,7 @@ void *memTreeAlloc(memoryTree *tree, const size_t blockSize){
 			nextNode = currentNode->left;
 
 		//If the new size is larger than the current node's, go right.
-		}else if(newSize > currentBlockSize){
+		}else if(fullSize > currentBlockSize){
 			nextNode = currentNode->right;
 
 		//Otherwise, we've found the ideal block to occupy!
@@ -196,63 +202,15 @@ void *memTreeAlloc(memoryTree *tree, const size_t blockSize){
 	//Make sure we could actually find a block large enough to store the data.
 	if(newNode != NULL){
 		memTreeListNode *currentBlock = treeNodeGetList(newNode);
-		size_t sizeDiff = newBlockSize - newSize;
 
 		//Remove this block from the tree.
 		treeDelete(tree, newNode);
-
 		//We'll have to set the block to active, too.
 		currentBlock->prevSize = listNodeMakeActive(currentBlock->prevSize);
+
 		//Provided the leftover memory is large enough,
 		//create a new empty block after the current one.
-		if(sizeDiff >= MEMTREE_BLOCK_MIN_SIZE){
-			memTreeListNode *freeBlock = treeNodeGetNextList(newNode, newSize);
-
-			currentBlock->size = newSize;
-			//We don't need to explicitly make the block inactive,
-			//since we would just be performing an OR with '0'.
-			freeBlock->prevSize = newSize;
-
-			//If this block isn't the last, we'll
-			//have to modify the block after it.
-			if(!listNodeIsLast(currentBlock->prevSize)){
-				memTreeListNode *nextBlock = listNodeGetNextList(freeBlock, sizeDiff);
-
-				//If the next block is inactive, we
-				//can merge it with our new free block.
-				if(!listNodeIsActive(nextBlock->prevSize)){
-					const size_t nextNodeSize = nextBlock->size + MEMTREE_BLOCK_HEADER_SIZE;
-					//Add the next block's size to the difference.
-					//We'll use this for the free block's size.
-					sizeDiff += nextNodeSize;
-
-					treeDelete(tree, listNodeGetTree(nextBlock));
-
-					//If this block still isn't the last, update the
-					//previous size element of the one following it.
-					if(!listNodeIsLast(nextBlock->prevSize)){
-						nextBlock = listNodeGetNextList(nextBlock, nextNodeSize);
-						nextBlock->prevSize = listNodeSetSize(nextBlock->prevSize, sizeDiff);
-
-					//Otherwise, give the block's
-					//"last" flag to our free block.
-					}else{
-						freeBlock->prevSize = listNodeMakeLast(freeBlock->prevSize);
-					}
-				}
-
-			//If the free block is the last, give
-			//it the used block's "last" flag.
-			}else{
-				currentBlock->prevSize = listNodeRemoveLast(currentBlock->prevSize);
-				freeBlock->prevSize = listNodeMakeLast(freeBlock->prevSize);
-			}
-
-			//Now we can set the free block's
-			//size and add it to the tree.
-			freeBlock->size = sizeDiff - MEMTREE_BLOCK_HEADER_SIZE;
-			treeInsert(tree, listNodeGetTree(freeBlock), sizeDiff);
-		}
+		splitBlock(tree, currentBlock, newBlockSize, fullSize);
 	}
 
 	//Provide the user a means of accessing their memory block!
@@ -264,25 +222,45 @@ void *memTreeAlloc(memoryTree *tree, const size_t blockSize){
 
 void *memTreeRealloc(memoryTree *tree, void *block, const size_t blockSize){
 	if(block != NULL){
-		const size_t oldSize = treeNodeGetSize(block);
+		memTreeListNode *newBlock = treeNodeGetList(block);
+		size_t newSize;
+		memTreeNode *tempBlock;
+
+		const size_t fullSize = blockSize + MEMTREE_BLOCK_HEADER_SIZE;
+		const size_t oldSize = newBlock->size;
 		//If the block is already big enough, we can exit early.
-		if(blockSize <= oldSize){
+		if(fullSize <= oldSize){
 			return(block);
 		}
 
-		void *tempBlock = block;
 		//Otherwise, we will need to check the blocks to
 		//the left and right in case we are able to coalesce.
-		memTreeListNode *newBlock = treeNodeGetList(block);
-		size_t newSize = newBlock->size;
+		newSize = oldSize;
 
+		//If this block is not the first, we might be able to merge left.
+		if(!listNodeIsFirst(newBlock->prevSize)){
+			memTreeListNode *leftBlock = listNodeGetPrevList(newBlock, listNodeGetSize(newBlock->prevSize));
+			//We can only merge it if the block to its left is free.
+			if(!listNodeIsActive(leftBlock->prevSize)){
+				//Make sure we preserve the free block's "last" flag.
+				leftBlock->prevSize |= listNodeIsLast(newBlock->prevSize);
+				//We're merging the two blocks, so add their sizes.
+				newSize += leftBlock->size;
+
+				//The free block no longer exists as it has been merged,
+				//so our pointer should now point to the left block.
+				newBlock = leftBlock;
+
+				//Remove the left block from the free tree,
+				//as it's outdated. We'll add it back later.
+				treeDelete(tree, listNodeGetTree(leftBlock));
+			}
+		}
 		//If this block is not the last, we might be able to merge right.
 		if(!listNodeIsLast(newBlock->prevSize)){
 			memTreeListNode *rightBlock = listNodeGetNextList(newBlock, newSize);
 			//We can only merge it if the block to its right is free.
 			if(!listNodeIsActive(rightBlock->prevSize)){
-				//Make sure we preserve the right block's "last" flag.
-				newBlock->prevSize |= listNodeIsLast(rightBlock->prevSize);
 				//We're merging the two blocks, so add their sizes.
 				newSize += rightBlock->size;
 
@@ -290,58 +268,48 @@ void *memTreeRealloc(memoryTree *tree, void *block, const size_t blockSize){
 				//tree, as it no longer exists. We'll
 				//add the free block to the tree later.
 				treeDelete(tree, listNodeGetTree(rightBlock));
-			}
-		}
 
-		//If the new block still isn't big
-		//enough, check the block to its left.
-		if(newSize < blockSize){
-			//If this block is not the first, we might be able to merge left.
-			if(!listNodeIsFirst(newBlock->prevSize)){
-				memTreeListNode *leftBlock = listNodeGetPrevList(newBlock, listNodeGetSize(newBlock->prevSize));
-				//We can only merge it if the block to its left is free.
-				if(!listNodeIsActive(leftBlock->prevSize)){
-					memTreeNode *leftTree = listNodeGetTree(leftBlock);
+				//If there is a block after this one,
+				//update its previous size property.
+				if(!listNodeIsLast(rightBlock->prevSize)){
+					memTreeListNode *nextBlock = listNodeGetNextList(newBlock, newSize);
+					nextBlock->prevSize = listNodeSetSize(nextBlock->prevSize, newSize);
 
-					//Make sure we preserve the free block's "last" flag.
-					leftBlock->prevSize |= listNodeIsLast(newBlock->prevSize);
-					//We're merging the two blocks, so add their sizes.
-					newSize += leftBlock->size;
-
-					//The free block no longer exists as it has been merged,
-					//so our pointers should now point to the left block.
-					block = leftTree;
-					newBlock = leftBlock;
-
-					//Remove the left block from the free tree,
-					//as it's outdated. We'll add it back later.
-					treeDelete(tree, leftTree);
+				//Otherwise, make sure we preserve
+				//the right block's "last" flag.
+				}else{
+					newBlock->prevSize = listNodeMakeLast(newBlock->prevSize);
 				}
+
+			//Otherwise, update the block's previous size property.
+			}else{
+				rightBlock->prevSize = listNodeSetSize(rightBlock->prevSize, newSize);
 			}
 		}
 
-		//We'll need to update the previous size element of
-		//the block to the right of the one we're removing.
-		if(!listNodeIsLast(newBlock->prevSize)){
-			memTreeListNode *nextBlock = listNodeGetNextList(newBlock, newSize);
-			nextBlock->prevSize = listNodeSetSize(nextBlock->prevSize, newSize);
-		}
-
-		//Update the new block's size.
 		newBlock->size = newSize;
-		//If our new block is big enough, return a pointer to it!
-		if(newSize >= blockSize){
+
+		//If our new block is big enough, we can use it!
+		if(newSize >= fullSize){
+			//Make sure we set its active flag.
+			newBlock->prevSize = listNodeMakeActive(newBlock->prevSize);
+
+			//Provided the leftover memory is large enough,
+			//create a new empty block after the current one.
+			splitBlock(tree, newBlock, newSize, (size_t)memoryAlign(fullSize));
+
+			tempBlock = listNodeGetTree(newBlock);
 			//We only need to copy the user's data
 			//if the block's pointer has moved.
-			if(block != tempBlock){
-				memmove(block, tempBlock, oldSize);
+			if(tempBlock != block){
+				memmove(tempBlock, block, oldSize);
 			}
 
-			return(block);
+			return(tempBlock);
 		}
 
-		//Otherwise, we've done all of the merging we normally do when
-		//freeing a block, so allocate a new block and free the old one.
+		//If the block is still too small, we've done all the merging we
+		//normally do when freeing a block, so we can allocate a new one.
 		newBlock->prevSize = listNodeRemoveActive(newBlock->prevSize);
 
 		//We need to allocate a new block first so we don't overwrite
@@ -350,7 +318,7 @@ void *memTreeRealloc(memoryTree *tree, void *block, const size_t blockSize){
 		memcpy(tempBlock, block, oldSize);
 
 		//Now we can add the old block back to the tree.
-		treeInsert(tree, block, newSize);
+		treeInsert(tree, listNodeGetTree(newBlock), newSize);
 
 
 		return(tempBlock);
@@ -371,8 +339,6 @@ void memTreeFree(memoryTree *tree, void *block){
 		memTreeListNode *leftBlock = listNodeGetPrevList(newBlock, listNodeGetSize(newBlock->prevSize));
 		//We can only merge it if the block to its left is free.
 		if(!listNodeIsActive(leftBlock->prevSize)){
-			memTreeNode *leftTree = listNodeGetTree(leftBlock);
-
 			//Make sure we preserve the free block's "last" flag.
 			leftBlock->prevSize |= listNodeIsLast(newBlock->prevSize);
 			//We're merging the two blocks, so add their sizes.
@@ -380,12 +346,12 @@ void memTreeFree(memoryTree *tree, void *block){
 
 			//The free block no longer exists as it has been merged,
 			//so our pointers should now point to the left block.
-			block = leftTree;
+			block = listNodeGetTree(leftBlock);
 			newBlock = leftBlock;
 
 			//Remove the left block from the free tree,
 			//as it's outdated. We'll add it back later.
-			treeDelete(tree, leftTree);
+			treeDelete(tree, block);
 		}
 	}
 	//If this block is not the last, we might be able to merge right.
@@ -393,8 +359,6 @@ void memTreeFree(memoryTree *tree, void *block){
 		memTreeListNode *rightBlock = listNodeGetNextList(newBlock, newSize);
 		//We can only merge it if the block to its right is free.
 		if(!listNodeIsActive(rightBlock->prevSize)){
-			//Make sure we preserve the right block's "last" flag.
-			newBlock->prevSize |= listNodeIsLast(rightBlock->prevSize);
 			//We're merging the two blocks, so add their sizes.
 			newSize += rightBlock->size;
 
@@ -405,9 +369,14 @@ void memTreeFree(memoryTree *tree, void *block){
 
 			//If there is a block after this one,
 			//update its previous size property.
-			if(!listNodeIsLast(newBlock->prevSize)){
+			if(!listNodeIsLast(rightBlock->prevSize)){
 				memTreeListNode *nextBlock = listNodeGetNextList(newBlock, newSize);
 				nextBlock->prevSize = listNodeSetSize(nextBlock->prevSize, newSize);
+
+			//Otherwise, make sure we preserve
+			//the right block's "last" flag.
+			}else{
+				newBlock->prevSize = listNodeMakeLast(newBlock->prevSize);
 			}
 
 		//Otherwise, update the block's previous size property.
@@ -431,7 +400,7 @@ void memTreeFree(memoryTree *tree, void *block){
 memTreeNode *memTreeClearRegion(void *memory, const size_t memorySize){
 	//Set up the starting block's list components.
 	((memTreeListNode *)memory)->prevSize = listNodeSetInfo(0, MEMTREE_FLAG_ONLY);
-	((memTreeListNode *)memory)->size = memorySize - MEMTREE_BLOCK_HEADER_SIZE;
+	((memTreeListNode *)memory)->size = memorySize;
 
 	//Set up the starting block's tree components.
 	memTreeNode *root = listNodeGetTree((memTreeListNode *)memory);
@@ -506,7 +475,7 @@ void memTreePrintAllSizes(memoryTree *tree){
 			//If the node is active, we just print its size and flags.
 			if(listNodeIsActive(node->prevSize)){
 				printf(
-					"Address: %u, Size: %u, Flags: %u\n\n",
+					"Used Address: %u, Size: %u, Flags: %u\n\n",
 					(uintptr_t)node, node->size, listNodeGetFlags(node->prevSize)
 				);
 
@@ -514,9 +483,9 @@ void memTreePrintAllSizes(memoryTree *tree){
 			}else{
 				memTreeNode *nodeTree = listNodeGetTree(node);
 				printf(
-					"Address: %u, Size: %u, Flags: %u,\n"
+					"Free Address: %u, Size: %u, Flags: %u,\n"
 					"Left: %u, Right: %u, Parent: %u, Colour: %u\n\n",
-					(uintptr_t)node, node->size, listNodeGetFlags(node->prevSize),
+					(uintptr_t)node, node->size - MEMTREE_BLOCK_HEADER_SIZE, listNodeGetFlags(node->prevSize),
 					(uintptr_t)(nodeTree->left), (uintptr_t)(nodeTree->right), (uintptr_t)(treeNodeGetParent(nodeTree)), treeNodeGetColour(nodeTree)
 				);
 			}
@@ -540,136 +509,191 @@ void memTreePrintFreeSizes(memoryTree *tree){
 	     "~~~~~~~~~~~~~~~~~~~~~~~~~~");
 
 	memTreeNode *node = tree->root;
-	memTreeNode *nodeLeft;
-	//Start by finding the tree's leftmost node.
-	while((nodeLeft = node->left) != NULL){
-		node = nodeLeft;
-	}
+	if(node != NULL){
+		memTreeNode *nodeLeft;
+		//Start by finding the tree's leftmost node.
+		while((nodeLeft = node->left) != NULL){
+			node = nodeLeft;
+		}int a = 0;memTreeNode *blah = NULL;
 
-	while(node != NULL){
-		//Sizes include the block's header, so
-		//we need to remove that when we print it.
-		printf("Address: %u, Size: %u, Flags: %u,\n"
-		       "Left: %u, Right: %u, Parent: %u, Colour: %u\n\n",
-		       (uintptr_t)treeNodeGetList(node), treeNodeGetSize(node) - MEMTREE_BLOCK_HEADER_SIZE, treeNodeGetFlags(node),
-		       (uintptr_t)(node->left), (uintptr_t)(node->right), (uintptr_t)(treeNodeGetParent(node)), treeNodeGetColour(node));
-
-		//If there is a node to the right of
-		//the one the iterator is currently
-		//on, find that node's leftmost one.
-		memTreeNode *nodeRight = node->right;
-		if(nodeRight != NULL){
-			node = nodeRight;
-
-			while((nodeLeft = node->left) != NULL){
-				node = nodeLeft;
+		while(node != NULL){
+			if(treeNodeGetParent(node) == NULL){
+				blah = node;
 			}
+			//Sizes include the block's header, so
+			//we need to remove that when we print it.
+			printf("Free Address: %u, Size: %u, Flags: %u,\n"
+				   "Left: %u, Right: %u, Parent: %u, Colour: %u\n\n",
+				   (uintptr_t)treeNodeGetList(node), treeNodeGetSize(node) - MEMTREE_BLOCK_HEADER_SIZE, treeNodeGetFlags(node),
+				   (uintptr_t)(node->left), (uintptr_t)(node->right), (uintptr_t)(treeNodeGetParent(node)), treeNodeGetColour(node));
 
-		//If there are no more nodes to the right, keep
-		//travelling up the tree until the node that
-		//the iterator is the left child of is found.
-		}else{
-			memTreeNode *nodeParent;
-			while((nodeParent = treeNodeGetParent(node)) != NULL &&
-				  node == nodeParent->right){
+			//If there is a node to the right of
+			//the one the iterator is currently
+			//on, find that node's leftmost one.
+			memTreeNode *nodeRight = node->right;
+			if(nodeRight != NULL){
+				node = nodeRight;
+
+				while((nodeLeft = node->left) != NULL){
+					node = nodeLeft;
+				}
+
+			//If there are no more nodes to the right, keep
+			//travelling up the tree until the node that
+			//the iterator is the left child of is found.
+			}else{
+				memTreeNode *nodeParent;
+				while((nodeParent = treeNodeGetParent(node)) != NULL &&
+					  node == nodeParent->right){
+
+					node = nodeParent;
+				}
 
 				node = nodeParent;
-			}
-
-			node = nodeParent;
+			}++a;if(a>10){exit(0);}
+		}if(!blah){
+			exit(0);
 		}
 	}
 }
 #endif
 
 
+/*
+** If "block", whose current size is given by "blockSize"
+** but only needs a size of "newSize", is large enough to
+** be split into a separate free block, split it up!
+*/
+static void splitBlock(memoryTree *tree, memTreeListNode *block, const size_t blockSize, const size_t newSize){
+	size_t sizeDiff = blockSize - newSize;
+
+	//Make sure the difference in the current size and
+	//the ideal size is large enough for a new free block.
+	if(sizeDiff >= MEMTREE_BLOCK_MIN_SIZE){
+		memTreeListNode *freeBlock = listNodeGetNextList(block, newSize);
+
+		//If the free block is the last, give
+		//it the used block's "last" flag.
+		if(listNodeIsLast(block->prevSize)){
+			block->prevSize = listNodeRemoveLast(block->prevSize);
+			freeBlock->prevSize = listNodeMakeLast(newSize);
+
+		//If this block isn't the last, we will have to
+		//set the previous size element of the next block.
+		}else{
+			memTreeListNode *nextBlock = listNodeGetNextList(freeBlock, sizeDiff);
+			nextBlock->prevSize = listNodeSetSize(nextBlock->prevSize, sizeDiff);
+
+			//We don't need to explicitly make the block inactive,
+			//since we would just be performing an OR with '0'.
+			freeBlock->prevSize = newSize;
+		}
+
+		//Set the size elements of the two blocks.
+		block->size = newSize;
+		freeBlock->size = sizeDiff;
+
+		//Add the new free block to the tree!
+		treeInsert(tree, listNodeGetTree(freeBlock), sizeDiff);
+	}
+}
+
+
 static void treeInsert(memoryTree *tree, memTreeNode *node, const size_t nodeSize){
-	memTreeNode *root = tree->root;
+	memTreeNode *nodeParent = tree->root;
+
+	node->left = NULL;
+	node->right = NULL;
 	//Make sure our tree isn't empty.
-	if(root != NULL){
-		memTreeNode *tempNode = root;
+	if(nodeParent != NULL){
 		//Search our tree to find where the new node should be inserted.
 		while(1){
-			size_t currentBlockSize = treeNodeGetSize(tempNode);
-
 			//If the new size is smaller than or equal to the
 			//current node's, go left. Otherwise, go right.
-			memTreeNode **nextNode = (nodeSize <= currentBlockSize) ? &tempNode->left : &tempNode->right;
+			memTreeNode **nextNode = (nodeSize <= treeNodeGetSize(nodeParent)) ? &nodeParent->left : &nodeParent->right;
 
 			//If we've reached the end of the tree, add our new node!
 			if(*nextNode == NULL){
 				*nextNode = node;
-				//Update the new leaf node's properties!
-				node->left = NULL;
-				node->right = NULL;
-				node->parent = treeNodeMakeRed(tempNode);
 
 				break;
 			}
 			//Otherwise, check the next node!
-			tempNode = *nextNode;
+			nodeParent = *nextNode;
 		}
+
+		//Update the new leaf node's properties!
+		node->parent = treeNodeMakeRed(nodeParent);
+
 
 		//Now that our node has been inserted, we
 		//must make sure our tree is still compliant.
-
+		memTreeNode *grandparent = treeNodeGetParent(nodeParent);
 		//Keep recolouring while the current node's parent is red.
-		while(node != root && (tempNode = treeNodeGetParent(node), treeNodeGetColour(tempNode))){
-			memTreeNode *grandparent = treeNodeGetParent(tempNode);
+		while(treeNodeIsRed(nodeParent, grandparent)){
+			memTreeNode *uncle = grandparent->left;
 
-			if(tempNode == grandparent->left){
-				memTreeNode *uncle = grandparent->right;
+			if(nodeParent == uncle){
+				uncle = grandparent->right;
 
 				//If we have a red uncle, we can simply
 				//do a colour swap and move up the tree.
-				if(uncle != NULL && treeNodeIsRed(uncle, grandparent)){
-					tempNode->parent = treeNodeMakeBlack(grandparent);
+				if(treeNodeIsRed(uncle, grandparent)){
+					nodeParent->parent = treeNodeMakeBlack(grandparent);
 					uncle->parent = treeNodeMakeBlack(grandparent);
-					grandparent->parent = treeNodeMakeRed(treeNodeGetParent(grandparent));
+					grandparent->parent = treeNodeMakeRed(grandparent->parent);
 
 					node = grandparent;
 				}else{
 					//Left right case.
-					if(node == tempNode->right){
-						treeRotateLeft(tree, tempNode);
-						tempNode = node;
+					if(node == nodeParent->right){
+						treeRotateLeft(tree, nodeParent);
+						nodeParent = node;
+						node = nodeParent->left;
 					}
 
 					//Left left case.
-					tempNode->parent = treeNodeMakeBlack(grandparent);
-					grandparent->parent = treeNodeMakeRed(treeNodeGetParent(grandparent));
+					nodeParent->parent = treeNodeMakeBlack(grandparent);
+					grandparent->parent = treeNodeMakeRed(grandparent->parent);
 					treeRotateRight(tree, grandparent);
 
-					//No need to continue, we know the tree is valid.
-					break;
+					node = nodeParent;
 				}
 			}else{
-				memTreeNode *uncle = grandparent->left;
-
 				//If we have a red uncle, we can simply
 				//do a colour swap and move up the tree.
-				if(uncle != NULL && treeNodeIsRed(uncle, grandparent)){
-					tempNode->parent = treeNodeMakeBlack(grandparent);
+				if(treeNodeIsRed(uncle, grandparent)){
+					nodeParent->parent = treeNodeMakeBlack(grandparent);
 					uncle->parent = treeNodeMakeBlack(grandparent);
-					grandparent->parent = treeNodeMakeRed(treeNodeGetParent(grandparent));
+					grandparent->parent = treeNodeMakeRed(grandparent->parent);
 
 					node = grandparent;
 				}else{
 					//Right left case.
-					if(node == tempNode->left){
-						treeRotateRight(tree, tempNode);
-						tempNode = node;
+					if(node == nodeParent->left){
+						treeRotateRight(tree, nodeParent);
+						nodeParent = node;
+						node = nodeParent->right;
 					}
 
 					//Right right case.
-					tempNode->parent = treeNodeMakeBlack(grandparent);
-					grandparent->parent = treeNodeMakeRed(treeNodeGetParent(grandparent));
+					nodeParent->parent = treeNodeMakeBlack(grandparent);
+					grandparent->parent = treeNodeMakeRed(grandparent->parent);
 					treeRotateLeft(tree, grandparent);
 
-					//No need to continue, we know the tree is valid.
-					break;
+					node = nodeParent;
 				}
 			}
+
+			//We should end the loop if our
+			//node is now the root node.
+			if(node == tree->root){
+				break;
+			}
+			//Otherwise, we'll need to update
+			//the parent and grandparent nodes.
+			nodeParent = treeNodeGetParent(node);
+			grandparent = treeNodeGetParent(nodeParent);
 		}
 
 		//Make sure the root node's parent is NULL.
@@ -677,10 +701,8 @@ static void treeInsert(memoryTree *tree, memTreeNode *node, const size_t nodeSiz
 
 	//If the tree is empty, inserting is quite simple.
 	}else{
-		tree->root = node;
-		node->left = NULL;
-		node->right = NULL;
 		node->parent = NULL;
+		tree->root = node;
 	}
 }
 
@@ -702,7 +724,7 @@ static void treeDelete(memoryTree *tree, memTreeNode *node){
 
 			successor = nodeRight;
 			//Find the smallest node in the right subtree.
-			while(successorLeft = successor->left, successorLeft != NULL){
+			while((successorLeft = successor->left) != NULL){
 				successor = successorLeft;
 			}
 			child = successor->right;
@@ -710,13 +732,13 @@ static void treeDelete(memoryTree *tree, memTreeNode *node){
 		//The node has a left child but no right child.
 		}else{
 			successor = node;
-			child = node->left;
+			child = nodeLeft;
 		}
 
 	//The node has a right child but no left child.
 	}else if(nodeRight != NULL){
 		successor = node;
-		child = node->right;
+		child = nodeRight;
 
 	//The node has no children.
 	}else{
@@ -726,36 +748,33 @@ static void treeDelete(memoryTree *tree, memTreeNode *node){
 
 	successorParent = treeNodeGetParent(successor);
 	//Make the successor's parent point to the child node.
-	if(successorParent != NULL){
-		if(successorParent->left == successor){
-			successorParent->left = child;
-		}else{
-			successorParent->right = child;
-		}
-	}else{
+	if(successorParent == NULL){
 		tree->root = child;
+	}else if(successorParent->left == successor){
+		successorParent->left = child;
+	}else{
+		successorParent->right = child;
 	}
 	//Set the child's parent to its successor's.
 	if(child != NULL){
-		child->parent = treeNodeSetParent(successorParent, treeNodeIsRed(child, successor));
+		child->parent = treeNodeSetParent(successorParent, treeNodeGetColour(child));
 	}
 
 	//If the successor and its child are both
 	//black, we still have some work to do.
-	if(treeNodeIsBlack(successor, successorParent)){
-		memTreeNode *root = tree->root;
-		while(child != root && (child == NULL || treeNodeIsBlack(child, successorParent))){
-			memTreeNode *sibling;
+	if(treeNodeIsBlackFast(successor, successorParent)){
+		while(child != tree->root && treeNodeIsBlack(child, successorParent)){
+			memTreeNode *sibling = successorParent->left;
 			memTreeNode *siblingLeft;
 			memTreeNode *siblingRight;
 
-			if(child == successorParent->left){
+			if(child == sibling){
 				sibling = successorParent->right;
 
 				//If the sibling is red, swap its colour with its parent and rotate left.
-				if(treeNodeIsRed(sibling, successorParent)){
+				if(treeNodeIsRedFast(sibling, successorParent)){
 					sibling->parent = treeNodeMakeBlack(successorParent);
-					successorParent->parent = treeNodeMakeRed(treeNodeGetParent(successorParent));
+					successorParent->parent = treeNodeMakeRed(successorParent->parent);
 					treeRotateLeft(tree, successorParent);
 					sibling = successorParent->right;
 				}
@@ -766,15 +785,13 @@ static void treeDelete(memoryTree *tree, memTreeNode *node){
 
 				//If both of the sibling's children are black,
 				//make the sibling red and continue upwards.
-				if((siblingLeft == NULL || treeNodeIsBlack(siblingLeft, sibling)) &&
-				   (siblingRight == NULL || treeNodeIsBlack(siblingRight, sibling))){
-
+				if(treeNodeIsBlack(siblingLeft, sibling) && treeNodeIsBlack(siblingRight, sibling)){
 					sibling->parent = treeNodeMakeRed(successorParent);
 					child = successorParent;
 					successorParent = treeNodeGetParent(successorParent);
 				}else{
 					//Right right case.
-					if(siblingRight == NULL || treeNodeIsBlack(siblingRight, sibling)){
+					if(treeNodeIsBlack(siblingRight, sibling)){
 						siblingLeft->parent = treeNodeMakeBlack(sibling);
 						sibling->parent = treeNodeMakeRed(successorParent);
 						treeRotateRight(tree, sibling);
@@ -788,15 +805,15 @@ static void treeDelete(memoryTree *tree, memTreeNode *node){
 					siblingRight->parent = treeNodeMakeBlack(sibling);
 					treeRotateLeft(tree, successorParent);
 
-					break;
+					//Break the loop.
+					child = tree->root;
+					successorParent = NULL;
 				}
 			}else{
-				sibling = successorParent->left;
-
 				//If the sibling is red, swap its colour with its parent and rotate left.
-				if(treeNodeIsRed(sibling, successorParent)){
+				if(treeNodeIsRedFast(sibling, successorParent)){
 					sibling->parent = treeNodeMakeBlack(successorParent);
-					successorParent->parent = treeNodeMakeRed(treeNodeGetParent(successorParent));
+					successorParent->parent = treeNodeMakeRed(successorParent->parent);
 					treeRotateRight(tree, successorParent);
 					sibling = successorParent->left;
 				}
@@ -807,15 +824,13 @@ static void treeDelete(memoryTree *tree, memTreeNode *node){
 
 				//If both of the sibling's children are black,
 				//make the sibling red and continue upwards.
-				if((siblingRight == NULL || treeNodeIsBlack(siblingRight, sibling)) &&
-				   (siblingLeft == NULL || treeNodeIsBlack(siblingLeft, sibling))){
-
+				if(treeNodeIsBlack(siblingRight, sibling) && treeNodeIsBlack(siblingLeft, sibling)){
 					sibling->parent = treeNodeMakeRed(successorParent);
 					child = successorParent;
 					successorParent = treeNodeGetParent(successorParent);
 				}else{
 					//Left left case.
-					if(siblingLeft == NULL || treeNodeIsBlack(siblingLeft, sibling)){
+					if(treeNodeIsBlack(siblingLeft, sibling)){
 						siblingRight->parent = treeNodeMakeBlack(sibling);
 						sibling->parent = treeNodeMakeRed(successorParent);
 						treeRotateLeft(tree, sibling);
@@ -829,7 +844,9 @@ static void treeDelete(memoryTree *tree, memTreeNode *node){
 					siblingLeft->parent = treeNodeMakeBlack(sibling);
 					treeRotateRight(tree, successorParent);
 
-					break;
+					//Break the loop.
+					child = tree->root;
+					successorParent = NULL;
 				}
 			}
 		}
@@ -840,40 +857,35 @@ static void treeDelete(memoryTree *tree, memTreeNode *node){
 		}
 	}
 
-	//If the successor wasn't the node we wanted to delete initially,
-	//we'll have to replace the original node with the successor.
+	//If the node is not its own successor,
+	//we will need to swap the two around.
 	if(node != successor){
+		nodeLeft = node->left;
+		nodeRight = node->right;
+		successorParent = treeNodeGetParent(node);
+
 		//Update the left child's parent pointer.
 		if(nodeLeft != NULL){
-			nodeLeft->parent = treeNodeSetParent(successor, treeNodeIsRed(nodeLeft, node));
+			nodeLeft->parent = treeNodeSetParent(successor, treeNodeGetColour(nodeLeft));
 		}
 		//Set the successor's left child.
 		successor->left = nodeLeft;
 
-		//The node's right child may have been the successor, in
-		//which case we need to update the pointer we've stored.
-		if(nodeRight == successor){
-			nodeRight = node->right;
-		}
 		//Update the right child's parent pointer.
 		if(nodeRight != NULL){
-			nodeRight->parent = treeNodeSetParent(successor, treeNodeIsRed(nodeRight, node));
+			nodeRight->parent = treeNodeSetParent(successor, treeNodeGetColour(nodeRight));
 		}
 		//Set the successor's right child.
 		successor->right = nodeRight;
 
-		successorParent = treeNodeGetParent(node);
 		//Make the node's parent point to the successor.
-		if(successorParent != NULL){
-			if(successorParent->left == node){
-				successorParent->left = successor;
-			}else{
-				successorParent->right = successor;
-			}
-		}else{
+		if(successorParent == NULL){
 			tree->root = successor;
+		}else if(successorParent->left == node){
+			successorParent->left = successor;
+		}else{
+			successorParent->right = successor;
 		}
-
 		//Set the successor's parent.
 		successor->parent = node->parent;
 	}
@@ -888,12 +900,12 @@ static void treeRotateLeft(memoryTree *tree, memTreeNode *node){
 		node->right = tempNode;
 		//If the child node has a left child, we'll need to move it.
 		if(tempNode != NULL){
-			tempNode->parent = treeNodeSetParent(node, treeNodeIsRed(tempNode, nodeRight));
+			tempNode->parent = treeNodeSetParent(node, treeNodeGetColour(tempNode));
 		}
 		nodeRight->left = node;
 
 		tempNode = treeNodeGetParent(node);
-		nodeRight->parent = treeNodeSetParent(tempNode, treeNodeIsRed(nodeRight, node));
+		nodeRight->parent = treeNodeSetParent(tempNode, treeNodeGetColour(nodeRight));
 		//If the node had a parent, make it point to the new node.
 		if(tempNode != NULL){
 			//Make sure we set the correct child pointer.
@@ -920,12 +932,12 @@ static void treeRotateRight(memoryTree *tree, memTreeNode *node){
 		node->left = tempNode;
 		//If the child node has a right child, we'll need to move it.
 		if(tempNode != NULL){
-			tempNode->parent = treeNodeSetParent(node, treeNodeIsRed(tempNode, nodeLeft));
+			tempNode->parent = treeNodeSetParent(node, treeNodeGetColour(tempNode));
 		}
 		nodeLeft->right = node;
 
 		tempNode = treeNodeGetParent(node);
-		nodeLeft->parent = treeNodeSetParent(tempNode, treeNodeIsRed(nodeLeft, node));
+		nodeLeft->parent = treeNodeSetParent(tempNode, treeNodeGetColour(nodeLeft));
 		//If the node had a parent, make it point to the new node.
 		if(tempNode != NULL){
 			//Make sure we set the correct child pointer.

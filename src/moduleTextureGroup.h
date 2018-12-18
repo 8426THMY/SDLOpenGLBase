@@ -26,7 +26,7 @@ void moduleTexGroupCleanup();
 textureGroup *moduleTexGroupFind(const char *name);
 
 
-extern memoryPool *texGroupManager;
+extern memoryPool texGroupManager;
 
 
 #endif

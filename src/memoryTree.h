@@ -36,9 +36,11 @@
 /* first or last block in the linked list. The parent    */
 /* pointers stored in tree nodes are also aligned like   */
 /* this, allowing us to store their colour.              */
-/* Note that the size includes everything after the list */
-/* node, so any tree node, filling or data. It does not  */
-/* include the size of the list node itself.             */
+/*                                                       */
+/* Note that the size includes the entire block.         */
+/* This includes any headers, data and filling.          */
+
+#warning "It would probably be best to include the list node size in the previous size and size attributes."
 
 /** It may be worthwhile to investigate solutions such as TLSF. **/
 

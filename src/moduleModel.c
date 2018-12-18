@@ -1,7 +1,7 @@
 #include "moduleModel.h"
 
 
-memoryPool *modelManager;
+memoryPool modelManager;
 
 
 #warning "What if we aren't using the global memory manager?"
@@ -12,8 +12,11 @@ return_t moduleModelSetup(){
 	//can allocate enough memory for our manager
 	//and the error object can be setup correctly.
 	return(
-		(modelManager = memoryManagerGlobalAlloc(memPoolMemoryForBlocks(MEMORY_MAX_MODELS, sizeof(model)) + sizeof(*modelManager))) != NULL &&
-		memPoolInit(modelManager, modelManager + sizeof(*modelManager), MEMORY_MAX_MODELS, sizeof(model)) &&
+		memPoolInit(
+			&modelManager,
+			memoryManagerGlobalAlloc(memPoolMemoryForBlocks(MEMORY_MAX_MODELS, sizeof(model))),
+			MEMORY_MAX_MODELS, sizeof(model)
+		) != NULL &&
 		modelSetupError()
 	);
 }
@@ -22,13 +25,13 @@ return_t moduleModelSetup(){
 //Allocate memory for a model
 //and return a handle to it.
 model *moduleModelAlloc(){
-	return(memPoolAlloc(modelManager));
+	return(memPoolAlloc(&modelManager));
 }
 
 //Free a model that has been allocated.
 void moduleModelFree(model *mdl){
 	modelDelete(mdl);
-	memPoolFree(modelManager, mdl);
+	memPoolFree(&modelManager, mdl);
 }
 
 
@@ -39,5 +42,5 @@ void moduleModelCleanup(){
 		modelDelete((model *)vectorGet(&loadedModels, i));
 		vectorRemove(&loadedModels, i);
 	}*/
-	memoryManagerGlobalFree(modelManager);
+	memoryManagerGlobalFree(modelManager.region->start);
 }

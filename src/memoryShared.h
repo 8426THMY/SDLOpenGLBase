@@ -8,21 +8,28 @@
 #include "utilTypes.h"
 
 
+//Add "num" to the address "pointer". We need to cast the pointer
+//to a character pointer, as otherwise we will be adding "num"
+//multiplied by the size of the type that "pointer" points to.
+#define memoryAddPointer(pointer, num) ((void *)(((byte_t *)(pointer)) + (num)))
+//Same as above, but subtracts "num" from "pointer" instead of adding it.
+#define memorySubPointer(pointer, num) ((void *)(((byte_t *)(pointer)) - (num)))
+
 //We'll assume the system is 8 byte aligned.
 #define MEMORY_ALIGNMENT 8
 #define MEMORY_FLAG_MASK (MEMORY_ALIGNMENT - 1)
 #define MEMORY_DATA_MASK (~MEMORY_FLAG_MASK)
 //Assuming "ALIGNMENT" is a power of two,
 //this will round "block" up to "ALIGNMENT".
-#define memoryAlign(block) ((void *)((((uintptr_t)(block)) + MEMORY_FLAG_MASK) & MEMORY_DATA_MASK))
+#define memoryAlign(block) ((void *)(((uintptr_t)memoryAddPointer(block, MEMORY_FLAG_MASK)) & MEMORY_DATA_MASK))
 
 //Return the size of a memory region. All this really
 //does is subtracts the size of the object from its size.
 #define memoryGetRegionSize(size) ((size) - sizeof(memoryRegion))
 //Return a pointer to a memory region object using the total size of the region.
-#define memoryGetRegionFromSize(start, size)           ((memoryRegion *)(((byte_t *)(start)) + (size)))
+#define memoryGetRegionFromSize(start, size) ((memoryRegion *)memoryAddPointer(start, size))
 //Return a pointer to a memory region object using the number of blocks in the region.
-#define memoryGetRegionFromBlocks(start, blocks, size) ((memoryRegion *)(((byte_t *)(start)) + (blocks) * (size)))
+#define memoryGetRegionFromBlocks(start, blocks, size) ((memoryRegion *)memoryAddPointer(start, (blocks) * (size)))
 //Return the amount of memory required for a region of "size" bytes.
 #define memoryGetRequiredSize(size) ((size) + sizeof(memoryRegion))
 

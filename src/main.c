@@ -16,8 +16,9 @@ int main(int argc, char **argv){
 }
 
 
-#error "Go through your functions and give them clearer descriptions."
-#error "It would probably be a good idea to try and clean up your code while you're at it."
+//#error "Go through your functions and give them clearer descriptions."
+//#error "It would probably be a good idea to try and clean up your code while you're at it."
+//#error "Split some of your functions up into helpers or something too, especially in areas where the helper might be useful in the future."
 
 
 /**

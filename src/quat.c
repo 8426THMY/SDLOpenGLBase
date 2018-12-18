@@ -351,10 +351,10 @@ void quatRotateVec3Deg(quat *q, const vec3 *v){
 
 //Perform linear interpolation between two quaternions and store the result in "out"!
 void quatLerp(const quat *q1, const quat *q2, const float time, quat *out){
-	out->x = (q2->x - q1->x) * time + q1->x;
-	out->y = (q2->y - q1->y) * time + q1->y;
-	out->z = (q2->z - q1->z) * time + q1->z;
-	out->w = (q2->w - q1->w) * time + q1->w;
+	out->x = floatLerp(q1->x, q2->x, time);
+	out->y = floatLerp(q1->y, q2->y, time);
+	out->z = floatLerp(q1->z, q2->z, time);
+	out->w = floatLerp(q1->w, q2->w, time);
 
 	//It's nice to be safe... but it isn't very fast.
 	quatNormalizeQuat(out, out);

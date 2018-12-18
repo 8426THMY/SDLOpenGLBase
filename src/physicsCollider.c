@@ -7,8 +7,8 @@
 
 typedef void (*colliderCalculateInertiaPrototype)(const physicsCollider *collider, const vec3 *centroid, float inertiaTensor[6]);
 //Create a jump table so we can calculate a collider's inertia tensor depending on its type.
-const static colliderCalculateInertiaPrototype colliderCalculateInertiaTable[NUM_COLLIDER_TYPES] = {
-	colliderMeshCalculateInertia
+const static colliderCalculateInertiaPrototype colliderCalculateInertiaTable[COLLIDER_NUM_TYPES] = {
+	colliderHullCalculateInertia
 };
 
 void colliderCalculateInertia(const physicsCollider *collider, const vec3 *centroid, float inertiaTensor[6]){

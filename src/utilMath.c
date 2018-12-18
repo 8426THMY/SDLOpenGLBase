@@ -1,6 +1,22 @@
 #include "utilMath.h"
 
 
+/*
+** Return the squared distance between
+** a point and a plane. The variable
+** "vertex" is any point on the plane.
+*/
+float pointPlaneDistSquared(const vec3 *vertex, const vec3 *normal, const vec3 *point){
+	const vec3 offset = {
+		.x = point->x - vertex->x,
+		.y = point->y - vertex->y,
+		.z = point->z - vertex->z
+	};
+
+	return(vec3DotVec3(normal, &offset));
+}
+
+
 //Fast inverse square root, literally copy-pasted from the Quake III Arena source.
 float fastInvSqrt(const float x){
 	const float halfX = x * 0.5f;

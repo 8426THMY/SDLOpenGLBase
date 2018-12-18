@@ -52,14 +52,14 @@
 #define memPoolBlockGetFlag(block) *((byte_t *)block)
 
 //Return the address of the next block in the pool.
-#define memPoolBlockGetNextBlock(block, size) ((void *)(((byte_t *)(block)) + (size)))
+#define memPoolBlockGetNextBlock(block, size) memoryAddPointer(block, size)
 //Return the address of the previous block in the pool.
-#define memPoolBlockGetPrevBlock(block, size) ((void *)(((byte_t *)(block)) - (size)))
+#define memPoolBlockGetPrevBlock(block, size) memorySubPointer(block, size)
 
 //Get the block's data from its flags segment.
-#define memPoolBlockFlagGetData(block) ((void **)(((byte_t *)(block)) + MEMPOOL_BLOCK_HEADER_SIZE))
+#define memPoolBlockFlagGetData(block) ((void **)memoryAddPointer(block, MEMPOOL_BLOCK_HEADER_SIZE))
 //Get the block's flags from its data segment.
-#define memPoolBlockDataGetFlag(block) (((byte_t *)(block)) - MEMPOOL_BLOCK_HEADER_SIZE)
+#define memPoolBlockDataGetFlag(block) ((byte_t *)memorySubPointer(block, MEMPOOL_BLOCK_HEADER_SIZE))
 
 //Return whether or not the block is active.
 #define memPoolBlockIsActive(block)   (memPoolBlockGetFlag(block) == MEMPOOL_FLAG_ACTIVE)

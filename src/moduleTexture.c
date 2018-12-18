@@ -1,7 +1,7 @@
 #include "moduleTexture.h"
 
 
-memoryPool *textureManager;
+memoryPool textureManager;
 
 
 #warning "What if we aren't using the global memory manager?"
@@ -12,8 +12,11 @@ return_t moduleTextureSetup(){
 	//can allocate enough memory for our manager
 	//and the error object can be setup correctly.
 	return(
-		(textureManager = memoryManagerGlobalAlloc(memPoolMemoryForBlocks(MEMORY_MAX_TEXTURES, sizeof(texture)) + sizeof(*textureManager))) != NULL &&
-		memPoolInit(textureManager, textureManager + sizeof(*textureManager), MEMORY_MAX_TEXTURES, sizeof(texture)) &&
+		memPoolInit(
+			&textureManager,
+			memoryManagerGlobalAlloc(memPoolMemoryForBlocks(MEMORY_MAX_TEXTURES, sizeof(texture))),
+			MEMORY_MAX_TEXTURES, sizeof(texture)
+		) != NULL &&
 		textureSetupError()
 	);
 }
@@ -22,20 +25,20 @@ return_t moduleTextureSetup(){
 //Allocate memory for a texture
 //and return a handle to it.
 texture *moduleTextureAlloc(){
-	return(memPoolAlloc(textureManager));
+	return(memPoolAlloc(&textureManager));
 }
 
 //Free a texture that has been allocated.
 void moduleTextureFree(texture *tex){
 	textureDelete(tex);
-	memPoolFree(textureManager, tex);
+	memPoolFree(&textureManager, tex);
 }
 
 
 #warning "Check for invalid flag to end the loop!"
 void moduleTextureCleanup(){
-	/*const size_t blockSize = textureManager->blockSize;
-	memoryRegion *region = textureManager->region;
+	/*const size_t blockSize = textureManager.blockSize;
+	memoryRegion *region = textureManager.region;
 	//Loop through every region of the object allocator!
 	while(region != NULL){
 		//We store a pointer to the beginning of
@@ -56,14 +59,14 @@ void moduleTextureCleanup(){
 		memoryManagerGlobalFree(memory);
 	}*/
 
-	memoryManagerGlobalFree(textureManager);
+	memoryManagerGlobalFree(textureManager.region->start);
 }
 
 
 //Find a texture whose name matches "name".
 texture *moduleTextureFind(const char *name){
-	const size_t blockSize = textureManager->blockSize;
-	memoryRegion *region = textureManager->region;
+	const size_t blockSize = textureManager.blockSize;
+	memoryRegion *region = textureManager.region;
 	//Loop through every region of the object allocator!
 	while(region != NULL){
 		void *block = region->start;
