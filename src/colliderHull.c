@@ -454,7 +454,7 @@ static void clipFaceContact(const colliderHull *hull1, const colliderHull *hull2
 	const colliderHullEdge *curEdge = &hull2->edges[hull2->faces[incIndex]];
 	const colliderHullEdge *startEdge = curEdge;
 	//Store the incident face's vertices in the array.
-	while(1){
+	for(;;){
 		//Edges are shared by both faces that use
 		//them, so we need to check whether or not
 		//the incident face is this edge's twin

@@ -92,13 +92,15 @@
 //parent pointer if we want to get its real value.
 #define treeNodeGetParent(node) ((memTreeNode *)(((uintptr_t)(((memTreeNode *)(node))->parent)) & MEMORY_DATA_MASK))
 //Update the node's parent pointer without changing its colour.
-#define treeNodeSetParent(nodeParent, colour) ((memTreeNode *)(((uintptr_t)(nodeParent)) | (colour)))
+#define treeNodeSetParent(node, nodeParent) ((memTreeNode *)(((uintptr_t)(nodeParent)) | treeNodeGetColour(node)))
 //The colour of a node is stored in the least
 //significant bit of the parent pointer.
 #define treeNodeGetColour(node) (((uintptr_t)(((memTreeNode *)(node))->parent)) & MEMORY_FLAG_MASK)
 //Write the specified colour flag
 //to the specified parent pointer.
 #define treeNodeSetColour(nodeParent, colour) ((memTreeNode *)(((uintptr_t)(nodeParent)) | (colour)))
+//Set the node's parent pointer and its colour.
+#define treeNodeCreateParentPointer(nodeParent, colour) ((memTreeNode *)(((uintptr_t)(nodeParent)) | (colour)))
 //Get a node's parent from its parent pointer.
 #define treeNodeInfoGetParent(info) ((memTreeNode *)(((uintptr_t)(info)) & MEMORY_DATA_MASK))
 //Update the node's parent pointer without changing its colour.
@@ -117,9 +119,9 @@
 #define treeNodeIsRedFast(node, nodeParent) ((((memTreeNode *)(node))->parent) != ((memTreeNode *)(nodeParent)))
 //If we want to make a node black and we have the address
 //of its parent, we can just set its parent pointer to that.
-#define treeNodeMakeBlack(parent) ((memTreeNode *)(parent))
+#define treeNodeMakeBlack(nodeParent) ((memTreeNode *)(nodeParent))
 //We can't really do the same the other way around, so do it the slow way.
-#define treeNodeMakeRed(parent) (treeNodeSetColour(parent, TREE_NODE_COLOUR_RED))
+#define treeNodeMakeRed(nodeParent) (treeNodeSetColour(nodeParent, TREE_NODE_COLOUR_RED))
 
 
 #warning "What if the beginning or end of a memory region is not aligned?"
@@ -165,7 +167,7 @@ void *memTreeAlloc(memoryTree *tree, const size_t blockSize){
 
 	memTreeNode *currentNode = tree->root;
 	//Search our free tree for the best fitting free block.
-	while(1){
+	for(;;){
 		const size_t currentBlockSize = treeNodeGetSize(currentNode);
 
 		memTreeNode *nextNode;
@@ -471,7 +473,7 @@ void memTreePrintAllSizes(memoryTree *tree){
 
 		memTreeListNode *node = (memTreeListNode *)(region->start);
 		//Loop through all of the nodes in this region.
-		while(1){
+		for(;;){
 			//If the node is active, we just print its size and flags.
 			if(listNodeIsActive(node->prevSize)){
 				printf(
@@ -514,12 +516,9 @@ void memTreePrintFreeSizes(memoryTree *tree){
 		//Start by finding the tree's leftmost node.
 		while((nodeLeft = node->left) != NULL){
 			node = nodeLeft;
-		}int a = 0;memTreeNode *blah = NULL;
+		}
 
 		while(node != NULL){
-			if(treeNodeGetParent(node) == NULL){
-				blah = node;
-			}
 			//Sizes include the block's header, so
 			//we need to remove that when we print it.
 			printf("Free Address: %u, Size: %u, Flags: %u,\n"
@@ -550,9 +549,7 @@ void memTreePrintFreeSizes(memoryTree *tree){
 				}
 
 				node = nodeParent;
-			}++a;if(a>10){exit(0);}
-		}if(!blah){
-			exit(0);
+			}
 		}
 	}
 }
@@ -600,110 +597,105 @@ static void splitBlock(memoryTree *tree, memTreeListNode *block, const size_t bl
 
 
 static void treeInsert(memoryTree *tree, memTreeNode *node, const size_t nodeSize){
-	memTreeNode *nodeParent = tree->root;
+	memTreeNode *parent = tree->root;
 
 	node->left = NULL;
 	node->right = NULL;
-	//Make sure our tree isn't empty.
-	if(nodeParent != NULL){
-		//Search our tree to find where the new node should be inserted.
-		while(1){
-			//If the new size is smaller than or equal to the
-			//current node's, go left. Otherwise, go right.
-			memTreeNode **nextNode = (nodeSize <= treeNodeGetSize(nodeParent)) ? &nodeParent->left : &nodeParent->right;
-
-			//If we've reached the end of the tree, add our new node!
-			if(*nextNode == NULL){
-				*nextNode = node;
-
-				break;
-			}
-			//Otherwise, check the next node!
-			nodeParent = *nextNode;
-		}
-
-		//Update the new leaf node's properties!
-		node->parent = treeNodeMakeRed(nodeParent);
-
-
-		//Now that our node has been inserted, we
-		//must make sure our tree is still compliant.
-		memTreeNode *grandparent = treeNodeGetParent(nodeParent);
-		//Keep recolouring while the current node's parent is red.
-		while(treeNodeIsRed(nodeParent, grandparent)){
-			memTreeNode *uncle = grandparent->left;
-
-			if(nodeParent == uncle){
-				uncle = grandparent->right;
-
-				//If we have a red uncle, we can simply
-				//do a colour swap and move up the tree.
-				if(treeNodeIsRed(uncle, grandparent)){
-					nodeParent->parent = treeNodeMakeBlack(grandparent);
-					uncle->parent = treeNodeMakeBlack(grandparent);
-					grandparent->parent = treeNodeMakeRed(grandparent->parent);
-
-					node = grandparent;
-				}else{
-					//Left right case.
-					if(node == nodeParent->right){
-						treeRotateLeft(tree, nodeParent);
-						nodeParent = node;
-						node = nodeParent->left;
-					}
-
-					//Left left case.
-					nodeParent->parent = treeNodeMakeBlack(grandparent);
-					grandparent->parent = treeNodeMakeRed(grandparent->parent);
-					treeRotateRight(tree, grandparent);
-
-					node = nodeParent;
-				}
-			}else{
-				//If we have a red uncle, we can simply
-				//do a colour swap and move up the tree.
-				if(treeNodeIsRed(uncle, grandparent)){
-					nodeParent->parent = treeNodeMakeBlack(grandparent);
-					uncle->parent = treeNodeMakeBlack(grandparent);
-					grandparent->parent = treeNodeMakeRed(grandparent->parent);
-
-					node = grandparent;
-				}else{
-					//Right left case.
-					if(node == nodeParent->left){
-						treeRotateRight(tree, nodeParent);
-						nodeParent = node;
-						node = nodeParent->right;
-					}
-
-					//Right right case.
-					nodeParent->parent = treeNodeMakeBlack(grandparent);
-					grandparent->parent = treeNodeMakeRed(grandparent->parent);
-					treeRotateLeft(tree, grandparent);
-
-					node = nodeParent;
-				}
-			}
-
-			//We should end the loop if our
-			//node is now the root node.
-			if(node == tree->root){
-				break;
-			}
-			//Otherwise, we'll need to update
-			//the parent and grandparent nodes.
-			nodeParent = treeNodeGetParent(node);
-			grandparent = treeNodeGetParent(nodeParent);
-		}
-
-		//Make sure the root node's parent is NULL.
-		tree->root->parent = NULL;
-
-	//If the tree is empty, inserting is quite simple.
-	}else{
+	//If the tree is empty, insert as the root node.
+	if(parent == NULL){
 		node->parent = NULL;
 		tree->root = node;
+		return;
 	}
+
+	//Search our tree to find where the new node should be inserted.
+	for(;;){
+		//If the new size is smaller than or equal to the
+		//current node's, go left. Otherwise, go right.
+		memTreeNode **nextNode = (nodeSize <= treeNodeGetSize(parent)) ? &parent->left : &parent->right;
+
+		//If we've reached the end of the tree, add our new node!
+		if(*nextNode == NULL){
+			*nextNode = node;
+
+			break;
+		}
+		//Otherwise, check the next node!
+		parent = *nextNode;
+	}
+
+	//Update the new leaf node's properties!
+	node->parent = treeNodeMakeRed(parent);
+
+
+	//Now that our node has been inserted, we
+	//must make sure our tree is still compliant.
+	memTreeNode *grandparent = treeNodeGetParent(parent);
+	//Keep recolouring while the current node's parent is red.
+	while(treeNodeIsRed(parent, grandparent)){
+		memTreeNode *uncle = grandparent->left;
+
+		if(parent == uncle){
+			uncle = grandparent->right;
+
+			//If we have a red uncle, we can simply
+			//do a colour swap and move up the tree.
+			if(treeNodeIsRed(uncle, grandparent)){
+				parent->parent = treeNodeMakeBlack(grandparent);
+				uncle->parent = treeNodeMakeBlack(grandparent);
+				grandparent->parent = treeNodeMakeRed(grandparent->parent);
+
+				node = grandparent;
+			}else{
+				//Left right case.
+				if(node == parent->right){
+					treeRotateLeft(tree, parent);
+					parent = node;
+					node = parent->left;
+				}
+
+				//Left left case.
+				parent->parent = treeNodeMakeBlack(grandparent);
+				grandparent->parent = treeNodeMakeRed(grandparent->parent);
+				treeRotateRight(tree, grandparent);
+			}
+		}else{
+			//If we have a red uncle, we can simply
+			//do a colour swap and move up the tree.
+			if(treeNodeIsRed(uncle, grandparent)){
+				parent->parent = treeNodeMakeBlack(grandparent);
+				uncle->parent = treeNodeMakeBlack(grandparent);
+				grandparent->parent = treeNodeMakeRed(grandparent->parent);
+
+				node = grandparent;
+			}else{
+				//Right left case.
+				if(node == parent->left){
+					treeRotateRight(tree, parent);
+					parent = node;
+					node = parent->right;
+				}
+
+				//Right right case.
+				parent->parent = treeNodeMakeBlack(grandparent);
+				grandparent->parent = treeNodeMakeRed(grandparent->parent);
+				treeRotateLeft(tree, grandparent);
+			}
+		}
+
+		//We should end the loop if our
+		//node is now the root node.
+		if(node == tree->root){
+			break;
+		}
+		//Otherwise, we'll need to update
+		//the parent and grandparent nodes.
+		parent = treeNodeGetParent(node);
+		grandparent = treeNodeGetParent(parent);
+	}
+
+	//Make sure the root node's parent is NULL.
+	tree->root->parent = NULL;
 }
 
 static void treeDelete(memoryTree *tree, memTreeNode *node){
@@ -720,12 +712,10 @@ static void treeDelete(memoryTree *tree, memTreeNode *node){
 	//the node using its new, single-child location.
 	if(nodeLeft != NULL){
 		if(nodeRight != NULL){
-			memTreeNode *successorLeft;
-
 			successor = nodeRight;
 			//Find the smallest node in the right subtree.
-			while((successorLeft = successor->left) != NULL){
-				successor = successorLeft;
+			while(successor->left != NULL){
+				successor = successor->left;
 			}
 			child = successor->right;
 
@@ -735,29 +725,28 @@ static void treeDelete(memoryTree *tree, memTreeNode *node){
 			child = nodeLeft;
 		}
 
-	//The node has a right child but no left child.
-	}else if(nodeRight != NULL){
-		successor = node;
-		child = nodeRight;
-
-	//The node has no children.
+	//The node either has a right child and no left
+	//child or it has no children. In the latter case,
+	//the child pointer will be NULL as it should be.
 	}else{
 		successor = node;
-		child = NULL;
+		child = nodeRight;
 	}
 
 	successorParent = treeNodeGetParent(successor);
 	//Make the successor's parent point to the child node.
-	if(successorParent == NULL){
-		tree->root = child;
-	}else if(successorParent->left == successor){
-		successorParent->left = child;
+	if(successorParent != NULL){
+		if(successorParent->left == successor){
+			successorParent->left = child;
+		}else{
+			successorParent->right = child;
+		}
 	}else{
-		successorParent->right = child;
+		tree->root = child;
 	}
 	//Set the child's parent to its successor's.
 	if(child != NULL){
-		child->parent = treeNodeSetParent(successorParent, treeNodeGetColour(child));
+		child->parent = treeNodeSetParent(child, successorParent);
 	}
 
 	//If the successor and its child are both
@@ -808,9 +797,10 @@ static void treeDelete(memoryTree *tree, memTreeNode *node){
 					//Break the loop.
 					child = tree->root;
 					successorParent = NULL;
+					break;
 				}
 			}else{
-				//If the sibling is red, swap its colour with its parent and rotate left.
+				//If the sibling is red, swap its colour with its parent and rotate right.
 				if(treeNodeIsRedFast(sibling, successorParent)){
 					sibling->parent = treeNodeMakeBlack(successorParent);
 					successorParent->parent = treeNodeMakeRed(successorParent->parent);
@@ -847,6 +837,7 @@ static void treeDelete(memoryTree *tree, memTreeNode *node){
 					//Break the loop.
 					child = tree->root;
 					successorParent = NULL;
+					break;
 				}
 			}
 		}
@@ -866,25 +857,27 @@ static void treeDelete(memoryTree *tree, memTreeNode *node){
 
 		//Update the left child's parent pointer.
 		if(nodeLeft != NULL){
-			nodeLeft->parent = treeNodeSetParent(successor, treeNodeGetColour(nodeLeft));
+			nodeLeft->parent = treeNodeSetParent(nodeLeft, successor);
 		}
 		//Set the successor's left child.
 		successor->left = nodeLeft;
 
 		//Update the right child's parent pointer.
 		if(nodeRight != NULL){
-			nodeRight->parent = treeNodeSetParent(successor, treeNodeGetColour(nodeRight));
+			nodeRight->parent = treeNodeSetParent(nodeRight, successor);
 		}
 		//Set the successor's right child.
 		successor->right = nodeRight;
 
 		//Make the node's parent point to the successor.
-		if(successorParent == NULL){
-			tree->root = successor;
-		}else if(successorParent->left == node){
-			successorParent->left = successor;
+		if(successorParent != NULL){
+			if(successorParent->left == node){
+				successorParent->left = successor;
+			}else{
+				successorParent->right = successor;
+			}
 		}else{
-			successorParent->right = successor;
+			tree->root = successor;
 		}
 		//Set the successor's parent.
 		successor->parent = node->parent;
@@ -892,65 +885,67 @@ static void treeDelete(memoryTree *tree, memTreeNode *node){
 }
 
 static void treeRotateLeft(memoryTree *tree, memTreeNode *node){
-	memTreeNode *nodeRight = node->right;
-	//We can't rotate the tree if the node has no right child.
-	if(nodeRight != NULL){
-		memTreeNode *tempNode = nodeRight->left;
+	memTreeNode *right = node->right;
+	memTreeNode *tempNode = right->left;
 
-		node->right = tempNode;
-		//If the child node has a left child, we'll need to move it.
-		if(tempNode != NULL){
-			tempNode->parent = treeNodeSetParent(node, treeNodeGetColour(tempNode));
-		}
-		nodeRight->left = node;
-
-		tempNode = treeNodeGetParent(node);
-		nodeRight->parent = treeNodeSetParent(tempNode, treeNodeGetColour(nodeRight));
-		//If the node had a parent, make it point to the new node.
-		if(tempNode != NULL){
-			//Make sure we set the correct child pointer.
-			if(tempNode->left == node){
-				tempNode->left = nodeRight;
-			}else{
-				tempNode->right = nodeRight;
-			}
-
-		//Otherwise, it must have been the root node.
-		}else{
-			tree->root = nodeRight;
-		}
-		node->parent = treeNodeSetParent(nodeRight, treeNodeGetColour(node));
+	node->right = tempNode;
+	//The left child of the node's right child
+	//should now become the node's right child.
+	if(tempNode != NULL){
+		tempNode->parent = treeNodeSetParent(tempNode, node);
 	}
+
+	tempNode = treeNodeGetParent(node);
+	//The node's parent should point
+	//to the node's old right child.
+	if(tempNode != NULL){
+		if(tempNode->left == node){
+			tempNode->left = right;
+		}else{
+			tempNode->right = right;
+		}
+	}else{
+		tree->root = right;
+	}
+	//Update the right child's parent.
+	right->parent = treeNodeSetParent(right, tempNode);
+
+	//The node's old right child
+	//should point to the node.
+	right->left = node;
+	//Update the node's parent.
+	node->parent = treeNodeSetParent(node, right);
 }
 
 static void treeRotateRight(memoryTree *tree, memTreeNode *node){
-	memTreeNode *nodeLeft = node->left;
-	//We can't rotate the tree if the node has no left child.
-	if(nodeLeft != NULL){
-		memTreeNode *tempNode = nodeLeft->right;
+	memTreeNode *left = node->left;
+	memTreeNode *tempNode = left->right;
 
-		node->left = tempNode;
-		//If the child node has a right child, we'll need to move it.
-		if(tempNode != NULL){
-			tempNode->parent = treeNodeSetParent(node, treeNodeGetColour(tempNode));
-		}
-		nodeLeft->right = node;
-
-		tempNode = treeNodeGetParent(node);
-		nodeLeft->parent = treeNodeSetParent(tempNode, treeNodeGetColour(nodeLeft));
-		//If the node had a parent, make it point to the new node.
-		if(tempNode != NULL){
-			//Make sure we set the correct child pointer.
-			if(tempNode->left == node){
-				tempNode->left = nodeLeft;
-			}else{
-				tempNode->right = nodeLeft;
-			}
-
-		//Otherwise, it must have been the root node.
-		}else{
-			tree->root = nodeLeft;
-		}
-		node->parent = treeNodeSetParent(nodeLeft, treeNodeGetColour(node));
+	node->left = tempNode;
+	//The left child of the node's left child
+	//should now become the node's left child.
+	if(tempNode != NULL){
+		tempNode->parent = treeNodeSetParent(tempNode, node);
 	}
+
+	tempNode = treeNodeGetParent(node);
+	//The node's parent should point
+	//to the node's old left child.
+	if(tempNode != NULL){
+		if(tempNode->left == node){
+			tempNode->left = left;
+		}else{
+			tempNode->right = left;
+		}
+	}else{
+		tree->root = left;
+	}
+	//Update the left child's parent.
+	left->parent = treeNodeSetParent(left, tempNode);
+
+	//The node's old left child
+	//should point to the node.
+	left->right = node;
+	//Update the node's parent.
+	node->parent = treeNodeSetParent(node, left);
 }

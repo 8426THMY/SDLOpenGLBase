@@ -245,7 +245,7 @@ void memSingleListClear(memorySingleList *singleList){
 	singleList->nextFreeBlock = memSingleListBlockFreeFlagGetNext(region->start);
 
 	//Loop through every region in the allocator.
-	while(1){
+	for(;;){
 		memoryRegion *nextRegion = region->next;
 
 		//If this is not the last region, make this region's
