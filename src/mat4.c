@@ -15,22 +15,22 @@ void mat4InitZero(mat4 *m){
 //Initialize the matrix to an identity matrix!
 void mat4InitIdentity(mat4 *m){
 	m->m[0][0] = 1.f;
-	m->m[0][1] =
-	m->m[0][2] =
-	m->m[0][3] =
+	m->m[0][1] = 0.f;
+	m->m[0][2] = 0.f;
+	m->m[0][3] = 0.f;
 
 	m->m[1][0] = 0.f;
 	m->m[1][1] = 1.f;
-	m->m[1][2] =
-	m->m[1][3] =
+	m->m[1][2] = 0.f;
+	m->m[1][3] = 0.f;
 
-	m->m[2][0] =
+	m->m[2][0] = 0.f;
 	m->m[2][1] = 0.f;
 	m->m[2][2] = 1.f;
-	m->m[2][3] =
+	m->m[2][3] = 0.f;
 
-	m->m[3][0] =
-	m->m[3][1] =
+	m->m[3][0] = 0.f;
+	m->m[3][1] = 0.f;
 	m->m[3][2] = 0.f;
 	m->m[3][3] = 1.f;
 }
@@ -38,16 +38,16 @@ void mat4InitIdentity(mat4 *m){
 //Initialise a matrix to a translation matrix!
 void mat4InitTranslate(mat4 *m, const float x, const float y, const float z){
 	m->m[0][0] = 1.f;
-	m->m[0][1] =
-	m->m[0][2] =
-	m->m[0][3] =
+	m->m[0][1] = 0.f;
+	m->m[0][2] = 0.f;
+	m->m[0][3] = 0.f;
 
 	m->m[1][0] = 0.f;
 	m->m[1][1] = 1.f;
-	m->m[1][2] =
-	m->m[1][3] =
+	m->m[1][2] = 0.f;
+	m->m[1][3] = 0.f;
 
-	m->m[2][0] =
+	m->m[2][0] = 0.f;
 	m->m[2][1] = 0.f;
 	m->m[2][2] = 1.f;
 	m->m[2][3] = 0.f;
@@ -61,16 +61,16 @@ void mat4InitTranslate(mat4 *m, const float x, const float y, const float z){
 //Initialise a matrix to a translation matrix!
 void mat4InitTranslate4(mat4 *m, const float x, const float y, const float z, const float w){
 	m->m[0][0] = 1.f;
-	m->m[0][1] =
-	m->m[0][2] =
-	m->m[0][3] =
+	m->m[0][1] = 0.f;
+	m->m[0][2] = 0.f;
+	m->m[0][3] = 0.f;
 
 	m->m[1][0] = 0.f;
 	m->m[1][1] = 1.f;
-	m->m[1][2] =
-	m->m[1][3] =
+	m->m[1][2] = 0.f;
+	m->m[1][3] = 0.f;
 
-	m->m[2][0] =
+	m->m[2][0] = 0.f;
 	m->m[2][1] = 0.f;
 	m->m[2][2] = 1.f;
 	m->m[2][3] = 0.f;
@@ -119,8 +119,8 @@ void mat4InitRotateQuat(mat4 *m, const quat *q){
 	m->m[2][2] = 1.f - 2.f * (xx + yy);
 	m->m[2][3] = 0.f;
 
-	m->m[3][0] =
-	m->m[3][1] =
+	m->m[3][0] = 0.f;
+	m->m[3][1] = 0.f;
 	m->m[3][2] = 0.f;
 	m->m[3][3] = 1.f;
 }
@@ -128,22 +128,22 @@ void mat4InitRotateQuat(mat4 *m, const quat *q){
 //Initialise a matrix to a scale matrix!
 void mat4InitScale(mat4 *m, const float x, const float y, const float z){
 	m->m[0][0] = x;
-	m->m[0][1] =
-	m->m[0][2] =
-	m->m[0][3] =
+	m->m[0][1] = 0.f;
+	m->m[0][2] = 0.f;
+	m->m[0][3] = 0.f;
 
 	m->m[1][0] = 0.f;
 	m->m[1][1] = y;
-	m->m[1][2] =
-	m->m[1][3] =
+	m->m[1][2] = 0.f;
+	m->m[1][3] = 0.f;
 
-	m->m[2][0] =
+	m->m[2][0] = 0.f;
 	m->m[2][1] = 0.f;
 	m->m[2][2] = z;
-	m->m[2][3] =
+	m->m[2][3] = 0.f;
 
-	m->m[3][0] =
-	m->m[3][1] =
+	m->m[3][0] = 0.f;
+	m->m[3][1] = 0.f;
 	m->m[3][2] = 0.f;
 	m->m[3][3] = 1.f;
 }
@@ -151,22 +151,22 @@ void mat4InitScale(mat4 *m, const float x, const float y, const float z){
 //Initialise a matrix to a scale matrix!
 void mat4InitScale4(mat4 *m, const float x, const float y, const float z, const float w){
 	m->m[0][0] = x;
-	m->m[0][1] =
-	m->m[0][2] =
-	m->m[0][3] =
+	m->m[0][1] = 0.f;
+	m->m[0][2] = 0.f;
+	m->m[0][3] = 0.f;
 
 	m->m[1][0] = 0.f;
 	m->m[1][1] = y;
-	m->m[1][2] =
-	m->m[1][3] =
+	m->m[1][2] = 0.f;
+	m->m[1][3] = 0.f;
 
-	m->m[2][0] =
+	m->m[2][0] = 0.f;
 	m->m[2][1] = 0.f;
 	m->m[2][2] = z;
-	m->m[2][3] =
+	m->m[2][3] = 0.f;
 
-	m->m[3][0] =
-	m->m[3][1] =
+	m->m[3][0] = 0.f;
+	m->m[3][1] = 0.f;
 	m->m[3][2] = 0.f;
 	m->m[3][3] = w;
 }

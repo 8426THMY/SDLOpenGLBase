@@ -1,19 +1,35 @@
-#include "physicsCollider.h"
+#include "collider.h"
 
 
 #include <stdio.h>
 #include <string.h>
 
 
-typedef void (*colliderCalculateInertiaPrototype)(const physicsCollider *collider, const vec3 *centroid, float inertiaTensor[6]);
+/*typedef void (*colliderCalculateInertiaPrototype)(const void *collider, float inertia[6]);
 //Create a jump table so we can calculate a collider's inertia tensor depending on its type.
-const static colliderCalculateInertiaPrototype colliderCalculateInertiaTable[COLLIDER_NUM_TYPES] = {
-	colliderHullCalculateInertia
+static const colliderCalculateInertiaPrototype colliderCalculateInertiaTable[COLLIDER_NUM_TYPES] = {
+	colliderHullCalculateInertia, NULL
+};*/
+
+typedef return_t (*colliderCheckCollisionPrototype)(const void *colliderA, const void *colliderB, contactManifold *cm);
+//Create a jump table so we can check collision between two colliders depending on their types.
+static const colliderCheckCollisionPrototype colliderCheckCollisionTable[COLLIDER_NUM_TYPES][COLLIDER_NUM_TYPES] = {
+	{
+		colliderHullCollidingSAT, NULL
+	},
+	{
+		NULL, NULL
+	}
 };
 
-void colliderCalculateInertia(const physicsCollider *collider, const vec3 *centroid, float inertiaTensor[6]){
-	//Call the collider's function from the jump table.
-	colliderCalculateInertiaTable[collider->type](collider, centroid, inertiaTensor);
+
+//These functions merely act as interfaces to the jump tables.
+/*void colliderCalculateInertia(const collider *c, float inertia[6]){
+	colliderCalculateInertiaTable[c->type]((void *)(&c->data), inertia);
+}*/
+
+return_t colliderCheckCollision(const collider *cA, const collider *cB, contactManifold *cm){
+	return(colliderCheckCollisionTable[cA->type][cB->type]((void *)(&cA->data), (void *)(&cB->data), cm));
 }
 
 
@@ -34,7 +50,7 @@ void colliderCalculateInertia(const physicsCollider *collider, const vec3 *centr
 		}
 
 		//Multiply the accumulated positions by the inverse mass to calculate the centroid.
-		vec3MultiplyS(centroid, collider->inverseMass, centroid);
+		vec3MultiplyS(centroid, collider->invMass, centroid);
 	}else{
 		//If the vertices are not weighted, we can save some multiplications.
 		for(; curVertex < lastVertex; ++curVertex){

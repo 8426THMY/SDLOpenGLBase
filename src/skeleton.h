@@ -8,7 +8,6 @@
 #include <stdlib.h>
 
 #include "utilTypes.h"
-
 #include "vec3.h"
 #include "quat.h"
 #include "mat4.h"

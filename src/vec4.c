@@ -164,6 +164,16 @@ float vec4MagnitudeVec4(const vec4 *v){
 	return(sqrtf(vec4NormVec4(v)));
 }
 
+//Find the distance between a vec4 and one stored as four floats!
+float vec4DistanceSquared(const vec4 *v, const float x, const float y, const float z, const float w){
+	return(vec4Norm(x - v->x, y - v->y, z - v->z, w - v->w));
+}
+
+//Find the distance between two vec4s!
+float vec4DistanceSquaredVec4(const vec4 *v1, const vec4 *v2){
+	return(vec4Norm(v2->x - v1->x, v2->y - v1->y, v2->z - v1->z, v2->w - v1->w));
+}
+
 
 //Find the dot product of two vec4s stored as four floats!
 float vec4Dot(const float x1, const float y1, const float z1, const float w1, const float x2, const float y2, const float z2, const float w2){
@@ -233,4 +243,16 @@ void vec4Lerp(const vec4 *v1, const vec4 *v2, const float time, vec4 *out){
 	out->y = floatLerp(v1->y, v2->y, time);
 	out->z = floatLerp(v1->z, v2->z, time);
 	out->w = floatLerp(v1->w, v2->w, time);
+}
+
+/*
+** Perform linear interpolation between two vec4s and store the result in "out"!
+** Instead of entering the two vectors to interpolate between, this function
+** accepts the starting point and the difference between it and the ending point.
+*/
+void vec4LerpFast(const vec4 *v, const vec4 *offset, const float time, vec4 *out){
+	out->x = floatLerpFast(v->x, offset->x, time);
+	out->y = floatLerpFast(v->y, offset->y, time);
+	out->z = floatLerpFast(v->z, offset->z, time);
+	out->w = floatLerpFast(v->w, offset->w, time);
 }

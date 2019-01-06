@@ -3,7 +3,7 @@
 
 
 #include "memoryShared.h"
-#include "memorySettings.h"
+#include "settingsMemory.h"
 
 #include "memoryTree.h"
 

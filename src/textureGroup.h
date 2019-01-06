@@ -26,42 +26,43 @@ typedef struct textureGroupFrame {
 } textureGroupFrame;
 
 //Stores the data for an animation!
-typedef struct textureGroupAnim {
+typedef struct textureGroupAnimDef {
 	char *name;
 
 	//Stores all the frames used by the animation!
 	textureGroupFrame *animFrames;
 	//Stores the total number of frames and when each frame ends!
 	animationFrameData frameData;
-} textureGroupAnim;
+} textureGroupAnimDef;
 
 typedef struct textureGroup {
 	char *name;
 
 	//Stores all the animations for the textureGroup!
-	textureGroupAnim *texAnims;
+	textureGroupAnimDef *texAnims;
 	size_t numAnims;
 } textureGroup;
 
 //Stores the data for a single instance of an animated texture.
-typedef struct textureGroupAnimInst {
+typedef struct textureGroupAnim {
+	#warning "We don't need to store its position anymore."
 	size_t texGroupPos;
 	animationData animData;
-} textureGroupAnimInst;
+} textureGroupAnim;
 
 
 void texGroupFrameInit(textureGroupFrame *texGroupFrame);
-void texGroupAnimInit(textureGroupAnim *texGroupAnim);
+void texGroupAnimDefInit(textureGroupAnimDef *texGroupAnimDef);
 void texGroupInit(textureGroup *texGroup);
-void texGroupAnimInstInit(textureGroupAnimInst *animInst, const size_t texGroupPos);
+void texGroupAnimInit(textureGroupAnim *texGroupAnim, const size_t texGroupPos);
 
 return_t texGroupLoad(textureGroup *texGroup, const char *texGroupName);
 
-void texGroupAnimInstSetAnim(textureGroupAnimInst *animInst, const size_t currentAnim);
-void texGroupAnimInstUpdateAnim(textureGroupAnimInst *animInst, const float time);
+void texGroupAnimSetAnim(textureGroupAnim *texGroupAnim, const size_t currentAnim);
+void texGroupAnimUpdateAnim(textureGroupAnim *texGroupAnim, const float time);
 GLuint texGroupGetFrame(const textureGroup *texGroup, const size_t currentAnim, const size_t currentFrame, const GLuint uvOffsetsID);
 
-void texGroupAnimDelete(textureGroupAnim *texGroupAnim);
+void texGroupAnimDefDelete(textureGroupAnimDef *texGroupAnimDef);
 void texGroupDelete(textureGroup *texGroup);
 
 size_t texGroupFindAnimNameIndex(const textureGroup *texGroup, const char *name);

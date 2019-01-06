@@ -360,10 +360,28 @@ void quatLerp(const quat *q1, const quat *q2, const float time, quat *out){
 	quatNormalizeQuat(out, out);
 }
 
-//Perform spherical linear interpolation between two quaternions and store the result in "out"!
+/*
+** Perform linear interpolation between two quaternions and store the result in "out"!
+** Instead of entering the two vectors to interpolate between, this function accepts
+** the starting orientation and the difference between it and the ending orientation.
+*/
+void quatLerpFast(const quat *q, const quat *offset, const float time, quat *out){
+	out->x = floatLerpFast(q->x, offset->x, time);
+	out->y = floatLerpFast(q->y, offset->y, time);
+	out->z = floatLerpFast(q->z, offset->z, time);
+	out->w = floatLerpFast(q->w, offset->w, time);
+
+	//It's nice to be safe... but it isn't very fast.
+	quatNormalizeQuat(out, out);
+}
+
+/*
+** Perform spherical linear interpolation between
+** two quaternions and store the result in "out"!
+*/
 void quatSlerp(const quat *q1, const quat *q2, const float time, quat *out){
 	const float cosTheta = quatDotQuat(q1, q2);
-	const float absCosTheta = fabs(cosTheta);
+	const float absCosTheta = fabsf(cosTheta);
 	//We can perform linear interpolation of the angle is small enough (in this case, less than 1 degree).
 	if(absCosTheta > QUAT_LERP_EPSILON){
 		quatLerp(q1, q2, time, out);
@@ -390,12 +408,15 @@ void quatSlerp(const quat *q1, const quat *q2, const float time, quat *out){
 	}
 }
 
-//Slerp two quaternions using an optimized algorithm!
-//Note: Although this should be significantly faster than the
-//      former method, it may also be slightly less accurate.
+/*
+** Slerp two quaternions using an optimized algorithm!
+**
+** Note: Although this should be significantly faster than
+** the former method, it may also be slightly less accurate.
+*/
 void quatSlerpFast(const quat *q1, const quat *q2, const float time, quat *out){
 	const float cosTheta = quatDotQuat(q1, q2);
-	const float absCosTheta = fabs(cosTheta);
+	const float absCosTheta = fabsf(cosTheta);
 	//We can perform linear interpolation of the angle is small enough (in this case, less than 1 degree).
 	if(absCosTheta > QUAT_LERP_EPSILON){
 		quatLerp(q1, q2, time, out);
@@ -420,4 +441,40 @@ void quatSlerpFast(const quat *q1, const quat *q2, const float time, quat *out){
 		//It's nice to be safe... but it isn't very fast.
 		quatNormalizeQuat(out, out);
 	}
+}
+
+
+/*
+** Differentiate the quaternion "q" with angular
+** velocity "w", then store the result in "out".
+**
+** dq/dt = 0.5f * quat(w.xyz, 0.f) * q
+*/
+void quatDifferentiate(const quat *q, const vec3 *w, quat *out){
+	const quat spin = {
+		.x = w->x * 0.5f,
+		.y = w->y * 0.5f,
+		.z = w->z * 0.5f,
+		.w = 0.f
+	};
+
+	quatMultiplyQuat(&spin, q, out);
+}
+
+/*
+** Integrate the quaternion "q" with angular velocity "w"
+** using the step size "dt" and store the result in "out".
+**
+** q^(n + 1) = q^n + dq/dt * dt
+*/
+void quatIntegrate(const quat *q, const vec3 *w, float dt, quat *out){
+	quat spin;
+
+	dt *= 0.5f;
+	//Multiply by half the timestep to
+	//save multiplications later on.
+	quatInitSet(&spin, w->x * dt, w->y * dt, w->z * dt, 0.f);
+
+	quatMultiplyQuat(&spin, q, &spin);
+	quatAddVec4(q, &spin, out);
 }

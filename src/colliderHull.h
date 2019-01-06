@@ -2,39 +2,16 @@
 #define colliderHull_h
 
 
+#define COLLIDER_TYPE_HULL 0
+
+
 #include <stdio.h>
 #include <stdint.h>
 
 #include "utilTypes.h"
-
 #include "vec3.h"
 
-#include "collision.h"
-
-
-/*
-//A collider hull edge only needs to store the index of its
-//start vertex, as the next edge will contain its end vertex.
-typedef struct colliderHullEdge {
-	size_t startVertexIndex;
-	size_t oppositeFaceIndex;
-} colliderHullEdge;
-
-typedef struct colliderHullFace {
-	colliderHullEdge *edges;
-	size_t numEdges;
-
-	vec3 normal;
-} colliderHullFace;
-
-typedef struct colliderHull {
-	vec3 *vertices;
-	size_t numVertices;
-
-	colliderHullFace *faces;
-	size_t numFaces;
-} colliderHull;
-*/
+#include "contact.h"
 
 
 //Stores the indices of data relevant to the edge.
@@ -80,19 +57,22 @@ typedef struct colliderHull {
 	//can create at most two vertices. This is
 	//mostly useful for memory preallocation.
 	uint_least16_t maxFaceVertices;
+
+	//Hulls are the only colliders that
+	//need their centroids for collision.
+	vec3 centroid;
 } colliderHull;
 
 
-typedef struct physicsCollider physicsCollider;
-void colliderHullLoad(physicsCollider *collider);
-void colliderHullSetupProperties(physicsCollider *collider);
+void colliderHullLoad(void *hull);
+void colliderHullSetupProperties(void *hull);
 
-void colliderHullCalculateInertia(const physicsCollider *collider, const vec3 *centroid, float inertiaTensor[6]);
-void colliderHullCalculateCentroid(const colliderHull *hull, vec3 *centroid);
+void colliderHullCalculateInertia(const void *hull, float inertia[6]);
+void colliderHullCalculateCentroid(const colliderHull *hull);
 
 const vec3 *colliderHullSupport(const colliderHull *hull, const vec3 *dir);
 
-return_t colliderHullCollidingSAT(const colliderHull *hull1, const colliderHull *hull2, const vec3 *h1Centroid, contactManifold *cm);
+return_t colliderHullCollidingSAT(const void *hullA, const void *hullB, contactManifold *cm);
 
 
 #endif

@@ -1,5 +1,5 @@
-#ifndef memorySettings_h
-#define memorySettings_h
+#ifndef settingsMemory_h
+#define settingsMemory_h
 
 
 #define MEMORY_KIBIBYTE 1024

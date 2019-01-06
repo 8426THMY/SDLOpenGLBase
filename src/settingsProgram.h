@@ -1,5 +1,5 @@
-#ifndef programSettings_h
-#define programSettings_h
+#ifndef settingsProgram_h
+#define settingsProgram_h
 
 
 #define ASPECT_RATIO_X 4

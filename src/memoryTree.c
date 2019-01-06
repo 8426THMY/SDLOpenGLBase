@@ -601,101 +601,102 @@ static void treeInsert(memoryTree *tree, memTreeNode *node, const size_t nodeSiz
 
 	node->left = NULL;
 	node->right = NULL;
+	//Make sure the tree isn't empty before inserting the node.
+	if(parent != NULL){
+		//Search our tree to find where the new node should be inserted.
+		for(;;){
+			//If the new size is smaller than or equal to the
+			//current node's, go left. Otherwise, go right.
+			memTreeNode **nextNode = (nodeSize <= treeNodeGetSize(parent)) ? &parent->left : &parent->right;
+
+			//If we've reached the end of the tree, add our new node!
+			if(*nextNode == NULL){
+				*nextNode = node;
+
+				break;
+			}
+			//Otherwise, check the next node!
+			parent = *nextNode;
+		}
+
+		//Update the new leaf node's properties!
+		node->parent = treeNodeMakeRed(parent);
+
+
+		//Now that our node has been inserted, we
+		//must make sure our tree is still compliant.
+		memTreeNode *grandparent = treeNodeGetParent(parent);
+		//Keep recolouring while the current node's parent is red.
+		while(treeNodeIsRed(parent, grandparent)){
+			memTreeNode *uncle = grandparent->left;
+
+			if(parent == uncle){
+				uncle = grandparent->right;
+
+				//If we have a red uncle, we can simply
+				//do a colour swap and move up the tree.
+				if(treeNodeIsRed(uncle, grandparent)){
+					parent->parent = treeNodeMakeBlack(grandparent);
+					uncle->parent = treeNodeMakeBlack(grandparent);
+					grandparent->parent = treeNodeMakeRed(grandparent->parent);
+
+					node = grandparent;
+				}else{
+					//Left right case.
+					if(node == parent->right){
+						treeRotateLeft(tree, parent);
+						parent = node;
+						node = parent->left;
+					}
+
+					//Left left case.
+					parent->parent = treeNodeMakeBlack(grandparent);
+					grandparent->parent = treeNodeMakeRed(grandparent->parent);
+					treeRotateRight(tree, grandparent);
+				}
+			}else{
+				//If we have a red uncle, we can simply
+				//do a colour swap and move up the tree.
+				if(treeNodeIsRed(uncle, grandparent)){
+					parent->parent = treeNodeMakeBlack(grandparent);
+					uncle->parent = treeNodeMakeBlack(grandparent);
+					grandparent->parent = treeNodeMakeRed(grandparent->parent);
+
+					node = grandparent;
+				}else{
+					//Right left case.
+					if(node == parent->left){
+						treeRotateRight(tree, parent);
+						parent = node;
+						node = parent->right;
+					}
+
+					//Right right case.
+					parent->parent = treeNodeMakeBlack(grandparent);
+					grandparent->parent = treeNodeMakeRed(grandparent->parent);
+					treeRotateLeft(tree, grandparent);
+				}
+			}
+
+			//We should end the loop if our
+			//node is now the root node.
+			if(node == tree->root){
+				break;
+			}
+			//Otherwise, we'll need to update
+			//the parent and grandparent nodes.
+			parent = treeNodeGetParent(node);
+			grandparent = treeNodeGetParent(parent);
+		}
+
+		//Make sure the root node's parent is NULL.
+		tree->root->parent = NULL;
+
 	//If the tree is empty, insert as the root node.
-	if(parent == NULL){
+	}else{
 		node->parent = NULL;
 		tree->root = node;
-		return;
 	}
-
-	//Search our tree to find where the new node should be inserted.
-	for(;;){
-		//If the new size is smaller than or equal to the
-		//current node's, go left. Otherwise, go right.
-		memTreeNode **nextNode = (nodeSize <= treeNodeGetSize(parent)) ? &parent->left : &parent->right;
-
-		//If we've reached the end of the tree, add our new node!
-		if(*nextNode == NULL){
-			*nextNode = node;
-
-			break;
-		}
-		//Otherwise, check the next node!
-		parent = *nextNode;
-	}
-
-	//Update the new leaf node's properties!
-	node->parent = treeNodeMakeRed(parent);
-
-
-	//Now that our node has been inserted, we
-	//must make sure our tree is still compliant.
-	memTreeNode *grandparent = treeNodeGetParent(parent);
-	//Keep recolouring while the current node's parent is red.
-	while(treeNodeIsRed(parent, grandparent)){
-		memTreeNode *uncle = grandparent->left;
-
-		if(parent == uncle){
-			uncle = grandparent->right;
-
-			//If we have a red uncle, we can simply
-			//do a colour swap and move up the tree.
-			if(treeNodeIsRed(uncle, grandparent)){
-				parent->parent = treeNodeMakeBlack(grandparent);
-				uncle->parent = treeNodeMakeBlack(grandparent);
-				grandparent->parent = treeNodeMakeRed(grandparent->parent);
-
-				node = grandparent;
-			}else{
-				//Left right case.
-				if(node == parent->right){
-					treeRotateLeft(tree, parent);
-					parent = node;
-					node = parent->left;
-				}
-
-				//Left left case.
-				parent->parent = treeNodeMakeBlack(grandparent);
-				grandparent->parent = treeNodeMakeRed(grandparent->parent);
-				treeRotateRight(tree, grandparent);
-			}
-		}else{
-			//If we have a red uncle, we can simply
-			//do a colour swap and move up the tree.
-			if(treeNodeIsRed(uncle, grandparent)){
-				parent->parent = treeNodeMakeBlack(grandparent);
-				uncle->parent = treeNodeMakeBlack(grandparent);
-				grandparent->parent = treeNodeMakeRed(grandparent->parent);
-
-				node = grandparent;
-			}else{
-				//Right left case.
-				if(node == parent->left){
-					treeRotateRight(tree, parent);
-					parent = node;
-					node = parent->right;
-				}
-
-				//Right right case.
-				parent->parent = treeNodeMakeBlack(grandparent);
-				grandparent->parent = treeNodeMakeRed(grandparent->parent);
-				treeRotateLeft(tree, grandparent);
-			}
-		}
-
-		//We should end the loop if our
-		//node is now the root node.
-		if(node == tree->root){
-			break;
-		}
-		//Otherwise, we'll need to update
-		//the parent and grandparent nodes.
-		parent = treeNodeGetParent(node);
-		grandparent = treeNodeGetParent(parent);
-	}
-
-	//Make sure the root node's parent is NULL.
-	tree->root->parent = NULL;
 }
 
 static void treeDelete(memoryTree *tree, memTreeNode *node){

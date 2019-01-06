@@ -10,7 +10,7 @@
 #include <SDL2/SDL_image.h>
 
 #include "vector.h"
-#include "programSettings.h"
+#include "settingsProgram.h"
 
 
 #include "moduleTexture.h"

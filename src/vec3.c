@@ -143,6 +143,16 @@ float vec3MagnitudeVec3(const vec3 *v){
 	return(sqrtf(vec3NormVec3(v)));
 }
 
+//Find the distance between a vec3 and one stored as three floats!
+float vec3DistanceSquared(const vec3 *v, const float x, const float y, const float z){
+	return(vec3Norm(x - v->x, y - v->y, z - v->z));
+}
+
+//Find the distance between two vec3s!
+float vec3DistanceSquaredVec3(const vec3 *v1, const vec3 *v2){
+	return(vec3Norm(v2->x - v1->x, v2->y - v1->y, v2->z - v1->z));
+}
+
 
 //Find the dot product of two vec3s stored as three floats!
 float vec3Dot(const float x1, const float y1, const float z1, const float x2, const float y2, const float z2){
@@ -235,4 +245,15 @@ void vec3Lerp(const vec3 *v1, const vec3 *v2, const float time, vec3 *out){
 	out->x = floatLerp(v1->x, v2->x, time);
 	out->y = floatLerp(v1->y, v2->y, time);
 	out->z = floatLerp(v1->z, v2->z, time);
+}
+
+/*
+** Perform linear interpolation between two vec3s and store the result in "out"!
+** Instead of entering the two vectors to interpolate between, this function
+** accepts the starting point and the difference between it and the ending point.
+*/
+void vec3LerpFast(const vec3 *v, const vec3 *offset, const float time, vec3 *out){
+	out->x = floatLerpFast(v->x, offset->x, time);
+	out->y = floatLerpFast(v->y, offset->y, time);
+	out->z = floatLerpFast(v->z, offset->z, time);
 }

@@ -8,40 +8,37 @@
 #include "quat.h"
 #include "mat3.h"
 
-#include "physicsCollider.h"
+#include "collider.h"
 
 
-typedef struct physicsRigidBody {
-	//Array containing the rigid body's convex hulls.
-	physicsCollider *colliders;
-	size_t numColliders;
+typedef struct physicsRigidBodyDef {
+	collider collider;
 
 	//The rigid body's physical properties.
 	float mass;
-	float inverseMass;
+	float invMass;
 
+	vec3 centroid;
 	//Matrix that describes how the body
 	//resists rotation around an axis.
-	mat3 inverseInertiaTensor;
+	mat3 invInertia;
 
 	//Scalar representing the ratio of
 	//energy to conserve after a collision.
 	float restitution;
+} physicsRigidBodyDef;
 
-	//Stores the rigid body's centre of mass.
-	vec3 centroid;
-} physicsRigidBody;
+typedef struct physicsRigidBody {
+	physicsRigidBodyDef *body;
 
-typedef struct physRigidBodyInst {
-	physicsRigidBody *body;
-
-	//While physicsRigidBodies store the local state of each of their
-	//colliders, we also need to store their global, transformed states.
-	physicsCollider *colliders;
-	mat3 inverseInertiaTensor;
+	//A "physicsRigidBodyDef" stores the local
+	//state of its collider, but we will need
+	//to store its global, transformed state.
+	collider collider;
 
 	//The same idea as above applies here.
 	vec3 centroid;
+	mat3 invInertia;
 
 	//Store the linear properties of the object.
 	vec3 pos;
@@ -52,16 +49,16 @@ typedef struct physRigidBodyInst {
 	quat rot;
 	vec3 angularVelocity;
 	vec3 netTorque;
-} physRigidBodyInst;
+} physicsRigidBody;
 
 
-void rbInitProperties(physicsRigidBody *body);
+void rigidBodyDefInitProperties(physicsRigidBodyDef *body);
 
-void rbInstIntegrateVelocitySymplecticEuler(physRigidBodyInst *rb, const float time);
-void rbInstIntegratePositionSymplecticEuler(physRigidBodyInst *rb, const float time);
+void rigidBodyIntegrateVelocitySymplecticEuler(physicsRigidBody *rb, const float time);
+void rigidBodyIntegratePositionSymplecticEuler(physicsRigidBody *rb, const float time);
 
-void rbCalculateCentroid(physicsRigidBody *body);
-void rbCalculateInertiaTensor(physicsRigidBody *body);
+//void rigidBodyDefCalculateCentroid(physicsRigidBodyDef *body);
+//void rigidBodyDefCalculateInertiaTensor(physicsRigidBodyDef *body);
 
 
 #endif

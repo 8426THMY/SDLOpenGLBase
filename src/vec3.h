@@ -29,6 +29,8 @@ float vec3Norm(const float x, const float y, const float z);
 float vec3NormVec3(const vec3 *v);
 float vec3Magnitude(const float x, const float y, const float z);
 float vec3MagnitudeVec3(const vec3 *v);
+float vec3DistanceSquared(const vec3 *v, const float x, const float y, const float z);
+float vec3DistanceSquaredVec3(const vec3 *v1, const vec3 *v2);
 float vec3Dot(const float x1, const float y1, const float z1, const float x2, const float y2, const float z2);
 float vec3DotVec3Float(const vec3 *v, const float x, const float y, const float z);
 float vec3DotVec3(const vec3 *v1, const vec3 *v2);
@@ -44,6 +46,7 @@ void vec3DegToRad(vec3 *v);
 void vec3RadToDeg(vec3 *v);
 
 void vec3Lerp(const vec3 *v1, const vec3 *v2, const float time, vec3 *out);
+void vec3LerpFast(const vec3 *v, const vec3 *offset, const float time, vec3 *out);
 
 
 #endif

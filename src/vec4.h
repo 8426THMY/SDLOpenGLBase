@@ -34,6 +34,8 @@ float vec4Norm(const float x, const float y, const float z, const float w);
 float vec4NormVec4(const vec4 *v);
 float vec4Magnitude(const float x, const float y, const float z, const float w);
 float vec4MagnitudeVec4(const vec4 *v);
+float vec4DistanceSquared(const vec4 *v, const float x, const float y, const float z, const float w);
+float vec4DistanceSquaredVec4(const vec4 *v1, const vec4 *v2);
 float vec4Dot(const float x1, const float y1, const float z1, const float w1, const float x2, const float y2, const float z2, const float w2);
 float vec4DotVec4Float(const vec4 *v, const float x, const float y, const float z, const float w);
 float vec4DotVec4(const vec4 *v1, const vec4 *v2);
@@ -45,6 +47,7 @@ void vec4DegToRad(vec4 *v);
 void vec4RadToDeg(vec4 *v);
 
 void vec4Lerp(const vec4 *v1, const vec4 *v2, const float time, vec4 *out);
+void vec4LerpFast(const vec4 *v, const vec4 *offset, const float time, vec4 *out);
 
 
 #endif

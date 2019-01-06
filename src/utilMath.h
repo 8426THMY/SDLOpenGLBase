@@ -10,10 +10,19 @@
 #define DEG_TO_RAD (M_PI / 180.f)
 #define RAD_TO_DEG (180.f / M_PI)
 
-#define floatLerp(x, y, t) ((y - x) * t + x)
+#define floatLerp(x, y, t) (x + t * (y - x))
+#define floatLerpFast(x, y, t) (x + t * y)
 
 
-float pointPlaneDistSquared(const vec3 *vertex, const vec3 *normal, const vec3 *point);
+float pointPlaneDist(const vec3 *point, const vec3 *vertex, const vec3 *normal);
+void pointPlaneProject(const vec3 *point, const vec3 *vertex, const vec3 *normal, vec3 *out);
+
+void segmentClosestPoints(const vec3 *s1, const vec3 *e1, const vec3 *s2, const vec3 *e2, vec3 *p1, vec3 *p2);
+
+void triangleNormal(const vec3 *a, const vec3 *b, const vec3 *c, vec3 *out);
+void barycentric(const vec3 *a, const vec3 *b, const vec3 *c, const vec3 *p, vec3 *out);
+
+void normalBasis(const vec3 *a, vec3 *b, vec3 *c);
 
 float fastInvSqrt(const float x);
 

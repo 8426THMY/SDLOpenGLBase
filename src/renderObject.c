@@ -20,8 +20,8 @@ void renderObjStateInit(renderObjState *objState, const size_t mdlPos){
 	}
 	model *objModel = (model *)vectorGet(&loadedModels, objState->mdlPos);
 
-	texGroupAnimInstInit(&objState->texGroup, objModel->texGroupPos);
-	texGroupAnimInstSetAnim(&objState->texGroup, 0);
+	texGroupAnimInit(&objState->texGroup, objModel->texGroupPos);
+	texGroupAnimSetAnim(&objState->texGroup, 0);
 
 	objState->skeleObj = malloc(sizeof(*objState->skeleObj));
 	skeleObjInit(objState->skeleObj, &objModel->skele);*/

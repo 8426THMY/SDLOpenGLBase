@@ -1,60 +1,76 @@
 #include "physicsRigidBody.h"
 
 
-void rbInitProperties(physicsRigidBody *body){
-	rbCalculateCentroid(body);
-	rbCalculateInertiaTensor(body);
+void rigidBodyDefInitProperties(physicsRigidBodyDef *body){
+	/*rigidBodyDefCalculateCentroid(body);
+	rigidBodyDefCalculateInertiaTensor(body);*/
 }
 
 
-void rbInstIntegrateVelocitySymplecticEuler(physRigidBodyInst *rb, const float time){
+/*
+** Calculate the body's increase in
+** velocity for the current timestep.
+**
+** v^(n + 1) = v^n + F * m^-1 * dt
+** w^(n + 1) = w^n + T * I^-1 * dt
+*/
+void rigidBodyIntegrateVelocitySymplecticEuler(physicsRigidBody *rb, const float time){
 	vec3 linearAcceleration;
+	vec3 angularAcceleration;
+
 	//Calculate the body's linear acceleration.
-	vec3MultiplyS(&rb->netForce, rb->body->inverseMass * time, &linearAcceleration);
+	vec3MultiplyS(&rb->netForce, rb->body->invMass * time, &linearAcceleration);
 	//Add the linear acceleration to the linear velocity.
 	vec3AddVec3(&rb->linearVelocity, &linearAcceleration, &rb->linearVelocity);
 
-	vec3 angularAcceleration;
 	//Calculate the body's angular acceleration.
 	vec3MultiplyS(&rb->netTorque, time, &angularAcceleration);
-	mat3MultiplyVec3(&rb->inverseInertiaTensor, &angularAcceleration, &angularAcceleration);
+	mat3MultiplyVec3(&rb->invInertia, &angularAcceleration, &angularAcceleration);
 	//Add the angular acceleration to the angular velocity.
 	vec3AddVec3(&rb->angularVelocity, &angularAcceleration, &rb->angularVelocity);
 }
 
-void rbInstIntegratePositionSymplecticEuler(physRigidBodyInst *rb, const float time){
+/*
+** Calculate the body's change in
+** position for the current timestep.
+**
+** x^(n + 1) = x^n + v^(n + 1) * dt
+** dq/dt = 0.5 * w * q
+** q^(n + 1) = q^n + dq/dt * dt
+*/
+void rigidBodyIntegratePositionSymplecticEuler(physicsRigidBody *rb, const float time){
 	vec3 linearVelocityDelta;
+
 	vec3MultiplyS(&rb->linearVelocity, time, &linearVelocityDelta);
 	//Compute the object's new position.
 	vec3AddVec3(&rb->pos, &linearVelocityDelta, &rb->pos);
 
-	quat angularVelocityDelta;
 	//Calculate the change in orientation.
-	const float halfTime = time * 0.5f;
-	angularVelocityDelta.x = rb->angularVelocity.x * halfTime;
-	angularVelocityDelta.y = rb->angularVelocity.y * halfTime;
-	angularVelocityDelta.z = rb->angularVelocity.z * halfTime;
-	angularVelocityDelta.w = 0.f;
-	quatMultiplyQuat(&angularVelocityDelta, &rb->rot, &angularVelocityDelta);
-	//Compute the object's new orientation.
-	quatAddVec4(&rb->rot, &angularVelocityDelta, &rb->rot);
-	//Don't forget to normalize it, as this method can introduce errors.
+	quatIntegrate(&rb->rot, &rb->angularVelocity, time, &rb->rot);
+	//Don't forget to normalize it, as
+	//this process can introduce errors.
 	quatNormalizeQuat(&rb->rot, &rb->rot);
 }
 
 
-void rbCalculateCentroid(physicsRigidBody *body){
+/*
+** Sum the mass and centroid of each of the body's
+** colliders in order to find the combined centroid.
+** This function will also calculate the inverse mass.
+*/
+/*void rigidBodyDefCalculateCentroid(physicsRigidBodyDef *body){
+	const physicsCollider *curCollider = body->colliders;
+	const physicsCollider *lastCollider = &body->colliders[body->numColliders];
+
 	body->mass = 0.f;
 	vec3InitZero(&body->centroid);
 
-	const physicsCollider *curCollider = body->colliders;
-	const physicsCollider *lastCollider = &body->colliders[body->numColliders];
 	//Get the physical properties of each collider.
 	for(; curCollider < lastCollider; ++curCollider){
 		//Accumulate the mass.
 		body->mass += curCollider->mass;
 		//Add this collider's contribution to the rigid body's centroid.
-		vec3AddVec3(&body->centroid, &curCollider->centroid, &body->centroid);
+		vec3AddVec3(&body->centroid, &curCollider->centroid, &body->centroid);*/
 
 
 		/*const float colliderMass = curCollider->mass;
@@ -65,32 +81,36 @@ void rbCalculateCentroid(physicsRigidBody *body){
 		body->mass += colliderMass;
 		//Add this collider's contribution to the rigid body's centroid.
 		vec3AddVec3(&body->centroid, &weightedCentroid, &body->centroid);*/
-	}
+	/*}
 
 	//We don't want to divide by zero.
 	if(body->mass != 0.f){
-		body->inverseMass = 1.f / body->mass;
-		vec3MultiplyS(&body->centroid, body->inverseMass, &body->centroid);
+		body->invMass = 1.f / body->mass;
+		vec3MultiplyS(&body->centroid, body->invMass, &body->centroid);
 	}else{
-		body->inverseMass = 0.f;
+		body->invMass = 0.f;
 	}
-}
+}*/
 
-void rbCalculateInertiaTensor(physicsRigidBody *body){
+/*
+** Sum each collider's inertia tensor and invert it
+** to calculate the combined inverse inertia tensor.
+*/
+/*void rigidBodyDefCalculateInertiaTensor(physicsRigidBodyDef *body){
 	const physicsCollider *curCollider = body->colliders;
 	const physicsCollider *lastCollider = &body->colliders[body->numColliders];
 	//Get the physical properties of each collider.
 	for(; curCollider < lastCollider; ++curCollider){
-		float inertiaTensor[6];
-		colliderCalculateInertia(curCollider, &body->centroid, inertiaTensor);
+		float inertia[6];
+		colliderCalculateInertia(curCollider, &body->centroid, inertia);
 
 		//Add the collider's contribution to the rigid body's inertia tensor.
-		body->inverseInertiaTensor.m[0][0] += inertiaTensor[0];
-		body->inverseInertiaTensor.m[1][1] += inertiaTensor[1];
-		body->inverseInertiaTensor.m[2][2] += inertiaTensor[2];
-		body->inverseInertiaTensor.m[0][1] += inertiaTensor[3];
-		body->inverseInertiaTensor.m[0][2] += inertiaTensor[4];
-		body->inverseInertiaTensor.m[1][2] += inertiaTensor[5];
+		body->invInertia.m[0][0] += inertia[0];
+		body->invInertia.m[1][1] += inertia[1];
+		body->invInertia.m[2][2] += inertia[2];
+		body->invInertia.m[0][1] += inertia[3];
+		body->invInertia.m[0][2] += inertia[4];
+		body->invInertia.m[1][2] += inertia[5];*/
 
 
 		/*vec3 centroidDist;
@@ -124,19 +144,19 @@ void rbCalculateInertiaTensor(physicsRigidBody *body){
 		//[(yy + zz)    -xy       -xz   ]
 		//[   -yx    (xx + zz)    -yz   ]
 		//[   -zx       -zy    (xx + yy)]
-		body->inverseInertiaTensor.m[0][0] += curCollider->inertiaTensor.m[0][0] + (yy + zz);
-		body->inverseInertiaTensor.m[0][1] += curCollider->inertiaTensor.m[0][1] - (x * y);
-		body->inverseInertiaTensor.m[0][2] += curCollider->inertiaTensor.m[0][2] - (x * z);
-		body->inverseInertiaTensor.m[1][1] += curCollider->inertiaTensor.m[1][1] + (xx + zz);
-		body->inverseInertiaTensor.m[1][2] += curCollider->inertiaTensor.m[1][2] - (y * z);
-		body->inverseInertiaTensor.m[2][2] += curCollider->inertiaTensor.m[2][2] + (xx + yy);*/
-	}
+		body->invInertia.m[0][0] += curCollider->inertia.m[0][0] + (yy + zz);
+		body->invInertia.m[0][1] += curCollider->inertia.m[0][1] - (x * y);
+		body->invInertia.m[0][2] += curCollider->inertia.m[0][2] - (x * z);
+		body->invInertia.m[1][1] += curCollider->inertia.m[1][1] + (xx + zz);
+		body->invInertia.m[1][2] += curCollider->inertia.m[1][2] - (y * z);
+		body->invInertia.m[2][2] += curCollider->inertia.m[2][2] + (xx + yy);*/
+	/*}
 
 	//These should be the same as the values we've already calculated.
-	body->inverseInertiaTensor.m[1][0] = body->inverseInertiaTensor.m[0][1];
-	body->inverseInertiaTensor.m[2][0] = body->inverseInertiaTensor.m[0][2];
-	body->inverseInertiaTensor.m[2][1] = body->inverseInertiaTensor.m[1][2];
+	body->invInertia.m[1][0] = body->invInertia.m[0][1];
+	body->invInertia.m[2][0] = body->invInertia.m[0][2];
+	body->invInertia.m[2][1] = body->invInertia.m[1][2];
 
 	//The inverse inertia tensor is more useful to us than the regular one.
-	mat3Invert(&body->inverseInertiaTensor, &body->inverseInertiaTensor);
-}
+	mat3Invert(&body->invInertia, &body->invInertia);
+}*/

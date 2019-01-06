@@ -33,7 +33,7 @@ static textureGroupFrame defaultTexGroupFrame = {
 	.height = 1.f
 };
 
-static textureGroupAnim defaultTexGroupAnim = {
+static textureGroupAnimDef defaultTexGroupAnim = {
 	.name = "default",
 
 	.animFrames = &defaultTexGroupFrame,
@@ -66,12 +66,12 @@ void texGroupFrameInit(textureGroupFrame *texGroupFrame){
 	texGroupFrame->height = 1.f;
 }
 
-void texGroupAnimInit(textureGroupAnim *texGroupAnim){
-	texGroupAnim->name = NULL;
+void texGroupAnimDefInit(textureGroupAnimDef *texGroupAnimDef){
+	texGroupAnimDef->name = NULL;
 
-	texGroupAnim->frameData.playNum = 0;
-	texGroupAnim->animFrames = NULL;
-	animFrameDataInit(&texGroupAnim->frameData);
+	texGroupAnimDef->frameData.playNum = 0;
+	texGroupAnimDef->animFrames = NULL;
+	animFrameDataInit(&texGroupAnimDef->frameData);
 }
 
 void texGroupInit(textureGroup *texGroup){
@@ -81,18 +81,18 @@ void texGroupInit(textureGroup *texGroup){
 	texGroup->numAnims = 0;
 }
 
-void texGroupAnimInstInit(textureGroupAnimInst *animInst, const size_t texGroupPos){
+void texGroupAnimInit(textureGroupAnim *texGroupAnim, const size_t texGroupPos){
 	//If the textureGroup has been loaded, use it!
 	/*if(texGroupPos < loadedTextureGroups.size){
-		animInst->texGroupPos = texGroupPos;
+		texGroupAnim->texGroupPos = texGroupPos;
 
 	//Otherwise, use the error textureGroup!
 	}else{
-		animInst->texGroupPos = 0;
+		texGroupAnim->texGroupPos = 0;
 	}
 
-	animationInit(&animInst->animData);
-	animInst->animData.currentPlayNum = ((textureGroup *)vectorGet(&loadedTextureGroups, animInst->texGroupPos))->texAnims[0].frameData.playNum;*/
+	animationInit(&texGroupAnim->animData);
+	texGroupAnim->animData.currentPlayNum = ((textureGroup *)vectorGet(&loadedTextureGroups, texGroupAnim->texGroupPos))->texAnims[0].frameData.playNum;*/
 }
 
 
@@ -123,13 +123,13 @@ return_t texGroupLoad(textureGroup *texGroup, const char *texGroupName){
 		//Store the animations that we've loaded so far!
 		size_t texAnimsSize = 0;
 		size_t texAnimsCapacity = BASE_ANIM_CAPACITY;
-		textureGroupAnim *texAnims = memoryManagerGlobalAlloc(texAnimsCapacity * sizeof(*texAnims));
+		textureGroupAnimDef *texAnims = memoryManagerGlobalAlloc(texAnimsCapacity * sizeof(*texAnims));
 		if(texAnims == NULL){
 			/** MALLOC FAILED **/
 		}
 
 		//Store pointers to the animation we're currently working on.
-		textureGroupAnim *tempAnim = NULL;
+		textureGroupAnimDef *tempAnim = NULL;
 		size_t animFramesSize = 0;
 		size_t animFramesCapacity = 0;
 		animationFrameData *tempAnimFrameData = NULL;
@@ -273,7 +273,7 @@ return_t texGroupLoad(textureGroup *texGroup, const char *texGroupName){
 					tempAnim = &texAnims[texAnimsSize];
 					tempAnimFrameData = &tempAnim->frameData;
 
-					texGroupAnimInit(tempAnim);
+					texGroupAnimDefInit(tempAnim);
 					//We'll need to allocate some space for the animation's frames.
 					#warning "Ideally, we shouldn't have to do this."
 					tempAnim->animFrames = memoryManagerGlobalAlloc(sizeof(*tempAnim->animFrames));
@@ -319,7 +319,7 @@ return_t texGroupLoad(textureGroup *texGroup, const char *texGroupName){
 
 					//If an animation with this name already exists, delete the new one!
 					if(texGroupFindAnimNameIndex(texGroup, tempAnim->name) != currentAnim){
-						texGroupAnimDelete(tempAnim);
+						texGroupAnimDefDelete(tempAnim);
 						--texAnimsSize;
 
 						currentAnim = -1;
@@ -466,7 +466,7 @@ return_t texGroupLoad(textureGroup *texGroup, const char *texGroupName){
 				}else if(line[0] == '}'){
 					//If the animation has no frames, delete it!
 					if(animFramesSize == 0){
-						texGroupAnimDelete(tempAnim);
+						texGroupAnimDefDelete(tempAnim);
 						--texAnimsSize;
 
 					//Otherwise, resize the frame vector
@@ -557,18 +557,18 @@ return_t texGroupLoad(textureGroup *texGroup, const char *texGroupName){
 
 
 //Change the textureGroup's current animation!
-void texGroupAnimInstSetAnim(textureGroupAnimInst *animInst, const size_t currentAnim){
-	/*const textureGroup *tempTexGroup = (textureGroup *)vectorGet(&loadedTextureGroups, animInst->texGroupPos);
+void texGroupAnimSetAnim(textureGroupAnim *texGroupAnim, const size_t currentAnim){
+	/*const textureGroup *tempTexGroup = (textureGroup *)vectorGet(&loadedTextureGroups, texGroupAnim->texGroupPos);
 	if(currentAnim < tempTexGroup->numAnims){
-		animationSetAnim(&animInst->animData, tempTexGroup->texAnims[currentAnim].frameData.playNum, currentAnim);
+		animationSetAnim(&texGroupAnim->animData, tempTexGroup->texAnims[currentAnim].frameData.playNum, currentAnim);
 	}*/
 }
 
 //Play the textureGroup's current animation!
-void texGroupAnimInstUpdateAnim(textureGroupAnimInst *animInst, const float time){
-	/*const textureGroup *tempTexGroup = (textureGroup *)vectorGet(&loadedTextureGroups, animInst->texGroupPos);
-	if(animInst->animData.currentAnim < tempTexGroup->numAnims){
-		animationUpdate(&animInst->animData, &(tempTexGroup->texAnims[animInst->animData.currentAnim].frameData), time);
+void texGroupAnimUpdateAnim(textureGroupAnim *texGroupAnim, const float time){
+	/*const textureGroup *tempTexGroup = (textureGroup *)vectorGet(&loadedTextureGroups, texGroupAnim->texGroupPos);
+	if(texGroupAnim->animData.currentAnim < tempTexGroup->numAnims){
+		animationUpdate(&texGroupAnim->animData, &(tempTexGroup->texAnims[texGroupAnim->animData.currentAnim].frameData), time);
 	}*/
 }
 
@@ -589,12 +589,11 @@ GLuint texGroupGetFrame(const textureGroup *texGroup, const size_t currentAnim, 
 
 	//If the animation or frame is invalid, use the error texture!
 	}else{
-		/*const texture *tempTex = (texture *)vectorGet(&loadedTextures, 0);
-		tempTexID    = tempTex->id;
+		tempTexID    = errorTex.id;
 		uvOffsets[0] = 0.f;
 		uvOffsets[1] = 0.f;
-		uvOffsets[2] = tempTex->width;
-		uvOffsets[3] = tempTex->height;*/
+		uvOffsets[2] = TEXTURE_ERROR_WIDTH;
+		uvOffsets[3] = TEXTURE_ERROR_HEIGHT;
 	}
 
 	//Give the current UV offsets to the shader!
@@ -605,14 +604,14 @@ GLuint texGroupGetFrame(const textureGroup *texGroup, const size_t currentAnim, 
 }
 
 
-void texGroupAnimDelete(textureGroupAnim *texGroupAnim){
-	if(texGroupAnim->name != NULL){
-		memoryManagerGlobalFree(texGroupAnim->name);
+void texGroupAnimDefDelete(textureGroupAnimDef *texGroupAnimDef){
+	if(texGroupAnimDef->name != NULL){
+		memoryManagerGlobalFree(texGroupAnimDef->name);
 	}
-	if(texGroupAnim->animFrames != NULL){
-		memoryManagerGlobalFree(texGroupAnim->animFrames);
+	if(texGroupAnimDef->animFrames != NULL){
+		memoryManagerGlobalFree(texGroupAnimDef->animFrames);
 	}
-	animFrameDataClear(&texGroupAnim->frameData);
+	animFrameDataClear(&texGroupAnimDef->frameData);
 }
 
 void texGroupDelete(textureGroup *texGroup){
@@ -623,12 +622,12 @@ void texGroupDelete(textureGroup *texGroup){
 			memoryManagerGlobalFree(texGroup->name);
 		}
 
-		textureGroupAnim *curAnim = texGroup->texAnims;
+		textureGroupAnimDef *curAnim = texGroup->texAnims;
 		//Delete the textureGroup's animations.
 		if(curAnim != NULL && curAnim != &defaultTexGroupAnim){
-			const textureGroupAnim *lastAnim = &texGroup->texAnims[texGroup->numAnims];
+			const textureGroupAnimDef *lastAnim = &texGroup->texAnims[texGroup->numAnims];
 			for(; curAnim < lastAnim; ++curAnim){
-				texGroupAnimDelete(curAnim);
+				texGroupAnimDefDelete(curAnim);
 			}
 			memoryManagerGlobalFree(texGroup->texAnims);
 		}

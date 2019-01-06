@@ -56,8 +56,12 @@ void quatRotateVec3Rad(quat *q, const vec3 *v);
 void quatRotateVec3Deg(quat *q, const vec3 *v);
 
 void quatLerp(const quat *q1, const quat *q2, const float time, quat *out);
+void quatLerpFast(const quat *q, const quat *offset, const float time, quat *out);
 void quatSlerp(const quat *q1, const quat *q2, const float time, quat *out);
 void quatSlerpFast(const quat *q1, const quat *q2, const float time, quat *out);
+
+void quatDifferentiate(const quat *q, const vec3 *w, quat *out);
+void quatIntegrate(const quat *q, const vec3 *w, const float dt, quat *out);
 
 
 #endif

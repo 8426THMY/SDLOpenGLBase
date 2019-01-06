@@ -11,24 +11,23 @@
 #include <GL/glew.h>
 
 #include "utilTypes.h"
-
 #include "vector.h"
-
 #include "mat4.h"
+
 #include "transform.h"
 #include "state.h"
 
-#include "shader.h"
-
 #include "textureGroup.h"
 #include "skeleton.h"
+
+#include "shader.h"
 
 
 typedef struct renderObjState {
 	transformState transform;
 
 	size_t mdlPos;
-	textureGroupAnimInst texGroup;
+	textureGroupAnim texGroup;
 
 	skeletonObject *skeleObj;
 } renderObjState;

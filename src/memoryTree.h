@@ -4,7 +4,7 @@
 
 #include <string.h>
 
-#include "memorySettings.h"
+#include "settingsMemory.h"
 #include "memoryShared.h"
 
 

@@ -1,7 +1,7 @@
 #include "camera.h"
 
 
-#include "programSettings.h"
+#include "settingsProgram.h"
 
 
 void cameraStateInit(cameraState *camState){

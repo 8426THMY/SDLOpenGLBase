@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-#include "memorySettings.h"
+#include "settingsMemory.h"
 #include "memoryShared.h"
 
 #include "utilTypes.h"

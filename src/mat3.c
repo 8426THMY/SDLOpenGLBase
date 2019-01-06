@@ -15,14 +15,14 @@ void mat3InitZero(mat3 *m){
 //Initialize the matrix to an identity matrix!
 void mat3InitIdentity(mat3 *m){
 	m->m[0][0] = 1.f;
-	m->m[0][1] =
-	m->m[0][2] =
+	m->m[0][1] = 0.f;
+	m->m[0][2] = 0.f;
 
 	m->m[1][0] = 0.f;
 	m->m[1][1] = 1.f;
-	m->m[1][2] =
+	m->m[1][2] = 0.f;
 
-	m->m[2][0] =
+	m->m[2][0] = 0.f;
 	m->m[2][1] = 0.f;
 	m->m[2][2] = 1.f;
 }
