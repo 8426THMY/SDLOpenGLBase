@@ -28,7 +28,9 @@ void quatMultiplyS(const quat *q, const float x, quat *out);
 void quatMultiplyVec4(const quat *q, const vec4 *v, quat *out);
 void quatDivideByS(const quat *q, const float x, quat *out);
 void quatDivideSBy(const quat *q, const float x, quat *out);
+void quatDivideSByFast(const quat *q, const float x, quat *out);
 void quatDivideByVec4(const quat *q, const vec4 *v, quat *out);
+void quatDivideByVec4Fast(const quat *q, const vec4 *v, quat *out);
 
 void quatMultiplyQuat(const quat *q1, const quat *q2, quat *out);
 void quatMultiplyQuatR(const quat *q1, const quat *q2, quat *out);

@@ -1,17 +1,13 @@
 #include "collider.h"
 
 
-#include <stdio.h>
-#include <string.h>
-
-
 /*typedef void (*colliderCalculateInertiaPrototype)(const void *collider, float inertia[6]);
 //Create a jump table so we can calculate a collider's inertia tensor depending on its type.
 static const colliderCalculateInertiaPrototype colliderCalculateInertiaTable[COLLIDER_NUM_TYPES] = {
 	colliderHullCalculateInertia, NULL
 };*/
 
-typedef return_t (*colliderCheckCollisionPrototype)(const void *colliderA, const void *colliderB, contactManifold *cm);
+typedef return_t (*colliderCheckCollisionPrototype)(const void *cA, const void *cB, colliderHullSeparation *separation, contactManifold *cm);
 //Create a jump table so we can check collision between two colliders depending on their types.
 static const colliderCheckCollisionPrototype colliderCheckCollisionTable[COLLIDER_NUM_TYPES][COLLIDER_NUM_TYPES] = {
 	{
@@ -28,8 +24,8 @@ static const colliderCheckCollisionPrototype colliderCheckCollisionTable[COLLIDE
 	colliderCalculateInertiaTable[c->type]((void *)(&c->data), inertia);
 }*/
 
-return_t colliderCheckCollision(const collider *cA, const collider *cB, contactManifold *cm){
-	return(colliderCheckCollisionTable[cA->type][cB->type]((void *)(&cA->data), (void *)(&cB->data), cm));
+return_t colliderCheckCollision(const collider *cA, const collider *cB, colliderHullSeparation *separation, contactManifold *cm){
+	return(colliderCheckCollisionTable[cA->type][cB->type]((void *)(&cA->data), separation, (void *)(&cB->data), cm));
 }
 
 

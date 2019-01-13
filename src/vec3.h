@@ -23,7 +23,9 @@ void vec3MultiplyS(const vec3 *v, const float x, vec3 *out);
 void vec3MultiplyVec3(const vec3 *v1, const vec3 *v2, vec3 *out);
 void vec3DivideByS(const vec3 *v, const float x, vec3 *out);
 void vec3DivideSBy(const vec3 *v, const float x, vec3 *out);
+void vec3DivideSByFast(const vec3 *v, const float x, vec3 *out);
 void vec3DivideByVec3(const vec3 *v1, const vec3 *v2, vec3 *out);
+void vec3DivideByVec3Fast(const vec3 *v1, const vec3 *v2, vec3 *out);
 
 float vec3Norm(const float x, const float y, const float z);
 float vec3NormVec3(const vec3 *v);
@@ -47,6 +49,9 @@ void vec3RadToDeg(vec3 *v);
 
 void vec3Lerp(const vec3 *v1, const vec3 *v2, const float time, vec3 *out);
 void vec3LerpFast(const vec3 *v, const vec3 *offset, const float time, vec3 *out);
+
+void vec3Min(const vec3 *v1, const vec3 *v2, vec3 *out);
+void vec3Max(const vec3 *v1, const vec3 *v2, vec3 *out);
 
 
 #endif

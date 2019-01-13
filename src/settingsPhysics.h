@@ -7,5 +7,7 @@
 
 #define SOLVER_NUM_ITERATIONS 4
 
+#define AABB_EXTRA_FAT 0.2f
+
 
 #endif

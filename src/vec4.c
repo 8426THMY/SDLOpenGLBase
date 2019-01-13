@@ -103,43 +103,52 @@ void vec4MultiplyVec4(const vec4 *v1, const vec4 *v2, vec4 *out){
 
 //Divide "v" by "x" and store the result in "out"!
 void vec4DivideByS(const vec4 *v, const float x, vec4 *out){
-	//Make sure we don't divide by 0!
-	if(x != 0.f){
-		const float invX = 1.f / x;
+	const float invX = 1.f / x;
 
-		out->x = v->x * invX;
-		out->y = v->y * invX;
-		out->z = v->z * invX;
-		out->w = v->w * invX;
-	}else{
-		vec4InitZero(out);
-	}
+	out->x = v->x * invX;
+	out->y = v->y * invX;
+	out->z = v->z * invX;
+	out->w = v->w * invX;
 }
 
 //Divide "x" by "v" and store the result in "out"!
 void vec4DivideSBy(const vec4 *v, const float x, vec4 *out){
-	//Make sure we don't divide by 0!
-	if(v->x != 0.f && v->y != 0.f && v->z != 0.f && v->w != 0.f){
-		out->x = x / v->x;
-		out->y = x / v->y;
-		out->z = x / v->z;
-		out->w = x / v->w;
-	}else{
-		vec4InitZero(out);
-	}
+	out->x = (v->x != 0.f) ? x / v->x : 0.f;
+	out->y = (v->y != 0.f) ? x / v->y : 0.f;
+	out->z = (v->z != 0.f) ? x / v->z : 0.f;
+	out->w = (v->w != 0.f) ? x / v->w : 0.f;
+}
+
+/*
+** Divide "x" by "v" and store the result in "out"!
+** Unlike the regular version, this does not check
+** to prevent against divide-by-zero errors.
+*/
+void vec4DivideSByFast(const vec4 *v, const float x, vec4 *out){
+	out->x = x / v->x;
+	out->y = x / v->y;
+	out->z = x / v->z;
+	out->w = x / v->w;
 }
 
 //Divide "v1" by "v2" and store the result in "out"!
 void vec4DivideByVec4(const vec4 *v1, const vec4 *v2, vec4 *out){
-	//Make sure we don't divide by 0!
-	if(v2->x != 0.f && v2->y != 0.f && v2->z != 0.f && v2->w != 0.f){
-		out->x = v1->x / v2->x;
-		out->y = v1->y / v2->y;
-		out->z = v1->z / v2->z;
-		out->w = v1->w / v2->w;
-	}else{
-		vec4InitZero(out);
-	}
+	out->x = (v2->x != 0.f) ? v1->x / v2->x : 0.f;
+	out->y = (v2->y != 0.f) ? v1->y / v2->y : 0.f;
+	out->z = (v2->z != 0.f) ? v1->z / v2->z : 0.f;
+	out->w = (v2->w != 0.f) ? v1->w / v2->w : 0.f;
+}
+
+/*
+** Divide "v1" by "v2" and store the result in "out"!
+** Unlike the regular version, this does not check
+** to prevent against divide-by-zero errors.
+*/
+void vec4DivideByVec4Fast(const vec4 *v1, const vec4 *v2, vec4 *out){
+	out->x = v1->x / v2->x;
+	out->y = v1->y / v2->y;
+	out->z = v1->z / v2->z;
+	out->w = v1->w / v2->w;
 }
 
 
@@ -239,10 +248,10 @@ void vec4RadToDeg(vec4 *v){
 
 //Perform linear interpolation between two vec4s and store the result in "out"!
 void vec4Lerp(const vec4 *v1, const vec4 *v2, const float time, vec4 *out){
-	out->x = floatLerp(v1->x, v2->x, time);
-	out->y = floatLerp(v1->y, v2->y, time);
-	out->z = floatLerp(v1->z, v2->z, time);
-	out->w = floatLerp(v1->w, v2->w, time);
+	out->x = lerpNum(v1->x, v2->x, time);
+	out->y = lerpNum(v1->y, v2->y, time);
+	out->z = lerpNum(v1->z, v2->z, time);
+	out->w = lerpNum(v1->w, v2->w, time);
 }
 
 /*
@@ -251,8 +260,31 @@ void vec4Lerp(const vec4 *v1, const vec4 *v2, const float time, vec4 *out){
 ** accepts the starting point and the difference between it and the ending point.
 */
 void vec4LerpFast(const vec4 *v, const vec4 *offset, const float time, vec4 *out){
-	out->x = floatLerpFast(v->x, offset->x, time);
-	out->y = floatLerpFast(v->y, offset->y, time);
-	out->z = floatLerpFast(v->z, offset->z, time);
-	out->w = floatLerpFast(v->w, offset->w, time);
+	out->x = lerpNumFast(v->x, offset->x, time);
+	out->y = lerpNumFast(v->y, offset->y, time);
+	out->z = lerpNumFast(v->z, offset->z, time);
+	out->w = lerpNumFast(v->w, offset->w, time);
+}
+
+
+/*
+** Compare two vec4s to find the minimum value per axis
+** and return a vec4 composed of these minima in "out".
+*/
+void vec4Min(const vec4 *v1, const vec4 *v2, vec4 *out){
+	out->x = minNum(v1->x, v2->x);
+	out->y = minNum(v1->y, v2->y);
+	out->z = minNum(v1->z, v2->z);
+	out->w = minNum(v1->w, v2->w);
+}
+
+/*
+** Compare two vec4s to find the maximum value per axis
+** and return a vec4 composed of these maxima in "out".
+*/
+void vec4Max(const vec4 *v1, const vec4 *v2, vec4 *out){
+	out->x = maxNum(v1->x, v2->x);
+	out->y = maxNum(v1->y, v2->y);
+	out->z = maxNum(v1->z, v2->z);
+	out->w = maxNum(v1->w, v2->w);
 }

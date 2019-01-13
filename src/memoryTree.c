@@ -1,7 +1,9 @@
 #include "memoryTree.h"
 
 
+#ifdef MEMTREE_DEBUG
 #include <stdio.h>
+#endif
 
 #include "utilTypes.h"
 
@@ -142,10 +144,7 @@ void *memTreeInit(memoryTree *tree, void *memory, const size_t memorySize){
 
 		//Create a free block to occupy all of the allocated memory.
 		memTreeNode *root = memTreeClearRegion(memory, regionSize);
-		root->left = NULL;
-		root->right = NULL;
-		root->parent = NULL;
-
+		memset(root, (uintptr_t)NULL, sizeof(*root));
 		tree->root = root;
 
 		//Set up the tree's memory region footer.
@@ -418,9 +417,7 @@ void memTreeClear(memoryTree *tree, void *memory, const size_t memorySize){
 	//Clear the first region here so we
 	//can set the first node in the tree.
 	memTreeNode *root = memTreeClearRegion(memory, (size_t)((byte_t *)region->start - (byte_t *)region));
-	root->left = NULL;
-	root->right = NULL;
-	root->parent = NULL;
+	memset(root, (uintptr_t)NULL, sizeof(*root));
 	tree->root = root;
 
 	region = region->next;

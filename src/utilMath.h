@@ -10,8 +10,11 @@
 #define DEG_TO_RAD (M_PI / 180.f)
 #define RAD_TO_DEG (180.f / M_PI)
 
-#define floatLerp(x, y, t) (x + t * (y - x))
-#define floatLerpFast(x, y, t) (x + t * y)
+#define lerpNum(x, y, t) (x + t * (y - x))
+#define lerpNumFast(x, y, t) (x + t * y)
+
+#define minNum(x, y) (((x) <= (y)) ? (x) : (y))
+#define maxNum(x, y) (((x) >= (y)) ? (x) : (y))
 
 
 float pointPlaneDist(const vec3 *point, const vec3 *vertex, const vec3 *normal);

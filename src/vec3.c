@@ -85,40 +85,47 @@ void vec3MultiplyVec3(const vec3 *v1, const vec3 *v2, vec3 *out){
 
 //Divide "v" by "x" and store the result in "out"!
 void vec3DivideByS(const vec3 *v, const float x, vec3 *out){
-	//Make sure we don't divide by 0!
-	if(x != 0.f){
-		const float invX = 1.f / x;
+	const float invX = 1.f / x;
 
-		out->x = v->x * invX;
-		out->y = v->y * invX;
-		out->z = v->z * invX;
-	}else{
-		vec3InitZero(out);
-	}
+	out->x = v->x * invX;
+	out->y = v->y * invX;
+	out->z = v->z * invX;
 }
 
 //Divide "x" by "v" and store the result in "out"!
 void vec3DivideSBy(const vec3 *v, const float x, vec3 *out){
-	//Make sure we don't divide by 0!
-	if(v->x != 0.f && v->y != 0.f && v->z != 0.f){
-		out->x = x / v->x;
-		out->y = x / v->y;
-		out->z = x / v->z;
-	}else{
-		vec3InitZero(out);
-	}
+	out->x = (v->x != 0.f) ? x / v->x : 0.f;
+	out->y = (v->y != 0.f) ? x / v->y : 0.f;
+	out->z = (v->z != 0.f) ? x / v->z : 0.f;
+}
+
+/*
+** Divide "x" by "v" and store the result in "out"!
+** Unlike the regular version, this does not check
+** to prevent against divide-by-zero errors.
+*/
+void vec3DivideSByFast(const vec3 *v, const float x, vec3 *out){
+	out->x = x / v->x;
+	out->y = x / v->y;
+	out->z = x / v->z;
 }
 
 //Divide "v1" by "v2" and store the result in "out"!
 void vec3DivideByVec3(const vec3 *v1, const vec3 *v2, vec3 *out){
-	//Make sure we don't divide by 0!
-	if(v2->x != 0.f && v2->y != 0.f && v2->z != 0.f){
-		out->x = v1->x / v2->x;
-		out->y = v1->y / v2->y;
-		out->z = v1->z / v2->z;
-	}else{
-		vec3InitZero(out);
-	}
+	out->x = (v2->x != 0.f) ? v1->x / v2->x : 0.f;
+	out->y = (v2->y != 0.f) ? v1->y / v2->y : 0.f;
+	out->z = (v2->z != 0.f) ? v1->z / v2->z : 0.f;
+}
+
+/*
+** Divide "v1" by "v2" and store the result in "out"!
+** Unlike the regular version, this does not check
+** to prevent against divide-by-zero errors.
+*/
+void vec3DivideByVec3Fast(const vec3 *v1, const vec3 *v2, vec3 *out){
+	out->x = v1->x / v2->x;
+	out->y = v1->y / v2->y;
+	out->z = v1->z / v2->z;
 }
 
 
@@ -242,9 +249,9 @@ void vec3RadToDeg(vec3 *v){
 
 //Perform linear interpolation between two vec3s and store the result in "out"!
 void vec3Lerp(const vec3 *v1, const vec3 *v2, const float time, vec3 *out){
-	out->x = floatLerp(v1->x, v2->x, time);
-	out->y = floatLerp(v1->y, v2->y, time);
-	out->z = floatLerp(v1->z, v2->z, time);
+	out->x = lerpNum(v1->x, v2->x, time);
+	out->y = lerpNum(v1->y, v2->y, time);
+	out->z = lerpNum(v1->z, v2->z, time);
 }
 
 /*
@@ -253,7 +260,28 @@ void vec3Lerp(const vec3 *v1, const vec3 *v2, const float time, vec3 *out){
 ** accepts the starting point and the difference between it and the ending point.
 */
 void vec3LerpFast(const vec3 *v, const vec3 *offset, const float time, vec3 *out){
-	out->x = floatLerpFast(v->x, offset->x, time);
-	out->y = floatLerpFast(v->y, offset->y, time);
-	out->z = floatLerpFast(v->z, offset->z, time);
+	out->x = lerpNumFast(v->x, offset->x, time);
+	out->y = lerpNumFast(v->y, offset->y, time);
+	out->z = lerpNumFast(v->z, offset->z, time);
+}
+
+
+/*
+** Compare two vec3s to find the minimum value per axis
+** and return a vec3 composed of these minima in "out".
+*/
+void vec3Min(const vec3 *v1, const vec3 *v2, vec3 *out){
+	out->x = minNum(v1->x, v2->x);
+	out->y = minNum(v1->y, v2->y);
+	out->z = minNum(v1->z, v2->z);
+}
+
+/*
+** Compare two vec3s to find the maximum value per axis
+** and return a vec3 composed of these maxima in "out".
+*/
+void vec3Max(const vec3 *v1, const vec3 *v2, vec3 *out){
+	out->x = maxNum(v1->x, v2->x);
+	out->y = maxNum(v1->y, v2->y);
+	out->z = maxNum(v1->z, v2->z);
 }

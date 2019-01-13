@@ -1,6 +1,9 @@
 #include "utilMath.h"
 
 
+#define SQRT_ONE_THIRD 0.57735026f
+
+
 #include <stdint.h>
 
 
@@ -149,7 +152,7 @@ void normalBasis(const vec3 *a, vec3 *b, vec3 *c){
 	//The magic number "0x3F13CD3A" is approximately equivalent to the
 	//square root of 1 over 3. In three dimensions, at least one component
 	//of any unit vector must be greater than or equal to this number.
-	if(fabsf(a->x) >= 0x3F13CD3A){
+	if(fabsf(a->x) >= SQRT_ONE_THIRD){
 		vec3InitSet(b, a->y, -a->x, 0.f);
 	}else{
 		vec3InitSet(b, 0.f, a->z, -a->y);

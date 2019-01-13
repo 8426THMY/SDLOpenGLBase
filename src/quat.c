@@ -142,43 +142,52 @@ void quatMultiplyVec4(const quat *q, const quat *v, quat *out){
 
 //Divide "q" by "x" and store the result in "out"!
 void quatDivideByS(const quat *q, const float x, quat *out){
-	//Make sure we don't divide by 0!
-	if(x != 0.f){
-		const float invX = 1.f / x;
+	const float invX = 1.f / x;
 
-		out->x = q->x * invX;
-		out->y = q->y * invX;
-		out->z = q->z * invX;
-		out->w = q->w * invX;
-	}else{
-		quatInitIdentity(out);
-	}
+	out->x = q->x * invX;
+	out->y = q->y * invX;
+	out->z = q->z * invX;
+	out->w = q->w * invX;
 }
 
 //Divide "x" by "q" and store the result in "out"!
 void quatDivideSBy(const quat *q, const float x, quat *out){
-	//Make sure we don't divide by 0!
-	if(q->x != 0.f && q->y != 0.f && q->z != 0.f && q->w != 0.f){
-		out->x = x / q->x;
-		out->y = x / q->y;
-		out->z = x / q->z;
-		out->w = x / q->w;
-	}else{
-		quatInitIdentity(out);
-	}
+	out->x = (q->x != 0.f) ? x / q->x : 0.f;
+	out->y = (q->y != 0.f) ? x / q->y : 0.f;
+	out->z = (q->z != 0.f) ? x / q->z : 0.f;
+	out->w = (q->w != 0.f) ? x / q->w : 0.f;
+}
+
+/*
+** Divide "x" by "q" and store the result in "out"!
+** Unlike the regular version, this does not check
+** to prevent against divide-by-zero errors.
+*/
+void quatDivideSByFast(const quat *q, const float x, quat *out){
+	out->x = x / q->x;
+	out->y = x / q->y;
+	out->z = x / q->z;
+	out->w = x / q->w;
 }
 
 //Divide "q" by "v" and store the result in "out"!
 void quatDivideByVec4(const quat *q, const vec4 *v, quat *out){
-	//Make sure we don't divide by 0!
-	if(v->x != 0.f && v->y != 0.f && v->z != 0.f && v->w != 0.f){
-		out->x = q->x / v->x;
-		out->y = q->y / v->y;
-		out->z = q->z / v->z;
-		out->w = q->w / v->w;
-	}else{
-		quatInitIdentity(out);
-	}
+	out->x = (v->x != 0.f) ? q->x / v->x : 0.f;
+	out->y = (v->y != 0.f) ? q->y / v->y : 0.f;
+	out->z = (v->z != 0.f) ? q->z / v->z : 0.f;
+	out->w = (v->w != 0.f) ? q->w / v->w : 0.f;
+}
+
+/*
+** Divide "q" by "v" and store the result in "out"!
+** Unlike the regular version, this does not check
+** to prevent against divide-by-zero errors.
+*/
+void quatDivideByVec4Fast(const quat *q, const vec4 *v, quat *out){
+	out->x = q->x / v->x;
+	out->y = q->y / v->y;
+	out->z = q->z / v->z;
+	out->w = q->w / v->w;
 }
 
 
@@ -351,10 +360,10 @@ void quatRotateVec3Deg(quat *q, const vec3 *v){
 
 //Perform linear interpolation between two quaternions and store the result in "out"!
 void quatLerp(const quat *q1, const quat *q2, const float time, quat *out){
-	out->x = floatLerp(q1->x, q2->x, time);
-	out->y = floatLerp(q1->y, q2->y, time);
-	out->z = floatLerp(q1->z, q2->z, time);
-	out->w = floatLerp(q1->w, q2->w, time);
+	out->x = lerpNum(q1->x, q2->x, time);
+	out->y = lerpNum(q1->y, q2->y, time);
+	out->z = lerpNum(q1->z, q2->z, time);
+	out->w = lerpNum(q1->w, q2->w, time);
 
 	//It's nice to be safe... but it isn't very fast.
 	quatNormalizeQuat(out, out);
@@ -366,10 +375,10 @@ void quatLerp(const quat *q1, const quat *q2, const float time, quat *out){
 ** the starting orientation and the difference between it and the ending orientation.
 */
 void quatLerpFast(const quat *q, const quat *offset, const float time, quat *out){
-	out->x = floatLerpFast(q->x, offset->x, time);
-	out->y = floatLerpFast(q->y, offset->y, time);
-	out->z = floatLerpFast(q->z, offset->z, time);
-	out->w = floatLerpFast(q->w, offset->w, time);
+	out->x = lerpNumFast(q->x, offset->x, time);
+	out->y = lerpNumFast(q->y, offset->y, time);
+	out->z = lerpNumFast(q->z, offset->z, time);
+	out->w = lerpNumFast(q->w, offset->w, time);
 
 	//It's nice to be safe... but it isn't very fast.
 	quatNormalizeQuat(out, out);

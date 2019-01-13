@@ -12,15 +12,13 @@
 #define COLLIDER_NUM_TYPES 2
 
 
-typedef union colliderData {
-	colliderHull hull;
-	colliderGroup group;
-} colliderData;
-
 typedef struct collider {
 	//This array should be large enough
 	//to store any type of collider.
-	colliderData data;
+	union {
+		colliderHull hull;
+		colliderGroup group;
+	} data;
 	//Stores which type of
 	//collider this object is.
 	byte_t type;
@@ -28,7 +26,7 @@ typedef struct collider {
 
 
 //void colliderCalculateInertia(const collider *c, float inertia[6]);
-return_t colliderCheckCollision(const collider *cA, const collider *cB, contactManifold *cm);
+return_t colliderCheckCollision(const collider *cA, const collider *cB, colliderHullSeparation *separation, contactManifold *cm);
 
 
 #endif

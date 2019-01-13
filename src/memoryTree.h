@@ -46,7 +46,6 @@
 
 
 //Our generic pool uses a doubly linked list that joins every block...
-typedef struct memTreeListNode memTreeListNode;
 typedef struct memTreeListNode {
 	//Note that these sizes include the block's header.
 	//The "prevSize" element also includes flags in
@@ -60,15 +59,14 @@ typedef struct memTreeListNode {
 //... and a red-black tree that only connects free blocks.
 typedef struct memTreeNode memTreeNode;
 typedef struct memTreeNode {
-	memTreeNode *left;
-	memTreeNode *right;
 	//The last bit of the parent pointer
 	//stores whether or not the node is red.
 	memTreeNode *parent;
+	memTreeNode *left;
+	memTreeNode *right;
 } memTreeNode;
 
 
-typedef struct memoryTree memoryTree;
 typedef struct memoryTree {
 	memTreeNode *root;
 

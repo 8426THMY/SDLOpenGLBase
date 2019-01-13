@@ -18,14 +18,14 @@
 
 /** Ideally, models and animations should have their own skeletons. **/
 
-//Stores the various positional data for a bone as offsets from its parent's data.
+//Stores the various positional data for a
+//bone as offsets from its parent's data.
 typedef struct boneState {
 	vec3 pos;
 	quat rot;
 	vec3 scale;
 } boneState;
 
-typedef struct bone bone;
 typedef struct bone {
 	char *name;
 

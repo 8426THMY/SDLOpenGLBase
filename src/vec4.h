@@ -28,7 +28,9 @@ void vec4MultiplyS(const vec4 *v, const float x, vec4 *out);
 void vec4MultiplyVec4(const vec4 *v1, const vec4 *v2, vec4 *out);
 void vec4DivideByS(const vec4 *v, const float x, vec4 *out);
 void vec4DivideSBy(const vec4 *v, const float x, vec4 *out);
+void vec4DivideSByFast(const vec4 *v, const float x, vec4 *out);
 void vec4DivideByVec4(const vec4 *v1, const vec4 *v2, vec4 *out);
+void vec4DivideByVec4Fast(const vec4 *v1, const vec4 *v2, vec4 *out);
 
 float vec4Norm(const float x, const float y, const float z, const float w);
 float vec4NormVec4(const vec4 *v);
@@ -48,6 +50,9 @@ void vec4RadToDeg(vec4 *v);
 
 void vec4Lerp(const vec4 *v1, const vec4 *v2, const float time, vec4 *out);
 void vec4LerpFast(const vec4 *v, const vec4 *offset, const float time, vec4 *out);
+
+void vec4Min(const vec4 *v1, const vec4 *v2, vec4 *out);
+void vec4Max(const vec4 *v1, const vec4 *v2, vec4 *out);
 
 
 #endif

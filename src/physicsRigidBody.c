@@ -1,9 +1,9 @@
 #include "physicsRigidBody.h"
 
 
-void rigidBodyDefInitProperties(physicsRigidBodyDef *body){
-	/*rigidBodyDefCalculateCentroid(body);
-	rigidBodyDefCalculateInertiaTensor(body);*/
+void rigidBodyDefInit(physicsRigidBodyDef *body){
+	//rigidBodyDefCalculateCentroid(body);
+	//rigidBodyDefCalculateInertiaTensor(body);
 }
 
 
@@ -14,17 +14,17 @@ void rigidBodyDefInitProperties(physicsRigidBodyDef *body){
 ** v^(n + 1) = v^n + F * m^-1 * dt
 ** w^(n + 1) = w^n + T * I^-1 * dt
 */
-void rigidBodyIntegrateVelocitySymplecticEuler(physicsRigidBody *rb, const float time){
+void rigidBodyIntegrateVelocitySymplecticEuler(physicsRigidBody *rb, const float dt){
 	vec3 linearAcceleration;
 	vec3 angularAcceleration;
 
 	//Calculate the body's linear acceleration.
-	vec3MultiplyS(&rb->netForce, rb->body->invMass * time, &linearAcceleration);
+	vec3MultiplyS(&rb->netForce, rb->body->invMass * dt, &linearAcceleration);
 	//Add the linear acceleration to the linear velocity.
 	vec3AddVec3(&rb->linearVelocity, &linearAcceleration, &rb->linearVelocity);
 
 	//Calculate the body's angular acceleration.
-	vec3MultiplyS(&rb->netTorque, time, &angularAcceleration);
+	vec3MultiplyS(&rb->netTorque, dt, &angularAcceleration);
 	mat3MultiplyVec3(&rb->invInertia, &angularAcceleration, &angularAcceleration);
 	//Add the angular acceleration to the angular velocity.
 	vec3AddVec3(&rb->angularVelocity, &angularAcceleration, &rb->angularVelocity);
@@ -38,15 +38,15 @@ void rigidBodyIntegrateVelocitySymplecticEuler(physicsRigidBody *rb, const float
 ** dq/dt = 0.5 * w * q
 ** q^(n + 1) = q^n + dq/dt * dt
 */
-void rigidBodyIntegratePositionSymplecticEuler(physicsRigidBody *rb, const float time){
+void rigidBodyIntegratePositionSymplecticEuler(physicsRigidBody *rb, const float dt){
 	vec3 linearVelocityDelta;
 
-	vec3MultiplyS(&rb->linearVelocity, time, &linearVelocityDelta);
+	vec3MultiplyS(&rb->linearVelocity, dt, &linearVelocityDelta);
 	//Compute the object's new position.
 	vec3AddVec3(&rb->pos, &linearVelocityDelta, &rb->pos);
 
 	//Calculate the change in orientation.
-	quatIntegrate(&rb->rot, &rb->angularVelocity, time, &rb->rot);
+	quatIntegrate(&rb->rot, &rb->angularVelocity, dt, &rb->rot);
 	//Don't forget to normalize it, as
 	//this process can introduce errors.
 	quatNormalizeQuat(&rb->rot, &rb->rot);
@@ -67,21 +67,22 @@ void rigidBodyIntegratePositionSymplecticEuler(physicsRigidBody *rb, const float
 
 	//Get the physical properties of each collider.
 	for(; curCollider < lastCollider; ++curCollider){
+		//Non-weighted centroid.
 		//Accumulate the mass.
 		body->mass += curCollider->mass;
 		//Add this collider's contribution to the rigid body's centroid.
-		vec3AddVec3(&body->centroid, &curCollider->centroid, &body->centroid);*/
+		vec3AddVec3(&body->centroid, &curCollider->centroid, &body->centroid);
 
-
-		/*const float colliderMass = curCollider->mass;
-		vec3 weightedCentroid;
-		vec3MultiplyS(&curCollider->centroid, colliderMass, &weightedCentroid);
-
-		//Accumulate the mass.
-		body->mass += colliderMass;
-		//Add this collider's contribution to the rigid body's centroid.
-		vec3AddVec3(&body->centroid, &weightedCentroid, &body->centroid);*/
-	/*}
+		//Weighted centroid.
+		//const float colliderMass = curCollider->mass;
+		//vec3 weightedCentroid;
+		//vec3MultiplyS(&curCollider->centroid, colliderMass, &weightedCentroid);
+		//
+		////Accumulate the mass.
+		//body->mass += colliderMass;
+		////Add this collider's contribution to the rigid body's centroid.
+		//vec3AddVec3(&body->centroid, &weightedCentroid, &body->centroid);
+	}
 
 	//We don't want to divide by zero.
 	if(body->mass != 0.f){
