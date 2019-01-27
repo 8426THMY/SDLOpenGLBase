@@ -221,7 +221,15 @@ void vec4NormalizeVec4(const vec4 *v, vec4 *out){
 }
 
 //Negate the values of a vec4!
-void vec4Negate(const vec4 *v, vec4 *out){
+void vec4Negate(vec4 *v){
+	v->x = -v->x;
+	v->y = -v->y;
+	v->z = -v->z;
+	v->w = -v->w;
+}
+
+//Negate the values of a vec4 and store the result in "out"!
+void vec4NegateOut(const vec4 *v, vec4 *out){
 	out->x = -v->x;
 	out->y = -v->y;
 	out->z = -v->z;

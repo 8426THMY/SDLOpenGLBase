@@ -224,8 +224,15 @@ void vec3NormalizeVec3(const vec3 *v, vec3 *out){
 	out->z = v->z * magnitude;
 }
 
-//Negate the values of a vec4!
-void vec3Negate(const vec3 *v, vec3 *out){
+//Negate the values of a vec3!
+void vec3Negate(vec3 *v){
+	v->x = -v->x;
+	v->y = -v->y;
+	v->z = -v->z;
+}
+
+//Negate the values of a vec3 and store the result in "out"!
+void vec3NegateOut(const vec3 *v, vec3 *out){
 	out->x = -v->x;
 	out->y = -v->y;
 	out->z = -v->z;

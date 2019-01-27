@@ -4,24 +4,19 @@
 
 #define COLLIDER_TYPE_HULL 0
 
-#define COLLIDER_HULL_SEPARATION_FACE 0
-#define COLLIDER_HULL_SEPARATION_EDGE 1
+#define COLLIDER_HULL_SEPARATION_FACE_A 0
+#define COLLIDER_HULL_SEPARATION_FACE_B 1
+#define COLLIDER_HULL_SEPARATION_EDGE   2
 
 
 #include <stdint.h>
+
+#include "settingsPhysics.h"
 
 #include "utilTypes.h"
 #include "vec3.h"
 
 #include "contact.h"
-
-
-//Stores information regarding how
-typedef struct colliderHullSeparation {
-	byte_t type;
-	uint_least16_t featureA;
-	uint_least16_t featureB;
-} colliderHullSeparation;
 
 
 //Stores the indices of data relevant to the edge.
@@ -83,7 +78,8 @@ void colliderHullCalculateCentroid(const colliderHull *hull);
 const vec3 *colliderHullSupport(const colliderHull *hull, const vec3 *dir);
 const vec3 *colliderHullSupportIndex(const colliderHull *hull, const vec3 *dir, uint_least16_t *index);
 
-return_t colliderHullCollidingSAT(const void *hullA, const void *hullB, colliderHullSeparation *separation, contactManifold *cm);
+return_t colliderHullNotSeparated(const void *hullA, const void *hullB, contactSeparation *cs);
+return_t colliderHullCollidingSAT(const void *hullA, const void *hullB, contactSeparation *cs, contactManifold *cm);
 
 void colliderHullDelete(colliderHull *hull);
 

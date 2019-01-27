@@ -44,6 +44,7 @@ float vec4DotVec4(const vec4 *v1, const vec4 *v2);
 void vec4Normalize(const float x, const float y, const float z, const float w, vec4 *out);
 void vec4NormalizeVec4(const vec4 *v, vec4 *out);
 void vec4Negate(const vec4 *v, vec4 *out);
+void vec4NegateOut(const vec4 *v, vec4 *out);
 
 void vec4DegToRad(vec4 *v);
 void vec4RadToDeg(vec4 *v);

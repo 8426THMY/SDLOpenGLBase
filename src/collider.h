@@ -6,10 +6,9 @@
 #include "vec3.h"
 
 #include "colliderHull.h"
-#include "colliderGroup.h"
 
 
-#define COLLIDER_NUM_TYPES 2
+#define COLLIDER_NUM_TYPES 1
 
 
 typedef struct collider {
@@ -17,7 +16,6 @@ typedef struct collider {
 	//to store any type of collider.
 	union {
 		colliderHull hull;
-		colliderGroup group;
 	} data;
 	//Stores which type of
 	//collider this object is.
@@ -26,7 +24,7 @@ typedef struct collider {
 
 
 //void colliderCalculateInertia(const collider *c, float inertia[6]);
-return_t colliderCheckCollision(const collider *cA, const collider *cB, colliderHullSeparation *separation, contactManifold *cm);
+return_t colliderCheckCollision(const collider *cA, const collider *cB, contactSeparation *cs, contactManifold *cm);
 
 
 #endif

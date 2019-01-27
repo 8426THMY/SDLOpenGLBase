@@ -8,7 +8,7 @@
 #include "contact.h"
 
 
-typedef struct physicsContact {
+typedef struct physicsContactPoint {
 	vec3 rA;
 	vec3 rB;
 
@@ -25,13 +25,17 @@ typedef struct physicsContact {
 	//Similar to "impulseDenom", but uses the tangent
 	//vectors. These values are used for friction.
 	float frictionDenom[PHYSCONTACT_NUM_TANGENTS];
-} physicsContact;
 
-typedef struct physicsRigidBody physicsRigidBody;
+	//Accumulated impulses used for warm starting.
+	//This helps prevent jittering in persistent contacts.
+	float normalImpulse;
+	float frictionImpulse[PHYSCONTACT_NUM_TANGENTS];
+} physicsContactPoint;
+
 //A physics manifold is similar to a regular contact manifold,
 //but stores additional information required to solve contacts.
 typedef struct physicsManifold {
-	physicsContact contacts[CONTACT_MAX_POINTS];
+	physicsContactPoint contacts[CONTACT_MAX_POINTS];
 	byte_t numContacts;
 
 	vec3 normal;
@@ -39,14 +43,14 @@ typedef struct physicsManifold {
 	//the tangent vectors that together form an orthonormal
 	//basis for when we calculate the effect of friction.
 	vec3 tangents[PHYSCONTACT_NUM_TANGENTS];
-
-	physicsRigidBody *bodyA;
-	physicsRigidBody *bodyB;
 } physicsManifold;
 
 
-void physManifoldPresolve(physicsManifold *pm, float dt);
-void physManifoldSolve(physicsManifold *pm);
+typedef struct physicsCollider physicsCollider;
+
+
+void physManifoldPresolve(physicsManifold *pm, physicsCollider *cA, physicsCollider *cB, const float dt);
+void physManifoldSolve(physicsManifold *pm, physicsCollider *cA, physicsCollider *cB);
 
 
 /**

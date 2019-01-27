@@ -143,9 +143,8 @@ void *memTreeInit(memoryTree *tree, void *memory, const size_t memorySize){
 		const size_t regionSize = memoryGetRegionSize(memorySize);
 
 		//Create a free block to occupy all of the allocated memory.
-		memTreeNode *root = memTreeClearRegion(memory, regionSize);
-		memset(root, (uintptr_t)NULL, sizeof(*root));
-		tree->root = root;
+		tree->root = memTreeClearRegion(memory, regionSize);
+		memset(tree->root, (uintptr_t)NULL, sizeof(*tree->root));
 
 		//Set up the tree's memory region footer.
 		tree->region = memoryGetRegionFromSize(memory, regionSize);
@@ -416,9 +415,8 @@ void memTreeClear(memoryTree *tree, void *memory, const size_t memorySize){
 	memoryRegion *region = tree->region;
 	//Clear the first region here so we
 	//can set the first node in the tree.
-	memTreeNode *root = memTreeClearRegion(memory, (size_t)((byte_t *)region->start - (byte_t *)region));
-	memset(root, (uintptr_t)NULL, sizeof(*root));
-	tree->root = root;
+	tree->root = memTreeClearRegion(memory, (size_t)((byte_t *)region->start - (byte_t *)region));
+	memset(tree->root, (uintptr_t)NULL, sizeof(*tree->root));
 
 	region = region->next;
 	//Clear every region in the allocator.

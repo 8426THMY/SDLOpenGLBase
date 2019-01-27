@@ -3,12 +3,41 @@
 
 /*
 ** Increase the size of every face of an
-** axis-aligned bounding box by "num".
+** axis-aligned bounding box by "x".
 ** This is mainly used for the AABB tree.
 */
-void colliderAABBFatten(const colliderAABB *aabb, const float num, colliderAABB *out){
-	vec3SubtractSFrom(&aabb->minPoint, num, &out->minPoint);
-	vec3AddS(&aabb->maxPoint, num, &out->maxPoint);
+void colliderAABBFattenFloat(const colliderAABB *aabb, const float x, colliderAABB *out){
+	vec3SubtractSFrom(&aabb->minPoint, x, &out->minPoint);
+	vec3AddS(&aabb->maxPoint, x, &out->maxPoint);
+}
+
+/*
+** Increase the size of an axis-aligned bounding box
+** by a vec3, such as one representing linear velocity.
+** This is mainly used for the AABB tree.
+*/
+void colliderAABBFattenVec3(const colliderAABB *aabb, const vec3 *v, colliderAABB *out){
+	if(v->x >= 0.f){
+		out->minPoint.x = aabb->minPoint.x;
+		out->maxPoint.x = aabb->maxPoint.x + v->x;
+	}else{
+		out->minPoint.x = aabb->minPoint.x + v->x;
+		out->maxPoint.x = aabb->maxPoint.x;
+	}
+	if(v->y >= 0.f){
+		out->minPoint.y = aabb->minPoint.y;
+		out->maxPoint.y = aabb->maxPoint.y + v->y;
+	}else{
+		out->minPoint.y = aabb->minPoint.y + v->y;
+		out->maxPoint.y = aabb->maxPoint.y;
+	}
+	if(v->z >= 0.f){
+		out->minPoint.z = aabb->minPoint.z;
+		out->maxPoint.z = aabb->maxPoint.z + v->z;
+	}else{
+		out->minPoint.z = aabb->minPoint.z + v->z;
+		out->maxPoint.z = aabb->maxPoint.z;
+	}
 }
 
 /*
@@ -110,15 +139,30 @@ float colliderAABBCombinedSurfaceAreaHalf(const colliderAABB *aabbA, const colli
 }
 
 
+/*
+** Return whether or not one axis-aligned
+** bounding box completely envelops another.
+*/
+return_t colliderAABBEnvelopsAABB(const colliderAABB *aabbA, const colliderAABB *aabbB){
+	return(
+		aabbA->minPoint.x <= aabbB->minPoint.x &&
+		aabbA->minPoint.y <= aabbB->minPoint.y &&
+		aabbA->minPoint.z <= aabbB->minPoint.z &&
+
+		aabbA->maxPoint.x >= aabbB->maxPoint.x &&
+		aabbA->maxPoint.y >= aabbB->maxPoint.y &&
+		aabbA->maxPoint.z >= aabbB->maxPoint.z
+	);
+}
 
 /*
 ** Return whether or not two axis-aligned
 ** bounding boxes are intersecting each other.
 */
-return_t colliderAABBColliding(const colliderAABB *aabbA, const colliderAABB *aabbB){
+return_t colliderAABBCollidingAABB(const colliderAABB *aabbA, const colliderAABB *aabbB){
 	return(
-		(aabbA->minPoint.x <= aabbB->maxPoint.x && aabbA->maxPoint.x >= aabbB->minPoint.x) &&
-		(aabbA->minPoint.y <= aabbB->maxPoint.y && aabbA->maxPoint.y >= aabbB->minPoint.y) &&
-		(aabbA->minPoint.z <= aabbB->maxPoint.z && aabbA->maxPoint.z >= aabbB->minPoint.z)
+		aabbA->minPoint.x <= aabbB->maxPoint.x && aabbA->maxPoint.x >= aabbB->minPoint.x &&
+		aabbA->minPoint.y <= aabbB->maxPoint.y && aabbA->maxPoint.y >= aabbB->minPoint.y &&
+		aabbA->minPoint.z <= aabbB->maxPoint.z && aabbA->maxPoint.z >= aabbB->minPoint.z
 	);
 }

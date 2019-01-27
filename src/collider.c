@@ -7,14 +7,11 @@ static const colliderCalculateInertiaPrototype colliderCalculateInertiaTable[COL
 	colliderHullCalculateInertia, NULL
 };*/
 
-typedef return_t (*colliderCheckCollisionPrototype)(const void *cA, const void *cB, colliderHullSeparation *separation, contactManifold *cm);
+typedef return_t (*colliderCheckCollisionPrototype)(const void *cA, const void *cB, contactSeparation *cs, contactManifold *cm);
 //Create a jump table so we can check collision between two colliders depending on their types.
 static const colliderCheckCollisionPrototype colliderCheckCollisionTable[COLLIDER_NUM_TYPES][COLLIDER_NUM_TYPES] = {
 	{
-		colliderHullCollidingSAT, NULL
-	},
-	{
-		NULL, NULL
+		colliderHullCollidingSAT
 	}
 };
 
@@ -24,8 +21,8 @@ static const colliderCheckCollisionPrototype colliderCheckCollisionTable[COLLIDE
 	colliderCalculateInertiaTable[c->type]((void *)(&c->data), inertia);
 }*/
 
-return_t colliderCheckCollision(const collider *cA, const collider *cB, colliderHullSeparation *separation, contactManifold *cm){
-	return(colliderCheckCollisionTable[cA->type][cB->type]((void *)(&cA->data), separation, (void *)(&cB->data), cm));
+return_t colliderCheckCollision(const collider *cA, const collider *cB, contactSeparation *cs, contactManifold *cm){
+	return(colliderCheckCollisionTable[cA->type][cB->type]((void *)(&cA->data), cs, (void *)(&cB->data), cm));
 }
 
 

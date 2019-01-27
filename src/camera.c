@@ -105,7 +105,7 @@ void cameraStateGenRenderState(const cameraState *camState, const float time, ca
 void cameraStateGenerateViewMatrix(const cameraState *camState, const float time, mat4 *out){
 	cameraInterpState camInterp;
 	cameraStateGenRenderState(camState, time, &camInterp);
-	vec3Negate(&camInterp.pos, &camInterp.pos);
+	vec3Negate(&camInterp.pos);
 
 	mat4TranslateVec3(out, &camInterp.pos);
 	mat4RotateQuat(out, &camInterp.rot);

@@ -12,7 +12,8 @@ typedef struct colliderAABB {
 } colliderAABB;
 
 
-void colliderAABBFatten(const colliderAABB *aabb, const float num, colliderAABB *out);
+void colliderAABBFattenFloat(const colliderAABB *aabb, const float x, colliderAABB *out);
+void colliderAABBFattenVec3(const colliderAABB *aabb, const vec3 *v, colliderAABB *out);
 void colliderAABBCombine(const colliderAABB *aabbA, const colliderAABB *aabbB, colliderAABB *out);
 
 float colliderAABBVolume(const colliderAABB *aabb);
@@ -23,7 +24,8 @@ float colliderAABBCombinedVolume(const colliderAABB *aabbA, const colliderAABB *
 float colliderAABBCombinedSurfaceArea(const colliderAABB *aabbA, const colliderAABB *aabbB);
 float colliderAABBCombinedSurfaceAreaHalf(const colliderAABB *aabbA, const colliderAABB *aabbB);
 
-return_t colliderAABBColliding(const colliderAABB *aabbA, const colliderAABB *aabbB);
+return_t colliderAABBEnvelopsAABB(const colliderAABB *aabbA, const colliderAABB *aabbB);
+return_t colliderAABBCollidingAABB(const colliderAABB *aabbA, const colliderAABB *aabbB);
 
 
 #endif

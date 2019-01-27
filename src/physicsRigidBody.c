@@ -1,9 +1,9 @@
 #include "physicsRigidBody.h"
 
 
-void rigidBodyDefInit(physicsRigidBodyDef *body){
-	//rigidBodyDefCalculateCentroid(body);
-	//rigidBodyDefCalculateInertiaTensor(body);
+void physRigidBodyDefInit(physicsRigidBodyDef *body){
+	//physRigidBodyDefCalculateCentroid(body);
+	//physRigidBodyDefCalculateInertiaTensor(body);
 }
 
 
@@ -14,8 +14,8 @@ void rigidBodyDefInit(physicsRigidBodyDef *body){
 ** v^(n + 1) = v^n + F * m^-1 * dt
 ** w^(n + 1) = w^n + T * I^-1 * dt
 */
-void rigidBodyIntegrateVelocitySymplecticEuler(physicsRigidBody *rb, const float dt){
-	vec3 linearAcceleration;
+void physRigidBodyIntegrateVelocitySymplecticEuler(physicsRigidBody *rb, const float dt){
+	/*vec3 linearAcceleration;
 	vec3 angularAcceleration;
 
 	//Calculate the body's linear acceleration.
@@ -27,7 +27,7 @@ void rigidBodyIntegrateVelocitySymplecticEuler(physicsRigidBody *rb, const float
 	vec3MultiplyS(&rb->netTorque, dt, &angularAcceleration);
 	mat3MultiplyVec3(&rb->invInertia, &angularAcceleration, &angularAcceleration);
 	//Add the angular acceleration to the angular velocity.
-	vec3AddVec3(&rb->angularVelocity, &angularAcceleration, &rb->angularVelocity);
+	vec3AddVec3(&rb->angularVelocity, &angularAcceleration, &rb->angularVelocity);*/
 }
 
 /*
@@ -38,8 +38,8 @@ void rigidBodyIntegrateVelocitySymplecticEuler(physicsRigidBody *rb, const float
 ** dq/dt = 0.5 * w * q
 ** q^(n + 1) = q^n + dq/dt * dt
 */
-void rigidBodyIntegratePositionSymplecticEuler(physicsRigidBody *rb, const float dt){
-	vec3 linearVelocityDelta;
+void physRigidBodyIntegratePositionSymplecticEuler(physicsRigidBody *rb, const float dt){
+	/*vec3 linearVelocityDelta;
 
 	vec3MultiplyS(&rb->linearVelocity, dt, &linearVelocityDelta);
 	//Compute the object's new position.
@@ -49,7 +49,35 @@ void rigidBodyIntegratePositionSymplecticEuler(physicsRigidBody *rb, const float
 	quatIntegrate(&rb->rot, &rb->angularVelocity, dt, &rb->rot);
 	//Don't forget to normalize it, as
 	//this process can introduce errors.
-	quatNormalizeQuat(&rb->rot, &rb->rot);
+	quatNormalizeQuat(&rb->rot, &rb->rot);*/
+}
+
+
+/*
+** Update a rigid body. This involves moving and
+** rotating its centroid and inertia tensor, updating
+** its velocity and updating all of its colliders.
+*/
+void physRigidBodyUpdate(physicsRigidBody *body, const float dt){
+	physicsCollider *curCollider;
+	physicsCollider *lastCollider;
+
+
+	/** update centroid **/
+	/** update inverse inertia tensor **/
+
+	//Update the body's velocity.
+	physRigidBodyIntegrateVelocitySymplecticEuler(body, dt);
+
+
+	curCollider = body->colliders;
+	lastCollider = &body->colliders[body->numColliders - 1];
+	//For every physics collider that is a part of
+	//this rigid body, we will need to update its
+	//base collider and its node in the broadphase.
+	for(; curCollider < lastCollider; ++curCollider){
+		physColliderUpdate(curCollider);
+	}
 }
 
 
@@ -58,7 +86,7 @@ void rigidBodyIntegratePositionSymplecticEuler(physicsRigidBody *rb, const float
 ** colliders in order to find the combined centroid.
 ** This function will also calculate the inverse mass.
 */
-/*void rigidBodyDefCalculateCentroid(physicsRigidBodyDef *body){
+/*void physRigidBodyDefCalculateCentroid(physicsRigidBodyDef *body){
 	const physicsCollider *curCollider = body->colliders;
 	const physicsCollider *lastCollider = &body->colliders[body->numColliders];
 
@@ -97,7 +125,7 @@ void rigidBodyIntegratePositionSymplecticEuler(physicsRigidBody *rb, const float
 ** Sum each collider's inertia tensor and invert it
 ** to calculate the combined inverse inertia tensor.
 */
-/*void rigidBodyDefCalculateInertiaTensor(physicsRigidBodyDef *body){
+/*void physRigidBodyDefCalculateInertiaTensor(physicsRigidBodyDef *body){
 	const physicsCollider *curCollider = body->colliders;
 	const physicsCollider *lastCollider = &body->colliders[body->numColliders];
 	//Get the physical properties of each collider.

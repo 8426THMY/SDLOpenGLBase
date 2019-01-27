@@ -8,39 +8,94 @@
 
 
 /*
-** Return the distance between a point and a plane.
-** The variable "vertex" can be any point on the
-** plane, but the plane's normal must be a unit vector.
+** Quickly approximates "1.f / sqrtf(x)". This is almost completely
+** copy-pasted from the Quake III Arena source, albeit with some
+** small changes in order to increase accuracy and avoid triggering
+** any compiler warnings.
 */
-float pointPlaneDist(const vec3 *point, const vec3 *vertex, const vec3 *normal){
-	//point - vertex
-	const vec3 offset = {
-		.x = point->x - vertex->x,
-		.y = point->y - vertex->y,
-		.z = point->z - vertex->z
-	};
+float fastInvSqrt(const float x){
+	const float x2 = x * 0.5f;
+	//By using a union here, we can avoid the
+	//compiler warnings that the original had.
+	union {
+		float f;
+		uint32_t l;
+	} i;
+	i.f = x;
+	//The original magic number, "0x5F3759DF", is supposedly an
+	//approximation of the square root of 2 to the power of 127.
+	//I have found that the magic number "0x5F3504F3", being a
+	//more accurate approximation of this value, provides far more
+	//accurate results after any number of Newton-Raphson iterations.
+	i.l = 0x5F3504F3 - (i.l >> 1);
 
-	return(vec3DotVec3(normal, &offset));
+	//Use the Newton-Raphson method to
+	//gain a more accurate approximation.
+	i.f *= 1.5f - x2 * i.f * i.f;
+	//A second iteration provides
+	//an even more accurate result.
+	//i.f *= 1.5f - x2 * i.f * i.f;
+
+
+	return(i.f);
 }
+
 
 /*
-** Project a point onto a plane. The variable
-** "vertex" can be any point on the plane.
+** Compute the barycentric coordinates of the
+** point "p" with respect to the triangle "abc".
 */
-void pointPlaneProject(const vec3 *point, const vec3 *vertex, const vec3 *normal, vec3 *out){
-	//point - vertex
-	const vec3 offset = {
-		.x = point->x - vertex->x,
-		.y = point->y - vertex->y,
-		.z = point->z - vertex->z
+void pointBarycentric(const vec3 *a, const vec3 *b, const vec3 *c, const vec3 *p, vec3 *out){
+	//b - a
+	const vec3 v1 = {
+		.x = b->x - a->x,
+		.y = b->y - a->y,
+		.z = b->z - a->z
 	};
-	const float dist = vec3DotVec3(normal, &offset);
+	//c - a
+	const vec3 v2 = {
+		.x = c->x - a->x,
+		.y = c->y - a->y,
+		.z = c->z - a->z
+	};
+	//p - a
+	const vec3 v3 = {
+		.x = p->x - a->x,
+		.y = p->y - a->y,
+		.z = p->z - a->z
+	};
+	const float d11 = vec3DotVec3(&v1, &v1);
+	const float d12 = vec3DotVec3(&v1, &v2);
+	const float d22 = vec3DotVec3(&v2, &v2);
+	const float d31 = vec3DotVec3(&v3, &v1);
+	const float d32 = vec3DotVec3(&v3, &v2);
+	const float invDenom = 1.f / (d11 * d22 - d12 * d12);
 
-	out->x = point->x - dist * normal->x;
-	out->y = point->y - dist * normal->y;
-	out->z = point->z - dist * normal->z;
+	out->y = (d22 * d31 - d12 * d32) * invDenom;
+	out->z = (d11 * d32 - d12 * d31) * invDenom;
+	out->x = 1.f - out->y - out->z;
 }
 
+
+/*
+** Compute an orthonormal basis from the normalised vector
+** "a" and store the other two vectors in "b" and "c".
+**
+** Special thanks to Erin Catto for this implementation!
+*/
+void normalBasis(const vec3 *a, vec3 *b, vec3 *c){
+	//The magic number "0x3F13CD3A" is approximately equivalent to the
+	//square root of 1 over 3. In three dimensions, at least one component
+	//of any unit vector must be greater than or equal to this number.
+	if(fabsf(a->x) >= SQRT_ONE_THIRD){
+		vec3InitSet(b, a->y, -a->x, 0.f);
+	}else{
+		vec3InitSet(b, 0.f, a->z, -a->y);
+	}
+
+	vec3NormalizeVec3(b, b);
+	vec3CrossVec3(a, b, c);
+}
 
 /*
 ** Find the two closest points on two line segments,
@@ -106,60 +161,39 @@ void triangleNormal(const vec3 *a, const vec3 *b, const vec3 *c, vec3 *out){
 	vec3CrossVec3(&v1, &v2, out);
 }
 
-/*
-** Compute the barycentric coordinates of the
-** point "p" with respect to the triangle "abc".
-*/
-void pointBarycentric(const vec3 *a, const vec3 *b, const vec3 *c, const vec3 *p, vec3 *out){
-	//b - a
-	const vec3 v1 = {
-		.x = b->x - a->x,
-		.y = b->y - a->y,
-		.z = b->z - a->z
-	};
-	//c - a
-	const vec3 v2 = {
-		.x = c->x - a->x,
-		.y = c->y - a->y,
-		.z = c->z - a->z
-	};
-	//p - a
-	const vec3 v3 = {
-		.x = p->x - a->x,
-		.y = p->y - a->y,
-		.z = p->z - a->z
-	};
-	const float d11 = vec3DotVec3(&v1, &v1);
-	const float d12 = vec3DotVec3(&v1, &v2);
-	const float d22 = vec3DotVec3(&v2, &v2);
-	const float d31 = vec3DotVec3(&v3, &v1);
-	const float d32 = vec3DotVec3(&v3, &v2);
-	const float invDenom = 1.f / (d11 * d22 - d12 * d12);
 
-	out->y = (d22 * d31 - d12 * d32) * invDenom;
-	out->z = (d11 * d32 - d12 * d31) * invDenom;
-	out->x = 1.f - out->y - out->z;
+/*
+** Return the distance between a point and a plane.
+** The variable "vertex" can be any point on the
+** plane, but the plane's normal must be a unit vector.
+*/
+float pointPlaneDist(const vec3 *point, const vec3 *vertex, const vec3 *normal){
+	//point - vertex
+	const vec3 offset = {
+		.x = point->x - vertex->x,
+		.y = point->y - vertex->y,
+		.z = point->z - vertex->z
+	};
+
+	return(vec3DotVec3(normal, &offset));
 }
 
-
 /*
-** Compute an orthonormal basis from the normalised vector
-** "a" and store the other two vectors in "b" and "c".
-**
-** Special thanks to Erin Catto for this implementation!
+** Project a point onto a plane. The variable
+** "vertex" can be any point on the plane.
 */
-void normalBasis(const vec3 *a, vec3 *b, vec3 *c){
-	//The magic number "0x3F13CD3A" is approximately equivalent to the
-	//square root of 1 over 3. In three dimensions, at least one component
-	//of any unit vector must be greater than or equal to this number.
-	if(fabsf(a->x) >= SQRT_ONE_THIRD){
-		vec3InitSet(b, a->y, -a->x, 0.f);
-	}else{
-		vec3InitSet(b, 0.f, a->z, -a->y);
-	}
+void pointPlaneProject(const vec3 *point, const vec3 *vertex, const vec3 *normal, vec3 *out){
+	//point - vertex
+	const vec3 offset = {
+		.x = point->x - vertex->x,
+		.y = point->y - vertex->y,
+		.z = point->z - vertex->z
+	};
+	const float dist = vec3DotVec3(normal, &offset);
 
-	vec3NormalizeVec3(b, b);
-	vec3CrossVec3(a, b, c);
+	out->x = point->x - dist * normal->x;
+	out->y = point->y - dist * normal->y;
+	out->z = point->z - dist * normal->z;
 }
 
 
@@ -194,37 +228,3 @@ return_t segmentPlaneIntersection(const vec3 *const restrict normal, const vec3 
 	return 1;
 }
 **/
-
-
-/*
-** Quickly approximates "1.f / sqrtf(x)". This is almost completely
-** copy-pasted from the Quake III Arena source, albeit with some
-** small changes in order to increase accuracy and avoid triggering
-** any compiler warnings.
-*/
-float fastInvSqrt(const float x){
-	const float x2 = x * 0.5f;
-	//By using a union here, we can avoid the
-	//compiler warnings that the original had.
-	union {
-		float f;
-		uint32_t l;
-	} i;
-	i.f = x;
-	//The original magic number, "0x5F3759DF", is supposedly an
-	//approximation of the square root of 2 to the power of 127.
-	//I have found that the magic number "0x5F3504F3", being a
-	//more accurate approximation of this value, provides far more
-	//accurate results after any number of Newton-Raphson iterations.
-	i.l = 0x5F3504F3 - (i.l >> 1);
-
-	//Use the Newton-Raphson method to
-	//gain a more accurate approximation.
-	i.f *= 1.5f - x2 * i.f * i.f;
-	//A second iteration provides
-	//an even more accurate result.
-	//i.f *= 1.5f - x2 * i.f * i.f;
-
-
-	return(i.f);
-}

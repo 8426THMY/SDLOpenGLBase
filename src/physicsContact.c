@@ -9,7 +9,11 @@
 
 #include "mat3.h"
 
+#include "physicsCollider.h"
 #include "physicsRigidBody.h"
+
+
+#warning "We need to convert regular contact manifolds to physics manifolds. When we do that, it should subtract the BODY's centre of mass from each point."
 
 
 /*
@@ -18,16 +22,16 @@
 ** Such values include the impulse denominator and the
 ** bias term.
 */
-void physManifoldPresolve(physicsManifold *pm, const float dt){
+void physManifoldPresolve(physicsManifold *pm, physicsCollider *cA, physicsCollider *cB, const float dt){
 	//There is no need to calculate this
 	//stuff for every contact point.
-	const float invMass = pm->bodyA->body->invMass + pm->bodyB->body->invMass;
-	mat3 *invInertiaA = &pm->bodyA->invInertia;
-	mat3 *invInertiaB = &pm->bodyB->invInertia;
+	const float invMass = cA->owner->invMass + cB->owner->invMass;
+	mat3 *invInertiaA = &cA->owner->invInertiaGlobal;
+	mat3 *invInertiaB = &cB->owner->invInertiaGlobal;
 	const float baumgarte = -PHYSCONTACT_BAUMGARTE_BIAS * (1.f / dt);
 
-	physicsContact *curContact = pm->contacts;
-	physicsContact *lastContact = &pm->contacts[pm->numContacts];
+	physicsContactPoint *curContact = pm->contacts;
+	physicsContactPoint *lastContact = &pm->contacts[pm->numContacts];
 
 	//Set the tangent vectors such that they form an
 	//orthonormal basis together with the contact normal.
@@ -45,7 +49,13 @@ void physManifoldPresolve(physicsManifold *pm, const float dt){
 		vec3 rBX;
 		//IB * (rB X n)
 		vec3 rBXI;
-		const float newPenetration = curContact->penetration + PHYSCONTACT_PENETRATION_SLOP;
+
+		//P
+		vec3 accumulatedImpulse;
+		vec3 currentImpulse;
+
+		float tempBias;
+
 
 		//Calculate the normal impulse denominator.
 		vec3CrossVec3(&curContact->rA, &pm->normal, &rAX);
@@ -69,52 +79,35 @@ void physManifoldPresolve(physicsManifold *pm, const float dt){
 		curContact->frictionDenom[1] = 1.f / (invMass + vec3DotVec3(&rAX, &rAXI) + vec3DotVec3(&rBX, &rBXI));
 
 
-		//Calculate the bias term (restitution and Baumgarte term).
-		curContact->bias = (newPenetration > 0.f) ? (baumgarte * newPenetration) : 0.f;
+		//Calculate the Baumgarte bias term.
+		tempBias = curContact->penetration + PHYSCONTACT_PENETRATION_SLOP;
+		curContact->bias = (tempBias > 0.f) ? (baumgarte * tempBias) : 0.f;
 
+		//Calculate the restitution bias term.
+		/** r32 dv = q3Dot(vB + q3Cross(wB, c->rb) - vA - q3Cross(wA, c->ra), cs->normal); **/
+		tempBias = 0.f;
+		if(tempBias < -1.f){
+			/** Incorporate restitution. **/
+			/** -(cs->restitution) * dv; **/
+			curContact->bias += tempBias;
+		}
+
+
+		//Warm start the contact point using the total
+		//accumulated normal and frictional impulses.
+		vec3MultiplyS(&pm->normal, curContact->normalImpulse, &accumulatedImpulse);
+		vec3MultiplyS(&pm->tangents[0], curContact->frictionImpulse[0], &currentImpulse);
+		vec3AddVec3(&accumulatedImpulse, &currentImpulse, &accumulatedImpulse);
+		vec3MultiplyS(&pm->tangents[1], curContact->frictionImpulse[1], &currentImpulse);
+		vec3AddVec3(&accumulatedImpulse, &currentImpulse, &accumulatedImpulse);
+
+		//Apply the accumulated impulse.
 		/**
-		q3ContactState *c = cs->contacts + j;
-
-		// Precalculate JM^-1JT forcontact and friction constraints
-		q3Vec3 raCn = q3Cross(c->ra, cs->normal);
-		q3Vec3 rbCn = q3Cross(c->rb, cs->normal);
-		r32 nm = cs->mA + cs->mB;
-		r32 tm[2];
-		tm[0] = nm;
-		tm[1] = nm;
-
-		nm += q3Dot(raCn, cs->iA * raCn) + q3Dot(rbCn, cs->iB * rbCn);
-		c->normalMass = q3Invert(nm);
-
-		for(i32 i = 0; i < 2; ++i){
-			q3Vec3 raCt = q3Cross(cs->tangentVectors[i], c->ra);
-			q3Vec3 rbCt = q3Cross(cs->tangentVectors[i], c->rb);
-			tm[i] += q3Dot(raCt, cs->iA * raCt) + q3Dot(rbCt, cs->iB * rbCt);
-			c->tangentMass[i] = q3Invert(tm[i]);
-		}
-
-		// Precalculate bias factor
-		c->bias = -Q3_BAUMGARTE * (r32(1.0) / dt) * q3Min(r32(0.0), c->penetration + Q3_PENETRATION_SLOP);
-
-		// Warm start contact
-		q3Vec3 P = cs->normal * c->normalImpulse;
-
-		if(m_enableFriction){
-			P += cs->tangentVectors[0] * c->tangentImpulse[0];
-			P += cs->tangentVectors[1] * c->tangentImpulse[1];
-		}
-
 		vA -= P * cs->mA;
 		wA -= cs->iA * q3Cross(c->ra, P);
 
 		vB += P * cs->mB;
 		wB += cs->iB * q3Cross(c->rb, P);
-
-		// Add in restitution bias
-		r32 dv = q3Dot(vB + q3Cross(wB, c->rb) - vA - q3Cross(wA, c->ra), cs->normal);
-
-		if(dv < -r32(1.0))
-			c->bias += -(cs->restitution) * dv;
 		**/
 	}
 }
@@ -125,9 +118,9 @@ void physManifoldPresolve(physicsManifold *pm, const float dt){
 ** should be called directly after "manifoldPresolve", and may
 ** be called multiple times if we are using sequential impulse.
 */
-void physManifoldSolve(physicsManifold *pm){
-	physicsContact *curContact = pm->contacts;
-	physicsContact *lastContact = &pm->contacts[pm->numContacts];
+void physManifoldSolve(physicsManifold *pm, physicsCollider *cA, physicsCollider *cB){
+	physicsContactPoint *curContact = pm->contacts;
+	physicsContactPoint *lastContact = &pm->contacts[pm->numContacts];
 	for(; curContact < lastContact; ++curContact){
 		//
 	}

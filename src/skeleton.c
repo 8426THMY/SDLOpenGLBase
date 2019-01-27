@@ -678,7 +678,7 @@ static void boneStateInvert(const boneState *b, boneState *out){
 
 	//Invert its position with respect to the new rotation!
 	quatApplyRotationFast(&b->rot, &b->pos, &out->pos);
-	vec3Negate(&out->pos, &out->pos);
+	vec3Negate(&out->pos);
 
 	//Invert its scale by storing the reciprocal of each value!
 	vec3DivideSBy(&b->scale, 1.f, &out->scale);

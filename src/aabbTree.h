@@ -8,19 +8,23 @@
 
 
 typedef struct aabbNode aabbNode;
+typedef struct aabbNodeChildren {
+	aabbNode *left;
+	aabbNode *right;
+} aabbNodeChildren;
+
+typedef struct aabbNodeLeaf {
+	void *collider;
+} aabbNodeLeaf;
+
+
 typedef struct aabbNode {
 	colliderAABB aabb;
 
 	aabbNode *parent;
 	union {
-		struct {
-			aabbNode *left;
-			aabbNode *right;
-		} children;
-		//struct {
-			void *body;
-		//	aabbNode *next;
-		//} leaf;
+		aabbNodeChildren children;
+		aabbNodeLeaf leaf;
 	} data;
 
 	//Specifies the node's distance from its deepest leaf.
@@ -33,8 +37,13 @@ typedef struct aabbTree {
 } aabbTree;
 
 
-void aabbTreeInsert(aabbTree *tree, colliderAABB *aabb, void *body);
-void aabbTreeRemove(aabbTree *tree, aabbNode *node);
+aabbNode *aabbTreeInsertNode(aabbTree *tree, colliderAABB *aabb, void *collider);
+void aabbTreeUpdateNode(aabbTree *tree, aabbNode *node);
+void aabbTreeRemoveNode(aabbTree *tree, aabbNode *node);
+
+void aabbTreeQueryCollisions(aabbTree *tree, const aabbNode *node, void (*callback)(void *cA, void *cB));
+void aabbTreeQueryCollisionsStack(aabbTree *tree, const aabbNode *node, void (*callback)(void *cA, void *cB));
+aabbNode *aabbTreeFindNextNode(aabbTree *tree, const colliderAABB *aabb, const aabbNode *prevNode);
 
 
 /**

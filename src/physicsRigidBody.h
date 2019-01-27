@@ -2,15 +2,17 @@
 #define physicsRigidBody_h
 
 
+#include <stdint.h>
+
 #include "vec3.h"
 #include "quat.h"
 #include "mat3.h"
 
-#include "collider.h"
+#include "physicsCollider.h"
 
 
 typedef struct physicsRigidBodyDef {
-	collider collider;
+	/*collider collider;
 
 	//The rigid body's physical properties.
 	float mass;
@@ -19,24 +21,22 @@ typedef struct physicsRigidBodyDef {
 	vec3 centroid;
 	//Matrix that describes how the body
 	//resists rotation around an axis.
-	mat3 invInertia;
-
-	//Scalar representing the ratio of
-	//energy to conserve after a collision.
-	float restitution;
+	mat3 invInertia;*/
 } physicsRigidBodyDef;
 
 typedef struct physicsRigidBody {
-	physicsRigidBodyDef *body;
+	physicsCollider *colliders;
+	uint_least16_t numColliders;
 
-	//A "physicsRigidBodyDef" stores the local
-	//state of its collider, but we will need
-	//to store its global, transformed state.
-	collider collider;
+	float mass;
+	float invMass;
 
-	//The same idea as above applies here.
-	vec3 centroid;
-	mat3 invInertia;
+	//We need to keep the local versions
+	//for when we add new colliders.
+	vec3 centroidLocal;
+	vec3 centroidGlobal;
+	mat3 invInertiaLocal;
+	mat3 invInertiaGlobal;
 
 	//Store the linear properties of the object.
 	vec3 pos;
@@ -52,110 +52,144 @@ typedef struct physicsRigidBody {
 
 /**
 aabbNode {
-	colliderAABB aabb;
-
-	aabbNode *parent;
-	union {
-		struct {
-			aabbNode *left;
-			aabbNode *right;
-		} children;
-		struct {
-			physicsRigidBody *body;
-			collider *collider;
-		} leaf;
-	} data;
-
-	size_t height;
-};
-
-aabbTree {
-	aabbNode *root;
+	void *collider;
 };
 
 
-collisionPair {
-	union {
-		//Manifolds and separations store the bodies as
-		//their first elements, so this is always usable.
-		struct {
-			physicsRigidBody *bodyA;
-			physicsRigidBody *bodyB;
-		} bodies;
-		physicsManifold contact;
-		physicsSeparation separation;
-	} data;
-	byte_t type;
-
-	//We need these when we check
-	//if the pair already exists.
-	collider *colliderA;
-	collider *colliderB;
-
-	//Pointers to the pair's position
-	//in the pair arrays of both bodies.
-	//This is used to speed up removals.
-	collisionPair **arrayA;
-	collisionPair **arrayB;
+physicsCollider {
+	physicsRigidBody *owner;
+	aabbNode *node;
 };
 
 physicsRigidBody {
-	collider *colliders;
-	size_t numColliders;
-
-	//SLink(?)
-	aabbNode *colliderNodes;
-
-	//DLink
-	//Both bodies involved store a
-	//pointer to the collision pair.
-	collisionPair **pairs;
+	physicsCollider *colliders;
+	uint_least16_t numColliders;
 };
 
 
-We can either store the collisionPair pointer array
-inside the physicsRigidBodies (in which case the pairs
-themselves will need to store collider pointers) or
-we can store them inside the AABB tree nodes.
+physicsContactPair {
+	physicsManifold manifold;
 
-Pros for storing it in body:
-1. Uses way less memory.
-   4 bytes per body as opposed to 4 bytes per tree node.
-   Only leaf nodes need the pointer, so we would otherwise
-   be storing the pointer a minimum of (2n - 1) as many
-   times as we need to, assuming every body has one collider.
+	physicsCollider *cA;
+	physicsCollider *cB;
 
-2. I can't think of anything else.
+	physicsContactPair *prevA;
+	physicsContactPair *nextA;
+	physicsContactPair *prevB;
+	physicsContactPair *nextB;
+};
+
+physicsSeparationPair {
+	contactSeparation separation;
+
+	physicsCollider *cA;
+	physicsCollider *cB;
+
+	physicsSeparationPair *prevA;
+	physicsSeparationPair *nextA;
+	physicsSeparationPair *prevB;
+	physicsSeparationPair *nextB;
+};
 
 
-Pros for storing it in the node:
-1. Don't need to search through all of the body's pairs
-   when checking to see if one already exists.
-   This is only valid for bodies with more than one collider.
+step(){
+	for all bodies {
+		integrate velocities;
 
-2. Don't need to store collider pointers in the pairs.
-   We only do this otherwise so we can check if a pair exists.
+		for all colliders {
+			update vertices;
+			update aabbs;
+		}
+	}
+	for all bodies {
+		for all colliders {
+			for all colliding leaves in aabb tree {
+				if collider < otherCollider {
 
+					separation = NULL;
+					for all separations pairs in collider {
+						if pair contains these colliders {
+							separation = pair;
+							break;
+						}
+					}
 
-Justification for the removal of composite colliders:
-Makes it a pain to allow adding and removing additional
-colliders to a rigid body. If we want to add one to a body
-that is not already using a composite collider, we need to
-convert its current collider to one.
+					if narrowphase collision with separation {
 
-An alternative proposition: colliders cannot be added or removed.
-Instead, we create a new rigid body and use constraints to "weld"
-it to the original body.
+						contact;
+						if separation {
+							delete separation pair(){
+								pair->prevA->nextA = pair->nextA;
+								pair->prevB->nextB = pair->nextB;
+								free pair;
+							}
+							// Make sure the pair is added to each collider's list in order!
+							contact = new contact pair;
+						}else{
+							contact = NULL;
+							for all contact pairs in collider {
+								if pair contains these colliders {
+									contact = pair;
+									break;
+								}
+							}
+							if !contact {
+								// Make sure the pair is added to each collider's list in order!
+								contact = new contact pair;
+							}
+						}
+
+						update contact pair;
+						contact->active = 0;
+
+					}else{
+
+						if !separation {
+							for all contact pairs in collider {
+								if pair contains these colliders {
+									delete contact pair(){
+										pair->prevA->nextA = pair->nextA;
+										pair->prevB->nextB = pair->nextB;
+										free pair;
+									}
+									break;
+								}
+							}
+							// Make sure the pair is added to each collider's list in order!
+							separation = new separation pair;
+						}
+
+						update separation pair;
+						separation->active = 0;
+
+					}
+				}
+			}
+
+			for all contacts and separations in collider {
+				if collider < otherCollider {
+					if pair->active == 0 {
+						pair->active = 1;
+					}else{
+						delete contact or separation;
+					}
+				}
+			}
+		}
+	}
+}
 **/
 
 
-void rigidBodyDefInit(physicsRigidBodyDef *body);
+void physRigidBodyDefInit(physicsRigidBodyDef *body);
 
-void rigidBodyIntegrateVelocitySymplecticEuler(physicsRigidBody *rb, const float time);
-void rigidBodyIntegratePositionSymplecticEuler(physicsRigidBody *rb, const float time);
+void physRigidBodyIntegrateVelocitySymplecticEuler(physicsRigidBody *rb, const float time);
+void physRigidBodyIntegratePositionSymplecticEuler(physicsRigidBody *rb, const float time);
 
-//void rigidBodyDefCalculateCentroid(physicsRigidBodyDef *body);
-//void rigidBodyDefCalculateInertiaTensor(physicsRigidBodyDef *body);
+void physRigidBodyUpdate(physicsRigidBody *body, const float dt);
+
+//void physRigidBodyDefCalculateCentroid(physicsRigidBodyDef *body);
+//void physRigidBodyDefCalculateInertiaTensor(physicsRigidBodyDef *body);
 
 
 #endif
