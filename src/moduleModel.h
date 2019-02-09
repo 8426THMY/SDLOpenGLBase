@@ -2,17 +2,20 @@
 #define moduleModel_h
 
 
-#define MODULEMODEL
-
-#define MODULEMODEL_SETUP_FAIL 4
-
-
 #include "utilTypes.h"
 
 #include "memoryManager.h"
 #include "memoryPool.h"
 
 #include "model.h"
+
+
+#define MODULEMODEL
+#define MODULEMODEL_SETUP_FAIL 4
+
+#ifndef MEMORY_MAX_MODELS
+	#define MEMORY_MAX_MODELS 1
+#endif
 
 
 return_t moduleModelSetup();

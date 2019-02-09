@@ -2,13 +2,13 @@
 #define utilString_h
 
 
+#include <stdio.h>
+#include <stdint.h>
+
+
 //These indicate the maximum number of characters
 //required to store a number of each type.
 #define ULONG_MAX_CHARS 10
-
-
-#include <stdio.h>
-#include <stdint.h>
 
 
 char *readLineFile(FILE *file, char *line, size_t *lineLength);

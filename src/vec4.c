@@ -210,8 +210,18 @@ void vec4Normalize(const float x, const float y, const float z, const float w, v
 	out->w = w * magnitude;
 }
 
+//Normalize a vec4!
+void vec4NormalizeVec4(vec4 *v){
+	const float magnitude = fastInvSqrt(vec4NormVec4(v));
+
+	v->x = v->x * magnitude;
+	v->y = v->y * magnitude;
+	v->z = v->z * magnitude;
+	v->w = v->w * magnitude;
+}
+
 //Normalize a vec4 and store the result in "out"!
-void vec4NormalizeVec4(const vec4 *v, vec4 *out){
+void vec4NormalizeVec4Out(const vec4 *v, vec4 *out){
 	const float magnitude = fastInvSqrt(vec4NormVec4(v));
 
 	out->x = v->x * magnitude;

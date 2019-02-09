@@ -1,15 +1,6 @@
 #include "textureGroup.h"
 
 
-#define TEXTUREGROUP_PATH_PREFIX        ".\\resource\\textures\\"
-#define TEXTUREGROUP_PATH_PREFIX_LENGTH (sizeof(TEXTUREGROUP_PATH_PREFIX) - 1)
-
-
-//These must be at least 1!
-#define BASE_INDEX_CAPACITY 1
-#define BASE_ANIM_CAPACITY  1
-
-
 #include <stdlib.h>
 #include <string.h>
 
@@ -17,6 +8,15 @@
 
 #include "memoryManager.h"
 #include "moduleTexture.h"
+
+
+#define TEXTUREGROUP_PATH_PREFIX        ".\\resource\\textures\\"
+#define TEXTUREGROUP_PATH_PREFIX_LENGTH (sizeof(TEXTUREGROUP_PATH_PREFIX) - 1)
+
+
+//These must be at least 1!
+#define BASE_INDEX_CAPACITY 1
+#define BASE_ANIM_CAPACITY  1
 
 
 #warning "What if we aren't using the global memory manager?"

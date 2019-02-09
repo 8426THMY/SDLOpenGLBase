@@ -1,14 +1,22 @@
 #include "quat.h"
 
 
-//We'll do linear interpolation if the angle between the two quaternions is less than 1 degree.
-#define QUAT_LERP_EPSILON cos(DEG_TO_RAD)
-
-
 #include <string.h>
 #include <math.h>
 
 #include "utilMath.h"
+
+
+//We'll do linear interpolation if the angle between the two quaternions is less than 1 degree.
+#define QUAT_LERP_EPSILON cos(DEG_TO_RAD)
+
+
+static quat identityQuat = {
+	.x = 0.f,
+	.y = 0.f,
+	.z = 0.f,
+	.w = 1.f
+};
 
 
 //Initialize the quaternion's values to 0!
@@ -18,8 +26,7 @@ void quatInitZero(quat *q){
 
 //Initialize the quaternion to an identity quaternion!
 void quatInitIdentity(quat *q){
-	q->x = q->y = q->z = 0.f;
-	q->w = 1.f;
+	*q = identityQuat;
 }
 
 //Initialize the quaternion's values to the ones specified!
@@ -290,8 +297,18 @@ void quatNormalize(const float x, const float y, const float z, const float w, q
 	out->w = w * magnitude;
 }
 
+//Normalize a quaternion!
+void quatNormalizeQuat(quat *q){
+	const float magnitude = fastInvSqrt(quatNormQuat(q));
+
+	q->x = q->x * magnitude;
+	q->y = q->y * magnitude;
+	q->z = q->z * magnitude;
+	q->w = q->w * magnitude;
+}
+
 //Normalize a quaternion and store the result in "out"!
-void quatNormalizeQuat(const quat *q, quat *out){
+void quatNormalizeQuatOut(const quat *q, quat *out){
 	const float magnitude = fastInvSqrt(quatNormQuat(q));
 
 	out->x = q->x * magnitude;
@@ -366,7 +383,7 @@ void quatLerp(const quat *q1, const quat *q2, const float time, quat *out){
 	out->w = lerpNum(q1->w, q2->w, time);
 
 	//It's nice to be safe... but it isn't very fast.
-	quatNormalizeQuat(out, out);
+	quatNormalizeQuat(out);
 }
 
 /*
@@ -381,7 +398,7 @@ void quatLerpFast(const quat *q, const quat *offset, const float time, quat *out
 	out->w = lerpNumFast(q->w, offset->w, time);
 
 	//It's nice to be safe... but it isn't very fast.
-	quatNormalizeQuat(out, out);
+	quatNormalizeQuat(out);
 }
 
 /*
@@ -413,7 +430,7 @@ void quatSlerp(const quat *q1, const quat *q2, const float time, quat *out){
 		out->w = q1->w * sinThetaInvT + q2->w * sinThetaT;
 
 		//It's nice to be safe... but it isn't very fast.
-		quatNormalizeQuat(out, out);
+		quatNormalizeQuat(out);
 	}
 }
 
@@ -448,7 +465,7 @@ void quatSlerpFast(const quat *q1, const quat *q2, const float time, quat *out){
 		out->w = q1->w * sinThetaInvT + q2->w * sinThetaT;
 
 		//It's nice to be safe... but it isn't very fast.
-		quatNormalizeQuat(out, out);
+		quatNormalizeQuat(out);
 	}
 }
 

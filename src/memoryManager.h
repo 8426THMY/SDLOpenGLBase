@@ -8,6 +8,11 @@
 #include "memoryTree.h"
 
 
+#ifndef MEMORY_HEAPSIZE
+	#define MEMORY_HEAPSIZE (64 * MEMORY_MEBIBYTE)
+#endif
+
+
 typedef memoryTree memoryManager;
 
 

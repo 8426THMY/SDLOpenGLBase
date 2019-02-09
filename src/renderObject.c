@@ -1,6 +1,7 @@
 #include "renderObject.h"
 
 
+#include "transform.h"
 #include "model.h"
 
 
@@ -8,7 +9,7 @@ vector allRenderObjects;
 
 
 void renderObjStateInit(renderObjState *objState, const size_t mdlPos){
-	/*transformStateInit(&objState->transform);
+	/*interpTransInit(&objState->transform);
 
 	//If the model we want to use has been loaded, use it!
 	if(mdlPos < loadedModels.size){
@@ -42,15 +43,14 @@ void renderObjStateDraw(const renderObjState *objState, const vec3 *camPos, cons
 	mat4 mvpMatrix = *viewProjectionMatrix;
 
 
-	//These variables store the interpolated state of the object between the previous and current updates.
-	vec3 newPos;
-	quat newRot;
-	vec3 newScale;
-	transformStateGenRenderState(&objState->transform, time, &newPos, &newRot, &newScale);
+	//These variables store the interpolated state of the
+	//object between the previous and current updates.
+	transformState trans;
+	interpTransGenRenderState(&objState->transform, time, &trans);
 
 
 	//Translate the model!
-	mat4TranslateVec3(&mvpMatrix, &newPos);
+	mat4TranslateVec3(&mvpMatrix, &trans.pos);
 
 	//Make the model face the screen!
 	/** Make a function for billboards! To look an axis, set the  **/
@@ -69,10 +69,10 @@ void renderObjStateDraw(const renderObjState *objState, const vec3 *camPos, cons
 	mat4MultiplyToMat4(&tempMatrix, &mvpMatrix);*/
 
 	//Apply the rotation transformation to our mvpMatrix!
-	mat4RotateQuat(&mvpMatrix, &newRot);
+	mat4RotateQuat(&mvpMatrix, &trans.rot);
 
 	//Scale the model!
-	mat4ScaleVec3(&mvpMatrix, &newScale);
+	mat4ScaleVec3(&mvpMatrix, &trans.scale);
 
 
 	//Set our uniform variables!
@@ -100,7 +100,7 @@ void renderObjStateDraw(const renderObjState *objState, const vec3 *camPos, cons
 		const boneState *lastObjBone = &curObjBone[objState->skeleObj->skele->numBones];
 		//Fill up the array!
 		for(; curObjBone < lastObjBone; ++curObjBone, ++curBoneState){
-			boneStateConvertToMat4(curObjBone, curBoneState);
+			transformStateToMat4(curObjBone, curBoneState);
 		}
 
 		curObjBone = &objState->skeleObj->state[1];
@@ -120,9 +120,9 @@ void renderObjStateDraw(const renderObjState *objState, const vec3 *camPos, cons
 			//Use matrices!
 			/*vec3InitZero(&curBone);
 			parBone = curBone;
-			vec3Transform(&boneStates[i], &curBone, &curBone);
+			vec3Transform(&curBone, &boneStates[i], &curBone);
 			if(objState->skeleObj->skele->bones[i].parent != -1){
-				vec3Transform(&boneStates[objState->skeleObj->skele->bones[i].parent], &parBone, &parBone);
+				vec3Transform(&parBone, &boneStates[objState->skeleObj->skele->bones[i].parent], &parBone);
 			}else{
 				parBone = curBone;
 			}*/
@@ -140,7 +140,7 @@ void renderObjStateDraw(const renderObjState *objState, const vec3 *camPos, cons
 		const boneState *lastObjState = &objState->skeleObj->state[objState->skeleObj->skele->numBones];
 		//Fill up the array!
 		for(; curObjState < lastObjState; ++curObjState, ++curBoneState){
-			boneStateConvertToMat4(curObjState, curBoneState);
+			transformStateToMat4(curObjState, curBoneState);
 		}
 	}
 

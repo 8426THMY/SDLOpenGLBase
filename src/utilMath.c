@@ -1,10 +1,10 @@
 #include "utilMath.h"
 
 
-#define SQRT_ONE_THIRD 0.57735026f
-
-
 #include <stdint.h>
+
+
+#define SQRT_ONE_THIRD 0.57735026f
 
 
 /*
@@ -93,7 +93,7 @@ void normalBasis(const vec3 *a, vec3 *b, vec3 *c){
 		vec3InitSet(b, 0.f, a->z, -a->y);
 	}
 
-	vec3NormalizeVec3(b, b);
+	vec3NormalizeVec3(b);
 	vec3CrossVec3(a, b, c);
 }
 

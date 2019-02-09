@@ -7,6 +7,13 @@
 #include "utilMath.h"
 
 
+static mat3 identityMat3 = {
+	.m[0][0] = 1.f, .m[0][1] = 0.f, .m[0][2] = 0.f,
+	.m[1][0] = 0.f, .m[1][1] = 1.f, .m[1][2] = 0.f,
+	.m[2][0] = 0.f, .m[2][1] = 0.f, .m[2][2] = 1.f
+};
+
+
 //Initialize the matrix's values to 0!
 void mat3InitZero(mat3 *m){
 	memset(m, 0.f, sizeof(*m));
@@ -14,17 +21,7 @@ void mat3InitZero(mat3 *m){
 
 //Initialize the matrix to an identity matrix!
 void mat3InitIdentity(mat3 *m){
-	m->m[0][0] = 1.f;
-	m->m[0][1] = 0.f;
-	m->m[0][2] = 0.f;
-
-	m->m[1][0] = 0.f;
-	m->m[1][1] = 1.f;
-	m->m[1][2] = 0.f;
-
-	m->m[2][0] = 0.f;
-	m->m[2][1] = 0.f;
-	m->m[2][2] = 1.f;
+	*m = identityMat3;
 }
 
 

@@ -2,9 +2,6 @@
 #define model_h
 
 
-#define MODEL_VERTEX_MAX_WEIGHTS 4
-
-
 #include <stdio.h>
 
 #define GLEW_STATIC
@@ -14,6 +11,9 @@
 
 #include "skeleton.h"
 #include "moduleTextureGroup.h"
+
+
+#define MODEL_VERTEX_MAX_WEIGHTS 4
 
 
 typedef struct model {

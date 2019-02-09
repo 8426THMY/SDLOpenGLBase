@@ -1,9 +1,6 @@
 #include "program.h"
 
 
-#define MODULE_SETUP_SUCCESS 0
-
-
 #include <stdio.h>
 
 #include <SDL2/SDL_opengl.h>
@@ -18,6 +15,9 @@
 #include "moduleSkeleton.h"
 #include "moduleModel.h"
 #include "renderObject.h"
+
+
+#define MODULE_SETUP_SUCCESS 0
 
 
 //Forward-declare any helper functions!
@@ -247,10 +247,10 @@ static void updateRenderObjects(program *prg){
 	/** Temporary if statement for temporary code. Don't want the program to crash, do we? **/
 	/*if(allRenderObjects.size > 2){
 		renderObjState *currentObj = ((renderObject *)vectorGet(&allRenderObjects, 1))->states[0];
-		transformStateAddRotEulerDeg(&currentObj->transform, 0.f, 0.f, 2.f, prg->framerate.updateDelta);
+		interpTransAddRotEulerDeg(&currentObj->transform, 0.f, 0.f, 2.f, prg->framerate.updateDelta);
 
 		currentObj = ((renderObject *)vectorGet(&allRenderObjects, 2))->states[0];
-		transformStateAddRotEulerDeg(&currentObj->transform, 2.f, 2.f, 2.f, prg->framerate.updateDelta);
+		interpTransAddRotEulerDeg(&currentObj->transform, 2.f, 2.f, 2.f, prg->framerate.updateDelta);
 	}*/
 }
 
@@ -271,7 +271,7 @@ static void render(program *prg){
 		vec3InitZero(&target);
 		vec3InitSet(&up, 0.f, 1.f, 0.f);
 		vec3 camPos;
-		interpVec3FindRenderState(&((cameraState *)prg->cam.states[renderState])->pos, prg->framerate.renderDelta, &camPos);
+		interpVec3GenRenderState(&((cameraState *)prg->cam.states[renderState])->pos, prg->framerate.renderDelta, &camPos);
 		//Generate a view matrix that looks from the camera to target!
 		mat4LookAt(&viewMatrix, &camPos, &target, &up);
 		//Multiply it by the projection matrix!
@@ -385,16 +385,16 @@ static void initResources(){
 	if(loadedSkeleAnims.size > 0){
 		skeleObjAddAnim(currentObj->skeleObj, (skeletonAnim *)vectorGet(&loadedSkeleAnims, 0));
 	}
-	transformStateSetPosX(&currentObj->transform, -2.f);
+	interpTransSetPosX(&currentObj->transform, -2.f);
 
 
 	renderObjCreate(2);
 	currentObj = ((renderObject *)vectorGet(&allRenderObjects, allRenderObjects.size - 1))->states[0];
-	transformStateSetPosX(&currentObj->transform, 2.f);
+	interpTransSetPosX(&currentObj->transform, 2.f);
 
 	renderObjCreate(3);
 	currentObj = ((renderObject *)vectorGet(&allRenderObjects, allRenderObjects.size - 1))->states[0];
-	transformStateSetPosY(&currentObj->transform, -2.f);*/
+	interpTransSetPosY(&currentObj->transform, -2.f);*/
 }
 
 //Set up the allocators for our modules.

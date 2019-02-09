@@ -1,6 +1,10 @@
 #include "skeleton.h"
 
 
+#include "utilString.h"
+#include "memoryManager.h"
+
+
 #define SKELETON_PATH_PREFIX        ".\\resource\\models\\"
 #define SKELETON_PATH_PREFIX_LENGTH (sizeof(SKELETON_PATH_PREFIX) - 1)
 
@@ -11,21 +15,11 @@
 #define SKELE_ANIM_FRAME_TIME (1000.f / SKELE_ANIM_FRAME_RATE)
 
 
-#include "utilString.h"
-
-#include "memoryManager.h"
-
-
 #warning "Store the skeleObject normally. You need to find a way to indicate that two animations are blending that works when you copy to the next state!"
 #warning "We still need to do animation blending and create bone lookups in case the animation's bones don't match the model's skeleton's (such as with the Scout)."
 
 
 //Forward-declare any helper functions!
-static void boneStateInvert(const boneState *b, boneState *out);
-
-static void updateBoneStateSet(const boneState *s1, const boneState *s2, const float time, boneState *out);
-static void updateBoneStateAdd(const boneState *s1, const boneState *s2, const float time, boneState *out);
-
 static void getBlendStates(const skeleAnimState *animState, const skeleAnimState *blendState, const size_t boneNum,
                            const boneState *defState, const boneState **startState, const boneState **endState);
 
@@ -83,7 +77,7 @@ void skeleInitSet(skeleton *skele, char *name, bone *bones, const size_t numBone
 	const bone *lastBone = &skele->bones[skele->numBones];
 	//Make sure we invert each bone's state!
 	for(; curBone < lastBone; ++curBone){
-		boneStateInvert(&curBone->state, &curBone->state);
+		transformStateInvert(&curBone->state, &curBone->state);
 	}
 }
 
@@ -416,29 +410,6 @@ return_t skeleAnimLoadSMD(skeletonAnim *skeleAnim, const char *skeleAnimName){
 }
 
 
-//Append the transformations applied by "b2" to "b1" and store the result in "out"!
-void boneStateAddTransform(const boneState *b1, const boneState *b2, boneState *out){
-	vec3 pos;
-	vec3MultiplyVec3(&b1->scale, &b2->pos, &pos);
-	quatApplyRotationFast(&b1->rot, &pos, &pos);
-	//Generate the new position!
-	vec3AddVec3(&b1->pos, &pos, &out->pos);
-	//Generate the new orientation!
-	quatMultiplyQuat(&b1->rot, &b2->rot, &out->rot);
-	//A slight error will build up if we don't normalize the rotation.
-	quatNormalizeQuat(&out->rot, &out->rot);
-	//Generate the new scale!
-	vec3MultiplyVec3(&b1->scale, &b2->scale, &out->scale);
-}
-
-//Convert a bone state to a mat4!
-void boneStateConvertToMat4(const boneState *b, mat4 *out){
-	mat4InitTranslateVec3(out, &b->pos);
-	mat4RotateQuat(out, &b->rot);
-	mat4ScaleVec3(out, &b->scale);
-}
-
-
 //Animate all of an animation instance's bones!
 void skeleAnimInstUpdate(skeleAnimState *animState, const float time){
 	//No point in animating if nothing has changed.
@@ -457,7 +428,7 @@ void skeleAnimInstUpdate(skeleAnimState *animState, const float time){
 		const boneState *lastState = &animState->skeleState[animState->anim->numBones];
 		//Update each bone's state!
 		for(; curState < lastState; ++currentFrame, ++nextFrame, ++curState){
-			updateBoneStateSet(
+			transformStateInterpSet(
 				*currentFrame,
 				*nextFrame,
 				animState->interpTime,
@@ -508,7 +479,7 @@ void skeleAnimStateBlendSet(skeletonObject *skeleObj, const skeleAnimState *anim
 		getBlendStates(animState, blendState, i, curState, &startState, &endState);
 
 		//Blend between the two states and update the bone!
-		updateBoneStateSet(startState, endState, animState->blendTime, curState);
+		transformStateInterpSet(startState, endState, animState->blendTime, curState);
 
 		++curState;
 	}
@@ -526,7 +497,7 @@ void skeleAnimStateBlendAdd(skeletonObject *skeleObj, const skeleAnimState *anim
 		getBlendStates(animState, blendState, i, &defaultBone.state, &startState, &endState);
 
 		//Blend between the two states and update the bone!
-		updateBoneStateAdd(startState, endState, animState->blendTime, curState);
+		transformStateInterpAdd(startState, endState, animState->blendTime, curState);
 
 		++curState;
 	}
@@ -563,7 +534,7 @@ void skeleObjGenerateRenderState(skeletonObject *skeleObj){
 		const size_t parentID = curSkeleBone->parent;
 		//If this bone has a parent, add its animation transformations to those of its parent!
 		if(parentID != -1){
-			boneStateAddTransform(&skeleObj->state[parentID], curAnimBone, curObjBone);
+			transformStateAppend(&skeleObj->state[parentID], curAnimBone, curObjBone);
 
 		//Otherwise, just use it by itself!
 		}else{
@@ -576,7 +547,7 @@ void skeleObjGenerateRenderState(skeletonObject *skeleObj){
 	lastSkeleBone = &skeleObj->skele->bones[skeleObj->skele->numBones];
 	//Append each bone's inverse reference state!
 	for(; curSkeleBone < lastSkeleBone; ++curSkeleBone, ++curObjBone){
-		boneStateAddTransform(curObjBone, &curSkeleBone->state, curObjBone);
+		transformStateAppend(curObjBone, &curSkeleBone->state, curObjBone);
 	}
 }
 
@@ -668,46 +639,6 @@ void skeleObjDelete(skeletonObject *skeleObj){
 	if(skeleObj->state != NULL){
 		memoryManagerGlobalFree(skeleObj->state);
 	}
-}
-
-
-//Invert a bone's state!
-static void boneStateInvert(const boneState *b, boneState *out){
-	//Invert the bone's rotation!
-	quatConjugateFast(&b->rot, &out->rot);
-
-	//Invert its position with respect to the new rotation!
-	quatApplyRotationFast(&b->rot, &b->pos, &out->pos);
-	vec3Negate(&out->pos);
-
-	//Invert its scale by storing the reciprocal of each value!
-	vec3DivideSBy(&b->scale, 1.f, &out->scale);
-}
-
-
-//Set a bone's state to a position between two states!
-static void updateBoneStateSet(const boneState *s1, const boneState *s2, const float time, boneState *out){
-	//Interpolate between the current frame and the next one!
-	vec3Lerp(&s1->pos, &s2->pos, time, &out->pos);
-	quatSlerpFast(&s1->rot, &s2->rot, time, &out->rot);
-	vec3Lerp(&s1->scale, &s2->scale, time, &out->scale);
-}
-
-//Set a bone's state to a position between two states!
-static void updateBoneStateAdd(const boneState *s1, const boneState *s2, const float time, boneState *out){
-	vec3 newPos;
-	quat newRot;
-	vec3 newScale;
-
-	//Interpolate between the current frame and the next one!
-	vec3Lerp(&s1->pos, &s2->pos, time, &newPos);
-	quatSlerpFast(&s1->rot, &s2->rot, time, &newRot);
-	vec3Lerp(&s1->scale, &s2->scale, time, &newScale);
-
-	//Add the new offsets to our "out" state!
-	vec3AddVec3(&out->pos, &newPos, &out->pos);
-	quatMultiplyQuat(&out->rot, &newRot, &out->rot);
-	vec3AddVec3(&out->scale, &newPos, &out->scale);
 }
 
 

@@ -1,16 +1,16 @@
 #include "texture.h"
 
 
-#define TEXTURE_PATH_PREFIX        ".\\resource\\textures\\"
-#define TEXTURE_PATH_PREFIX_LENGTH (sizeof(TEXTURE_PATH_PREFIX) - 1)
-
-
 #include <stdlib.h>
 #include <string.h>
 
 #include <SDL2/SDL_image.h>
 
 #include "memoryManager.h"
+
+
+#define TEXTURE_PATH_PREFIX        ".\\resource\\textures\\"
+#define TEXTURE_PATH_PREFIX_LENGTH (sizeof(TEXTURE_PATH_PREFIX) - 1)
 
 
 //This defines a texture to use when we

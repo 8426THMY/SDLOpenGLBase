@@ -1,19 +1,54 @@
 #include "collider.h"
 
 
-/*typedef void (*colliderCalculateInertiaPrototype)(const void *collider, float inertia[6]);
+void (*colliderInstantiateTable[COLLIDER_NUM_TYPES])(void *c, const void *cBase) = {
+	colliderHullInstantiate
+};
+
+void (*colliderDeleteInstanceTable[COLLIDER_NUM_TYPES])(void *c) = {
+	colliderHullDeleteInstance
+};
+
+void (*colliderUpdateTable[COLLIDER_NUM_TYPES])(void *c, const void *cBase, const transformState *trans, colliderAABB *aabb) = {
+	colliderHullUpdate
+};
+
+void (*colliderDeleteTable[COLLIDER_NUM_TYPES])(void *c) = {
+	colliderHullDelete
+};
+
+
+//Ordinary colliders are used as a base for instances.
+void colliderInit(collider *c, const colliderType_t type){
+	c->type = type;
+}
+
+//Instances share the components of bases, but can be updated.
+void colliderInstantiate(collider *c, const collider *cBase){
+	c->type = cBase->type;
+	colliderInstantiateTable[cBase->type]((void *)(&c->data), (const void *)(&cBase->data));
+}
+
+
+//Update a collider instance and return its new bounding box.
+void colliderUpdate(collider *c, const collider *cBase, const transformState *trans, colliderAABB *aabb){
+	colliderUpdateTable[c->type]((void *)(&c->data), (void *)(&cBase->data), trans, aabb);
+}
+
+
+void colliderDeleteInstance(collider *c){
+	colliderDeleteInstanceTable[c->type]((void *)(&c->data));
+}
+
+void colliderDelete(collider *c){
+	colliderDeleteTable[c->type]((void *)(&c->data));
+}
+
+/*typedef void (*colliderCalculateInertiaPrototype)(const void *c, float inertia[6]);
 //Create a jump table so we can calculate a collider's inertia tensor depending on its type.
 static const colliderCalculateInertiaPrototype colliderCalculateInertiaTable[COLLIDER_NUM_TYPES] = {
 	colliderHullCalculateInertia, NULL
 };*/
-
-typedef return_t (*colliderCheckCollisionPrototype)(const void *cA, const void *cB, contactSeparation *cs, contactManifold *cm);
-//Create a jump table so we can check collision between two colliders depending on their types.
-static const colliderCheckCollisionPrototype colliderCheckCollisionTable[COLLIDER_NUM_TYPES][COLLIDER_NUM_TYPES] = {
-	{
-		colliderHullCollidingSAT
-	}
-};
 
 
 //These functions merely act as interfaces to the jump tables.
@@ -21,13 +56,9 @@ static const colliderCheckCollisionPrototype colliderCheckCollisionTable[COLLIDE
 	colliderCalculateInertiaTable[c->type]((void *)(&c->data), inertia);
 }*/
 
-return_t colliderCheckCollision(const collider *cA, const collider *cB, contactSeparation *cs, contactManifold *cm){
-	return(colliderCheckCollisionTable[cA->type][cB->type]((void *)(&cA->data), cs, (void *)(&cB->data), cm));
-}
-
 
 /*void colliderCalculateCentreOfGeometry(const physicsCollider *collider, vec3 *centroid){
-	memset(centroid, 0, sizeof(*centroid));
+	memset(centroid, 0.f, sizeof(*centroid));
 
 	const vec3 *curVertex = collider->vertices;
 	const float *curMass = collider->massArray;

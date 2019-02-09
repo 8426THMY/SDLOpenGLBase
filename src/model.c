@@ -1,6 +1,18 @@
 #include "model.h"
 
 
+#include <stdlib.h>
+#include <string.h>
+
+#include "utilString.h"
+
+#include "vec3.h"
+#include "quat.h"
+#include "transform.h"
+
+#include "memoryManager.h"
+
+
 #define MODEL_PATH_PREFIX        ".\\resource\\models\\"
 #define MODEL_PATH_PREFIX_LENGTH (sizeof(MODEL_PATH_PREFIX) - 1)
 
@@ -12,17 +24,6 @@
 #define BASE_UV_CAPACITY       BASE_VERTEX_CAPACITY * 2
 #define BASE_NORMAL_CAPACITY   BASE_VERTEX_CAPACITY
 #define BASE_BONE_CAPACITY     1
-
-
-#include <stdlib.h>
-#include <string.h>
-
-#include "utilString.h"
-
-#include "vec3.h"
-#include "quat.h"
-
-#include "memoryManager.h"
 
 
 typedef struct vertex {
@@ -223,7 +224,7 @@ return_t modelLoadOBJ(model *mdl, const char *mdlName){
 				//Otherwise, add it to the vector!
 				for(a = 0; a < 3 || curTok != NULL; ++a){
 					vertex tempVertex;
-					memset(&tempVertex, 0, sizeof(tempVertex));
+					memset(&tempVertex, 0.f, sizeof(tempVertex));
 
 					size_t posIndex, uvIndex, normalIndex;
 					//Read the indices!
@@ -603,7 +604,7 @@ return_t modelLoadSMD(model *mdl, const char *mdlName){
 
 									//If this bone has a parent, append its state to its parent's state!
 									if(currentBone->parent != -1){
-										boneStateAddTransform(&tempBones[currentBone->parent].state, &currentBone->state, &currentBone->state);
+										transformStateAppend(&tempBones[currentBone->parent].state, &currentBone->state, &currentBone->state);
 									}
 								}
 							}else{
@@ -625,7 +626,7 @@ return_t modelLoadSMD(model *mdl, const char *mdlName){
 							char *tokPos = line;
 
 							vertex tempVertex;
-							memset(&tempVertex, 0, sizeof(tempVertex));
+							memset(&tempVertex, 0.f, sizeof(tempVertex));
 
 							//Read the vertex data from the line!
 							size_t parentBoneID = strtoul(tokPos, &tokPos, 10);
@@ -988,7 +989,7 @@ return_t modelSetupError(){
 	size_t a;
 	for(a = 0; a < sizeof(tempIndices) / sizeof(*tempIndices); a += 3){
 		vertex tempVertex;
-		memset(&tempVertex, 0, sizeof(tempVertex));
+		memset(&tempVertex, 0.f, sizeof(tempVertex));
 
 		//Fill up tempVertex with the vertex information we've stored!
 		tempVertex.pos = tempPositions[tempIndices[a]];

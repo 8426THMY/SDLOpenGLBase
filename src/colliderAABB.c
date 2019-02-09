@@ -6,9 +6,9 @@
 ** axis-aligned bounding box by "x".
 ** This is mainly used for the AABB tree.
 */
-void colliderAABBFattenFloat(const colliderAABB *aabb, const float x, colliderAABB *out){
-	vec3SubtractSFrom(&aabb->minPoint, x, &out->minPoint);
-	vec3AddS(&aabb->maxPoint, x, &out->maxPoint);
+void colliderAABBExpandFloat(const colliderAABB *aabb, const float x, colliderAABB *out){
+	vec3SubtractSFrom(&aabb->min, x, &out->min);
+	vec3AddS(&aabb->max, x, &out->max);
 }
 
 /*
@@ -16,27 +16,27 @@ void colliderAABBFattenFloat(const colliderAABB *aabb, const float x, colliderAA
 ** by a vec3, such as one representing linear velocity.
 ** This is mainly used for the AABB tree.
 */
-void colliderAABBFattenVec3(const colliderAABB *aabb, const vec3 *v, colliderAABB *out){
+void colliderAABBExpandVec3(const colliderAABB *aabb, const vec3 *v, colliderAABB *out){
 	if(v->x >= 0.f){
-		out->minPoint.x = aabb->minPoint.x;
-		out->maxPoint.x = aabb->maxPoint.x + v->x;
+		out->min.x = aabb->min.x;
+		out->max.x = aabb->max.x + v->x;
 	}else{
-		out->minPoint.x = aabb->minPoint.x + v->x;
-		out->maxPoint.x = aabb->maxPoint.x;
+		out->min.x = aabb->min.x + v->x;
+		out->max.x = aabb->max.x;
 	}
 	if(v->y >= 0.f){
-		out->minPoint.y = aabb->minPoint.y;
-		out->maxPoint.y = aabb->maxPoint.y + v->y;
+		out->min.y = aabb->min.y;
+		out->max.y = aabb->max.y + v->y;
 	}else{
-		out->minPoint.y = aabb->minPoint.y + v->y;
-		out->maxPoint.y = aabb->maxPoint.y;
+		out->min.y = aabb->min.y + v->y;
+		out->max.y = aabb->max.y;
 	}
 	if(v->z >= 0.f){
-		out->minPoint.z = aabb->minPoint.z;
-		out->maxPoint.z = aabb->maxPoint.z + v->z;
+		out->min.z = aabb->min.z;
+		out->max.z = aabb->max.z + v->z;
 	}else{
-		out->minPoint.z = aabb->minPoint.z + v->z;
-		out->maxPoint.z = aabb->maxPoint.z;
+		out->min.z = aabb->min.z + v->z;
+		out->max.z = aabb->max.z;
 	}
 }
 
@@ -45,8 +45,8 @@ void colliderAABBFattenVec3(const colliderAABB *aabb, const vec3 *v, colliderAAB
 ** large enough to fit two others inside it exactly.
 */
 void colliderAABBCombine(const colliderAABB *aabbA, const colliderAABB *aabbB, colliderAABB *out){
-	vec3Min(&aabbA->minPoint, &aabbB->minPoint, &out->minPoint);
-	vec3Max(&aabbA->maxPoint, &aabbB->maxPoint, &out->maxPoint);
+	vec3Min(&aabbA->min, &aabbB->min, &out->min);
+	vec3Max(&aabbA->max, &aabbB->max, &out->max);
 }
 
 
@@ -55,7 +55,7 @@ float colliderAABBVolume(const colliderAABB *aabb){
 	vec3 v;
 	//The bounding box is axis-aligned, so this
 	//will calculate the lengths of its sides.
-	vec3SubtractVec3From(&aabb->minPoint, &aabb->maxPoint, &v);
+	vec3SubtractVec3From(&aabb->min, &aabb->max, &v);
 
 	//Now we can just multiply the
 	//lengths to find the volume.
@@ -67,7 +67,7 @@ float colliderAABBSurfaceArea(const colliderAABB *aabb){
 	vec3 v;
 	//The bounding box is axis-aligned, so this
 	//will calculate the lengths of its sides.
-	vec3SubtractVec3From(&aabb->minPoint, &aabb->maxPoint, &v);
+	vec3SubtractVec3From(&aabb->min, &aabb->max, &v);
 
 	//Optimised surface area calculation.
 	//Instead of "2.f * (x * y + x * z + y * z)",
@@ -84,7 +84,7 @@ float colliderAABBSurfaceAreaHalf(const colliderAABB *aabb){
 	vec3 v;
 	//The bounding box is axis-aligned, so this
 	//will calculate the lengths of its sides.
-	vec3SubtractVec3From(&aabb->minPoint, &aabb->maxPoint, &v);
+	vec3SubtractVec3From(&aabb->min, &aabb->max, &v);
 
 	//Optimised surface area calculation.
 	//Instead of "x * y + x * z + y * z",
@@ -101,8 +101,8 @@ float colliderAABBCombinedVolume(const colliderAABB *aabbA, const colliderAABB *
 	vec3 v1;
 	vec3 v2;
 
-	vec3Min(&aabbA->minPoint, &aabbB->minPoint, &v1);
-	vec3Max(&aabbA->maxPoint, &aabbB->maxPoint, &v2);
+	vec3Min(&aabbA->min, &aabbB->min, &v1);
+	vec3Max(&aabbA->max, &aabbB->max, &v2);
 	vec3SubtractVec3From(&v1, &v2, &v1);
 
 	return(v1.x * v1.y * v1.z);
@@ -116,8 +116,8 @@ float colliderAABBCombinedSurfaceArea(const colliderAABB *aabbA, const colliderA
 	vec3 v1;
 	vec3 v2;
 
-	vec3Min(&aabbA->minPoint, &aabbB->minPoint, &v1);
-	vec3Max(&aabbA->maxPoint, &aabbB->maxPoint, &v2);
+	vec3Min(&aabbA->min, &aabbB->min, &v1);
+	vec3Max(&aabbA->max, &aabbB->max, &v2);
 	vec3SubtractVec3From(&v1, &v2, &v1);
 
 	return(2.f * (v1.x * (v1.y + v1.z) + v1.y * v1.z));
@@ -131,8 +131,8 @@ float colliderAABBCombinedSurfaceAreaHalf(const colliderAABB *aabbA, const colli
 	vec3 v1;
 	vec3 v2;
 
-	vec3Min(&aabbA->minPoint, &aabbB->minPoint, &v1);
-	vec3Max(&aabbA->maxPoint, &aabbB->maxPoint, &v2);
+	vec3Min(&aabbA->min, &aabbB->min, &v1);
+	vec3Max(&aabbA->max, &aabbB->max, &v2);
 	vec3SubtractVec3From(&v1, &v2, &v1);
 
 	return(v1.x * (v1.y + v1.z) + v1.y * v1.z);
@@ -145,13 +145,13 @@ float colliderAABBCombinedSurfaceAreaHalf(const colliderAABB *aabbA, const colli
 */
 return_t colliderAABBEnvelopsAABB(const colliderAABB *aabbA, const colliderAABB *aabbB){
 	return(
-		aabbA->minPoint.x <= aabbB->minPoint.x &&
-		aabbA->minPoint.y <= aabbB->minPoint.y &&
-		aabbA->minPoint.z <= aabbB->minPoint.z &&
+		aabbA->min.x <= aabbB->min.x &&
+		aabbA->min.y <= aabbB->min.y &&
+		aabbA->min.z <= aabbB->min.z &&
 
-		aabbA->maxPoint.x >= aabbB->maxPoint.x &&
-		aabbA->maxPoint.y >= aabbB->maxPoint.y &&
-		aabbA->maxPoint.z >= aabbB->maxPoint.z
+		aabbA->max.x >= aabbB->max.x &&
+		aabbA->max.y >= aabbB->max.y &&
+		aabbA->max.z >= aabbB->max.z
 	);
 }
 
@@ -161,8 +161,8 @@ return_t colliderAABBEnvelopsAABB(const colliderAABB *aabbA, const colliderAABB 
 */
 return_t colliderAABBCollidingAABB(const colliderAABB *aabbA, const colliderAABB *aabbB){
 	return(
-		aabbA->minPoint.x <= aabbB->maxPoint.x && aabbA->maxPoint.x >= aabbB->minPoint.x &&
-		aabbA->minPoint.y <= aabbB->maxPoint.y && aabbA->maxPoint.y >= aabbB->minPoint.y &&
-		aabbA->minPoint.z <= aabbB->maxPoint.z && aabbA->maxPoint.z >= aabbB->minPoint.z
+		aabbA->min.x <= aabbB->max.x && aabbA->max.x >= aabbB->min.x &&
+		aabbA->min.y <= aabbB->max.y && aabbA->max.y >= aabbB->min.y &&
+		aabbA->min.z <= aabbB->max.z && aabbA->max.z >= aabbB->min.z
 	);
 }

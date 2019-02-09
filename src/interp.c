@@ -31,20 +31,33 @@ void interpQuatInitSet(interpQuat *iQuat, const float x, const float y, const fl
 	iQuat->last = iQuat->next;
 }
 
+void interpTransInit(interpTransform *iTrans){
+	interpVec3InitZero(&iTrans->pos);
+	interpQuatInitIdentity(&iTrans->rot);
+	interpVec3InitSet(&iTrans->scale, 1.f, 1.f, 1.f);
+}
 
-//Using the interpolate between the interpFloat's two values!
-void interpFloatFindRenderState(const interpFloat *iFloat, const float time, float *out){
+
+//Interpolate between the interpFloat's two values!
+void interpFloatGenRenderState(const interpFloat *iFloat, const float time, float *out){
 	*out = iFloat->last + (iFloat->next - iFloat->last) * time;
 }
 
-//Using the interpolate between the interpVec3's two values!
-void interpVec3FindRenderState(const interpVec3 *iVec3, const float time, vec3 *out){
+//Interpolate between the interpVec3's two values!
+void interpVec3GenRenderState(const interpVec3 *iVec3, const float time, vec3 *out){
 	vec3Lerp(&iVec3->last, &iVec3->next, time, out);
 }
 
-//Using the interpolate between the interpQuat's two values!
-void interpQuatFindRenderState(const interpQuat *iQuat, const float time, quat *out){
+//Interpolate between the interpQuat's two values!
+void interpQuatGenRenderState(const interpQuat *iQuat, const float time, quat *out){
 	quatSlerpFast(&iQuat->last, &iQuat->next, time, out);
+}
+
+//Interpolate between the three components of an interpTransform!
+void interpTransGenRenderState(const interpTransform *iTrans, const float time, transformState *out){
+	interpVec3GenRenderState(&iTrans->pos, time, &out->pos);
+	interpQuatGenRenderState(&iTrans->rot, time, &out->rot);
+	interpVec3GenRenderState(&iTrans->scale, time, &out->scale);
 }
 
 
@@ -58,4 +71,155 @@ void interpVec3MoveToNextState(interpVec3 *iVec3){
 
 void interpQuatMoveToNextState(interpQuat *iQuat){
 	iQuat->last = iQuat->next;
+}
+
+
+void interpTransAddPos(interpTransform *iTrans, const float x, const float y, const float z, const float time){
+	vec3Add(&iTrans->pos.next, x * time, y * time, z * time, &iTrans->pos.next);
+}
+
+void interpTransAddPosX(interpTransform *iTrans, const float x, const float time){
+	iTrans->pos.next.x += x * time;
+}
+
+void interpTransAddPosY(interpTransform *iTrans, const float y, const float time){
+	iTrans->pos.next.y += y * time;
+}
+
+void interpTransAddPosZ(interpTransform *iTrans, const float z, const float time){
+	iTrans->pos.next.z += z * time;
+}
+
+void interpTransSetPos(interpTransform *iTrans, const float x, const float y, const float z){
+	vec3InitSet(&iTrans->pos.next, x, y, z);
+	iTrans->pos.last = iTrans->pos.next;
+}
+
+void interpTransSetPosX(interpTransform *iTrans, const float x){
+	iTrans->pos.next.x = x;
+	iTrans->pos.last.x = x;
+}
+
+void interpTransSetPosY(interpTransform *iTrans, const float y){
+	iTrans->pos.next.y = y;
+	iTrans->pos.last.y = y;
+}
+
+void interpTransSetPosZ(interpTransform *iTrans, const float z){
+	iTrans->pos.next.z = z;
+	iTrans->pos.last.x = z;
+}
+
+void interpTransSetNextPos(interpTransform *iTrans, const float x, const float y, const float z){
+	vec3InitSet(&iTrans->pos.next, x, y, z);
+}
+
+void interpTransSetNextPosX(interpTransform *iTrans, const float x){
+	iTrans->pos.next.x = x;
+}
+
+void interpTransSetNextPosY(interpTransform *iTrans, const float y){
+	iTrans->pos.next.y = y;
+}
+
+void interpTransSetNextPosZ(interpTransform *iTrans, const float z){
+	iTrans->pos.next.z = z;
+}
+
+
+void interpTransAddRotEulerRad(interpTransform *iTrans, const float x, const float y, const float z, const float time){
+	quat q = iTrans->rot.next;
+	quatRotateRad(&q, x, y, z);
+	quatSlerpFast(&iTrans->rot.next, &q, time, &iTrans->rot.next);
+}
+
+void interpTransAddRotEulerDeg(interpTransform *iTrans, const float x, const float y, const float z, const float time){
+	quat q = iTrans->rot.next;
+	quatRotateDeg(&q, x, y, z);
+	quatSlerpFast(&iTrans->rot.next, &q, time, &iTrans->rot.next);
+}
+
+void interpTransAddRotQuat(interpTransform *iTrans, const quat *q, const float time){
+	quatSlerpFast(&iTrans->rot.next, q, time, &iTrans->rot.next);
+}
+
+void interpTransSetRotEulerRad(interpTransform *iTrans, const float x, const float y, const float z){
+	quatInitEulerRad(&iTrans->rot.next, x, y, z);
+	iTrans->rot.last = iTrans->rot.next;
+}
+
+void interpTransSetRotEulerDeg(interpTransform *iTrans, const float x, const float y, const float z){
+	quatInitEulerDeg(&iTrans->rot.next, x, y, z);
+	iTrans->rot.last = iTrans->rot.next;
+}
+
+void interpTransSetRotQuat(interpTransform *iTrans, const quat *q){
+	iTrans->rot.next = *q;
+	iTrans->rot.last = *q;
+}
+
+void interpTransSetNextRotEulerRad(interpTransform *iTrans, const float x, const float y, const float z){
+	quatInitEulerRad(&iTrans->rot.next, x, y, z);
+}
+
+void interpTransSetNextRotEulerDeg(interpTransform *iTrans, const float x, const float y, const float z){
+	quatInitEulerDeg(&iTrans->rot.next, x, y, z);
+}
+
+void interpTransSetNextRotQuat(interpTransform *iTrans, const quat *q){
+	iTrans->rot.next = *q;
+}
+
+
+//Below this comment are the functions for interpTransforms. There are a lot of them.
+void interpTransAddScale(interpTransform *iTrans, const float x, const float y, const float z, const float time){
+	vec3Add(&iTrans->scale.next, x * time, y * time, z * time, &iTrans->scale.next);
+}
+
+void interpTransAddScaleX(interpTransform *iTrans, const float x, const float time){
+	iTrans->scale.next.x += x * time;
+}
+
+void interpTransAddScaleY(interpTransform *iTrans, const float y, const float time){
+	iTrans->scale.next.y += y * time;
+}
+
+void interpTransAddScaleZ(interpTransform *iTrans, const float z, const float time){
+	iTrans->scale.next.z += z * time;
+}
+
+void interpTransSetScale(interpTransform *iTrans, const float x, const float y, const float z){
+	vec3InitSet(&iTrans->scale.next, x, y, z);
+	iTrans->scale.last = iTrans->scale.next;
+}
+
+void interpTransSetScaleX(interpTransform *iTrans, const float x){
+	iTrans->scale.next.x = x;
+	iTrans->scale.last.x = x;
+}
+
+void interpTransSetScaleY(interpTransform *iTrans, const float y){
+	iTrans->scale.next.y = y;
+	iTrans->scale.last.y = y;
+}
+
+void interpTransSetScaleZ(interpTransform *iTrans, const float z){
+	iTrans->scale.next.z = z;
+	iTrans->scale.last.x = z;
+}
+
+void interpTransSetNextScale(interpTransform *iTrans, const float x, const float y, const float z){
+	vec3InitSet(&iTrans->scale.next, x, y, z);
+}
+
+void interpTransSetNextScaleX(interpTransform *iTrans, const float x){
+	iTrans->scale.next.x = x;
+}
+
+void interpTransSetNextScaleY(interpTransform *iTrans, const float y){
+	iTrans->scale.next.y = y;
+}
+
+void interpTransSetNextScaleZ(interpTransform *iTrans, const float z){
+	iTrans->scale.next.z = z;
 }

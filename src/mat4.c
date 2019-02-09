@@ -7,6 +7,14 @@
 #include "utilMath.h"
 
 
+static mat4 identityMat4 = {
+	.m[0][0] = 1.f, .m[0][1] = 0.f, .m[0][2] = 0.f, .m[0][3] = 0.f,
+	.m[1][0] = 0.f, .m[1][1] = 1.f, .m[1][2] = 0.f, .m[1][3] = 0.f,
+	.m[2][0] = 0.f, .m[2][1] = 0.f, .m[2][2] = 1.f, .m[2][3] = 0.f,
+	.m[3][0] = 0.f, .m[3][1] = 0.f, .m[3][2] = 0.f, .m[3][3] = 1.f
+};
+
+
 //Initialize the matrix's values to 0!
 void mat4InitZero(mat4 *m){
 	memset(m, 0.f, sizeof(*m));
@@ -14,25 +22,7 @@ void mat4InitZero(mat4 *m){
 
 //Initialize the matrix to an identity matrix!
 void mat4InitIdentity(mat4 *m){
-	m->m[0][0] = 1.f;
-	m->m[0][1] = 0.f;
-	m->m[0][2] = 0.f;
-	m->m[0][3] = 0.f;
-
-	m->m[1][0] = 0.f;
-	m->m[1][1] = 1.f;
-	m->m[1][2] = 0.f;
-	m->m[1][3] = 0.f;
-
-	m->m[2][0] = 0.f;
-	m->m[2][1] = 0.f;
-	m->m[2][2] = 1.f;
-	m->m[2][3] = 0.f;
-
-	m->m[3][0] = 0.f;
-	m->m[3][1] = 0.f;
-	m->m[3][2] = 0.f;
-	m->m[3][3] = 1.f;
+	*m = identityMat4;
 }
 
 //Initialise a matrix to a translation matrix!
@@ -303,25 +293,6 @@ void mat4MultiplyMat4R(const mat4 *m1, const mat4 *m2, mat4 *out){
 }
 
 
-//Multiply a matrix with a vec3 and store the result in "out"!
-void vec3Transform(const mat4 *m, const vec3 *v, vec3 *out){
-	vec3 result;
-
-	result.x = m->m[0][0] * v->x + m->m[1][0] * v->y + m->m[2][0] * v->z + m->m[3][0];
-	result.y = m->m[0][1] * v->x + m->m[1][1] * v->y + m->m[2][1] * v->z + m->m[3][1];
-	result.z = m->m[0][2] * v->x + m->m[1][2] * v->y + m->m[2][2] * v->z + m->m[3][2];
-
-	*out = result;
-}
-
-//Multiply a matrix with a vec3 and store the result in "out"! This assumes that "out" isn't "v".
-void vec3TransformR(const mat4 *m, const vec3 *v, vec3 *out){
-	out->x = m->m[0][0] * v->x + m->m[1][0] * v->y + m->m[2][0] * v->z + m->m[3][0];
-	out->y = m->m[0][1] * v->x + m->m[1][1] * v->y + m->m[2][1] * v->z + m->m[3][1];
-	out->z = m->m[0][2] * v->x + m->m[1][2] * v->y + m->m[2][2] * v->z + m->m[3][2];
-}
-
-
 //Translate a matrix!
 void mat4Translate(mat4 *m, const float x, const float y, const float z){
 	m->m[3][0] = m->m[0][0] * x + m->m[1][0] * y + m->m[2][0] * z + m->m[3][0];
@@ -346,6 +317,25 @@ void mat4TranslateVec3(mat4 *m, const vec3 *v){
 //Translate a matrix by a vec4!
 void mat4TranslateVec4(mat4 *m, const vec4 *v){
 	mat4Translate4(m, v->x, v->y, v->z, v->w);
+}
+
+
+//Multiply a matrix with a vec3 and store the result in "out"!
+void vec3Transform(const vec3 *v, const mat4 *m, vec3 *out){
+	vec3 result;
+
+	result.x = m->m[0][0] * v->x + m->m[1][0] * v->y + m->m[2][0] * v->z + m->m[3][0];
+	result.y = m->m[0][1] * v->x + m->m[1][1] * v->y + m->m[2][1] * v->z + m->m[3][1];
+	result.z = m->m[0][2] * v->x + m->m[1][2] * v->y + m->m[2][2] * v->z + m->m[3][2];
+
+	*out = result;
+}
+
+//Multiply a matrix with a vec3 and store the result in "out"! This assumes that "out" isn't "v".
+void vec3TransformR(const vec3 *v, const mat4 *m, vec3 *out){
+	out->x = m->m[0][0] * v->x + m->m[1][0] * v->y + m->m[2][0] * v->z + m->m[3][0];
+	out->y = m->m[0][1] * v->x + m->m[1][1] * v->y + m->m[2][1] * v->z + m->m[3][1];
+	out->z = m->m[0][2] * v->x + m->m[1][2] * v->y + m->m[2][2] * v->z + m->m[3][2];
 }
 
 
@@ -862,7 +852,7 @@ void mat4LookAt(mat4 *m, const vec3 *eye, const vec3 *target, const vec3 *worldU
 	vec3Normalize(eye->x - target ->x, eye->y - target->y, eye->z - target->z, &forward);
 	//Get the right vector!
 	vec3CrossVec3(worldUp, &forward, &right);
-	vec3NormalizeVec3(&right, &right);
+	vec3NormalizeVec3(&right);
 	//Get the up vector!
 	vec3CrossVec3(&forward, &right, &up);
 

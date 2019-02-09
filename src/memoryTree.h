@@ -40,8 +40,6 @@
 /* Note that the size includes the entire block.         */
 /* This includes any headers, data and filling.          */
 
-#warning "It would probably be best to include the list node size in the previous size and size attributes."
-
 /** It may be worthwhile to investigate solutions such as TLSF. **/
 
 

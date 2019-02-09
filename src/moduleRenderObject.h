@@ -2,15 +2,18 @@
 #define renderObject_h
 
 
-#define MODULERENDEROBJ
-
-#define MODULERENDEROBJ_SETUP_FAIL 5
-
-
 #include "utilTypes.h"
 #include "vector.h"
 
 #include "renderObject.h"
+
+
+#define MODULERENDEROBJ
+#define MODULERENDEROBJ_SETUP_FAIL 5
+
+#ifndef MEMORY_MAX_RENDEROBJS
+	#define MEMORY_MAX_RENDEROBJS 1
+#endif
 
 
 return_t moduleRenderObjSetup();

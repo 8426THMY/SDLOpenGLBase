@@ -1,19 +1,149 @@
 #include "physicsContact.h"
 
 
-#define PHYSCONTACT_BAUMGARTE_BIAS   0.4f
-#define PHYSCONTACT_PENETRATION_SLOP 0.05f
+#include <string.h>
 
-
+#include "math.h"
+#include "mat3.h"
 #include "utilMath.h"
 
-#include "mat3.h"
-
-#include "physicsCollider.h"
 #include "physicsRigidBody.h"
+#include "physicsCollider.h"
 
 
-#warning "We need to convert regular contact manifolds to physics manifolds. When we do that, it should subtract the BODY's centre of mass from each point."
+#define combineFriction(f1, f2)    sqrtf((f1) * (f2))
+#define combineRestitution(r1, r2) (((r1) >= (r2)) ? (r1) : (r2))
+
+
+//Forward-declare any helper functions!
+//static void updatePhysContactPoint(physicsContactPoint *pmContact, const contactPoint *cmContact);
+static void warmStartContact(physicsManifold *pm, physicsContactPoint *pmContact, physicsRigidBody *bodyA, physicsRigidBody *bodyB);
+static void calculateImpulses(physicsManifold *pm, physicsContactPoint *pmContact, const physicsRigidBody *bodyA, const physicsRigidBody *bodyB);
+static void calculateBias(physicsManifold *pm, physicsContactPoint *pmContact, const physicsRigidBody *bodyA, const physicsRigidBody *bodyB, const float dt);
+
+
+//Build a physics manifold by expanding a contact manifold.
+void physManifoldInit(physicsManifold *pm, const contactManifold *cm, const physicsCollider *cA, const physicsCollider *cB){
+	physicsContactPoint *pmContact = pm->contacts;
+	const contactPoint *cmContact = cm->contacts;
+	const contactPoint *lastContact = &cmContact[cm->numContacts];
+
+	const vec3 *bodyACentroid = &cA->owner->centroidGlobal;
+	const vec3 *bodyBCentroid = &cB->owner->centroidGlobal;
+
+	//Create a physics contact point for each regular one!
+	for(; cmContact < lastContact; ++pmContact, ++cmContact){
+		pmContact->key = cmContact->key;
+
+		vec3SubtractVec3From(&cmContact->position, bodyACentroid, &pmContact->rA);
+		vec3SubtractVec3From(&cmContact->position, bodyBCentroid, &pmContact->rB);
+
+		pmContact->penetration = cmContact->penetration;
+
+		pmContact->normalAccumulator = 0.f;
+		pmContact->frictionAccumulator[0] = 0.f;
+		pmContact->frictionAccumulator[1] = 0.f;
+	}
+
+	pm->numContacts = cm->numContacts;
+
+
+	pm->normal = cm->normal;
+	//Set the tangent vectors such that they form an
+	//orthonormal basis together with the contact normal.
+	normalBasis(&pm->normal, &pm->tangents[0], &pm->tangents[1]);
+
+	pm->friction = combineFriction(cA->friction, cB->friction);
+	pm->restitution = combineRestitution(cA->restitution, cB->restitution);
+}
+
+//Update any contact points that have persisted.
+void physManifoldPersist(physicsManifold *pm, const contactManifold *cm, const physicsCollider *cA, const physicsCollider *cB){
+	const contactPoint *cmContact = cm->contacts;
+	const contactPoint *lastContact = &cmContact[cm->numContacts];
+	physicsContactPoint *pmContact = pm->contacts;
+	physicsContactPoint *pmSwap = pmContact;
+	const physicsContactPoint *lastPhysContact = &pmContact[pm->numContacts];
+
+	const vec3 *bodyACentroid = &cA->owner->centroidGlobal;
+	const vec3 *bodyBCentroid = &cB->owner->centroidGlobal;
+
+	unsigned int persistentFlags[CONTACT_MAX_POINTS];
+	unsigned int *isPersistent = persistentFlags;
+	//Initialise our flags to 0. A value of 0
+	//means that a contact is not persistent.
+	memset(persistentFlags, 0, sizeof(persistentFlags));
+
+	for(; cmContact < lastContact; ++cmContact, ++pmSwap){
+		for(; pmContact < lastPhysContact; ++pmContact, ++isPersistent){
+			//We've found a matching key pair, so the point is persistent!
+			if(memcmp(&pmContact->key, &cmContact->key, sizeof(pmContact->key)) == 0){
+				//We want contacts in the old physics manifold to be moved
+				//to their new positions in the regular manifold. This will
+				//make it easier to copy the keys for non-persistent points.
+				if(pmContact != pmSwap){
+					const contactKey tempKey = pmSwap->key;
+					float tempAccumulator;
+
+					//Swap the keys.
+					pmSwap->key = pmContact->key;
+					pmContact->key = tempKey;
+
+					//Swap the accumulators.
+                    tempAccumulator = pmSwap->normalAccumulator;
+                    pmSwap->normalAccumulator = pmContact->normalAccumulator;
+                    pmContact->normalAccumulator = tempAccumulator;
+
+                    tempAccumulator = pmSwap->frictionAccumulator[0];
+                    pmSwap->frictionAccumulator[0] = pmContact->frictionAccumulator[0];
+                    pmContact->frictionAccumulator[0] = tempAccumulator;
+
+                    tempAccumulator = pmSwap->frictionAccumulator[1];
+                    pmSwap->frictionAccumulator[1] = pmContact->frictionAccumulator[1];
+                    pmContact->frictionAccumulator[1] = tempAccumulator;
+				}
+
+				*isPersistent = 1;
+				break;
+			}
+		}
+	}
+
+
+	pm->normal = cm->normal;
+	//Set the tangent vectors such that they form an
+	//orthonormal basis together with the contact normal.
+	normalBasis(&pm->normal, &pm->tangents[0], &pm->tangents[1]);
+
+	pm->friction = combineFriction(cA->friction, cB->friction);
+	pm->restitution = combineRestitution(cA->restitution, cB->restitution);
+
+
+	cmContact = cm->contacts;
+	pmContact = pm->contacts;
+	isPersistent = persistentFlags;
+	//Initialise any non-persistent contacts and
+	//warm start contacts that are persistent!
+	for(; cmContact < lastContact; ++cmContact, ++pmContact, ++isPersistent){
+		vec3SubtractVec3From(&cmContact->position, bodyACentroid, &pmContact->rA);
+		vec3SubtractVec3From(&cmContact->position, bodyBCentroid, &pmContact->rB);
+		pmContact->penetration = cmContact->penetration;
+
+		//Contact is not persistent, so we can set the accumulators to 0.
+		if(!(*isPersistent)){
+			pmContact->key = cmContact->key;
+			pmContact->normalAccumulator = 0.f;
+			pmContact->frictionAccumulator[0] = 0.f;
+			pmContact->frictionAccumulator[1] = 0.f;
+
+		//If it is, we can warm start it!
+		}else{
+			warmStartContact(pm, pmContact, cA->owner, cB->owner);
+		}
+	}
+
+	pm->numContacts = cm->numContacts;
+}
 
 
 /*
@@ -22,94 +152,8 @@
 ** Such values include the impulse denominator and the
 ** bias term.
 */
-void physManifoldPresolve(physicsManifold *pm, physicsCollider *cA, physicsCollider *cB, const float dt){
-	//There is no need to calculate this
-	//stuff for every contact point.
-	const float invMass = cA->owner->invMass + cB->owner->invMass;
-	mat3 *invInertiaA = &cA->owner->invInertiaGlobal;
-	mat3 *invInertiaB = &cB->owner->invInertiaGlobal;
-	const float baumgarte = -PHYSCONTACT_BAUMGARTE_BIAS * (1.f / dt);
-
-	physicsContactPoint *curContact = pm->contacts;
-	physicsContactPoint *lastContact = &pm->contacts[pm->numContacts];
-
-	//Set the tangent vectors such that they form an
-	//orthonormal basis together with the contact normal.
-	normalBasis(&pm->normal, &pm->tangents[0], &pm->tangents[1]);
-
-
-	//Loop through every contact point in the manifold,
-	//calculating their impulse denominators and bias terms.
-	for(; curContact < lastContact; ++curContact){
-		//rA X n
-		vec3 rAX;
-		//IA * (rA X n)
-		vec3 rAXI;
-		//rB X n
-		vec3 rBX;
-		//IB * (rB X n)
-		vec3 rBXI;
-
-		//P
-		vec3 accumulatedImpulse;
-		vec3 currentImpulse;
-
-		float tempBias;
-
-
-		//Calculate the normal impulse denominator.
-		vec3CrossVec3(&curContact->rA, &pm->normal, &rAX);
-		vec3CrossVec3(&curContact->rB, &pm->normal, &rBX);
-		mat3MultiplyVec3R(invInertiaA, &rAX, &rAXI);
-		mat3MultiplyVec3R(invInertiaB, &rBX, &rBXI);
-		curContact->impulseDenom = 1.f / (invMass + vec3DotVec3(&rAX, &rAXI) + vec3DotVec3(&rBX, &rBXI));
-
-		//Calculate the first tangent impulse denominator.
-		vec3CrossVec3(&pm->tangents[0], &curContact->rA, &rAX);
-		vec3CrossVec3(&pm->tangents[0], &curContact->rB, &rBX);
-		mat3MultiplyVec3R(invInertiaA, &rAX, &rAXI);
-		mat3MultiplyVec3R(invInertiaB, &rBX, &rBXI);
-		curContact->frictionDenom[0] = 1.f / (invMass + vec3DotVec3(&rAX, &rAXI) + vec3DotVec3(&rBX, &rBXI));
-
-		//Calculate the second tangent impulse denominator.
-		vec3CrossVec3(&pm->tangents[1], &curContact->rA, &rAX);
-		vec3CrossVec3(&pm->tangents[1], &curContact->rB, &rBX);
-		mat3MultiplyVec3R(invInertiaA, &rAX, &rAXI);
-		mat3MultiplyVec3R(invInertiaB, &rBX, &rBXI);
-		curContact->frictionDenom[1] = 1.f / (invMass + vec3DotVec3(&rAX, &rAXI) + vec3DotVec3(&rBX, &rBXI));
-
-
-		//Calculate the Baumgarte bias term.
-		tempBias = curContact->penetration + PHYSCONTACT_PENETRATION_SLOP;
-		curContact->bias = (tempBias > 0.f) ? (baumgarte * tempBias) : 0.f;
-
-		//Calculate the restitution bias term.
-		/** r32 dv = q3Dot(vB + q3Cross(wB, c->rb) - vA - q3Cross(wA, c->ra), cs->normal); **/
-		tempBias = 0.f;
-		if(tempBias < -1.f){
-			/** Incorporate restitution. **/
-			/** -(cs->restitution) * dv; **/
-			curContact->bias += tempBias;
-		}
-
-
-		//Warm start the contact point using the total
-		//accumulated normal and frictional impulses.
-		vec3MultiplyS(&pm->normal, curContact->normalImpulse, &accumulatedImpulse);
-		vec3MultiplyS(&pm->tangents[0], curContact->frictionImpulse[0], &currentImpulse);
-		vec3AddVec3(&accumulatedImpulse, &currentImpulse, &accumulatedImpulse);
-		vec3MultiplyS(&pm->tangents[1], curContact->frictionImpulse[1], &currentImpulse);
-		vec3AddVec3(&accumulatedImpulse, &currentImpulse, &accumulatedImpulse);
-
-		//Apply the accumulated impulse.
-		/**
-		vA -= P * cs->mA;
-		wA -= cs->iA * q3Cross(c->ra, P);
-
-		vB += P * cs->mB;
-		wB += cs->iB * q3Cross(c->rb, P);
-		**/
-	}
+void physManifoldPresolve(physicsManifold *pm, physicsRigidBody *bodyA, physicsRigidBody *bodyB, const float dt){
+	//
 }
 
 /*
@@ -118,11 +162,116 @@ void physManifoldPresolve(physicsManifold *pm, physicsCollider *cA, physicsColli
 ** should be called directly after "manifoldPresolve", and may
 ** be called multiple times if we are using sequential impulse.
 */
-void physManifoldSolve(physicsManifold *pm, physicsCollider *cA, physicsCollider *cB){
+void physManifoldSolve(physicsManifold *pm, physicsRigidBody *bodyA, physicsRigidBody *bodyB){
 	physicsContactPoint *curContact = pm->contacts;
 	physicsContactPoint *lastContact = &pm->contacts[pm->numContacts];
 	for(; curContact < lastContact; ++curContact){
 		//
+	}
+}
+
+
+//static void updatePhysContactPoint(physicsContactPoint *pmContact, const contactPoint *cmContact){
+	//
+//}
+
+/*
+** If a contact point has persisted across multiple frames,
+** we are able to warm start it. This will allow it to more
+** quickly converge to its correct state when we're solving.
+**/
+static void warmStartContact(physicsManifold *pm, physicsContactPoint *pmContact, physicsRigidBody *bodyA, physicsRigidBody *bodyB){
+	//What we call "impulse", Erin Catto refers
+	//to as "p" (momentum?) in most of his papers.
+	vec3 impulse;
+	vec3 accumulator;
+
+	//Warm start the contact point using the total
+	//accumulated normal and frictional impulses.
+	vec3MultiplyS(&pm->normal, pmContact->normalAccumulator, &impulse);
+	vec3MultiplyS(&pm->tangents[0], pmContact->frictionAccumulator[0], &accumulator);
+	vec3AddVec3(&impulse, &accumulator, &impulse);
+	vec3MultiplyS(&pm->tangents[1], pmContact->frictionAccumulator[1], &accumulator);
+	vec3AddVec3(&impulse, &accumulator, &impulse);
+
+	//Apply the accumulated impulse.
+	physRigidBodyApplyImpulseInverse(bodyA, &pmContact->rA, &impulse);
+	physRigidBodyApplyImpulse(bodyB, &pmContact->rB, &impulse);
+}
+
+/*
+** Calculate the magnitude of the impulse between two colliding bodies.
+** This won't change between solver iterations, so we can just do it once.
+*/
+static void calculateImpulses(physicsManifold *pm, physicsContactPoint *pmContact, const physicsRigidBody *bodyA, const physicsRigidBody *bodyB){
+	vec3 wImpulseA;
+	vec3 wDeltaA;
+	vec3 wImpulseB;
+	vec3 wDeltaB;
+
+	const float invMass = bodyA->invMass + bodyB->invMass;
+	const mat3 *invInertiaA = &bodyA->invInertiaGlobal;
+	const mat3 *invInertiaB = &bodyB->invInertiaGlobal;
+
+	//Calculate the normal impulse denominator.
+	vec3CrossVec3(&pmContact->rA, &pm->normal, &wImpulseA);
+	mat3MultiplyVec3R(invInertiaA, &wImpulseA, &wDeltaA);
+	vec3CrossVec3(&pmContact->rB, &pm->normal, &wImpulseB);
+	mat3MultiplyVec3R(invInertiaB, &wImpulseB, &wDeltaB);
+	pmContact->normalImpulse = 1.f / (
+		invMass +
+		vec3DotVec3(&wImpulseA, &wDeltaA) +
+		vec3DotVec3(&wImpulseB, &wDeltaB)
+	);
+
+	//Calculate the first tangent impulse denominator.
+	vec3CrossVec3(&pm->tangents[0], &pmContact->rA, &wImpulseA);
+	mat3MultiplyVec3R(invInertiaA, &wImpulseA, &wDeltaA);
+	vec3CrossVec3(&pm->tangents[0], &pmContact->rB, &wImpulseB);
+	mat3MultiplyVec3R(invInertiaB, &wImpulseB, &wDeltaB);
+	pmContact->frictionImpulse[0] = 1.f / (
+		invMass +
+		vec3DotVec3(&wImpulseA, &wDeltaA) +
+		vec3DotVec3(&wImpulseB, &wDeltaB)
+	);
+
+	//Calculate the second tangent impulse denominator.
+	vec3CrossVec3(&pm->tangents[1], &pmContact->rA, &wImpulseA);
+	mat3MultiplyVec3R(invInertiaA, &wImpulseA, &wDeltaA);
+	vec3CrossVec3(&pm->tangents[1], &pmContact->rB, &wImpulseB);
+	mat3MultiplyVec3R(invInertiaB, &wImpulseB, &wDeltaB);
+	pmContact->frictionImpulse[1] = 1.f / (
+		invMass +
+		vec3DotVec3(&wImpulseA, &wDeltaA) +
+		vec3DotVec3(&wImpulseB, &wDeltaB)
+	);
+}
+
+//Calculate the contact's bias term, which will help prevent jitter.
+static void calculateBias(physicsManifold *pm, physicsContactPoint *pmContact, const physicsRigidBody *bodyA, const physicsRigidBody *bodyB, const float dt){
+	float tempBias;
+	vec3 linearVelocityA;
+	vec3 linearVelocity;
+
+
+	//Calculate the Baumgarte bias term.
+	tempBias = pmContact->penetration + PHYSCONTACT_PENETRATION_SLOP;
+	pmContact->bias = (tempBias > 0.f) ? (-PHYSCONTACT_BAUMGARTE_BIAS * dt * tempBias) : 0.f;
+
+
+	//Calculate the total linear velocity of the contact point on body A.
+	vec3CrossVec3(&bodyA->angularVelocity, &pmContact->rA, &linearVelocityA);
+	vec3AddVec3(&bodyA->linearVelocity, &linearVelocityA, &linearVelocityA);
+	//Calculate the total linear velocity of the contact point on body B.
+	vec3CrossVec3(&bodyB->angularVelocity, &pmContact->rB, &linearVelocity);
+	vec3AddVec3(&bodyB->linearVelocity, &linearVelocity, &linearVelocity);
+	//Subtract point A's velocity from point B's to get the impulse magnitude.
+	vec3SubtractVec3From(&linearVelocity, &linearVelocityA, &linearVelocity);
+
+	//Calculate the restitution bias term.
+	tempBias = vec3DotVec3(&linearVelocity, &pm->normal);
+	if(tempBias < PHYSICS_RESTITUTION_THRESHOLD){
+		pmContact->bias += pm->restitution * tempBias;
 	}
 }
 /**

@@ -4,6 +4,8 @@
 
 #include <stddef.h>
 
+#include "settingsPhysics.h"
+
 #include "colliderAABB.h"
 
 
@@ -14,7 +16,10 @@ typedef struct aabbNodeChildren {
 } aabbNodeChildren;
 
 typedef struct aabbNodeLeaf {
-	void *collider;
+	void *userData;
+	//Pointer to the next
+	//leaf node in the list.
+	aabbNode *next;
 } aabbNodeLeaf;
 
 
@@ -34,58 +39,21 @@ typedef struct aabbNode {
 
 typedef struct aabbTree {
 	aabbNode *root;
+	//Linked list of leaf nodes.
+	aabbNode *leaves;
 } aabbTree;
 
 
-aabbNode *aabbTreeInsertNode(aabbTree *tree, colliderAABB *aabb, void *collider);
+void aabbTreeInit(aabbTree *tree);
+
+aabbNode *aabbTreeInsertNode(aabbTree *tree, colliderAABB *aabb, void *userData, aabbNode *(*allocate)());
 void aabbTreeUpdateNode(aabbTree *tree, aabbNode *node);
-void aabbTreeRemoveNode(aabbTree *tree, aabbNode *node);
+void aabbTreeRemoveNode(aabbTree *tree, aabbNode *node, void (*deallocate)(aabbNode *node));
 
-void aabbTreeQueryCollisions(aabbTree *tree, const aabbNode *node, void (*callback)(void *cA, void *cB));
-void aabbTreeQueryCollisionsStack(aabbTree *tree, const aabbNode *node, void (*callback)(void *cA, void *cB));
+void aabbTreeTraverse(aabbTree *tree, void (*callback)(aabbNode *node));
+void aabbTreeQueryCollisions(aabbTree *tree, const aabbNode *node, void (*callback)(void *d1, void *d2));
+void aabbTreeQueryCollisionsStack(aabbTree *tree, const aabbNode *node, void (*callback)(void *d1, void *d2));
 aabbNode *aabbTreeFindNextNode(aabbTree *tree, const colliderAABB *aabb, const aabbNode *prevNode);
-
-
-/**
-//Update bodies.
-for each object {
-	Integrate velocity;
-
-	//When we update the AABB, we store
-	//the new one in the AABB tree node.
-	Update vertices and AABB;
-}
-
-//Update broadphase.
-//AABB tree nodes are added and removed
-//when a new collider is added or removed.
-for each object {
-	for each collider {
-		Update node in AABB tree;
-	}
-}
-
-//Update collider pairs.
-for each object {
-	//
-}
-
-
-//Rigid bodies store an array of collision pairs involving
-//themselves and any rigid bodies that have a larger pointer.
-//Collision pairs thus need to store the pointers to the
-//bodies involved in the collision/separation in order.
-for each possible collision pair in AABB tree {
-	curPair;
-	if collision pair already exists in body A's array {
-		curPair = pairInArray;
-	}else{
-		Add this pair to body A's array;
-		curPair = newPair;
-	}
-	Narrowphase for curPair;
-}
-**/
 
 
 #endif

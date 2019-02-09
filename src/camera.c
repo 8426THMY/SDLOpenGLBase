@@ -95,9 +95,9 @@ void cameraStateSetFov(cameraState *camState, const float fov){
 
 //Interpolate between the camera's previous state and current state!
 void cameraStateGenRenderState(const cameraState *camState, const float time, cameraInterpState *out){
-	interpVec3FindRenderState(&camState->pos, time, &out->pos);
-	interpQuatFindRenderState(&camState->rot, time, &out->rot);
-	interpFloatFindRenderState(&camState->fov, time, &out->fov);
+	interpVec3GenRenderState(&camState->pos, time, &out->pos);
+	interpQuatGenRenderState(&camState->rot, time, &out->rot);
+	interpFloatGenRenderState(&camState->fov, time, &out->fov);
 }
 
 //Find the camera's render state and generate a view matrix for it!

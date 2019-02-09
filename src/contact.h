@@ -2,10 +2,7 @@
 #define contact_h
 
 
-#define CONTACT_MAX_POINTS 4
-#define CONTACT_KEY_INVALID_EDGE -1
-
-
+#include <stddef.h>
 #include <stdint.h>
 
 #include "settingsPhysics.h"
@@ -13,13 +10,24 @@
 #include "utilTypes.h"
 #include "vec3.h"
 
+#include "collider.h"
+
+
+#define CONTACT_MAX_POINTS 4
+#define CONTACT_KEY_INVALID_EDGE -1
+
+
+typedef size_t separationFeature_t;
+typedef uint_least8_t separationType_t;
+typedef uint_least8_t contactPointIndex_t;
+
 
 //Stores either the two faces or the two edges
 //that is causing a separation between two hulls.
 typedef struct contactSeparation {
-	uint_least16_t featureA;
-	uint_least16_t featureB;
-	byte_t type;
+	separationFeature_t featureA;
+	separationFeature_t featureB;
+	separationType_t type;
 } contactSeparation;
 
 
@@ -27,13 +35,13 @@ typedef struct contactSeparation {
 //construct the contact point.
 typedef struct contactKey {
 	#ifdef CONTACT_MANIFOLD_SIMPLE_KEYS
-	uint_least16_t edgeA;
-	uint_least16_t edgeB;
+	colliderEdgeIndex_t edgeA;
+	colliderEdgeIndex_t edgeB;
 	#else
-	uint_least16_t inEdgeA;
-	uint_least16_t outEdgeA;
-	uint_least16_t inEdgeB;
-	uint_least16_t outEdgeB;
+	colliderEdgeIndex_t inEdgeA;
+	colliderEdgeIndex_t outEdgeA;
+	colliderEdgeIndex_t inEdgeB;
+	colliderEdgeIndex_t outEdgeB;
 	#endif
 } contactKey;
 
@@ -41,11 +49,8 @@ typedef struct contactPoint {
 	//Used to uniquely identify the contact point.
 	contactKey key;
 
-	//Offsets of the contact points from
-	//their colliders' centres of mass.
-	vec3 rA;
-	vec3 rB;
-
+	//Position of the contact.
+	vec3 position;
 	//Penetration depth.
 	float penetration;
 } contactPoint;
@@ -53,10 +58,27 @@ typedef struct contactPoint {
 //Stores every contact point involved in the collision.
 typedef struct contactManifold {
 	contactPoint contacts[CONTACT_MAX_POINTS];
-	byte_t numContacts;
+	contactPointIndex_t numContacts;
 
 	vec3 normal;
 } contactManifold;
+
+
+return_t collidersAreSeparated(const collider *cA, const collider *cB, contactSeparation *cs);
+return_t collidersAreColliding(const collider *cA, const collider *cB, contactSeparation *cs, contactManifold *cm);
+
+
+extern return_t (*contactSeparationTable[COLLIDER_NUM_TYPES][COLLIDER_NUM_TYPES])(
+	const void *cA,
+	const void *cB,
+	contactSeparation *cs
+);
+extern return_t (*contactCollisionTable[COLLIDER_NUM_TYPES][COLLIDER_NUM_TYPES])(
+	const void *cA,
+	const void *cB,
+	contactSeparation *cs,
+	contactManifold *cm
+);
 
 
 #endif

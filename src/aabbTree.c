@@ -1,13 +1,16 @@
 #include "aabbTree.h"
 
 
+#include "utilMath.h"
+
+
 #define AABBTREE_QUERY_STACK_SIZE 256
 
-#define AABBNODE_IS_LEAF(node) ((node)->height == 0)
-#define AABBNODE_IS_LAST_BRANCH(node) ((node)->height == 1)
+#define AABBNODE_HEIGHT_LEAF        0
+#define AABBNODE_HEIGHT_LAST_BRANCH 1
 
-
-#include "utilMath.h"
+#define AABBNODE_IS_LEAF(node) ((node)->height == AABBNODE_HEIGHT_LEAF)
+#define AABBNODE_IS_LAST_BRANCH(node) ((node)->height == AABBNODE_HEIGHT_LAST_BRANCH)
 
 
 static aabbNode *balanceNode(aabbTree *tree, aabbNode *node);
@@ -16,20 +19,30 @@ static void insertLeaf(aabbTree *tree, aabbNode *node, aabbNode *parent);
 static void removeLeaf(aabbTree *tree, aabbNode *node);
 
 
-//Add a collider to the tree.
-aabbNode *aabbTreeInsertNode(aabbTree *tree, colliderAABB *aabb, void *collider){
-	/** This needs to be allocated... somewhere. **/
-	aabbNode *node;
-	/** Use the body's velocity to fatten this further. **/
-	/** Realistically, we shouldn't be doing this here. **/
-	//colliderAABBFattenFloat(aabb, AABB_EXTRA_FAT, &node->aabb);
+void aabbTreeInit(aabbTree *tree){
+	tree->root = NULL;
+	tree->leaves = NULL;
+}
+
+
+//Add the user's data to the tree.
+aabbNode *aabbTreeInsertNode(aabbTree *tree, colliderAABB *aabb, void *userData, aabbNode *(*allocate)()){
+	aabbNode *node = (*allocate)();
+	if(node == NULL){
+		/** MALLOC FAILED **/
+	}
+
 	node->aabb = *aabb;
-	node->data.leaf.collider = collider;
-	node->height = 0;
+	node->data.leaf.userData = userData;
+	node->data.leaf.next = tree->leaves;
+	node->height = AABBNODE_HEIGHT_LEAF;
+	tree->leaves = node;
 
 	if(tree->root != NULL){
-		/** This needs to be allocated... somewhere. **/
-		aabbNode *parent;
+		aabbNode *parent = (*allocate)();
+		if(parent == NULL){
+			/** MALLOC FAILED **/
+		}
 		insertLeaf(tree, node, parent);
 
 	//If the tree has no nodes,
@@ -56,13 +69,13 @@ void aabbTreeUpdateNode(aabbTree *tree, aabbNode *node){
 	}
 }
 
-//Remove a collider from the tree.
-void aabbTreeRemoveNode(aabbTree *tree, aabbNode *node){
+//Remove the user's data from the tree.
+void aabbTreeRemoveNode(aabbTree *tree, aabbNode *node, void (*deallocate)(aabbNode *node)){
 	//If we are not deleting the root node, we should
 	//replace the node's parent with its sibling.
 	if(node != tree->root){
 		removeLeaf(tree, node);
-		/** We need to deallocate "node->parent" and "node" here. **/
+		(*deallocate)(node->parent);
 
 	//If we're deleting the root node, it cannot
 	//have any children since it's a leaf, so we
@@ -70,15 +83,71 @@ void aabbTreeRemoveNode(aabbTree *tree, aabbNode *node){
 	}else{
 		tree->root = NULL;
 	}
+
+	(*deallocate)(node);
 }
 
 
 /*
-** Traverse the tree in order searching for nodes that collide
-** with the input node. If there is a collision, run the function
-** "callback" with the two potentially colliding nodes.
+** Traverse the tree in post-order and run the function "callback"
+** on every node. This is primarily used for memory deallocation.
 */
-void aabbTreeQueryCollisions(aabbTree *tree, const aabbNode *node, void (*callback)(void *cA, void *cB)){
+void aabbTreeTraverse(aabbTree *tree, void (*callback)(aabbNode *node)){
+	aabbNode *node = tree->root;
+
+	if(node != NULL){
+		//Make sure our tree has more than one node.
+		if(!AABBNODE_IS_LEAF(node)){
+			for(;;){
+				aabbNode *parent;
+
+				//Find the left-most branch node of the current subtree.
+				while(!AABBNODE_IS_LAST_BRANCH(node)){
+					node = node->data.children.left;
+				}
+				parent = node->parent;
+
+				//Run the callback function on the
+				//branch node and its two leaves.
+				(*callback)(node->data.children.left);
+				(*callback)(node->data.children.right);
+				(*callback)(node);
+
+				//Now that we've reached the end of the current branch,
+				//we'll need to keep climbing the tree until we reach
+				//a node whose right branch hasn't been explored.
+				for(;;){
+					//If we've reached the root node, we've
+					//searched the entire tree and can exit.
+					if(parent == NULL){
+						return;
+					}
+					//If our node is the left child of its parent,
+					//the right subtree has not yet been explored.
+					if(node == parent->data.children.left){
+						node = parent->data.children.right;
+						break;
+					}
+					(*callback)(node);
+					node = parent;
+					parent = node->parent;
+				}
+			}
+
+		//If the tree only has a single node,
+		//we can run the callback on it and exit.
+		}else{
+			(*callback)(node);
+		}
+	}
+}
+
+/*
+** Traverse the tree in order searching for leaves that collide
+** with the input leaf. If there is a collision, run the function
+** "callback" with the two potentially colliding leaf nodes.
+*/
+void aabbTreeQueryCollisions(aabbTree *tree, const aabbNode *node, void (*callback)(void *d1, void *d2)){
 	aabbNode *curNode = tree->root;
 
 	//Make sure the tree isn't empty.
@@ -95,8 +164,8 @@ void aabbTreeQueryCollisions(aabbTree *tree, const aabbNode *node, void (*callba
 					//If we've found a node who parents two leaves, we
 					//can run the callback function with its children.
 					if(AABBNODE_IS_LAST_BRANCH(curNode)){
-						(*callback)(node->data.leaf.collider, curNode->data.children.left->data.leaf.collider);
-						(*callback)(node->data.leaf.collider, curNode->data.children.right->data.leaf.collider);
+						(*callback)(node->data.leaf.userData, curNode->data.children.left->data.leaf.userData);
+						(*callback)(node->data.leaf.userData, curNode->data.children.right->data.leaf.userData);
 
 						break;
 					}else{
@@ -114,20 +183,20 @@ void aabbTreeQueryCollisions(aabbTree *tree, const aabbNode *node, void (*callba
 					if(parent == NULL){
 						return;
 					}
+					//If our node is the left child of its parent,
+					//the right subtree has not yet been explored.
 					if(curNode == parent->data.children.left){
+						curNode = parent->data.children.right;
 						break;
 					}
 					curNode = parent;
 				}
-				//We can now start searching
-				//this node's sibling branch.
-				curNode = parent->data.children.right;
 			}
 
 		//If our tree only has one node, we
 		//can simply run our callback on it.
 		}else{
-			(*callback)(node->data.leaf.collider, curNode->data.leaf.collider);
+			(*callback)(node->data.leaf.userData, curNode->data.leaf.userData);
 		}
 	}
 }
@@ -136,7 +205,7 @@ void aabbTreeQueryCollisions(aabbTree *tree, const aabbNode *node, void (*callba
 ** Similar to the function above, but this implementation
 ** utilises a stack to prevent crossing any nodes twice.
 */
-void aabbTreeQueryCollisionsStack(aabbTree *tree, const aabbNode *node, void (*callback)(void *cA, void *cB)){
+void aabbTreeQueryCollisionsStack(aabbTree *tree, const aabbNode *node, void (*callback)(void *d1, void *d2)){
 	aabbNode *stack[AABBTREE_QUERY_STACK_SIZE];
 	size_t i = 1;
 
@@ -146,7 +215,7 @@ void aabbTreeQueryCollisionsStack(aabbTree *tree, const aabbNode *node, void (*c
 		aabbNode *curNode = stack[--i];
 
 		if(AABBNODE_IS_LEAF(curNode)){
-			(*callback)(node->data.leaf.collider, curNode->data.leaf.collider);
+			(*callback)(node->data.leaf.userData, curNode->data.leaf.userData);
 		}else if(colliderAABBCollidingAABB(&node->aabb, &curNode->aabb)){
 			stack[i] = curNode->data.children.left;
 			++i;
@@ -188,11 +257,15 @@ aabbNode *aabbTreeFindNextNode(aabbTree *tree, const colliderAABB *aabb, const a
 				//node that is the left child of its parent.
 				for(;;){
 					parent = curNode->parent;
+					//If we've reached the root node, we've
+					//searched the entire tree and can exit.
 					if(parent == NULL){
 						return(NULL);
 					}
-
+					//If our node is the left child of its parent,
+					//the right subtree has not yet been explored.
 					if(curNode == parent->data.children.left){
+						curNode = parent->data.children.right;
 						break;
 					}
 					curNode = parent;
@@ -219,17 +292,19 @@ aabbNode *aabbTreeFindNextNode(aabbTree *tree, const colliderAABB *aabb, const a
 					//node that is the left child of its parent.
 					for(;;){
 						parent = curNode->parent;
+						//If we've reached the root node, we've
+						//searched the entire tree and can exit.
 						if(parent == NULL){
 							return(NULL);
 						}
-						if(curNode != parent->data.children.right){
+						//If our node is the left child of its parent,
+						//the right subtree has not yet been explored.
+						if(curNode == parent->data.children.left){
+							curNode = parent->data.children.right;
 							break;
 						}
 						curNode = parent;
 					}
-					//We can now start searching
-					//this node's sibling branch.
-					curNode = parent->data.children.right;
 				}
 			}
 

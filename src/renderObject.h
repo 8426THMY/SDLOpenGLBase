@@ -2,9 +2,6 @@
 #define renderObject_h
 
 
-#define RENDEROBJMODULE
-
-
 #include <stdio.h>
 
 #define GLEW_STATIC
@@ -14,7 +11,7 @@
 #include "vector.h"
 #include "mat4.h"
 
-#include "transform.h"
+#include "interp.h"
 #include "state.h"
 
 #include "textureGroup.h"
@@ -23,8 +20,11 @@
 #include "shader.h"
 
 
+#define RENDEROBJMODULE
+
+
 typedef struct renderObjState {
-	transformState transform;
+	interpTransform transform;
 
 	size_t mdlPos;
 	textureGroupAnim texGroup;

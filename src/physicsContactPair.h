@@ -2,23 +2,36 @@
 #define physicsContactPair_h
 
 
-#define COLLISIONPAIR_ACTIVE   0
-#define COLLISIONPAIR_INACTIVE 1
-
+#include "settingsPhysics.h"
 
 #include "utilTypes.h"
-
 #include "physicsContact.h"
 
 
+#define PHYSCOLLISIONPAIR_ACTIVE 0
+
+#ifndef PHYSICS_SEPARATION_PAIR_MAX_INACTIVE_STEPS
+	#define PHYSICS_SEPARATION_PAIR_MAX_INACTIVE_STEPS 0
+#endif
+#ifndef PHYSICS_CONTACT_PAIR_MAX_INACTIVE_STEPS
+	#define PHYSICS_CONTACT_PAIR_MAX_INACTIVE_STEPS 0
+#endif
+
+#define physPairRefresh(pair)           ((pair)->inactive = PHYSCOLLISIONPAIR_ACTIVE)
+#define physSeparationPairIsInactive(pair) ((pair)->inactive > PHYSICS_SEPARATION_PAIR_MAX_INACTIVE_STEPS)
+#define physContactPairIsInactive(pair)    ((pair)->inactive > PHYSICS_CONTACT_PAIR_MAX_INACTIVE_STEPS)
+
+
 typedef struct physicsCollider physicsCollider;
+
+typedef uint_least8_t physPairTimestamp_t;
 
 typedef struct physicsSeparationPair physicsSeparationPair;
 //Stores the data required to represent
 //a separation between two rigid bodies.
 typedef struct physicsSeparationPair {
 	contactSeparation separation;
-	byte_t active;
+	physPairTimestamp_t inactive;
 
 	physicsCollider *cA;
 	physicsCollider *cB;
@@ -36,7 +49,7 @@ typedef struct physicsContactPair physicsContactPair;
 //a contact between two rigid bodies.
 typedef struct physicsContactPair {
 	physicsManifold manifold;
-	byte_t active;
+	physPairTimestamp_t inactive;
 
 	physicsCollider *cA;
 	physicsCollider *cB;
@@ -50,8 +63,15 @@ typedef struct physicsContactPair {
 } physicsContactPair;
 
 
-void physSeparationPairDelete(physicsSeparationPair *sPair);
-void physContactPairDelete(physicsContactPair *cPair);
+void physSeparationPairInit(physicsSeparationPair *pair, const contactSeparation *separation,
+                            physicsCollider *cA, physicsCollider *cB,
+                            physicsSeparationPair *prev, physicsSeparationPair *next);
+void physContactPairInit(physicsContactPair *pair, const contactManifold *manifold,
+                         physicsCollider *cA, physicsCollider *cB,
+                         physicsContactPair *prev, physicsContactPair *next);
+
+void physSeparationPairDelete(physicsSeparationPair *pair);
+void physContactPairDelete(physicsContactPair *pair);
 
 
 #endif

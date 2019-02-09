@@ -5,7 +5,7 @@
 #define MEMORY_KIBIBYTE 1024
 #define MEMORY_MEBIBYTE (1024 * MEMORY_KIBIBYTE)
 
-//Define the number of bytes to allocate by default.
+//Define the number of bytes to allocate for the memory manager.
 #define MEMORY_HEAPSIZE (64 * MEMORY_MEBIBYTE)
 
 #define MEMORY_USE_GLOBAL_MANAGER

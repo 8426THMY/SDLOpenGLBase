@@ -46,7 +46,8 @@ float quatDot(const float x1, const float y1, const float z1, const float w1, co
 float quatDotQuatFloat(const quat *q, const float x, const float y, const float z, const float w);
 float quatDotQuat(const quat *q1, const quat *q2);
 void quatNormalize(const float x, const float y, const float z, const float w, quat *out);
-void quatNormalizeQuat(const quat *q, quat *out);
+void quatNormalizeQuat(quat *q);
+void quatNormalizeQuatOut(const quat *q, quat *out);
 void quatConjugate(const quat *q, quat *out);
 void quatConjugateFast(const quat *q, quat *out);
 

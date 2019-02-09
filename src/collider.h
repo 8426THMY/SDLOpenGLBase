@@ -5,10 +5,14 @@
 #include "utilTypes.h"
 #include "vec3.h"
 
+#include "colliderAABB.h"
 #include "colliderHull.h"
 
 
 #define COLLIDER_NUM_TYPES 1
+
+
+typedef uint_least8_t colliderType_t;
 
 
 typedef struct collider {
@@ -19,12 +23,35 @@ typedef struct collider {
 	} data;
 	//Stores which type of
 	//collider this object is.
-	byte_t type;
+	colliderType_t type;
 } collider;
 
 
+void colliderInit(collider *c, const colliderType_t type);
+void colliderInstantiate(collider *c, const collider *cBase);
+
+void colliderUpdate(collider *c, const collider *cBase, const transformState *trans, colliderAABB *aabb);
+
+void colliderDeleteInstance(collider *c);
+void colliderDelete(collider *c);
+
 //void colliderCalculateInertia(const collider *c, float inertia[6]);
-return_t colliderCheckCollision(const collider *cA, const collider *cB, contactSeparation *cs, contactManifold *cm);
+
+
+extern void (*colliderInstantiateTable[COLLIDER_NUM_TYPES])(
+	void *c,
+	const void *cBase
+);
+extern void (*colliderDeleteTable[COLLIDER_NUM_TYPES])(
+	void *c
+);
+
+extern void (*colliderUpdateTable[COLLIDER_NUM_TYPES])(
+	void *c,
+	const void *cBase,
+	const transformState *trans,
+	colliderAABB *aabb
+);
 
 
 #endif

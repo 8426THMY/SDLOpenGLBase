@@ -41,8 +41,9 @@ void vec3CrossVec3Float(const vec3 *v, const float x, const float y, const float
 void vec3CrossFloatVec3(const float x, const float y, const float z, const vec3 *v, vec3 *out);
 void vec3CrossVec3(const vec3 *v1, const vec3 *v2, vec3 *out);
 void vec3Normalize(const float x, const float y, const float z, vec3 *out);
-void vec3NormalizeVec3(const vec3 *v, vec3 *out);
-void vec3Negate(const vec3 *v, vec3 *out);
+void vec3NormalizeVec3(vec3 *v);
+void vec3NormalizeVec3Out(const vec3 *v, vec3 *out);
+void vec3Negate(vec3 *v);
 void vec3NegateOut(const vec3 *v, vec3 *out);
 
 void vec3DegToRad(vec3 *v);

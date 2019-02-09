@@ -2,17 +2,20 @@
 #define moduleTexture_h
 
 
-#define MODULETEXTURE
-
-#define MODULETEXTURE_SETUP_FAIL 1
-
-
 #include "utilTypes.h"
 
 #include "memoryManager.h"
 #include "memoryPool.h"
 
 #include "texture.h"
+
+
+#define MODULETEXTURE
+#define MODULETEXTURE_SETUP_FAIL 1
+
+#ifndef MEMORY_MAX_TEXTURES
+	#define MEMORY_MAX_TEXTURES 1
+#endif
 
 
 return_t moduleTextureSetup();

@@ -2,29 +2,26 @@
 #define skeleton_h
 
 
-#define MAX_BONES_NUM 128
-
-
 #include <stdlib.h>
 
 #include "utilTypes.h"
 #include "vec3.h"
 #include "quat.h"
 #include "mat4.h"
+#include "transform.h"
 
 #include "animation.h"
 #include "state.h"
+
+
+#define MAX_BONES_NUM 128
 
 
 /** Ideally, models and animations should have their own skeletons. **/
 
 //Stores the various positional data for a
 //bone as offsets from its parent's data.
-typedef struct boneState {
-	vec3 pos;
-	quat rot;
-	vec3 scale;
-} boneState;
+typedef transformState boneState;
 
 typedef struct bone {
 	char *name;
@@ -108,9 +105,6 @@ void skeleAnimInstInit(skeletonAnimInst *animInst);
 void skeleObjInit(skeletonObject *skeleObj, skeleton *skele);
 
 return_t skeleAnimLoadSMD(skeletonAnim *skeleAnim, const char *skeleAnimName);
-
-void boneStateAddTransform(const boneState *b1, const boneState *b2, boneState *out);
-void boneStateConvertToMat4(const boneState *b, mat4 *out);
 
 void skeleAnimInstUpdate(skeleAnimState *animState, const float time);
 void skeleAnimStateBlendSet(skeletonObject *skeleObj, const skeleAnimState *animState, const skeleAnimState *blendState);

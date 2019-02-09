@@ -42,8 +42,9 @@ float vec4Dot(const float x1, const float y1, const float z1, const float w1, co
 float vec4DotVec4Float(const vec4 *v, const float x, const float y, const float z, const float w);
 float vec4DotVec4(const vec4 *v1, const vec4 *v2);
 void vec4Normalize(const float x, const float y, const float z, const float w, vec4 *out);
-void vec4NormalizeVec4(const vec4 *v, vec4 *out);
-void vec4Negate(const vec4 *v, vec4 *out);
+void vec4NormalizeVec4(vec4 *v);
+void vec4NormalizeVec4Out(const vec4 *v, vec4 *out);
+void vec4Negate(vec4 *v);
 void vec4NegateOut(const vec4 *v, vec4 *out);
 
 void vec4DegToRad(vec4 *v);

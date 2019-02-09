@@ -215,8 +215,17 @@ void vec3Normalize(const float x, const float y, const float z, vec3 *out){
 	out->z = z * magnitude;
 }
 
+//Normalize a vec3!
+void vec3NormalizeVec3(vec3 *v){
+	const float magnitude = fastInvSqrt(vec3NormVec3(v));
+
+	v->x = v->x * magnitude;
+	v->y = v->y * magnitude;
+	v->z = v->z * magnitude;
+}
+
 //Normalize a vec3 and store the result in "out"!
-void vec3NormalizeVec3(const vec3 *v, vec3 *out){
+void vec3NormalizeVec3Out(const vec3 *v, vec3 *out){
 	const float magnitude = fastInvSqrt(vec3NormVec3(v));
 
 	out->x = v->x * magnitude;

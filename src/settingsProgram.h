@@ -12,7 +12,7 @@
 #define FRAME_RATE 120.f
 
 //We'll probably get undefined results if this is less than or equal to 0.
-#define NUM_LOOKBACK_STATES (unsigned int)UPDATE_RATE
+#define NUM_LOOKBACK_STATES ((unsigned int)UPDATE_RATE)
 
 
 

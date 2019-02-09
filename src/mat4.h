@@ -34,13 +34,13 @@ void mat4MultiplyVec4R(const mat4 *m, const vec4 *v, vec4 *out);
 void mat4MultiplyMat4(const mat4 *m1, const mat4 *m2, mat4 *out);
 void mat4MultiplyMat4R(const mat4 *m1, const mat4 *m2, mat4 *out);
 
-void vec3Transform(const mat4 *m, const vec3 *v, vec3 *out);
-void vec3TransformR(const mat4 *m, const vec3 *v, vec3 *out);
-
 void mat4Translate(mat4 *m, const float x, const float y, const float z);
 void mat4Translate4(mat4 *m, const float x, const float y, const float z, const float w);
 void mat4TranslateVec3(mat4 *m, const vec3 *v);
 void mat4TranslateVec4(mat4 *m, const vec4 *v);
+
+void vec3Transform(const vec3 *v, const mat4 *m, vec3 *out);
+void vec3TransformR(const vec3 *v, const mat4 *m, vec3 *out);
 
 void mat4RotateRad(mat4 *m, const float x, const float y, const float z);
 void mat4RotateDeg(mat4 *m, const float x, const float y, const float z);

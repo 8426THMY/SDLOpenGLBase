@@ -7,13 +7,13 @@
 
 
 typedef struct colliderAABB {
-	vec3 minPoint;
-	vec3 maxPoint;
+	vec3 min;
+	vec3 max;
 } colliderAABB;
 
 
-void colliderAABBFattenFloat(const colliderAABB *aabb, const float x, colliderAABB *out);
-void colliderAABBFattenVec3(const colliderAABB *aabb, const vec3 *v, colliderAABB *out);
+void colliderAABBExpandFloat(const colliderAABB *aabb, const float x, colliderAABB *out);
+void colliderAABBExpandVec3(const colliderAABB *aabb, const vec3 *v, colliderAABB *out);
 void colliderAABBCombine(const colliderAABB *aabbA, const colliderAABB *aabbB, colliderAABB *out);
 
 float colliderAABBVolume(const colliderAABB *aabb);
