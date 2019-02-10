@@ -20,71 +20,165 @@ void vec3InitSet(vec3 *v, const float x, const float y, const float z){
 }
 
 
+//Add a vec3 stored as three floats to "v"!
+void vec3Add(vec3 *v, const float x, const float y, const float z){
+	v->x += x;
+	v->y += y;
+	v->z += z;
+}
+
 //Add a vec3 stored as three floats to "v" and store the result in "out"!
-void vec3Add(const vec3 *v, const float x, const float y, const float z, vec3 *out){
+void vec3AddOut(const vec3 *v, const float x, const float y, const float z, vec3 *out){
 	out->x = v->x + x;
 	out->y = v->y + y;
 	out->z = v->z + z;
 }
 
+//Add "x" to "v"!
+void vec3AddS(vec3 *v, const float x){
+	v->x += x;
+	v->y += x;
+	v->z += x;
+}
+
 //Add "x" to "v" and store the result in "out"!
-void vec3AddS(const vec3 *v, const float x, vec3 *out){
+void vec3AddSOut(const vec3 *v, const float x, vec3 *out){
 	out->x = v->x + x;
 	out->y = v->y + x;
 	out->z = v->z + x;
 }
 
+//Add "v2" to "v1"!
+void vec3AddVec3(vec3 *v1, const vec3 *v2){
+	v1->x += v2->x;
+	v1->y += v2->y;
+	v1->z += v2->z;
+}
+
 //Add "v2" to "v1" and store the result in "out"!
-void vec3AddVec3(const vec3 *v1, const vec3 *v2, vec3 *out){
+void vec3AddVec3Out(const vec3 *v1, const vec3 *v2, vec3 *out){
 	out->x = v1->x + v2->x;
 	out->y = v1->y + v2->y;
 	out->z = v1->z + v2->z;
 }
 
+//Subtract a vec3 stored as three floats from "v"!
+void vec3Subtract(vec3 *v, const float x, const float y, const float z){
+	v->x -= x;
+	v->y -= y;
+	v->z -= z;
+}
+
+//Subtract a vec3 stored as three floats from "v" and store the result in "out"!
+void vec3SubtractOut(const vec3 *v, const float x, const float y, const float z, vec3 *out){
+	out->x = v->x - x;
+	out->y = v->y - y;
+	out->z = v->z - z;
+}
+
+//Subtract "v" from a vec3 stored as three floats!
+void vec3SubtractFrom(vec3 *v, const float x, const float y, const float z){
+	v->x = x - v->x;
+	v->y = y - v->y;
+	v->z = z - v->z;
+}
+
 //Subtract "v" from a vec3 stored as three floats and store the result in "out"!
-void vec3SubtractFrom(const vec3 *v, const float x, const float y, const float z, vec3 *out){
+void vec3SubtractFromOut(const vec3 *v, const float x, const float y, const float z, vec3 *out){
 	out->x = x - v->x;
 	out->y = y - v->y;
 	out->z = z - v->z;
 }
 
+//Subtract "x" from "v"!
+void vec3SubtractSFrom(vec3 *v, const float x){
+	v->x -= x;
+	v->y -= x;
+	v->z -= x;
+}
+
 //Subtract "x" from "v" and store the result in "out"!
-void vec3SubtractSFrom(const vec3 *v, const float x, vec3 *out){
+void vec3SubtractSFromOut(const vec3 *v, const float x, vec3 *out){
 	out->x = v->x - x;
 	out->y = v->y - x;
 	out->z = v->z - x;
 }
 
+//Subtract "v" from "x"!
+void vec3SubtractFromS(vec3 *v, const float x){
+	v->x = x - v->x;
+	v->y = x - v->y;
+	v->z = x - v->z;
+}
+
 //Subtract "v" from "x" and store the result in "out"!
-void vec3SubtractFromS(const vec3 *v, const float x, vec3 *out){
+void vec3SubtractFromSOut(const vec3 *v, const float x, vec3 *out){
 	out->x = x - v->x;
 	out->y = x - v->y;
 	out->z = x - v->z;
 }
 
+//Subtract "v2" from "v1"!
+void vec3SubtractVec3From(vec3 *v1, const vec3 *v2){
+	v1->x -= v2->x;
+	v1->y -= v2->y;
+	v1->z -= v2->z;
+}
+
+//Subtract "v1" from "v2"!
+void vec3SubtractFromVec3(vec3 *v1, const vec3 *v2){
+	v1->x = v2->x - v1->x;
+	v1->y = v2->y - v1->y;
+	v1->z = v2->z - v1->z;
+}
+
 //Subtract "v2" from "v1" and store the result in "out"!
-void vec3SubtractVec3From(const vec3 *v1, const vec3 *v2, vec3 *out){
+void vec3SubtractVec3FromOut(const vec3 *v1, const vec3 *v2, vec3 *out){
 	out->x = v1->x - v2->x;
 	out->y = v1->y - v2->y;
 	out->z = v1->z - v2->z;
 }
 
+
+//Multiply "v" by "x"!
+void vec3MultiplyS(vec3 *v, const float x){
+	v->x *= x;
+	v->y *= x;
+	v->z *= x;
+}
+
 //Multiply "v" by "x" and store the result in "out"!
-void vec3MultiplyS(const vec3 *v, const float x, vec3 *out){
+void vec3MultiplySOut(const vec3 *v, const float x, vec3 *out){
 	out->x = v->x * x;
 	out->y = v->y * x;
 	out->z = v->z * x;
 }
 
+//Multiply "v1" by "v2"!
+void vec3MultiplyVec3(vec3 *v1, const vec3 *v2){
+	v1->x *= v2->x;
+	v1->y *= v2->y;
+	v1->z *= v2->z;
+}
+
 //Multiply "v1" by "v2" and store the result in "out"!
-void vec3MultiplyVec3(const vec3 *v1, const vec3 *v2, vec3 *out){
+void vec3MultiplyVec3Out(const vec3 *v1, const vec3 *v2, vec3 *out){
 	out->x = v1->x * v2->x;
 	out->y = v1->y * v2->y;
 	out->z = v1->z * v2->z;
 }
 
+//Divide "v" by "x"!
+void vec3DivideByS(vec3 *v, const float x){
+	const float invX = 1.f / x;
+
+	v->x *= invX;
+	v->y *= invX;
+	v->z *= invX;
+}
+
 //Divide "v" by "x" and store the result in "out"!
-void vec3DivideByS(const vec3 *v, const float x, vec3 *out){
+void vec3DivideBySOut(const vec3 *v, const float x, vec3 *out){
 	const float invX = 1.f / x;
 
 	out->x = v->x * invX;
@@ -92,11 +186,28 @@ void vec3DivideByS(const vec3 *v, const float x, vec3 *out){
 	out->z = v->z * invX;
 }
 
+//Divide "x" by "v"!
+void vec3DivideSBy(vec3 *v, const float x){
+	v->x = (v->x != 0.f) ? x / v->x : 0.f;
+	v->y = (v->y != 0.f) ? x / v->y : 0.f;
+	v->z = (v->z != 0.f) ? x / v->z : 0.f;
+}
+
 //Divide "x" by "v" and store the result in "out"!
-void vec3DivideSBy(const vec3 *v, const float x, vec3 *out){
+void vec3DivideSByOut(const vec3 *v, const float x, vec3 *out){
 	out->x = (v->x != 0.f) ? x / v->x : 0.f;
 	out->y = (v->y != 0.f) ? x / v->y : 0.f;
 	out->z = (v->z != 0.f) ? x / v->z : 0.f;
+}
+
+/*
+** Divide "x" by "v"! Unlike the regular version, this
+** does not check to prevent against divide-by-zero errors.
+*/
+void vec3DivideSByFast(vec3 *v, const float x){
+	v->x = x / v->x;
+	v->y = x / v->y;
+	v->z = x / v->z;
 }
 
 /*
@@ -104,17 +215,44 @@ void vec3DivideSBy(const vec3 *v, const float x, vec3 *out){
 ** Unlike the regular version, this does not check
 ** to prevent against divide-by-zero errors.
 */
-void vec3DivideSByFast(const vec3 *v, const float x, vec3 *out){
+void vec3DivideSByFastOut(const vec3 *v, const float x, vec3 *out){
 	out->x = x / v->x;
 	out->y = x / v->y;
 	out->z = x / v->z;
 }
 
-//Divide "v1" by "v2" and store the result in "out"!
-void vec3DivideByVec3(const vec3 *v1, const vec3 *v2, vec3 *out){
-	out->x = (v2->x != 0.f) ? v1->x / v2->x : 0.f;
-	out->y = (v2->y != 0.f) ? v1->y / v2->y : 0.f;
-	out->z = (v2->z != 0.f) ? v1->z / v2->z : 0.f;
+//Divide "v1" by "v2"!
+void vec3DivideByVec3(vec3 *v1, const vec3 *v2){
+	v1->x = (v2->x != 0.f) ? v1->x / v2->x : 0.f;
+	v1->y = (v2->y != 0.f) ? v1->y / v2->y : 0.f;
+	v1->z = (v2->z != 0.f) ? v1->z / v2->z : 0.f;
+}
+
+//Divide "v2" by "v1"!
+void vec3DivideVec3By(vec3 *v1, const vec3 *v2){
+	v1->x = (v2->x != 0.f) ? v1->x / v2->x : 0.f;
+	v1->y = (v2->y != 0.f) ? v1->y / v2->y : 0.f;
+	v1->z = (v2->z != 0.f) ? v1->z / v2->z : 0.f;
+}
+
+/*
+** Divide "v1" by "v2"! Unlike the regular version, this
+** does not check to prevent against divide-by-zero errors.
+*/
+void vec3DivideByVec3Fast(vec3 *v1, const vec3 *v2){
+	v1->x /= v2->x;
+	v1->y /= v2->y;
+	v1->z /= v2->z;
+}
+
+/*
+** Divide "v1" by "v2"! Unlike the regular version, this
+** does not check to prevent against divide-by-zero errors.
+*/
+void vec3DivideVec3ByFast(vec3 *v1, const vec3 *v2){
+	v1->x = v2->x / v1->x;
+	v1->y = v2->y / v1->y;
+	v1->z = v2->z / v1->z;
 }
 
 /*
@@ -122,7 +260,7 @@ void vec3DivideByVec3(const vec3 *v1, const vec3 *v2, vec3 *out){
 ** Unlike the regular version, this does not check
 ** to prevent against divide-by-zero errors.
 */
-void vec3DivideByVec3Fast(const vec3 *v1, const vec3 *v2, vec3 *out){
+void vec3DivideByVec3FastOut(const vec3 *v1, const vec3 *v2, vec3 *out){
 	out->x = v1->x / v2->x;
 	out->y = v1->y / v2->y;
 	out->z = v1->z / v2->z;
@@ -287,9 +425,9 @@ void vec3LerpFast(const vec3 *v, const vec3 *offset, const float time, vec3 *out
 ** and return a vec3 composed of these minima in "out".
 */
 void vec3Min(const vec3 *v1, const vec3 *v2, vec3 *out){
-	out->x = minNum(v1->x, v2->x);
-	out->y = minNum(v1->y, v2->y);
-	out->z = minNum(v1->z, v2->z);
+	out->x = minNumFast(v1->x, v2->x);
+	out->y = minNumFast(v1->y, v2->y);
+	out->z = minNumFast(v1->z, v2->z);
 }
 
 /*
@@ -297,7 +435,7 @@ void vec3Min(const vec3 *v1, const vec3 *v2, vec3 *out){
 ** and return a vec3 composed of these maxima in "out".
 */
 void vec3Max(const vec3 *v1, const vec3 *v2, vec3 *out){
-	out->x = maxNum(v1->x, v2->x);
-	out->y = maxNum(v1->y, v2->y);
-	out->z = maxNum(v1->z, v2->z);
+	out->x = maxNumFast(v1->x, v2->x);
+	out->y = maxNumFast(v1->y, v2->y);
+	out->z = maxNumFast(v1->z, v2->z);
 }

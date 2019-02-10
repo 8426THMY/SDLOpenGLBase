@@ -90,7 +90,7 @@ void colliderHullLoad(void *hull);
 void colliderHullSetupProperties(void *hull);
 
 void colliderHullCalculateInertia(const void *hull, float inertia[6]);
-void colliderHullCalculateCentroid(const colliderHull *hull);
+void colliderHullCalculateCentroid(colliderHull *hull);
 
 void colliderHullUpdate(void *hull, const void *base, const transformState *trans, colliderAABB *aabb);
 

@@ -2,7 +2,6 @@
 
 
 #include <string.h>
-#include <math.h>
 
 #include "utilMath.h"
 
@@ -25,146 +24,276 @@ void mat3InitIdentity(mat3 *m){
 }
 
 
-//Multiply a vec3 with a matrix and store the result in "out"!
-void vec3MultiplyMat3(const vec3 *v, const mat3 *m, mat3 *out){
-	float result[9];
-
-	result[0] = m->m[0][0] * v->x + m->m[0][1] * v->y + m->m[0][2] * v->z;
-	result[1] = m->m[0][0] * v->x + m->m[0][1] * v->y + m->m[0][2] * v->z;
-	result[2] = m->m[0][0] * v->x + m->m[0][1] * v->y + m->m[0][2] * v->z;
-
-	result[3] = m->m[1][0] * v->x + m->m[1][1] * v->y + m->m[1][2] * v->z;
-	result[4] = m->m[1][0] * v->x + m->m[1][1] * v->y + m->m[1][2] * v->z;
-	result[5] = m->m[1][0] * v->x + m->m[1][1] * v->y + m->m[1][2] * v->z;
-
-	result[6] = m->m[2][0] * v->x + m->m[2][1] * v->y + m->m[2][2] * v->z;
-	result[7] = m->m[2][0] * v->x + m->m[2][1] * v->y + m->m[2][2] * v->z;
-	result[8] = m->m[2][0] * v->x + m->m[2][1] * v->y + m->m[2][2] * v->z;
-
-	memcpy(out, result, sizeof(result));
-}
-
-//Multiply a vec3 with a matrix and store the result in "out"! This assumes that "out" isn't "m".
-void vec3MultiplyMat3R(const vec3 *v, const mat3 *m, mat3 *out){
-	out->m[0][0] = m->m[0][0] * v->x + m->m[0][1] * v->y + m->m[0][2] * v->z;
-	out->m[0][1] = m->m[0][0] * v->x + m->m[0][1] * v->y + m->m[0][2] * v->z;
-	out->m[0][2] = m->m[0][0] * v->x + m->m[0][1] * v->y + m->m[0][2] * v->z;
-
-	out->m[1][0] = m->m[1][0] * v->x + m->m[1][1] * v->y + m->m[1][2] * v->z;
-	out->m[1][1] = m->m[1][0] * v->x + m->m[1][1] * v->y + m->m[1][2] * v->z;
-	out->m[1][2] = m->m[1][0] * v->x + m->m[1][1] * v->y + m->m[1][2] * v->z;
-
-	out->m[2][0] = m->m[2][0] * v->x + m->m[2][1] * v->y + m->m[2][2] * v->z;
-	out->m[2][1] = m->m[2][0] * v->x + m->m[2][1] * v->y + m->m[2][2] * v->z;
-	out->m[2][2] = m->m[2][0] * v->x + m->m[2][1] * v->y + m->m[2][2] * v->z;
-}
-
-//Multiply a matrix with a vec3 and store the result in "out"!
-void mat3MultiplyVec3(const mat3 *m, const vec3 *v, vec3 *out){
+//Multiply a matrix by a vec3!
+void mat3MultiplyByVec3(const mat3 *m, vec3 *v){
 	vec3 result;
 
 	result.x = m->m[0][0] * v->x + m->m[1][0] * v->y + m->m[2][0] * v->z;
 	result.y = m->m[0][1] * v->x + m->m[1][1] * v->y + m->m[2][1] * v->z;
 	result.z = m->m[0][2] * v->x + m->m[1][2] * v->y + m->m[2][2] * v->z;
 
-	*out = result;
+	*v = result;
 }
 
-//Multiply a matrix with a vec3 and store the result in "out"! This assumes that "out" isn't "v".
-void mat3MultiplyVec3R(const mat3 *m, const vec3 *v, vec3 *out){
+//Multiply a matrix by a vec3 and store the result in "out"! This assumes that "out" isn't "v".
+void mat3MultiplyByVec3Out(const mat3 *m, const vec3 *v, vec3 *out){
 	out->x = m->m[0][0] * v->x + m->m[1][0] * v->y + m->m[2][0] * v->z;
 	out->y = m->m[0][1] * v->x + m->m[1][1] * v->y + m->m[2][1] * v->z;
 	out->z = m->m[0][2] * v->x + m->m[1][2] * v->y + m->m[2][2] * v->z;
 }
 
-//Multiply two matrices and store the result in "out"!
-void mat3MultiplyMat3(const mat3 *m1, const mat3 *m2, mat3 *out){
-	float result[9];
+//Multiply a vec3 by a matrix!
+void mat3MultiplyVec3By(mat3 *m, const vec3 *v){
+	const mat3 tempMatrix = *m;
 
-	result[0] = m1->m[0][0] * m2->m[0][0] + m1->m[1][0] * m2->m[0][1] + m1->m[2][0] * m2->m[0][2];
-	result[1] = m1->m[0][1] * m2->m[0][0] + m1->m[1][1] * m2->m[0][1] + m1->m[2][1] * m2->m[0][2];
-	result[2] = m1->m[0][2] * m2->m[0][0] + m1->m[1][2] * m2->m[0][1] + m1->m[2][2] * m2->m[0][2];
+	m->m[0][0] = tempMatrix.m[0][0] * v->x + tempMatrix.m[0][1] * v->y + tempMatrix.m[0][2] * v->z;
+	m->m[0][1] = tempMatrix.m[0][0] * v->x + tempMatrix.m[0][1] * v->y + tempMatrix.m[0][2] * v->z;
+	m->m[0][2] = tempMatrix.m[0][0] * v->x + tempMatrix.m[0][1] * v->y + tempMatrix.m[0][2] * v->z;
 
-	result[3] = m1->m[0][0] * m2->m[1][0] + m1->m[1][0] * m2->m[1][1] + m1->m[2][0] * m2->m[1][2];
-	result[4] = m1->m[0][1] * m2->m[1][0] + m1->m[1][1] * m2->m[1][1] + m1->m[2][1] * m2->m[1][2];
-	result[5] = m1->m[0][2] * m2->m[1][0] + m1->m[1][2] * m2->m[1][1] + m1->m[2][2] * m2->m[1][2];
+	m->m[1][0] = tempMatrix.m[1][0] * v->x + tempMatrix.m[1][1] * v->y + tempMatrix.m[1][2] * v->z;
+	m->m[1][1] = tempMatrix.m[1][0] * v->x + tempMatrix.m[1][1] * v->y + tempMatrix.m[1][2] * v->z;
+	m->m[1][2] = tempMatrix.m[1][0] * v->x + tempMatrix.m[1][1] * v->y + tempMatrix.m[1][2] * v->z;
 
-	result[6] = m1->m[0][0] * m2->m[2][0] + m1->m[1][0] * m2->m[2][1] + m1->m[2][0] * m2->m[2][2];
-	result[7] = m1->m[0][1] * m2->m[2][0] + m1->m[1][1] * m2->m[2][1] + m1->m[2][1] * m2->m[2][2];
-	result[8] = m1->m[0][2] * m2->m[2][0] + m1->m[1][2] * m2->m[2][1] + m1->m[2][2] * m2->m[2][2];
-
-	memcpy(out, result, sizeof(result));
+	m->m[2][0] = tempMatrix.m[2][0] * v->x + tempMatrix.m[2][1] * v->y + tempMatrix.m[2][2] * v->z;
+	m->m[2][1] = tempMatrix.m[2][0] * v->x + tempMatrix.m[2][1] * v->y + tempMatrix.m[2][2] * v->z;
+	m->m[2][2] = tempMatrix.m[2][0] * v->x + tempMatrix.m[2][1] * v->y + tempMatrix.m[2][2] * v->z;
 }
 
-//Multiply two matrices and store the result in "out"! This assumes that "out" isn't "m1" or "m2".
-void mat3MultiplyMat3R(const mat3 *m1, const mat3 *m2, mat3 *out){
-	out->m[0][0] = m1->m[0][0] * m2->m[0][0] + m1->m[1][0] * m2->m[0][1] + m1->m[2][0] * m2->m[0][2];
-	out->m[0][1] = m1->m[0][1] * m2->m[0][0] + m1->m[1][1] * m2->m[0][1] + m1->m[2][1] * m2->m[0][2];
-	out->m[0][2] = m1->m[0][2] * m2->m[0][0] + m1->m[1][2] * m2->m[0][1] + m1->m[2][2] * m2->m[0][2];
+//Multiply a vec3 by a matrix and store the result in "out"! This assumes that "out" isn't "m".
+void mat3MultiplyVec3ByOut(const mat3 *m, const vec3 *v, mat3 *out){
+	const mat3 tempMatrix = *m;
 
-	out->m[1][0] = m1->m[0][0] * m2->m[1][0] + m1->m[1][0] * m2->m[1][1] + m1->m[2][0] * m2->m[1][2];
-	out->m[1][1] = m1->m[0][1] * m2->m[1][0] + m1->m[1][1] * m2->m[1][1] + m1->m[2][1] * m2->m[1][2];
-	out->m[1][2] = m1->m[0][2] * m2->m[1][0] + m1->m[1][2] * m2->m[1][1] + m1->m[2][2] * m2->m[1][2];
+	out->m[0][0] = tempMatrix.m[0][0] * v->x + tempMatrix.m[0][1] * v->y + tempMatrix.m[0][2] * v->z;
+	out->m[0][1] = tempMatrix.m[0][0] * v->x + tempMatrix.m[0][1] * v->y + tempMatrix.m[0][2] * v->z;
+	out->m[0][2] = tempMatrix.m[0][0] * v->x + tempMatrix.m[0][1] * v->y + tempMatrix.m[0][2] * v->z;
 
-	out->m[2][0] = m1->m[0][0] * m2->m[2][0] + m1->m[1][0] * m2->m[2][1] + m1->m[2][0] * m2->m[2][2];
-	out->m[2][1] = m1->m[0][1] * m2->m[2][0] + m1->m[1][1] * m2->m[2][1] + m1->m[2][1] * m2->m[2][2];
-	out->m[2][2] = m1->m[0][2] * m2->m[2][0] + m1->m[1][2] * m2->m[2][1] + m1->m[2][2] * m2->m[2][2];
+	out->m[1][0] = tempMatrix.m[1][0] * v->x + tempMatrix.m[1][1] * v->y + tempMatrix.m[1][2] * v->z;
+	out->m[1][1] = tempMatrix.m[1][0] * v->x + tempMatrix.m[1][1] * v->y + tempMatrix.m[1][2] * v->z;
+	out->m[1][2] = tempMatrix.m[1][0] * v->x + tempMatrix.m[1][1] * v->y + tempMatrix.m[1][2] * v->z;
+
+	out->m[2][0] = tempMatrix.m[2][0] * v->x + tempMatrix.m[2][1] * v->y + tempMatrix.m[2][2] * v->z;
+	out->m[2][1] = tempMatrix.m[2][0] * v->x + tempMatrix.m[2][1] * v->y + tempMatrix.m[2][2] * v->z;
+	out->m[2][2] = tempMatrix.m[2][0] * v->x + tempMatrix.m[2][1] * v->y + tempMatrix.m[2][2] * v->z;
+}
+
+//Multiply "m1" by "m2"!
+void mat3MultiplyByMat3(mat3 *m1, const mat3 *m2){
+	const mat3 tempMatrix1 = *m1;
+	const mat3 tempMatrix2 = *m2;
+
+	m1->m[0][0] = tempMatrix1.m[0][0] * tempMatrix2.m[0][0] + tempMatrix1.m[1][0] * tempMatrix2.m[0][1] + tempMatrix1.m[2][0] * tempMatrix2.m[0][2];
+	m1->m[0][1] = tempMatrix1.m[0][1] * tempMatrix2.m[0][0] + tempMatrix1.m[1][1] * tempMatrix2.m[0][1] + tempMatrix1.m[2][1] * tempMatrix2.m[0][2];
+	m1->m[0][2] = tempMatrix1.m[0][2] * tempMatrix2.m[0][0] + tempMatrix1.m[1][2] * tempMatrix2.m[0][1] + tempMatrix1.m[2][2] * tempMatrix2.m[0][2];
+
+	m1->m[1][0] = tempMatrix1.m[0][0] * tempMatrix2.m[1][0] + tempMatrix1.m[1][0] * tempMatrix2.m[1][1] + tempMatrix1.m[2][0] * tempMatrix2.m[1][2];
+	m1->m[1][1] = tempMatrix1.m[0][1] * tempMatrix2.m[1][0] + tempMatrix1.m[1][1] * tempMatrix2.m[1][1] + tempMatrix1.m[2][1] * tempMatrix2.m[1][2];
+	m1->m[1][2] = tempMatrix1.m[0][2] * tempMatrix2.m[1][0] + tempMatrix1.m[1][2] * tempMatrix2.m[1][1] + tempMatrix1.m[2][2] * tempMatrix2.m[1][2];
+
+	m1->m[2][0] = tempMatrix1.m[0][0] * tempMatrix2.m[2][0] + tempMatrix1.m[1][0] * tempMatrix2.m[2][1] + tempMatrix1.m[2][0] * tempMatrix2.m[2][2];
+	m1->m[2][1] = tempMatrix1.m[0][1] * tempMatrix2.m[2][0] + tempMatrix1.m[1][1] * tempMatrix2.m[2][1] + tempMatrix1.m[2][1] * tempMatrix2.m[2][2];
+	m1->m[2][2] = tempMatrix1.m[0][2] * tempMatrix2.m[2][0] + tempMatrix1.m[1][2] * tempMatrix2.m[2][1] + tempMatrix1.m[2][2] * tempMatrix2.m[2][2];
+}
+
+//Multiply "m2" by "m1"!
+void mat3MultiplyMat3By(mat3 *m1, const mat3 *m2){
+	const mat3 tempMatrix1 = *m1;
+	const mat3 tempMatrix2 = *m2;
+
+	m1->m[0][0] = tempMatrix2.m[0][0] * tempMatrix1.m[0][0] + tempMatrix2.m[1][0] * tempMatrix1.m[0][1] + tempMatrix2.m[2][0] * tempMatrix1.m[0][2];
+	m1->m[0][1] = tempMatrix2.m[0][1] * tempMatrix1.m[0][0] + tempMatrix2.m[1][1] * tempMatrix1.m[0][1] + tempMatrix2.m[2][1] * tempMatrix1.m[0][2];
+	m1->m[0][2] = tempMatrix2.m[0][2] * tempMatrix1.m[0][0] + tempMatrix2.m[1][2] * tempMatrix1.m[0][1] + tempMatrix2.m[2][2] * tempMatrix1.m[0][2];
+
+	m1->m[1][0] = tempMatrix2.m[0][0] * tempMatrix1.m[1][0] + tempMatrix2.m[1][0] * tempMatrix1.m[1][1] + tempMatrix2.m[2][0] * tempMatrix1.m[1][2];
+	m1->m[1][1] = tempMatrix2.m[0][1] * tempMatrix1.m[1][0] + tempMatrix2.m[1][1] * tempMatrix1.m[1][1] + tempMatrix2.m[2][1] * tempMatrix1.m[1][2];
+	m1->m[1][2] = tempMatrix2.m[0][2] * tempMatrix1.m[1][0] + tempMatrix2.m[1][2] * tempMatrix1.m[1][1] + tempMatrix2.m[2][2] * tempMatrix1.m[1][2];
+
+	m1->m[2][0] = tempMatrix2.m[0][0] * tempMatrix1.m[2][0] + tempMatrix2.m[1][0] * tempMatrix1.m[2][1] + tempMatrix2.m[2][0] * tempMatrix1.m[2][2];
+	m1->m[2][1] = tempMatrix2.m[0][1] * tempMatrix1.m[2][0] + tempMatrix2.m[1][1] * tempMatrix1.m[2][1] + tempMatrix2.m[2][1] * tempMatrix1.m[2][2];
+	m1->m[2][2] = tempMatrix2.m[0][2] * tempMatrix1.m[2][0] + tempMatrix2.m[1][2] * tempMatrix1.m[2][1] + tempMatrix2.m[2][2] * tempMatrix1.m[2][2];
+}
+
+//Multiply "m1" by "m2" and store the result in "out"! This assumes that "out" isn't "m1" or "m2".
+void mat3MultiplyByMat3Out(const mat3 *m1, const mat3 *m2, mat3 *out){
+	const mat3 tempMatrix1 = *m1;
+	const mat3 tempMatrix2 = *m2;
+
+	out->m[0][0] = tempMatrix1.m[0][0] * tempMatrix2.m[0][0] + tempMatrix1.m[1][0] * tempMatrix2.m[0][1] + tempMatrix1.m[2][0] * tempMatrix2.m[0][2];
+	out->m[0][1] = tempMatrix1.m[0][1] * tempMatrix2.m[0][0] + tempMatrix1.m[1][1] * tempMatrix2.m[0][1] + tempMatrix1.m[2][1] * tempMatrix2.m[0][2];
+	out->m[0][2] = tempMatrix1.m[0][2] * tempMatrix2.m[0][0] + tempMatrix1.m[1][2] * tempMatrix2.m[0][1] + tempMatrix1.m[2][2] * tempMatrix2.m[0][2];
+
+	out->m[1][0] = tempMatrix1.m[0][0] * tempMatrix2.m[1][0] + tempMatrix1.m[1][0] * tempMatrix2.m[1][1] + tempMatrix1.m[2][0] * tempMatrix2.m[1][2];
+	out->m[1][1] = tempMatrix1.m[0][1] * tempMatrix2.m[1][0] + tempMatrix1.m[1][1] * tempMatrix2.m[1][1] + tempMatrix1.m[2][1] * tempMatrix2.m[1][2];
+	out->m[1][2] = tempMatrix1.m[0][2] * tempMatrix2.m[1][0] + tempMatrix1.m[1][2] * tempMatrix2.m[1][1] + tempMatrix1.m[2][2] * tempMatrix2.m[1][2];
+
+	out->m[2][0] = tempMatrix1.m[0][0] * tempMatrix2.m[2][0] + tempMatrix1.m[1][0] * tempMatrix2.m[2][1] + tempMatrix1.m[2][0] * tempMatrix2.m[2][2];
+	out->m[2][1] = tempMatrix1.m[0][1] * tempMatrix2.m[2][0] + tempMatrix1.m[1][1] * tempMatrix2.m[2][1] + tempMatrix1.m[2][1] * tempMatrix2.m[2][2];
+	out->m[2][2] = tempMatrix1.m[0][2] * tempMatrix2.m[2][0] + tempMatrix1.m[1][2] * tempMatrix2.m[2][1] + tempMatrix1.m[2][2] * tempMatrix2.m[2][2];
 }
 
 
 //Find the transpose of a matrix! For column-major matrices, this effectively
 //translates it to a row-major matrix. The reverse is true for row-major matrices.
-void mat3Transpose(const mat3 *m, mat3 *out){
-	float tempMatrix[9];
-	memcpy(tempMatrix, m, sizeof(tempMatrix));
+void mat3Transpose(mat3 *m){
+	const mat3 tempMatrix = *m;
 
-	out->m[0][0] = tempMatrix[0];
-	out->m[0][1] = tempMatrix[3];
-	out->m[0][2] = tempMatrix[6];
+	m->m[0][0] = tempMatrix.m[0][0];
+	m->m[0][1] = tempMatrix.m[1][0];
+	m->m[0][2] = tempMatrix.m[2][0];
 
-	out->m[1][0] = tempMatrix[1];
-	out->m[1][1] = tempMatrix[4];
-	out->m[1][2] = tempMatrix[7];
+	m->m[1][0] = tempMatrix.m[0][1];
+	m->m[1][1] = tempMatrix.m[1][1];
+	m->m[1][2] = tempMatrix.m[2][1];
 
-	out->m[2][0] = tempMatrix[2];
-	out->m[2][1] = tempMatrix[5];
-	out->m[2][2] = tempMatrix[8];
+	m->m[2][0] = tempMatrix.m[0][2];
+	m->m[2][1] = tempMatrix.m[1][2];
+	m->m[2][2] = tempMatrix.m[2][2];
+}
+
+//Find the transpose of a matrix! For column-major matrices, this effectively
+//translates it to a row-major matrix. The reverse is true for row-major matrices.
+void mat3TransposeOut(const mat3 *m, mat3 *out){
+	const mat3 tempMatrix = *m;
+
+	out->m[0][0] = tempMatrix.m[0][0];
+	out->m[0][1] = tempMatrix.m[1][0];
+	out->m[0][2] = tempMatrix.m[2][0];
+
+	out->m[1][0] = tempMatrix.m[0][1];
+	out->m[1][1] = tempMatrix.m[1][1];
+	out->m[1][2] = tempMatrix.m[2][1];
+
+	out->m[2][0] = tempMatrix.m[0][2];
+	out->m[2][1] = tempMatrix.m[1][2];
+	out->m[2][2] = tempMatrix.m[2][2];
 }
 
 //Invert a matrix!
-return_t mat3Invert(const mat3 *m, mat3 *out){
-	float tempMatrix[9];
-	memcpy(tempMatrix, m, sizeof(tempMatrix));
+void mat3Invert(mat3 *m){
+	const mat3 tempMatrix = *m;
 
 	//We need to use these values twice, but we only need to calculate them once.
-	out->m[0][0] = tempMatrix[4] * tempMatrix[8] - tempMatrix[5] * tempMatrix[7];
-	out->m[0][1] = tempMatrix[7] * tempMatrix[2] - tempMatrix[1] * tempMatrix[8];
-	out->m[0][2] = tempMatrix[1] * tempMatrix[5] - tempMatrix[4] * tempMatrix[2];
+	const float f0 = tempMatrix.m[1][1] * tempMatrix.m[2][2] - tempMatrix.m[1][2] * tempMatrix.m[2][1];
+	const float f1 = tempMatrix.m[2][1] * tempMatrix.m[0][2] - tempMatrix.m[0][1] * tempMatrix.m[2][2];
+	const float f2 = tempMatrix.m[0][1] * tempMatrix.m[1][2] - tempMatrix.m[1][1] * tempMatrix.m[0][2];
 	//Find the inverse determinant of the matrix!
-	float invDet = tempMatrix[0] * out->m[0][0] +
-	               tempMatrix[3] * out->m[0][1] +
-	               tempMatrix[6] * out->m[0][2];
+	float invDet = tempMatrix.m[0][0] * f0 +
+	               tempMatrix.m[1][0] * f1 +
+	               tempMatrix.m[2][0] * f2;
 
 	//Make sure we don't divide by 0!
 	if(invDet != 0.f){
 		invDet = 1.f / invDet;
 
 		//Now use the determinant to find the inverse of the matrix!
-		out->m[0][0] *= invDet;
-		out->m[0][1] *= invDet;
-		out->m[0][2] *= invDet;
-		out->m[1][0] = (tempMatrix[6] * tempMatrix[5] - tempMatrix[3] * tempMatrix[8]) * invDet;
-		out->m[1][1] = (tempMatrix[0] * tempMatrix[8] - tempMatrix[6] * tempMatrix[2]) * invDet;
-		out->m[1][2] = (tempMatrix[2] * tempMatrix[3] - tempMatrix[0] * tempMatrix[5]) * invDet;
-		out->m[2][0] = (tempMatrix[3] * tempMatrix[7] - tempMatrix[6] * tempMatrix[4]) * invDet;
-		out->m[2][1] = (tempMatrix[1] * tempMatrix[6] - tempMatrix[0] * tempMatrix[7]) * invDet;
-		out->m[2][2] = (tempMatrix[0] * tempMatrix[4] - tempMatrix[1] * tempMatrix[3]) * invDet;
+		m->m[0][0] = f0 * invDet;
+		m->m[0][1] = f1 * invDet;
+		m->m[0][2] = f2 * invDet;
+		m->m[1][0] = (tempMatrix.m[2][0] * tempMatrix.m[1][2] - tempMatrix.m[1][0] * tempMatrix.m[2][2]) * invDet;
+		m->m[1][1] = (tempMatrix.m[0][0] * tempMatrix.m[2][2] - tempMatrix.m[2][0] * tempMatrix.m[0][2]) * invDet;
+		m->m[1][2] = (tempMatrix.m[0][2] * tempMatrix.m[1][0] - tempMatrix.m[0][0] * tempMatrix.m[1][2]) * invDet;
+		m->m[2][0] = (tempMatrix.m[1][0] * tempMatrix.m[2][1] - tempMatrix.m[2][0] * tempMatrix.m[1][1]) * invDet;
+		m->m[2][1] = (tempMatrix.m[0][1] * tempMatrix.m[2][0] - tempMatrix.m[0][0] * tempMatrix.m[2][1]) * invDet;
+		m->m[2][2] = (tempMatrix.m[0][0] * tempMatrix.m[1][1] - tempMatrix.m[0][1] * tempMatrix.m[1][0]) * invDet;
+	}
+}
+
+//Invert a matrix and store the result in "out"!
+void mat3InvertOut(const mat3 *m, mat3 *out){
+	const mat3 tempMatrix = *m;
+
+	//We need to use these values twice, but we only need to calculate them once.
+	const float f0 = tempMatrix.m[1][1] * tempMatrix.m[2][2] - tempMatrix.m[1][2] * tempMatrix.m[2][1];
+	const float f1 = tempMatrix.m[2][1] * tempMatrix.m[0][2] - tempMatrix.m[0][1] * tempMatrix.m[2][2];
+	const float f2 = tempMatrix.m[0][1] * tempMatrix.m[1][2] - tempMatrix.m[1][1] * tempMatrix.m[0][2];
+	//Find the inverse determinant of the matrix!
+	float invDet = tempMatrix.m[0][0] * f0 +
+	               tempMatrix.m[1][0] * f1 +
+	               tempMatrix.m[2][0] * f2;
+
+	//Make sure we don't divide by 0!
+	if(invDet != 0.f){
+		invDet = 1.f / invDet;
+
+		//Now use the determinant to find the inverse of the matrix!
+		out->m[0][0] = f0 * invDet;
+		out->m[0][1] = f1 * invDet;
+		out->m[0][2] = f2 * invDet;
+		out->m[1][0] = (tempMatrix.m[2][0] * tempMatrix.m[1][2] - tempMatrix.m[1][0] * tempMatrix.m[2][2]) * invDet;
+		out->m[1][1] = (tempMatrix.m[0][0] * tempMatrix.m[2][2] - tempMatrix.m[2][0] * tempMatrix.m[0][2]) * invDet;
+		out->m[1][2] = (tempMatrix.m[0][2] * tempMatrix.m[1][0] - tempMatrix.m[0][0] * tempMatrix.m[1][2]) * invDet;
+		out->m[2][0] = (tempMatrix.m[1][0] * tempMatrix.m[2][1] - tempMatrix.m[2][0] * tempMatrix.m[1][1]) * invDet;
+		out->m[2][1] = (tempMatrix.m[0][1] * tempMatrix.m[2][0] - tempMatrix.m[0][0] * tempMatrix.m[2][1]) * invDet;
+		out->m[2][2] = (tempMatrix.m[0][0] * tempMatrix.m[1][1] - tempMatrix.m[0][1] * tempMatrix.m[1][0]) * invDet;
+	}
+}
+
+//Invert a matrix!
+return_t mat3InvertR(mat3 *m){
+	const mat3 tempMatrix = *m;
+
+	//We need to use these values twice, but we only need to calculate them once.
+	const float f0 = tempMatrix.m[1][1] * tempMatrix.m[2][2] - tempMatrix.m[1][2] * tempMatrix.m[2][1];
+	const float f1 = tempMatrix.m[2][1] * tempMatrix.m[0][2] - tempMatrix.m[0][1] * tempMatrix.m[2][2];
+	const float f2 = tempMatrix.m[0][1] * tempMatrix.m[1][2] - tempMatrix.m[1][1] * tempMatrix.m[0][2];
+	//Find the inverse determinant of the matrix!
+	float invDet = tempMatrix.m[0][0] * f0 +
+	               tempMatrix.m[1][0] * f1 +
+	               tempMatrix.m[2][0] * f2;
+
+	//Make sure we don't divide by 0!
+	if(invDet != 0.f){
+		invDet = 1.f / invDet;
+
+		//Now use the determinant to find the inverse of the matrix!
+		m->m[0][0] = f0 * invDet;
+		m->m[0][1] = f1 * invDet;
+		m->m[0][2] = f2 * invDet;
+		m->m[1][0] = (tempMatrix.m[2][0] * tempMatrix.m[1][2] - tempMatrix.m[1][0] * tempMatrix.m[2][2]) * invDet;
+		m->m[1][1] = (tempMatrix.m[0][0] * tempMatrix.m[2][2] - tempMatrix.m[2][0] * tempMatrix.m[0][2]) * invDet;
+		m->m[1][2] = (tempMatrix.m[0][2] * tempMatrix.m[1][0] - tempMatrix.m[0][0] * tempMatrix.m[1][2]) * invDet;
+		m->m[2][0] = (tempMatrix.m[1][0] * tempMatrix.m[2][1] - tempMatrix.m[2][0] * tempMatrix.m[1][1]) * invDet;
+		m->m[2][1] = (tempMatrix.m[0][1] * tempMatrix.m[2][0] - tempMatrix.m[0][0] * tempMatrix.m[2][1]) * invDet;
+		m->m[2][2] = (tempMatrix.m[0][0] * tempMatrix.m[1][1] - tempMatrix.m[0][1] * tempMatrix.m[1][0]) * invDet;
 
 
 		return(1);
 	}
 
-	memcpy(out, tempMatrix, sizeof(tempMatrix));
+
+	return(0);
+}
+
+//Invert a matrix and store the result in "out"!
+return_t mat3InvertROut(const mat3 *m, mat3 *out){
+	const mat3 tempMatrix = *m;
+
+	//We need to use these values twice, but we only need to calculate them once.
+	const float f0 = tempMatrix.m[1][1] * tempMatrix.m[2][2] - tempMatrix.m[1][2] * tempMatrix.m[2][1];
+	const float f1 = tempMatrix.m[2][1] * tempMatrix.m[0][2] - tempMatrix.m[0][1] * tempMatrix.m[2][2];
+	const float f2 = tempMatrix.m[0][1] * tempMatrix.m[1][2] - tempMatrix.m[1][1] * tempMatrix.m[0][2];
+	//Find the inverse determinant of the matrix!
+	float invDet = tempMatrix.m[0][0] * f0 +
+	               tempMatrix.m[1][0] * f1 +
+	               tempMatrix.m[2][0] * f2;
+
+	//Make sure we don't divide by 0!
+	if(invDet != 0.f){
+		invDet = 1.f / invDet;
+
+		//Now use the determinant to find the inverse of the matrix!
+		out->m[0][0] = f0 * invDet;
+		out->m[0][1] = f1 * invDet;
+		out->m[0][2] = f2 * invDet;
+		out->m[1][0] = (tempMatrix.m[2][0] * tempMatrix.m[1][2] - tempMatrix.m[1][0] * tempMatrix.m[2][2]) * invDet;
+		out->m[1][1] = (tempMatrix.m[0][0] * tempMatrix.m[2][2] - tempMatrix.m[2][0] * tempMatrix.m[0][2]) * invDet;
+		out->m[1][2] = (tempMatrix.m[0][2] * tempMatrix.m[1][0] - tempMatrix.m[0][0] * tempMatrix.m[1][2]) * invDet;
+		out->m[2][0] = (tempMatrix.m[1][0] * tempMatrix.m[2][1] - tempMatrix.m[2][0] * tempMatrix.m[1][1]) * invDet;
+		out->m[2][1] = (tempMatrix.m[0][1] * tempMatrix.m[2][0] - tempMatrix.m[0][0] * tempMatrix.m[2][1]) * invDet;
+		out->m[2][2] = (tempMatrix.m[0][0] * tempMatrix.m[1][1] - tempMatrix.m[0][1] * tempMatrix.m[1][0]) * invDet;
+
+
+		return(1);
+	}
 
 
 	return(0);

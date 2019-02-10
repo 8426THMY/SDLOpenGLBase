@@ -74,7 +74,7 @@ static const colliderCalculateInertiaPrototype colliderCalculateInertiaTable[COL
 		}
 
 		//Multiply the accumulated positions by the inverse mass to calculate the centroid.
-		vec3MultiplyS(centroid, collider->invMass, centroid);
+		vec3MultiplyS(centroid, collider->invMass);
 	}else{
 		//If the vertices are not weighted, we can save some multiplications.
 		for(; curVertex < lastVertex; ++curVertex){

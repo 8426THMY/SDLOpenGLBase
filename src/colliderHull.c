@@ -35,17 +35,17 @@
 
 	#define CLIPPING_SWAPPED (offsetof(contactKey, edgeB) - offsetof(contactKey, edgeA))
 
-	#define clippingGetKeyEdgeA(key, offset) *((typeof((key).edgeA) *)(((byte_t *)&((key).edgeA)) + (offset)))
-	#define clippingGetKeyEdgeB(key, offset) *((typeof((key).edgeA) *)(((byte_t *)&((key).edgeA)) - (offset)))
+	#define clippingGetKeyEdgeA(key, offset) *((colliderEdgeIndex_t *)(((byte_t *)&((key).edgeA)) + (offset)))
+	#define clippingGetKeyEdgeB(key, offset) *((colliderEdgeIndex_t *)(((byte_t *)&((key).edgeA)) - (offset)))
 
 	#else
 
 	#define CLIPPING_SWAPPED (offsetof(contactKey, inEdgeB) - offsetof(contactKey, inEdgeA))
 
-	#define clippingGetKeyInEdgeA(key, offset)  *((typeof((key).inEdgeA) *)(((byte_t *)&((key).inEdgeA)) + (offset)))
-	#define clippingGetKeyOutEdgeA(key, offset) *((typeof((key).outEdgeA) *)(((byte_t *)&((key).outEdgeA)) + (offset)))
-	#define clippingGetKeyInEdgeB(key, offset)  *((typeof((key).inEdgeB) *)(((byte_t *)&((key).inEdgeB)) - (offset)))
-	#define clippingGetKeyOutEdgeB(key, offset) *((typeof((key).outEdgeB) *)(((byte_t *)&((key).outEdgeB)) - (offset)))
+	#define clippingGetKeyInEdgeA(key, offset)  *((colliderEdgeIndex_t *)(((byte_t *)&((key).inEdgeA)) + (offset)))
+	#define clippingGetKeyOutEdgeA(key, offset) *((colliderEdgeIndex_t *)(((byte_t *)&((key).outEdgeA)) + (offset)))
+	#define clippingGetKeyInEdgeB(key, offset)  *((colliderEdgeIndex_t *)(((byte_t *)&((key).inEdgeB)) - (offset)))
+	#define clippingGetKeyOutEdgeB(key, offset) *((colliderEdgeIndex_t *)(((byte_t *)&((key).outEdgeB)) - (offset)))
 
 	#endif
 
@@ -208,9 +208,19 @@ void colliderHullCalculateInertia(const void *hull, float inertia[6]){
 	}
 }
 
-//Calculate the collider's centre of gravity.
-void colliderHullCalculateCentroid(const colliderHull *hull){
-	//
+/*
+** Calculate the collider's centre of gravity. To
+** do this, we calculate the centroid of each of the
+** hull's triangles and then determine the average.
+*/
+/** Is this right? **/
+void colliderHullCalculateCentroid(colliderHull *hull){
+	const colliderHullFace *curFace = hull->faces;
+	const colliderHullFace *lastFace = &curFace[hull->numFaces];
+
+	for(; curFace < lastFace; ++curFace){
+		//
+	}
 }
 
 
@@ -428,8 +438,8 @@ static return_t edgeSeparation(const colliderHull *hullA, const colliderHull *hu
 	const vec3 *startVertexB = &hullB->vertices[edgeB->endVertexIndex];
 	vec3 invEdgeB;
 
-	vec3SubtractVec3From(startVertexA, &hullA->vertices[edgeA->endVertexIndex], &invEdgeA);
-	vec3SubtractVec3From(startVertexB, &hullB->vertices[edgeB->endVertexIndex], &invEdgeB);
+	vec3SubtractVec3FromOut(startVertexA, &hullA->vertices[edgeA->endVertexIndex], &invEdgeA);
+	vec3SubtractVec3FromOut(startVertexB, &hullB->vertices[edgeB->endVertexIndex], &invEdgeB);
 
 	return(
 		!isMinkowskiFace(hullA, hullB, edgeA, &invEdgeA, edgeB, &invEdgeB) ||
@@ -445,7 +455,7 @@ static return_t edgeSeparation(const colliderHull *hullA, const colliderHull *hu
 ** to create the contact manifold.
 */
 static void clipManifoldSHC(const colliderHull *hullA, const colliderHull *hullB, const collisionData *cd, contactManifold *cm){
-	const float bestFaceSeparation = maxNum(cd->faceA.penetration, cd->faceB.penetration);
+	const float bestFaceSeparation = maxNumFast(cd->faceA.penetration, cd->faceB.penetration);
 
 	//If the deepest penetration occurs on an edge normal, clip using the edges.
 	if(cd->edgeData.penetration > bestFaceSeparation){
@@ -527,8 +537,8 @@ static float edgeDistSquared(const vec3 *pA, const vec3 *edgeDirA,
 	}
 
 
-	vec3MultiplyS(&edgeNormal, fastInvSqrt(edgeCrossLength), &edgeNormal);
-	vec3SubtractVec3From(pA, centroid, &offset);
+	vec3MultiplyS(&edgeNormal, fastInvSqrt(edgeCrossLength));
+	vec3SubtractVec3FromOut(pA, centroid, &offset);
 	//If the edge normal does not point from
 	//object A to object B, we need to invert it.
 	if(vec3DotVec3(&edgeNormal, &offset) < 0.f){
@@ -536,7 +546,7 @@ static float edgeDistSquared(const vec3 *pA, const vec3 *edgeDirA,
 	}
 
 
-	vec3SubtractVec3From(pB, pA, &offset);
+	vec3SubtractVec3FromOut(pB, pA, &offset);
 
 	//Return the distance between the edges.
 	return(vec3DotVec3(&edgeNormal, &offset));
@@ -629,13 +639,13 @@ static return_t noSeparatingEdge(const colliderHull *hullA, const colliderHull *
 		colliderEdgeIndex_t b;
 
 		//Get the inverse of edge 1's normal.
-		vec3SubtractVec3From(startVertexA, &hullA->vertices[edgeA->endVertexIndex], &invEdgeA);
+		vec3SubtractVec3FromOut(startVertexA, &hullA->vertices[edgeA->endVertexIndex], &invEdgeA);
 
 		for(b = 0; edgeB < lastEdgeB; ++edgeB, b += 2){
 			const vec3 *startVertexB = &hullB->vertices[edgeB->startVertexIndex];
 			vec3 invEdgeB;
 			//Get the inverse of edge 2's normal
-			vec3SubtractVec3From(startVertexB, &hullB->vertices[edgeB->endVertexIndex], &invEdgeB);
+			vec3SubtractVec3FromOut(startVertexB, &hullB->vertices[edgeB->endVertexIndex], &invEdgeB);
 
 			//We only need to compare two edges if they
 			//form a face on the Minkowski difference.
@@ -1189,14 +1199,14 @@ static void clipEdgeContact(const colliderHull *hullA, const colliderHull *hullB
 	//need to find the closest points on both line segments.
 	segmentClosestPoints(refStart, refEnd, incStart, incEnd, &refClosest, &incClosest);
 	//Now find and keep the point halfway between the two!
-	vec3AddVec3(&refClosest, &incClosest, &contact->position);
-	vec3MultiplyS(&contact->position, 0.5f, &contact->position);
+	vec3AddVec3Out(&refClosest, &incClosest, &contact->position);
+	vec3MultiplyS(&contact->position, 0.5f);
 	contact->penetration = edgeData->penetration;
 
 	//Find the collision's normal. It will be the
 	//vector from the closest point on the reference
 	//edge to the closest point on the incident edge.
-	vec3SubtractVec3From(&incClosest, &refClosest, &cm->normal);
+	vec3SubtractVec3FromOut(&incClosest, &refClosest, &cm->normal);
 	vec3NormalizeVec3(&cm->normal);
 
 

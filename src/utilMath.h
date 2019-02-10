@@ -13,9 +13,15 @@
 #define lerpNum(x, y, t) (x + t * (y - x))
 #define lerpNumFast(x, y, t) (x + t * y)
 
-#define minNum(x, y) (((x) <= (y)) ? (x) : (y))
-#define maxNum(x, y) (((x) >= (y)) ? (x) : (y))
+//Note: These are prone to double evaluation!
+#define minNumFast(x, y) (((x) <= (y)) ? (x) : (y))
+#define maxNumFast(x, y) (((x) >= (y)) ? (x) : (y))
+#define clampNumFast(min, x, max) (((min) >= (x)) ? (min) : (((x) >= (max)) ? (max) : (x)))
 
+
+float minNum(const float x, const float y);
+float maxNum(const float x, const float y);
+float clampNum(const float min, const float x, const float max);
 
 float fastInvSqrt(const float x);
 

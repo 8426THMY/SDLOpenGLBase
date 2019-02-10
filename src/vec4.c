@@ -29,80 +29,187 @@ void vec4InitSet(vec4 *v, const float x, const float y, const float z, const flo
 }
 
 
+//Add a vec4 stored as four floats to "v"!
+void vec4Add(vec4 *v, const float x, const float y, const float z, const float w){
+	v->x += x;
+	v->y += y;
+	v->z += z;
+	v->w += w;
+}
+
 //Add a vec4 stored as four floats to "v" and store the result in "out"!
-void vec4Add(const vec4 *v, const float x, const float y, const float z, const float w, vec4 *out){
+void vec4AddOut(const vec4 *v, const float x, const float y, const float z, const float w, vec4 *out){
 	out->x = v->x + x;
 	out->y = v->y + y;
 	out->z = v->z + z;
 	out->w = v->w + w;
 }
 
+//Add "x" to "v"!
+void vec4AddS(vec4 *v, const float x){
+	v->x += x;
+	v->y += x;
+	v->z += x;
+	v->w += x;
+}
+
 //Add "x" to "v" and store the result in "out"!
-void vec4AddS(const vec4 *v, const float x, vec4 *out){
+void vec4AddSOut(const vec4 *v, const float x, vec4 *out){
 	out->x = v->x + x;
 	out->y = v->y + x;
 	out->z = v->z + x;
 	out->w = v->w + x;
 }
 
+//Add "v2" to "v1"!
+void vec4AddVec4(vec4 *v1, const vec4 *v2){
+	v1->x += v2->x;
+	v1->y += v2->y;
+	v1->z += v2->z;
+	v1->w += v2->w;
+}
+
 //Add "v2" to "v1" and store the result in "out"!
-void vec4AddVec4(const vec4 *v1, const vec4 *v2, vec4 *out){
+void vec4AddVec4Out(const vec4 *v1, const vec4 *v2, vec4 *out){
 	out->x = v1->x + v2->x;
 	out->y = v1->y + v2->y;
 	out->z = v1->z + v2->z;
 	out->w = v1->w + v2->w;
 }
 
+//Subtract a vec4 stored as four floats from "v"!
+void vec4Subtract(vec4 *v, const float x, const float y, const float z, const float w){
+	v->x -= x;
+	v->y -= y;
+	v->z -= z;
+	v->w -= w;
+}
+
+//Subtract a vec4 stored as four floats from "v" and store the result in "out"!
+void vec4SubtractOut(const vec4 *v, const float x, const float y, const float z, const float w, vec4 *out){
+	out->x = v->x - x;
+	out->y = v->y - y;
+	out->z = v->z - z;
+	out->w = v->w - w;
+}
+
+//Subtract "v" from a vec4 stored as four floats!
+void vec4SubtractFrom(vec4 *v, const float x, const float y, const float z, const float w){
+	v->x = x - v->x;
+	v->y = y - v->y;
+	v->z = z - v->z;
+	v->w = w - v->w;
+}
+
 //Subtract "v" from a vec4 stored as four floats and store the result in "out"!
-void vec4SubtractFrom(const vec4 *v, const float x, const float y, const float z, const float w, vec4 *out){
+void vec4SubtractFromOut(const vec4 *v, const float x, const float y, const float z, const float w, vec4 *out){
 	out->x = x - v->x;
 	out->y = y - v->y;
 	out->z = z - v->z;
 	out->w = w - v->w;
 }
 
+//Subtract "x" from "v"!
+void vec4SubtractSFrom(vec4 *v, const float x){
+	v->x -= x;
+	v->y -= x;
+	v->z -= x;
+	v->w -= x;
+}
+
 //Subtract "x" from "v" and store the result in "out"!
-void vec4SubtractSFrom(const vec4 *v, const float x, vec4 *out){
+void vec4SubtractSFromOut(const vec4 *v, const float x, vec4 *out){
 	out->x = v->x - x;
 	out->y = v->y - x;
 	out->z = v->z - x;
 	out->w = v->w - x;
 }
 
+//Subtract "v" from "x"!
+void vec4SubtractFromS(vec4 *v, const float x){
+	v->x = x - v->x;
+	v->y = x - v->y;
+	v->z = x - v->z;
+	v->w = x - v->w;
+}
+
 //Subtract "v" from "x" and store the result in "out"!
-void vec4SubtractFromS(const vec4 *v, const float x, vec4 *out){
+void vec4SubtractFromSOut(const vec4 *v, const float x, vec4 *out){
 	out->x = x - v->x;
 	out->y = x - v->y;
 	out->z = x - v->z;
 	out->w = x - v->w;
 }
 
+//Subtract "v2" from "v1"!
+void vec4SubtractVec4From(vec4 *v1, const vec4 *v2){
+	v1->x -= v2->x;
+	v1->y -= v2->y;
+	v1->z -= v2->z;
+	v1->w -= v2->w;
+}
+
+//Subtract "v1" from "v2"!
+void vec4SubtractFromVec4(vec4 *v1, const vec4 *v2){
+	v1->x = v2->x - v1->x;
+	v1->y = v2->y - v1->y;
+	v1->z = v2->z - v1->z;
+	v1->w = v2->w - v1->w;
+}
+
 //Subtract "v2" from "v1" and store the result in "out"!
-void vec4SubtractVec4From(const vec4 *v1, const vec4 *v2, vec4 *out){
+void vec4SubtractVec4FromOut(const vec4 *v1, const vec4 *v2, vec4 *out){
 	out->x = v1->x - v2->x;
 	out->y = v1->y - v2->y;
 	out->z = v1->z - v2->z;
 	out->w = v1->w - v2->w;
 }
 
+
+//Multiply "v" by "x"!
+void vec4MultiplyS(vec4 *v, const float x){
+	v->x *= x;
+	v->y *= x;
+	v->z *= x;
+	v->w *= x;
+}
+
 //Multiply "v" by "x" and store the result in "out"!
-void vec4MultiplyS(const vec4 *v, const float x, vec4 *out){
+void vec4MultiplySOut(const vec4 *v, const float x, vec4 *out){
 	out->x = v->x * x;
 	out->y = v->y * x;
 	out->z = v->z * x;
 	out->w = v->w * x;
 }
 
+//Multiply "v1" by "v2"!
+void vec4MultiplyVec4(vec4 *v1, const vec4 *v2){
+	v1->x *= v2->x;
+	v1->y *= v2->y;
+	v1->z *= v2->z;
+	v1->w *= v2->w;
+}
+
 //Multiply "v1" by "v2" and store the result in "out"!
-void vec4MultiplyVec4(const vec4 *v1, const vec4 *v2, vec4 *out){
+void vec4MultiplyVec4Out(const vec4 *v1, const vec4 *v2, vec4 *out){
 	out->x = v1->x * v2->x;
 	out->y = v1->y * v2->y;
 	out->z = v1->z * v2->z;
 	out->w = v1->w * v2->w;
 }
 
+//Divide "v" by "x"!
+void vec4DivideByS(vec4 *v, const float x){
+	const float invX = 1.f / x;
+
+	v->x *= invX;
+	v->y *= invX;
+	v->z *= invX;
+	v->w *= invX;
+}
+
 //Divide "v" by "x" and store the result in "out"!
-void vec4DivideByS(const vec4 *v, const float x, vec4 *out){
+void vec4DivideBySOut(const vec4 *v, const float x, vec4 *out){
 	const float invX = 1.f / x;
 
 	out->x = v->x * invX;
@@ -111,8 +218,16 @@ void vec4DivideByS(const vec4 *v, const float x, vec4 *out){
 	out->w = v->w * invX;
 }
 
+//Divide "x" by "v"!
+void vec4DivideSBy(vec4 *v, const float x){
+	v->x = (v->x != 0.f) ? x / v->x : 0.f;
+	v->y = (v->y != 0.f) ? x / v->y : 0.f;
+	v->z = (v->z != 0.f) ? x / v->z : 0.f;
+	v->w = (v->w != 0.f) ? x / v->w : 0.f;
+}
+
 //Divide "x" by "v" and store the result in "out"!
-void vec4DivideSBy(const vec4 *v, const float x, vec4 *out){
+void vec4DivideSByOut(const vec4 *v, const float x, vec4 *out){
 	out->x = (v->x != 0.f) ? x / v->x : 0.f;
 	out->y = (v->y != 0.f) ? x / v->y : 0.f;
 	out->z = (v->z != 0.f) ? x / v->z : 0.f;
@@ -120,19 +235,46 @@ void vec4DivideSBy(const vec4 *v, const float x, vec4 *out){
 }
 
 /*
+** Divide "x" by "v"! Unlike the regular version, this
+** does not check to prevent against divide-by-zero errors.
+*/
+void vec4DivideSByFast(vec4 *v, const float x){
+	v->x = x / v->x;
+	v->y = x / v->y;
+	v->z = x / v->z;
+	v->w = x / v->w;
+}
+
+/*
 ** Divide "x" by "v" and store the result in "out"!
 ** Unlike the regular version, this does not check
 ** to prevent against divide-by-zero errors.
 */
-void vec4DivideSByFast(const vec4 *v, const float x, vec4 *out){
+void vec4DivideSByFastOut(const vec4 *v, const float x, vec4 *out){
 	out->x = x / v->x;
 	out->y = x / v->y;
 	out->z = x / v->z;
 	out->w = x / v->w;
 }
 
+//Divide "v" by "v"!
+void vec4DivideByVec4(vec4 *v1, const vec4 *v2){
+	v1->x = (v2->x != 0.f) ? v1->x / v2->x : 0.f;
+	v1->y = (v2->y != 0.f) ? v1->y / v2->y : 0.f;
+	v1->z = (v2->z != 0.f) ? v1->z / v2->z : 0.f;
+	v1->w = (v2->w != 0.f) ? v1->w / v2->w : 0.f;
+}
+
+//Divide "v2" by "v1"!
+void vec4DivideVec4By(vec4 *v1, const vec4 *v2){
+	v1->x = (v1->x != 0.f) ? v2->x / v1->x : 0.f;
+	v1->y = (v1->y != 0.f) ? v2->y / v1->y : 0.f;
+	v1->z = (v1->z != 0.f) ? v2->z / v1->z : 0.f;
+	v1->w = (v1->w != 0.f) ? v2->w / v1->w : 0.f;
+}
+
 //Divide "v1" by "v2" and store the result in "out"!
-void vec4DivideByVec4(const vec4 *v1, const vec4 *v2, vec4 *out){
+void vec4DivideByVec4Out(const vec4 *v1, const vec4 *v2, vec4 *out){
 	out->x = (v2->x != 0.f) ? v1->x / v2->x : 0.f;
 	out->y = (v2->y != 0.f) ? v1->y / v2->y : 0.f;
 	out->z = (v2->z != 0.f) ? v1->z / v2->z : 0.f;
@@ -140,11 +282,33 @@ void vec4DivideByVec4(const vec4 *v1, const vec4 *v2, vec4 *out){
 }
 
 /*
+** Divide "v1" by "v2"! Unlike the regular version, this
+** does not check to prevent against divide-by-zero errors.
+*/
+void vec4DivideByVec4Fast(vec4 *v1, const vec4 *v2){
+	v1->x /= v2->x;
+	v1->y /= v2->y;
+	v1->z /= v2->z;
+	v1->w /= v2->w;
+}
+
+/*
+** Divide "v2" by "v1"! Unlike the regular version, this
+** does not check to prevent against divide-by-zero errors.
+*/
+void vec4DivideVec4ByFast(vec4 *v1, const vec4 *v2){
+	v1->x = v2->x / v1->x;
+	v1->y = v2->y / v1->y;
+	v1->z = v2->z / v1->z;
+	v1->w = v2->w / v1->w;
+}
+
+/*
 ** Divide "v1" by "v2" and store the result in "out"!
 ** Unlike the regular version, this does not check
 ** to prevent against divide-by-zero errors.
 */
-void vec4DivideByVec4Fast(const vec4 *v1, const vec4 *v2, vec4 *out){
+void vec4DivideByVec4FastOut(const vec4 *v1, const vec4 *v2, vec4 *out){
 	out->x = v1->x / v2->x;
 	out->y = v1->y / v2->y;
 	out->z = v1->z / v2->z;
@@ -290,10 +454,10 @@ void vec4LerpFast(const vec4 *v, const vec4 *offset, const float time, vec4 *out
 ** and return a vec4 composed of these minima in "out".
 */
 void vec4Min(const vec4 *v1, const vec4 *v2, vec4 *out){
-	out->x = minNum(v1->x, v2->x);
-	out->y = minNum(v1->y, v2->y);
-	out->z = minNum(v1->z, v2->z);
-	out->w = minNum(v1->w, v2->w);
+	out->x = minNumFast(v1->x, v2->x);
+	out->y = minNumFast(v1->y, v2->y);
+	out->z = minNumFast(v1->z, v2->z);
+	out->w = minNumFast(v1->w, v2->w);
 }
 
 /*
@@ -301,8 +465,8 @@ void vec4Min(const vec4 *v1, const vec4 *v2, vec4 *out){
 ** and return a vec4 composed of these maxima in "out".
 */
 void vec4Max(const vec4 *v1, const vec4 *v2, vec4 *out){
-	out->x = maxNum(v1->x, v2->x);
-	out->y = maxNum(v1->y, v2->y);
-	out->z = maxNum(v1->z, v2->z);
-	out->w = maxNum(v1->w, v2->w);
+	out->x = maxNumFast(v1->x, v2->x);
+	out->y = maxNumFast(v1->y, v2->y);
+	out->z = maxNumFast(v1->z, v2->z);
+	out->w = maxNumFast(v1->w, v2->w);
 }

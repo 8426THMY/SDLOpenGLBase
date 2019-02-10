@@ -17,7 +17,7 @@ void cameraInit(camera *cam){
 
 
 void cameraStateAddPos(cameraState *camState, const float x, const float y, const float z, const float time){
-	vec3Add(&camState->pos.next, x * time, y * time, z * time, &camState->pos.next);
+	vec3Add(&camState->pos.next, x * time, y * time, z * time);
 }
 
 void cameraStateAddPosX(cameraState *camState, const float x, const float time){

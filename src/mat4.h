@@ -27,20 +27,20 @@ void mat4InitScale4(mat4 *m, const float x, const float y, const float z, const 
 void mat4InitScaleVec3(mat4 *m, const vec3 *v);
 void mat4InitScaleVec4(mat4 *m, const vec4 *v);
 
-void vec4MultiplyMat4(const vec4 *v, const mat4 *m, mat4 *out);
-void vec4MultiplyMat4R(const vec4 *v, const mat4 *m, mat4 *out);
-void mat4MultiplyVec4(const mat4 *m, const vec4 *v, vec4 *out);
-void mat4MultiplyVec4R(const mat4 *m, const vec4 *v, vec4 *out);
-void mat4MultiplyMat4(const mat4 *m1, const mat4 *m2, mat4 *out);
-void mat4MultiplyMat4R(const mat4 *m1, const mat4 *m2, mat4 *out);
+void mat4MultiplyByVec3(const mat4 *m, vec3 *v);
+void mat4MultiplyByVec3Out(const mat4 *m, const vec3 *v, vec3 *out);
+void mat4MultiplyVec4By(mat4 *m, const vec4 *v);
+void mat4MultiplyVec4ByOut(const mat4 *m, const vec4 *v, mat4 *out);
+void mat4MultiplyByVec4(const mat4 *m, vec4 *v);
+void mat4MultiplyByVec4Out(const mat4 *m, const vec4 *v, vec4 *out);
+void mat4MultiplyByMat4(mat4 *m1, const mat4 *m2, mat4 *out);
+void mat4MultiplyMat4By(mat4 *m1, const mat4 *m2, mat4 *out);
+void mat4MultiplyByMat4Out(const mat4 *m1, const mat4 *m2, mat4 *out);
 
 void mat4Translate(mat4 *m, const float x, const float y, const float z);
 void mat4Translate4(mat4 *m, const float x, const float y, const float z, const float w);
 void mat4TranslateVec3(mat4 *m, const vec3 *v);
 void mat4TranslateVec4(mat4 *m, const vec4 *v);
-
-void vec3Transform(const vec3 *v, const mat4 *m, vec3 *out);
-void vec3TransformR(const vec3 *v, const mat4 *m, vec3 *out);
 
 void mat4RotateRad(mat4 *m, const float x, const float y, const float z);
 void mat4RotateDeg(mat4 *m, const float x, const float y, const float z);
@@ -60,8 +60,12 @@ void mat4Scale4(mat4 *m, const float x, const float y, const float z, const floa
 void mat4ScaleVec3(mat4 *m, const vec3 *v);
 void mat4ScaleVec4(mat4 *m, const vec4 *v);
 
-void mat4Transpose(const mat4 *m, mat4 *out);
-return_t mat4Invert(const mat4 *m, mat4 *out);
+void mat4Transpose(mat4 *m);
+void mat4TransposeOut(const mat4 *m, mat4 *out);
+void mat4Invert(mat4 *m);
+void mat4InvertOut(const mat4 *m, mat4 *out);
+return_t mat4InvertR(mat4 *m);
+return_t mat4InvertROut(const mat4 *m, mat4 *out);
 
 void mat4Orthographic(mat4 *m, const float right, const float left, const float bottom, const float top, const float near, const float far);
 void mat4Perspective(mat4 *m, const float fov, const float aspectRatio, const float near, const float far);

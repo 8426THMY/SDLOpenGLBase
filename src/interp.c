@@ -75,7 +75,7 @@ void interpQuatMoveToNextState(interpQuat *iQuat){
 
 
 void interpTransAddPos(interpTransform *iTrans, const float x, const float y, const float z, const float time){
-	vec3Add(&iTrans->pos.next, x * time, y * time, z * time, &iTrans->pos.next);
+	vec3Add(&iTrans->pos.next, x * time, y * time, z * time);
 }
 
 void interpTransAddPosX(interpTransform *iTrans, const float x, const float time){
@@ -173,7 +173,7 @@ void interpTransSetNextRotQuat(interpTransform *iTrans, const quat *q){
 
 //Below this comment are the functions for interpTransforms. There are a lot of them.
 void interpTransAddScale(interpTransform *iTrans, const float x, const float y, const float z, const float time){
-	vec3Add(&iTrans->scale.next, x * time, y * time, z * time, &iTrans->scale.next);
+	vec3Add(&iTrans->scale.next, x * time, y * time, z * time);
 }
 
 void interpTransAddScaleX(interpTransform *iTrans, const float x, const float time){

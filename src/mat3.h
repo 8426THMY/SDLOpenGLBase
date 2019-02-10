@@ -18,15 +18,20 @@ typedef struct mat3 {
 void mat3InitZero(mat3 *m);
 void mat3InitIdentity(mat3 *m);
 
-void vec3MultiplyMat3(const vec3 *v, const mat3 *m, mat3 *out);
-void vec3MultiplyMat3R(const vec3 *v, const mat3 *m, mat3 *out);
-void mat3MultiplyVec3(const mat3 *m, const vec3 *v, vec3 *out);
-void mat3MultiplyVec3R(const mat3 *m, const vec3 *v, vec3 *out);
-void mat3MultiplyMat3(const mat3 *m1, const mat3 *m2, mat3 *out);
-void mat3MultiplyMat3R(const mat3 *m1, const mat3 *m2, mat3 *out);
+void mat3MultiplyByVec3(const mat3 *m, vec3 *v);
+void mat3MultiplyByVec3Out(const mat3 *m, const vec3 *v, vec3 *out);
+void mat3MultiplyVec3By(mat3 *m, const vec3 *v);
+void mat3MultiplyVec3ByOut(const mat3 *m, const vec3 *v, mat3 *out);
+void mat3MultiplyByMat3(mat3 *m1, const mat3 *m2);
+void mat3MultiplyMat3By(mat3 *m1, const mat3 *m2);
+void mat3MultiplyByMat3Out(const mat3 *m1, const mat3 *m2, mat3 *out);
 
-void mat3Transpose(const mat3 *m, mat3 *out);
-return_t mat3Invert(const mat3 *m, mat3 *out);
+void mat3Transpose(mat3 *m);
+void mat3TransposeOut(const mat3 *m, mat3 *out);
+void mat3Invert(mat3 *m);
+void mat3InvertOut(const mat3 *m, mat3 *out);
+return_t mat3InvertR(mat3 *m);
+return_t mat3InvertROut(const mat3 *m, mat3 *out);
 
 
 #endif

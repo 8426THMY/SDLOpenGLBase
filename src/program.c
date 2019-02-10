@@ -275,7 +275,7 @@ static void render(program *prg){
 		//Generate a view matrix that looks from the camera to target!
 		mat4LookAt(&viewMatrix, &camPos, &target, &up);
 		//Multiply it by the projection matrix!
-		mat4MultiplyMat4R(&prg->projectionMatrix, &viewMatrix, &viewProjectionMatrix);
+		mat4MultiplyByMat4Out(&prg->projectionMatrix, &viewMatrix, &viewProjectionMatrix);
 		/*mat4 viewProjectionMatrix = prg->projectionMatrix;
 		cameraStateGenerateViewMatrix((cameraState *)prg->cam.states[renderState], prg->framerate.renderDelta, &viewProjectionMatrix);*/
 

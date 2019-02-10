@@ -13,7 +13,8 @@
 
 
 typedef struct physicsRigidBodyDef {
-	/*collider collider;
+	physicsCollider *colliders;
+	uint_least16_t numColliders;
 
 	//The rigid body's physical properties.
 	float mass;
@@ -22,9 +23,10 @@ typedef struct physicsRigidBodyDef {
 	vec3 centroid;
 	//Matrix that describes how the body
 	//resists rotation around an axis.
-	mat3 invInertia;*/
+	mat3 invInertia;
 } physicsRigidBodyDef;
 
+//Rigid body instance.
 typedef struct physicsRigidBody {
 	physicsCollider *colliders;
 	uint_least16_t numColliders;
@@ -66,8 +68,6 @@ void physRigidBodyUpdate(physicsRigidBody *body, const float dt);
 
 
 /**
-Contact solving.
-
 Collider centroid.
 Body centroid.
 Collider inertia tensor.

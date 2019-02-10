@@ -17,23 +17,44 @@ void quatInitEulerDeg(quat *q, const float x, const float y, const float z);
 void quatInitEulerVec3Rad(quat *q, const vec3 *v);
 void quatInitEulerVec3Deg(quat *q, const vec3 *v);
 
-void quatAdd(const quat *q, const float x, const float y, const float z, const float w, quat *out);
-void quatAddS(const quat *q, const float x, quat *out);
-void quatAddVec4(const quat *q, const vec4 *v, quat *out);
-void quatSubtractFrom(const quat *q, const float x, const float y, const float z, const float w, quat *out);
-void quatSubtractSFrom(const quat *q, const float x, quat *out);
-void quatSubtractFromS(const quat *q, const float x, quat *out);
-void quatSubtractVec4From(const quat *q, const vec4 *v, quat *out);
-void quatMultiplyS(const quat *q, const float x, quat *out);
-void quatMultiplyVec4(const quat *q, const vec4 *v, quat *out);
-void quatDivideByS(const quat *q, const float x, quat *out);
-void quatDivideSBy(const quat *q, const float x, quat *out);
-void quatDivideSByFast(const quat *q, const float x, quat *out);
-void quatDivideByVec4(const quat *q, const vec4 *v, quat *out);
-void quatDivideByVec4Fast(const quat *q, const vec4 *v, quat *out);
+void quatAdd(quat *q, const float x, const float y, const float z, const float w);
+void quatAddOut(const quat *q, const float x, const float y, const float z, const float w, quat *out);
+void quatAddS(quat *q, const float x);
+void quatAddSOut(const quat *q, const float x, quat *out);
+void quatAddVec4(quat *q, const vec4 *v);
+void quatAddVec4Out(const quat *q, const vec4 *v, quat *out);
+void quatSubtract(quat *q, const float x, const float y, const float z, const float w);
+void quatSubtractOut(const quat *q, const float x, const float y, const float z, const float w, quat *out);
+void quatSubtractFrom(quat *q, const float x, const float y, const float z, const float w);
+void quatSubtractFromOut(const quat *q, const float x, const float y, const float z, const float w, quat *out);
+void quatSubtractSFrom(quat *q, const float x);
+void quatSubtractSFromOut(const quat *q, const float x, quat *out);
+void quatSubtractFromS(quat *q, const float x);
+void quatSubtractFromSOut(const quat *q, const float x, quat *out);
+void quatSubtractVec4From(quat *q, const vec4 *v);
+void quatSubtractFromVec4(quat *q, const vec4 *v);
+void quatSubtractVec4FromOut(const quat *q, const vec4 *v, quat *out);
 
-void quatMultiplyQuat(const quat *q1, const quat *q2, quat *out);
-void quatMultiplyQuatR(const quat *q1, const quat *q2, quat *out);
+void quatMultiplyS(quat *q, const float x);
+void quatMultiplySOut(const quat *q, const float x, quat *out);
+void quatMultiplyVec4(quat *q, const vec4 *v);
+void quatMultiplyVec4Out(const quat *q, const vec4 *v, quat *out);
+void quatDivideByS(quat *q, const float x);
+void quatDivideBySOut(const quat *q, const float x, quat *out);
+void quatDivideSBy(quat *q, const float x);
+void quatDivideSByOut(const quat *q, const float x, quat *out);
+void quatDivideSByFast(quat *q, const float x);
+void quatDivideSByFastOut(const quat *q, const float x, quat *out);
+void quatDivideByVec4(quat *q, const vec4 *v);
+void quatDivideVec4By(quat *q, const vec4 *v);
+void quatDivideByVec4Out(const quat *q, const vec4 *v, quat *out);
+void quatDivideByVec4Fast(quat *q, const vec4 *v);
+void quatDivideVec4ByFast(quat *q, const vec4 *v);
+void quatDivideByVec4FastOut(const quat *q, const vec4 *v, quat *out);
+
+void quatMultiplyByQuat(quat *q1, const quat *q2);
+void quatMultiplyQuatBy(quat *q1, const quat *q2);
+void quatMultiplyQuatOut(const quat *q1, const quat *q2, quat *out);
 
 void quatApplyRotation(const quat *q, const vec3 *v, vec3 *out);
 void quatApplyRotationFast(const quat *q, const vec3 *v, vec3 *out);
@@ -63,8 +84,10 @@ void quatLerpFast(const quat *q, const quat *offset, const float time, quat *out
 void quatSlerp(const quat *q1, const quat *q2, const float time, quat *out);
 void quatSlerpFast(const quat *q1, const quat *q2, const float time, quat *out);
 
-void quatDifferentiate(const quat *q, const vec3 *w, quat *out);
-void quatIntegrate(const quat *q, const vec3 *w, const float dt, quat *out);
+void quatDifferentiate(quat *q, const vec3 *w);
+void quatDifferentiateOut(const quat *q, const vec3 *w, quat *out);
+void quatIntegrate(quat *q, const vec3 *w, const float dt);
+void quatIntegrateOut(const quat *q, const vec3 *w, const float dt, quat *out);
 
 
 #endif

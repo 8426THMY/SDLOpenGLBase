@@ -19,15 +19,15 @@ void physRigidBodyIntegrateVelocitySymplecticEuler(physicsRigidBody *body, const
 	vec3 angularAcceleration;
 
 	//Calculate the body's linear acceleration.
-	vec3MultiplyS(&body->netForce, body->body->invMass * dt, &linearAcceleration);
+	vec3MultiplySOut(&body->netForce, body->body->invMass * dt, &linearAcceleration);
 	//Add the linear acceleration to the linear velocity.
-	vec3AddVec3(&body->linearVelocity, &linearAcceleration, &body->linearVelocity);
+	vec3AddVec3(&body->linearVelocity, &linearAcceleration);
 
 	//Calculate the body's angular acceleration.
-	vec3MultiplyS(&body->netTorque, dt, &angularAcceleration);
+	vec3MultiplySOut(&body->netTorque, dt, &angularAcceleration);
 	mat3MultiplyVec3(&body->invInertia, &angularAcceleration, &angularAcceleration);
 	//Add the angular acceleration to the angular velocity.
-	vec3AddVec3(&body->angularVelocity, &angularAcceleration, &body->angularVelocity);*/
+	vec3AddVec3(&body->angularVelocity, &angularAcceleration);*/
 }
 
 /*
@@ -41,12 +41,12 @@ void physRigidBodyIntegrateVelocitySymplecticEuler(physicsRigidBody *body, const
 void physRigidBodyIntegratePositionSymplecticEuler(physicsRigidBody *body, const float dt){
 	/*vec3 linearVelocityDelta;
 
-	vec3MultiplyS(&body->linearVelocity, dt, &linearVelocityDelta);
+	vec3MultiplySOut(&body->linearVelocity, dt, &linearVelocityDelta);
 	//Compute the object's new position.
-	vec3AddVec3(&body->pos, &linearVelocityDelta, &body->pos);
+	vec3AddVec3(&body->pos, &linearVelocityDelta);
 
 	//Calculate the change in orientation.
-	quatIntegrate(&body->rot, &body->angularVelocity, dt, &body->rot);
+	quatIntegrate(&body->rot, &body->angularVelocity, dt);
 	//Don't forget to normalize it, as
 	//this process can introduce errors.
 	quatNormalizeQuat(&body->rot);*/
@@ -58,12 +58,12 @@ void physRigidBodyApplyImpulse(physicsRigidBody *body, const vec3 *r, const vec3
 	vec3 impulse = *J;
 
 	//Linear velocity.
-	vec3MultiplyS(&impulse, body->mass, &impulse);
-	vec3AddVec3(&body->linearVelocity, &impulse, &body->linearVelocity);
+	vec3MultiplyS(&impulse, body->mass);
+	vec3AddVec3(&body->linearVelocity, &impulse);
 	//Angular velocity.
 	vec3CrossVec3(r, J, &impulse);
-	mat3MultiplyVec3R(&body->invInertiaGlobal, &impulse, &impulse);
-	vec3AddVec3(&body->angularVelocity, &impulse, &body->angularVelocity);
+	mat3MultiplyByVec3(&body->invInertiaGlobal, &impulse);
+	vec3AddVec3(&body->angularVelocity, &impulse);
 }
 
 //Subtract a translational and rotational impulse from a rigid body.
@@ -71,12 +71,12 @@ void physRigidBodyApplyImpulseInverse(physicsRigidBody *body, const vec3 *r, con
 	vec3 impulse = *J;
 
 	//Linear velocity.
-	vec3MultiplyS(&impulse, body->mass, &impulse);
-	vec3SubtractVec3From(&body->linearVelocity, &impulse, &body->linearVelocity);
+	vec3MultiplyS(&impulse, body->mass);
+	vec3SubtractVec3From(&body->linearVelocity, &impulse);
 	//Angular velocity.
 	vec3CrossVec3(r, J, &impulse);
-	mat3MultiplyVec3R(&body->invInertiaGlobal, &impulse, &impulse);
-	vec3SubtractVec3From(&body->angularVelocity, &impulse, &body->angularVelocity);
+	mat3MultiplyByVec3(&body->invInertiaGlobal, &impulse);
+	vec3SubtractVec3From(&body->angularVelocity, &impulse);
 }
 
 
@@ -126,23 +126,23 @@ void physRigidBodyUpdate(physicsRigidBody *body, const float dt){
 		//Accumulate the mass.
 		bodyDef->mass += curCollider->mass;
 		//Add this collider's contribution to the rigid body's centroid.
-		vec3AddVec3(&bodyDef->centroid, &curCollider->centroid, &bodyDef->centroid);
+		vec3AddVec3(&bodyDef->centroid, &curCollider->centroid);
 
 		//Weighted centroid.
 		//const float colliderMass = curCollider->mass;
 		//vec3 weightedCentroid;
-		//vec3MultiplyS(&curCollider->centroid, colliderMass, &weightedCentroid);
+		//vec3MultiplySOut(&curCollider->centroid, colliderMass, &weightedCentroid);
 		//
 		////Accumulate the mass.
 		//bodyDef->mass += colliderMass;
 		////Add this collider's contribution to the rigid body's centroid.
-		//vec3AddVec3(&bodyDef->centroid, &weightedCentroid, &bodyDef->centroid);
+		//vec3AddVec3(&bodyDef->centroid, &weightedCentroid);
 	}
 
 	//We don't want to divide by zero.
 	if(bodyDef->mass != 0.f){
 		bodyDef->invMass = 1.f / bodyDef->mass;
-		vec3MultiplyS(&bodyDef->centroid, bodyDef->invMass, &bodyDef->centroid);
+		vec3MultiplyS(&bodyDef->centroid, bodyDef->invMass);
 	}else{
 		bodyDef->invMass = 0.f;
 	}
@@ -170,9 +170,9 @@ void physRigidBodyUpdate(physicsRigidBody *body, const float dt){
 
 
 		/*vec3 centroidDist;
-		vec3SubtractVec3From(&bodyDef->centroid, &curCollider->centroid, &centroidDist);
+		vec3SubtractVec3FromOut(&bodyDef->centroid, &curCollider->centroid, &centroidDist);
 		//We can multiply by mass here to save three multiplications later.
-		vec3MultiplyS(&centroidDist, &curCollider->mass, &centroidDist);
+		vec3MultiplyS(&centroidDist, &curCollider->mass);
 
 		const float x = centroidDist.x;
 		const float y = centroidDist.y;

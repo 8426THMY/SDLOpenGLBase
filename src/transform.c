@@ -17,16 +17,16 @@ void transformStateInit(transformState *trans){
 void transformStateAppend(const transformState *trans1, const transformState *trans2, transformState *out){
 	vec3 pos;
 
-	vec3MultiplyVec3(&trans1->scale, &trans2->pos, &pos);
+	vec3MultiplyVec3Out(&trans1->scale, &trans2->pos, &pos);
 	quatApplyRotationFast(&trans1->rot, &pos, &pos);
 	//Generate the new position!
-	vec3AddVec3(&trans1->pos, &pos, &out->pos);
+	vec3AddVec3Out(&trans1->pos, &pos, &out->pos);
 	//Generate the new orientation!
-	quatMultiplyQuat(&trans1->rot, &trans2->rot, &out->rot);
+	quatMultiplyQuatOut(&trans1->rot, &trans2->rot, &out->rot);
 	//A slight error will build up if we don't normalize the rotation.
 	quatNormalizeQuat(&out->rot);
 	//Generate the new scale!
-	vec3MultiplyVec3(&trans1->scale, &trans2->scale, &out->scale);
+	vec3MultiplyVec3Out(&trans1->scale, &trans2->scale, &out->scale);
 }
 
 //Interpolate between two states and store the result in "out"!
@@ -47,13 +47,13 @@ void transformStateInterpAdd(const transformState *trans1, const transformState 
 	//Interpolate between "trans1" and "trans2", then
 	//add the resulting offsets to the "out" state!
 	vec3Lerp(&trans1->pos, &trans2->pos, time, &interp.pos);
-	vec3AddVec3(&out->pos, &interp.pos, &out->pos);
+	vec3AddVec3(&out->pos, &interp.pos);
 
 	quatSlerpFast(&trans1->rot, &trans2->rot, time, &interp.rot);
-	quatMultiplyQuat(&out->rot, &interp.rot, &out->rot);
+	quatMultiplyByQuat(&out->rot, &interp.rot);
 
 	vec3Lerp(&trans1->scale, &trans2->scale, time, &interp.scale);
-	vec3AddVec3(&out->scale, &interp.scale, &out->scale);
+	vec3AddVec3(&out->scale, &interp.scale);
 }
 
 
@@ -67,7 +67,7 @@ void transformStateInvert(const transformState *trans, transformState *out){
 	vec3Negate(&out->pos);
 
 	//Invert its scale by storing the reciprocal of each value!
-	vec3DivideSBy(&trans->scale, 1.f, &out->scale);
+	vec3DivideSByOut(&trans->scale, 1.f, &out->scale);
 }
 
 //Convert a transformation state to a matrix.
@@ -80,7 +80,7 @@ void transformStateToMat4(const transformState *trans, mat4 *out){
 
 //Transform a vec3 by scaling it, rotating it and finally translating it.
 void transformStateTransformVec3(const transformState *trans, const vec3 *v, vec3 *out){
-	vec3MultiplyVec3(&trans->scale, v, out);
+	vec3MultiplyVec3Out(&trans->scale, v, out);
 	quatApplyRotationFast(&trans->rot, out, out);
-	vec3AddVec3(&trans->pos, out, out);
+	vec3AddVec3(out, &trans->pos);
 }

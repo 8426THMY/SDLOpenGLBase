@@ -148,16 +148,22 @@ void physColliderUpdateSeparations(physicsCollider *collider){
 	physicsSeparationPair *curPair = collider->separations;
 
 	while(curPair != NULL && curPair->cA == collider){
+		physicsSeparationPair *nextPair = curPair->nextA;
+
 		//If the current separation has been
 		//inactive for too long, deallocate it.
 		if(physSeparationPairIsInactive(curPair)){
 			/** Free the separation too. The function below should be part of the free function. **/
 			physSeparationPairDelete(curPair);
+
+		//We only need to increment the inactivity flag for
+		//separations. On the next physics step, this will
+		//let us know that this particular pair is not new.
 		}else{
 			++curPair->inactive;
 		}
 
-		curPair = curPair->nextA;
+		curPair = nextPair;
 	}
 }
 
@@ -170,16 +176,22 @@ void physColliderUpdateContacts(physicsCollider *collider, const float dt){
 	physicsContactPair *curPair = collider->contacts;
 
 	while(curPair != NULL && curPair->cA == collider){
+		physicsContactPair *nextPair = curPair->nextA;
+
 		//If the current contact has been
 		//inactive for too long, deallocate it.
 		if(physSeparationPairIsInactive(curPair)){
 			/** Free the contact too. The function below should be part of the free function. **/
 			physContactPairDelete(curPair);
+
+		//For contacts, we need to precalculate their impulses and
+		//bias terms as well as increment their inactivity flag.
 		}else{
+			physManifoldPresolve(&curPair->manifold, curPair->cA->owner, curPair->cB->owner, dt);
 			++curPair->inactive;
 		}
 
-		curPair = curPair->nextA;
+		curPair = nextPair;
 	}
 }
 

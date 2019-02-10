@@ -7,6 +7,26 @@
 #define SQRT_ONE_THIRD 0.57735026f
 
 
+float minNum(const float x, const float y){
+	return(x <= y ? x : y);
+}
+
+float maxNum(const float x, const float y){
+	return(x >= y ? x : y);
+}
+
+float clampNum(const float min, const float x, const float max){
+	if(min >= x){
+		return(min);
+	}
+	if(x >= max){
+		return(max);
+	}
+
+	return(x);
+}
+
+
 /*
 ** Quickly approximates "1.f / sqrtf(x)". This is almost completely
 ** copy-pasted from the Quake III Arena source, albeit with some
@@ -224,7 +244,7 @@ return_t segmentPlaneIntersection(const vec3 *const restrict normal, const vec3 
 	}else if(endDistance > 0.f){
 		return 0;
 	}
-	vec3LerpR(start, end, startDistance / (startDistance - endDistance), point);
+	vec3LerpOut(start, end, startDistance / (startDistance - endDistance), point);
 	return 1;
 }
 **/

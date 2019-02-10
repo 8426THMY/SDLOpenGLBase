@@ -39,17 +39,20 @@ typedef struct physicsContactPoint {
 	//Stores the result of 1/JM^-1J^T (which is equivalent
 	//to the inverse denominator of the impulse equation)
 	//prior to collision response, as it only needs to be
-	//calculated once.
+	//calculated once. This is the effective mass.
 	float normalImpulse;
-	//Similar to "impulseDenom", but uses the tangent
+	//Similar to "normalImpulse", but uses the tangent
 	//vectors. These values are used for friction.
-	float frictionImpulse[PHYSCONTACT_NUM_TANGENTS];
+	float tangentImpulse[PHYSCONTACT_NUM_TANGENTS];
 
 	//Accumulated impulses used for warm starting.
 	//This helps prevent jittering in persistent contacts.
 	float normalAccumulator;
-	float frictionAccumulator[PHYSCONTACT_NUM_TANGENTS];
+	float tangentAccumulator[PHYSCONTACT_NUM_TANGENTS];
 } physicsContactPoint;
+
+/** It would probably be best to do something similar to what Box2D  **/
+/** does with this structure, as ours is very prone to cache misses. **/
 
 //A physics manifold is similar to a regular contact manifold,
 //but stores additional information required to solve contacts.
@@ -77,22 +80,6 @@ void physManifoldPersist(physicsManifold *pm, const contactManifold *cm, const p
 
 void physManifoldPresolve(physicsManifold *pm, physicsRigidBody *bodyA, physicsRigidBody *bodyB, const float dt);
 void physManifoldSolve(physicsManifold *pm, physicsRigidBody *bodyA, physicsRigidBody *bodyB);
-
-
-/**
-contactManifold *curManifold = manifolds;
-contactManifold *lastManifold = &manifolds[numManifolds];
-for(; curManifold < lastManifold; ++curManifold){
-	manifoldPresolve();
-}
-
-for(i = 0; i < SOLVER_NUM_ITERATIONS; ++i){
-	curManifold = manifolds;
-	for(; curManifold < lastManifold; ++curManifold){
-		manifoldSolve();
-	}
-}
-**/
 
 
 #endif
