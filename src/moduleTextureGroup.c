@@ -13,10 +13,15 @@ return_t moduleTexGroupSetup(){
 	return(
 		memPoolInit(
 			&texGroupManager,
-			memoryManagerGlobalAlloc(memPoolMemoryForBlocks(MEMORY_MAX_TEXGROUPS, sizeof(textureGroup))),
-			MEMORY_MAX_TEXGROUPS, sizeof(textureGroup)
+			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_TEXGROUP_MANAGER_SIZE)),
+			MODULE_TEXGROUP_MANAGER_SIZE, MODULE_TEXGROUP_ELEMENT_SIZE
 		) != NULL
 	);
+}
+
+void moduleTexGroupCleanup(){
+	moduleTexGroupClear();
+	memoryManagerGlobalFree(memPoolRegionStart(texGroupManager.region));
 }
 
 
@@ -32,19 +37,21 @@ void moduleTexGroupFree(textureGroup *texGroup){
 	memPoolFree(&texGroupManager, texGroup);
 }
 
-
-void moduleTexGroupCleanup(){
-	/*size_t i = loadedTextureGroups.size;
-	//Loop through the textureGroup manager.
-	while(i > 0){
-		--i;
-		texGroupDelete((textureGroup *)vectorGet(&loadedTextureGroups, i));
-	}*/
-	memoryManagerGlobalFree(texGroupManager.region->start);
+//Delete every texture group in the manager.
+void moduleTexGroupClear(){
+	MEMPOOL_LOOP_BEGIN(texGroupManager, i, textureGroup *)
+		moduleTexGroupFree(i);
+	MEMPOOL_LOOP_END(texGroupManager, i, textureGroup *, return)
 }
 
 
-//Find a textureGroup whose name matches "name".
+//Find a textureGroup whose name matches "name"!
 textureGroup *moduleTexGroupFind(const char *name){
+	MEMPOOL_LOOP_BEGIN(texGroupManager, i, textureGroup *)
+		if(strcmp(name, i->name) == 0){
+			return(i);
+		}
+	MEMPOOL_LOOP_END(texGroupManager, i, textureGroup *, return(NULL))
+
 	return(NULL);
 }

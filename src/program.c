@@ -227,7 +227,7 @@ static void updateRenderObjects(program *prg){
 
 			if(currentState->skeleObj->numAnims > 0){
 				skeletonAnimInst *curAnim = currentState->skeleObj->anims;
-				skeletonAnimInst *lastAnim = &currentState->skeleObj->anims[currentState->skeleObj->numAnims];
+				skeletonAnimInst *lastAnim = &curAnim[currentState->skeleObj->numAnims];
 				//Update all of the animations!
 				do {
 					skeleAnimInstUpdate((skeleAnimState *)curAnim->states[0], prg->framerate.updateTime);
@@ -403,29 +403,34 @@ static return_t setupModules(){
 	puts("Beginning setup...\n");
 	memoryManagerGlobalInit(MEMORY_HEAPSIZE);
 
-	#ifdef MODULETEXTURE
+	#ifdef MODULE_TEXTURE
 	if(!moduleTextureSetup()){
-		return(MODULETEXTURE_SETUP_FAIL);
+		return(MODULE_TEXTURE_SETUP_FAIL);
 	}
 	#endif
-	#ifdef MODULETEXGROUP
+	#ifdef MODULE_TEXGROUP
 	if(!moduleTexGroupSetup()){
-		return(MODULETEXGROUP_SETUP_FAIL);
+		return(MODULE_TEXGROUP_SETUP_FAIL);
 	}
 	#endif
-	#ifdef MODULESKELETON
+	#ifdef MODULE_SKELETON
 	if(!moduleSkeletonSetup()){
-		return(MODULESKELETON_SETUP_FAIL);
+		return(MODULE_SKELETON_SETUP_FAIL);
 	}
 	#endif
-	#ifdef MODULEMODEL
+	#ifdef MODULE_PHYSICS
+	if(!modulePhysicsSetup()){
+		return(MODULE_PHYSICS_SETUP_FAIL);
+	}
+	#endif
+	#ifdef MODULE_MODEL
 	if(!moduleModelSetup()){
-		return(MODULEMODEL_SETUP_FAIL);
+		return(MODULE_MODEL_SETUP_FAIL);
 	}
 	#endif
-	#ifdef MODULERENDEROBJ
+	#ifdef MODULE_RENDEROBJ
 	if(!moduleRenderObjSetup()){
-		return(MODULERENDEROBJ_SETUP_FAIL);
+		return(MODULE_RENDEROBJ_SETUP_FAIL);
 	}
 	#endif
 
@@ -440,19 +445,22 @@ static void cleanupModules(){
 	puts("Beginning cleanup...\n");
 	memTreePrintAllSizes(&memManager);
 
-	#ifdef MODULERENDEROBJ
+	#ifdef MODULE_RENDEROBJ
 	moduleRenderObjCleanup();
 	#endif
-	#ifdef MODULEMODEL
+	#ifdef MODULE_MODEL
 	moduleModelCleanup();
 	#endif
-	#ifdef MODULESKELETON
+	#ifdef MODULE_PHYSICS
+	modulePhysicsCleanup();
+	#endif
+	#ifdef MODULE_SKELETON
 	moduleSkeletonCleanup();
 	#endif
-	#ifdef MODULETEXGROUP
+	#ifdef MODULE_TEXGROUP
 	moduleTexGroupCleanup();
 	#endif
-	#ifdef MODULETEXTURE
+	#ifdef MODULE_TEXTURE
 	moduleTextureCleanup();
 	#endif
 

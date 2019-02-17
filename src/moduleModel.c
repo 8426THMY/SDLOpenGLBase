@@ -14,11 +14,17 @@ return_t moduleModelSetup(){
 	return(
 		memPoolInit(
 			&modelManager,
-			memoryManagerGlobalAlloc(memPoolMemoryForBlocks(MEMORY_MAX_MODELS, sizeof(model))),
-			MEMORY_MAX_MODELS, sizeof(model)
+			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_MODEL_MANAGER_SIZE)),
+			MODULE_MODEL_MANAGER_SIZE, MODULE_MODEL_ELEMENT_SIZE
 		) != NULL &&
 		modelSetupError()
 	);
+}
+
+void moduleModelCleanup(){
+
+	moduleModelClear();
+	memoryManagerGlobalFree(memPoolRegionStart(modelManager.region));
 }
 
 
@@ -34,13 +40,9 @@ void moduleModelFree(model *mdl){
 	memPoolFree(&modelManager, mdl);
 }
 
-
-void moduleModelCleanup(){
-	/*size_t i = loadedModels.size;
-	while(i > 0){
-		--i;
-		modelDelete((model *)vectorGet(&loadedModels, i));
-		vectorRemove(&loadedModels, i);
-	}*/
-	memoryManagerGlobalFree(modelManager.region->start);
+//Delete every model in the manager.
+void moduleModelClear(){
+	MEMPOOL_LOOP_BEGIN(modelManager, i, model *)
+		moduleModelFree(i);
+	MEMPOOL_LOOP_END(modelManager, i, model *, return)
 }

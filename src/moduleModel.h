@@ -11,19 +11,23 @@
 
 
 #define MODULEMODEL
-#define MODULEMODEL_SETUP_FAIL 4
+#define MODULE_MODEL_SETUP_FAIL 5
 
-#ifndef MEMORY_MAX_MODELS
-	#define MEMORY_MAX_MODELS 1
+#define MODULE_MODEL_ELEMENT_SIZE sizeof(model)
+
+#ifndef MEMORY_MODULE_NUM_MODELS
+	#define MEMORY_MODULE_NUM_MODELS 1
 #endif
+
+#define MODULE_MODEL_MANAGER_SIZE memPoolMemoryForBlocks(MEMORY_MODULE_NUM_MODELS, MODULE_MODEL_ELEMENT_SIZE)
 
 
 return_t moduleModelSetup();
+void moduleModelCleanup();
 
 model *moduleModelAlloc();
 void moduleModelFree(model *mdl);
-
-void moduleModelCleanup();
+void moduleModelClear();
 
 
 extern memoryPool modelManager;

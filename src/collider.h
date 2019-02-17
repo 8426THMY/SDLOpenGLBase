@@ -35,8 +35,6 @@ void colliderUpdate(collider *c, const collider *cBase, const transformState *tr
 void colliderDeleteInstance(collider *c);
 void colliderDelete(collider *c);
 
-//void colliderCalculateInertia(const collider *c, float inertia[6]);
-
 
 extern void (*colliderInstantiateTable[COLLIDER_NUM_TYPES])(
 	void *c,

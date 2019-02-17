@@ -1,11 +1,11 @@
-#include "renderObject.h"
+#include "moduleRenderObject.h"
 
 
 vector allRenderObjects;
 
 
 return_t moduleRenderObjSetup(){
-	vectorInit(&allRenderObjects, sizeof(renderObject));
+	vectorInit(&allRenderObjects, MODULE_RENDEROBJ_ELEMENT_SIZE);
 
 	//We don't need to create an error renderObject since it's
 	//basically just a wrapper for models and textureGroups.

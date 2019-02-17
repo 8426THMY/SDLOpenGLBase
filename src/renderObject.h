@@ -20,9 +20,6 @@
 #include "shader.h"
 
 
-#define RENDEROBJMODULE
-
-
 typedef struct renderObjState {
 	interpTransform transform;
 

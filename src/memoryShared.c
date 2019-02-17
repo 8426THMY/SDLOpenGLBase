@@ -66,6 +66,11 @@ void memoryRegionInsertAfter(memoryRegion *region, memoryRegion *newRegion, void
 }
 
 
+/*
+** This assumes that the region's start points
+** to the beginning of the allocated block,
+** which is not the case for many allocators.
+*/
 void memoryAllocatorDelete(memoryRegion *region){
 	//Free every memory region in the allocator.
 	while(region != NULL){

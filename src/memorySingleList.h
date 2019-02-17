@@ -51,6 +51,13 @@
 //Unlike the previous definition, this casts to a unsigned integer.
 #define memSingleListBlockFreeGetFlag(block) *((uintptr_t *)block)
 
+//We'll need to remove the active flag from
+//the pointer if we want to get its real value.
+#define memSingleListBlockGetNext(next) ((void *)(((uintptr_t)memSingleListBlockGetValue(next)) & MEMORY_DATA_MASK))
+//The active flag is stored in the
+//least significant bit of the pointer.
+#define memSingleListBlockGetFlag(next) (((uintptr_t)memSingleListBlockGetValue(next)) & MEMORY_FLAG_MASK)
+
 //Return the address of the next block in the list.
 #define memSingleListBlockGetNextBlock(block, size) memoryAddPointer(block, size)
 //Return the address of the previous block in the list.
@@ -65,6 +72,8 @@
 #define memSingleListBlockUsedNextGetData(block) ((void **)memoryAddPointer(block, MEMSINGLELIST_BLOCK_USED_NEXT_SIZE))
 //Get the block's next pointer from its data segment.
 #define memSingleListBlockUsedDataGetNext(block) ((void **)memorySubPointer(block, MEMSINGLELIST_BLOCK_USED_NEXT_SIZE))
+//Get the block's flag value from its data segment.
+#define memSingleListBlockUsedDataGetFlagValue(block) memSingleListBlockGetFlag(memSingleListBlockUsedDataGetNext(block))
 
 //Return whether or not the block is active.
 #define memSingleListBlockIsActive(block) (memSingleListBlockGetFlag(block) == MEMSINGLELIST_FLAG_ACTIVE)
@@ -78,19 +87,52 @@
 //Return whether or not the block is in use.
 #define memSingleListBlockIsUsed(block) memSingleListBlockIsActive(block)
 
+//Get the next element in a an array list. Active elements
+//have no flags, so we can simply dereference the next pointer.
+#define memSingleListNext(element) memSingleListBlockGetValue(memSingleListBlockUsedDataGetNext(element))
+
+#define memSingleListRegionStart(region) memSingleListBlockFreeNextGetFlag(((memoryRegion *)(region))->start)
+
 
 //Return the amount of memory required
 //for "num" many blocks of "size" bytes.
-#define memSingleListMemoryForBlocks(num, size) memoryGetRequiredSize((num) * memSingleListGetBlockSize(size))
+#define memSingleListMemoryForBlocks(num, size) ((num) * memSingleListGetBlockSize(size))
+//Return the amount of memory required for a
+//region of "num" many blocks of "size" bytes.
+#define memSingleListMemoryForBlocksRegion(num, size) memoryGetRequiredSize(memSingleListMemoryForBlocks(num, size))
+
+
+#define MEMSINGLELIST_LOOP_BEGIN(allocator, node, type)                                   \
+{                                                                                         \
+	const memoryRegion *__region_##node = allocator.region;                               \
+	do {                                                                                  \
+		type node = (type)(allocator.region->start);                                      \
+		do {                                                                              \
+			const uintptr_t __flag_##node = memSingleListBlockUsedDataGetFlagValue(node); \
+			if(__flag_##node == MEMSINGLELIST_FLAG_ACTIVE){                               \
+
+#define MEMSINGLELIST_LOOP_END(allocator, node, type, earlyexit)              \
+			}else if(__flag_##node == MEMSINGLELIST_FLAG_INVALID){            \
+				earlyexit;                                                    \
+			}                                                                 \
+			node = memSingleListBlockGetNextBlock(node, allocator.blockSize); \
+		} while(node < (type)__region_##node);                                \
+		__region_##node = __region_##node->next;                              \
+	} while(__region_##node != NULL);                                         \
+}                                                                             \
 
 
 //Block data usage diagrams:
-//Occupied:   [next][    data    ]
-//Unoccupied: [flag][next][ fill ]
+//Used: [next][    data    ]
+//Free: [flag][next][ fill ]
+
+//For used blocks, the next pointer points to the next block's data segment.
+//For free blocks, the next pointer points to the next block's next pointer.
 
 
 typedef struct memorySingleList {
 	size_t blockSize;
+	//Points to the next pointer of a free block.
 	void *nextFreeBlock;
 
 	//This is stored at the very end of the allocated memory,
@@ -101,7 +143,7 @@ typedef struct memorySingleList {
 } memorySingleList;
 
 
-void *memSingleListInit(memorySingleList *singleList, void *memory, const size_t numBlocks, const size_t blockSize);
+void *memSingleListInit(memorySingleList *singleList, void *memory, const size_t memorySize, const size_t blockSize);
 
 void *memSingleListAlloc(memorySingleList *singleList);
 void *memSingleListPrepend(memorySingleList *singleList, void **start);
@@ -110,12 +152,13 @@ void *memSingleListInsertBefore(memorySingleList *singleList, void **start, void
 void *memSingleListInsertAfter(memorySingleList *singleList, void **start, void *data);
 
 void memSingleListFree(memorySingleList *singleList, void **start, void *data, void *prevData);
+void memSingleListFreeArray(memorySingleList *singleList, void *start);
 
 void memSingleListClearRegion(memorySingleList *singleList, memoryRegion *region, const byte_t flag, void *next);
 void memSingleListClearLastRegion(memorySingleList *singleList, memoryRegion *region);
 void memSingleListClear(memorySingleList *singleList);
 
-void *memSingleListExtend(memorySingleList *singleList, void *memory, const size_t numBlocks);
+void *memSingleListExtend(memorySingleList *singleList, void *memory, const size_t memorySize);
 
 void memSingleListDelete(memorySingleList *singleList);
 

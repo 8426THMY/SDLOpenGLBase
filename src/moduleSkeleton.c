@@ -15,10 +15,15 @@ return_t moduleSkeletonSetup(){
 	return(
 		memPoolInit(
 			&skeleAnimManager,
-			memoryManagerGlobalAlloc(memPoolMemoryForBlocks(MEMORY_MAX_SKELEANIMS, sizeof(skeletonAnim))),
-			MEMORY_MAX_SKELEANIMS, sizeof(skeletonAnim)
+			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_SKELEANIM_MANAGER_SIZE)),
+			MODULE_SKELEANIM_MANAGER_SIZE, MODULE_SKELEANIM_ELEMENT_SIZE
 		) != NULL
 	);
+}
+
+void moduleSkeletonCleanup(){
+	moduleSkeletonAnimClear();
+	memoryManagerGlobalFree(memPoolRegionStart(skeleAnimManager.region));
 }
 
 
@@ -34,13 +39,9 @@ void moduleSkeletonAnimFree(skeletonAnim *skeleAnim){
 	memPoolFree(&skeleAnimManager, skeleAnim);
 }
 
-
-void moduleSkeletonCleanup(){
-	/*size_t i = loadedTextures.size;
-	//Loop through the skeleton manager.
-	while(i > 0){
-		--i;
-		skeletonDelete((skeleton *)vectorGet(&loadedSkeletons, i));
-	}*/
-	memoryManagerGlobalFree(skeleAnimManager.region->start);
+//Delete every skeleton animation in the manager.
+void moduleSkeletonAnimClear(){
+	MEMPOOL_LOOP_BEGIN(skeleAnimManager, i, skeletonAnim *)
+		moduleSkeletonAnimFree(i);
+	MEMPOOL_LOOP_END(skeleAnimManager, i, skeletonAnim *, return)
 }

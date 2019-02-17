@@ -13,8 +13,8 @@
 
 
 typedef struct physicsRigidBodyDef {
+	//Linked list of colliders used by this rigid body.
 	physicsCollider *colliders;
-	uint_least16_t numColliders;
 
 	//The rigid body's physical properties.
 	float mass;
@@ -28,8 +28,8 @@ typedef struct physicsRigidBodyDef {
 
 //Rigid body instance.
 typedef struct physicsRigidBody {
+	//Linked list of colliders used by this rigid body.
 	physicsCollider *colliders;
-	uint_least16_t numColliders;
 
 	float mass;
 	float invMass;
@@ -41,19 +41,23 @@ typedef struct physicsRigidBody {
 	mat3 invInertiaLocal;
 	mat3 invInertiaGlobal;
 
+	//Defines the body's spacial configuration.
+	//The position stored here should not be
+	//confused with the rigid body's centroid!
 	transformState transform;
 
-	//Store the linear properties of the object.
+	//Defines the body's physical configuration.
 	vec3 linearVelocity;
-	vec3 netForce;
-
-	//Store the angular properties of the object.
 	vec3 angularVelocity;
+	vec3 netForce;
 	vec3 netTorque;
 } physicsRigidBody;
 
 
 void physRigidBodyDefInit(physicsRigidBodyDef *bodyDef);
+void physRigidBodyInit(physicsRigidBody *body);
+
+void physRigidBodyDefGenerateProperties(physicsRigidBodyDef *bodyDef);
 
 void physRigidBodyIntegrateVelocitySymplecticEuler(physicsRigidBody *body, const float time);
 void physRigidBodyIntegratePositionSymplecticEuler(physicsRigidBody *body, const float time);
@@ -63,22 +67,19 @@ void physRigidBodyApplyImpulseInverse(physicsRigidBody *body, const vec3 *r, con
 
 void physRigidBodyUpdate(physicsRigidBody *body, const float dt);
 
-//void physRigidBodyDefCalculateCentroid(physicsRigidBodyDef *bodyDef);
-//void physRigidBodyDefCalculateInertiaTensor(physicsRigidBodyDef *bodyDef);
+void physRigidBodyDefDelete(physicsRigidBodyDef *bodyDef);
+void physRigidBodyDelete(physicsRigidBody *body);
 
 
+//For the physical properties (mass, centroid and inertia tensor),
+//it would probably be best to add a physics collider's contribution
+//straight after it has been loaded. Our load function would then
+//need to return the calculated mass, centroid and inertia tensor.
 /**
-Collider centroid.
-Body centroid.
-Collider inertia tensor.
-Body inertia tensor.
-Body integration.
+Body mass, centroid and inertia tensor (with vertex weighting for hulls).
 
 Body add colliders.
 Body remove colliders.
-
-Physics modules.
-Physics allocators.
 
 Load colliders.
 Load bodies.

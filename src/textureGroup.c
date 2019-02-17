@@ -625,7 +625,7 @@ void texGroupDelete(textureGroup *texGroup){
 		textureGroupAnimDef *curAnim = texGroup->texAnims;
 		//Delete the textureGroup's animations.
 		if(curAnim != NULL && curAnim != &defaultTexGroupAnim){
-			const textureGroupAnimDef *lastAnim = &texGroup->texAnims[texGroup->numAnims];
+			const textureGroupAnimDef *lastAnim = &curAnim[texGroup->numAnims];
 			for(; curAnim < lastAnim; ++curAnim){
 				texGroupAnimDefDelete(curAnim);
 			}

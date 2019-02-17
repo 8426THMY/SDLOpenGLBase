@@ -8,6 +8,7 @@
 
 #include "utilTypes.h"
 #include "vec3.h"
+#include "mat3.h"
 #include "transform.h"
 
 
@@ -20,9 +21,22 @@
 #define COLLIDER_HULL_INVALID_FEATURE -1
 
 
+#ifndef COLLIDER_HULL_DEFAULT_VERTEX_MASS
+	#define COLLIDER_HULL_DEFAULT_VERTEX_MASS 1.f
+#endif
+
+
 typedef uint_least16_t colliderVertexIndex_t;
 typedef uint_least16_t colliderEdgeIndex_t;
 typedef uint_least16_t colliderFaceIndex_t;
+
+
+/**
+//Array storing the mass of each vertex. The sum of each element
+//in this array should add up to the total mass of the collider.
+//If the vertices are not weighted, this will be a NULL pointer.
+float *vertexMasses;
+**/
 
 
 //Stores the indices of data relevant to the edge.
@@ -56,10 +70,6 @@ typedef struct colliderHull {
 	//These three don't.
 	colliderHullEdge *edges;
 	colliderHullFace *faces;
-	//Array storing the mass of each vertex. The sum of each element
-	//in this array should add up to the total mass of the collider.
-	//If the vertices are not weighted, this will be a NULL pointer.
-	float *massArray;
 
 	//We don't need to store the number of
 	//normals since we can use "numFaces".
@@ -87,10 +97,15 @@ void colliderHullInit(colliderHull *hull);
 void colliderHullInstantiate(void *hull, const void *base);
 
 void colliderHullLoad(void *hull);
-void colliderHullSetupProperties(void *hull);
 
-void colliderHullCalculateInertia(const void *hull, float inertia[6]);
-void colliderHullCalculateCentroid(colliderHull *hull);
+void colliderHullGenerateCentroid(void *hull, vec3 *centroid);
+void colliderHullGenerateCentroidWeighted(void *hull, const float *vertexMasses, vec3 *centroid);
+void colliderHullGenerateMassAndCentroid(void *hull, float *mass, float *invMass, vec3 *centroid);
+void colliderHullGenerateMassAndCentroidWeighted(void *hull, const float *vertexMasses, float *mass, float *invMass, vec3 *centroid);
+void colliderHullGenerateCentroidAccurate(void *hull, vec3 *centroid);
+void colliderHullGenerateCentroidAccurateWeighted(void *hull, const float *vertexMasses, vec3 *centroid);
+void colliderHullGenerateInertia(const void *hull, const vec3 *centroid, mat3 *inertia);
+void colliderHullGenerateInertiaWeighted(const void *hull, const vec3 *centroid, const float *vertexMasses, mat3 *inertia);
 
 void colliderHullUpdate(void *hull, const void *base, const transformState *trans, colliderAABB *aabb);
 

@@ -155,56 +155,67 @@ void colliderHullLoad(void *hull){
 	//
 }
 
-//Calculate the collider's centroid and other such properties.
-void colliderHullSetupProperties(void *hull){
-	colliderHullCalculateCentroid((colliderHull *)hull);
+
+/*
+** Calculate the collider's centre of gravity. To
+** do this, we calculate the centroid of each of the
+** hull's triangles and then determine the average.
+*/
+void colliderHullGenerateCentroid(void *hull, vec3 *centroid){
+	const colliderVertexIndex_t numVertices = ((colliderHull *)hull)->numVertices;
+
+	//We don't want to divide by zero.
+	if(numVertices > 0){
+		const vec3 *curVertex = ((colliderHull *)hull)->vertices;
+		const vec3 *lastVertex = &curVertex[numVertices];
+		vec3 newCentroid;
+		vec3InitZero(&newCentroid);
+
+		//Add each vertex's contribution to the centroid.
+		do {
+			vec3AddVec3(&newCentroid, curVertex);
+			++curVertex;
+		} while(curVertex < lastVertex);
+
+		vec3DivideBySOut(&newCentroid, numVertices, centroid);
+		((colliderHull *)hull)->centroid = *centroid;
+	}else{
+		memset(centroid, 0.f, sizeof(*centroid));
+		memset(&((colliderHull *)hull)->centroid, 0.f, sizeof(((colliderHull *)hull)->centroid));
+	}
 }
 
-
-//Calculate the collider's inertia tensor relative to its centroid.
-void colliderHullCalculateInertia(const void *hull, float inertia[6]){
+/*
+** Calculate the weighted collider's centre of gravity.
+** To do this, we calculate the centroid of each of the
+** hull's triangles and then determine the average.
+*/
+void colliderHullGenerateCentroidWeighted(void *hull, const float *vertexMasses, vec3 *centroid){
+	const colliderVertexIndex_t numVertices = ((colliderHull *)hull)->numVertices;
 	const vec3 *curVertex = ((colliderHull *)hull)->vertices;
-	const float *curMass = ((colliderHull *)hull)->massArray;
-	const vec3 *lastVertex = &((colliderHull *)hull)->vertices[((colliderHull *)hull)->numVertices];
-	const vec3 *centroid = &((colliderHull *)hull)->centroid;
+	const vec3 *lastVertex = &curVertex[numVertices];
+	vec3 newCentroid;
+	float newMass;
 
-	memset(inertia, 0.f, 24);
+	vec3InitZero(&newCentroid);
 
-	if(curMass != NULL){
-		//Add each vertex's contribution to the collider's inertia tensor.
-		for(; curVertex < lastVertex; ++curVertex, ++curMass){
-			const float x = curVertex->x - centroid->x;
-			const float y = curVertex->y - centroid->y;
-			const float z = curVertex->z - centroid->z;
-			const float xx = x * x;
-			const float yy = y * y;
-			const float zz = z * z;
-			const float massValue = *curMass;
+	//Add each vertex's contribution to the centroid.
+	for(; curVertex < lastVertex; ++curVertex, ++vertexMasses){
+		vec3 weightedVertex;
+		const float massValue = *vertexMasses;
 
-			inertia[0] += (yy + zz) * massValue;
-			inertia[1] += (xx + zz) * massValue;
-			inertia[2] += (xx + yy) * massValue;
-			inertia[3] -= x * y * massValue;
-			inertia[4] -= x * z * massValue;
-			inertia[5] -= y * z * massValue;
-		}
+		vec3MultiplySOut(curVertex, massValue, &weightedVertex);
+		vec3AddVec3(&newCentroid, &weightedVertex);
+		newMass += massValue;
+	}
+
+	//We don't want to divide by zero.
+	if(newMass != 0.f){
+		vec3DivideBySOut(&newCentroid, newMass, centroid);
+		((colliderHull *)hull)->centroid = *centroid;
 	}else{
-		//If the vertices are not weighted, we can save some multiplications.
-		for(; curVertex < lastVertex; ++curVertex){
-			const float x = curVertex->x - centroid->x;
-			const float y = curVertex->y - centroid->y;
-			const float z = curVertex->z - centroid->z;
-			const float xx = x * x;
-			const float yy = y * y;
-			const float zz = z * z;
-
-			inertia[0] += yy + zz;
-			inertia[1] += xx + zz;
-			inertia[2] += xx + yy;
-			inertia[3] -= x * y;
-			inertia[4] -= x * z;
-			inertia[5] -= y * z;
-		}
+		memset(centroid, 0.f, sizeof(*centroid));
+		memset(&((colliderHull *)hull)->centroid, 0.f, sizeof(((colliderHull *)hull)->centroid));
 	}
 }
 
@@ -212,15 +223,293 @@ void colliderHullCalculateInertia(const void *hull, float inertia[6]){
 ** Calculate the collider's centre of gravity. To
 ** do this, we calculate the centroid of each of the
 ** hull's triangles and then determine the average.
+** This function will also return the hull's mass.
 */
-/** Is this right? **/
-void colliderHullCalculateCentroid(colliderHull *hull){
-	const colliderHullFace *curFace = hull->faces;
-	const colliderHullFace *lastFace = &curFace[hull->numFaces];
+void colliderHullGenerateMassAndCentroid(void *hull, float *mass, float *invMass, vec3 *centroid){
+	const colliderVertexIndex_t numVertices = ((colliderHull *)hull)->numVertices;
+
+	//We don't want to divide by zero.
+	if(numVertices > 0){
+		const vec3 *curVertex = ((colliderHull *)hull)->vertices;
+		const vec3 *lastVertex = &curVertex[numVertices];
+		vec3 newCentroid;
+		float newMass;
+
+		vec3InitZero(&newCentroid);
+
+		//Add each vertex's contribution to the centroid.
+		for(; curVertex < lastVertex; ++curVertex){
+			vec3AddVec3(&newCentroid, curVertex);
+		}
+
+		//Use the number of vertices to find the total mass.
+		newMass = COLLIDER_HULL_DEFAULT_VERTEX_MASS * numVertices;
+		*mass = newMass;
+		*invMass = 1.f / newMass;
+
+		vec3DivideBySOut(&newCentroid, numVertices, centroid);
+		((colliderHull *)hull)->centroid = *centroid;
+	}else{
+		*mass = 0.f;
+		*invMass = 0.f;
+
+		memset(centroid, 0.f, sizeof(*centroid));
+		memset(&((colliderHull *)hull)->centroid, 0.f, sizeof(((colliderHull *)hull)->centroid));
+	}
+}
+
+/*
+** Calculate the weighted collider's centre of gravity.
+** To do this, we calculate the centroid of each of the
+** hull's triangles and then determine the average.
+** This function will also return the hull's mass.
+*/
+void colliderHullGenerateMassAndCentroidWeighted(void *hull, const float *vertexMasses, float *mass, float *invMass, vec3 *centroid){
+	const colliderVertexIndex_t numVertices = ((colliderHull *)hull)->numVertices;
+	const vec3 *curVertex = ((colliderHull *)hull)->vertices;
+	const vec3 *lastVertex = &curVertex[numVertices];
+	vec3 newCentroid;
+	float newMass;
+
+	vec3InitZero(&newCentroid);
+
+	//Add each vertex's contribution to the centroid.
+	for(; curVertex < lastVertex; ++curVertex, ++vertexMasses){
+		vec3 weightedVertex;
+		const float massValue = *vertexMasses;
+
+		vec3MultiplySOut(curVertex, massValue, &weightedVertex);
+		vec3AddVec3(&newCentroid, &weightedVertex);
+		newMass += massValue;
+	}
+
+	*mass = newMass;
+	//We don't want to divide by zero.
+	if(newMass != 0.f){
+		*invMass = 1.f / newMass;
+
+		vec3MultiplySOut(&newCentroid, *invMass, centroid);
+		((colliderHull *)hull)->centroid = *centroid;
+	}else{
+		*invMass = 0.f;
+
+		memset(centroid, 0.f, sizeof(*centroid));
+		memset(&((colliderHull *)hull)->centroid, 0.f, sizeof(((colliderHull *)hull)->centroid));
+	}
+}
+
+/*
+** Calculate the collider's centre of gravity. To
+** do this, we calculate the centroid of each of the
+** hull's triangles and then determine the average.
+** While this doesn't generate the collider's mass, it
+** should give a more accurate estimate of its centroid.
+*/
+void colliderHullGenerateCentroidAccurate(void *hull, vec3 *centroid){
+	const colliderFaceIndex_t numFaces = ((colliderHull *)hull)->numFaces;
+
+	//We don't want to divide by zero.
+	if(numFaces > 0){
+		const vec3 *hullVertices = ((colliderHull *)hull)->vertices;
+		const colliderHullEdge *hullEdges = ((colliderHull *)hull)->edges;
+
+		const colliderHullFace *curFace = ((colliderHull *)hull)->faces;
+		const colliderHullFace *lastFace = &curFace[numFaces];
+
+		vec3 newCentroid;
+		vec3InitZero(&newCentroid);
+
+		do {
+			const colliderHullEdge *curEdge = &hullEdges[*curFace];
+			const colliderHullEdge *startEdge = curEdge;
+			vec3 faceCentroid;
+
+			vec3InitZero(&faceCentroid);
+
+			//Calculate the current face's
+			//contribution to the centroid!
+			do {
+				//If this edge forms the current
+				//face, get the start vertex!
+				if(*curFace == curEdge->faceIndex){
+					vec3AddVec3(&faceCentroid, &hullVertices[curEdge->startVertexIndex]);
+					curEdge = &hullEdges[curEdge->nextIndex];
+
+				//If this edge's twin forms the current
+				//face, we should use the end vertex!
+				}else{
+					vec3AddVec3(&faceCentroid, &hullVertices[curEdge->endVertexIndex]);
+					curEdge = &hullEdges[curEdge->twinNextIndex];
+				}
+			} while(curEdge != startEdge);
+
+			//Add this face's contribution
+			//to the collider's centroid!
+			vec3MultiplyS(&faceCentroid, 1.f / 3.f);
+			vec3AddVec3(&newCentroid, &faceCentroid);
+		} while(curFace < lastFace);
+
+		vec3DivideBySOut(&newCentroid, numFaces * 3.f, centroid);
+		((colliderHull *)hull)->centroid = *centroid;
+	}else{
+		memset(centroid, 0.f, sizeof(*centroid));
+		memset(&((colliderHull *)hull)->centroid, 0.f, sizeof(((colliderHull *)hull)->centroid));
+	}
+}
+
+/*
+** Calculate the collider's weighted centre of gravity.
+** To do this, we calculate the centroid of each of the
+** hull's triangles and then determine the average.
+** While this doesn't generate the collider's mass, it
+** should give a more accurate estimate of its centroid.
+*/
+void colliderHullGenerateCentroidAccurateWeighted(void *hull, const float *vertexMasses, vec3 *centroid){
+	const vec3 *hullVertices = ((colliderHull *)hull)->vertices;
+	const colliderHullEdge *hullEdges = ((colliderHull *)hull)->edges;
+
+	const colliderHullFace *curFace = ((colliderHull *)hull)->faces;
+	const colliderHullFace *lastFace = &curFace[((colliderHull *)hull)->numFaces];
+
+	vec3 newCentroid;
+	float newMass = 0.f;
+
+	vec3InitZero(&newCentroid);
 
 	for(; curFace < lastFace; ++curFace){
-		//
+		const colliderHullEdge *curEdge = &hullEdges[*curFace];
+		const colliderHullEdge *startEdge = curEdge;
+		vec3 faceCentroid;
+		float faceMass = 0.f;
+
+		vec3InitZero(&faceCentroid);
+
+		//Calculate the current face's
+		//contribution to the centroid!
+		do {
+			vec3 curVertex;
+			float massValue;
+
+			//If this edge forms the current
+			//face, get the start vertex!
+			if(*curFace == curEdge->faceIndex){
+				curVertex = hullVertices[curEdge->startVertexIndex];
+				massValue = vertexMasses[curEdge->startVertexIndex];
+				curEdge = &hullEdges[curEdge->nextIndex];
+
+			//If this edge's twin forms the current
+			//face, we should use the end vertex!
+			}else{
+				curVertex = hullVertices[curEdge->endVertexIndex];
+				massValue = vertexMasses[curEdge->endVertexIndex];
+				curEdge = &hullEdges[curEdge->twinNextIndex];
+			}
+
+			//Add this vertex's contribution
+			//to the current face's centroid!
+			vec3MultiplyS(&curVertex, massValue);
+			vec3AddVec3(&faceCentroid, &curVertex);
+			faceMass += massValue;
+		} while(curEdge != startEdge);
+
+		//Add this face's contribution
+		//to the collider's centroid!
+		vec3DivideByS(&faceCentroid, faceMass);
+		vec3AddVec3(&newCentroid, &faceCentroid);
+		newMass += faceMass;
 	}
+
+	//We don't want to divide by zero.
+	if(newMass != 0.f){
+		vec3DivideBySOut(&newCentroid, newMass, centroid);
+		((colliderHull *)hull)->centroid = *centroid;
+	}else{
+		memset(centroid, 0.f, sizeof(*centroid));
+		memset(&((colliderHull *)hull)->centroid, 0.f, sizeof(((colliderHull *)hull)->centroid));
+	}
+}
+
+//Calculate the collider's inertia tensor relative to "centroid".
+void colliderHullGenerateInertia(const void *hull, const vec3 *centroid, mat3 *inertia){
+	const vec3 *curVertex = ((colliderHull *)hull)->vertices;
+	const vec3 *lastVertex = &curVertex[((colliderHull *)hull)->numVertices];
+	float tempInertia[6];
+
+	memset(tempInertia, 0.f, sizeof(tempInertia));
+
+	for(; curVertex < lastVertex; ++curVertex){
+		vec3 offset;
+		float xx;
+		float yy;
+		float zz;
+
+		vec3SubtractVec3FromOut(curVertex, centroid, &offset);
+		xx = offset.x * offset.x;
+		yy = offset.y * offset.y;
+		zz = offset.z * offset.z;
+
+		tempInertia[0] += yy + zz;
+		tempInertia[1] += xx + zz;
+		tempInertia[2] += xx + yy;
+		tempInertia[3] -= offset.x * offset.y;
+		tempInertia[4] -= offset.x * offset.z;
+		tempInertia[5] -= offset.y * offset.z;
+	}
+
+	inertia->m[0][0] = tempInertia[0];
+	inertia->m[1][1] = tempInertia[1];
+	inertia->m[2][2] = tempInertia[2];
+	inertia->m[0][1] = tempInertia[3];
+	inertia->m[0][2] = tempInertia[4];
+	inertia->m[1][2] = tempInertia[5];
+	//These should be the same as the values we've already calculated.
+	inertia->m[1][0] = tempInertia[3];
+	inertia->m[2][0] = tempInertia[4];
+	inertia->m[2][1] = tempInertia[5];
+}
+
+/*
+** Calculate the collider's weighted inertia tensor
+** relative to "centroid". Vertices with a greater mass
+** will have a greater contribution to the final tensor.
+*/
+void colliderHullGenerateInertiaWeighted(const void *hull, const vec3 *centroid, const float *vertexMasses, mat3 *inertia){
+	const vec3 *curVertex = ((colliderHull *)hull)->vertices;
+	const vec3 *lastVertex = &curVertex[((colliderHull *)hull)->numVertices];
+	float tempInertia[6];
+
+	memset(tempInertia, 0.f, sizeof(tempInertia));
+
+	for(; curVertex < lastVertex; ++curVertex, ++vertexMasses){
+		vec3 offset;
+		float xx;
+		float yy;
+		float zz;
+		const float massValue = *vertexMasses;
+
+		vec3SubtractVec3FromOut(curVertex, centroid, &offset);
+		xx = offset.x * offset.x;
+		yy = offset.y * offset.y;
+		zz = offset.z * offset.z;
+
+		tempInertia[0] += (yy + zz) * massValue;
+		tempInertia[1] += (xx + zz) * massValue;
+		tempInertia[2] += (xx + yy) * massValue;
+		tempInertia[3] -= offset.x * offset.y * massValue;
+		tempInertia[4] -= offset.x * offset.z * massValue;
+		tempInertia[5] -= offset.y * offset.z * massValue;
+	}
+
+	inertia->m[0][0] = tempInertia[0];
+	inertia->m[1][1] = tempInertia[1];
+	inertia->m[2][2] = tempInertia[2];
+	inertia->m[0][1] = tempInertia[3];
+	inertia->m[0][2] = tempInertia[4];
+	inertia->m[1][2] = tempInertia[5];
+	//These should be the same as the values we've already calculated.
+	inertia->m[1][0] = tempInertia[3];
+	inertia->m[2][0] = tempInertia[4];
+	inertia->m[2][1] = tempInertia[5];
 }
 
 
@@ -382,9 +671,6 @@ void colliderHullDelete(void *hull){
 	}
 	if(((colliderHull *)hull)->faces != NULL){
 		memoryManagerGlobalFree(((colliderHull *)hull)->faces);
-	}
-	if(((colliderHull *)hull)->massArray != NULL){
-		memoryManagerGlobalFree(((colliderHull *)hull)->massArray);
 	}
 }
 
@@ -626,7 +912,7 @@ static return_t noSeparatingEdge(const colliderHull *hullA, const colliderHull *
                                  hullEdgeData *edgeData, contactSeparation *separation){
 
 	colliderHullEdge *edgeA = hullA->edges;
-	const colliderHullEdge *lastEdgeA = &hullA->edges[hullA->numEdges];
+	const colliderHullEdge *lastEdgeA = &edgeA[hullA->numEdges];
 	const colliderHullEdge *lastEdgeB = &hullB->edges[hullB->numEdges];
 	colliderEdgeIndex_t a;
 

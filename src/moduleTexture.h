@@ -10,21 +10,24 @@
 #include "texture.h"
 
 
-#define MODULETEXTURE
-#define MODULETEXTURE_SETUP_FAIL 1
+#define MODULE_TEXTURE
+#define MODULE_TEXTURE_SETUP_FAIL 1
 
-#ifndef MEMORY_MAX_TEXTURES
-	#define MEMORY_MAX_TEXTURES 1
+#define MODULE_TEXTURE_ELEMENT_SIZE sizeof(texture)
+
+#ifndef MEMORY_MODULE_NUM_TEXTURES
+	#define MEMORY_MODULE_NUM_TEXTURES 1
 #endif
+
+#define MODULE_TEXTURE_MANAGER_SIZE memPoolMemoryForBlocks(MEMORY_MODULE_NUM_TEXTURES, MODULE_TEXTURE_ELEMENT_SIZE)
 
 
 return_t moduleTextureSetup();
+void moduleTextureCleanup();
 
 texture *moduleTextureAlloc();
 void moduleTextureFree(texture *tex);
-
-void moduleTextureCleanup();
-
+void moduleTextureClear();
 
 texture *moduleTextureFind(const char *name);
 

@@ -14,11 +14,16 @@ return_t moduleTextureSetup(){
 	return(
 		memPoolInit(
 			&textureManager,
-			memoryManagerGlobalAlloc(memPoolMemoryForBlocks(MEMORY_MAX_TEXTURES, sizeof(texture))),
-			MEMORY_MAX_TEXTURES, sizeof(texture)
+			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_TEXTURE_MANAGER_SIZE)),
+			MODULE_TEXTURE_MANAGER_SIZE, MODULE_TEXTURE_ELEMENT_SIZE
 		) != NULL &&
 		textureSetupError()
 	);
+}
+
+void moduleTextureCleanup(){
+	moduleTextureClear();
+	memoryManagerGlobalFree(memPoolRegionStart(textureManager.region));
 }
 
 
@@ -34,59 +39,21 @@ void moduleTextureFree(texture *tex){
 	memPoolFree(&textureManager, tex);
 }
 
-
-#warning "Check for invalid flag to end the loop!"
-void moduleTextureCleanup(){
-	/*const size_t blockSize = textureManager.blockSize;
-	memoryRegion *region = textureManager.region;
-	//Loop through every region of the object allocator!
-	while(region != NULL){
-		//We store a pointer to the beginning of
-		//the usable memory so we can free the
-		//region once we've finished with it.
-		void *memory = region->start;
-
-		void *block = memory;
-		//Free every block in the region!
-		while(block < (void *)region){
-			moduleTextureFree((texture *)memPoolBlockFlagGetData(block));
-			block = memPoolBlockGetNextBlock(block, blockSize);
-		}
-
-		//Now move to the next region
-		//and free the previous one!
-		region = region->next;
-		memoryManagerGlobalFree(memory);
-	}*/
-
-	memoryManagerGlobalFree(textureManager.region->start);
+//Delete every texture in the manager.
+void moduleTextureClear(){
+	MEMPOOL_LOOP_BEGIN(textureManager, i, texture *)
+		moduleTextureFree(i);
+	MEMPOOL_LOOP_END(textureManager, i, texture *, return)
 }
 
 
-//Find a texture whose name matches "name".
+//Find a texture whose name matches "name"!
 texture *moduleTextureFind(const char *name){
-	const size_t blockSize = textureManager.blockSize;
-	memoryRegion *region = textureManager.region;
-	//Loop through every region of the object allocator!
-	while(region != NULL){
-		void *block = region->start;
-		//Loop through every block of the current region!
-		while(block < (void *)region){
-			//We're only interested in active blocks.
-			if(memPoolBlockIsUsed(block)){
-				//Get a reference to the actual data
-				//and check if its name matches!
-				texture *match = (texture *)memPoolBlockFlagGetData(block);
-				if(strcmp(name, match->name) == 0){
-					return(match);
-				}
-			}
-
-			block = memPoolBlockGetNextBlock(block, blockSize);
+	MEMPOOL_LOOP_BEGIN(textureManager, i, texture *)
+		if(strcmp(name, i->name) == 0){
+			return(i);
 		}
-
-		region = region->next;
-	}
+	MEMPOOL_LOOP_END(textureManager, i, texture *, return(NULL))
 
 	return(NULL);
 }

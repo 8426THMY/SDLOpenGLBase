@@ -10,21 +10,24 @@
 #include "textureGroup.h"
 
 
-#define MODULETEXGROUP
-#define MODULETEXGROUP_SETUP_FAIL 2
+#define MODULE_TEXGROUP
+#define MODULE_TEXGROUP_SETUP_FAIL 2
 
-#ifndef MEMORY_MAX_TEXGROUPS
-	#define MEMORY_MAX_TEXGROUPS 1
+#define MODULE_TEXGROUP_ELEMENT_SIZE sizeof(textureGroup)
+
+#ifndef MEMORY_MODULE_NUM_TEXGROUPS
+	#define MEMORY_MODULE_NUM_TEXGROUPS 1
 #endif
+
+#define MODULE_TEXGROUP_MANAGER_SIZE memPoolMemoryForBlocks(MEMORY_MODULE_NUM_TEXGROUPS, MODULE_TEXGROUP_ELEMENT_SIZE)
 
 
 return_t moduleTexGroupSetup();
+void moduleTexGroupCleanup();
 
 textureGroup *moduleTexGroupAlloc();
 void moduleTexGroupFree(textureGroup *texGroup);
-
-void moduleTexGroupCleanup();
-
+void moduleTexGroupClear();
 
 textureGroup *moduleTexGroupFind(const char *name);
 

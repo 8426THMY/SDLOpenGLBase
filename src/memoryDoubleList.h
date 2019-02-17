@@ -52,6 +52,13 @@
 //Unlike the previous definition, this casts to a unsigned integer.
 #define memDoubleListBlockFreeGetFlag(block) *((uintptr_t *)block)
 
+//We'll need to remove the active flag from
+//the pointer if we want to get its real value.
+#define memDoubleListBlockGetNext(next) ((void *)(((uintptr_t)memDoubleListBlockGetValue(next)) & MEMORY_DATA_MASK))
+//The active flag is stored in the
+//least significant bit of the pointer.
+#define memDoubleListBlockGetFlag(next) (((uintptr_t)memDoubleListBlockGetValue(next)) & MEMORY_FLAG_MASK)
+
 //Return the address of the next block in the list.
 #define memDoubleListBlockGetNextBlock(block, size) memoryAddPointer(block, size)
 //Return the address of the previous block in the list.
@@ -74,6 +81,8 @@
 #define memDoubleListBlockUsedDataGetNext(block) ((void **)memorySubPointer(block, MEMDOUBLELIST_BLOCK_HEADER_SIZE))
 //Get the block's previous pointer from its data segment.
 #define memDoubleListBlockUsedDataGetPrev(block) ((void **)memorySubPointer(block, MEMDOUBLELIST_BLOCK_USED_PREV_SIZE))
+//Get the block's flag value from its data segment.
+#define memDoubleListBlockUsedDataGetFlagValue(block) memDoubleListBlockGetFlag(memDoubleListBlockUsedDataGetNext(block))
 
 //Return whether or not the block is active.
 #define memDoubleListBlockIsActive(block) (memDoubleListBlockGetFlag(block) == MEMDOUBLELIST_FLAG_ACTIVE)
@@ -87,19 +96,55 @@
 //Return whether or not the block is in use.
 #define memDoubleListBlockIsUsed(block) memDoubleListBlockIsActive(block)
 
+//Get the next element in a an array list. Active elements
+//have no flags, so we can simply dereference the next pointer.
+#define memDoubleListNext(element) memDoubleListBlockGetValue(memDoubleListBlockUsedDataGetNext(element))
+//Get the previous element in a an array list. Active elements
+//have no flags, so we can simply dereference the next pointer.
+#define memDoubleListPrev(element) memDoubleListBlockGetValue(memDoubleListBlockUsedDataGetPrev(element))
+
+#define memDoubleListRegionStart(region) memDoubleListBlockFreeNextGetFlag(((memoryRegion *)(region))->start)
+
 
 //Return the amount of memory required
 //for "num" many blocks of "size" bytes.
-#define memDoubleListMemoryForBlocks(num, size) memoryGetRequiredSize((num) * memDoubleListGetBlockSize(size))
+#define memDoubleListMemoryForBlocks(num, size) ((num) * memDoubleListGetBlockSize(size))
+//Return the amount of memory required for a
+//region of "num" many blocks of "size" bytes.
+#define memDoubleListMemoryForBlocksRegion(num, size) memoryGetRequiredSize(memDoubleListMemoryForBlocks(num, size))
+
+
+#define MEMDOUBLELIST_LOOP_BEGIN(allocator, node, type)                                   \
+{                                                                                         \
+	const memoryRegion *__region_##node = allocator.region;                               \
+	do {                                                                                  \
+		type node = (type)(allocator.region->start);                                      \
+		do {                                                                              \
+			const uintptr_t __flag_##node = memDoubleListBlockUsedDataGetFlagValue(node); \
+			if(__flag_##node == MEMDOUBLELIST_FLAG_ACTIVE){                               \
+
+#define MEMDOUBLELIST_LOOP_END(allocator, node, type, earlyexit)              \
+			}else if(__flag_##node == MEMDOUBLELIST_FLAG_INVALID){            \
+				earlyexit;                                                    \
+			}                                                                 \
+			node = memDoubleListBlockGetNextBlock(node, allocator.blockSize); \
+		} while(node < (type)__region_##node);                                \
+		__region_##node = __region_##node->next;                              \
+	} while(__region_##node != NULL);                                         \
+}                                                                             \
 
 
 //Block data usage diagrams:
-//Occupied:   [next][prev][    data    ]
-//Unoccupied: [flag][fill][next][ fill ]
+//Used: [next][prev][    data    ]
+//Free: [flag][fill][next][ fill ]
+
+//For used blocks, the next pointer points to the next block's data segment.
+//For free blocks, the next pointer points to the next block's next pointer.
 
 
 typedef struct memoryDoubleList {
 	size_t blockSize;
+	//Points to the next pointer of a free block.
 	void *nextFreeBlock;
 
 	//This is stored at the very end of the allocated memory,
@@ -110,7 +155,7 @@ typedef struct memoryDoubleList {
 } memoryDoubleList;
 
 
-void *memDoubleListInit(memoryDoubleList *doubleList, void *memory, const size_t numBlocks, const size_t blockSize);
+void *memDoubleListInit(memoryDoubleList *doubleList, void *memory, const size_t memorySize, const size_t blockSize);
 
 void *memDoubleListAlloc(memoryDoubleList *doubleList);
 void *memDoubleListPrepend(memoryDoubleList *doubleList, void **start);
@@ -119,12 +164,13 @@ void *memDoubleListInsertBefore(memoryDoubleList *doubleList, void **start, void
 void *memDoubleListInsertAfter(memoryDoubleList *doubleList, void **start, void *data);
 
 void memDoubleListFree(memoryDoubleList *doubleList, void **start, void *data);
+void memDoubleListFreeArray(memoryDoubleList *doubleList, void *start);
 
 void memDoubleListClearRegion(memoryDoubleList *doubleList, memoryRegion *region, const byte_t flag, void *next);
 void memDoubleListClearLastRegion(memoryDoubleList *doubleList, memoryRegion *region);
 void memDoubleListClear(memoryDoubleList *doubleList);
 
-void *memDoubleListExtend(memoryDoubleList *doubleList, void *memory, const size_t numBlocks);
+void *memDoubleListExtend(memoryDoubleList *doubleList, void *memory, const size_t memorySize);
 
 void memDoubleListDelete(memoryDoubleList *doubleList);
 

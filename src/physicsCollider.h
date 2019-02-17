@@ -9,6 +9,11 @@
 #include "aabbTree.h"
 
 
+#ifndef PHYSCOLLIDER_DEFAULT_MASS
+	#define PHYSCOLLIDER_DEFAULT_MASS 0.f
+#endif
+
+
 typedef struct physicsRigidBody physicsRigidBody;
 typedef struct physicsCollider {
 	//To reduce computation between frames, specifically
@@ -43,6 +48,9 @@ typedef struct physicsIsland physicsIsland;
 void physColliderInit(physicsCollider *pc, const colliderType_t type, physicsRigidBody *body);
 void physColliderInstantiate(physicsCollider *pc, physicsCollider *base, physicsRigidBody *body);
 
+void physColliderGenerateCentroid(physicsCollider *collider, vec3 *centroid);
+void physColliderGenerateInertia(physicsCollider *collider, const vec3 *centroid, mat3 *inertia);
+
 void physColliderUpdate(physicsCollider *collider, physicsIsland *island);
 void physColliderQueryCollisions(physicsCollider *collider);
 
@@ -58,6 +66,18 @@ void physColliderDeleteInstance(physicsCollider *collider);
 void physColliderDelete(physicsCollider *collider);
 
 void physColliderCollisionCallback(void *colliderA, void *colliderB);
+
+
+extern void (*physColliderGenerateCentroidTable[COLLIDER_NUM_TYPES])(
+	void *collider,
+	vec3 *centroid
+);
+
+extern void (*physColliderGenerateInertiaTable[COLLIDER_NUM_TYPES])(
+	const void *collider,
+	const vec3 *centroid,
+	mat3 *inertia
+);
 
 
 #endif

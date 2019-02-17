@@ -1,9 +1,20 @@
 #include "physicsCollider.h"
 
 
+#include "modulePhysics.h"
+
 #include "colliderAABB.h"
 #include "physicsIsland.h"
 #include "physicsRigidBody.h"
+
+
+void (*physColliderGenerateCentroidTable[COLLIDER_NUM_TYPES])(void *collider, vec3 *centroid) = {
+	colliderHullGenerateCentroid
+};
+
+void (*physColliderGenerateInertiaTable[COLLIDER_NUM_TYPES])(const void *collider, const vec3 *centroid, mat3 *inertia) = {
+	colliderHullGenerateInertia
+};
 
 
 /*
@@ -43,6 +54,17 @@ void physColliderInstantiate(physicsCollider *pc, physicsCollider *local, physic
 
 	pc->contacts = NULL;
 	pc->separations = NULL;
+}
+
+
+//Generate a physics collider's centroid.
+void physColliderGenerateCentroid(physicsCollider *collider, vec3 *centroid){
+	physColliderGenerateCentroidTable[collider->global.type]((void *)(&collider->global.data), centroid);
+}
+
+//Generate a physics collider's moment of inertia tensor.
+void physColliderGenerateInertia(physicsCollider *collider, const vec3 *centroid, mat3 *inertia){
+	physColliderGenerateInertiaTable[collider->global.type]((void *)(&collider->global.data), centroid, inertia);
 }
 
 
@@ -153,8 +175,7 @@ void physColliderUpdateSeparations(physicsCollider *collider){
 		//If the current separation has been
 		//inactive for too long, deallocate it.
 		if(physSeparationPairIsInactive(curPair)){
-			/** Free the separation too. The function below should be part of the free function. **/
-			physSeparationPairDelete(curPair);
+			modulePhysicsSeparationPairFree(curPair);
 
 		//We only need to increment the inactivity flag for
 		//separations. On the next physics step, this will
@@ -181,8 +202,7 @@ void physColliderUpdateContacts(physicsCollider *collider, const float dt){
 		//If the current contact has been
 		//inactive for too long, deallocate it.
 		if(physSeparationPairIsInactive(curPair)){
-			/** Free the contact too. The function below should be part of the free function. **/
-			physContactPairDelete(curPair);
+			modulePhysicsContactPairFree(curPair);
 
 		//For contacts, we need to precalculate their impulses and
 		//bias terms as well as increment their inactivity flag.
@@ -201,13 +221,11 @@ void physColliderClearPairs(physicsCollider *collider){
 
 	//Delete every separation that this collider is involved in.
 	while((curPair = collider->separations) != NULL){
-		/** Free the separation too. The function below should be part of the free function. **/
-		physSeparationPairDelete((physicsSeparationPair *)curPair);
+		modulePhysicsSeparationPairFree(curPair);
 	}
 	//Delete every contact that this collider is involved in.
 	while((curPair = collider->contacts) != NULL){
-		/** Free the contact too. The function below should be part of the free function. **/
-		physContactPairDelete((physicsContactPair *)curPair);
+		modulePhysicsContactPairFree(curPair);
 	}
 }
 
@@ -237,7 +255,7 @@ void physColliderCollisionCallback(void *colliderA, void *colliderB){
 	//We shouldn't check for collision if both colliders have the same owner, either.
 	if(colliderA < colliderB && ((physicsCollider *)colliderA)->owner != ((physicsCollider *)colliderB)->owner){
 		//Broadphase collision check.
-		if(colliderAABBCollidingAABB(&(((physicsCollider *)colliderA)->node->aabb), &(((physicsCollider *)colliderB)->node->aabb))){
+		if(colliderAABBCollidingAABB(&(((physicsCollider *)colliderA)->aabb), &(((physicsCollider *)colliderB)->node->aabb))){
 			//Used when searching for an
 			//existing contact or separation
 			//or when creating a new one.
@@ -286,7 +304,7 @@ void physColliderCollisionCallback(void *colliderA, void *colliderB){
 
 				//If this is a new contact, allocate a new pair.
 				}else{
-					/** allocate contact pair **/
+					sharedPair = modulePhysicsContactPairAlloc();
 
 					//Set up the new contact pair. This involves building
 					//a physics manifold from our contact manifold and
@@ -307,7 +325,7 @@ void physColliderCollisionCallback(void *colliderA, void *colliderB){
 
 				//Otherwise, we'll have to create one.
 				}else{
-					/** allocate separation pair **/
+					sharedPair = modulePhysicsSeparationPairAlloc();
 
 					//Set up the new separation pair, including its lists.
 					physSeparationPairInit(

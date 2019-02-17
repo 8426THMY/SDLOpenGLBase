@@ -1,6 +1,8 @@
 #include "physicsIsland.h"
 
 
+#include "modulePhysics.h"
+
 #include "physicsRigidBody.h"
 
 
@@ -28,8 +30,7 @@ void physIslandUpdateCollider(physicsIsland *island, physicsCollider *collider){
 
 void physIslandRemoveCollider(physicsIsland *island, physicsCollider *collider){
 	/** Should we clear the collider's pairs here? **/
-	/** Callback function shouldn't be NULL, it should be the "free" funciton. **/
-	aabbTreeRemoveNode(&island->tree, collider->node, NULL);
+	aabbTreeRemoveNode(&island->tree, collider->node, &modulePhysicsAABBNodeFree);
 }
 
 
@@ -59,6 +60,5 @@ void physIslandQueryCollisions(physicsIsland *island, const float dt){
 
 //Free every node in a physics island's tree.
 void physIslandDelete(physicsIsland *island){
-	/** Callback function shouldn't be NULL, it should be the "free" funciton. **/
-	aabbTreeTraverse(&island->tree, NULL);
+	aabbTreeTraverse(&island->tree, &modulePhysicsAABBNodeFree);
 }

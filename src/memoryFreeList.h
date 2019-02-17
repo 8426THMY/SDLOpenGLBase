@@ -40,19 +40,40 @@
 //Get the next pointer of a free block.
 #define memFreeListBlockFreeGetNext(block) *((void **)block)
 
+#define memFreeListRegionStart(region) (((memoryRegion *)(region))->start)
+
 
 //Return the amount of memory required
 //for "num" many blocks of "size" bytes.
-#define memFreeListMemoryForBlocks(num, size) memoryGetRequiredSize((num) * memFreeListGetBlockSize(size))
+#define memFreeListMemoryForBlocks(num, size) ((num) * memFreeListGetBlockSize(size))
+//Return the amount of memory required for a
+//region of "num" many blocks of "size" bytes.
+#define memFreeListMemoryForBlocksRegion(num, size) memoryGetRequiredSize(memFreeListMemoryForBlocks(num, size))
+
+
+#define MEMFREELIST_LOOP_BEGIN(allocator, node, type)       \
+{                                                           \
+	const memoryRegion *__region_##node = allocator.region; \
+	do {                                                    \
+		type node = (type)(allocator.region->start);        \
+		do {
+
+#define MEMFREELIST_LOOP_END(allocator, node, type)                         \
+			node = memFreeListBlockGetNextBlock(node, allocator.blockSize); \
+		} while(node < (type)__region_##node);                              \
+		__region_##node = __region_##node->next;                            \
+	} while(__region_##node != NULL);                                       \
+}                                                                           \
 
 
 //Block data usage diagrams:
-//Occupied:   [          data          ]
-//Unoccupied: [next][       fill       ]
+//Used: [          data          ]
+//Free: [next][       fill       ]
 
 
 typedef struct memoryFreeList {
 	size_t blockSize;
+	//Points to the next pointer of a free block.
 	void *nextFreeBlock;
 
 	//This is stored at the very end of the allocated memory,
@@ -63,7 +84,7 @@ typedef struct memoryFreeList {
 } memoryFreeList;
 
 
-void *memFreeListInit(memoryFreeList *freeList, void *memory, const size_t numBlocks, const size_t blockSize);
+void *memFreeListInit(memoryFreeList *freeList, void *memory, const size_t memorySize, const size_t blockSize);
 
 void *memFreeListAlloc(memoryFreeList *freeList);
 
@@ -73,7 +94,7 @@ void memFreeListClearRegion(memoryFreeList *freeList, memoryRegion *region, void
 void memFreeListClearLastRegion(memoryFreeList *freeList, memoryRegion *region);
 void memFreeListClear(memoryFreeList *freeList);
 
-void *memFreeListExtend(memoryFreeList *freeList, void *memory, const size_t numBlocks);
+void *memFreeListExtend(memoryFreeList *freeList, void *memory, const size_t memorySize);
 
 void memFreeListDelete(memoryFreeList *freeList);
 

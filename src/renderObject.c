@@ -96,8 +96,8 @@ void renderObjStateDraw(const renderObjState *objState, const vec3 *camPos, cons
 	//Generate the skeleton's state!
 	if(objState->skeleObj->numAnims > 0){
 		const boneState *curObjBone = objState->skeleObj->state;
-		mat4 *curBoneState = boneStates;
 		const boneState *lastObjBone = &curObjBone[objState->skeleObj->skele->numBones];
+		mat4 *curBoneState = boneStates;
 		//Fill up the array!
 		for(; curObjBone < lastObjBone; ++curObjBone, ++curBoneState){
 			transformStateToMat4(curObjBone, curBoneState);
@@ -137,7 +137,7 @@ void renderObjStateDraw(const renderObjState *objState, const vec3 *camPos, cons
 	}else{
 		const boneState *curObjState = objState->skeleObj->state;
 		mat4 *curBoneState = boneStates;
-		const boneState *lastObjState = &objState->skeleObj->state[objState->skeleObj->skele->numBones];
+		const boneState *lastObjState = &curObjState[objState->skeleObj->skele->numBones];
 		//Fill up the array!
 		for(; curObjState < lastObjState; ++curObjState, ++curBoneState){
 			transformStateToMat4(curObjState, curBoneState);
@@ -170,7 +170,7 @@ void renderObjStateShift(renderObject *renderObj){
 
 
 	skeletonAnimInst *curAnim = currentState->skeleObj->anims;
-	const skeletonAnimInst *lastAnim = &currentState->skeleObj->anims[currentState->skeleObj->numAnims];
+	const skeletonAnimInst *lastAnim = &curAnim[currentState->skeleObj->numAnims];
 	//We should probably have a function that updates prepares animations for the next update.
 	for(; curAnim < lastAnim; ++curAnim){
 		stateObjShift(curAnim, sizeof(skeleAnimState), NULL, NULL);

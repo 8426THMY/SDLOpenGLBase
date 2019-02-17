@@ -12,6 +12,8 @@
 #define MEMTREE_BLOCK_MIN_BODY_SIZE ((uintptr_t)memoryAlign(sizeof(memTreeNode)))
 #define MEMTREE_BLOCK_MIN_SIZE (MEMTREE_BLOCK_HEADER_SIZE + MEMTREE_BLOCK_MIN_BODY_SIZE)
 
+#define memTreeRegionStart(region) (((memoryRegion *)(region))->start)
+
 //Return the minimum block size for an element of "size" bytes.
 #define memTreeGetBlockSize(size) ((size_t)memoryAlign( \
 	((size) > MEMTREE_BLOCK_MIN_BODY_SIZE) ? (size) : MEMTREE_BLOCK_MIN_BODY_SIZE \
@@ -22,10 +24,10 @@
 
 
 //Block data usage diagrams:
-//Occupied:   [list][           data           ]
-//Unoccupied: [list][tree][        fill        ]
-//List Node:  [prevSize][size]
-//Tree Node:  [left][right][parent]
+//Used:      [list][           data           ]
+//Free:      [list][tree][        fill        ]
+//List Node: [prevSize][size]
+//Tree Node: [left][right][parent]
 
 /* Our blocks are aligned to addresses that are evenly   */
 /* divisible by 8. Because of this, the size of blocks   */

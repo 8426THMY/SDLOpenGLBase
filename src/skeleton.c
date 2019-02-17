@@ -64,6 +64,14 @@ void skeleInitSet(skeleton *skele, char *name, bone *bones, const size_t numBone
 
 	//If the skeleton actually has some bones, we can just copy the pointers.
 	if(numBones > 0 && bones != NULL){
+		bone *curBone = bones;
+		const bone *lastBone = &curBone[skele->numBones];
+
+		//Make sure we invert each bone's state!
+		for(; curBone < lastBone; ++curBone){
+			transformStateInvert(&curBone->state, &curBone->state);
+		}
+
 		skele->bones = bones;
 		skele->numBones = numBones;
 
@@ -71,13 +79,6 @@ void skeleInitSet(skeleton *skele, char *name, bone *bones, const size_t numBone
 	}else{
 		skele->bones = &defaultBone;
 		skele->numBones = 1;
-	}
-
-	bone *curBone = skele->bones;
-	const bone *lastBone = &skele->bones[skele->numBones];
-	//Make sure we invert each bone's state!
-	for(; curBone < lastBone; ++curBone){
-		transformStateInvert(&curBone->state, &curBone->state);
 	}
 }
 
@@ -425,7 +426,7 @@ void skeleAnimInstUpdate(skeleAnimState *animState, const float time){
 		boneState **currentFrame = &animState->anim->frames[animState->animData.currentFrame];
 		boneState **nextFrame = &animState->anim->frames[animState->animData.nextFrame];
 		boneState *curState = animState->skeleState;
-		const boneState *lastState = &animState->skeleState[animState->anim->numBones];
+		const boneState *lastState = &curState[animState->anim->numBones];
 		//Update each bone's state!
 		for(; curState < lastState; ++currentFrame, ++nextFrame, ++curState){
 			transformStateInterpSet(
@@ -528,7 +529,7 @@ void skeleObjGenerateRenderState(skeletonObject *skeleObj){
 	const bone *curSkeleBone = skeleObj->skele->bones;
 	const boneState *curAnimBone = animState;
 	boneState *curObjBone = skeleObj->state;
-	const bone *lastSkeleBone = &skeleObj->skele->bones[skeleObj->skele->numBones];
+	const bone *lastSkeleBone = &curSkeleBone[skeleObj->skele->numBones];
 	//Accumulate the transformations for each bone in the animation!
 	for(; curSkeleBone < lastSkeleBone; ++curSkeleBone, ++curAnimBone, ++curObjBone){
 		const size_t parentID = curSkeleBone->parent;
@@ -544,7 +545,7 @@ void skeleObjGenerateRenderState(skeletonObject *skeleObj){
 
 	curSkeleBone = skeleObj->skele->bones;
 	curObjBone = skeleObj->state;
-	lastSkeleBone = &skeleObj->skele->bones[skeleObj->skele->numBones];
+	lastSkeleBone = &curSkeleBone[skeleObj->skele->numBones];
 	//Append each bone's inverse reference state!
 	for(; curSkeleBone < lastSkeleBone; ++curSkeleBone, ++curObjBone){
 		transformStateAppend(curObjBone, &curSkeleBone->state, curObjBone);
@@ -579,7 +580,7 @@ void skeleAnimDelete(skeletonAnim *anim){
 
 	char **curName = anim->boneNames;
 	if(curName != NULL){
-		char **lastName = &anim->boneNames[anim->numBones];
+		char **lastName = &curName[anim->numBones];
 		//Free each bone name!
 		for(; curName < lastName; ++curName){
 			char *curNameValue = *curName;
@@ -592,7 +593,7 @@ void skeleAnimDelete(skeletonAnim *anim){
 	}
 	boneState **curFrame = anim->frames;
 	if(curFrame != NULL){
-		boneState **lastFrame = &anim->frames[anim->frameData.numFrames];
+		boneState **lastFrame = &curFrame[anim->frameData.numFrames];
 		//Free each bone state!
 		for(; curFrame < lastFrame; ++curFrame){
 			boneState *curFrameValue = *curFrame;
@@ -627,7 +628,7 @@ void skeleAnimInstDelete(skeletonAnimInst *animInst){
 void skeleObjDelete(skeletonObject *skeleObj){
 	if(skeleObj->anims != NULL){
 		skeletonAnimInst *curAnim = skeleObj->anims;
-		skeletonAnimInst *lastAnim = &skeleObj->anims[skeleObj->numAnims];
+		skeletonAnimInst *lastAnim = &curAnim[skeleObj->numAnims];
 		//Free each animation instance!
 		for(; curAnim < lastAnim; ++curAnim){
 			stateObjDelete(curAnim, &skeleAnimStateDelete);

@@ -11,13 +11,6 @@
 #define memDoubleListBlockUsedGetPrev(block) memDoubleListBlockGetValue(block)
 #define memDoubleListBlockUsedGetData(block) memDoubleListBlockGetValue(block)
 
-//We'll need to remove the active flag from
-//the pointer if we want to get its real value.
-#define memDoubleListBlockGetNext(next) ((void *)(((uintptr_t)memDoubleListBlockGetValue(next)) & MEMORY_DATA_MASK))
-//The active flag is stored in the
-//least significant bit of the pointer.
-#define memDoubleListBlockGetFlag(next) (((uintptr_t)memDoubleListBlockGetValue(next)) & MEMORY_FLAG_MASK)
-
 //Write the flag specified by "flag" to the pointer "next".
 #define memDoubleListBlockSetFlag(next, flag) ((void *)(((uintptr_t)memDoubleListBlockGetValue(next)) | (flag)))
 //Add the "active" flag to the pointer specified by "next".
@@ -32,15 +25,15 @@
 #warning "We should go back to using the total memory size as input for init and extend, too."
 
 
-void *memDoubleListInit(memoryDoubleList *doubleList, void *memory, const size_t numBlocks, const size_t blockSize){
+void *memDoubleListInit(memoryDoubleList *doubleList, void *memory, const size_t memorySize, const size_t blockSize){
 	//Make sure the user isn't being difficult.
 	if(memory != NULL){
 		memoryRegion *region;
 
 		doubleList->blockSize = memDoubleListGetBlockSize(blockSize);
 
-		region = memoryGetRegionFromBlocks(memory, numBlocks, doubleList->blockSize);
-		region->start = memory;
+		region = memoryGetRegionFromSize(memory, memorySize);
+		region->start = memDoubleListBlockFreeFlagGetNext(memory);
 		region->next = NULL;
 		memDoubleListClearLastRegion(doubleList, region);
 
@@ -225,7 +218,9 @@ void memDoubleListFree(memoryDoubleList *doubleList, void **start, void *data){
 	//any preceding or succeeding nodes.
 	if(prevBlock != NULL){
 		*memDoubleListBlockUsedDataGetNext(prevBlock) = nextBlock;
-	}else{
+
+	//Otherwise, set the start pointer if it was specified.
+	}else if(start != NULL){
 		*start = nextBlock;
 	}
 	if(nextBlock != NULL){
@@ -238,12 +233,29 @@ void memDoubleListFree(memoryDoubleList *doubleList, void **start, void *data){
 	doubleList->nextFreeBlock = data;
 }
 
+//Free every block in a single array.
+void memDoubleListFreeArray(memoryDoubleList *doubleList, void *start){
+	if(start != NULL){
+		void *block = start;
+		do {
+			void *blockNext = memDoubleListBlockFreeGetNext(block);
 
-//Initialise every block in a region, setting the flag
-//to "flag" and the last block's next pointer to "next".
+			memDoubleListBlockFreeGetFlag(memDoubleListBlockFreeNextGetFlag(block)) = MEMDOUBLELIST_FLAG_INACTIVE;
+			memDoubleListBlockFreeGetNext(block) = NULL;
+
+			block = blockNext;
+		} while(block != NULL);
+	}
+}
+
+
+/*
+** Initialise every block in a region, setting the flag
+** to "flag" and the last block's next pointer to "next".
+*/
 void memDoubleListClearRegion(memoryDoubleList *doubleList, memoryRegion *region, const byte_t flag, void *next){
 	const size_t blockSize = doubleList->blockSize;
-	void *currentBlock = memDoubleListBlockFreeFlagGetNext(region->start);
+	void *currentBlock = region->start;
 	void *nextBlock = memDoubleListBlockGetNextBlock(currentBlock, blockSize);
 
 	//Set the flag and next pointer for each block!
@@ -260,11 +272,13 @@ void memDoubleListClearRegion(memoryDoubleList *doubleList, memoryRegion *region
 	memDoubleListBlockFreeGetNext(currentBlock) = next;
 }
 
-//Initialise every block in a region, setting the flag
-//to invalid and the last block's next pointer to NULL.
+/*
+** Initialise every block in a region, setting the flag
+** to invalid and the last block's next pointer to NULL.
+*/
 void memDoubleListClearLastRegion(memoryDoubleList *doubleList, memoryRegion *region){
 	const size_t blockSize = doubleList->blockSize;
-	void *currentBlock = memDoubleListBlockFreeFlagGetNext(region->start);
+	void *currentBlock = region->start;
 	void *nextBlock = memDoubleListBlockGetNextBlock(currentBlock, blockSize);
 
 	//Set the flag and next pointer for each block!
@@ -281,11 +295,13 @@ void memDoubleListClearLastRegion(memoryDoubleList *doubleList, memoryRegion *re
 	memDoubleListBlockFreeGetNext(currentBlock) = NULL;
 }
 
-//Clear every memory region in the allocator.
-//This assumes that there is at least one region.
+/*
+** Clear every memory region in the allocator.
+** This assumes that there is at least one region.
+*/
 void memDoubleListClear(memoryDoubleList *doubleList){
 	memoryRegion *region = doubleList->region;
-	doubleList->nextFreeBlock = memDoubleListBlockFreeFlagGetNext(region->start);
+	doubleList->nextFreeBlock = region->start;
 
 	//Loop through every region in the allocator.
 	for(;;){
@@ -294,7 +310,7 @@ void memDoubleListClear(memoryDoubleList *doubleList){
 		//If this is not the last region, make this region's
 		//last block point to the first in the next region.
 		if(nextRegion != NULL){
-			memDoubleListClearRegion(doubleList, region, MEMDOUBLELIST_FLAG_INVALID, memDoubleListBlockFreeFlagGetNext(nextRegion->start));
+			memDoubleListClearRegion(doubleList, region, MEMDOUBLELIST_FLAG_INVALID, nextRegion->start);
 
 		//Otherwise, make it point to NULL and break the loop.
 		}else{
@@ -308,9 +324,9 @@ void memDoubleListClear(memoryDoubleList *doubleList){
 
 
 //Append a new memory region to the end of our allocator's region list!
-void *memDoubleListExtend(memoryDoubleList *doubleList, void *memory, const size_t numBlocks){
+void *memDoubleListExtend(memoryDoubleList *doubleList, void *memory, const size_t memorySize){
 	if(memory != NULL){
-		memoryRegion *newRegion = memoryGetRegionFromBlocks(memory, numBlocks, doubleList->blockSize);
+		memoryRegion *newRegion = memoryGetRegionFromSize(memory, memorySize);
 		//Add the new region to the end of the list!
 		memoryRegionAppend(&doubleList->region, newRegion, memory);
 		//Set up its memory!
@@ -324,5 +340,12 @@ void *memDoubleListExtend(memoryDoubleList *doubleList, void *memory, const size
 
 
 void memDoubleListDelete(memoryDoubleList *doubleList){
-	memoryAllocatorDelete(doubleList->region);
+	memoryRegion *region = doubleList->region;
+	//Free every memory region in the allocator.
+	while(region != NULL){
+		memoryRegion *next = region->next;
+
+		memoryFree(memDoubleListRegionStart(region));
+		region = next;
+	}
 }

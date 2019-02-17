@@ -8,14 +8,14 @@
 #warning "We should go back to using the total memory size as input for init and extend, too."
 
 
-void *memFreeListInit(memoryFreeList *freeList, void *memory, const size_t numBlocks, const size_t blockSize){
+void *memFreeListInit(memoryFreeList *freeList, void *memory, const size_t memorySize, const size_t blockSize){
 	//Make sure the user isn't being difficult.
 	if(memory != NULL){
 		memoryRegion *region;
 
 		freeList->blockSize = memFreeListGetBlockSize(blockSize);
 
-		region = memoryGetRegionFromBlocks(memory, numBlocks, freeList->blockSize);
+		region = memoryGetRegionFromSize(memory, memorySize);
 		region->start = memory;
 		region->next = NULL;
 		memFreeListClearLastRegion(freeList, region);
@@ -49,8 +49,10 @@ void memFreeListFree(memoryFreeList *freeList, void *data){
 }
 
 
-//Initialise every block in a region, setting
-//the last block's next pointer to "next".
+/*
+** Initialise every block in a region, setting
+** the last block's next pointer to "next".
+*/
 void memFreeListClearRegion(memoryFreeList *freeList, memoryRegion *region, void *next){
 	const size_t blockSize = freeList->blockSize;
 	void *currentBlock = region->start;
@@ -68,8 +70,10 @@ void memFreeListClearRegion(memoryFreeList *freeList, memoryRegion *region, void
 	memFreeListBlockFreeGetNext(currentBlock) = next;
 }
 
-//Initialise every block in a region, setting the
-//flag to invalid and the next pointer to NULL.
+/*
+** Initialise every block in a region, setting the
+** flag to invalid and the next pointer to NULL.
+*/
 void memFreeListClearLastRegion(memoryFreeList *freeList, memoryRegion *region){
 	const size_t blockSize = freeList->blockSize;
 	void *currentBlock = region->start;
@@ -111,9 +115,9 @@ void memFreeListClear(memoryFreeList *freeList){
 }
 
 
-void *memFreeListExtend(memoryFreeList *freeList, void *memory, const size_t numBlocks){
+void *memFreeListExtend(memoryFreeList *freeList, void *memory, const size_t memorySize){
 	if(memory != NULL){
-		memoryRegion *newRegion = memoryGetRegionFromBlocks(memory, numBlocks, freeList->blockSize);
+		memoryRegion *newRegion = memoryGetRegionFromSize(memory, memorySize);
 		//Add the new region to the end of the list!
 		memoryRegionAppend(&freeList->region, newRegion, memory);
 		//Set up its memory!

@@ -10,23 +10,27 @@
 #include "skeleton.h"
 
 
-#define MODULESKELETON
-#define MODULESKELETON_SETUP_FAIL 3
+#define MODULE_SKELETON
+#define MODULE_SKELETON_SETUP_FAIL 3
 
-#ifndef MEMORY_MAX_SKELEANIMS
-	#define MEMORY_MAX_SKELEANIMS 1
+#define MODULE_SKELEANIM_ELEMENT_SIZE sizeof(skeletonAnim)
+
+#ifndef MEMORY_MODULE_NUM_SKELEANIMS
+	#define MEMORY_MODULE_NUM_SKELEANIMS 1
 #endif
+
+#define MODULE_SKELEANIM_MANAGER_SIZE memPoolMemoryForBlocks(MEMORY_MODULE_NUM_SKELEANIMS, MODULE_SKELEANIM_ELEMENT_SIZE)
 
 
 return_t moduleSkeletonSetup();
+void moduleSkeletonCleanup();
 
 skeletonAnim *moduleSkeletonAnimAlloc();
 void moduleSkeletonAnimFree(skeletonAnim *skeleAnim);
+void moduleSkeletonAnimClear();
 
-void moduleSkeletonCleanup();
 
-
-extern memoryPool skeletonManager;
+extern memoryPool skeleAnimManager;
 
 
 #endif

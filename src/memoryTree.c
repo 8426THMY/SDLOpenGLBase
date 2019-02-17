@@ -409,8 +409,10 @@ memTreeNode *memTreeClearRegion(void *memory, const size_t memorySize){
 	return(root);
 }
 
-//Clear every memory region in the allocator.
-//This assumes that there is at least one region.
+/*
+** Clear every memory region in the allocator.
+** This assumes that there is at least one region.
+*/
 void memTreeClear(memoryTree *tree, void *memory, const size_t memorySize){
 	memoryRegion *region = tree->region;
 	//Clear the first region here so we

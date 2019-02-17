@@ -56,10 +56,17 @@
 //Return the address of the previous block in the pool.
 #define memPoolBlockGetPrevBlock(block, size) memorySubPointer(block, size)
 
+//Get the block's next pointer from its flags segment.
+#define memPoolBlockFreeFlagGetNext(block) memPoolBlockFlagGetData(block)
+//Get the block's flags from its next pointer segment.
+#define memPoolBlockFreeNextGetFlag(block) memPoolBlockDataGetFlag(block)
+
 //Get the block's data from its flags segment.
 #define memPoolBlockFlagGetData(block) ((void **)memoryAddPointer(block, MEMPOOL_BLOCK_HEADER_SIZE))
 //Get the block's flags from its data segment.
 #define memPoolBlockDataGetFlag(block) ((byte_t *)memorySubPointer(block, MEMPOOL_BLOCK_HEADER_SIZE))
+//Get the block's flag value from its data segment.
+#define memPoolBlockDataGetFlagValue(block) memPoolBlockGetFlag(memPoolBlockDataGetFlag(block))
 
 //Return whether or not the block is active.
 #define memPoolBlockIsActive(block)   (memPoolBlockGetFlag(block) == MEMPOOL_FLAG_ACTIVE)
@@ -73,15 +80,40 @@
 //Return whether or not the block is in use.
 #define memPoolBlockIsUsed(block) memPoolBlockIsActive(block)
 
+#define memPoolRegionStart(region) memPoolBlockFreeNextGetFlag(((memoryRegion *)(region))->start)
+
 
 //Return the amount of memory required
 //for "num" many blocks of "size" bytes.
-#define memPoolMemoryForBlocks(num, size) memoryGetRequiredSize((num) * memPoolGetBlockSize(size))
+#define memPoolMemoryForBlocks(num, size) ((num) * memPoolGetBlockSize(size))
+//Return the amount of memory required for a
+//region of "num" many blocks of "size" bytes.
+#define memPoolMemoryForBlocksRegion(num, size) memoryGetRequiredSize(memPoolMemoryForBlocks(num, size))
+
+
+#define MEMPOOL_LOOP_BEGIN(allocator, node, type)                               \
+{                                                                               \
+	const memoryRegion *__region_##node = allocator.region;                     \
+	do {                                                                        \
+		type node = (type)(allocator.region->start);                            \
+		do {                                                                    \
+			const uintptr_t __flag_##node = memPoolBlockDataGetFlagValue(node); \
+			if(__flag_##node == MEMPOOL_FLAG_ACTIVE){                           \
+
+#define MEMPOOL_LOOP_END(allocator, node, type, earlyexit)              \
+			}else if(__flag_##node == MEMPOOL_FLAG_INVALID){            \
+				earlyexit;                                              \
+			}                                                           \
+			node = memPoolBlockGetNextBlock(node, allocator.blockSize); \
+		} while(node < (type)__region_##node);                          \
+		__region_##node = __region_##node->next;                        \
+	} while(__region_##node != NULL);                                   \
+}                                                                       \
 
 
 //Block data usage diagrams:
-//Occupied:   [active][       data       ]
-//Unoccupied: [active][next][    fill    ]
+//Used: [active][       data       ]
+//Free: [active][next][    fill    ]
 
 
 #warning "Either store an array of bits (for the flags) at the beginning of the memory or don't use headers at all (blocks know whether they're active)."
@@ -97,7 +129,7 @@ typedef struct memoryPool {
 } memoryPool;
 
 
-void *memPoolInit(memoryPool *pool, void *memory, const size_t numBlocks, const size_t blockSize);
+void *memPoolInit(memoryPool *pool, void *memory, const size_t memorySize, const size_t blockSize);
 
 void *memPoolAlloc(memoryPool *pool);
 
@@ -107,7 +139,7 @@ void memPoolClearRegion(memoryPool *pool, memoryRegion *region, const byte_t fla
 void memPoolClearLastRegion(memoryPool *pool, memoryRegion *region);
 void memPoolClear(memoryPool *pool);
 
-void *memPoolExtend(memoryPool *pool, void *memory, const size_t numBlocks);
+void *memPoolExtend(memoryPool *pool, void *memory, const size_t memorySize);
 
 void memPoolDelete(memoryPool *pool);
 
