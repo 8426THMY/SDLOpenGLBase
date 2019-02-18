@@ -57,6 +57,9 @@ typedef struct physicsRigidBody {
 void physRigidBodyDefInit(physicsRigidBodyDef *bodyDef);
 void physRigidBodyInit(physicsRigidBody *body);
 
+void physRigidBodyDefLoad(physicsRigidBodyDef *bodyDef, const char *bodyPath);
+
+void physRigidBodyDefAddCollider(physicsRigidBodyDef *bodyDef, const float mass, const vec3 *centroid, const mat3 *inertia);
 void physRigidBodyDefGenerateProperties(physicsRigidBodyDef *bodyDef);
 
 void physRigidBodyIntegrateVelocitySymplecticEuler(physicsRigidBody *body, const float time);
@@ -71,16 +74,7 @@ void physRigidBodyDefDelete(physicsRigidBodyDef *bodyDef);
 void physRigidBodyDelete(physicsRigidBody *body);
 
 
-//For the physical properties (mass, centroid and inertia tensor),
-//it would probably be best to add a physics collider's contribution
-//straight after it has been loaded. Our load function would then
-//need to return the calculated mass, centroid and inertia tensor.
 /**
-Body mass, centroid and inertia tensor (with vertex weighting for hulls).
-
-Body add colliders.
-Body remove colliders.
-
 Load colliders.
 Load bodies.
 **/

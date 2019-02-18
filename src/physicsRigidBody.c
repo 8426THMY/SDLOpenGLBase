@@ -4,6 +4,10 @@
 #include "modulePhysics.h"
 
 
+#define RIGIDBODYDEF_PATH_PREFIX        ".\\resource\\physics\\"
+#define RIGIDBODYDEF_PATH_PREFIX_LENGTH (sizeof(RIGIDBODYDEF_PATH_PREFIX) - 1)
+
+
 void physRigidBodyDefInit(physicsRigidBodyDef *bodyDef){
 	//
 }
@@ -12,6 +16,90 @@ void physRigidBodyInit(physicsRigidBody *body){
 	//
 }
 
+
+//Load a rigid body, including any of its colliders.
+void physRigidBodyDefLoad(physicsRigidBodyDef *bodyDef, const char *bodyPath){
+	//
+}
+
+
+/*
+** Adds a physics collider to a rigid body's list. This
+** assumes that the collider's centroid and moment of
+** inertia tensor have already been calculated. Note
+** that this assumes that the body's inertia tensor has
+** note yet been inverted. It will not invert it, either.
+*/
+void physRigidBodyDefAddCollider(physicsRigidBodyDef *bodyDef, const float mass, const vec3 *centroid, const mat3 *inertia){
+	vec3 tempCentroid;
+	float xx;
+	float yy;
+	float zz;
+	mat3 tempInertia = *inertia;
+
+
+	//Calculate the collider's contribution to the body's centroid.
+	vec3MultiplySOut(centroid, mass, &tempCentroid);
+	vec3MultiplyS(&bodyDef->centroid, bodyDef->mass);
+
+	//Calculate the new mass and inverse mass.
+	bodyDef->mass += mass;
+	bodyDef->invMass = 1.f / bodyDef->mass;
+
+	//Add this collider's contribution to the centroid.
+	vec3AddVec3(&bodyDef->centroid, &tempCentroid);
+	vec3MultiplyS(&bodyDef->centroid, bodyDef->invMass);
+
+
+	//Add this collider's contribution to the inertia tensor.
+	//We use the parallel axis theorem to translate it from
+	//the collider's centroid to the rigid body's centroid.
+	//
+	//J = I + m(dot(R, R) * E - out(R, R))
+	//
+	//J = new inertia tensor
+	//I = old inertia tensor
+	//m = mass
+	//R = vector displacement from old to new center of mass
+	//E = 3x3 identity matrix
+	//
+	//This can be simplified as follows to reduce matrix operations.
+	//
+	//d = dot(R, R) = xx + yy + zz
+	//dI = [d 0 0]
+	//     [0 d 0]
+	//     [0 0 d]
+	//P = out(R, R) = [xx yx zx]
+	//                [xy yy zy]
+	//                [xz yz zz]
+	//dI - P = [(yy + zz)    -yx       -zx   ]
+	//         [   -xy    (xx + zz)    -zy   ]
+	//         [   -xz       -yz    (xx + yy)]
+
+	vec3SubtractVec3FromOut(&bodyDef->centroid, centroid, &tempCentroid);
+	xx = tempCentroid.x * tempCentroid.x;
+	yy = tempCentroid.y * tempCentroid.y;
+	zz = tempCentroid.z * tempCentroid.z;
+
+	//Translate the inertia tensor using the rigid body's centroid.
+	tempInertia.m[0][0] += (yy + zz) * mass;
+	tempInertia.m[0][1] -= (tempCentroid.x * tempCentroid.y) * mass;
+	tempInertia.m[0][2] -= (tempCentroid.x * tempCentroid.z) * mass;
+	tempInertia.m[1][1] += (xx + zz) * mass;
+	tempInertia.m[1][2] -= (tempCentroid.y * tempCentroid.z) * mass;
+	tempInertia.m[2][2] += (xx + yy) * mass;
+
+	//Add the collider's contribution to the body's inertia tensor.
+	bodyDef->invInertia.m[0][0] += tempInertia.m[0][0];
+	bodyDef->invInertia.m[0][1] += tempInertia.m[0][1];
+	bodyDef->invInertia.m[0][2] += tempInertia.m[0][2];
+	bodyDef->invInertia.m[1][0] = bodyDef->invInertia.m[0][1];
+	bodyDef->invInertia.m[1][1] += tempInertia.m[1][1];
+	bodyDef->invInertia.m[1][2] += tempInertia.m[1][2];
+	bodyDef->invInertia.m[2][0] = bodyDef->invInertia.m[0][2];
+	bodyDef->invInertia.m[2][1] = bodyDef->invInertia.m[1][2];
+	bodyDef->invInertia.m[2][2] += tempInertia.m[2][2];
+}
 
 /*
 ** Sum the mass, centroid and intertia tensor of each of the body's

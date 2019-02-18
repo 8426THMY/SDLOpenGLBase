@@ -9,6 +9,7 @@
 #include "memoryManager.h"
 
 #include "colliderAABB.h"
+#include "physicsCollider.h"
 
 #include "contact.h"
 #include "physicsContact.h"

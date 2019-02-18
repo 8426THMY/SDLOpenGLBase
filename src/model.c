@@ -16,7 +16,6 @@
 #define MODEL_PATH_PREFIX        ".\\resource\\models\\"
 #define MODEL_PATH_PREFIX_LENGTH (sizeof(MODEL_PATH_PREFIX) - 1)
 
-
 //These must be at least 1!
 #define BASE_VERTEX_CAPACITY   1
 #define BASE_INDEX_CAPACITY    BASE_VERTEX_CAPACITY

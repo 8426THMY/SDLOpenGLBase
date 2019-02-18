@@ -13,7 +13,6 @@
 #define TEXTUREGROUP_PATH_PREFIX        ".\\resource\\textures\\"
 #define TEXTUREGROUP_PATH_PREFIX_LENGTH (sizeof(TEXTUREGROUP_PATH_PREFIX) - 1)
 
-
 //These must be at least 1!
 #define BASE_INDEX_CAPACITY 1
 #define BASE_ANIM_CAPACITY  1
