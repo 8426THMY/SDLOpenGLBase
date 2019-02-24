@@ -24,6 +24,65 @@ void physRigidBodyDefLoad(physicsRigidBodyDef *bodyDef, const char *bodyPath){
 
 
 /*
+** Assuming "centroidArray" is an array of collider centroids,
+** combine them all to get the rigid body's centroid.
+** We assume that they have already been weighted.
+*/
+void physRigidBodyDefSumCentroids(physicsRigidBodyDef *bodyDef, const vec3 *centroidArray, const size_t numBodies){
+	const vec3 *lastCentroid = &centroidArray[numBodies];
+	vec3 tempCentroid;
+
+	vec3InitZero(&tempCentroid);
+
+	//Store the sum of the weighted centroids in "tempCentroid".
+	while(centroidArray != lastCentroid){
+		vec3AddVec3(&tempCentroid, centroidArray);
+
+		++centroidArray;
+	}
+
+	vec3MultiplySOut(&tempCentroid, bodyDef->invMass, &bodyDef->centroid);
+}
+
+/*
+** Assuming "inertiaArray" is an array of collider inertia tensors,
+** combine them all to get the rigid body's moment of inertia tensor.
+** We assume that they have already been weighted.
+*/
+void physRigidBodyDefSumInertia(physicsRigidBodyDef *bodyDef, const mat3 *inertiaArray, const size_t numBodies){
+	const mat3 *lastInertia = &inertiaArray[numBodies];
+	float tempInertia[6];
+
+	memset(tempInertia, 0.f, sizeof(tempInertia));
+
+	//Store the sum of the weighted centroids in "tempCentroid".
+	while(inertiaArray != lastInertia){
+		tempInertia[0] += inertiaArray->m[0][0];
+		tempInertia[1] += inertiaArray->m[1][1];
+		tempInertia[2] += inertiaArray->m[2][2];
+		tempInertia[3] += inertiaArray->m[0][1];
+		tempInertia[4] += inertiaArray->m[0][2];
+		tempInertia[5] += inertiaArray->m[1][2];
+
+		++inertiaArray;
+	}
+
+	bodyDef->invInertia.m[0][0] = tempInertia[0];
+	bodyDef->invInertia.m[1][1] = tempInertia[1];
+	bodyDef->invInertia.m[2][2] = tempInertia[2];
+	bodyDef->invInertia.m[0][1] = tempInertia[3];
+	bodyDef->invInertia.m[0][2] = tempInertia[4];
+	bodyDef->invInertia.m[1][2] = tempInertia[5];
+	//These should be the same as the values we've already calculated.
+	bodyDef->invInertia.m[1][0] = tempInertia[3];
+	bodyDef->invInertia.m[2][0] = tempInertia[4];
+	bodyDef->invInertia.m[2][1] = tempInertia[5];
+
+	//The inverse inertia tensor is more useful to us than the regular one.
+	mat3Invert(&bodyDef->invInertia);
+}
+
+/*
 ** Adds a physics collider to a rigid body's list. This
 ** assumes that the collider's centroid and moment of
 ** inertia tensor have already been calculated. Note

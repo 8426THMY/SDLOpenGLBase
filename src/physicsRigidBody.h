@@ -59,6 +59,8 @@ void physRigidBodyInit(physicsRigidBody *body);
 
 void physRigidBodyDefLoad(physicsRigidBodyDef *bodyDef, const char *bodyPath);
 
+void physRigidBodyDefSumCentroids(physicsRigidBodyDef *bodyDef, const vec3 *centroidArray, const size_t numBodies);
+void physRigidBodyDefSumInertia(physicsRigidBodyDef *bodyDef, const mat3 *inertiaArray, const size_t numBodies);
 void physRigidBodyDefAddCollider(physicsRigidBodyDef *bodyDef, const float mass, const vec3 *centroid, const mat3 *inertia);
 void physRigidBodyDefGenerateProperties(physicsRigidBodyDef *bodyDef);
 
@@ -77,6 +79,8 @@ void physRigidBodyDelete(physicsRigidBody *body);
 /**
 Load colliders.
 Load bodies.
+
+Component-wise addition for matrices (specifically mat3s)?
 **/
 
 
