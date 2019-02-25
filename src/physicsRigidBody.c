@@ -1,11 +1,14 @@
 #include "physicsRigidBody.h"
 
 
+#include <stdio.h>
+
+#include "utilString.h"
 #include "modulePhysics.h"
 
 
-#define RIGIDBODYDEF_PATH_PREFIX        ".\\resource\\physics\\"
-#define RIGIDBODYDEF_PATH_PREFIX_LENGTH (sizeof(RIGIDBODYDEF_PATH_PREFIX) - 1)
+#define PHYSRIGIDBODYDEF_PATH_PREFIX        ".\\resource\\physics\\"
+#define PHYSRIGIDBODYDEF_PATH_PREFIX_LENGTH (sizeof(PHYSRIGIDBODYDEF_PATH_PREFIX) - 1)
 
 
 void physRigidBodyDefInit(physicsRigidBodyDef *bodyDef){
@@ -18,8 +21,63 @@ void physRigidBodyInit(physicsRigidBody *body){
 
 
 //Load a rigid body, including any of its colliders.
-void physRigidBodyDefLoad(physicsRigidBodyDef *bodyDef, const char *bodyPath){
-	//
+return_t physRigidBodyDefLoad(physicsRigidBodyDef *bodyDef, const char *bodyPath){
+	physRigidBodyDefInit(bodyDef);
+
+
+	//Find the full path for the rigid body!
+	const size_t bodyPathLength = strlen(bodyPath);
+	char *bodyFullPath = memoryManagerGlobalAlloc(PHYSRIGIDBODYDEF_PATH_PREFIX_LENGTH + bodyPathLength + 1);
+	if(bodyFullPath == NULL){
+		/** MALLOC FAILED **/
+	}
+	memcpy(bodyFullPath, PHYSRIGIDBODYDEF_PATH_PREFIX, PHYSRIGIDBODYDEF_PATH_PREFIX_LENGTH);
+	strcpy(bodyFullPath + PHYSRIGIDBODYDEF_PATH_PREFIX_LENGTH, bodyPath);
+
+	//Load the rigid body!
+	FILE *bodyFile = fopen(bodyFullPath, "r");
+	if(bodyFile != NULL){
+		return_t success = 1;
+
+		char lineBuffer[1024];
+		char *line;
+		size_t lineLength;
+
+		while(success && (line = readLineFile(bodyFile, &lineBuffer[0], &lineLength)) != NULL){
+			//
+			if(memcmp(line, "rigidbody ", 10) == 0 && line[lineLength - 1] == '{'){
+				char *boneName;
+				size_t boneNameLength;
+				//Find the name of the bone to attach this rigid body to.
+				getDelimitedString(&line[10], lineLength - 10, "\" ", &boneName, &boneNameLength);
+			}
+		}
+
+		fclose(bodyFile);
+		memoryManagerGlobalFree(bodyFullPath);
+
+
+		//If there wasn't an error, keep the rigid body!
+		if(success){
+			//
+
+		//Otherwise, delete the rigid body.
+		}else{
+			physRigidBodyDefDelete(bodyDef);
+		}
+
+
+		return(success);
+	}else{
+		printf(
+			"Unable to open rigid body file!\n"
+			"Path: %s\n",
+			bodyFullPath
+		);
+	}
+
+
+	return(0);
 }
 
 
@@ -164,12 +222,15 @@ void physRigidBodyDefAddCollider(physicsRigidBodyDef *bodyDef, const float mass,
 ** Sum the mass, centroid and intertia tensor of each of the body's
 ** colliders in order to find the combined centroid and inverse
 ** inertia tensor. This will also calculate the body's inverse mass.
+** The array "masses" is an array of float arrays, each of which
+** contains a collider's mass followed by any vertex weights.
 */
-void physRigidBodyDefGenerateProperties(physicsRigidBodyDef *bodyDef){
+void physRigidBodyDefGenerateProperties(physicsRigidBodyDef *bodyDef, const float **massArrays){
 	float tempMass = 0.f;
 	vec3 tempCentroid;
 	float tempInertia[6];
 	physicsCollider *curCollider = bodyDef->colliders;
+	const float **curMassArray = massArrays;
 
 	vec3InitZero(&tempCentroid);
 	memset(tempInertia, 0.f, sizeof(tempInertia));
@@ -177,17 +238,18 @@ void physRigidBodyDefGenerateProperties(physicsRigidBodyDef *bodyDef){
 	//Calculate the rigid body's combined mass and centroid!
 	while(curCollider != NULL){
 		vec3 curCentroid;
+		const float curMass = (*curMassArray)[0];
 
 		/** Convex hulls should have their vertices weighted. **/
 		physColliderGenerateCentroid(curCollider, &curCentroid);
 
 		//Add the collider's contribution to the rigid body's centroid.
-		/** We clearly don't take into account the collider's mass. **/
-		vec3MultiplyS(&curCentroid, 0.f);
+		vec3MultiplyS(&curCentroid, curMass);
 		vec3AddVec3(&tempCentroid, &curCentroid);
-		tempMass += 0.f;
+		tempMass += curMass;
 
 		curCollider = memSingleListNext(curCollider);
+		++curMassArray;
 	}
 
 	bodyDef->mass = tempMass;
@@ -200,6 +262,7 @@ void physRigidBodyDefGenerateProperties(physicsRigidBodyDef *bodyDef){
 
 
 		curCollider = bodyDef->colliders;
+		curMassArray = massArrays;
 		//Calculate the rigid body's combined intertia tensor!
 		while(curCollider != NULL){
 			mat3 curInertia;
@@ -216,6 +279,7 @@ void physRigidBodyDefGenerateProperties(physicsRigidBodyDef *bodyDef){
 			tempInertia[5] += curInertia.m[1][2];
 
 			curCollider = memSingleListNext(curCollider);
+			++curMassArray;
 		}
 
 		bodyDef->invInertia.m[0][0] = tempInertia[0];
