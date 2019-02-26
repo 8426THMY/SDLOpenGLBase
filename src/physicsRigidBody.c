@@ -12,11 +12,24 @@
 
 
 void physRigidBodyDefInit(physicsRigidBodyDef *bodyDef){
-	//
+	bodyDef->colliders = NULL;
 }
 
-void physRigidBodyInit(physicsRigidBody *body){
-	//
+void physRigidBodyInit(physicsRigidBody *body, const physicsRigidBodyDef *bodyDef){
+	body->colliders = /** ALLOCATE NEW COLLIDER LIST **/NULL;
+
+	body->mass = bodyDef->mass;
+	body->invMass = bodyDef->mass;
+
+	body->centroidLocal = bodyDef->centroid;
+	body->invInertiaLocal = bodyDef->invInertia;
+
+	transformStateInit(&body->transform);
+
+	vec3InitZero(&body->linearVelocity);
+	vec3InitZero(&body->angularVelocity);
+	vec3InitZero(&body->netForce);
+	vec3InitZero(&body->netTorque);
 }
 
 

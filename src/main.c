@@ -1,15 +1,89 @@
 #include "program.h"
 
 
+#include <stdio.h>
+
+#include "utilString.h"
+#include "physicsRigidBody.h"
+
+
 int main(int argc, char **argv){
-	program prg;
+	/*program prg;
 
 	//If we're able to initialize the libraries, setup the program and start the loop!
 	if(programInit(&prg)){
 		programLoop(&prg);
 	}
 
-	programClose(&prg);
+	programClose(&prg);*/
+
+	//Load the rigid body!
+	FILE *bodyFile = fopen(".\\resource\\physics\\cube.tdp", "r");
+	if(bodyFile != NULL){
+		return_t success = 1;
+
+
+		char lineBuffer[1024];
+		char *line;
+		size_t lineLength;
+
+		while(success && (line = readLineFile(bodyFile, &lineBuffer[0], &lineLength)) != NULL){
+			//Bone name.
+			if(memcmp(line, "b ", 2) == 0){
+				char *boneName;
+				size_t boneNameLength;
+				//Find the name of the bone to attach this rigid body to!
+				getDelimitedString(&line[2], lineLength - 2, "\" ", &boneName, &boneNameLength);
+
+				/** What do we do with the bone's name? **/
+
+			//New collider.
+			}else if(memcmp(line, "c ", 2) == 0 && line[lineLength - 1] == '{'){
+				const colliderType_t colliderType = strtoul(&line[2], NULL, 10);
+
+				printf("%u\n", colliderType);
+
+				/** USE DEFINED VALUES FOR THESE TYPE NUMBERS! **/
+				//Check which sort of collider we're loading.
+				//If an invalid type was specified, ignore the collider.
+				switch(colliderType){
+					//Point.
+					case 0:
+						//
+					break;
+					//Sphere.
+					case 1:
+						//
+					break;
+					//Capsule.
+					case 2:
+						//
+					break;
+					//Hull.
+					case 3:
+						//
+					break;
+				}
+			}
+		}
+
+		fclose(bodyFile);
+
+
+		//If there wasn't an error, keep the rigid body!
+		if(success){
+			//
+
+		//Otherwise, delete the rigid body.
+		}else{
+			//
+		}
+
+
+		return(success);
+	}else{
+		printf("Load error.\n");
+	}
 
 
 	return(0);

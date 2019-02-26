@@ -55,7 +55,7 @@ typedef struct physicsRigidBody {
 
 
 void physRigidBodyDefInit(physicsRigidBodyDef *bodyDef);
-void physRigidBodyInit(physicsRigidBody *body);
+void physRigidBodyInit(physicsRigidBody *body, const physicsRigidBodyDef *bodyDef);
 
 return_t physRigidBodyDefLoad(physicsRigidBodyDef *bodyDef, const char *bodyPath);
 
@@ -96,6 +96,7 @@ Load bodies {
 }
 
 Component-wise addition for matrices (specifically mat3s)?
+Strtoul base? Maybe check other strtox functions, too.
 **/
 
 
