@@ -24,6 +24,7 @@ typedef memoryTree memoryManager;
 return_t memoryManagerGlobalInit(const size_t heapSize);
 
 void *memoryManagerGlobalAlloc(const size_t heapSize);
+void *memoryManagerGlobalResize(void *block, const size_t blockSize);
 void *memoryManagerGlobalRealloc(void *block, const size_t blockSize);
 void *memoryManagerGlobalExtend(const size_t memorySize);
 void memoryManagerGlobalFree(void *block);
@@ -40,6 +41,7 @@ extern memoryManager memManager;
 return_t memoryManagerInit(memoryManager *memMngr, const size_t heapSize);
 
 void *memoryManagerAlloc(memoryManager *memMngr, const size_t heapSize);
+void *memoryManagerResize(memoryManager *memMngr, void *block, const size_t blockSize);
 void *memoryManagerRealloc(memoryManager *memMngr, void *block, const size_t blockSize);
 void *memoryManagerExtend(memoryManager *memMngr, const size_t memorySize);
 void memoryManagerFree(memoryManager *memMngr, void *block);

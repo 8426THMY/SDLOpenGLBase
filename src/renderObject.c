@@ -111,7 +111,7 @@ void renderObjStateDraw(const renderObjState *objState, const vec3 *camPos, cons
 		for(; curObjBone < lastObjBone; ++curObjBone, ++curSkeleBone){
 			const vec3 *parBone;
 			//Use bone states!
-			if(curSkeleBone->parent != -1){
+			if(!VALUE_IS_INVALID(curSkeleBone->parent)){
 				parBone = &objState->skeleObj->state[curSkeleBone->parent].pos;
 			}else{
 				parBone = &curObjBone->pos;
@@ -121,7 +121,7 @@ void renderObjStateDraw(const renderObjState *objState, const vec3 *camPos, cons
 			/*vec3InitZero(&curBone);
 			parBone = curBone;
 			vec3Transform(&curBone, &boneStates[i], &curBone);
-			if(objState->skeleObj->skele->bones[i].parent != -1){
+			if(!VALUE_IS_INVALID(objState->skeleObj->skele->bones[i].parent)){
 				vec3Transform(&parBone, &boneStates[objState->skeleObj->skele->bones[i].parent], &parBone);
 			}else{
 				parBone = curBone;

@@ -175,13 +175,11 @@ void mat4InitScaleVec4(mat4 *m, const vec4 *v){
 
 //Multiply a matrix by a vec3!
 void mat4MultiplyByVec3(const mat4 *m, vec3 *v){
-	vec3 result;
+	vec3 temp = *v;
 
-	result.x = m->m[0][0] * v->x + m->m[1][0] * v->y + m->m[2][0] * v->z + m->m[3][0];
-	result.y = m->m[0][1] * v->x + m->m[1][1] * v->y + m->m[2][1] * v->z + m->m[3][1];
-	result.z = m->m[0][2] * v->x + m->m[1][2] * v->y + m->m[2][2] * v->z + m->m[3][2];
-
-	*v = result;
+	v->x = m->m[0][0] * temp.x + m->m[1][0] * temp.y + m->m[2][0] * temp.z + m->m[3][0];
+	v->y = m->m[0][1] * temp.x + m->m[1][1] * temp.y + m->m[2][1] * temp.z + m->m[3][1];
+	v->z = m->m[0][2] * temp.x + m->m[1][2] * temp.y + m->m[2][2] * temp.z + m->m[3][2];
 }
 
 //Multiply a matrix by a vec3 and store the result in "out"! This assumes that "out" isn't "v".
@@ -243,14 +241,12 @@ void mat4MultiplyVec4ByOut(const mat4 *m, const vec4 *v, mat4 *out){
 
 //Multiply a matrix by a vec4!
 void mat4MultiplyByVec4(const mat4 *m, vec4 *v){
-	vec4 result;
+	vec4 temp = *v;
 
-	result.x = m->m[0][0] * v->x + m->m[1][0] * v->y + m->m[2][0] * v->z + m->m[3][0] * v->w;
-	result.y = m->m[0][1] * v->x + m->m[1][1] * v->y + m->m[2][1] * v->z + m->m[3][1] * v->w;
-	result.z = m->m[0][2] * v->x + m->m[1][2] * v->y + m->m[2][2] * v->z + m->m[3][2] * v->w;
-	result.w = m->m[0][3] * v->x + m->m[1][3] * v->y + m->m[2][3] * v->z + m->m[3][3] * v->w;
-
-	*v = result;
+	v->x = m->m[0][0] * temp.x + m->m[1][0] * temp.y + m->m[2][0] * temp.z + m->m[3][0] * temp.w;
+	v->y = m->m[0][1] * temp.x + m->m[1][1] * temp.y + m->m[2][1] * temp.z + m->m[3][1] * temp.w;
+	v->z = m->m[0][2] * temp.x + m->m[1][2] * temp.y + m->m[2][2] * temp.z + m->m[3][2] * temp.w;
+	v->w = m->m[0][3] * temp.x + m->m[1][3] * temp.y + m->m[2][3] * temp.z + m->m[3][3] * temp.w;
 }
 
 //Multiply a matrix by a vec4 and store the result in "out"! This assumes that "out" isn't "v".
@@ -1036,10 +1032,10 @@ void mat4LookAt(mat4 *m, const vec3 *eye, const vec3 *target, const vec3 *worldU
 	//Get the forward vector!
 	vec3Normalize(eye->x - target ->x, eye->y - target->y, eye->z - target->z, &forward);
 	//Get the right vector!
-	vec3CrossVec3(worldUp, &forward, &right);
+	vec3CrossVec3Out(worldUp, &forward, &right);
 	vec3NormalizeVec3(&right);
 	//Get the up vector!
-	vec3CrossVec3(&forward, &right, &up);
+	vec3CrossVec3Out(&forward, &right, &up);
 
 	//Translate the matrix to eye and make it look at target!
 	m->m[0][0] = right.x;

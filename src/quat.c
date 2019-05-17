@@ -108,7 +108,7 @@ void quatAddSOut(const quat *q, const float x, quat *out){
 }
 
 //Add "v" to "q"!
-void quatAddVec4(quat *q, const quat *v){
+void quatAddVec4(quat *q, const vec4 *v){
 	q->x += v->x;
 	q->y += v->y;
 	q->z += v->z;
@@ -116,7 +116,7 @@ void quatAddVec4(quat *q, const quat *v){
 }
 
 //Add "v" to "q" and store the result in "out"!
-void quatAddVec4Out(const quat *q, const quat *v, quat *out){
+void quatAddVec4Out(const quat *q, const vec4 *v, quat *out){
 	out->x = q->x + v->x;
 	out->y = q->y + v->y;
 	out->z = q->z + v->z;
@@ -188,7 +188,7 @@ void quatSubtractFromSOut(const quat *q, const float x, quat *out){
 }
 
 //Subtract "v" from "q"!
-void quatSubtractVec4From(quat *q, const quat *v){
+void quatSubtractVec4From(quat *q, const vec4 *v){
 	q->x -= v->x;
 	q->y -= v->y;
 	q->z -= v->z;
@@ -196,7 +196,7 @@ void quatSubtractVec4From(quat *q, const quat *v){
 }
 
 //Subtract "q" from "v"!
-void quatSubtractFromVec4(quat *q, const quat *v){
+void quatSubtractFromVec4(quat *q, const vec4 *v){
 	q->x = v->x - q->x;
 	q->y = v->y - q->y;
 	q->z = v->z - q->z;
@@ -204,7 +204,7 @@ void quatSubtractFromVec4(quat *q, const quat *v){
 }
 
 //Subtract "v" from "q" and store the result in "out"!
-void quatSubtractVec4FromOut(const quat *q, const quat *v, quat *out){
+void quatSubtractVec4FromOut(const quat *q, const vec4 *v, quat *out){
 	out->x = q->x - v->x;
 	out->y = q->y - v->y;
 	out->z = q->z - v->z;
@@ -229,7 +229,7 @@ void quatMultiplySOut(const quat *q, const float x, quat *out){
 }
 
 //Multiply "q" by "v"!
-void quatMultiplyVec4(quat *q, const quat *v){
+void quatMultiplyVec4(quat *q, const vec4 *v){
 	q->x *= v->x;
 	q->y *= v->y;
 	q->z *= v->z;
@@ -237,7 +237,7 @@ void quatMultiplyVec4(quat *q, const quat *v){
 }
 
 //Multiply "q" by "v" and store the result in "out"!
-void quatMultiplyVec4Out(const quat *q, const quat *v, quat *out){
+void quatMultiplyVec4Out(const quat *q, const vec4 *v, quat *out){
 	out->x = q->x * v->x;
 	out->y = q->y * v->y;
 	out->z = q->z * v->z;

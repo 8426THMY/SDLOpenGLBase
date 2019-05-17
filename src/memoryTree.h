@@ -83,6 +83,7 @@ typedef struct memoryTree {
 void *memTreeInit(memoryTree *tree, void *memory, const size_t memorySize);
 
 void *memTreeAlloc(memoryTree *tree, const size_t blockSize);
+void *memTreeResize(memoryTree *tree, void *block, const size_t blockSize);
 void *memTreeRealloc(memoryTree *tree, void *block, const size_t blockSize);
 
 void memTreeFree(memoryTree *tree, void *block);

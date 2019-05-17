@@ -220,6 +220,114 @@ void *memTreeAlloc(memoryTree *tree, const size_t blockSize){
 	return(newNode);
 }
 
+/*
+** Assuming "block" is not NULL, it will be resized to "blockSize".
+** Note that unlike realloc, this function will always resize the
+** block. It also merges the block with any empty ones to its left
+** or right before the resize operation.
+*/
+void *memTreeResize(memoryTree *tree, void *block, const size_t blockSize){
+	memTreeListNode *newBlock = treeNodeGetList(block);
+	size_t newSize;
+	memTreeNode *tempBlock;
+
+	const size_t fullSize = blockSize + MEMTREE_BLOCK_HEADER_SIZE;
+	const size_t oldSize = newBlock->size;
+
+	newSize = oldSize;
+
+	//If this block is not the first, we might be able to merge left.
+	if(!listNodeIsFirst(newBlock->prevSize)){
+		memTreeListNode *leftBlock = listNodeGetPrevList(newBlock, listNodeGetSize(newBlock->prevSize));
+		//We can only merge it if the block to its left is free.
+		if(!listNodeIsActive(leftBlock->prevSize)){
+			//Make sure we preserve the free block's "last" flag.
+			leftBlock->prevSize |= listNodeIsLast(newBlock->prevSize);
+			//We're merging the two blocks, so add their sizes.
+			newSize += leftBlock->size;
+
+			//The free block no longer exists as it has been merged,
+			//so our pointer should now point to the left block.
+			newBlock = leftBlock;
+
+			//Remove the left block from the free tree,
+			//as it's outdated. We'll add it back later.
+			treeDelete(tree, listNodeGetTree(leftBlock));
+		}
+	}
+	//If this block is not the last, we might be able to merge right.
+	if(!listNodeIsLast(newBlock->prevSize)){
+		memTreeListNode *rightBlock = listNodeGetNextList(newBlock, newSize);
+		//We can only merge it if the block to its right is free.
+		if(!listNodeIsActive(rightBlock->prevSize)){
+			//We're merging the two blocks, so add their sizes.
+			newSize += rightBlock->size;
+
+			//Remove the right block from the free
+			//tree, as it no longer exists. We'll
+			//add the free block to the tree later.
+			treeDelete(tree, listNodeGetTree(rightBlock));
+
+			//If there is a block after this one,
+			//update its previous size property.
+			if(!listNodeIsLast(rightBlock->prevSize)){
+				memTreeListNode *nextBlock = listNodeGetNextList(newBlock, newSize);
+				nextBlock->prevSize = listNodeSetSize(nextBlock->prevSize, newSize);
+
+			//Otherwise, make sure we preserve
+			//the right block's "last" flag.
+			}else{
+				newBlock->prevSize = listNodeMakeLast(newBlock->prevSize);
+			}
+
+		//Otherwise, update the block's previous size property.
+		}else{
+			rightBlock->prevSize = listNodeSetSize(rightBlock->prevSize, newSize);
+		}
+	}
+
+	newBlock->size = newSize;
+
+	//If our new block is big enough, we can use it!
+	if(newSize >= fullSize){
+		//Make sure we set its active flag.
+		newBlock->prevSize = listNodeMakeActive(newBlock->prevSize);
+
+		//Provided the leftover memory is large enough,
+		//create a new empty block after the current one.
+		splitBlock(tree, newBlock, newSize, (size_t)memoryAlign(fullSize));
+
+		tempBlock = listNodeGetTree(newBlock);
+		//We only need to copy the user's data
+		//if the block's pointer has moved.
+		if(tempBlock != block){
+			memmove(tempBlock, block, oldSize);
+		}
+
+		return(tempBlock);
+	}
+
+	//If the block is still too small, we've done all the merging we
+	//normally do when freeing a block, so we can allocate a new one.
+	newBlock->prevSize = listNodeRemoveActive(newBlock->prevSize);
+
+	//We need to allocate a new block first so we don't overwrite
+	//the user's data with any of the free block header information.
+	tempBlock = memTreeAlloc(tree, blockSize);
+	memcpy(tempBlock, block, oldSize);
+
+	//Now we can add the old block back to the tree.
+	treeInsert(tree, listNodeGetTree(newBlock), newSize);
+
+
+	return(tempBlock);
+}
+
+/*
+** Reallocate a block to one with the size specified by "blockSize".
+** If the block is already large enough, we exit early. If no block
+** was specified, we allocate a new one.
+*/
 void *memTreeRealloc(memoryTree *tree, void *block, const size_t blockSize){
 	if(block != NULL){
 		memTreeListNode *newBlock = treeNodeGetList(block);

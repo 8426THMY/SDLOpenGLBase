@@ -5,14 +5,16 @@ void (*colliderInstantiateTable[COLLIDER_NUM_TYPES])(void *c, const void *cBase)
 	colliderHullInstantiate
 };
 
-void (*colliderDeleteInstanceTable[COLLIDER_NUM_TYPES])(void *c) = {
-	colliderHullDeleteInstance
+return_t (*colliderLoadTable[COLLIDER_NUM_TYPES])(void *c, FILE *cFile) = {
+	colliderHullLoad
 };
-
 void (*colliderUpdateTable[COLLIDER_NUM_TYPES])(void *c, const void *cBase, const transformState *trans, colliderAABB *aabb) = {
 	colliderHullUpdate
 };
 
+void (*colliderDeleteInstanceTable[COLLIDER_NUM_TYPES])(void *c) = {
+	colliderHullDeleteInstance
+};
 void (*colliderDeleteTable[COLLIDER_NUM_TYPES])(void *c) = {
 	colliderHullDelete
 };
@@ -29,6 +31,12 @@ void colliderInstantiate(collider *c, const collider *cBase){
 	colliderInstantiateTable[cBase->type]((void *)(&c->data), (const void *)(&cBase->data));
 }
 
+
+//Load a collider from the file specified.
+//Note that this function does NOT close the file.
+return_t colliderLoad(collider *c, FILE *cFile){
+	return(colliderLoadTable[c->type]((void *)(&c->data), cFile));
+}
 
 //Update a collider instance and return its new bounding box.
 void colliderUpdate(collider *c, const collider *cBase, const transformState *trans, colliderAABB *aabb){

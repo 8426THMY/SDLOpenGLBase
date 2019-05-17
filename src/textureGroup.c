@@ -134,7 +134,7 @@ return_t texGroupLoad(textureGroup *texGroup, const char *texGroupName){
 		animationFrameData *tempAnimFrameData = NULL;
 
 		//This is the index of the animation we're currently working on.
-		size_t currentAnim = -1;
+		size_t currentAnim = INVALID_VALUE(currentAnim);
 
 		char lineBuffer[1024];
 		char *line;
@@ -144,7 +144,7 @@ return_t texGroupLoad(textureGroup *texGroup, const char *texGroupName){
 		while((line = readLineFile(texGroupFile, &lineBuffer[0], &lineLength)) != NULL){
 			//If we aren't loading an animation, check
 			//for any texture or animation definitions.
-			if(currentAnim == -1){
+			if(VALUE_IS_INVALID(currentAnim)){
 				//Texture path.
 				if(memcmp(line, "t ", 2) == 0){
 					char *tempName;
@@ -311,7 +311,7 @@ return_t texGroupLoad(textureGroup *texGroup, const char *texGroupName){
 						tempAnimFrameData->playNum = strtol(tempEnd, &playNumEnd, 10);
 						//If no digits were read, set playNum to -1 (so it loops indefinitely).
 						if(playNumEnd == tempEnd){
-							tempAnimFrameData->playNum = -1;
+							tempAnimFrameData->playNum = INVALID_VALUE(tempAnimFrameData->playNum);
 						}
 					}
 
@@ -321,7 +321,7 @@ return_t texGroupLoad(textureGroup *texGroup, const char *texGroupName){
 						texGroupAnimDefDelete(tempAnim);
 						--texAnimsSize;
 
-						currentAnim = -1;
+						currentAnim = INVALID_VALUE(currentAnim);
 					}
 
 				//Animation frame.
@@ -471,11 +471,11 @@ return_t texGroupLoad(textureGroup *texGroup, const char *texGroupName){
 					//Otherwise, resize the frame vector
 					//so we aren't wasting memory!
 					}else{
-						tempAnim->animFrames = memoryManagerGlobalRealloc(tempAnim->animFrames, animFramesSize * sizeof(*tempAnim->animFrames));
+						tempAnim->animFrames = memoryManagerGlobalResize(tempAnim->animFrames, animFramesSize * sizeof(*tempAnim->animFrames));
 						if(tempAnim->animFrames == NULL){
 							/** REALLOC FAILED **/
 						}
-						tempAnimFrameData->time = memoryManagerGlobalRealloc(tempAnimFrameData->time, animFramesSize * sizeof(*tempAnimFrameData->time));
+						tempAnimFrameData->time = memoryManagerGlobalResize(tempAnimFrameData->time, animFramesSize * sizeof(*tempAnimFrameData->time));
 						if(tempAnimFrameData->time == NULL){
 							/** REALLOC FAILED **/
 						}
@@ -491,7 +491,7 @@ return_t texGroupLoad(textureGroup *texGroup, const char *texGroupName){
 					animFramesSize = 0;
 					animFramesCapacity = 0;
 
-					currentAnim = -1;
+					currentAnim = INVALID_VALUE(currentAnim);
 				}
 			}
 		}
@@ -518,7 +518,7 @@ return_t texGroupLoad(textureGroup *texGroup, const char *texGroupName){
 			//If there are animations, resize the
 			//array so we aren't wasting memory!
 			}else{
-				texGroup->texAnims = memoryManagerGlobalRealloc(texAnims, texAnimsSize * sizeof(*texAnims));
+				texGroup->texAnims = memoryManagerGlobalResize(texAnims, texAnimsSize * sizeof(*texAnims));
 				if(texGroup->texAnims == NULL){
 					/** REALLOC FAILED **/
 				}
@@ -526,7 +526,7 @@ return_t texGroupLoad(textureGroup *texGroup, const char *texGroupName){
 
 			//If we could set up the textureGroup
 			//successfully, set its name!
-			texGroup->name = memoryManagerGlobalRealloc(texGroupPath, texGroupNameLength + 1);
+			texGroup->name = memoryManagerGlobalResize(texGroupPath, texGroupNameLength + 1);
 			if(texGroup->name == NULL){
 				/** REALLOC FAILED **/
 			}

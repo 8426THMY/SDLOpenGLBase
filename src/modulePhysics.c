@@ -16,17 +16,64 @@ return_t modulePhysicsSetup(){
 	//The module's setup will be successful if we
 	//can allocate enough memory for our manager.
 	return(
+		//aabbNode
+		memPoolInit(
+			&aabbNodeManager,
+			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_AABBNODES_MANAGER_SIZE)),
+			MODULE_AABBNODES_MANAGER_SIZE, MODULE_AABBNODES_ELEMENT_SIZE
+		) != NULL &&
+		//physicsContactPair
+		memPoolInit(
+			&physContactPairManager,
+			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSCONTACTPAIRS_MANAGER_SIZE)),
+			MODULE_PHYSCONTACTPAIRS_MANAGER_SIZE, MODULE_PHYSCOLLIDER_ELEMENT_SIZE
+		) != NULL &&
+		//physicsSeparationPair
+		memPoolInit(
+			&physSeparationPairManager,
+			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSSEPARATIONPAIRS_MANAGER_SIZE)),
+			MODULE_PHYSSEPARATIONPAIRS_MANAGER_SIZE, MODULE_PHYSSEPARATIONPAIRS_ELEMENT_SIZE
+		) != NULL &&
+		//physicsCollider
+		memSingleListInit(
+			&physColliderManager,
+			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSCOLLIDER_MANAGER_SIZE)),
+			MODULE_PHYSCOLLIDER_MANAGER_SIZE, MODULE_PHYSCOLLIDER_ELEMENT_SIZE
+		) != NULL &&
+		//physicsRigidBodyDef
 		memSingleListInit(
 			&physRigidBodyDefManager,
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSRIGIDBODYDEF_MANAGER_SIZE)),
 			MODULE_PHYSRIGIDBODYDEF_MANAGER_SIZE, MODULE_PHYSRIGIDBODYDEF_ELEMENT_SIZE
+		) != NULL &&
+		//physicsRigidBody
+		memSingleListInit(
+			&physRigidBodyManager,
+			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSRIGIDBODY_MANAGER_SIZE)),
+			MODULE_PHYSRIGIDBODY_MANAGER_SIZE, MODULE_PHYSRIGIDBODY_ELEMENT_SIZE
 		) != NULL
 	);
 }
 
 void modulePhysicsCleanup(){
+	//aabbNode
+	modulePhysicsAABBNodeClear();
+	memoryManagerGlobalFree(memPoolRegionStart(aabbNodeManager.region));
+	//physicsContactPair
+	modulePhysicsContactPairClear();
+	memoryManagerGlobalFree(memPoolRegionStart(physContactPairManager.region));
+	//physicsSeparationPair
+	modulePhysicsSeparationPairClear();
+	memoryManagerGlobalFree(memPoolRegionStart(physSeparationPairManager.region));
+	//physicsCollider
+	modulePhysicsColliderClear();
+	memoryManagerGlobalFree(memSingleListRegionStart(physColliderManager.region));
+	//physicsRigidBodyDef
 	modulePhysicsBodyDefClear();
 	memoryManagerGlobalFree(memSingleListRegionStart(physRigidBodyDefManager.region));
+	//physicsRigidBody
+	modulePhysicsBodyClear();
+	memoryManagerGlobalFree(memSingleListRegionStart(physRigidBodyManager.region));
 }
 
 

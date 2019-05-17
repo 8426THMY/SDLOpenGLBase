@@ -2,8 +2,11 @@
 #define collider_h
 
 
+#include <stdio.h>
+
+
 #include "utilTypes.h"
-#include "vec3.h"
+#include "transform.h"
 
 #include "colliderAABB.h"
 #include "colliderHull.h"
@@ -30,6 +33,7 @@ typedef struct collider {
 void colliderInit(collider *c, const colliderType_t type);
 void colliderInstantiate(collider *c, const collider *cBase);
 
+return_t colliderLoad(collider *c, FILE *cFile);
 void colliderUpdate(collider *c, const collider *cBase, const transformState *trans, colliderAABB *aabb);
 
 void colliderDeleteInstance(collider *c);
@@ -40,15 +44,23 @@ extern void (*colliderInstantiateTable[COLLIDER_NUM_TYPES])(
 	void *c,
 	const void *cBase
 );
-extern void (*colliderDeleteTable[COLLIDER_NUM_TYPES])(
-	void *c
-);
 
+extern return_t (*colliderLoadTable[COLLIDER_NUM_TYPES])(
+	void *c,
+	FILE *cFile
+);
 extern void (*colliderUpdateTable[COLLIDER_NUM_TYPES])(
 	void *c,
 	const void *cBase,
 	const transformState *trans,
 	colliderAABB *aabb
+);
+
+extern void (*colliderDeleteInstanceTable[COLLIDER_NUM_TYPES])(
+	void *c
+);
+extern void (*colliderDeleteTable[COLLIDER_NUM_TYPES])(
+	void *c
 );
 
 

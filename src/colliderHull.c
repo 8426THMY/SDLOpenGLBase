@@ -6,6 +6,7 @@
 #include <string.h>
 
 #include "utilMath.h"
+#include "utilString.h"
 #include "memoryManager.h"
 
 #include "colliderAABB.h"
@@ -57,11 +58,17 @@
 #endif
 
 
+//These must be at least 1!
+#define BASE_VERTEX_CAPACITY 1
+#define BASE_FACE_CAPACITY   1
+#define BASE_EDGE_CAPACITY   1
+
+
 //Stores the index of a face and its distance
 //from the closest point on another object.
 typedef struct hullFaceData {
 	colliderHullFace index;
-	float penetration;
+	float separation;
 } hullFaceData;
 
 //Stores the index of an edge pair
@@ -69,7 +76,7 @@ typedef struct hullFaceData {
 typedef struct hullEdgeData {
 	colliderEdgeIndex_t edgeA;
 	colliderEdgeIndex_t edgeB;
-	float penetration;
+	float separation;
 } hullEdgeData;
 
 //Stores the collision information
@@ -89,6 +96,7 @@ typedef struct vertexClip {
 } vertexClip;
 
 
+//Forward-declare any helper functions!
 static void hullFaceDataInit(hullFaceData *faceData);
 static void hullEdgeDataInit(hullEdgeData *edgeData);
 static void collisionDataInit(collisionData *cd);
@@ -126,9 +134,7 @@ static void clipEdgeContact(const colliderHull *hullA, const colliderHull *hullB
 
 void colliderHullInit(colliderHull *hull){
 	//Clear the hull's data so it's ready for use.
-	//Note that we don't set the centroid. We could
-	//set it, but there's really no need to.
-	memset(hull, 0, offsetof(colliderHull, centroid));
+	memset(hull, 0, sizeof(colliderHull));
 }
 
 void colliderHullInstantiate(void *hull, const void *base){
@@ -151,9 +157,71 @@ void colliderHullInstantiate(void *hull, const void *base){
 }
 
 
-//Load the collider from a file.
-void colliderHullLoad(void *hull){
-	//
+/*
+** Load the collider from a file. This assumes that
+** neither "hull" nor "hullFile" are NULL. Also, this
+** function MAY NOT close "hullFile" when it is done.
+*/
+return_t colliderHullLoad(void *hull, FILE *hullFile){
+	return_t success = 1;
+
+
+	char lineBuffer[1024];
+	char *line;
+	size_t lineLength;
+
+	//Used when reading vertex data.
+	char *tokPos;
+
+	float totalWeighting = 0.f;
+	colliderVertexIndex_t tempVerticesCapacity = BASE_VERTEX_CAPACITY;
+	colliderFaceIndex_t tempFacesCapacity = BASE_FACE_CAPACITY;
+	colliderEdgeIndex_t tempEdgesCapacity = BASE_EDGE_CAPACITY;
+
+	colliderHull tempHull;
+	colliderHullInit(&tempHull);
+
+	//Set up the collider's data arrays!
+	tempHull.vertices = memoryManagerGlobalAlloc(BASE_VERTEX_CAPACITY * sizeof(*tempHull.vertices));
+	tempHull.normals = memoryManagerGlobalAlloc(BASE_FACE_CAPACITY * sizeof(*tempHull.normals));
+	tempHull.edges = memoryManagerGlobalAlloc(BASE_EDGE_CAPACITY * sizeof(*tempHull.edges));
+	tempHull.faces = memoryManagerGlobalAlloc(BASE_FACE_CAPACITY * sizeof(*tempHull.faces));
+
+	while(success && (line = readLineFile(hullFile, &lineBuffer[0], &lineLength)) != NULL){
+		//Hull vertex.
+		if(memcmp(line, "v ", 2) == 0){
+			//If we're out of space, allocate some more!
+			if(tempHull.numVertices >= tempVerticesCapacity){
+				tempVerticesCapacity = tempHull.numVertices * 2;
+				tempHull.vertices = memoryManagerGlobalRealloc(tempHull.vertices, tempVerticesCapacity * sizeof(*tempHull.vertices));
+				if(tempHull.vertices == NULL){
+					/** REALLOC FAILED **/
+				}
+			}
+
+			//Read the vertex positions from the line!
+			tokPos = &line[2];
+			tempHull.vertices[tempHull.numVertices].x = strtod(tokPos, &tokPos);
+			tempHull.vertices[tempHull.numVertices].y = strtod(tokPos, &tokPos);
+			tempHull.vertices[tempHull.numVertices].z = strtod(tokPos, &tokPos);
+
+			//If everything was successful, make sure we don't overwrite them next time!
+			if(*tokPos != '\0'){
+				++tempHull.numVertices;
+			}
+
+		//Hull face.
+		}else if(memcmp(line, "f ", 2) == 0){
+			//
+
+		//Hull end.
+		}else if(line[0] == '}'){
+			break;
+		}
+	}
+
+
+	return(success);
 }
 
 
@@ -678,13 +746,13 @@ void colliderHullDelete(void *hull){
 
 static void hullFaceDataInit(hullFaceData *faceData){
 	faceData->index = COLLIDER_HULL_INVALID_FEATURE;
-	faceData->penetration = -INFINITY;
+	faceData->separation = -INFINITY;
 }
 
 static void hullEdgeDataInit(hullEdgeData *edgeData){
 	edgeData->edgeA = COLLIDER_HULL_INVALID_FEATURE;
 	edgeData->edgeB = COLLIDER_HULL_INVALID_FEATURE;
-	edgeData->penetration = -INFINITY;
+	edgeData->separation = -INFINITY;
 }
 
 /*
@@ -742,16 +810,17 @@ static return_t edgeSeparation(const colliderHull *hullA, const colliderHull *hu
 ** to create the contact manifold.
 */
 static void clipManifoldSHC(const colliderHull *hullA, const colliderHull *hullB, const collisionData *cd, contactManifold *cm){
-	const float bestFaceSeparation = maxNumFast(cd->faceA.penetration, cd->faceB.penetration);
+	const float bestFaceSeparation = maxNumFast(cd->faceA.separation, cd->faceB.separation);
 
-	//If the deepest penetration occurs on an edge normal, clip using the edges.
-	if(cd->edgeData.penetration > bestFaceSeparation){
+	//If the greatest separation occurs on
+	//an edge normal, clip using the edges.
+	if(cd->edgeData.separation > bestFaceSeparation){
 		clipEdgeContact(hullA, hullB, &cd->edgeData, cm);
 
 	//Otherwise, clip using whichever face has the
-	//greatest penetration depth as the reference face.
+	//greatest separation as the reference face.
 	}else{
-		if(cd->faceB.penetration > COLLISION_TOLERANCE_COEFFICIENT * cd->faceA.penetration + COLLISION_TOLERANCE_TERM){
+		if(cd->faceB.separation > COLLISION_TOLERANCE_COEFFICIENT * cd->faceA.separation + COLLISION_TOLERANCE_TERM){
 			clipFaceContact(hullB, hullA, cd->faceB.index, CLIPPING_SWAPPED, cm);
 			//If the hulls were swapped, we'll
 			//need to invert the contact normal.
@@ -815,7 +884,7 @@ static float edgeDistSquared(const vec3 *pA, const vec3 *edgeDirA,
 	float edgeCrossLength;
 
 
-	vec3CrossVec3(edgeDirA, edgeDirB, &edgeNormal);
+	vec3CrossVec3Out(edgeDirA, edgeDirB, &edgeNormal);
 	//The norm of the vector is the square of its magnitude.
 	edgeCrossLength = vec3NormVec3(&edgeNormal);
 	//If the two edges are parallel, we can exit early.
@@ -843,9 +912,9 @@ static float edgeDistSquared(const vec3 *pA, const vec3 *edgeDirA,
 /*
 ** For each face on "hullA", check the points on "hullB"
 ** farthest in the direction opposite the face's normal.
-** If the penetration depth is positive, we have found a
-** separating axis and the shapes are not colliding.
-** Otherwise, we can assume that they might be colliding.
+** If the separation is positive, we've found a separating
+** axis and the shapes are not colliding. Otherwise, we
+** can only assume that they might be colliding.
 **
 ** We store the index of the least separating face in
 ** the variable "faceData".
@@ -885,9 +954,9 @@ static return_t noSeparatingFace(const colliderHull *hullA, const colliderHull *
 
 		//If this is the least separating face we've
 		//found so far, record its index and distance.
-		}else if(curDistance > faceData->penetration){
+		}else if(curDistance > faceData->separation){
 			faceData->index = i;
-			faceData->penetration = curDistance;
+			faceData->separation = curDistance;
 		}
 
 		++curFace;
@@ -952,10 +1021,10 @@ static return_t noSeparatingEdge(const colliderHull *hullA, const colliderHull *
 
 				//If this is the least separating edge pair we've
 				//found so far, record the edges and their distance.
-				}else if(curDistance > edgeData->penetration){
+				}else if(curDistance > edgeData->separation){
 					edgeData->edgeA = a;
 					edgeData->edgeB = b;
-					edgeData->penetration = curDistance;
+					edgeData->separation = curDistance;
 				}
 			}
 		}
@@ -1045,11 +1114,11 @@ static void reduceContacts(const vertexClip *vertices, const vertexClip *lastVer
 	//Add the points to our manifold.
 	curContact->key = bestVertex->key;
 	curContact->position = bestVertex->v;
-	curContact->penetration = *bestDepth;
+	curContact->separation = *bestDepth;
 	++curContact;
 	curContact->key = worstVertex->key;
 	curContact->position = worstVertex->v;
-	curContact->penetration = *worstDepth;
+	curContact->separation = *worstDepth;
 	++curContact;
 
 
@@ -1096,11 +1165,11 @@ static void reduceContacts(const vertexClip *vertices, const vertexClip *lastVer
 	//Add the points to our manifold.
 	curContact->key = bestVertex->key;
 	curContact->position = bestVertex->v;
-	curContact->penetration = *bestDepth;
+	curContact->separation = *bestDepth;
 	++curContact;
 	curContact->key = worstVertex->key;
 	curContact->position = worstVertex->v;
-	curContact->penetration = *worstDepth;
+	curContact->separation = *worstDepth;
 
 
 	//We should now have only four contact points.
@@ -1137,8 +1206,8 @@ static void clipFaceContact(const colliderHull *hullA, const colliderHull *hullB
 	vertexClip *loopVertex;
 	//The variable "clipVertices" points to the beginning
 	//of the array of vertices that have been clipped. It
-	//will also store the penetration depths of each vertex
-	//when we clip against the reference face itself.
+	//will also store the separation of each vertex when
+	//we clip against the reference face itself.
 	union {
 		vertexClip *v;
 		float *d;
@@ -1366,9 +1435,9 @@ static void clipFaceContact(const colliderHull *hullA, const colliderHull *hullB
 	//guarantee that it will always be set to one of the reference face's
 	//vertices in the previous loop by only looping through its edges.
 	for(; curVertex <= lastVertex; ++curVertex){
-		//Find the distance between the current vertex and a
-		//and a vertex on the reference face and only keep
-		//vertices that are inside the clipping region.
+		//Use the distance between the current
+		//vertex and the reference face to ensure
+		//that it is within the clipping region.
 		curDist = pointPlaneDist(&curVertex->v, refVertex, &refNormal);
 		if(curDist <= 0.f){
 			//If the hulls were swapped before being passed into
@@ -1407,7 +1476,7 @@ static void clipFaceContact(const colliderHull *hullA, const colliderHull *hullB
 			//face and store it in "loopVertices".
 			pointPlaneProject(&curVertex->v, refVertex, &refNormal, &loopVertex->v);
 			++loopVertex;
-			//Keep the vertex's penetration depth, too.
+			//Keep the vertex's separation, too.
 			*clipVertex.d = curDist;
 			++clipVertex.d;
 		}
@@ -1430,7 +1499,7 @@ static void clipFaceContact(const colliderHull *hullA, const colliderHull *hullB
 		for(; curVertex < loopVertex; ++curVertex, ++clipVertex.d, ++curContact){
 			curContact->key = curVertex->key;
 			curContact->position = curVertex->v;
-			curContact->penetration = *clipVertex.d;
+			curContact->separation = *clipVertex.d;
 
 			++cm->numContacts;
 		}
@@ -1488,12 +1557,13 @@ static void clipEdgeContact(const colliderHull *hullA, const colliderHull *hullB
 	//Now find and keep the point halfway between the two!
 	vec3AddVec3Out(&refClosest, &incClosest, &contact->position);
 	vec3MultiplyS(&contact->position, 0.5f);
-	contact->penetration = edgeData->penetration;
+	contact->separation = edgeData->separation;
 
 	//Find the collision's normal. It will be the
-	//vector from the closest point on the reference
-	//edge to the closest point on the incident edge.
-	vec3SubtractVec3FromOut(&incClosest, &refClosest, &cm->normal);
+	//vector from the closest point on the incident
+	//edge to the closest point on the reference edge.
+	/** Use the cross product here instead. **/
+	vec3SubtractVec3FromOut(&refClosest, &incClosest, &cm->normal);
 	vec3NormalizeVec3(&cm->normal);
 
 

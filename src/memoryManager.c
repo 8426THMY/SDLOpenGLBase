@@ -18,6 +18,10 @@ void *memoryManagerGlobalAlloc(const size_t blockSize){
 	return(memTreeAlloc(&memManager, blockSize));
 }
 
+void *memoryManagerGlobalResize(void *block, const size_t blockSize){
+	return(memTreeResize(&memManager, block, blockSize));
+}
+
 void *memoryManagerGlobalRealloc(void *block, const size_t blockSize){
 	return(memTreeRealloc(&memManager, block, blockSize));
 }
@@ -50,6 +54,10 @@ return_t memoryManagerInit(memoryManager *memMngr, const size_t heapSize){
 
 void *memoryManagerAlloc(memoryManager *memMngr, const size_t blockSize){
 	return(memTreeAlloc(memMngr, blockSize));
+}
+
+void *memoryManagerResize(memoryManager *memMngr, void *block, const size_t blockSize){
+	return(memTreeResize(memMngr, block, blockSize));
 }
 
 void *memoryManagerRealloc(memoryManager *memMngr, void *block, const size_t blockSize){

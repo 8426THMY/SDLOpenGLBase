@@ -14,6 +14,7 @@
 #include "moduleTextureGroup.h"
 #include "moduleSkeleton.h"
 #include "moduleModel.h"
+#include "modulePhysics.h"
 #include "renderObject.h"
 
 

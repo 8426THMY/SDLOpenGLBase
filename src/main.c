@@ -5,64 +5,125 @@
 
 #include "utilString.h"
 #include "physicsRigidBody.h"
+#include "modulePhysics.h"
+
+
+/**
+Solve velocity constraints.
+Integrate positions.
+Solve positions constraints.
+Update centroids and inertia tensors. (?)
+**/
 
 
 int main(int argc, char **argv){
-	/*program prg;
+	program prg;
 
 	//If we're able to initialize the libraries, setup the program and start the loop!
 	if(programInit(&prg)){
-		programLoop(&prg);
+		//programLoop(&prg);
 	}
 
-	programClose(&prg);*/
+	//programClose(&prg);
+
+
+	physicsRigidBodyDef *bodyDef = modulePhysicsBodyDefAlloc();
+	physRigidBodyDefInit(bodyDef);
+
+
+	char *bodyFullPath = ".\\resource\\physics\\cube.tdp";
 
 	//Load the rigid body!
-	FILE *bodyFile = fopen(".\\resource\\physics\\cube.tdp", "r");
+	FILE *bodyFile = fopen(bodyFullPath, "r");
 	if(bodyFile != NULL){
 		return_t success = 1;
 
+
+		physicsCollider *curCollider = NULL;
+
+		char *tokPos;
 
 		char lineBuffer[1024];
 		char *line;
 		size_t lineLength;
 
 		while(success && (line = readLineFile(bodyFile, &lineBuffer[0], &lineLength)) != NULL){
-			//Bone name.
-			if(memcmp(line, "b ", 2) == 0){
-				char *boneName;
-				size_t boneNameLength;
-				//Find the name of the bone to attach this rigid body to!
-				getDelimitedString(&line[2], lineLength - 2, "\" ", &boneName, &boneNameLength);
-
-				/** What do we do with the bone's name? **/
-
-			//New collider.
-			}else if(memcmp(line, "c ", 2) == 0 && line[lineLength - 1] == '{'){
-				const colliderType_t colliderType = strtoul(&line[2], NULL, 10);
-
-				printf("%u\n", colliderType);
-
-				/** USE DEFINED VALUES FOR THESE TYPE NUMBERS! **/
-				//Check which sort of collider we're loading.
-				//If an invalid type was specified, ignore the collider.
-				switch(colliderType){
-					//Point.
-					case 0:
+			if(curCollider != NULL){
+				//New collider.
+				if(memcmp(line, "c ", 2) == 0 && line[lineLength - 1] == '{'){
+					//Load the collider using its respective function.
+					if(!colliderLoad(&curCollider->global, bodyFile)){
+						//If there was an error, delete the collider
+						//and the associated physics collider.
+						#warning "Sanity checks? We should check if a collider was loaded, somehow."
 						//
-					break;
-					//Sphere.
-					case 1:
-						//
-					break;
-					//Capsule.
-					case 2:
-						//
-					break;
-					//Hull.
-					case 3:
-						//
-					break;
+						curCollider = NULL;
+					}
+
+				//Physics collider mass.
+				}else if(memcmp(line, "m ", 2) == 0){
+					//
+
+				//Physics collider density.
+				}else if(memcmp(line, "d ", 2) == 0){
+					curCollider->density = strtod(&line[2], NULL);
+
+				//Physics collider friction.
+				}else if(memcmp(line, "f ", 2) == 0){
+					curCollider->friction = strtod(&line[2], NULL);
+
+				//Physics collider restitution.
+				}else if(memcmp(line, "r ", 2) == 0){
+					curCollider->restitution = strtod(&line[2], NULL);
+
+				//Physics collider end.
+				}else if(line[0] == '}'){
+					#warning "Sanity checks? We should check if a collider was loaded, somehow."
+					//
+					curCollider = NULL;
+				}
+			}else{
+				//Bone name.
+				if(memcmp(line, "b ", 2) == 0){
+					char *boneName;
+					size_t boneNameLength;
+					//Find the name of the bone to attach this rigid body to!
+					getDelimitedString(&line[2], lineLength - 2, "\" ", &boneName, &boneNameLength);
+
+					/** What do we do with the bone's name? **/
+
+				//New physics collider.
+				}else if(memcmp(line, "p ", 2) == 0 && line[lineLength - 1] == '{'){
+					colliderType_t currentType = strtoul(&line[2], &tokPos, 10);
+
+					//Make sure a valid number was entered.
+					if(tokPos != &line[2]){
+						//Check which sort of collider we're loading.
+						#warning "This should be 'currentType < COLLIDER_NUM_TYPES'."
+						if(currentType == 3){currentType=0;
+							modulePhysicsColliderPrepend(&bodyDef->colliders);
+							curCollider = bodyDef->colliders;
+							physColliderInit(curCollider, currentType, bodyDef);
+
+						//If an invalid type was specified, ignore the collider.
+						}else{
+							printf(
+								"Error loading rigid body!\n"
+								"Path: %s\n"
+								"Line: %s\n"
+								"Error: Ignoring invalid collider of type '%u'.\n",
+								bodyFullPath, line, currentType
+							);
+						}
+					}else{
+						printf(
+							"Error loading rigid body!\n"
+							"Path: %s\n"
+							"Line: %s\n"
+							"Error: Ignoring invalid collider of non-numerical type.",
+							bodyFullPath, line
+						);
+					}
 				}
 			}
 		}
@@ -74,15 +135,19 @@ int main(int argc, char **argv){
 		if(success){
 			//
 
-		//Otherwise, delete the rigid body.
+		//Otherwise, delete it.
 		}else{
-			//
+			physRigidBodyDefDelete(bodyDef);
 		}
 
 
 		return(success);
 	}else{
-		printf("Load error.\n");
+		printf(
+			"Unable to open rigid body file!\n"
+			"Path: %s\n",
+			bodyFullPath
+		);
 	}
 
 
@@ -94,6 +159,8 @@ int main(int argc, char **argv){
 //#error "It would probably be a good idea to try and clean up your code while you're at it."
 //#error "Split some of your functions up into helpers or something too, especially in areas where the helper might be useful in the future."
 //#error "Replace memsets on non-integer types with a loop."
+//#error "Should we use copies for mathematics functions? We also do some unnecessary copies with matrix multiplications."
+//#error "Rigid body damping, layers and flags."
 
 
 /**
@@ -139,6 +206,13 @@ New To-Do List:
 	b. Some scenes, such as the one used for the HUD, will only have one area.
 	c. Areas have an array list allocator that stores pointers to all of the
 	   objects they use. These objects are stored in the global objects array.
+
+8. Physics engine.
+	a. Implement joints and alternative collider types.
+	b. Need to fix render objects so this can be tested.
+	c. Create new object type whose base structure has arrays of render objects,
+	   colliders and joints as well as other information currently stored by render
+	   objects (such as skeletons).
 **/
 
 

@@ -5,7 +5,7 @@
 #include "settingsPhysics.h"
 
 #include "collider.h"
-#include "physicsContactPair.h"
+#include "physicsConstraintPair.h"
 #include "aabbTree.h"
 
 
@@ -49,13 +49,18 @@ typedef struct physicsCollider {
 	//is the first really need to be sorted.
 	physicsSeparationPair *separations;
 	physicsContactPair *contacts;
+
+	//They also store a linked list of joints
+	//that they are a part of. These behave
+	//similarly to the previous linked lists.
+	physicsJointPair *joints;
 } physicsCollider;
 
 
 typedef struct physicsIsland physicsIsland;
 
-void physColliderInit(physicsCollider *pc, const colliderType_t type, physicsRigidBody *body);
-void physColliderInstantiate(physicsCollider *pc, physicsCollider *base, physicsRigidBody *body);
+void physColliderInit(physicsCollider *pc, const colliderType_t type, void *owner);
+void physColliderInstantiate(physicsCollider *pc, physicsCollider *base, void *owner);
 
 void physColliderGenerateCentroid(physicsCollider *collider, vec3 *centroid);
 void physColliderGenerateInertia(physicsCollider *collider, const vec3 *centroid, mat3 *inertia);

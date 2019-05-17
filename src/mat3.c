@@ -26,13 +26,11 @@ void mat3InitIdentity(mat3 *m){
 
 //Multiply a matrix by a vec3!
 void mat3MultiplyByVec3(const mat3 *m, vec3 *v){
-	vec3 result;
+	vec3 temp = *v;
 
-	result.x = m->m[0][0] * v->x + m->m[1][0] * v->y + m->m[2][0] * v->z;
-	result.y = m->m[0][1] * v->x + m->m[1][1] * v->y + m->m[2][1] * v->z;
-	result.z = m->m[0][2] * v->x + m->m[1][2] * v->y + m->m[2][2] * v->z;
-
-	*v = result;
+	v->x = m->m[0][0] * temp.x + m->m[1][0] * temp.y + m->m[2][0] * temp.z;
+	v->y = m->m[0][1] * temp.x + m->m[1][1] * temp.y + m->m[2][1] * temp.z;
+	v->z = m->m[0][2] * temp.x + m->m[1][2] * temp.y + m->m[2][2] * temp.z;
 }
 
 //Multiply a matrix by a vec3 and store the result in "out"! This assumes that "out" isn't "v".

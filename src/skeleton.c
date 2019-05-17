@@ -31,7 +31,7 @@ static bone defaultBone = {
 	.state.pos.x   = 0.f, .state.pos.y   = 0.f, .state.pos.z   = 0.f,
 	.state.rot.x   = 0.f, .state.rot.y   = 0.f, .state.rot.z   = 0.f, .state.rot.w = 1.f,
 	.state.scale.x = 1.f, .state.scale.y = 1.f, .state.scale.z = 1.f,
-	.parent = -1
+	.parent = INVALID_VALUE(defaultBone.parent)
 };
 
 
@@ -185,6 +185,7 @@ return_t skeleAnimLoadSMD(skeletonAnim *skeleAnim, const char *skeleAnimName){
 
 
 		while(success && (line = readLineFile(skeleAnimFile, &lineBuffer[0], &lineLength)) != NULL){
+			//No command.
 			if(dataType == 0){
 				if(strcmp(line, "nodes") == 0){
 					dataType = 1;
@@ -205,10 +206,13 @@ return_t skeleAnimLoadSMD(skeletonAnim *skeleAnim, const char *skeleAnimName){
 					success = 0;
 				}
 			}else{
+				//Finished command.
 				if(strcmp(line, "end") == 0){
-					//If we've finished identifying the skeleton's
-					//bones, copy the data into our animation object!
+					//Finished loading bone names.
 					if(dataType == 1){
+						//If we've finished identifying the skeleton's
+						//bones, copy the data into our animation object!
+						#warning "Do we even need to do this?"
 						tempBones = memoryManagerGlobalRealloc(tempBones, tempBonesSize * sizeof(*tempBones));
 						if(tempBones == NULL){
 							/** REALLOC FAILED **/
@@ -229,23 +233,25 @@ return_t skeleAnimLoadSMD(skeletonAnim *skeleAnim, const char *skeleAnimName){
 
 						tempCapacity = 1;
 
-					//If we've finished loading the animation, shrink the vectors!
+					//Finished loading keyframes.
 					}else if(dataType == 2){
-						skeleAnim->frameData.time = memoryManagerGlobalRealloc(skeleAnim->frameData.time, skeleAnim->frameData.numFrames * sizeof(*skeleAnim->frameData.time));
+						//If we've finished loading the animation, shrink the vectors!
+						skeleAnim->frameData.time = memoryManagerGlobalResize(skeleAnim->frameData.time, skeleAnim->frameData.numFrames * sizeof(*skeleAnim->frameData.time));
 						if(skeleAnim->frameData.time == NULL){
 							/** REALLOC FAILED **/
 						}
-						skeleAnim->frames = memoryManagerGlobalRealloc(skeleAnim->frames, skeleAnim->frameData.numFrames * sizeof(*skeleAnim->frames));
+						skeleAnim->frames = memoryManagerGlobalResize(skeleAnim->frames, skeleAnim->frameData.numFrames * sizeof(*skeleAnim->frames));
 						if(skeleAnim->frames == NULL){
 							/** REALLOC FAILED **/
 						}
 
-						skeleAnim->frameData.playNum = -1;
+						skeleAnim->frameData.playNum = INVALID_VALUE(skeleAnim->frameData.playNum);
 					}
 
 					dataType = 0;
 					data = 0;
 				}else{
+					//Loading bone names.
 					if(dataType == 1){
 						char *tokPos = line;
 
@@ -291,6 +297,8 @@ return_t skeleAnimLoadSMD(skeletonAnim *skeleAnim, const char *skeleAnimName){
 
 							success = 0;
 						}
+
+					//Loading keyframes.
 					}else if(dataType == 2){
 						//If the line begins with time, get the frame's timestamp!
 						if(memcmp(line, "time ", 5) == 0){
@@ -384,7 +392,7 @@ return_t skeleAnimLoadSMD(skeletonAnim *skeleAnim, const char *skeleAnimName){
 
 		//If there wasn't an error, add it to the vector!
 		if(success){
-			skeleAnim->name = memoryManagerGlobalRealloc(skeleAnimPath, skeleAnimNameLength + 1);
+			skeleAnim->name = memoryManagerGlobalResize(skeleAnimPath, skeleAnimNameLength + 1);
 			if(skeleAnim->name == NULL){
 				/** REALLOC FAILED **/
 			}
@@ -534,7 +542,7 @@ void skeleObjGenerateRenderState(skeletonObject *skeleObj){
 	for(; curSkeleBone < lastSkeleBone; ++curSkeleBone, ++curAnimBone, ++curObjBone){
 		const size_t parentID = curSkeleBone->parent;
 		//If this bone has a parent, add its animation transformations to those of its parent!
-		if(parentID != -1){
+		if(!VALUE_IS_INVALID(parentID)){
 			transformStateAppend(&skeleObj->state[parentID], curAnimBone, curObjBone);
 
 		//Otherwise, just use it by itself!

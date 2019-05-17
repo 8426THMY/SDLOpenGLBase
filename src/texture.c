@@ -56,7 +56,7 @@ return_t textureLoad(texture *tex, const char *imgName){
 
 		//This switch statement determines the format that the image
 		//data is in by checking how many bytes are used for each pixel.
-		GLint pixelFormat = -1;
+		GLint pixelFormat = INVALID_VALUE(pixelFormat);
 		switch(image->format->BytesPerPixel){
 			case 3:
 				pixelFormat = GL_RGB;
@@ -88,7 +88,7 @@ return_t textureLoad(texture *tex, const char *imgName){
 		//If we could set up the texture
 		//successfully, set its name!
 		if(openGLError == GL_NO_ERROR){
-			tex->name = memoryManagerGlobalRealloc(imgPath, imgNameLength + 1);
+			tex->name = memoryManagerGlobalResize(imgPath, imgNameLength + 1);
 			if(tex->name == NULL){
 				/** REALLOC FAILED **/
 			}

@@ -22,7 +22,6 @@ return_t moduleModelSetup(){
 }
 
 void moduleModelCleanup(){
-
 	moduleModelClear();
 	memoryManagerGlobalFree(memPoolRegionStart(modelManager.region));
 }

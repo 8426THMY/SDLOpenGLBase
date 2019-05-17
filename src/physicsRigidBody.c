@@ -162,9 +162,8 @@ void physRigidBodyDefSumInertia(physicsRigidBodyDef *bodyDef, const mat3 *inerti
 */
 void physRigidBodyDefAddCollider(physicsRigidBodyDef *bodyDef, const float mass, const vec3 *centroid, const mat3 *inertia){
 	vec3 tempCentroid;
-	float xx;
-	float yy;
-	float zz;
+	vec3 tempCentroidWeighted;
+	vec3 tempCentroidSquaredWeighted;
 	mat3 tempInertia = *inertia;
 
 
@@ -181,43 +180,59 @@ void physRigidBodyDefAddCollider(physicsRigidBodyDef *bodyDef, const float mass,
 	vec3MultiplyS(&bodyDef->centroid, bodyDef->invMass);
 
 
-	//Add this collider's contribution to the inertia tensor.
-	//We use the parallel axis theorem to translate it from
-	//the collider's centroid to the rigid body's centroid.
-	//
-	//J = I + m(dot(R, R) * E - out(R, R))
-	//
-	//J = new inertia tensor
-	//I = old inertia tensor
-	//m = mass
-	//R = vector displacement from old to new center of mass
-	//E = 3x3 identity matrix
-	//
-	//This can be simplified as follows to reduce matrix operations.
-	//
-	//d = dot(R, R) = xx + yy + zz
-	//dI = [d 0 0]
-	//     [0 d 0]
-	//     [0 0 d]
-	//P = out(R, R) = [xx yx zx]
-	//                [xy yy zy]
-	//                [xz yz zz]
-	//dI - P = [(yy + zz)    -yx       -zx   ]
-	//         [   -xy    (xx + zz)    -zy   ]
-	//         [   -xz       -yz    (xx + yy)]
+	/*
+	** Add this collider's contribution to the inertia tensor.
+	** We use the parallel axis theorem to translate it from
+	** the collider's centroid to the rigid body's centroid.
+	**
+	** J = I + m * (dot(R, R) * E - out(R, R))
+	**
+	** J = new inertia tensor
+	** I = old inertia tensor
+	** m = mass
+	** R = vector displacement from old to new center of mass
+	** E = 3x3 identity matrix
+	**
+	** dot(v, u) = dot product of v and u
+	** out(v, u) = outer product of v and u
+	**
+	**
+	** This can be simplified as follows to reduce matrix operations:
+	**
+	** d = dot(R, R) = xx + yy + zz
+	**
+	**      [d 0 0]
+	** dI = [0 d 0]
+	**      [0 0 d]
+	**
+	**                 [xx yx zx]
+	** P = out(R, R) = [xy yy zy]
+	**                 [xz yz zz]
+	**
+	**          [(yy + zz)    -yx       -zx   ]
+	**          [   -xy    (xx + zz)    -zy   ]
+	** dI - P = [   -xz       -yz    (xx + yy)]
+	**
+	** J = I + m * (dI - P)
+	*/
 
 	vec3SubtractVec3FromOut(&bodyDef->centroid, centroid, &tempCentroid);
-	xx = tempCentroid.x * tempCentroid.x;
-	yy = tempCentroid.y * tempCentroid.y;
-	zz = tempCentroid.z * tempCentroid.z;
+	vec3MultiplySOut(&tempCentroid, mass, &tempCentroidWeighted);
+	vec3MultiplyVec3Out(&tempCentroid, &tempCentroidWeighted, &tempCentroidSquaredWeighted);
 
 	//Translate the inertia tensor using the rigid body's centroid.
-	tempInertia.m[0][0] += (yy + zz) * mass;
-	tempInertia.m[0][1] -= (tempCentroid.x * tempCentroid.y) * mass;
-	tempInertia.m[0][2] -= (tempCentroid.x * tempCentroid.z) * mass;
-	tempInertia.m[1][1] += (xx + zz) * mass;
-	tempInertia.m[1][2] -= (tempCentroid.y * tempCentroid.z) * mass;
-	tempInertia.m[2][2] += (xx + yy) * mass;
+	//(yy + zz) * m
+	tempInertia.m[0][0] += tempCentroidSquaredWeighted.y + tempCentroidSquaredWeighted.z;
+	//xy * m
+	tempInertia.m[0][1] -= tempCentroid.x * tempCentroidWeighted.y;
+	//xz * m
+	tempInertia.m[0][2] -= tempCentroid.x * tempCentroidWeighted.z;
+	//(xx + zz) * m
+	tempInertia.m[1][1] += tempCentroidSquaredWeighted.x + tempCentroidSquaredWeighted.z;
+	//yz * m
+	tempInertia.m[1][2] -= tempCentroid.y * tempCentroidWeighted.z;
+	//(xx + yy) * m
+	tempInertia.m[2][2] += tempCentroidSquaredWeighted.x + tempCentroidSquaredWeighted.y;
 
 	//Add the collider's contribution to the body's inertia tensor.
 	bodyDef->invInertia.m[0][0] += tempInertia.m[0][0];
@@ -319,8 +334,8 @@ void physRigidBodyDefGenerateProperties(physicsRigidBodyDef *bodyDef, const floa
 ** Calculate the body's increase in
 ** velocity for the current timestep.
 **
-** v^(n + 1) = v^n + F * m^-1 * dt
-** w^(n + 1) = w^n + T * I^-1 * dt
+** v^(t + 1) = v^n + F * m^-1 * dt
+** w^(t + 1) = w^n + T * I^-1 * dt
 */
 void physRigidBodyIntegrateVelocitySymplecticEuler(physicsRigidBody *body, const float dt){
 	vec3 linearAcceleration;
@@ -342,9 +357,9 @@ void physRigidBodyIntegrateVelocitySymplecticEuler(physicsRigidBody *body, const
 ** Calculate the body's change in
 ** position for the current timestep.
 **
-** x^(n + 1) = x^n + v^(n + 1) * dt
+** x^(t + 1) = x^t + v^(t + 1) * dt
 ** dq/dt = 0.5 * w * q
-** q^(n + 1) = q^n + dq/dt * dt
+** q^(t + 1) = q^t + dq/dt * dt
 */
 void physRigidBodyIntegratePositionSymplecticEuler(physicsRigidBody *body, const float dt){
 	vec3 linearVelocityDelta;
@@ -362,30 +377,62 @@ void physRigidBodyIntegratePositionSymplecticEuler(physicsRigidBody *body, const
 
 
 //Add a translational and rotational impulse to a rigid body.
-void physRigidBodyApplyImpulse(physicsRigidBody *body, const vec3 *r, const vec3 *J){
-	vec3 impulse = *J;
-
+void physRigidBodyApplyImpulse(physicsRigidBody *body, const vec3 *r, vec3 J){
 	//Linear velocity.
-	vec3MultiplyS(&impulse, body->mass);
-	vec3AddVec3(&body->linearVelocity, &impulse);
+	vec3MultiplyS(&J, body->mass);
+	vec3AddVec3(&body->linearVelocity, &J);
+
 	//Angular velocity.
-	vec3CrossVec3(r, J, &impulse);
-	mat3MultiplyByVec3(&body->invInertiaGlobal, &impulse);
-	vec3AddVec3(&body->angularVelocity, &impulse);
+	vec3CrossVec3By(r, &J);
+	mat3MultiplyByVec3(&body->invInertiaGlobal, &J);
+	vec3AddVec3(&body->angularVelocity, &J);
 }
 
 //Subtract a translational and rotational impulse from a rigid body.
-void physRigidBodyApplyImpulseInverse(physicsRigidBody *body, const vec3 *r, const vec3 *J){
-	vec3 impulse = *J;
-
+void physRigidBodyApplyImpulseInverse(physicsRigidBody *body, const vec3 *r, vec3 J){
 	//Linear velocity.
-	vec3MultiplyS(&impulse, body->mass);
-	vec3SubtractVec3From(&body->linearVelocity, &impulse);
+	vec3MultiplyS(&J, body->mass);
+	vec3SubtractVec3From(&body->linearVelocity, &J);
+
 	//Angular velocity.
-	vec3CrossVec3(r, J, &impulse);
-	mat3MultiplyByVec3(&body->invInertiaGlobal, &impulse);
-	vec3SubtractVec3From(&body->angularVelocity, &impulse);
+	vec3CrossVec3By(r, &J);
+	mat3MultiplyByVec3(&body->invInertiaGlobal, &J);
+	vec3SubtractVec3From(&body->angularVelocity, &J);
 }
+
+#ifdef PHYSCOLLIDER_USE_POSITIONAL_CORRECTION
+//Add a translational and rotational impulse to a rigid body.
+void physRigidBodyApplyPositionalImpulse(physicsRigidBody *body, const vec3 *r, vec3 J){
+	quat tempRot;
+
+	//Position.
+	vec3MultiplyS(&J, body->mass);
+	vec3AddVec3(&body->transform.pos, &J);
+
+	//Orientation.
+	vec3CrossVec3By(r, &J);
+	mat3MultiplyByVec3(&body->invInertiaGlobal, &J);
+	quatDifferentiateOut(&body->transform.rot, &J, &tempRot);
+	quatAddVec4(&body->transform.rot, &tempRot);
+	quatNormalizeQuat(&body->transform.rot);
+}
+
+//Subtract a translational and rotational impulse from a rigid body.
+void physRigidBodyApplyPositionalImpulseInverse(physicsRigidBody *body, const vec3 *r, vec3 J){
+	quat tempRot;
+
+	//Position.
+	vec3MultiplyS(&J, body->mass);
+	vec3SubtractVec3From(&body->transform.pos, &J);
+
+	//Orientation.
+	vec3CrossVec3By(r, &J);
+	mat3MultiplyByVec3(&body->invInertiaGlobal, &J);
+	quatDifferentiate(&body->transform.rot, &J);
+	quatSubtractVec4From(&body->transform.rot, &tempRot);
+	quatNormalizeQuat(&body->transform.rot);
+}
+#endif
 
 
 /*

@@ -336,8 +336,26 @@ void vec3CrossFloatVec3(const float x, const float y, const float z, const vec3 
 	out->z = x * v->y - y * v->x;
 }
 
+//Find the cross product of two vec3s and store the result in "v1"!
+void vec3CrossByVec3(vec3 *v1, const vec3 *v2){
+	vec3 temp = *v1;
+
+	v1->x = temp.y * v2->z - temp.z * v2->y;
+	v1->y = temp.z * v2->x - temp.x * v2->z;
+	v1->z = temp.x * v2->y - temp.y * v2->x;
+}
+
+//Find the cross product of two vec3s and store the result in "v2"!
+void vec3CrossVec3By(const vec3 *v1, vec3 *v2){
+	vec3 temp = *v2;
+
+	v2->x = v1->y * temp.z - v1->z * temp.y;
+	v2->y = v1->z * temp.x - v1->x * temp.z;
+	v2->z = v1->x * temp.y - v1->y * temp.x;
+}
+
 //Find the cross product of two vec3s and store the result in "out"!
-void vec3CrossVec3(const vec3 *v1, const vec3 *v2, vec3 *out){
+void vec3CrossVec3Out(const vec3 *v1, const vec3 *v2, vec3 *out){
 	out->x = v1->y * v2->z - v1->z * v2->y;
 	out->y = v1->z * v2->x - v1->x * v2->z;
 	out->z = v1->x * v2->y - v1->y * v2->x;

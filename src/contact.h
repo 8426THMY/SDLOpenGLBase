@@ -14,7 +14,7 @@
 
 
 #define CONTACT_MAX_POINTS 4
-#define CONTACT_KEY_INVALID_EDGE -1
+#define CONTACT_KEY_INVALID_EDGE ((colliderEdgeIndex_t)-1)
 
 
 typedef size_t separationFeature_t;
@@ -49,10 +49,11 @@ typedef struct contactPoint {
 	//Used to uniquely identify the contact point.
 	contactKey key;
 
-	//Position of the contact.
+	//Position of the contact in global space.
 	vec3 position;
-	//Penetration depth.
-	float penetration;
+	//Separation between the colliders.
+	//Note that this is a negative quantity.
+	float separation;
 } contactPoint;
 
 //Stores every contact point involved in the collision.

@@ -128,8 +128,7 @@ return_t modelLoadOBJ(model *mdl, const char *mdlName){
 		char *tempTexGroupName = NULL;
 
 		//Used when reading vertex data.
-		char *startPos;
-		char *endPos;
+		char *tokPos;
 
 		char lineBuffer[1024];
 		char *line;
@@ -149,13 +148,13 @@ return_t modelLoadOBJ(model *mdl, const char *mdlName){
 				}
 
 				//Read the vertex positions from the line!
-				startPos = &line[2];
-				tempPositions[tempPositionsSize].x = strtod(startPos, &startPos);
-				tempPositions[tempPositionsSize].y = strtod(startPos, &startPos);
-				tempPositions[tempPositionsSize].z = strtod(startPos, &endPos);
+				tokPos = &line[2];
+				tempPositions[tempPositionsSize].x = strtod(tokPos, &tokPos);
+				tempPositions[tempPositionsSize].y = strtod(tokPos, &tokPos);
+				tempPositions[tempPositionsSize].z = strtod(tokPos, &tokPos);
 
 				//If everything was successful, make sure we don't overwrite them next time!
-				if(startPos != endPos || *endPos != '\0'){
+				if(*tokPos != '\0'){
 					++tempPositionsSize;
 				}
 
@@ -171,12 +170,12 @@ return_t modelLoadOBJ(model *mdl, const char *mdlName){
 				}
 
 				//Read the vertex UVs from the line!
-				startPos = &line[2];
-				tempUVs[tempUVsSize]     = strtod(startPos, &startPos);
-				tempUVs[tempUVsSize + 1] = -strtod(startPos, &endPos);
+				tokPos = &line[2];
+				tempUVs[tempUVsSize]     = strtod(tokPos, &tokPos);
+				tempUVs[tempUVsSize + 1] = -strtod(tokPos, &tokPos);
 
 				//If everything was successful, make sure we don't overwrite them next time!
-				if(startPos != endPos || *endPos != '\0'){
+				if(*tokPos != '\0'){
 					tempUVsSize += 2;
 				}
 
@@ -192,13 +191,13 @@ return_t modelLoadOBJ(model *mdl, const char *mdlName){
 				}
 
 				//Read the vertex normals from the line!
-				startPos = &line[2];
-				tempNormals[tempNormalsSize].x = strtod(startPos, &startPos);
-				tempNormals[tempNormalsSize].y = strtod(startPos, &startPos);
-				tempNormals[tempNormalsSize].z = strtod(startPos, &endPos);
+				tokPos = &line[2];
+				tempNormals[tempNormalsSize].x = strtod(tokPos, &tokPos);
+				tempNormals[tempNormalsSize].y = strtod(tokPos, &tokPos);
+				tempNormals[tempNormalsSize].z = strtod(tokPos, &tokPos);
 
 				//If everything was successful, make sure we don't overwrite them next time!
-				if(startPos != endPos || *endPos != '\0'){
+				if(*tokPos != '\0'){
 					++tempNormalsSize;
 				}
 
@@ -217,21 +216,21 @@ return_t modelLoadOBJ(model *mdl, const char *mdlName){
 
 			//Faces.
 			}else if(memcmp(line, "f ", 2) == 0){
-				char *curTok = strtok(&line[2], " ");
 				size_t a;
+				tokPos = strtok(&line[2], " ");
 				//If the vertex we want to add already exists, create an index to it!
 				//Otherwise, add it to the vector!
-				for(a = 0; a < 3 || curTok != NULL; ++a){
+				for(a = 0; a < 3 || tokPos != NULL; ++a){
 					vertex tempVertex;
 					memset(&tempVertex, 0.f, sizeof(tempVertex));
 
 					size_t posIndex, uvIndex, normalIndex;
 					//Read the indices!
-					posIndex = strtoul(curTok, &curTok, 10) - 1;
-					++curTok;
-					uvIndex = strtoul(curTok, &curTok, 10) - 1;
-					++curTok;
-					normalIndex = strtoul(curTok, &curTok, 10) - 1;
+					posIndex = strtoul(tokPos, &tokPos, 10) - 1;
+					++tokPos;
+					uvIndex = strtoul(tokPos, &tokPos, 10) - 1;
+					++tokPos;
+					normalIndex = strtoul(tokPos, &tokPos, 10) - 1;
 
 					//Fill up tempVertex with the vertex information we've stored! If the index is invalid, store a 0!
 					if(posIndex < tempPositionsSize){
@@ -306,7 +305,7 @@ return_t modelLoadOBJ(model *mdl, const char *mdlName){
 
 
 					//Get the beginning of the next vertex's data!
-					curTok = strtok(NULL, " ");
+					tokPos = strtok(NULL, " ");
 				}
 
 			//Syntax error.
@@ -361,7 +360,7 @@ return_t modelLoadOBJ(model *mdl, const char *mdlName){
 
 
 			//Set the model's name!
-			mdl->name = memoryManagerGlobalRealloc(mdlPath, mdlNameLength + 1);
+			mdl->name = memoryManagerGlobalResize(mdlPath, mdlNameLength + 1);
 			if(mdl->name == NULL){
 				/** REALLOC FAILED **/
 			}
@@ -469,6 +468,7 @@ return_t modelLoadSMD(model *mdl, const char *mdlName){
 			/** MALLOC FAILED **/
 		}
 
+		char *tokPos;
 		//This indicates what sort of data we're currently supposed to be reading.
 		byte_t dataType = 0;
 		//This variable stores data specific to the type we're currently loading.
@@ -515,7 +515,7 @@ return_t modelLoadSMD(model *mdl, const char *mdlName){
 					data = 0;
 				}else{
 					if(dataType == 1){
-						char *tokPos = line;
+						tokPos = line;
 
 						bone tempBone;
 
@@ -575,7 +575,7 @@ return_t modelLoadSMD(model *mdl, const char *mdlName){
 
 						//Otherwise, we're setting the bone's state!
 						}else{
-							char *tokPos = line;
+							tokPos = line;
 
 							//Get this bone's ID.
 							size_t boneID = strtoul(tokPos, &tokPos, 10);
@@ -602,7 +602,7 @@ return_t modelLoadSMD(model *mdl, const char *mdlName){
 
 
 									//If this bone has a parent, append its state to its parent's state!
-									if(currentBone->parent != -1){
+									if(!VALUE_IS_INVALID(currentBone->parent)){
 										transformStateAppend(&tempBones[currentBone->parent].state, &currentBone->state, &currentBone->state);
 									}
 								}
@@ -622,7 +622,7 @@ return_t modelLoadSMD(model *mdl, const char *mdlName){
 						if(data == 0){
 							//This indicates the texture that the face uses.
 						}else{
-							char *tokPos = line;
+							tokPos = line;
 
 							vertex tempVertex;
 							memset(&tempVertex, 0.f, sizeof(tempVertex));
@@ -655,7 +655,7 @@ return_t modelLoadSMD(model *mdl, const char *mdlName){
 										numLinks = MODEL_VERTEX_MAX_WEIGHTS;
 									}
 
-									size_t parentPos = -1;
+									size_t parentPos = INVALID_VALUE(parentPos);
 									float totalWeight = 0.f;
 
 									size_t *curBoneID = tempVertex.boneIDs;
@@ -699,7 +699,7 @@ return_t modelLoadSMD(model *mdl, const char *mdlName){
 									//Make sure the total weight isn't less than 1!
 									if(totalWeight < 1.f){
 										//If we never loaded the parent bone, see if we can add it!
-										if(parentPos == -1){
+										if(VALUE_IS_INVALID(parentPos)){
 											if(i < MODEL_VERTEX_MAX_WEIGHTS){
 												*curBoneID = parentBoneID;
 												*curBoneWeight = 0.f;
@@ -832,7 +832,7 @@ return_t modelLoadSMD(model *mdl, const char *mdlName){
 
 
 			//Set the model's name!
-			mdl->name = memoryManagerGlobalRealloc(mdlPath, mdlNameLength + 1);
+			mdl->name = memoryManagerGlobalResize(mdlPath, mdlNameLength + 1);
 			if(mdl->name == NULL){
 				/** REALLOC FAILED **/
 			}

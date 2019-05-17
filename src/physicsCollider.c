@@ -17,20 +17,23 @@ void (*physColliderGenerateInertiaTable[COLLIDER_NUM_TYPES])(const void *collide
 };
 
 
+//Forward-declare any helper functions!
+static return_t permitCollision(physicsCollider *colliderA, physicsCollider *colliderB);
+
+
 /*
 ** Initialise a physics collider base
 ** object using the type of its collider.
 */
-void physColliderInit(physicsCollider *pc, const colliderType_t type, physicsRigidBody *body){
+void physColliderInit(physicsCollider *pc, const colliderType_t type, void *owner){
 	colliderInit(&pc->global, type);
 	pc->local = NULL;
 
-	/** These should be set properly... somehow. **/
 	pc->density = 0.f;
 	pc->friction = 0.f;
 	pc->restitution = 0.f;
 
-	pc->owner = body;
+	pc->owner = owner;
 	pc->node = NULL;
 
 	pc->contacts = NULL;
@@ -41,7 +44,7 @@ void physColliderInit(physicsCollider *pc, const colliderType_t type, physicsRig
 ** Create a new instance of a physics
 ** collider from a base physics collider.
 */
-void physColliderInstantiate(physicsCollider *pc, physicsCollider *local, physicsRigidBody *body){
+void physColliderInstantiate(physicsCollider *pc, physicsCollider *local, void *owner){
 	colliderInstantiate(&pc->global, &local->global);
 	pc->local = &local->global;
 
@@ -49,7 +52,7 @@ void physColliderInstantiate(physicsCollider *pc, physicsCollider *local, physic
 	pc->friction = local->friction;
 	pc->restitution = local->restitution;
 
-	pc->owner = body;
+	pc->owner = owner;
 	pc->node = NULL;
 
 	pc->contacts = NULL;
@@ -250,91 +253,109 @@ void physColliderDelete(physicsCollider *collider){
 ** for collision with the narrowphase and create a collision pair for them.
 */
 void physColliderCollisionCallback(void *colliderA, void *colliderB){
-	//We only check for collision if the address of the first collider is
-	//less than the address of the second, as we don't want to do this twice.
-	//We shouldn't check for collision if both colliders have the same owner, either.
-	if(colliderA < colliderB && ((physicsCollider *)colliderA)->owner != ((physicsCollider *)colliderB)->owner){
-		//Broadphase collision check.
-		if(colliderAABBCollidingAABB(&(((physicsCollider *)colliderA)->aabb), &(((physicsCollider *)colliderB)->node->aabb))){
-			//Used when searching for an
-			//existing contact or separation
-			//or when creating a new one.
-			void *prevPair;
-			void *nextPair;
-			void *sharedPair;
-			//These variables store the results
-			//of our narrowphase collision check.
-			contactSeparation *separationPointer;
-			contactSeparation separation;
-			contactManifold manifold;
+	//Make sure these colliders are actually allowed
+	//to collide before executing the narrowphase.
+	if(permitCollision((physicsCollider *)colliderA, (physicsCollider *)colliderB)){
+		//Used when searching for an
+		//existing contact or separation
+		//or when creating a new one.
+		void *prevPair;
+		void *nextPair;
+		void *sharedPair;
+		//These variables store the results
+		//of our narrowphase collision check.
+		contactSeparation *separationPointer;
+		contactSeparation separation;
+		contactManifold manifold;
 
 
-			//Check if a separation involving our colliders exists.
-			sharedPair = physColliderFindSeparation(
-				(physicsCollider *)colliderA, (physicsCollider *)colliderB,
-				(physicsSeparationPair **)&prevPair, (physicsSeparationPair **)&nextPair
-			);
-			//If it does, we need to check if it is still valid.
-			if(sharedPair != NULL){
-				separationPointer = &(((physicsSeparationPair *)sharedPair)->separation);
+		//Check if a separation involving our colliders exists.
+		sharedPair = physColliderFindSeparation(
+			(physicsCollider *)colliderA, (physicsCollider *)colliderB,
+			(physicsSeparationPair **)&prevPair, (physicsSeparationPair **)&nextPair
+		);
+		//If it does, we need to check if it is still valid.
+		if(sharedPair != NULL){
+			separationPointer = &(((physicsSeparationPair *)sharedPair)->separation);
 
-				//If the separation still exists, refresh it and return.
-				if(collidersAreSeparated(&(((physicsCollider *)colliderA)->global), &(((physicsCollider *)colliderB)->global), separationPointer)){
-					physPairRefresh((physicsSeparationPair *)sharedPair);
-					return;
-				}
-
-			//Otherwise, direct our pointer to our new separation.
-			}else{
-				separationPointer = &separation;
+			//If the separation still exists, refresh it and return.
+			if(collidersAreSeparated(&(((physicsCollider *)colliderA)->global), &(((physicsCollider *)colliderB)->global), separationPointer)){
+				physPairRefresh((physicsSeparationPair *)sharedPair);
+				return;
 			}
 
+		//Otherwise, direct our pointer to our new separation.
+		}else{
+			separationPointer = &separation;
+		}
 
-			//Narrowphase collision check.
-			if(collidersAreColliding(&(((physicsCollider *)colliderA)->global), &(((physicsCollider *)colliderB)->global), separationPointer, &manifold)){
-				sharedPair = physColliderFindContact(
-					(physicsCollider *)colliderA, (physicsCollider *)colliderB,
-					(physicsContactPair **)&prevPair, (physicsContactPair **)&nextPair
-				);
-				//If a contact pair already exists, we need to refresh it
-				//and update the manifold components required for persistence.
-				if(sharedPair != NULL){
-					physManifoldPersist(&(((physicsContactPair *)sharedPair)->manifold), &manifold, colliderA, colliderB);
-					physPairRefresh((physicsContactPair *)sharedPair);
 
-				//If this is a new contact, allocate a new pair.
-				}else{
-					sharedPair = modulePhysicsContactPairAlloc();
+		//Narrowphase collision check.
+		if(collidersAreColliding(&(((physicsCollider *)colliderA)->global), &(((physicsCollider *)colliderB)->global), separationPointer, &manifold)){
+			sharedPair = physColliderFindContact(
+				(physicsCollider *)colliderA, (physicsCollider *)colliderB,
+				(physicsContactPair **)&prevPair, (physicsContactPair **)&nextPair
+			);
+			//If a contact pair already exists, we need to refresh it
+			//and update the manifold components required for persistence.
+			if(sharedPair != NULL){
+				physManifoldPersist(&(((physicsContactPair *)sharedPair)->manifold), &manifold, colliderA, colliderB);
+				physPairRefresh((physicsContactPair *)sharedPair);
 
-					//Set up the new contact pair. This involves building
-					//a physics manifold from our contact manifold and
-					//setting up its linked lists components.
-					physContactPairInit(
-						(physicsContactPair *)sharedPair, &manifold,
-						(physicsCollider *)colliderA, (physicsCollider *)colliderB,
-						(physicsContactPair *)prevPair, (physicsContactPair *)nextPair
-					);
-				}
-
-			//Colliders are not penetrating, so we have a separation.
+			//If this is a new contact, allocate a new pair.
 			}else{
-				//If a separation pair containing these colliders
-				//already existed, we just have to refresh it.
-				if(sharedPair != NULL){
-					physPairRefresh((physicsSeparationPair *)sharedPair);
+				sharedPair = modulePhysicsContactPairAlloc();
 
-				//Otherwise, we'll have to create one.
-				}else{
-					sharedPair = modulePhysicsSeparationPairAlloc();
+				//Set up the new contact pair. This involves building
+				//a physics manifold from our contact manifold and
+				//setting up its linked lists components.
+				physContactPairInit(
+					(physicsContactPair *)sharedPair, &manifold,
+					(physicsCollider *)colliderA, (physicsCollider *)colliderB,
+					(physicsContactPair *)prevPair, (physicsContactPair *)nextPair
+				);
+			}
 
-					//Set up the new separation pair, including its lists.
-					physSeparationPairInit(
-						(physicsSeparationPair *)sharedPair, separationPointer,
-						(physicsCollider *)colliderA, (physicsCollider *)colliderB,
-						(physicsSeparationPair *)prevPair, (physicsSeparationPair *)nextPair
-					);
-				}
+		//Colliders are not penetrating, so we have a separation.
+		}else{
+			//If a separation pair containing these colliders
+			//already existed, we just have to refresh it.
+			if(sharedPair != NULL){
+				physPairRefresh((physicsSeparationPair *)sharedPair);
+
+			//Otherwise, we'll have to create one.
+			}else{
+				sharedPair = modulePhysicsSeparationPairAlloc();
+
+				//Set up the new separation pair, including its lists.
+				physSeparationPairInit(
+					(physicsSeparationPair *)sharedPair, separationPointer,
+					(physicsCollider *)colliderA, (physicsCollider *)colliderB,
+					(physicsSeparationPair *)prevPair, (physicsSeparationPair *)nextPair
+				);
 			}
 		}
 	}
+}
+
+
+/*
+** Check whether or not two colliders should be
+** considered for the narrowphase collision check.
+*/
+static return_t permitCollision(physicsCollider *colliderA, physicsCollider *colliderB){
+	//We only want to run the narrowphase on two colliders once, so we
+	//do it when "colliderA" has the lower address. We also need to make
+	//sure they don't have the same owner and that their bounding boxes
+	//are actually colliding.
+	if(
+		colliderA < colliderB &&
+		colliderA->owner != colliderB->owner &&
+		colliderAABBCollidingAABB(&colliderA->aabb, &colliderB->node->aabb)
+	){
+		return(1);
+	}
+
+
+	return(0);
 }

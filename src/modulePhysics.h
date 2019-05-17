@@ -9,7 +9,7 @@
 #include "memorySingleList.h"
 
 #include "aabbTree.h"
-#include "physicsContactPair.h"
+#include "physicsConstraintPair.h"
 #include "physicsCollider.h"
 #include "physicsRigidBody.h"
 
@@ -60,7 +60,7 @@ void modulePhysicsAABBNodeClear();
 
 physicsContactPair *modulePhysicsContactPairAlloc();
 void modulePhysicsContactPairFree(physicsContactPair *cPair);
-void modulePhysicsSeparationPairClear();
+void modulePhysicsContactPairClear();
 
 physicsSeparationPair *modulePhysicsSeparationPairAlloc();
 void modulePhysicsSeparationPairFree(physicsSeparationPair *sPair);

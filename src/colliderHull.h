@@ -2,6 +2,7 @@
 #define colliderHull_h
 
 
+#include <stdio.h>
 #include <stdint.h>
 
 #include "settingsPhysics.h"
@@ -12,7 +13,7 @@
 #include "transform.h"
 
 
-#define COLLIDER_TYPE_HULL 0
+#define COLLIDER_TYPE_HULL 3
 
 #define COLLIDER_HULL_SEPARATION_FACE_A 0
 #define COLLIDER_HULL_SEPARATION_FACE_B 1
@@ -29,14 +30,6 @@
 typedef uint_least16_t colliderVertexIndex_t;
 typedef uint_least16_t colliderEdgeIndex_t;
 typedef uint_least16_t colliderFaceIndex_t;
-
-
-/**
-//Array storing the mass of each vertex. The sum of each element
-//in this array should add up to the total mass of the collider.
-//If the vertices are not weighted, this will be a NULL pointer.
-float *vertexMasses;
-**/
 
 
 //Stores the indices of data relevant to the edge.
@@ -67,15 +60,15 @@ typedef struct colliderHull {
 	//reallocated for each instance.
 	vec3 *vertices;
 	vec3 *normals;
-	//These three don't.
-	colliderHullEdge *edges;
+	//These two don't.
 	colliderHullFace *faces;
+	colliderHullEdge *edges;
 
 	//We don't need to store the number of
 	//normals since we can use "numFaces".
 	colliderVertexIndex_t numVertices;
-	colliderEdgeIndex_t numEdges;
 	colliderFaceIndex_t numFaces;
+	colliderEdgeIndex_t numEdges;
 	//Stores twice the number of edges that the
 	//face with the most edges has, as each edge
 	//can create at most two vertices. This is
@@ -96,7 +89,7 @@ typedef struct colliderAABB colliderAABB;
 void colliderHullInit(colliderHull *hull);
 void colliderHullInstantiate(void *hull, const void *base);
 
-void colliderHullLoad(void *hull);
+return_t colliderHullLoad(void *hull, FILE *hullFile);
 
 void colliderHullGenerateCentroid(void *hull, vec3 *centroid);
 void colliderHullGenerateCentroidWeighted(void *hull, const float *vertexMasses, vec3 *centroid);

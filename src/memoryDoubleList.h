@@ -12,7 +12,7 @@
 #define MEMDOUBLELIST_BLOCK_FREE_FLAG_SIZE MEMDOUBLELIST_BLOCK_HEADER_SIZE
 #define MEMDOUBLELIST_BLOCK_FREE_NEXT_SIZE sizeof(void *)
 #define MEMDOUBLELIST_BLOCK_USED_NEXT_SIZE sizeof(void *)
-#define MEMDOUBLELIST_BLOCK_USED_PREV_SIZE (MEMDOUBLELIST_BLOCK_HEADER_SIZE - MEMDOUBLELIST_BLOCK_USED_NEXT_SIZE)
+#define MEMDOUBLELIST_BLOCK_USED_PREV_SIZE sizeof(void *)
 
 #ifndef MEMDOUBLELIST_MEMORY_LEAN
 
@@ -69,9 +69,9 @@
 //Get the block's flags from its next pointer segment.
 #define memDoubleListBlockFreeNextGetFlag(block) ((uintptr_t *)memorySubPointer(block, MEMDOUBLELIST_BLOCK_HEADER_SIZE))
 
-//Get the block's data from its next pointer segment.
-#define memDoubleListBlockUsedNextGetPrev(block) ((void **)memoryAddPointer(block, MEMDOUBLELIST_BLOCK_USED_NEXT_SIZE))
 //Get the block's previous pointer from its next pointer segment.
+#define memDoubleListBlockUsedNextGetPrev(block) ((void **)memoryAddPointer(block, MEMDOUBLELIST_BLOCK_USED_NEXT_SIZE))
+//Get the block's data from its next pointer segment.
 #define memDoubleListBlockUsedNextGetData(block) ((void **)memoryAddPointer(block, MEMDOUBLELIST_BLOCK_HEADER_SIZE))
 //Get the block's next pointer from its previous pointer segment.
 #define memDoubleListBlockUsedPrevGetNext(block) ((void **)memorySubPointer(block, MEMDOUBLELIST_BLOCK_USED_NEXT_SIZE))

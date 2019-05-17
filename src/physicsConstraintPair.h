@@ -1,11 +1,12 @@
-#ifndef physicsContactPair_h
-#define physicsContactPair_h
+#ifndef physicsConstraintPair_h
+#define physicsConstraintPair_h
 
 
 #include "settingsPhysics.h"
 
 #include "utilTypes.h"
 #include "physicsContact.h"
+#include "physicsJoint.h"
 
 
 #define PHYSCOLLISIONPAIR_ACTIVE 0
@@ -17,7 +18,7 @@
 	#define PHYSICS_CONTACT_PAIR_MAX_INACTIVE_STEPS 0
 #endif
 
-#define physPairRefresh(pair)           ((pair)->inactive = PHYSCOLLISIONPAIR_ACTIVE)
+#define physPairRefresh(pair)              ((pair)->inactive = PHYSCOLLISIONPAIR_ACTIVE)
 #define physSeparationPairIsInactive(pair) ((pair)->inactive > PHYSICS_SEPARATION_PAIR_MAX_INACTIVE_STEPS)
 #define physContactPairIsInactive(pair)    ((pair)->inactive > PHYSICS_CONTACT_PAIR_MAX_INACTIVE_STEPS)
 
@@ -62,6 +63,23 @@ typedef struct physicsContactPair {
 	physicsContactPair *nextB;
 } physicsContactPair;
 
+typedef struct physicsJointPair physicsJointPair;
+//Stores the data required to represent
+//a joint between two rigid bodies.
+typedef struct physicsJointPair {
+	physicsJoint joint;
+
+	physicsCollider *cA;
+	physicsCollider *cB;
+
+	//Each joint pair is a member of two doubly linked
+	//lists, one for both bodies involved in the pair.
+	physicsJointPair *prevA;
+	physicsJointPair *nextA;
+	physicsJointPair *prevB;
+	physicsJointPair *nextB;
+} physicsJointPair;
+
 
 void physSeparationPairInit(physicsSeparationPair *pair, const contactSeparation *separation,
                             physicsCollider *cA, physicsCollider *cB,
@@ -69,9 +87,13 @@ void physSeparationPairInit(physicsSeparationPair *pair, const contactSeparation
 void physContactPairInit(physicsContactPair *pair, const contactManifold *manifold,
                          physicsCollider *cA, physicsCollider *cB,
                          physicsContactPair *prev, physicsContactPair *next);
+void physJointPairInit(physicsJointPair *pair,
+                       physicsCollider *cA, physicsCollider *cB,
+                       physicsJointPair *prev, physicsJointPair *next);
 
 void physSeparationPairDelete(physicsSeparationPair *pair);
 void physContactPairDelete(physicsContactPair *pair);
+void physJointPairDelete(physicsJointPair *pair);
 
 
 #endif

@@ -12,8 +12,19 @@
 #include "physicsCollider.h"
 
 
+//If we're using non-linear Gauss-Seidel stabilisation
+//anywhere, we'll need to define some additional functions.
+#if \
+	defined PHYSCONTACT_STABILISER_GAUSS_SEIDEL        || defined PHYSJOINTDISTANCE_STABILISER_GAUSS_SEIDEL || \
+	defined PHYSJOINTFIXED_STABILISER_GAUSS_SEIDEL     || defined PHYSJOINTREVOLUTE_STABILISER_GAUSS_SEIDEL || \
+	defined PHYSJOINTPRISMATIC_STABILISER_GAUSS_SEIDEL || defined PHYSJOINTSPHERE_STABILISER_GAUSS_SEIDEL
+
+	#define PHYSCOLLIDER_USE_POSITIONAL_CORRECTION
+#endif
+
+
 typedef struct physicsRigidBodyDef {
-	//Linked list of colliders used by this rigid body.
+	//Singly linked list of colliders used by this rigid body.
 	physicsCollider *colliders;
 
 	//The rigid body's physical properties.
@@ -28,7 +39,7 @@ typedef struct physicsRigidBodyDef {
 
 //Rigid body instance.
 typedef struct physicsRigidBody {
-	//Linked list of colliders used by this rigid body.
+	//Singly linked list of colliders used by this rigid body.
 	physicsCollider *colliders;
 
 	float mass;
@@ -67,8 +78,12 @@ void physRigidBodyDefGenerateProperties(physicsRigidBodyDef *bodyDef, const floa
 void physRigidBodyIntegrateVelocitySymplecticEuler(physicsRigidBody *body, const float time);
 void physRigidBodyIntegratePositionSymplecticEuler(physicsRigidBody *body, const float time);
 
-void physRigidBodyApplyImpulse(physicsRigidBody *body, const vec3 *r, const vec3 *J);
-void physRigidBodyApplyImpulseInverse(physicsRigidBody *body, const vec3 *r, const vec3 *J);
+void physRigidBodyApplyImpulse(physicsRigidBody *body, const vec3 *r, vec3 J);
+void physRigidBodyApplyImpulseInverse(physicsRigidBody *body, const vec3 *r, vec3 J);
+#ifdef PHYSCOLLIDER_USE_POSITIONAL_CORRECTION
+void physRigidBodyApplyPositionalImpulse(physicsRigidBody *body, const vec3 *r, vec3 J);
+void physRigidBodyApplyPositionalImpulseInverse(physicsRigidBody *body, const vec3 *r, vec3 J);
+#endif
 
 void physRigidBodyUpdate(physicsRigidBody *body, const float dt);
 

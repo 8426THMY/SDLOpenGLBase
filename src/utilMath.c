@@ -114,7 +114,7 @@ void normalBasis(const vec3 *a, vec3 *b, vec3 *c){
 	}
 
 	vec3NormalizeVec3(b);
-	vec3CrossVec3(a, b, c);
+	vec3CrossVec3Out(a, b, c);
 }
 
 /*
@@ -178,7 +178,7 @@ void triangleNormal(const vec3 *a, const vec3 *b, const vec3 *c, vec3 *out){
 		.z = c->z - a->z
 	};
 
-	vec3CrossVec3(&v1, &v2, out);
+	vec3CrossVec3Out(&v1, &v2, out);
 }
 
 
