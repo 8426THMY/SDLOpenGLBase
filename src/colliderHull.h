@@ -71,9 +71,10 @@ typedef struct colliderHull {
 	colliderEdgeIndex_t numEdges;
 	//Stores twice the number of edges that the
 	//face with the most edges has, as each edge
-	//can create at most two vertices. This is
-	//mostly useful for memory preallocation.
-	colliderFaceIndex_t maxFaceVertices;
+	//can create at most two vertices when we're
+	//clipping. This is mostly useful for memory
+	//preallocation during collision detection.
+	colliderFaceIndex_t maxFaceEdges;
 
 	//Hulls are the only colliders that
 	//need their centroids for collision.

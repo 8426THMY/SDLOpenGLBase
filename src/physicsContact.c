@@ -64,13 +64,23 @@ void physManifoldInit(physicsManifold *pm, const contactManifold *cm, const phys
 
 	const vec3 *bodyACentroid = &cA->owner->centroidGlobal;
 	const vec3 *bodyBCentroid = &cB->owner->centroidGlobal;
+	#ifdef PHYSCONTACT_STABILISER_GAUSS_SEIDEL
+	const quat *bodyARot      = &cA->owner->transform.rot;
+	const quat *bodyBRot      = &cB->owner->transform.rot;
+	#endif
 
 	//Create a physics contact point for each regular one!
 	do {
 		pmContact->key = cmContact->key;
 
-		vec3SubtractVec3FromOut(&cmContact->position, bodyACentroid, &pmContact->rA);
-		vec3SubtractVec3FromOut(&cmContact->position, bodyBCentroid, &pmContact->rB);
+		#warning "Perform this on the point halfway between pA and pB".
+		vec3SubtractVec3FromOut(&cmContact->pA, bodyACentroid, &pmContact->rA);
+		vec3SubtractVec3FromOut(&cmContact->pB, bodyBCentroid, &pmContact->rB);
+
+		#ifdef PHYSCONTACT_STABILISER_GAUSS_SEIDEL
+		quatApplyInverseRotationFast(bodyARot, &pmContact->rA, &pmContact->rAlocal);
+		quatApplyInverseRotationFast(bodyBRot, &pmContact->rB, &pmContact->rBlocal);
+		#endif
 
 		pmContact->separation = cmContact->separation;
 
@@ -104,6 +114,10 @@ void physManifoldPersist(physicsManifold *pm, const contactManifold *cm, const p
 
 	const vec3 *bodyACentroid = &cA->owner->centroidGlobal;
 	const vec3 *bodyBCentroid = &cB->owner->centroidGlobal;
+	#ifdef PHYSCONTACT_STABILISER_GAUSS_SEIDEL
+	const quat *bodyARot      = &cA->owner->transform.rot;
+	const quat *bodyBRot      = &cB->owner->transform.rot;
+	#endif
 
 	unsigned int persistentFlags[CONTACT_MAX_POINTS];
 	unsigned int *isPersistent = persistentFlags;
@@ -168,8 +182,15 @@ void physManifoldPersist(physicsManifold *pm, const contactManifold *cm, const p
 	//Initialise any non-persistent contacts and
 	//warm start contacts that are persistent!
 	do {
-		vec3SubtractVec3FromOut(&cmContact->position, bodyACentroid, &pmContact->rA);
-		vec3SubtractVec3FromOut(&cmContact->position, bodyBCentroid, &pmContact->rB);
+		#warning "Perform this on the point halfway between pA and pB".
+		vec3SubtractVec3FromOut(&cmContact->pA, bodyACentroid, &pmContact->rA);
+		vec3SubtractVec3FromOut(&cmContact->pB, bodyBCentroid, &pmContact->rB);
+
+		#ifdef PHYSCONTACT_STABILISER_GAUSS_SEIDEL
+		quatApplyInverseRotationFast(bodyARot, &pmContact->rA, &pmContact->rAlocal);
+		quatApplyInverseRotationFast(bodyBRot, &pmContact->rB, &pmContact->rBlocal);
+		#endif
+
 		pmContact->separation = cmContact->separation;
 
 		//Contact is not persistent, so we can reset the accumulators.
@@ -503,12 +524,12 @@ void solvePosition(const physicsManifold *pm, const physicsContactPoint *contact
 
 	//Update the normal and contact points
 	//using the rigid bodys' new positions.
+	/** We need the untransformed normal. **/
 	quatApplyRotationFast(&bodyA->transform.rot, &pm->normal, &normal);
 	/** Why do they use "point - cA" and "point - cB"? **/
 	/** Also, "contact->rA" and "contact->rB" are transformed, but we need them to be untransformed here. **/
-	/** We should always be getting two points from our collision function. **/
-	transformStateTransformVec3(&bodyA->transform, &contact->rA, &rA);
-	transformStateTransformVec3(&bodyB->transform, &contact->rB, &rB);
+	transformStateTransformVec3(&bodyA->transform, &contact->rAlocal, &rA);
+	transformStateTransformVec3(&bodyB->transform, &contact->rBlocal, &rB);
 
 	//Now find the new separation between the points.
 	vec3SubtractVec3FromOut(&rB, &rA, &rnA);

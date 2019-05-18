@@ -27,13 +27,12 @@
 //specified, use Baumgarte stabilisation.
 #ifndef PHYSCONTACT_STABILISER_GAUSS_SEIDEL
 	#define PHYSCONTACT_STABILISER_BAUMGARTE
-	#ifndef PHYSCONTACT_BAUMGARTE_BIAS
-		#define PHYSCONTACT_BAUMGARTE_BIAS 0.4f
-	#endif
-#else
-	#ifndef PHYSCONTACT_GAUSS_SEIDEL_NUM_ITERATIONS
-		#define PHYSCONTACT_GAUSS_SEIDEL_NUM_ITERATIONS 4
-	#endif
+#endif
+#ifndef PHYSCONTACT_BAUMGARTE_BIAS
+	#define PHYSCONTACT_BAUMGARTE_BIAS 0.4f
+#endif
+#ifndef PHYSCONTACT_GAUSS_SEIDEL_NUM_ITERATIONS
+	#define PHYSCONTACT_GAUSS_SEIDEL_NUM_ITERATIONS 4
 #endif
 
 
@@ -41,12 +40,17 @@ typedef struct physicsContactPoint {
 	//Used to uniquely identify the contact point.
 	contactKey key;
 
-	//Points on both bodies involved
-	//in the collision in global space
-	//and relative to the respective
-	//body's centre of mass.
+	//Points on both bodies involved in the collision
+	//in global space and relative to the centres of mass.
 	vec3 rA;
 	vec3 rB;
+
+	//If we're using non-linear Gauss-Seidel, we'll need to know
+	//the relative positions of the contact points in local space.
+	#ifdef PHYSCONTACT_STABILISER_GAUSS_SEIDEL
+	vec3 rAlocal;
+	vec3 rBlocal;
+	#endif
 
 	//Separation between the contact points.
 	//Note that this is a negative quantity.

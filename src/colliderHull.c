@@ -95,6 +95,13 @@ typedef struct vertexClip {
 	contactKey key;
 } vertexClip;
 
+//When we project vertices onto the
+//reference face, we store their separation.
+typedef struct vertexProject {
+	vec3 v;
+	float dist;
+} vertexProject;
+
 
 //Forward-declare any helper functions!
 static void hullFaceDataInit(hullFaceData *faceData);
@@ -118,7 +125,7 @@ static return_t noSeparatingEdge(const colliderHull *hullA, const colliderHull *
                                  hullEdgeData *edgeData, contactSeparation *separation);
 
 static colliderFaceIndex_t findIncidentFace(const colliderHull *hull, const vec3 *refNormal);
-static void reduceContacts(const vertexClip *vertices, const vertexClip *lastVertex, const float *depths, contactManifold *cm);
+static void reduceContacts(const vertexProject *vProj, const vertexProject *vLast, const vertexClip *vClip, contactManifold *cm);
 static void clipFaceContact(const colliderHull *hullA, const colliderHull *hullB, const colliderFaceIndex_t refIndex,
 #ifdef CLIPPING_KEYSWAP_USE_OFFSETS
                             const size_t offset, contactManifold *cm);
@@ -1065,14 +1072,14 @@ static colliderFaceIndex_t findIncidentFace(const colliderHull *hull, const vec3
 ** keeping the four points that form the polygon with
 ** the greatest total area.
 */
-static void reduceContacts(const vertexClip *vertices, const vertexClip *lastVertex, const float *depths, contactManifold *cm){
+static void reduceContacts(const vertexProject *vProj, const vertexProject *vLast, const vertexClip *vClip, contactManifold *cm){
 	//We start with our best and worst vertices as the
 	//first one so we can begin the loop on the second.
-	const vertexClip *bestVertex  = vertices;
-	const float *bestDepth = depths;
-	float bestDist = vec3NormVec3(&bestVertex->v);
-	const vertexClip *worstVertex = vertices;
-	const float *worstDepth = depths;
+	const vertexProject *bestProj = vProj;
+	const vertexClip *bestClip = vClip;
+	float bestDist = vec3NormVec3(&bestProj->v);
+	const vertexProject *worstProj = vProj;
+	const vertexClip *worstClip = vClip;
 	float worstDist = bestDist;
 
 	const vec3 *firstContact;
@@ -1081,95 +1088,99 @@ static void reduceContacts(const vertexClip *vertices, const vertexClip *lastVer
 
 	vec3 edgeNormal;
 
-	const vertexClip *curVertex = &vertices[1];
-	const float *curDepth = &depths[1];
+	const vertexProject *curProj = &vProj[1];
+	const vertexClip *curClip = &vClip[1];
 	float curDist;
 
 
 	//Start by finding the vertices with the greatest
 	//positive and negative distances from the origin.
-	for(; curVertex < lastVertex; ++curVertex, ++curDepth){
-		curDist = vec3NormVec3(&curVertex->v);
+	for(; curProj < vLast; ++curProj, ++curClip){
+		curDist = vec3NormVec3(&curProj->v);
 		//The first vertex will be the one with the
 		//most positive distance from the origin.
 		if(curDist > bestDist){
-			bestVertex = curVertex;
-			bestDepth  = curDepth;
-			bestDist   = curDist;
+			bestProj = curProj;
+			bestClip = curClip;
+			bestDist = curDist;
 
 		//The second vertex will be the one with the
 		//most negative distance from the origin.
 		}else if(curDist < worstDist){
-			worstVertex = curVertex;
-			worstDepth  = curDepth;
-			worstDist   = curDist;
+			worstProj = curProj;
+			worstClip = curClip;
+			worstDist = curDist;
 		}
 	}
 
 	//We need to remember these pointers so we
 	//don't store the same points multiple times.
-	firstContact = &bestVertex->v;
-	secondContact = &worstVertex->v;
+	firstContact = &bestProj->v;
+	secondContact = &worstProj->v;
 
 	//Add the points to our manifold.
-	curContact->key = bestVertex->key;
-	curContact->position = bestVertex->v;
-	curContact->separation = *bestDepth;
+	curContact->key = bestClip->key;
+	curContact->pA = bestProj->v;
+	curContact->pB = bestClip->v;
+	curContact->separation = bestProj->dist;
 	++curContact;
-	curContact->key = worstVertex->key;
-	curContact->position = worstVertex->v;
-	curContact->separation = *worstDepth;
+	curContact->key = worstClip->key;
+	curContact->pA = worstProj->v;
+	curContact->pB = worstClip->v;
+	curContact->separation = worstProj->dist;
 	++curContact;
 
 
 	//The normal of the edge is the cross product of the reference
 	//face's normal and the difference between the edge's vertices.
 	//This works because every vertex lies on the reference face.
-	vec3CrossVec3Float(&cm->normal, worstVertex->v.x - bestVertex->v.x, worstVertex->v.y - bestVertex->v.y, worstVertex->v.z - bestVertex->v.z, &edgeNormal);
+	vec3CrossVec3Float(&cm->normal, worstProj->v.x - bestProj->v.x, worstProj->v.y - bestProj->v.y, worstProj->v.z - bestProj->v.z, &edgeNormal);
 
 	//Again, we start with our best and worst vertices as
 	//the first one so we can begin the loop on the second.
-	bestVertex  = vertices;
-	bestDepth = depths;
-	bestDist = vec3DotVec3Float(&edgeNormal, firstContact->x - bestVertex->v.x, firstContact->y - bestVertex->v.y, firstContact->z - bestVertex->v.z);
-	worstVertex = vertices;
-	worstDepth = depths;
+	bestProj  = vProj;
+	bestClip = vClip;
+	bestDist = vec3DotVec3Float(&edgeNormal, firstContact->x - bestProj->v.x, firstContact->y - bestProj->v.y, firstContact->z - bestProj->v.z);
+	worstProj = vProj;
+	worstClip = vClip;
 	worstDist = bestDist;
 
-	curVertex = &vertices[1];
-	curDepth = &depths[1];
+	curProj = &vProj[1];
+	curClip = &vClip[1];
 
 	//Now, we can find the points with the greatest positive
 	//and negative distances from the edge we have created.
-	for(; curVertex < lastVertex; ++curVertex, ++curDepth){
+	for(; curProj < vLast; ++curProj, ++curClip){
 		//Make sure this vertex is not already part of the manifold.
-		if(&curVertex->v != firstContact && &curVertex->v != secondContact){
-			curDist = vec3DotVec3Float(&edgeNormal, firstContact->x - curVertex->v.x, firstContact->y - curVertex->v.y, firstContact->z - curVertex->v.z);
+		if(&curProj->v != firstContact && &curProj->v != secondContact){
+			curDist = vec3DotVec3Float(&edgeNormal, firstContact->x - curProj->v.x, firstContact->y - curProj->v.y, firstContact->z - curProj->v.z);
 			//The third vertex will be the one with
 			//the most positive distance from our edge.
 			if(curDist > bestDist){
-				bestVertex = curVertex;
-				bestDepth  = curDepth;
-				bestDist   = curDist;
+				bestProj = curProj;
+				bestClip = curClip;
+				bestDist = curDist;
 
 			//The fourth vertex will be the one with
 			//the most negative distance from our edge.
 			}else if(curDist < worstDist){
-				worstVertex = curVertex;
-				worstDepth  = curDepth;
-				worstDist   = curDist;
+				worstProj = curProj;
+				worstClip = curClip;
+				worstDist = curDist;
 			}
 		}
 	}
 
 	//Add the points to our manifold.
-	curContact->key = bestVertex->key;
-	curContact->position = bestVertex->v;
-	curContact->separation = *bestDepth;
+	curContact->key = bestClip->key;
+	curContact->pA = bestProj->v;
+	curContact->pB = bestClip->v;
+	curContact->separation = bestProj->dist;
 	++curContact;
-	curContact->key = worstVertex->key;
-	curContact->position = worstVertex->v;
-	curContact->separation = *worstDepth;
+	curContact->key = worstClip->key;
+	curContact->pA = worstProj->v;
+	curContact->pB = worstClip->v;
+	curContact->separation = worstProj->dist;
 
 
 	//We should now have only four contact points.
@@ -1195,7 +1206,7 @@ static void clipFaceContact(const colliderHull *hullA, const colliderHull *hullB
 	//to store twice the maximum number of edges that a face has, as
 	//each edge can intersect two faces at most. This means that, in
 	//practice, we are really storing four times the number of edges.
-	vertexClip *vertices = memoryManagerGlobalAlloc(hullB->maxFaceVertices * sizeof(*vertices) * 2);
+	vertexClip *vertices = memoryManagerGlobalAlloc(hullB->maxFaceEdges * sizeof(*vertices) * 2);
 	if(vertices == NULL){
 		/** MALLOC FAILED **/
 	}
@@ -1210,9 +1221,9 @@ static void clipFaceContact(const colliderHull *hullA, const colliderHull *hullB
 	//we clip against the reference face itself.
 	union {
 		vertexClip *v;
-		float *d;
+		vertexProject *p;
 	} clipVertices, clipVertex;
-	clipVertices.v = &vertices[hullB->maxFaceVertices];
+	clipVertices.v = &vertices[hullB->maxFaceEdges];
 
 	vec3 refNormal = hullA->normals[refIndex];
 	//Using the normal of the reference face, find the face
@@ -1425,7 +1436,7 @@ static void clipFaceContact(const colliderHull *hullA, const colliderHull *hullB
 	} while(curEdge != startEdge);
 
 	loopVertex = loopVertices;
-	clipVertex.d = clipVertices.d;
+	clipVertex.p = clipVertices.p;
 	curVertex = loopVertices;
 	//Keep any points below the reference face and project them
 	//onto it. We won't keep any intersection points, as they do
@@ -1472,13 +1483,14 @@ static void clipFaceContact(const colliderHull *hullA, const colliderHull *hullB
 				#endif
 			#endif
 
-			//Project the vertex onto the reference
-			//face and store it in "loopVertices".
-			pointPlaneProject(&curVertex->v, refVertex, &refNormal, &loopVertex->v);
+			loopVertex->v = curVertex->v;
 			++loopVertex;
+			//Project the vertex onto the reference
+			//face and store it in "clipVertices".
+			pointPlaneProject(&curVertex->v, refVertex, &refNormal, &clipVertex.p->v);
 			//Keep the vertex's separation, too.
-			*clipVertex.d = curDist;
-			++clipVertex.d;
+			clipVertex.p->dist = curDist;
+			++clipVertex.p;
 		}
 	}
 
@@ -1493,13 +1505,14 @@ static void clipFaceContact(const colliderHull *hullA, const colliderHull *hullB
 	if(loopVertex <= &loopVertices[CONTACT_MAX_POINTS]){
 		contactPoint *curContact = cm->contacts;
 
-		clipVertex.d = clipVertices.d;
+		clipVertex.p = clipVertices.p;
 		curVertex = loopVertices;
 		//Add out contact points to the manifold.
-		for(; curVertex < loopVertex; ++curVertex, ++clipVertex.d, ++curContact){
+		for(; curVertex < loopVertex; ++curVertex, ++clipVertex.p, ++curContact){
 			curContact->key = curVertex->key;
-			curContact->position = curVertex->v;
-			curContact->separation = *clipVertex.d;
+			curContact->pA = clipVertex.p->v;
+			curContact->pB = curVertex->v;
+			curContact->separation = clipVertex.p->dist;
 
 			++cm->numContacts;
 		}
@@ -1507,7 +1520,7 @@ static void clipFaceContact(const colliderHull *hullA, const colliderHull *hullB
 	//If there are more than four vertices, we'll
 	//need to perform contact point reduction.
 	}else{
-		reduceContacts(loopVertices, loopVertex, clipVertices.d, cm);
+		reduceContacts(clipVertices.p, clipVertex.p, loopVertices, cm);
 	}
 
 
@@ -1530,15 +1543,53 @@ static void clipEdgeContact(const colliderHull *hullA, const colliderHull *hullB
 	const colliderHullEdge *refEdge = &hullA->edges[edgeData->edgeA];
 	const vec3 *refStart = &hullA->vertices[refEdge->startVertexIndex];
 	const vec3 *refEnd   = &hullA->vertices[refEdge->endVertexIndex];
+	const vec3 ref = {
+		.x = refEnd->x - refStart->x,
+		.y = refEnd->y - refStart->y,
+		.z = refEnd->z - refStart->z
+	};
 
 	const colliderHullEdge *incEdge = &hullB->edges[edgeData->edgeB];
 	const vec3 *incStart = &hullB->vertices[incEdge->startVertexIndex];
 	const vec3 *incEnd   = &hullB->vertices[incEdge->endVertexIndex];
+	const vec3 inc = {
+		.x = incEnd->x - incStart->x,
+		.y = incEnd->y - incStart->y,
+		.z = incEnd->z - incStart->z
+	};
 
-	vec3 refClosest;
-	vec3 incClosest;
+	const vec3 offset = {
+		.x = refStart->x - incStart->x,
+		.y = refStart->y - incStart->y,
+		.z = refStart->z - incStart->z
+	};
+	const vec3 normalDir = {
+		.x = refStart->x - hullA->centroid.x,
+		.y = refStart->y - hullA->centroid.y,
+		.z = refStart->z - hullA->centroid.z
+	};
 
 	contactPoint *contact = &cm->contacts[0];
+
+
+	//The edges may not necessarily be intersecting, so we'll
+	//need to find the closest points on both line segments.
+	//This is basically copied from "segmentClosestPoints".
+	const float d11 = vec3NormVec3(&ref);
+	const float d21 = vec3DotVec3(&offset, &ref);
+	const float d23 = vec3DotVec3(&offset, &inc);
+	const float d31 = vec3DotVec3(&inc, &ref);
+	const float d33 = vec3NormVec3(&inc);
+	const float denom = d11 * d33 - d31 * d31;
+	//If the two edges are perfectly parallel, the closest
+	//points should be in the middle of the first segment.
+	const float m1 = (denom != 0.f) ? (d23 * d31 - d21 * d33) / denom : 0.5f;
+	const float m2 = (d23 + d31 * m1) / d33;
+
+	//Find the closest point on the first line.
+	vec3LerpFast(refStart, &ref, m1, &contact->pA);
+	//Find the closest point on the second line.
+	vec3LerpFast(incStart, &inc, m2, &contact->pB);
 
 
 	#ifdef CONTACT_MANIFOLD_SIMPLE_KEYS
@@ -1551,20 +1602,18 @@ static void clipEdgeContact(const colliderHull *hullA, const colliderHull *hullB
 	contact->key.outEdgeB = edgeData->edgeB;
 	#endif
 
-	//The edges may not necessarily be intersecting, so we'll
-	//need to find the closest points on both line segments.
-	segmentClosestPoints(refStart, refEnd, incStart, incEnd, &refClosest, &incClosest);
-	//Now find and keep the point halfway between the two!
-	vec3AddVec3Out(&refClosest, &incClosest, &contact->position);
-	vec3MultiplyS(&contact->position, 0.5f);
 	contact->separation = edgeData->separation;
 
-	//Find the collision's normal. It will be the
-	//vector from the closest point on the incident
-	//edge to the closest point on the reference edge.
-	/** Use the cross product here instead. **/
-	vec3SubtractVec3FromOut(&refClosest, &incClosest, &cm->normal);
+
+	//Find the collision's normal. We use the
+	//cross product of the two intersecting edges.
+	vec3CrossVec3Out(&ref, &inc, &cm->normal);
 	vec3NormalizeVec3(&cm->normal);
+	//We'll need to make sure the normal roughly
+	//points from body A to body B, too.
+	if(vec3DotVec3(&cm->normal, &normalDir) < 0.f){
+		vec3Negate(&cm->normal);
+	}
 
 
 	cm->numContacts = 1;

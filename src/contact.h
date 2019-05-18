@@ -49,8 +49,11 @@ typedef struct contactPoint {
 	//Used to uniquely identify the contact point.
 	contactKey key;
 
-	//Position of the contact in global space.
-	vec3 position;
+	//Position of the contacts in global space.
+	//They are not relative to the centres of mass.
+	vec3 pA;
+	vec3 pB;
+
 	//Separation between the colliders.
 	//Note that this is a negative quantity.
 	float separation;

@@ -22,7 +22,7 @@ void transformStateAppend(const transformState *trans1, const transformState *tr
 	//Generate the new position!
 	vec3AddVec3Out(&trans1->pos, &pos, &out->pos);
 	//Generate the new orientation!
-	quatMultiplyQuatOut(&trans1->rot, &trans2->rot, &out->rot);
+	quatMultiplyByQuatOut(&trans1->rot, &trans2->rot, &out->rot);
 	//A slight error will build up if we don't normalize the rotation.
 	quatNormalizeQuat(&out->rot);
 	//Generate the new scale!
@@ -60,7 +60,7 @@ void transformStateInterpAdd(const transformState *trans1, const transformState 
 //Invert all three components of a transformation state.
 void transformStateInvert(const transformState *trans, transformState *out){
 	//Invert the transform's rotation!
-	quatConjugateFast(&trans->rot, &out->rot);
+	quatConjugateFastOut(&trans->rot, &out->rot);
 
 	//Invert its position with respect to the new rotation!
 	quatApplyRotationFast(&trans->rot, &trans->pos, &out->pos);
