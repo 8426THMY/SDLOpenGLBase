@@ -12,6 +12,8 @@
 
 #include "memoryManager.h"
 
+#include "vec2.h"
+
 
 #define MODEL_PATH_PREFIX        ".\\resource\\models\\"
 #define MODEL_PATH_PREFIX_LENGTH (sizeof(MODEL_PATH_PREFIX) - 1)
@@ -20,14 +22,14 @@
 #define BASE_VERTEX_CAPACITY   1
 #define BASE_INDEX_CAPACITY    BASE_VERTEX_CAPACITY
 #define BASE_POSITION_CAPACITY BASE_VERTEX_CAPACITY
-#define BASE_UV_CAPACITY       BASE_VERTEX_CAPACITY * 2
+#define BASE_UV_CAPACITY       BASE_VERTEX_CAPACITY
 #define BASE_NORMAL_CAPACITY   BASE_VERTEX_CAPACITY
 #define BASE_BONE_CAPACITY     1
 
 
 typedef struct vertex {
 	vec3 pos;
-	float uvs[2];
+	vec2 uv;
 	vec3 normal;
 
 	size_t boneIDs[MODEL_VERTEX_MAX_WEIGHTS];
@@ -111,7 +113,7 @@ return_t modelLoadOBJ(model *mdl, const char *mdlName){
 		//Temporarily stores vertex UVs, regardless of whether or not they are unique.
 		size_t tempUVsSize = 0;
 		size_t tempUVsCapacity = BASE_UV_CAPACITY;
-		float *tempUVs = memoryManagerGlobalAlloc(BASE_UV_CAPACITY * sizeof(*tempUVs));
+		vec2 *tempUVs = memoryManagerGlobalAlloc(BASE_UV_CAPACITY * sizeof(*tempUVs));
 		if(tempUVs == NULL){
 			/** MALLOC FAILED **/
 		}
@@ -138,6 +140,8 @@ return_t modelLoadOBJ(model *mdl, const char *mdlName){
 		while(success && (line = readLineFile(mdlFile, &lineBuffer[0], &lineLength)) != NULL){
 			//Vertex positions.
 			if(memcmp(line, "v ", 2) == 0){
+				vec3 newPosition;
+
 				//If we're out of space, allocate some more!
 				if(tempPositionsSize >= tempPositionsCapacity){
 					tempPositionsCapacity = tempPositionsSize * 2;
@@ -148,18 +152,17 @@ return_t modelLoadOBJ(model *mdl, const char *mdlName){
 				}
 
 				//Read the vertex positions from the line!
-				tokPos = &line[2];
-				tempPositions[tempPositionsSize].x = strtod(tokPos, &tokPos);
-				tempPositions[tempPositionsSize].y = strtod(tokPos, &tokPos);
-				tempPositions[tempPositionsSize].z = strtod(tokPos, &tokPos);
+				newPosition.x = strtod(&line[2], &tokPos);
+				newPosition.y = strtod(tokPos, &tokPos);
+				newPosition.z = strtod(tokPos, NULL);
 
-				//If everything was successful, make sure we don't overwrite them next time!
-				if(*tokPos != '\0'){
-					++tempPositionsSize;
-				}
+				tempPositions[tempPositionsSize] = newPosition;
+				++tempPositionsSize;
 
 			//Vertex UVs.
 			}else if(memcmp(line, "vt ", 3) == 0){
+				vec2 newUV;
+
 				//If we're out of space, allocate some more!
 				if(tempUVsSize >= tempUVsCapacity){
 					tempUVsCapacity = tempUVsSize * 2;
@@ -170,17 +173,16 @@ return_t modelLoadOBJ(model *mdl, const char *mdlName){
 				}
 
 				//Read the vertex UVs from the line!
-				tokPos = &line[2];
-				tempUVs[tempUVsSize]     = strtod(tokPos, &tokPos);
-				tempUVs[tempUVsSize + 1] = -strtod(tokPos, &tokPos);
+				newUV.x = strtod(&line[3], &tokPos);
+				newUV.y = -strtod(tokPos, NULL);
 
-				//If everything was successful, make sure we don't overwrite them next time!
-				if(*tokPos != '\0'){
-					tempUVsSize += 2;
-				}
+				tempUVs[tempUVsSize] = newUV;
+				++tempUVsSize;
 
 			//Vertex normals.
 			}else if(memcmp(line, "vn ", 3) == 0){
+				vec3 newNormal;
+
 				//If we're out of space, allocate some more!
 				if(tempNormalsSize >= tempNormalsCapacity){
 					tempNormalsCapacity = tempNormalsSize * 2;
@@ -191,15 +193,12 @@ return_t modelLoadOBJ(model *mdl, const char *mdlName){
 				}
 
 				//Read the vertex normals from the line!
-				tokPos = &line[2];
-				tempNormals[tempNormalsSize].x = strtod(tokPos, &tokPos);
-				tempNormals[tempNormalsSize].y = strtod(tokPos, &tokPos);
-				tempNormals[tempNormalsSize].z = strtod(tokPos, &tokPos);
+				newNormal.x = strtod(&line[3], &tokPos);
+				newNormal.y = strtod(tokPos, &tokPos);
+				newNormal.z = strtod(tokPos, NULL);
 
-				//If everything was successful, make sure we don't overwrite them next time!
-				if(*tokPos != '\0'){
-					++tempNormalsSize;
-				}
+				tempNormals[tempNormalsSize] = newNormal;
+				++tempNormalsSize;
 
 			//TextureGroup path.
 			}else if(memcmp(line, "usemtl ", 7) == 0){
@@ -217,14 +216,26 @@ return_t modelLoadOBJ(model *mdl, const char *mdlName){
 			//Faces.
 			}else if(memcmp(line, "f ", 2) == 0){
 				size_t a;
-				tokPos = strtok(&line[2], " ");
+				char *tokEnd;
+
+				tokPos = &line[2];
+				tokEnd = getToken(tokPos, ' ');
+
 				//If the vertex we want to add already exists, create an index to it!
 				//Otherwise, add it to the vector!
-				for(a = 0; a < 3 || tokPos != NULL; ++a){
+				for(a = 0; a < 3 && tokEnd != NULL; ++a){
+					size_t b;
+
 					vertex tempVertex;
+					size_t posIndex, uvIndex, normalIndex;
+					const vertex *checkVertex = tempVertices;
+
 					memset(&tempVertex, 0.f, sizeof(tempVertex));
 
-					size_t posIndex, uvIndex, normalIndex;
+
+					//Make sure we don't read past the end of the token.
+					*tokEnd = '\0';
+
 					//Read the indices!
 					posIndex = strtoul(tokPos, &tokPos, 10) - 1;
 					++tokPos;
@@ -232,12 +243,13 @@ return_t modelLoadOBJ(model *mdl, const char *mdlName){
 					++tokPos;
 					normalIndex = strtoul(tokPos, &tokPos, 10) - 1;
 
-					//Fill up tempVertex with the vertex information we've stored! If the index is invalid, store a 0!
+					//Fill up tempVertex with the vertex information
+					//we've stored! If the index is invalid, store a 0!
 					if(posIndex < tempPositionsSize){
 						tempVertex.pos = tempPositions[posIndex];
 					}
 					if(uvIndex < tempUVsSize){
-						memcpy(tempVertex.uvs, &tempUVs[uvIndex * 2], sizeof(tempVertex.uvs));
+						tempVertex.uv = tempUVs[uvIndex];
 					}
 					if(normalIndex < tempNormalsSize){
 						tempVertex.normal = tempNormals[normalIndex];
@@ -250,8 +262,6 @@ return_t modelLoadOBJ(model *mdl, const char *mdlName){
 					memset(&tempVertex.boneWeights[1], 0.f, (MODEL_VERTEX_MAX_WEIGHTS - 1) * sizeof(tempVertex.boneWeights[0]));
 
 
-					const vertex *checkVertex = tempVertices;
-					size_t b;
 					//Check if this vertex already exists!
 					for(b = 0; b < tempVerticesSize; ++b){
 						//Looks like it does, so we don't need to store it again!
@@ -285,9 +295,9 @@ return_t modelLoadOBJ(model *mdl, const char *mdlName){
 								/** REALLOC FAILED **/
 							}
 						}
-						//Get the index of the first vertex that this 'f' statement used.
+						//Get the index of the first vertex that this face used.
 						tempIndices[tempIndicesSize - 2] = tempIndices[tempIndicesSize - 2 - a];
-						//Now get the index of the last vertex that this 'f' statement used.
+						//Now get the index of the last vertex that this face used.
 						tempIndices[tempIndicesSize - 1] = tempIndices[tempIndicesSize - 3];
 
 					//Otherwise, we only need to store one index!
@@ -305,7 +315,9 @@ return_t modelLoadOBJ(model *mdl, const char *mdlName){
 
 
 					//Get the beginning of the next vertex's data!
-					tokPos = strtok(NULL, " ");
+					++tokEnd;
+					tokPos = tokEnd;
+					tokEnd = getToken(tokEnd, ' ');
 				}
 
 			//Syntax error.
@@ -351,7 +363,7 @@ return_t modelLoadOBJ(model *mdl, const char *mdlName){
 
 				//Tell OpenGL which data belongs to the vertex attributes!
 				glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vertex), (GLvoid *)offsetof(vertex, pos));
-				glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(vertex), (GLvoid *)offsetof(vertex, uvs));
+				glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(vertex), (GLvoid *)offsetof(vertex, uv));
 				glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(vertex), (GLvoid *)offsetof(vertex, normal));
 				glVertexAttribIPointer(3, MODEL_VERTEX_MAX_WEIGHTS, GL_UNSIGNED_INT, sizeof(vertex), (GLvoid *)offsetof(vertex, boneIDs));
 				glVertexAttribPointer(4, MODEL_VERTEX_MAX_WEIGHTS, GL_FLOAT, GL_FALSE, sizeof(vertex), (GLvoid *)offsetof(vertex, boneWeights));
@@ -524,7 +536,7 @@ return_t modelLoadSMD(model *mdl, const char *mdlName){
 						if(boneID == tempBonesSize){
 							//Get the bone's name.
 							size_t boneNameLength;
-							getDelimitedString(tokPos, line + lineLength - tokPos, "\" ", &tokPos, &boneNameLength);
+							tokPos = getMultiDelimitedString(tokPos, line + lineLength - tokPos, "\" ", &boneNameLength);
 							tempBone.name = malloc(boneNameLength + 1);
 							memcpy(tempBone.name, tokPos, boneNameLength);
 							tempBone.name[boneNameLength] = '\0';
@@ -575,10 +587,8 @@ return_t modelLoadSMD(model *mdl, const char *mdlName){
 
 						//Otherwise, we're setting the bone's state!
 						}else{
-							tokPos = line;
-
 							//Get this bone's ID.
-							size_t boneID = strtoul(tokPos, &tokPos, 10);
+							size_t boneID = strtoul(line, &tokPos, 10);
 							//Make sure a bone with this ID actually exists.
 							if(boneID < tempBonesSize){
 								bone *currentBone = &tempBones[boneID];
@@ -622,13 +632,11 @@ return_t modelLoadSMD(model *mdl, const char *mdlName){
 						if(data == 0){
 							//This indicates the texture that the face uses.
 						}else{
-							tokPos = line;
-
 							vertex tempVertex;
 							memset(&tempVertex, 0.f, sizeof(tempVertex));
 
 							//Read the vertex data from the line!
-							size_t parentBoneID = strtoul(tokPos, &tokPos, 10);
+							size_t parentBoneID = strtoul(line, &tokPos, 10);
 							//Make sure a bone with this ID actually exists.
 							if(parentBoneID < tempBonesSize){
 								tempVertex.pos.x = strtod(tokPos, &tokPos) * 0.05f;
@@ -637,8 +645,8 @@ return_t modelLoadSMD(model *mdl, const char *mdlName){
 								tempVertex.normal.x = strtod(tokPos, &tokPos);
 								tempVertex.normal.y = strtod(tokPos, &tokPos);
 								tempVertex.normal.z = strtod(tokPos, &tokPos);
-								tempVertex.uvs[0] = strtod(tokPos, &tokPos);
-								tempVertex.uvs[1] = -strtod(tokPos, &tokPos);
+								tempVertex.uv.x = strtod(tokPos, &tokPos);
+								tempVertex.uv.y = -strtod(tokPos, &tokPos);
 								size_t numLinks = strtoul(tokPos, &tokPos, 10);
 								//Make sure some links were specified.
 								if(numLinks > 0){
@@ -823,7 +831,7 @@ return_t modelLoadSMD(model *mdl, const char *mdlName){
 
 				//Tell OpenGL which data belongs to the vertex attributes!
 				glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vertex), (GLvoid *)offsetof(vertex, pos));
-				glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(vertex), (GLvoid *)offsetof(vertex, uvs));
+				glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(vertex), (GLvoid *)offsetof(vertex, uv));
 				glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(vertex), (GLvoid *)offsetof(vertex, normal));
 				glVertexAttribIPointer(3, MODEL_VERTEX_MAX_WEIGHTS, GL_UNSIGNED_INT, sizeof(vertex), (GLvoid *)offsetof(vertex, boneIDs));
 				glVertexAttribPointer(4, MODEL_VERTEX_MAX_WEIGHTS, GL_FLOAT, GL_FALSE, sizeof(vertex), (GLvoid *)offsetof(vertex, boneWeights));
@@ -875,6 +883,7 @@ return_t modelLoadSMD(model *mdl, const char *mdlName){
 		memoryManagerGlobalFree(tempIndices);
 		memoryManagerGlobalFree(tempBones);
 		//This one, however, is allowed to be NULL.
+		#warning "Remember to do something with this."
 		/*if(tempTexGroupName != NULL){
 			memoryManagerGlobalFree(tempTexGroupName);
 		}*/
@@ -896,85 +905,89 @@ return_t modelLoadSMD(model *mdl, const char *mdlName){
 }
 
 return_t modelSetupError(){
-	vec3 tempPositions[8];
-	tempPositions[0].x =  1.f; tempPositions[0].y = 2.f; tempPositions[0].z = -1.f;
-	tempPositions[1].x = -1.f; tempPositions[1].y = 0.f; tempPositions[1].z = -1.f;
-	tempPositions[2].x = -1.f; tempPositions[2].y = 2.f; tempPositions[2].z = -1.f;
-	tempPositions[3].x =  1.f; tempPositions[3].y = 2.f; tempPositions[3].z =  1.f;
-	tempPositions[4].x =  1.f; tempPositions[4].y = 0.f; tempPositions[4].z = -1.f;
-	tempPositions[5].x = -1.f; tempPositions[5].y = 2.f; tempPositions[5].z =  1.f;
-	tempPositions[6].x =  1.f; tempPositions[6].y = 0.f; tempPositions[6].z =  1.f;
-	tempPositions[7].x = -1.f; tempPositions[7].y = 0.f; tempPositions[7].z =  1.f;
+	vec3 tempPositions[8] = {
+		{.x =  1.f, .y = 2.f, .z = -1.f},
+		{.x = -1.f, .y = 0.f, .z = -1.f},
+		{.x = -1.f, .y = 2.f, .z = -1.f},
+		{.x =  1.f, .y = 2.f, .z =  1.f},
+		{.x =  1.f, .y = 0.f, .z = -1.f},
+		{.x = -1.f, .y = 2.f, .z =  1.f},
+		{.x =  1.f, .y = 0.f, .z =  1.f},
+		{.x = -1.f, .y = 0.f, .z =  1.f}
+	};
 
-	float tempUVs[20][2];
-	tempUVs[0][0]  = 0.f; tempUVs[0][1]  = 1.f;
-	tempUVs[1][0]  = 1.f; tempUVs[1][1]  = 0.f;
-	tempUVs[2][0]  = 1.f; tempUVs[2][1]  = 1.f;
-	tempUVs[3][0]  = 0.f; tempUVs[3][1]  = 1.f;
-	tempUVs[4][0]  = 1.f; tempUVs[4][1]  = 0.f;
-	tempUVs[5][0]  = 1.f; tempUVs[5][1]  = 1.f;
-	tempUVs[6][0]  = 0.f; tempUVs[6][1]  = 1.f;
-	tempUVs[7][0]  = 1.f; tempUVs[7][1]  = 0.f;
-	tempUVs[8][0]  = 1.f; tempUVs[8][1]  = 1.f;
-	tempUVs[9][0]  = 0.f; tempUVs[9][1]  = 1.f;
-	tempUVs[10][0] = 1.f; tempUVs[10][1] = 0.f;
-	tempUVs[11][0] = 1.f; tempUVs[11][1] = 1.f;
-	tempUVs[12][0] = 0.f; tempUVs[12][1] = 1.f;
-	tempUVs[13][0] = 0.f; tempUVs[13][1] = 0.f;
-	tempUVs[14][0] = 1.f; tempUVs[14][1] = 0.f;
-	tempUVs[15][0] = 0.f; tempUVs[15][1] = 0.f;
-	tempUVs[16][0] = 0.f; tempUVs[16][1] = 0.f;
-	tempUVs[17][0] = 0.f; tempUVs[17][1] = 0.f;
-	tempUVs[18][0] = 0.f; tempUVs[18][1] = 0.f;
-	tempUVs[19][0] = 1.f; tempUVs[19][1] = 1.f;
+	vec2 tempUVs[20] = {
+		{.x = 0.f, .y = 1.f},
+		{.x = 1.f, .y = 0.f},
+		{.x = 1.f, .y = 1.f},
+		{.x = 0.f, .y = 1.f},
+		{.x = 1.f, .y = 0.f},
+		{.x = 1.f, .y = 1.f},
+		{.x = 0.f, .y = 1.f},
+		{.x = 1.f, .y = 0.f},
+		{.x = 1.f, .y = 1.f},
+		{.x = 0.f, .y = 1.f},
+		{.x = 1.f, .y = 0.f},
+		{.x = 1.f, .y = 1.f},
+		{.x = 0.f, .y = 1.f},
+		{.x = 0.f, .y = 0.f},
+		{.x = 1.f, .y = 0.f},
+		{.x = 0.f, .y = 0.f},
+		{.x = 0.f, .y = 0.f},
+		{.x = 0.f, .y = 0.f},
+		{.x = 0.f, .y = 0.f},
+		{.x = 1.f, .y = 1.f}
+	};
 
-	vec3 tempNormals[8];
-	tempNormals[0].x =  0.5774f; tempNormals[0].y =  0.5774f; tempNormals[0].z = -0.5774f;
-	tempNormals[1].x = -0.5774f; tempNormals[1].y = -0.5774f; tempNormals[1].z = -0.5774f;
-	tempNormals[2].x = -0.5774f; tempNormals[2].y =  0.5774f; tempNormals[2].z = -0.5774f;
-	tempNormals[3].x =  0.5774f; tempNormals[3].y =  0.5774f; tempNormals[3].z =  0.5774f;
-	tempNormals[4].x =  0.5774f; tempNormals[4].y = -0.5774f; tempNormals[4].z = -0.5774f;
-	tempNormals[5].x = -0.5774f; tempNormals[5].y =  0.5774f; tempNormals[5].z =  0.5774f;
-	tempNormals[6].x =  0.5774f; tempNormals[6].y = -0.5774f; tempNormals[6].z =  0.5774f;
-	tempNormals[7].x = -0.5774f; tempNormals[7].y = -0.5774f; tempNormals[7].z =  0.5774f;
+	vec3 tempNormals[8] = {
+		{.x =  0.5774f, .y =  0.5774f, .z = -0.5774f},
+		{.x = -0.5774f, .y = -0.5774f, .z = -0.5774f},
+		{.x = -0.5774f, .y =  0.5774f, .z = -0.5774f},
+		{.x =  0.5774f, .y =  0.5774f, .z =  0.5774f},
+		{.x =  0.5774f, .y = -0.5774f, .z = -0.5774f},
+		{.x = -0.5774f, .y =  0.5774f, .z =  0.5774f},
+		{.x =  0.5774f, .y = -0.5774f, .z =  0.5774f},
+		{.x = -0.5774f, .y = -0.5774f, .z =  0.5774f}
+	};
 
-	size_t tempIndices[108];
-	tempIndices[0]   = 0; tempIndices[1]   =  0; tempIndices[2]   = 0;
-	tempIndices[3]   = 1; tempIndices[4]   =  1; tempIndices[5]   = 1;
-	tempIndices[6]   = 2; tempIndices[7]   =  2; tempIndices[8]   = 2;
-	tempIndices[9]   = 3; tempIndices[10]  =  3; tempIndices[11]  = 3;
-	tempIndices[12]  = 4; tempIndices[13]  =  4; tempIndices[14]  = 4;
-	tempIndices[15]  = 0; tempIndices[16]  =  5; tempIndices[17]  = 0;
-	tempIndices[18]  = 5; tempIndices[19]  =  6; tempIndices[20]  = 5;
-	tempIndices[21]  = 6; tempIndices[22]  =  7; tempIndices[23]  = 6;
-	tempIndices[24]  = 3; tempIndices[25]  =  8; tempIndices[26]  = 3;
-	tempIndices[27]  = 2; tempIndices[28]  =  9; tempIndices[29]  = 2;
-	tempIndices[30]  = 7; tempIndices[31]  = 10; tempIndices[32]  = 7;
-	tempIndices[33]  = 5; tempIndices[34]  = 11; tempIndices[35]  = 5;
-	tempIndices[36]  = 4; tempIndices[37]  =  4; tempIndices[38]  = 4;
-	tempIndices[39]  = 7; tempIndices[40]  = 12; tempIndices[41]  = 7;
-	tempIndices[42]  = 1; tempIndices[43]  = 13; tempIndices[44]  = 1;
-	tempIndices[45]  = 3; tempIndices[46]  = 14; tempIndices[47]  = 3;
-	tempIndices[48]  = 2; tempIndices[49]  =  9; tempIndices[50]  = 2;
-	tempIndices[51]  = 5; tempIndices[52]  = 15; tempIndices[53]  = 5;
-	tempIndices[54]  = 0; tempIndices[55]  =  0; tempIndices[56]  = 0;
-	tempIndices[57]  = 4; tempIndices[58]  = 16; tempIndices[59]  = 4;
-	tempIndices[60]  = 1; tempIndices[61]  =  1; tempIndices[62]  = 1;
-	tempIndices[63]  = 3; tempIndices[64]  =  3; tempIndices[65]  = 3;
-	tempIndices[66]  = 6; tempIndices[67]  = 17; tempIndices[68]  = 6;
-	tempIndices[69]  = 4; tempIndices[70]  =  4; tempIndices[71]  = 4;
-	tempIndices[72]  = 5; tempIndices[73]  =  6; tempIndices[74]  = 5;
-	tempIndices[75]  = 7; tempIndices[76]  = 18; tempIndices[77]  = 7;
-	tempIndices[78]  = 6; tempIndices[79]  =  7; tempIndices[80]  = 6;
-	tempIndices[81]  = 2; tempIndices[82]  =  9; tempIndices[83]  = 2;
-	tempIndices[84]  = 1; tempIndices[85]  = 13; tempIndices[86]  = 1;
-	tempIndices[87]  = 7; tempIndices[88]  = 10; tempIndices[89]  = 7;
-	tempIndices[90]  = 4; tempIndices[91]  =  4; tempIndices[92]  = 4;
-	tempIndices[93]  = 6; tempIndices[94]  = 19; tempIndices[95]  = 6;
-	tempIndices[96]  = 7; tempIndices[97]  = 12; tempIndices[98]  = 7;
-	tempIndices[99]  = 3; tempIndices[100] = 14; tempIndices[101] = 3;
-	tempIndices[102] = 0; tempIndices[103] =  5; tempIndices[104] = 0;
-	tempIndices[105] = 2; tempIndices[106] =  9; tempIndices[107] = 2;
+	size_t tempIndices[108] = {
+		0,  0, 0,
+		1,  1, 1,
+		2,  2, 2,
+		3,  3, 3,
+		4,  4, 4,
+		0,  5, 0,
+		5,  6, 5,
+		6,  7, 6,
+		3,  8, 3,
+		2,  9, 2,
+		7, 10, 7,
+		5, 11, 5,
+		4,  4, 4,
+		7, 12, 7,
+		1, 13, 1,
+		3, 14, 3,
+		2,  9, 2,
+		5, 15, 5,
+		0,  0, 0,
+		4, 16, 4,
+		1,  1, 1,
+		3,  3, 3,
+		6, 17, 6,
+		4,  4, 4,
+		5,  6, 5,
+		7, 18, 7,
+		6,  7, 6,
+		2,  9, 2,
+		1, 13, 1,
+		7, 10, 7,
+		4,  4, 4,
+		6, 19, 6,
+		7, 12, 7,
+		3, 14, 3,
+		0,  5, 0,
+		2,  9, 2
+	};
 
 
 	//Temporarily stores only unique vertices.
@@ -992,7 +1005,7 @@ return_t modelSetupError(){
 
 		//Fill up tempVertex with the vertex information we've stored!
 		tempVertex.pos = tempPositions[tempIndices[a]];
-		memcpy(tempVertex.uvs, &tempUVs[tempIndices[a + 1]][0], sizeof(tempVertex.uvs));
+		tempVertex.uv = tempUVs[tempIndices[a + 1]];
 		tempVertex.normal = tempNormals[tempIndices[a + 2]];
 
 		tempVertex.boneIDs[0] = 0;
@@ -1046,7 +1059,7 @@ return_t modelSetupError(){
 
 		//Tell OpenGL which data belongs to the vertex attributes!
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vertex), (GLvoid*)offsetof(vertex, pos));
-		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(vertex), (GLvoid*)offsetof(vertex, uvs));
+		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(vertex), (GLvoid*)offsetof(vertex, uv));
 		glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(vertex), (GLvoid*)offsetof(vertex, normal));
 	//Unbind the array object!
 	glBindVertexArray(0);

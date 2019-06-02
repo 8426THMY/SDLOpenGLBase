@@ -18,7 +18,7 @@ void transformStateAppend(const transformState *trans1, const transformState *tr
 	vec3 pos;
 
 	vec3MultiplyVec3Out(&trans1->scale, &trans2->pos, &pos);
-	quatApplyRotationFast(&trans1->rot, &pos, &pos);
+	quatRotateVec3Fast(&trans1->rot, &pos, &pos);
 	//Generate the new position!
 	vec3AddVec3Out(&trans1->pos, &pos, &out->pos);
 	//Generate the new orientation!
@@ -63,7 +63,7 @@ void transformStateInvert(const transformState *trans, transformState *out){
 	quatConjugateFastOut(&trans->rot, &out->rot);
 
 	//Invert its position with respect to the new rotation!
-	quatApplyRotationFast(&trans->rot, &trans->pos, &out->pos);
+	quatRotateVec3Fast(&trans->rot, &trans->pos, &out->pos);
 	vec3Negate(&out->pos);
 
 	//Invert its scale by storing the reciprocal of each value!
@@ -81,6 +81,6 @@ void transformStateToMat4(const transformState *trans, mat4 *out){
 //Transform a vec3 by scaling it, rotating it and finally translating it.
 void transformStateTransformVec3(const transformState *trans, const vec3 *v, vec3 *out){
 	vec3MultiplyVec3Out(&trans->scale, v, out);
-	quatApplyRotationFast(&trans->rot, out, out);
+	quatRotateVec3Fast(&trans->rot, out, out);
 	vec3AddVec3(out, &trans->pos);
 }

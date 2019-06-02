@@ -50,19 +50,125 @@ return_t physRigidBodyDefLoad(physicsRigidBodyDef *bodyDef, const char *bodyPath
 	//Load the rigid body!
 	FILE *bodyFile = fopen(bodyFullPath, "r");
 	if(bodyFile != NULL){
-		return_t success = 1;
+		return_t success = 0;
+
+
+		physicsCollider *curCollider = NULL;
+		float curMass;
+		vec3 curCentroid;
+		mat3 curInertia;
+		byte_t colliderLoaded;
+
+		char *tokPos;
 
 		char lineBuffer[1024];
 		char *line;
 		size_t lineLength;
 
-		while(success && (line = readLineFile(bodyFile, &lineBuffer[0], &lineLength)) != NULL){
-			//
-			if(memcmp(line, "rigidbody ", 10) == 0 && line[lineLength - 1] == '{'){
-				char *boneName;
-				size_t boneNameLength;
-				//Find the name of the bone to attach this rigid body to.
-				getDelimitedString(&line[10], lineLength - 10, "\" ", &boneName, &boneNameLength);
+		while((line = readLineFile(bodyFile, &lineBuffer[0], &lineLength)) != NULL){
+			if(curCollider != NULL){
+				//New collider.
+				if(memcmp(line, "c ", 2) == 0 && line[lineLength - 1] == '{'){
+					//Load the collider using its respective function.
+					colliderLoaded = colliderLoad(&curCollider->global, bodyFile, &curCentroid, &curInertia);
+
+				//Physics collider mass.
+				}else if(memcmp(line, "m ", 2) == 0){
+					curMass = strtod(&line[2], &tokPos);
+					//If the mass specified is invalid, use the default value.
+					if(&line[2] == tokPos){
+						curMass = PHYSCOLLIDER_DEFAULT_MASS;
+					}
+
+				//Physics collider density.
+				}else if(memcmp(line, "d ", 2) == 0){
+					curCollider->density = strtod(&line[2], &tokPos);
+					//If the density specified is invalid, use the default value.
+					if(&line[2] == tokPos){
+						curCollider->density = PHYSCOLLIDER_DEFAULT_DENSITY;
+					}
+
+				//Physics collider friction.
+				}else if(memcmp(line, "f ", 2) == 0){
+					curCollider->friction = strtod(&line[2], &tokPos);
+					//If the friction specified is invalid, use the default value.
+					if(&line[2] == tokPos){
+						curCollider->friction = PHYSCOLLIDER_DEFAULT_FRICTION;
+					}
+
+				//Physics collider restitution.
+				}else if(memcmp(line, "r ", 2) == 0){
+					curCollider->restitution = strtod(&line[2], &tokPos);
+					//If the restitution specified is invalid, use the default value.
+					if(&line[2] == tokPos){
+						curCollider->restitution = PHYSCOLLIDER_DEFAULT_RESTITUTION;
+					}
+
+				//Physics collider end.
+				}else if(line[0] == '}'){
+					//Add the new physics collider to our rigid body!
+					if(colliderLoaded){
+						physRigidBodyDefAddCollider(bodyDef, curMass, &curCentroid, &curInertia);
+						success = 1;
+
+					//If there was an error, delete the physics collider.
+					//This will also delete the collider we failed to
+					//load, and will also free any memory it allocated.
+					}else{
+						physColliderDelete(curCollider);
+					}
+					curCollider = NULL;
+				}
+			}else{
+				//Bone name.
+				if(memcmp(line, "b ", 2) == 0){
+					char *boneName;
+					size_t boneNameLength;
+					//Find the name of the bone to attach this rigid body to!
+					boneName = getMultiDelimitedString(&line[2], lineLength - 2, "\" ", &boneNameLength);
+
+					/** What do we do with the bone's name? **/
+
+				//New physics collider.
+				}else if(memcmp(line, "p ", 2) == 0 && line[lineLength - 1] == '{'){
+					colliderType_t currentType = strtoul(&line[2], &tokPos, 10);
+
+					//Make sure a valid number was entered.
+					if(tokPos != &line[2]){
+						//Check which sort of collider we're loading.
+						#warning "This should be 'currentType < COLLIDER_NUM_TYPES'."
+						#warning "Please remember to remove the 'currentType=0' statement on the next line."
+						if(currentType == 3){currentType=0;
+							modulePhysicsColliderPrepend(&bodyDef->colliders);
+							curCollider = bodyDef->colliders;
+							curMass = PHYSCOLLIDER_DEFAULT_MASS;
+							physColliderInit(curCollider, currentType, bodyDef);
+
+							//When we actually load this collider successfully, we can
+							//set this value. This exists to make sure we don't add a
+							//collider to a rigid body without loading it properly.
+							colliderLoaded = 0;
+
+						//If an invalid type was specified, ignore the collider.
+						}else{
+							printf(
+								"Error loading rigid body!\n"
+								"Path: %s\n"
+								"Line: %s\n"
+								"Error: Ignoring invalid collider of type '%u'.\n",
+								bodyFullPath, line, currentType
+							);
+						}
+					}else{
+						printf(
+							"Error loading rigid body!\n"
+							"Path: %s\n"
+							"Line: %s\n"
+							"Error: Ignoring invalid collider of non-numerical type.",
+							bodyFullPath, line
+						);
+					}
+				}
 			}
 		}
 
@@ -70,9 +176,10 @@ return_t physRigidBodyDefLoad(physicsRigidBodyDef *bodyDef, const char *bodyPath
 		memoryManagerGlobalFree(bodyFullPath);
 
 
-		//If there wasn't an error, keep the rigid body!
+		//If we loaded at least one
+		//collider, keep the rigid body!
 		if(success){
-			//
+			#warning "Do something with the bone name, perhaps?"
 
 		//Otherwise, delete the rigid body.
 		}else{
@@ -377,58 +484,124 @@ void physRigidBodyIntegratePositionSymplecticEuler(physicsRigidBody *body, const
 
 
 //Add a translational and rotational impulse to a rigid body.
-void physRigidBodyApplyImpulse(physicsRigidBody *body, const vec3 *r, vec3 J){
+void physRigidBodyApplyPositionalImpulse(physicsRigidBody *body, vec3 J){
 	//Linear velocity.
 	vec3MultiplyS(&J, body->mass);
 	vec3AddVec3(&body->linearVelocity, &J);
+}
 
+//Subtract a translational impulse from a rigid body.
+void physRigidBodyApplyPositionalImpulseInverse(physicsRigidBody *body, vec3 J){
+	//Linear velocity.
+	vec3MultiplyS(&J, body->mass);
+	vec3SubtractVec3From(&body->linearVelocity, &J);
+}
+
+//Add a rotational impulse to a rigid body.
+void physRigidBodyApplyAngularImpulse(physicsRigidBody *body, const vec3 *r, vec3 J){
 	//Angular velocity.
 	vec3CrossVec3By(r, &J);
 	mat3MultiplyByVec3(&body->invInertiaGlobal, &J);
 	vec3AddVec3(&body->angularVelocity, &J);
 }
 
-//Subtract a translational and rotational impulse from a rigid body.
-void physRigidBodyApplyImpulseInverse(physicsRigidBody *body, const vec3 *r, vec3 J){
-	//Linear velocity.
-	vec3MultiplyS(&J, body->mass);
-	vec3SubtractVec3From(&body->linearVelocity, &J);
-
+//Subtract a rotational impulse from a rigid body.
+void physRigidBodyApplyAngularImpulseInverse(physicsRigidBody *body, const vec3 *r, vec3 J){
 	//Angular velocity.
 	vec3CrossVec3By(r, &J);
 	mat3MultiplyByVec3(&body->invInertiaGlobal, &J);
 	vec3SubtractVec3From(&body->angularVelocity, &J);
 }
 
-#ifdef PHYSCOLLIDER_USE_POSITIONAL_CORRECTION
 //Add a translational and rotational impulse to a rigid body.
-void physRigidBodyApplyPositionalImpulse(physicsRigidBody *body, const vec3 *r, vec3 J){
+void physRigidBodyApplyImpulse(physicsRigidBody *body, const vec3 *r, const vec3 *J){
+	vec3 impulse;
+
+	//Linear velocity.
+	vec3MultiplySOut(J, body->mass, &impulse);
+	vec3AddVec3(&body->linearVelocity, &impulse);
+
+	//Angular velocity.
+	vec3CrossVec3Out(r, J, &impulse);
+	mat3MultiplyByVec3(&body->invInertiaGlobal, &impulse);
+	vec3AddVec3(&body->angularVelocity, &impulse);
+}
+
+//Subtract a translational and rotational impulse from a rigid body.
+void physRigidBodyApplyImpulseInverse(physicsRigidBody *body, const vec3 *r, const vec3 *J){
+	vec3 impulse;
+
+	//Linear velocity.
+	vec3MultiplySOut(J, body->mass, &impulse);
+	vec3SubtractVec3From(&body->linearVelocity, &impulse);
+
+	//Angular velocity.
+	vec3CrossVec3Out(r, J, &impulse);
+	mat3MultiplyByVec3(&body->invInertiaGlobal, &impulse);
+	vec3SubtractVec3From(&body->angularVelocity, &impulse);
+}
+
+//Add a translational and rotational (plus some bias) impulse to a rigid body.
+void physRigidBodyApplyImpulseAngularBias(physicsRigidBody *body, const vec3 *r, const vec3 *J, const vec3 *b){
+	vec3 impulse;
+
+	//Linear velocity.
+	vec3MultiplySOut(J, body->mass, &impulse);
+	vec3AddVec3(&body->linearVelocity, &impulse);
+
+	//Angular velocity.
+	vec3CrossVec3Out(r, J, &impulse);
+	mat3MultiplyByVec3(&body->invInertiaGlobal, &impulse);
+	vec3AddVec3(&impulse, b);
+	vec3AddVec3(&body->angularVelocity, &impulse);
+}
+
+//Subtract a translational and rotational (plus some bias) impulse from a rigid body.
+void physRigidBodyApplyImpulseAngularBiasInverse(physicsRigidBody *body, const vec3 *r, const vec3 *J, const vec3 *b){
+	vec3 impulse;
+
+	//Linear velocity.
+	vec3MultiplySOut(J, body->mass, &impulse);
+	vec3SubtractVec3From(&body->linearVelocity, &impulse);
+
+	//Angular velocity.
+	vec3CrossVec3Out(r, J, &impulse);
+	mat3MultiplyByVec3(&body->invInertiaGlobal, &impulse);
+	vec3AddVec3(&impulse, b);
+	vec3SubtractVec3From(&body->angularVelocity, &impulse);
+}
+
+#ifdef PHYSCOLLIDER_USE_POSITIONAL_CORRECTION
+//Add a translational and rotational impulse to a rigid body's position.
+void physRigidBodyApplyImpulsePosition(physicsRigidBody *body, const vec3 *r, const vec3 *J){
+	vec3 impulse;
 	quat tempRot;
 
 	//Position.
-	vec3MultiplyS(&J, body->mass);
-	vec3AddVec3(&body->transform.pos, &J);
+	vec3MultiplySOut(J, body->mass, &impulse);
+	vec3AddVec3(&body->transform.pos, &impulse);
 
 	//Orientation.
-	vec3CrossVec3By(r, &J);
-	mat3MultiplyByVec3(&body->invInertiaGlobal, &J);
-	quatDifferentiateOut(&body->transform.rot, &J, &tempRot);
+	vec3CrossVec3Out(r, J, &impulse);
+	mat3MultiplyByVec3(&body->invInertiaGlobal, &impulse);
+	quatDifferentiateOut(&body->transform.rot, &impulse, &tempRot);
 	quatAddVec4(&body->transform.rot, &tempRot);
 	quatNormalizeQuat(&body->transform.rot);
 }
 
-//Subtract a translational and rotational impulse from a rigid body.
-void physRigidBodyApplyPositionalImpulseInverse(physicsRigidBody *body, const vec3 *r, vec3 J){
+//Subtract a translational and rotational impulse from a rigid body's position.
+void physRigidBodyApplyImpulsePositionInverse(physicsRigidBody *body, const vec3 *r, const vec3 *J){
+	vec3 impulse;
 	quat tempRot;
 
 	//Position.
-	vec3MultiplyS(&J, body->mass);
-	vec3SubtractVec3From(&body->transform.pos, &J);
+	vec3MultiplySOut(J, body->mass, &impulse);
+	vec3SubtractVec3From(&body->transform.pos, &impulse);
 
 	//Orientation.
-	vec3CrossVec3By(r, &J);
-	mat3MultiplyByVec3(&body->invInertiaGlobal, &J);
-	quatDifferentiate(&body->transform.rot, &J);
+	vec3CrossVec3Out(r, J, &impulse);
+	mat3MultiplyByVec3(&body->invInertiaGlobal, &impulse);
+	quatDifferentiateOut(&body->transform.rot, &impulse, &tempRot);
 	quatSubtractVec4From(&body->transform.rot, &tempRot);
 	quatNormalizeQuat(&body->transform.rot);
 }
@@ -446,6 +619,51 @@ void physRigidBodyUpdate(physicsRigidBody *body, const float dt){
 
 	/** update centroid **/
 	/** update inverse inertia tensor **/
+	/*
+	** Note: Scaling the inverse inertia tensor may seem
+	** difficult at first, but there is a solution. When
+	** we're calculating a body's local inertia tensor,
+	** we only need six unique numbers. These are:
+	**
+	** I[0] += yy + zz;
+	** I[1] += xx + zz;
+	** I[2] += xx + yy;
+	** I[3] -= x * y;
+	** I[4] -= x * z;
+	** I[5] -= y * z;
+	**
+	** Scaling I[3], I[4] and I[5] is trivial - we simply
+	** multiply each component by the product of the axes
+	** scales. The other three, however, present a problem.
+	**
+	**
+	** Luckily, it's not impossible. We can actually
+	** calculate the values of xx, yy and zz summed for
+	** every vertex. Note that once we calculate one,
+	** we can calculate the others using a subtraction:
+	**
+	** xx = 0.5f * (-I[0] + I[1] + I[2]);
+	**    = I[1] - zz;
+	**    = I[2] - yy;
+	** yy = 0.5f * ( I[0] - I[1] + I[2]);
+	**    = I[0] - zz;
+	**    = I[2] - xx;
+	** zz = 0.5f * ( I[0] + I[1] - I[2]);
+	**    = I[0] - yy;
+	**    = I[1] - xx;
+	**
+	** With these values, we can easily scale I[0], I[1]
+	** and I[2]. We need to multiply by the square of the
+	** scale, as these values represent squares.
+	**
+	** I[0] = yy * sy^2 + zz * sz^2;
+	** I[1] = xx * sx^2 + zz * sz^2;
+	** I[2] = xx * sx^2 + yy * sy^2;
+	**
+	**
+	** The only problem is that we can only apply this
+	** to non-inverted inertia tensors.
+	*/
 
 	//Update the body's velocity.
 	physRigidBodyIntegrateVelocitySymplecticEuler(body, dt);
@@ -467,5 +685,5 @@ void physRigidBodyDefDelete(physicsRigidBodyDef *bodyDef){
 }
 
 void physRigidBodyDelete(physicsRigidBody *body){
-	modulePhysicsColliderFreeArray(&body->colliders);
+	modulePhysicsColliderFreeInstanceArray(&body->colliders);
 }

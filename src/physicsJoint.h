@@ -5,6 +5,8 @@
 #include <stdint.h>
 
 
+#include "settingsPhysics.h"
+
 #include "physicsJointDistance.h"
 #include "physicsJointFixed.h"
 #include "physicsJointRevolute.h"
@@ -13,6 +15,13 @@
 
 
 #define PHYSJOINT_NUM_TYPES 5
+
+#ifndef PHYSCONSTRAINT_LINEAR_SLOP
+	#define PHYSCONSTRAINT_LINEAR_SLOP 0.05f
+#endif
+#ifndef PHYSCONSTRAINT_MAX_LINEAR_CORRECTION
+	#define PHYSCONSTRAINT_MAX_LINEAR_CORRECTION 0.2f
+#endif
 
 
 typedef uint_least8_t physJointType_t;
@@ -58,15 +67,18 @@ typedef struct physicsJoint {
 
 typedef struct physicsRigidBody physicsRigidBody;
 
-void physJointPresolve(physicsJoint *joint, const physicsRigidBody *bodyA, const physicsRigidBody *bodyB, const float dt);
+void physJointPresolve(physicsJoint *joint, physicsRigidBody *bodyA, physicsRigidBody *bodyB, const float dt);
 void physJointSolveVelocity(physicsJoint *joint, physicsRigidBody *bodyA, physicsRigidBody *bodyB);
+void physJointSolvePosition(physicsJoint *joint, physicsRigidBody *bodyA, physicsRigidBody *bodyB);
 
 
 extern void (*physJointPresolveTable[PHYSJOINT_NUM_TYPES])(
-	void *joint, const physicsRigidBody *bodyA, const physicsRigidBody *bodyB, const float dt
+	void *joint, physicsRigidBody *bodyA, physicsRigidBody *bodyB, const float dt
 );
-
 extern void (*physJointSolveVelocityTable[PHYSJOINT_NUM_TYPES])(
+	void *joint, physicsRigidBody *bodyA, physicsRigidBody *bodyB
+);
+extern void (*physJointSolvePositionTable[PHYSJOINT_NUM_TYPES])(
 	void *joint, physicsRigidBody *bodyA, physicsRigidBody *bodyB
 );
 

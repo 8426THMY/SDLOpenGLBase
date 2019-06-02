@@ -24,6 +24,7 @@ float maxNum(const float x, const float y);
 float clampNum(const float min, const float x, const float max);
 
 float fastInvSqrt(const float x);
+float fastInvSqrtAccurate(const float x);
 
 void pointBarycentric(const vec3 *a, const vec3 *b, const vec3 *c, const vec3 *p, vec3 *out);
 

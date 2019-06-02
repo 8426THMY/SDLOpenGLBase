@@ -14,6 +14,10 @@ Integrate positions.
 Solve positions constraints.
 Update centroids and inertia tensors. (?)
 **/
+#warning "If collisions are acting funny, it might be because quatRotateVec3Fast is derping. For some reason, it seems to be inaccurate in very rare cases."
+#warning "Not sure if we get 1/dt in our contact functions, either."
+
+#warning "Do we extend the total memory when we run out? Maybe make it so this functionality can be toggled."
 
 
 int main(int argc, char **argv){
@@ -21,134 +25,10 @@ int main(int argc, char **argv){
 
 	//If we're able to initialize the libraries, setup the program and start the loop!
 	if(programInit(&prg)){
-		//programLoop(&prg);
+		programLoop(&prg);
 	}
 
-	//programClose(&prg);
-
-
-	physicsRigidBodyDef *bodyDef = modulePhysicsBodyDefAlloc();
-	physRigidBodyDefInit(bodyDef);
-
-
-	char *bodyFullPath = ".\\resource\\physics\\cube.tdp";
-
-	//Load the rigid body!
-	FILE *bodyFile = fopen(bodyFullPath, "r");
-	if(bodyFile != NULL){
-		return_t success = 1;
-
-
-		physicsCollider *curCollider = NULL;
-
-		char *tokPos;
-
-		char lineBuffer[1024];
-		char *line;
-		size_t lineLength;
-
-		while(success && (line = readLineFile(bodyFile, &lineBuffer[0], &lineLength)) != NULL){
-			if(curCollider != NULL){
-				//New collider.
-				if(memcmp(line, "c ", 2) == 0 && line[lineLength - 1] == '{'){
-					//Load the collider using its respective function.
-					if(!colliderLoad(&curCollider->global, bodyFile)){
-						//If there was an error, delete the collider
-						//and the associated physics collider.
-						#warning "Sanity checks? We should check if a collider was loaded, somehow."
-						//
-						curCollider = NULL;
-					}
-
-				//Physics collider mass.
-				}else if(memcmp(line, "m ", 2) == 0){
-					//
-
-				//Physics collider density.
-				}else if(memcmp(line, "d ", 2) == 0){
-					curCollider->density = strtod(&line[2], NULL);
-
-				//Physics collider friction.
-				}else if(memcmp(line, "f ", 2) == 0){
-					curCollider->friction = strtod(&line[2], NULL);
-
-				//Physics collider restitution.
-				}else if(memcmp(line, "r ", 2) == 0){
-					curCollider->restitution = strtod(&line[2], NULL);
-
-				//Physics collider end.
-				}else if(line[0] == '}'){
-					#warning "Sanity checks? We should check if a collider was loaded, somehow."
-					//
-					curCollider = NULL;
-				}
-			}else{
-				//Bone name.
-				if(memcmp(line, "b ", 2) == 0){
-					char *boneName;
-					size_t boneNameLength;
-					//Find the name of the bone to attach this rigid body to!
-					getDelimitedString(&line[2], lineLength - 2, "\" ", &boneName, &boneNameLength);
-
-					/** What do we do with the bone's name? **/
-
-				//New physics collider.
-				}else if(memcmp(line, "p ", 2) == 0 && line[lineLength - 1] == '{'){
-					colliderType_t currentType = strtoul(&line[2], &tokPos, 10);
-
-					//Make sure a valid number was entered.
-					if(tokPos != &line[2]){
-						//Check which sort of collider we're loading.
-						#warning "This should be 'currentType < COLLIDER_NUM_TYPES'."
-						if(currentType == 3){currentType=0;
-							modulePhysicsColliderPrepend(&bodyDef->colliders);
-							curCollider = bodyDef->colliders;
-							physColliderInit(curCollider, currentType, bodyDef);
-
-						//If an invalid type was specified, ignore the collider.
-						}else{
-							printf(
-								"Error loading rigid body!\n"
-								"Path: %s\n"
-								"Line: %s\n"
-								"Error: Ignoring invalid collider of type '%u'.\n",
-								bodyFullPath, line, currentType
-							);
-						}
-					}else{
-						printf(
-							"Error loading rigid body!\n"
-							"Path: %s\n"
-							"Line: %s\n"
-							"Error: Ignoring invalid collider of non-numerical type.",
-							bodyFullPath, line
-						);
-					}
-				}
-			}
-		}
-
-		fclose(bodyFile);
-
-
-		//If there wasn't an error, keep the rigid body!
-		if(success){
-			//
-
-		//Otherwise, delete it.
-		}else{
-			physRigidBodyDefDelete(bodyDef);
-		}
-
-
-		return(success);
-	}else{
-		printf(
-			"Unable to open rigid body file!\n"
-			"Path: %s\n",
-			bodyFullPath
-		);
-	}
+	programClose(&prg);
 
 
 	return(0);

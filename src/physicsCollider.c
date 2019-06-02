@@ -29,9 +29,9 @@ void physColliderInit(physicsCollider *pc, const colliderType_t type, void *owne
 	colliderInit(&pc->global, type);
 	pc->local = NULL;
 
-	pc->density = 0.f;
-	pc->friction = 0.f;
-	pc->restitution = 0.f;
+	pc->density = PHYSCOLLIDER_DEFAULT_DENSITY;
+	pc->friction = PHYSCOLLIDER_DEFAULT_FRICTION;
+	pc->restitution = PHYSCOLLIDER_DEFAULT_RESTITUTION;
 
 	pc->owner = owner;
 	pc->node = NULL;
@@ -236,7 +236,7 @@ void physColliderClearPairs(physicsCollider *collider){
 /*
 ** Delete a physics collider instance and
 ** any of its contact or separation pairs.
-**/
+*/
 void physColliderDeleteInstance(physicsCollider *collider){
 	colliderDeleteInstance(&collider->global);
 	physColliderClearPairs(collider);

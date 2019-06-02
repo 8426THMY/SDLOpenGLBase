@@ -78,11 +78,17 @@ void physRigidBodyDefGenerateProperties(physicsRigidBodyDef *bodyDef, const floa
 void physRigidBodyIntegrateVelocitySymplecticEuler(physicsRigidBody *body, const float time);
 void physRigidBodyIntegratePositionSymplecticEuler(physicsRigidBody *body, const float time);
 
-void physRigidBodyApplyImpulse(physicsRigidBody *body, const vec3 *r, vec3 J);
-void physRigidBodyApplyImpulseInverse(physicsRigidBody *body, const vec3 *r, vec3 J);
+void physRigidBodyApplyPositionalImpulse(physicsRigidBody *body, vec3 J);
+void physRigidBodyApplyPositionalImpulseInverse(physicsRigidBody *body, vec3 J);
+void physRigidBodyApplyAngularImpulse(physicsRigidBody *body, const vec3 *r, vec3 J);
+void physRigidBodyApplyAngularImpulseInverse(physicsRigidBody *body, const vec3 *r, vec3 J);
+void physRigidBodyApplyImpulse(physicsRigidBody *body, const vec3 *r, const vec3 *J);
+void physRigidBodyApplyImpulseInverse(physicsRigidBody *body, const vec3 *r, const vec3 *J);
+void physRigidBodyApplyImpulseAngularBias(physicsRigidBody *body, const vec3 *r, const vec3 *J, const vec3 *b);
+void physRigidBodyApplyImpulseAngularBiasInverse(physicsRigidBody *body, const vec3 *r, const vec3 *J, const vec3 *b);
 #ifdef PHYSCOLLIDER_USE_POSITIONAL_CORRECTION
-void physRigidBodyApplyPositionalImpulse(physicsRigidBody *body, const vec3 *r, vec3 J);
-void physRigidBodyApplyPositionalImpulseInverse(physicsRigidBody *body, const vec3 *r, vec3 J);
+void physRigidBodyApplyImpulsePosition(physicsRigidBody *body, const vec3 *r, const vec3 *J);
+void physRigidBodyApplyImpulsePositionInverse(physicsRigidBody *body, const vec3 *r, const vec3 *J);
 #endif
 
 void physRigidBodyUpdate(physicsRigidBody *body, const float dt);

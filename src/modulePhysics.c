@@ -56,24 +56,24 @@ return_t modulePhysicsSetup(){
 }
 
 void modulePhysicsCleanup(){
-	//aabbNode
-	modulePhysicsAABBNodeClear();
-	memoryManagerGlobalFree(memPoolRegionStart(aabbNodeManager.region));
-	//physicsContactPair
-	modulePhysicsContactPairClear();
-	memoryManagerGlobalFree(memPoolRegionStart(physContactPairManager.region));
-	//physicsSeparationPair
-	modulePhysicsSeparationPairClear();
-	memoryManagerGlobalFree(memPoolRegionStart(physSeparationPairManager.region));
-	//physicsCollider
-	modulePhysicsColliderClear();
-	memoryManagerGlobalFree(memSingleListRegionStart(physColliderManager.region));
-	//physicsRigidBodyDef
-	modulePhysicsBodyDefClear();
-	memoryManagerGlobalFree(memSingleListRegionStart(physRigidBodyDefManager.region));
 	//physicsRigidBody
 	modulePhysicsBodyClear();
 	memoryManagerGlobalFree(memSingleListRegionStart(physRigidBodyManager.region));
+	//physicsRigidBodyDef
+	modulePhysicsBodyDefClear();
+	memoryManagerGlobalFree(memSingleListRegionStart(physRigidBodyDefManager.region));
+	//physicsCollider
+	modulePhysicsColliderClear();
+	memoryManagerGlobalFree(memSingleListRegionStart(physColliderManager.region));
+	//physicsSeparationPair
+	modulePhysicsSeparationPairClear();
+	memoryManagerGlobalFree(memPoolRegionStart(physSeparationPairManager.region));
+	//physicsContactPair
+	modulePhysicsContactPairClear();
+	memoryManagerGlobalFree(memPoolRegionStart(physContactPairManager.region));
+	//aabbNode
+	modulePhysicsAABBNodeClear();
+	memoryManagerGlobalFree(memPoolRegionStart(aabbNodeManager.region));
 }
 
 
@@ -161,10 +161,25 @@ physicsCollider *modulePhysicsColliderInsertAfter(physicsCollider **start, physi
 	return(memSingleListInsertAfter(&physColliderManager, (void **)start, (void *)data));
 }
 
+//Free a collider instance that has been allocated.
+void modulePhysicsColliderFreeInstance(physicsCollider **start, physicsCollider *collider, physicsCollider *prevData){
+	physColliderDeleteInstance(collider);
+	memSingleListFree(&physColliderManager, (void **)start, (void *)collider, (void *)prevData);
+}
+
 //Free a collider that has been allocated.
 void modulePhysicsColliderFree(physicsCollider **start, physicsCollider *collider, physicsCollider *prevData){
 	physColliderDelete(collider);
 	memSingleListFree(&physColliderManager, (void **)start, (void *)collider, (void *)prevData);
+}
+
+//Free an entire collider instance array.
+void modulePhysicsColliderFreeInstanceArray(physicsCollider **start){
+	physicsCollider *collider = *start;
+	while(collider != NULL){
+		modulePhysicsColliderFreeInstance(start, collider, NULL);
+		collider = *start;
+	}
 }
 
 //Free an entire collider array.
@@ -180,7 +195,7 @@ void modulePhysicsColliderFreeArray(physicsCollider **start){
 void modulePhysicsColliderClear(){
 	MEMSINGLELIST_LOOP_BEGIN(physColliderManager, i, physicsCollider *)
 		modulePhysicsColliderFree(NULL, i, NULL);
-	MEMPOOL_LOOP_END(physColliderManager, i, physicsCollider *, return)
+	MEMSINGLELIST_LOOP_END(physColliderManager, i, physicsCollider *, return)
 }
 
 
@@ -228,7 +243,7 @@ void modulePhysicsBodyDefFreeArray(physicsRigidBodyDef **start){
 void modulePhysicsBodyDefClear(){
 	MEMSINGLELIST_LOOP_BEGIN(physRigidBodyDefManager, i, physicsRigidBodyDef *)
 		modulePhysicsBodyDefFree(NULL, i, NULL);
-	MEMPOOL_LOOP_END(physRigidBodyDefManager, i, physicsRigidBodyDef *, return)
+	MEMSINGLELIST_LOOP_END(physRigidBodyDefManager, i, physicsRigidBodyDef *, return)
 }
 
 
@@ -276,5 +291,5 @@ void modulePhysicsBodyFreeArray(physicsRigidBody **start){
 void modulePhysicsBodyClear(){
 	MEMSINGLELIST_LOOP_BEGIN(physRigidBodyManager, i, physicsRigidBody *)
 		modulePhysicsBodyFree(NULL, i, NULL);
-	MEMPOOL_LOOP_END(physRigidBodyManager, i, physicsRigidBody *, return)
+	MEMSINGLELIST_LOOP_END(physRigidBodyManager, i, physicsRigidBody *, return)
 }

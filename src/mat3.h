@@ -5,8 +5,6 @@
 #include "utilTypes.h"
 
 #include "vec3.h"
-#include "vec4.h"
-#include "quat.h"
 
 
 //Note: Our matrices are column-major, just the way OpenGL likes them.
@@ -33,7 +31,7 @@ mat3 mat3MultiplyByMat3R(const mat3 m1, const mat3 m2);
 
 void mat3Transpose(mat3 *m);
 void mat3TransposeOut(const mat3 m, mat3 *out);
-mat3 mat3TransposeR(mat3 m);
+mat3 mat3TransposeR(const mat3 m);
 void mat3Invert(mat3 *m);
 void mat3InvertOut(const mat3 m, mat3 *out);
 mat3 mat3InvertR(const mat3 m);

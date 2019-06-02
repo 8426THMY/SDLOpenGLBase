@@ -129,13 +129,13 @@ void interpTransSetNextPosZ(interpTransform *iTrans, const float z){
 
 void interpTransAddRotEulerRad(interpTransform *iTrans, const float x, const float y, const float z, const float time){
 	quat q = iTrans->rot.next;
-	quatRotateRad(&q, x, y, z);
+	quatRotateByRad(&q, x, y, z);
 	quatSlerpFast(&iTrans->rot.next, &q, time, &iTrans->rot.next);
 }
 
 void interpTransAddRotEulerDeg(interpTransform *iTrans, const float x, const float y, const float z, const float time){
 	quat q = iTrans->rot.next;
-	quatRotateDeg(&q, x, y, z);
+	quatRotateByDeg(&q, x, y, z);
 	quatSlerpFast(&iTrans->rot.next, &q, time, &iTrans->rot.next);
 }
 

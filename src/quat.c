@@ -688,7 +688,7 @@ quat quatMultiplyByQuatR(const quat q1, const quat q2){
 
 
 //Apply a quaternion rotation to a vec3!
-void quatApplyRotation(const quat *q, const vec3 *v, vec3 *out){
+void quatRotateVec3(const quat *q, const vec3 *v, vec3 *out){
 	float qvDot = vec3DotVec3Float(v, q->x, q->y, q->z);
 	const float qNorm = q->w * q->w - vec3Norm(q->x, q->y, q->z);
 	vec3 qvCross;
@@ -703,21 +703,21 @@ void quatApplyRotation(const quat *q, const vec3 *v, vec3 *out){
 }
 
 //Apply a quaternion rotation to a vec3!
-quat quatApplyRotationR(quat q, const vec3 v){
+vec3 quatRotateVec3R(const quat q, vec3 v){
 	float qvDot = vec3DotVec3FloatR(v, q.x, q.y, q.z);
 	const float qNorm = q.w * q.w - vec3Norm(q.x, q.y, q.z);
 	const vec3 qvCross = vec3MultiplySR(vec3CrossFloatVec3R(q.x, q.y, q.z, v), q.w + q.w);
 	qvDot += qvDot;
 
-	q.x = qvDot * q.x + qNorm * v.x + qvCross.x;
-	q.y = qvDot * q.y + qNorm * v.y + qvCross.y;
-	q.z = qvDot * q.z + qNorm * v.z + qvCross.z;
+	v.x = qvDot * q.x + qNorm * v.x + qvCross.x;
+	v.y = qvDot * q.y + qNorm * v.y + qvCross.y;
+	v.z = qvDot * q.z + qNorm * v.z + qvCross.z;
 
-	return(q);
+	return(v);
 }
 
 //Undo a quaternion rotation on a vec3!
-void quatApplyInverseRotation(const quat *q, const vec3 *v, vec3 *out){
+void quatRotateVec3Inverse(const quat *q, const vec3 *v, vec3 *out){
 	float qvDot = vec3DotVec3Float(v, q->x, q->y, q->z);
 	const float qNorm = q->w * q->w - vec3Norm(q->x, q->y, q->z);
 	vec3 qvCross;
@@ -732,25 +732,25 @@ void quatApplyInverseRotation(const quat *q, const vec3 *v, vec3 *out){
 }
 
 //Undo a quaternion rotation on a vec3!
-quat quatApplyInverseRotationR(quat q, const vec3 v){
+vec3 quatRotateVec3InverseR(const quat q, vec3 v){
 	float qvDot = vec3DotVec3FloatR(v, q.x, q.y, q.z);
 	const float qNorm = q.w * q.w - vec3Norm(q.x, q.y, q.z);
 	const vec3 qvCross = vec3MultiplySR(vec3CrossFloatVec3R(q.x, q.y, q.z, v), -q.w - q.w);
 	qvDot += qvDot;
 
-	q.x = qvDot * q.x + qNorm * v.x + qvCross.x;
-	q.y = qvDot * q.y + qNorm * v.y + qvCross.y;
-	q.z = qvDot * q.z + qNorm * v.z + qvCross.z;
+	v.x = qvDot * q.x + qNorm * v.x + qvCross.x;
+	v.y = qvDot * q.y + qNorm * v.y + qvCross.y;
+	v.z = qvDot * q.z + qNorm * v.z + qvCross.z;
 
-	return(q);
+	return(v);
 }
 
 /*
 ** Apply a quaternion rotation to a vec3!
 **
-** Note: This should be a straight upgrade to the former method, but I'm not sure.
+** Note: This method is significantly faster, but it is not perfectly inaccurate.
 */
-void quatApplyRotationFast(const quat *q, const vec3 *v, vec3 *out){
+void quatRotateVec3Fast(const quat *q, const vec3 *v, vec3 *out){
 	vec3 qvCross;
 	vec3CrossFloatVec3(q->x, q->y, q->z, v, &qvCross);
 	qvCross.x += q->w * v->x;
@@ -764,22 +764,22 @@ void quatApplyRotationFast(const quat *q, const vec3 *v, vec3 *out){
 }
 
 //Apply a quaternion rotation to a vec3!
-quat quatApplyRotationFastR(quat q, const vec3 v){
+vec3 quatRotateVec3FastR(const quat q, vec3 v){
 	vec3 qvCross = vec3CrossFloatVec3R(q.x, q.y, q.z, v);
 	qvCross.x += q.w * v.x;
 	qvCross.y += q.w * v.y;
 	qvCross.z += q.w * v.z;
-	qvCross = vec3CrossR(q.x, q.y, q.z, qvCross.x, qvCross.y, qvCross.z);
+	qvCross = vec3CrossFloatVec3R(q.x, q.y, q.z, qvCross);
 
-	q.x = qvCross.x + qvCross.x + v.x;
-	q.y = qvCross.y + qvCross.y + v.y;
-	q.z = qvCross.z + qvCross.z + v.z;
+	v.x = qvCross.x + qvCross.x + v.x;
+	v.y = qvCross.y + qvCross.y + v.y;
+	v.z = qvCross.z + qvCross.z + v.z;
 
-	return(q);
+	return(v);
 }
 
 //Undo a quaternion rotation on a vec3!
-void quatApplyInverseRotationFast(const quat *q, const vec3 *v, vec3 *out){
+void quatRotateVec3InverseFast(const quat *q, const vec3 *v, vec3 *out){
 	vec3 qvCross;
 	vec3CrossFloatVec3(q->x, q->y, q->z, v, &qvCross);
 	qvCross.x -= q->w * v->x;
@@ -793,18 +793,18 @@ void quatApplyInverseRotationFast(const quat *q, const vec3 *v, vec3 *out){
 }
 
 //Undo a quaternion rotation on a vec3!
-quat quatApplyInverseRotationFastR(quat q, const vec3 v){
+vec3 quatRotateVec3InverseFastR(const quat q, vec3 v){
 	vec3 qvCross = vec3CrossFloatVec3R(q.x, q.y, q.z, v);
 	qvCross.x -= q.w * v.x;
 	qvCross.y -= q.w * v.y;
 	qvCross.z -= q.w * v.z;
 	qvCross = vec3CrossR(q.x, q.y, q.z, qvCross.x, qvCross.y, qvCross.z);
 
-	q.x = qvCross.x + qvCross.x + v.x;
-	q.y = qvCross.y + qvCross.y + v.y;
-	q.z = qvCross.z + qvCross.z + v.z;
+	v.x = qvCross.x + qvCross.x + v.x;
+	v.y = qvCross.y + qvCross.y + v.y;
+	v.z = qvCross.z + qvCross.z + v.z;
 
-	return(q);
+	return(v);
 }
 
 
@@ -867,6 +867,16 @@ float quatNormQuatR(const quat q){
 
 //Normalize a quaternion stored as four floats and store the result in "out"!
 void quatNormalize(const float x, const float y, const float z, const float w, quat *out){
+	const float magnitude = fastInvSqrtAccurate(x * x + y * y + z * z + w * w);
+
+	out->x = x * magnitude;
+	out->y = y * magnitude;
+	out->z = z * magnitude;
+	out->w = w * magnitude;
+}
+
+//Normalize a quaternion stored as four floats and store the result in "out"!
+void quatNormalizeFast(const float x, const float y, const float z, const float w, quat *out){
 	const float magnitude = fastInvSqrt(x * x + y * y + z * z + w * w);
 
 	out->x = x * magnitude;
@@ -877,6 +887,19 @@ void quatNormalize(const float x, const float y, const float z, const float w, q
 
 //Normalize a quaternion stored as four floats!
 quat quatNormalizeR(const float x, const float y, const float z, const float w){
+	const float magnitude = fastInvSqrtAccurate(x * x + y * y + z * z + w * w);
+	quat q;
+
+	q.x = x * magnitude;
+	q.y = y * magnitude;
+	q.z = z * magnitude;
+	q.w = w * magnitude;
+
+	return(q);
+}
+
+//Normalize a quaternion stored as four floats!
+quat quatNormalizeRFast(const float x, const float y, const float z, const float w){
 	const float magnitude = fastInvSqrt(x * x + y * y + z * z + w * w);
 	quat q;
 
@@ -890,6 +913,16 @@ quat quatNormalizeR(const float x, const float y, const float z, const float w){
 
 //Normalize a quaternion!
 void quatNormalizeQuat(quat *q){
+	const float magnitude = fastInvSqrtAccurate(q->x * q->x + q->y * q->y + q->z * q->z + q->w * q->w);
+
+	q->x *= magnitude;
+	q->y *= magnitude;
+	q->z *= magnitude;
+	q->w *= magnitude;
+}
+
+//Normalize a quaternion!
+void quatNormalizeQuatFast(quat *q){
 	const float magnitude = fastInvSqrt(q->x * q->x + q->y * q->y + q->z * q->z + q->w * q->w);
 
 	q->x *= magnitude;
@@ -900,6 +933,16 @@ void quatNormalizeQuat(quat *q){
 
 //Normalize a quaternion and store the result in "out"!
 void quatNormalizeQuatOut(const quat *q, quat *out){
+	const float magnitude = fastInvSqrtAccurate(q->x * q->x + q->y * q->y + q->z * q->z + q->w * q->w);
+
+	out->x = q->x * magnitude;
+	out->y = q->y * magnitude;
+	out->z = q->z * magnitude;
+	out->w = q->w * magnitude;
+}
+
+//Normalize a quaternion and store the result in "out"!
+void quatNormalizeQuatOutFast(const quat *q, quat *out){
 	const float magnitude = fastInvSqrt(q->x * q->x + q->y * q->y + q->z * q->z + q->w * q->w);
 
 	out->x = q->x * magnitude;
@@ -910,6 +953,18 @@ void quatNormalizeQuatOut(const quat *q, quat *out){
 
 //Normalize a quaternion!
 quat quatNormalizeQuatR(quat q){
+	const float magnitude = fastInvSqrtAccurate(q.x * q.x + q.y * q.y + q.z * q.z + q.w * q.w);
+
+	q.x *= magnitude;
+	q.y *= magnitude;
+	q.z *= magnitude;
+	q.w *= magnitude;
+
+	return(q);
+}
+
+//Normalize a quaternion!
+quat quatNormalizeQuatRFast(quat q){
 	const float magnitude = fastInvSqrt(q.x * q.x + q.y * q.y + q.z * q.z + q.w * q.w);
 
 	q.x *= magnitude;
@@ -920,7 +975,10 @@ quat quatNormalizeQuatR(quat q){
 	return(q);
 }
 
-//Find the conjugate of a quaternion!
+/*
+** Find the conjugate of a quaternion! This is
+** obtained by negating the imaginary parts.
+*/
 void quatConjugate(quat *q){
 	q->x = -q->x;
 	q->y = -q->y;
@@ -947,10 +1005,8 @@ quat quatConjugateR(quat q){
 }
 
 /*
-** Find the conjugate of a quaternion!
-**
-** Note: This seems to work, but the fact that people only suggest
-**       the former method makes me wonder if it's for a reason.
+** Rather than negating the imaginary parts,
+** negating the real part also seems to work.
 */
 void quatConjugateFast(quat *q){
 	q->w = -q->w;
@@ -985,8 +1041,44 @@ void quatToAxisAngle(const quat *q, vec4 *out){
 	}
 }
 
+//Convert a quaternion to an axis and an angle and store the result in "out"!
+void quatToAxisAngleFast(const quat *q, vec4 *out){
+	if(q->w > -1.f && q->w < 1.f){
+		const float scale = fastInvSqrtAccurate(1.f - q->w * q->w);
+
+		out->x = q->x * scale;
+		out->y = q->y * scale;
+		out->z = q->z * scale;
+		out->w = acosf(q->w);
+		out->w += out->w;
+	}else{
+		out->x = out->y = out->z = 1.f;
+		out->w = 0.f;
+	}
+}
+
 //Convert a quaternion to an axis and an angle!
 vec4 quatToAxisAngleR(const quat q){
+	vec4 v;
+
+	if(q.w > -1.f && q.w < 1.f){
+		const float scale = fastInvSqrtAccurate(1.f - q.w * q.w);
+
+		v.x = q.x * scale;
+		v.y = q.y * scale;
+		v.z = q.z * scale;
+		v.w = acosf(q.w);
+		v.w += v.w;
+	}else{
+		v.x = v.y = v.z = 1.f;
+		v.w = 0.f;
+	}
+
+	return(v);
+}
+
+//Convert a quaternion to an axis and an angle!
+vec4 quatToAxisAngleRFast(const quat q){
 	vec4 v;
 
 	if(q.w > -1.f && q.w < 1.f){
@@ -1007,45 +1099,45 @@ vec4 quatToAxisAngleR(const quat q){
 
 
 //Rotate a quaternion (in radians)!
-void quatRotateRad(quat *q, const float x, const float y, const float z){
+void quatRotateByRad(quat *q, const float x, const float y, const float z){
 	quat rot;
 	quatInitEulerRad(&rot, x, y, z);
 	quatMultiplyQuatBy(q, &rot);
 }
 
 //Rotate a quaternion (in radians)!
-quat quatRotateRadR(const quat q, const float x, const float y, const float z){
+quat quatRotateByRadR(const quat q, const float x, const float y, const float z){
 	return(quatMultiplyByQuatR(quatInitEulerRadR(x, y, z), q));
 }
 
 //Rotate a quaternion (in degrees)!
-void quatRotateDeg(quat *q, const float x, const float y, const float z){
-	quatRotateRad(q, x * DEG_TO_RAD, y * DEG_TO_RAD, z * DEG_TO_RAD);
+void quatRotateByDeg(quat *q, const float x, const float y, const float z){
+	quatRotateByRad(q, x * DEG_TO_RAD, y * DEG_TO_RAD, z * DEG_TO_RAD);
 }
 
 //Rotate a quaternion (in degrees)!
-quat quatRotateDegR(const quat q, const float x, const float y, const float z){
-	return(quatRotateRadR(q, x * DEG_TO_RAD, y * DEG_TO_RAD, z * DEG_TO_RAD));
+quat quatRotateByDegR(const quat q, const float x, const float y, const float z){
+	return(quatRotateByRadR(q, x * DEG_TO_RAD, y * DEG_TO_RAD, z * DEG_TO_RAD));
 }
 
 //Rotate a quaternion by a vec3 (in radians)!
-void quatRotateVec3Rad(quat *q, const vec3 *v){
-	quatRotateRad(q, v->x, v->y, v->z);
+void quatRotateByVec3Rad(quat *q, const vec3 *v){
+	quatRotateByRad(q, v->x, v->y, v->z);
 }
 
 //Rotate a quaternion by a vec3 (in radians)!
-quat quatRotateVec3RadR(const quat q, const vec3 v){
-	return(quatRotateRadR(q, v.x, v.y, v.z));
+quat quatRotateByVec3RadR(const quat q, const vec3 v){
+	return(quatRotateByRadR(q, v.x, v.y, v.z));
 }
 
 //Rotate a quaternion by a vec3 (in degrees)!
-void quatRotateVec3Deg(quat *q, const vec3 *v){
-	quatRotateRad(q, v->x * DEG_TO_RAD, v->y * DEG_TO_RAD, v->z * DEG_TO_RAD);
+void quatRotateByVec3Deg(quat *q, const vec3 *v){
+	quatRotateByRad(q, v->x * DEG_TO_RAD, v->y * DEG_TO_RAD, v->z * DEG_TO_RAD);
 }
 
 //Rotate a quaternion by a vec3 (in degrees)!
-quat quatRotateVec3DegR(const quat q, const vec3 v){
-	return(quatRotateRadR(q, v.x * DEG_TO_RAD, v.y * DEG_TO_RAD, v.z * DEG_TO_RAD));
+quat quatRotateByVec3DegR(const quat q, const vec3 v){
+	return(quatRotateByRadR(q, v.x * DEG_TO_RAD, v.y * DEG_TO_RAD, v.z * DEG_TO_RAD));
 }
 
 

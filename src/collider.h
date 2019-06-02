@@ -5,6 +5,9 @@
 #include <stdio.h>
 
 
+#include "vec3.h"
+#include "mat3.h"
+
 #include "utilTypes.h"
 #include "transform.h"
 
@@ -33,7 +36,7 @@ typedef struct collider {
 void colliderInit(collider *c, const colliderType_t type);
 void colliderInstantiate(collider *c, const collider *cBase);
 
-return_t colliderLoad(collider *c, FILE *cFile);
+return_t colliderLoad(collider *c, FILE *cFile, vec3 *centroid, mat3 *inertia);
 void colliderUpdate(collider *c, const collider *cBase, const transformState *trans, colliderAABB *aabb);
 
 void colliderDeleteInstance(collider *c);
@@ -47,7 +50,9 @@ extern void (*colliderInstantiateTable[COLLIDER_NUM_TYPES])(
 
 extern return_t (*colliderLoadTable[COLLIDER_NUM_TYPES])(
 	void *c,
-	FILE *cFile
+	FILE *cFile,
+	vec3 *centroid,
+	mat3 *inertia
 );
 extern void (*colliderUpdateTable[COLLIDER_NUM_TYPES])(
 	void *c,

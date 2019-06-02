@@ -16,8 +16,9 @@ typedef struct physicsJointRevolute {
 
 typedef struct physicsRigidBody physicsRigidBody;
 
-void physJointRevolutePresolve(void *joint, const physicsRigidBody *bodyA, const physicsRigidBody *bodyB, const float dt);
+void physJointRevolutePresolve(void *joint, physicsRigidBody *bodyA, physicsRigidBody *bodyB, const float dt);
 void physJointRevoluteSolveVelocity(void *joint, physicsRigidBody *bodyA, physicsRigidBody *bodyB);
+void physJointRevoluteSolvePosition(void *joint, physicsRigidBody *bodyA, physicsRigidBody *bodyB);
 
 
 #endif

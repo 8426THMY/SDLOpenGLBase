@@ -83,14 +83,14 @@ void quatMultiplyQuatBy(quat *q1, const quat *q2);
 void quatMultiplyByQuatOut(const quat *q1, const quat *q2, quat *out);
 quat quatMultiplyByQuatR(const quat q1, const quat q2);
 
-void quatApplyRotation(const quat *q, const vec3 *v, vec3 *out);
-quat quatApplyRotationR(quat q, const vec3 v);
-void quatApplyInverseRotation(const quat *q, const vec3 *v, vec3 *out);
-quat quatApplyInverseRotationR(quat q, const vec3 v);
-void quatApplyRotationFast(const quat *q, const vec3 *v, vec3 *out);
-quat quatApplyRotationFastR(quat q, const vec3 v);
-void quatApplyInverseRotationFast(const quat *q, const vec3 *v, vec3 *out);
-quat quatApplyInverseRotationFastR(quat q, const vec3 v);
+void quatRotateVec3(const quat *q, const vec3 *v, vec3 *out);
+vec3 quatRotateVec3R(const quat q, vec3 v);
+void quatRotateVec3Inverse(const quat *q, const vec3 *v, vec3 *out);
+vec3 quatRotateVec3InverseR(const quat q, vec3 v);
+void quatRotateVec3Fast(const quat *q, const vec3 *v, vec3 *out);
+vec3 quatRotateVec3FastR(const quat q, vec3 v);
+void quatRotateVec3InverseFast(const quat *q, const vec3 *v, vec3 *out);
+vec3 quatRotateVec3InverseFastR(const quat q, vec3 v);
 
 float quatMagnitude(const float x, const float y, const float z, const float w);
 float quatMagnitudeQuat(const quat *q);
@@ -106,10 +106,15 @@ float quatNormQuat(const quat *q);
 float quatNormQuatR(const quat q);
 
 void quatNormalize(const float x, const float y, const float z, const float w, quat *out);
+void quatNormalizeFast(const float x, const float y, const float z, const float w, quat *out);
 quat quatNormalizeR(const float x, const float y, const float z, const float w);
+quat quatNormalizeRFast(const float x, const float y, const float z, const float w);
 void quatNormalizeQuat(quat *q);
+void quatNormalizeQuatFast(quat *q);
 void quatNormalizeQuatOut(const quat *q, quat *out);
+void quatNormalizeQuatOutFast(const quat *q, quat *out);
 quat quatNormalizeQuatR(quat q);
+quat quatNormalizeQuatRFast(quat q);
 void quatConjugate(quat *q);
 void quatConjugateOut(const quat *q, quat *out);
 quat quatConjugateR(quat q);
@@ -118,16 +123,18 @@ void quatConjugateFastOut(const quat *q, quat *out);
 quat quatConjugateFastR(quat q);
 
 void quatToAxisAngle(const quat *q, vec4 *out);
+void quatToAxisAngleFast(const quat *q, vec4 *out);
 vec4 quatToAxisAngleR(const quat q);
+vec4 quatToAxisAngleRFast(const quat q);
 
-void quatRotateRad(quat *q, const float x, const float y, const float z);
-quat quatRotateRadR(const quat q, const float x, const float y, const float z);
-void quatRotateDeg(quat *q, const float x, const float y, const float z);
-quat quatRotateDegR(const quat q, const float x, const float y, const float z);
-void quatRotateVec3Rad(quat *q, const vec3 *v);
-quat quatRotateVec3RadR(const quat q, const vec3 v);
-void quatRotateVec3Deg(quat *q, const vec3 *v);
-quat quatRotateVec3DegR(const quat q, const vec3 v);
+void quatRotateByRad(quat *q, const float x, const float y, const float z);
+quat quatRotateByRadR(const quat q, const float x, const float y, const float z);
+void quatRotateByDeg(quat *q, const float x, const float y, const float z);
+quat quatRotateByDegR(const quat q, const float x, const float y, const float z);
+void quatRotateByVec3Rad(quat *q, const vec3 *v);
+quat quatRotateByVec3RadR(const quat q, const vec3 v);
+void quatRotateByVec3Deg(quat *q, const vec3 *v);
+quat quatRotateByVec3DegR(const quat q, const vec3 v);
 
 void quatLerp(const quat *q1, const quat *q2, const float time, quat *out);
 quat quatLerpR(quat q1, const quat q2, const float time);

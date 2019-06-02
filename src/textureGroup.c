@@ -150,7 +150,7 @@ return_t texGroupLoad(textureGroup *texGroup, const char *texGroupName){
 					char *tempName;
 					size_t nameLength;
 					//Get the file name!
-					getDelimitedString(&line[2], lineLength - 2, "\" ", &tempName, &nameLength);
+					tempName = getMultiDelimitedString(&line[2], lineLength - 2, "\" ", &nameLength);
 
 					size_t frameStart = 0;
 					size_t frameEnd = 0;
@@ -295,7 +295,7 @@ return_t texGroupLoad(textureGroup *texGroup, const char *texGroupName){
 				if(memcmp(line, "ad ", 3) == 0){
 					char *tempName;
 					size_t nameLength;
-					getDelimitedString(&line[3], lineLength - 3, "\" ", &tempName, &nameLength);
+					tempName = getMultiDelimitedString(&line[3], lineLength - 3, "\" ", &nameLength);
 					//Store the animation's name!
 					tempAnim->name = memoryManagerGlobalAlloc(nameLength + 1);
 					if(tempAnim->name == NULL){
@@ -326,10 +326,10 @@ return_t texGroupLoad(textureGroup *texGroup, const char *texGroupName){
 
 				//Animation frame.
 				}else if(memcmp(line, "af ", 3) == 0){
-					char *tokPos = &line[3];
+					char *tokPos;
 
 					//Read the compressed frame data!
-					size_t tempStartTex = strtoul(tokPos, &tokPos, 10);
+					size_t tempStartTex = strtoul(&line[3], &tokPos, 10);
 					size_t tempEndTex = strtoul(tokPos, &tokPos, 10);
 					size_t tempFramesPerTex = strtoul(tokPos, &tokPos, 10);
 
@@ -340,7 +340,7 @@ return_t texGroupLoad(textureGroup *texGroup, const char *texGroupName){
 					float tempHeight = strtod(tokPos, &tokPos);
 
 					size_t tempFramesPerLine = strtoul(tokPos, &tokPos, 10);
-					int tempAxis = strtol(tokPos, &tokPos, 10);
+					int tempAxis = strtol(tokPos, NULL, 10);
 
 					//Animations need at least one frame!
 					if(tempFramesPerTex < 1){

@@ -13,7 +13,7 @@
 #include "mat4.h"
 
 #include "shader.h"
-#include "fps.h"
+#include "timestep.h"
 #include "camera.h"
 
 
@@ -33,7 +33,7 @@ typedef struct program {
 	mat4 projectionMatrix;
 	camera cam;
 
-	fps framerate;
+	timestep step;
 } program;
 
 

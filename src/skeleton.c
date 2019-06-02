@@ -179,6 +179,8 @@ return_t skeleAnimLoadSMD(skeletonAnim *skeleAnim, const char *skeleAnimName){
 		//This variable stores data specific to the type we're currently loading.
 		unsigned int data = 0;
 
+		char *tokPos;
+
 		char lineBuffer[1024];
 		char *line;
 		size_t lineLength;
@@ -210,6 +212,10 @@ return_t skeleAnimLoadSMD(skeletonAnim *skeleAnim, const char *skeleAnimName){
 				if(strcmp(line, "end") == 0){
 					//Finished loading bone names.
 					if(dataType == 1){
+						bone *curBone;
+						char **curName;
+						const bone *lastBone;
+
 						//If we've finished identifying the skeleton's
 						//bones, copy the data into our animation object!
 						#warning "Do we even need to do this?"
@@ -223,9 +229,9 @@ return_t skeleAnimLoadSMD(skeletonAnim *skeleAnim, const char *skeleAnimName){
 						}
 						skeleAnim->numBones = tempBonesSize;
 
-						bone *curBone = tempBones;
-						char **curName = skeleAnim->boneNames;
-						const bone *lastBone = &tempBones[tempBonesSize];
+						curBone = tempBones;
+						curName = skeleAnim->boneNames;
+						lastBone = &tempBones[tempBonesSize];
 						//Fill the array of bone names!
 						for(; curBone < lastBone; ++curBone, ++curName){
 							*curName = curBone->name;
@@ -253,16 +259,14 @@ return_t skeleAnimLoadSMD(skeletonAnim *skeleAnim, const char *skeleAnimName){
 				}else{
 					//Loading bone names.
 					if(dataType == 1){
-						char *tokPos = line;
-
 						bone tempBone;
 
 						//Get this bone's ID.
-						size_t boneID = strtoul(tokPos, &tokPos, 10);
+						size_t boneID = strtoul(line, &tokPos, 10);
 						//Make sure a bone with this ID actually exists.
 						if(boneID == tempBonesSize){
 							size_t boneNameLength;
-							getDelimitedString(tokPos, line + lineLength - tokPos, "\" ", &tokPos, &boneNameLength);
+							tokPos = getMultiDelimitedString(tokPos, line + lineLength - tokPos, "\" ", &boneNameLength);
 							//Get the bone's name.
 							tempBone.name = memoryManagerGlobalAlloc(boneNameLength + 1);
 							if(tempBone.name == NULL){
@@ -344,10 +348,8 @@ return_t skeleAnimLoadSMD(skeletonAnim *skeleAnim, const char *skeleAnimName){
 
 						//Otherwise, we're setting the bone's state!
 						}else{
-							char *tokPos = line;
-
 							//Get this bone's ID.
-							size_t boneID = strtoul(tokPos, &tokPos, 10);
+							size_t boneID = strtoul(line, &tokPos, 10);
 							if(boneID < tempBonesSize){
 								boneState *currentState = &currentFrame[boneID];
 

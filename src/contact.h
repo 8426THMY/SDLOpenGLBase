@@ -46,25 +46,24 @@ typedef struct contactKey {
 } contactKey;
 
 typedef struct contactPoint {
-	//Used to uniquely identify the contact point.
-	contactKey key;
-
 	//Position of the contacts in global space.
 	//They are not relative to the centres of mass.
 	vec3 pA;
 	vec3 pB;
 
+	vec3 normal;
+
 	//Separation between the colliders.
 	//Note that this is a negative quantity.
 	float separation;
+	//Used to uniquely identify the contact point.
+	contactKey key;
 } contactPoint;
 
 //Stores every contact point involved in the collision.
 typedef struct contactManifold {
 	contactPoint contacts[CONTACT_MAX_POINTS];
 	contactPointIndex_t numContacts;
-
-	vec3 normal;
 } contactManifold;
 
 

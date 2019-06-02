@@ -52,9 +52,33 @@ float fastInvSqrt(const float x){
 	//Use the Newton-Raphson method to
 	//gain a more accurate approximation.
 	i.f *= 1.5f - x2 * i.f * i.f;
+
+
+	return(i.f);
+}
+
+float fastInvSqrtAccurate(const float x){
+	const float x2 = x * 0.5f;
+	//By using a union here, we can avoid the
+	//compiler warnings that the original had.
+	union {
+		float f;
+		uint32_t l;
+	} i;
+	i.f = x;
+	//The original magic number, "0x5F3759DF", is supposedly an
+	//approximation of the square root of 2 to the power of 127.
+	//I have found that the magic number "0x5F3504F3", being a
+	//more accurate approximation of this value, provides far more
+	//accurate results after any number of Newton-Raphson iterations.
+	i.l = 0x5F3504F3 - (i.l >> 1);
+
+	//Use the Newton-Raphson method to
+	//gain a more accurate approximation.
+	i.f *= 1.5f - x2 * i.f * i.f;
 	//A second iteration provides
 	//an even more accurate result.
-	//i.f *= 1.5f - x2 * i.f * i.f;
+	i.f *= 1.5f - x2 * i.f * i.f;
 
 
 	return(i.f);

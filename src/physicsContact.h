@@ -5,29 +5,30 @@
 #include "settingsPhysics.h"
 
 #include "contact.h"
+#ifdef PHYSCONTACT_USE_FRICTION_JOINT
+#include "physicsJointFriction.h"
+#endif
 
-
-#define PHYSCONTACT_NUM_TANGENTS 2
 
 #ifndef PHYSCONTACT_SOLVER_NUM_ITERATIONS
 	#define PHYSCONTACT_SOLVER_NUM_ITERATIONS 4
 #endif
 
-#ifndef PHYSCONTACT_LINEAR_SLOP
-	#define PHYSCONTACT_LINEAR_SLOP 0.05f
+#ifndef PHYSCONSTRAINT_LINEAR_SLOP
+	#define PHYSCONSTRAINT_LINEAR_SLOP 0.05f
 #endif
-#ifndef PHYSCONTACT_MAX_LINEAR_CORRECTION
-	#define PHYSCONTACT_MAX_LINEAR_CORRECTION 0.2f
+#ifndef PHYSCONSTRAINT_MAX_LINEAR_CORRECTION
+	#define PHYSCONSTRAINT_MAX_LINEAR_CORRECTION 0.2f
 #endif
+
 #ifndef PHYSCONTACT_RESTITUTION_THRESHOLD
 	#define PHYSCONTACT_RESTITUTION_THRESHOLD 1.f
 #endif
-
-//If full non-linear Gauss-Seidel wasn't
-//specified, use Baumgarte stabilisation.
-#ifndef PHYSCONTACT_STABILISER_GAUSS_SEIDEL
-	#define PHYSCONTACT_STABILISER_BAUMGARTE
+#ifndef PHYSCONTACT_SEPARATION_BIAS
+	#define PHYSCONTACT_SEPARATION_BIAS 0.f
 #endif
+#define PHYSCONTACT_SEPARATION_BIAS_TOTAL (PHYSCONTACT_SEPARATION_BIAS + PHYSCONTACT_SEPARATION_BIAS)
+
 #ifndef PHYSCONTACT_BAUMGARTE_BIAS
 	#define PHYSCONTACT_BAUMGARTE_BIAS 0.4f
 #endif
@@ -36,46 +37,71 @@
 #endif
 
 
-typedef struct physicsContactPoint {
-	//Used to uniquely identify the contact point.
-	contactKey key;
+//Depending on whether or not we're using friciton joints, the place
+//we store normals and tangents changes. It's highly recommended that
+//these macros be used so that the program works in both cases.
 
+//Get the contact's normal vector.
+#ifndef PHYSCONTACT_USE_FRICTION_JOINT
+#define physContactNormal(pm) (pm->normal)
+#else
+#define physContactNormal(pm) (pm->frictionJoint.normal)
+#endif
+//Get a specific contact tangent vector.
+#ifndef PHYSCONTACT_USE_FRICTION_JOINT
+#define physContactTangent(pm, num) (pm->tangents[num])
+#else
+#define physContactTangent(pm, num) (pm->frictionJoint.tangents[num])
+#endif
+
+
+typedef struct physicsContactPoint {
 	//Points on both bodies involved in the collision
 	//in global space and relative to the centres of mass.
 	vec3 rA;
 	vec3 rB;
 
 	//If we're using non-linear Gauss-Seidel, we'll need to know
-	//the relative positions of the contact points in local space.
+	//the untransformed positions of the contact normal and contact
+	//points relative to their bodies' centres of mass.
 	#ifdef PHYSCONTACT_STABILISER_GAUSS_SEIDEL
 	vec3 rAlocal;
 	vec3 rBlocal;
+
+	vec3 normalLocal;
 	#endif
 
 	//Separation between the contact points.
 	//Note that this is a negative quantity.
 	float separation;
+	//Used to uniquely identify the contact point.
+	contactKey key;
+
 	//Stores the bias term, that is, the
 	//restitution plus the Baumgarte term.
 	float bias;
+
+	//Accumulated impulses used for warm starting.
+	//This helps prevent jittering in persistent contacts.
+	float normalImpulse;
+	#ifndef PHYSCONTACT_USE_FRICTION_JOINT
+	float tangentImpulse[2];
+	#endif
 
 	//Stores the result of 1/JM^-1J^T (which is equivalent
 	//to the inverse denominator of the impulse equation)
 	//prior to collision response, as it only needs to be
 	//calculated once.
 	float normalEffectiveMass;
+	#ifndef PHYSCONTACT_USE_FRICTION_JOINT
 	//Similar to "normalEffectiveMass", but uses the
 	//tangent vectors. These values are used for friction.
-	float tangentEffectiveMass[PHYSCONTACT_NUM_TANGENTS];
-
-	//Accumulated impulses used for warm starting.
-	//This helps prevent jittering in persistent contacts.
-	float normalImpulse;
-	float tangentImpulse[PHYSCONTACT_NUM_TANGENTS];
+	float tangentEffectiveMass[2];
+	#endif
 } physicsContactPoint;
 
-/** It would probably be best to do something similar to what Box2D  **/
-/** does with this structure, as ours is very prone to cache misses. **/
+/** It would probably be best to do something similar to what Box2D      **/
+/** does with this structure, as ours is probably prone to cache misses. **/
 
 //A physics manifold is similar to a regular contact manifold,
 //but stores additional information required to solve contacts.
@@ -83,13 +109,18 @@ typedef struct physicsManifold {
 	physicsContactPoint contacts[CONTACT_MAX_POINTS];
 	contactPointIndex_t numContacts;
 
+	#ifndef PHYSCONTACT_USE_FRICTION_JOINT
 	//Note that this normal is for a face on body A.
 	//Therefore, it should roughly point from body A to body B.
 	vec3 normal;
 	//As well as the contact normal, we also need to store
 	//the tangent vectors that together form an orthonormal
 	//basis for when we calculate the effect of friction.
-	vec3 tangents[PHYSCONTACT_NUM_TANGENTS];
+	vec3 tangents[2];
+	#else
+	//The friction joint stores the normal and tangent vectors.
+	physicsJointFriction frictionJoint;
+	#endif
 
 	//Combined friction and restitution scalars.
 	float friction;
@@ -106,7 +137,7 @@ void physManifoldPersist(physicsManifold *pm, const contactManifold *cm, const p
 void physManifoldPresolve(physicsManifold *pm, const physicsRigidBody *bodyA, const physicsRigidBody *bodyB, const float dt);
 void physManifoldSolveVelocity(physicsManifold *pm, physicsRigidBody *bodyA, physicsRigidBody *bodyB);
 #ifdef PHYSCONTACT_STABILISER_GAUSS_SEIDEL
-void physManifoldSolvePosition(const physicsManifold *pm, const physicsManifold *pm, physicsRigidBody *bodyA, physicsRigidBody *bodyB);
+void physManifoldSolvePosition(const physicsManifold *pm, physicsRigidBody *bodyA, physicsRigidBody *bodyB);
 #endif
 
 

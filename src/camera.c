@@ -54,13 +54,13 @@ void cameraStateSetPosZ(cameraState *camState, const float z){
 
 void cameraStateAddRotEulerRad(cameraState *camState, const float x, const float y, const float z, const float time){
 	quat q = camState->rot.next;
-	quatRotateRad(&q, x, y, z);
+	quatRotateByRad(&q, x, y, z);
 	quatSlerpFast(&camState->rot.next, &q, time, &camState->rot.next);
 }
 
 void cameraStateAddRotEulerDeg(cameraState *camState, const float x, const float y, const float z, const float time){
 	quat q = camState->rot.next;
-	quatRotateDeg(&q, x, y, z);
+	quatRotateByDeg(&q, x, y, z);
 	quatSlerpFast(&camState->rot.next, &q, time, &camState->rot.next);
 }
 

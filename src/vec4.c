@@ -581,6 +581,16 @@ float vec4NormVec4R(const vec4 v){
 
 //Normalize a vec4 stored as four floats and store the result in "out"!
 void vec4Normalize(const float x, const float y, const float z, const float w, vec4 *out){
+	const float magnitude = fastInvSqrtAccurate(x * x + y * y + z * z + w * w);
+
+	out->x = x * magnitude;
+	out->y = y * magnitude;
+	out->z = z * magnitude;
+	out->w = w * magnitude;
+}
+
+//Normalize a vec4 stored as four floats and store the result in "out"!
+void vec4NormalizeFast(const float x, const float y, const float z, const float w, vec4 *out){
 	const float magnitude = fastInvSqrt(x * x + y * y + z * z + w * w);
 
 	out->x = x * magnitude;
@@ -591,6 +601,19 @@ void vec4Normalize(const float x, const float y, const float z, const float w, v
 
 //Normalize a vec4 stored as four floats!
 vec4 vec4NormalizeR(const float x, const float y, const float z, const float w){
+	const float magnitude = fastInvSqrtAccurate(x * x + y * y + z * z + w * w);
+	vec4 v;
+
+	v.x = x * magnitude;
+	v.y = y * magnitude;
+	v.z = z * magnitude;
+	v.w = w * magnitude;
+
+	return(v);
+}
+
+//Normalize a vec4 stored as four floats!
+vec4 vec4NormalizeRFast(const float x, const float y, const float z, const float w){
 	const float magnitude = fastInvSqrt(x * x + y * y + z * z + w * w);
 	vec4 v;
 
@@ -604,6 +627,16 @@ vec4 vec4NormalizeR(const float x, const float y, const float z, const float w){
 
 //Normalize a vec4!
 void vec4NormalizeVec4(vec4 *v){
+	const float magnitude = fastInvSqrtAccurate(v->x * v->x + v->y * v->y + v->z * v->z + v->w * v->w);
+
+	v->x *= magnitude;
+	v->y *= magnitude;
+	v->z *= magnitude;
+	v->w *= magnitude;
+}
+
+//Normalize a vec4!
+void vec4NormalizeVec4Fast(vec4 *v){
 	const float magnitude = fastInvSqrt(v->x * v->x + v->y * v->y + v->z * v->z + v->w * v->w);
 
 	v->x *= magnitude;
@@ -614,6 +647,16 @@ void vec4NormalizeVec4(vec4 *v){
 
 //Normalize a vec4 and store the result in "out"!
 void vec4NormalizeVec4Out(const vec4 *v, vec4 *out){
+	const float magnitude = fastInvSqrtAccurate(v->x * v->x + v->y * v->y + v->z * v->z + v->w * v->w);
+
+	out->x = v->x * magnitude;
+	out->y = v->y * magnitude;
+	out->z = v->z * magnitude;
+	out->w = v->w * magnitude;
+}
+
+//Normalize a vec4 and store the result in "out"!
+void vec4NormalizeVec4OutFast(const vec4 *v, vec4 *out){
 	const float magnitude = fastInvSqrt(v->x * v->x + v->y * v->y + v->z * v->z + v->w * v->w);
 
 	out->x = v->x * magnitude;
@@ -624,6 +667,18 @@ void vec4NormalizeVec4Out(const vec4 *v, vec4 *out){
 
 //Normalize a vec4!
 vec4 vec4NormalizeVec4R(vec4 v){
+	const float magnitude = fastInvSqrtAccurate(v.x * v.x + v.y * v.y + v.z * v.z + v.w * v.w);
+
+	v.x *= magnitude;
+	v.y *= magnitude;
+	v.z *= magnitude;
+	v.w *= magnitude;
+
+	return(v);
+}
+
+//Normalize a vec4!
+vec4 vec4NormalizeVec4RFast(vec4 v){
 	const float magnitude = fastInvSqrt(v.x * v.x + v.y * v.y + v.z * v.z + v.w * v.w);
 
 	v.x *= magnitude;

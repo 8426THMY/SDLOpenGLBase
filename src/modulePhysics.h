@@ -71,7 +71,9 @@ physicsCollider *modulePhysicsColliderPrepend(physicsCollider **start);
 physicsCollider *modulePhysicsColliderAppend(physicsCollider **start);
 physicsCollider *modulePhysicsColliderInsertBefore(physicsCollider **start, physicsCollider *prevData);
 physicsCollider *modulePhysicsColliderInsertAfter(physicsCollider **start, physicsCollider *data);
+void modulePhysicsColliderFreeInstance(physicsCollider **start, physicsCollider *collider, physicsCollider *prevData);
 void modulePhysicsColliderFree(physicsCollider **start, physicsCollider *collider, physicsCollider *prevData);
+void modulePhysicsColliderFreeInstanceArray(physicsCollider **start);
 void modulePhysicsColliderFreeArray(physicsCollider **start);
 void modulePhysicsColliderClear();
 

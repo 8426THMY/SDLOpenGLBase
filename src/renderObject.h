@@ -20,6 +20,7 @@
 #include "shader.h"
 
 
+#error "It's about time render objects got a rewrite."
 typedef struct renderObjState {
 	interpTransform transform;
 

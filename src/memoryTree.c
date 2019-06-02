@@ -227,6 +227,7 @@ void *memTreeAlloc(memoryTree *tree, const size_t blockSize){
 ** or right before the resize operation.
 */
 void *memTreeResize(memoryTree *tree, void *block, const size_t blockSize){
+	//#error "This doesn't work."
 	memTreeListNode *newBlock = treeNodeGetList(block);
 	size_t newSize;
 	memTreeNode *tempBlock;
@@ -293,16 +294,16 @@ void *memTreeResize(memoryTree *tree, void *block, const size_t blockSize){
 		//Make sure we set its active flag.
 		newBlock->prevSize = listNodeMakeActive(newBlock->prevSize);
 
-		//Provided the leftover memory is large enough,
-		//create a new empty block after the current one.
-		splitBlock(tree, newBlock, newSize, (size_t)memoryAlign(fullSize));
-
 		tempBlock = listNodeGetTree(newBlock);
 		//We only need to copy the user's data
 		//if the block's pointer has moved.
 		if(tempBlock != block){
 			memmove(tempBlock, block, oldSize);
 		}
+
+		//Provided the leftover memory is large enough,
+		//create a new empty block after the current one.
+		splitBlock(tree, newBlock, newSize, (size_t)memoryAlign(fullSize));
 
 		return(tempBlock);
 	}
@@ -402,16 +403,16 @@ void *memTreeRealloc(memoryTree *tree, void *block, const size_t blockSize){
 			//Make sure we set its active flag.
 			newBlock->prevSize = listNodeMakeActive(newBlock->prevSize);
 
-			//Provided the leftover memory is large enough,
-			//create a new empty block after the current one.
-			splitBlock(tree, newBlock, newSize, (size_t)memoryAlign(fullSize));
-
 			tempBlock = listNodeGetTree(newBlock);
 			//We only need to copy the user's data
 			//if the block's pointer has moved.
 			if(tempBlock != block){
 				memmove(tempBlock, block, oldSize);
 			}
+
+			//Provided the leftover memory is large enough,
+			//create a new empty block after the current one.
+			splitBlock(tree, newBlock, newSize, (size_t)memoryAlign(fullSize));
 
 			return(tempBlock);
 		}
@@ -577,22 +578,24 @@ void memTreePrintAllSizes(memoryTree *tree){
 		);
 
 		memTreeListNode *node = (memTreeListNode *)(region->start);
+		memTreeNode *nodeTree;
 		//Loop through all of the nodes in this region.
 		for(;;){
+			nodeTree = listNodeGetTree(node);
+
 			//If the node is active, we just print its size and flags.
 			if(listNodeIsActive(node->prevSize)){
 				printf(
 					"Used Address: %u, Size: %u, Flags: %u\n\n",
-					(uintptr_t)node, node->size, listNodeGetFlags(node->prevSize)
+					nodeTree, node->size - MEMTREE_BLOCK_HEADER_SIZE, listNodeGetFlags(node->prevSize)
 				);
 
 			//Otherwise, we can print its tree data too!
 			}else{
-				memTreeNode *nodeTree = listNodeGetTree(node);
 				printf(
 					"Free Address: %u, Size: %u, Flags: %u,\n"
 					"Left: %u, Right: %u, Parent: %u, Colour: %u\n\n",
-					(uintptr_t)node, node->size - MEMTREE_BLOCK_HEADER_SIZE, listNodeGetFlags(node->prevSize),
+					nodeTree, node->size - MEMTREE_BLOCK_HEADER_SIZE, listNodeGetFlags(node->prevSize),
 					(uintptr_t)(nodeTree->left), (uintptr_t)(nodeTree->right), (uintptr_t)(treeNodeGetParent(nodeTree)), treeNodeGetColour(nodeTree)
 				);
 			}

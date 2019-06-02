@@ -16,8 +16,9 @@ typedef struct physicsJointPrismatic {
 
 typedef struct physicsRigidBody physicsRigidBody;
 
-void physJointPrismaticPresolve(void *joint, const physicsRigidBody *bodyA, const physicsRigidBody *bodyB, const float dt);
+void physJointPrismaticPresolve(void *joint, physicsRigidBody *bodyA, physicsRigidBody *bodyB, const float dt);
 void physJointPrismaticSolveVelocity(void *joint, physicsRigidBody *bodyA, physicsRigidBody *bodyB);
+void physJointPrismaticSolvePosition(void *joint, physicsRigidBody *bodyA, physicsRigidBody *bodyB);
 
 
 #endif

@@ -68,31 +68,31 @@ vec3 mat3MultiplyByVec3R(const mat3 m, const vec3 v){
 void mat3MultiplyVec3By(mat3 *m, const vec3 *v){
 	const mat3 tempMatrix = *m;
 
-	m->m[0][0] = tempMatrix.m[0][0] * v->x + tempMatrix.m[0][1] * v->y + tempMatrix.m[0][2] * v->z;
-	m->m[0][1] = tempMatrix.m[0][0] * v->x + tempMatrix.m[0][1] * v->y + tempMatrix.m[0][2] * v->z;
+	m->m[0][0] =
+	m->m[0][1] =
 	m->m[0][2] = tempMatrix.m[0][0] * v->x + tempMatrix.m[0][1] * v->y + tempMatrix.m[0][2] * v->z;
 
-	m->m[1][0] = tempMatrix.m[1][0] * v->x + tempMatrix.m[1][1] * v->y + tempMatrix.m[1][2] * v->z;
-	m->m[1][1] = tempMatrix.m[1][0] * v->x + tempMatrix.m[1][1] * v->y + tempMatrix.m[1][2] * v->z;
+	m->m[1][0] =
+	m->m[1][1] =
 	m->m[1][2] = tempMatrix.m[1][0] * v->x + tempMatrix.m[1][1] * v->y + tempMatrix.m[1][2] * v->z;
 
-	m->m[2][0] = tempMatrix.m[2][0] * v->x + tempMatrix.m[2][1] * v->y + tempMatrix.m[2][2] * v->z;
-	m->m[2][1] = tempMatrix.m[2][0] * v->x + tempMatrix.m[2][1] * v->y + tempMatrix.m[2][2] * v->z;
+	m->m[2][0] =
+	m->m[2][1] =
 	m->m[2][2] = tempMatrix.m[2][0] * v->x + tempMatrix.m[2][1] * v->y + tempMatrix.m[2][2] * v->z;
 }
 
 //Multiply a vec3 by a matrix and store the result in "out"!
 void mat3MultiplyVec3ByOut(const mat3 m, const vec3 *v, mat3 *out){
-	out->m[0][0] = m.m[0][0] * v->x + m.m[0][1] * v->y + m.m[0][2] * v->z;
-	out->m[0][1] = m.m[0][0] * v->x + m.m[0][1] * v->y + m.m[0][2] * v->z;
+	out->m[0][0] =
+	out->m[0][1] =
 	out->m[0][2] = m.m[0][0] * v->x + m.m[0][1] * v->y + m.m[0][2] * v->z;
 
-	out->m[1][0] = m.m[1][0] * v->x + m.m[1][1] * v->y + m.m[1][2] * v->z;
-	out->m[1][1] = m.m[1][0] * v->x + m.m[1][1] * v->y + m.m[1][2] * v->z;
+	out->m[1][0] =
+	out->m[1][1] =
 	out->m[1][2] = m.m[1][0] * v->x + m.m[1][1] * v->y + m.m[1][2] * v->z;
 
-	out->m[2][0] = m.m[2][0] * v->x + m.m[2][1] * v->y + m.m[2][2] * v->z;
-	out->m[2][1] = m.m[2][0] * v->x + m.m[2][1] * v->y + m.m[2][2] * v->z;
+	out->m[2][0] =
+	out->m[2][1] =
 	out->m[2][2] = m.m[2][0] * v->x + m.m[2][1] * v->y + m.m[2][2] * v->z;
 }
 
@@ -100,16 +100,16 @@ void mat3MultiplyVec3ByOut(const mat3 m, const vec3 *v, mat3 *out){
 mat3 mat3MultiplyVec3ByR(const mat3 m, const vec3 v){
 	mat3 out = m;
 
-	out.m[0][0] = m.m[0][0] * v.x + m.m[0][1] * v.y + m.m[0][2] * v.z;
-	out.m[0][1] = m.m[0][0] * v.x + m.m[0][1] * v.y + m.m[0][2] * v.z;
+	out.m[0][0] =
+	out.m[0][1] =
 	out.m[0][2] = m.m[0][0] * v.x + m.m[0][1] * v.y + m.m[0][2] * v.z;
 
-	out.m[1][0] = m.m[1][0] * v.x + m.m[1][1] * v.y + m.m[1][2] * v.z;
-	out.m[1][1] = m.m[1][0] * v.x + m.m[1][1] * v.y + m.m[1][2] * v.z;
+	out.m[1][0] =
+	out.m[1][1] =
 	out.m[1][2] = m.m[1][0] * v.x + m.m[1][1] * v.y + m.m[1][2] * v.z;
 
-	out.m[2][0] = m.m[2][0] * v.x + m.m[2][1] * v.y + m.m[2][2] * v.z;
-	out.m[2][1] = m.m[2][0] * v.x + m.m[2][1] * v.y + m.m[2][2] * v.z;
+	out.m[2][0] =
+	out.m[2][1] =
 	out.m[2][2] = m.m[2][0] * v.x + m.m[2][1] * v.y + m.m[2][2] * v.z;
 
 	return(out);
@@ -254,7 +254,7 @@ void mat3Invert(mat3 *m){
 	const float f0 = tempMatrix.m[1][1] * tempMatrix.m[2][2] - tempMatrix.m[1][2] * tempMatrix.m[2][1];
 	const float f1 = tempMatrix.m[2][1] * tempMatrix.m[0][2] - tempMatrix.m[0][1] * tempMatrix.m[2][2];
 	const float f2 = tempMatrix.m[0][1] * tempMatrix.m[1][2] - tempMatrix.m[1][1] * tempMatrix.m[0][2];
-	//Find the inverse determinant of the matrix!
+	//Find the determinant of the matrix!
 	float invDet = tempMatrix.m[0][0] * f0 +
 	               tempMatrix.m[1][0] * f1 +
 	               tempMatrix.m[2][0] * f2;
@@ -282,7 +282,7 @@ void mat3InvertOut(const mat3 m, mat3 *out){
 	const float f0 = m.m[1][1] * m.m[2][2] - m.m[1][2] * m.m[2][1];
 	const float f1 = m.m[2][1] * m.m[0][2] - m.m[0][1] * m.m[2][2];
 	const float f2 = m.m[0][1] * m.m[1][2] - m.m[1][1] * m.m[0][2];
-	//Find the inverse determinant of the matrix!
+	//Find the determinant of the matrix!
 	float invDet = m.m[0][0] * f0 +
 	               m.m[1][0] * f1 +
 	               m.m[2][0] * f2;
@@ -310,7 +310,7 @@ mat3 mat3InvertR(const mat3 m){
 	const float f0 = m.m[1][1] * m.m[2][2] - m.m[1][2] * m.m[2][1];
 	const float f1 = m.m[2][1] * m.m[0][2] - m.m[0][1] * m.m[2][2];
 	const float f2 = m.m[0][1] * m.m[1][2] - m.m[1][1] * m.m[0][2];
-	//Find the inverse determinant of the matrix!
+	//Find the determinant of the matrix!
 	float invDet = m.m[0][0] * f0 +
 	               m.m[1][0] * f1 +
 	               m.m[2][0] * f2;
@@ -347,7 +347,7 @@ return_t mat3CanInvert(mat3 *m){
 	const float f0 = tempMatrix.m[1][1] * tempMatrix.m[2][2] - tempMatrix.m[1][2] * tempMatrix.m[2][1];
 	const float f1 = tempMatrix.m[2][1] * tempMatrix.m[0][2] - tempMatrix.m[0][1] * tempMatrix.m[2][2];
 	const float f2 = tempMatrix.m[0][1] * tempMatrix.m[1][2] - tempMatrix.m[1][1] * tempMatrix.m[0][2];
-	//Find the inverse determinant of the matrix!
+	//Find the determinant of the matrix!
 	float invDet = tempMatrix.m[0][0] * f0 +
 	               tempMatrix.m[1][0] * f1 +
 	               tempMatrix.m[2][0] * f2;
@@ -384,7 +384,7 @@ return_t mat3CanInvertOut(const mat3 m, mat3 *out){
 	const float f0 = m.m[1][1] * m.m[2][2] - m.m[1][2] * m.m[2][1];
 	const float f1 = m.m[2][1] * m.m[0][2] - m.m[0][1] * m.m[2][2];
 	const float f2 = m.m[0][1] * m.m[1][2] - m.m[1][1] * m.m[0][2];
-	//Find the inverse determinant of the matrix!
+	//Find the determinant of the matrix!
 	float invDet = m.m[0][0] * f0 +
 	               m.m[1][0] * f1 +
 	               m.m[2][0] * f2;

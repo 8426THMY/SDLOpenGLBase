@@ -5,7 +5,7 @@ void (*colliderInstantiateTable[COLLIDER_NUM_TYPES])(void *c, const void *cBase)
 	colliderHullInstantiate
 };
 
-return_t (*colliderLoadTable[COLLIDER_NUM_TYPES])(void *c, FILE *cFile) = {
+return_t (*colliderLoadTable[COLLIDER_NUM_TYPES])(void *c, FILE *cFile, vec3 *centroid, mat3 *inertia) = {
 	colliderHullLoad
 };
 void (*colliderUpdateTable[COLLIDER_NUM_TYPES])(void *c, const void *cBase, const transformState *trans, colliderAABB *aabb) = {
@@ -32,10 +32,11 @@ void colliderInstantiate(collider *c, const collider *cBase){
 }
 
 
-//Load a collider from the file specified.
+//Load a collider from the file specified and store its centroid
+//and moment of inertia tensor in the appropriate parameters.
 //Note that this function does NOT close the file.
-return_t colliderLoad(collider *c, FILE *cFile){
-	return(colliderLoadTable[c->type]((void *)(&c->data), cFile));
+return_t colliderLoad(collider *c, FILE *cFile, vec3 *centroid, mat3 *inertia){
+	return(colliderLoadTable[c->type]((void *)(&c->data), cFile, centroid, inertia));
 }
 
 //Update a collider instance and return its new bounding box.

@@ -21,11 +21,7 @@
 
 #define COLLISION_PARALLEL_THRESHOLD    0.005f
 #define COLLISION_TOLERANCE_COEFFICIENT 0.95f
-#ifdef PHYSCONTACT_PENETRATION_SLOP
-	#define COLLISION_TOLERANCE_TERM    (0.5f * PHYSCONTACT_PENETRATION_SLOP)
-#else
-	#define COLLISION_TOLERANCE_TERM    0.25f
-#endif
+#define COLLISION_TOLERANCE_TERM        0.025f
 
 #define CLIPPING_INORDER 0
 //We can use byte offsets or a conditional check to swap our keys around.
@@ -125,13 +121,10 @@ static return_t noSeparatingEdge(const colliderHull *hullA, const colliderHull *
                                  hullEdgeData *edgeData, contactSeparation *separation);
 
 static colliderFaceIndex_t findIncidentFace(const colliderHull *hull, const vec3 *refNormal);
-static void reduceContacts(const vertexProject *vProj, const vertexProject *vLast, const vertexClip *vClip, contactManifold *cm);
+static void reduceContacts(const vertexProject *vProj, const vertexProject *vLast, const vertexClip *vClip,
+                           const vec3 *refNormal, const unsigned int swapped, contactManifold *cm);
 static void clipFaceContact(const colliderHull *hullA, const colliderHull *hullB, const colliderFaceIndex_t refIndex,
-#ifdef CLIPPING_KEYSWAP_USE_OFFSETS
-                            const size_t offset, contactManifold *cm);
-#else
-                            const byte_t swapped, contactManifold *cm);
-#endif
+                            const unsigned int swapped, contactManifold *cm);
 static void clipEdgeContact(const colliderHull *hullA, const colliderHull *hullB,
                             const hullEdgeData *edgeData, contactManifold *cm);
 
@@ -168,58 +161,266 @@ void colliderHullInstantiate(void *hull, const void *base){
 ** Load the collider from a file. This assumes that
 ** neither "hull" nor "hullFile" are NULL. Also, this
 ** function MAY NOT close "hullFile" when it is done.
+** We also calculate the collider's centre of mass
+** and its moment of inertia tensor.
 */
-return_t colliderHullLoad(void *hull, FILE *hullFile){
-	return_t success = 1;
+return_t colliderHullLoad(void *hull, FILE *hullFile, vec3 *centroid, mat3 *inertia){
+	#ifdef COLLIDER_HULL_USE_VERTEX_WEIGHT
+	float totalWeighting = 0.f;
+	float *vertexWeights;
+	#endif
 
+	colliderVertexIndex_t tempVerticesCapacity = BASE_VERTEX_CAPACITY;
+	colliderFaceIndex_t tempFacesCapacity = BASE_FACE_CAPACITY;
+	colliderEdgeIndex_t tempEdgesCapacity = BASE_EDGE_CAPACITY;
+
+
+	//Used when reading various data.
+	char *tokPos;
+	char *tokEnd;
 
 	char lineBuffer[1024];
 	char *line;
 	size_t lineLength;
 
-	//Used when reading vertex data.
-	char *tokPos;
-
-	float totalWeighting = 0.f;
-	colliderVertexIndex_t tempVerticesCapacity = BASE_VERTEX_CAPACITY;
-	colliderFaceIndex_t tempFacesCapacity = BASE_FACE_CAPACITY;
-	colliderEdgeIndex_t tempEdgesCapacity = BASE_EDGE_CAPACITY;
 
 	colliderHull tempHull;
+	//This will set every variable in the hull to 0.
 	colliderHullInit(&tempHull);
 
 	//Set up the collider's data arrays!
+	#ifdef COLLIDER_HULL_USE_VERTEX_WEIGHT
+	vertexWeights     = memoryManagerGlobalAlloc(BASE_VERTEX_CAPACITY * sizeof(*vertexWeights));
+	#endif
 	tempHull.vertices = memoryManagerGlobalAlloc(BASE_VERTEX_CAPACITY * sizeof(*tempHull.vertices));
-	tempHull.normals = memoryManagerGlobalAlloc(BASE_FACE_CAPACITY * sizeof(*tempHull.normals));
-	tempHull.edges = memoryManagerGlobalAlloc(BASE_EDGE_CAPACITY * sizeof(*tempHull.edges));
-	tempHull.faces = memoryManagerGlobalAlloc(BASE_FACE_CAPACITY * sizeof(*tempHull.faces));
+	tempHull.normals  = memoryManagerGlobalAlloc(BASE_FACE_CAPACITY * sizeof(*tempHull.normals));
+	tempHull.faces    = memoryManagerGlobalAlloc(BASE_FACE_CAPACITY * sizeof(*tempHull.faces));
+	tempHull.edges    = memoryManagerGlobalAlloc(BASE_EDGE_CAPACITY * sizeof(*tempHull.edges));
 
-	while(success && (line = readLineFile(hullFile, &lineBuffer[0], &lineLength)) != NULL){
+
+	while((line = readLineFile(hullFile, &lineBuffer[0], &lineLength)) != NULL){
 		//Hull vertex.
 		if(memcmp(line, "v ", 2) == 0){
+			vec3 newVertex;
+			#ifdef COLLIDER_HULL_USE_VERTEX_WEIGHT
+			float newWeight;
+			#endif
+
 			//If we're out of space, allocate some more!
 			if(tempHull.numVertices >= tempVerticesCapacity){
 				tempVerticesCapacity = tempHull.numVertices * 2;
+				//Allocate room for the new vertex.
 				tempHull.vertices = memoryManagerGlobalRealloc(tempHull.vertices, tempVerticesCapacity * sizeof(*tempHull.vertices));
 				if(tempHull.vertices == NULL){
 					/** REALLOC FAILED **/
 				}
+				#ifdef COLLIDER_HULL_USE_VERTEX_WEIGHT
+				//Allocate room for the new weight.
+				vertexWeights = memoryManagerGlobalRealloc(vertexWeights, tempVerticesCapacity * sizeof(*vertexWeights));
+				if(vertexWeights == NULL){
+					/** REALLOC FAILED **/
+				}
+				#endif
 			}
 
 			//Read the vertex positions from the line!
-			tokPos = &line[2];
-			tempHull.vertices[tempHull.numVertices].x = strtod(tokPos, &tokPos);
-			tempHull.vertices[tempHull.numVertices].y = strtod(tokPos, &tokPos);
-			tempHull.vertices[tempHull.numVertices].z = strtod(tokPos, &tokPos);
-
-			//If everything was successful, make sure we don't overwrite them next time!
-			if(*tokPos != '\0'){
-				++tempHull.numVertices;
+			newVertex.x = strtod(&line[2], &tokPos);
+			newVertex.y = strtod(tokPos, &tokPos);
+			newVertex.z = strtod(tokPos, &tokPos);
+			#ifdef COLLIDER_HULL_USE_VERTEX_WEIGHT
+			newWeight = strtod(tokPos, &tokEnd);
+			//If no weight was specified, use the default value.
+			if(tokPos == tokEnd){
+				newWeight = COLLIDER_HULL_DEFAULT_VERTEX_WEIGHT;
 			}
+			totalWeighting += newWeight;
+			vertexWeights[tempHull.numVertices] = newWeight;
+			#endif
+
+			tempHull.vertices[tempHull.numVertices] = newVertex;
+			++tempHull.numVertices;
 
 		//Hull face.
 		}else if(memcmp(line, "f ", 2) == 0){
-			//
+			colliderVertexIndex_t startIndex;
+			colliderVertexIndex_t endIndex;
+
+			//Hulls store the maximum number of edges a face
+			//can have, so we'll need to count this face's
+			//edges to check if it's the new maximum.
+			colliderFaceIndex_t faceEdgeCount = 0;
+
+			colliderHullEdge *tempEdge;
+			//None of the new face's edges will be twins of each other,
+			//so we only need to loop through the ones we've loaded up
+			//until this point when we're searching for an edge's twin.
+			colliderEdgeIndex_t lastIndex = tempHull.numEdges;
+			//We also need to know the first edge's index
+			//so we can make the last edge point to it.
+			colliderEdgeIndex_t firstIndex = INVALID_VALUE(firstIndex);
+			//Keep the index of the last edge
+			colliderEdgeIndex_t prevIndex;
+			//This is the value of the first edge's start vertex.
+			//We can't just use the pointer above, as we don't
+			//know whether or not the first edge was a twin.
+			colliderVertexIndex_t firstEdgeStartIndex;
+			//We use these when calculating the normal.
+			colliderVertexIndex_t lastEdgeStartIndex;
+			colliderVertexIndex_t firstEdgeEndIndex;
+
+			vec3 AB;
+			vec3 *B;
+			vec3 BC;
+			vec3 curNormal;
+
+
+			tokPos = &line[2];
+			endIndex = strtoul(tokPos, &tokEnd, 10);
+
+
+			//Load all of this face's edges and add them to our collider!
+			while(tokPos != tokEnd){
+				colliderEdgeIndex_t twinIndex = 0;
+
+
+				//Move onto the next index.
+				tokPos = tokEnd;
+				++tokEnd;
+
+				startIndex = endIndex;
+				endIndex = strtoul(tokPos, &tokEnd, 10);
+				//If this is the last edge, the end index
+				//should be the first one's start index.
+				if(tokPos == tokEnd){
+					endIndex = firstEdgeStartIndex;
+					lastEdgeStartIndex = startIndex;
+				}
+
+				++faceEdgeCount;
+
+
+				tempEdge = tempHull.edges;
+				//Find this edge's twin if it exists.
+				while(twinIndex < lastIndex && (tempEdge->startVertexIndex != endIndex || tempEdge->endVertexIndex != startIndex)){
+					++tempEdge;
+					++twinIndex;
+				}
+
+				//If we were able to find a twin, set its properties.
+				if(twinIndex != lastIndex){
+					tempEdge->twinFaceIndex = tempHull.numFaces;
+
+					//If this is the first edge we've loaded,
+					//we'll need to keep a reference to it.
+					if(VALUE_IS_INVALID(firstIndex)){
+						firstIndex = twinIndex;
+						firstEdgeStartIndex = startIndex;
+						firstEdgeEndIndex = endIndex;
+
+					//Make sure the last edge we loaded points to this one.
+					}else{
+						tempEdge = &tempHull.edges[prevIndex];
+						//The value of "nextIndex" is always set before "twinNextIndex",
+						//so if it's unset we know that the previous edge was not a twin.
+						if(VALUE_IS_INVALID(tempEdge->nextIndex)){
+							tempEdge->nextIndex = twinIndex;
+						}else{
+							tempEdge->twinNextIndex = twinIndex;
+						}
+					}
+					prevIndex = twinIndex;
+
+				//Otherwise, create a new edge.
+				}else{
+					colliderHullEdge newEdge = {
+						.startVertexIndex = startIndex,
+						.endVertexIndex = endIndex,
+						.nextIndex = -1,
+						.faceIndex = tempHull.numFaces
+					};
+
+					//If we're out of space, allocate some more!
+					if(tempHull.numEdges >= tempEdgesCapacity){
+						tempEdgesCapacity = tempHull.numEdges * 2;
+						tempHull.edges = memoryManagerGlobalRealloc(tempHull.edges, tempEdgesCapacity * sizeof(*tempHull.edges));
+						if(tempHull.edges == NULL){
+							/** REALLOC FAILED **/
+						}
+					}
+
+					tempHull.edges[tempHull.numEdges] = newEdge;
+
+
+					//If this is the first edge we've loaded,
+					//we'll need to keep a reference to it.
+					if(VALUE_IS_INVALID(firstIndex)){
+						firstIndex = tempHull.numEdges;
+						firstEdgeStartIndex = startIndex;
+						firstEdgeEndIndex = endIndex;
+
+					//Make sure the last edge we loaded points to this one.
+					}else{
+						tempEdge = &tempHull.edges[prevIndex];
+						//The value of "nextIndex" is always set before "twinNextIndex",
+						//so if it's unset we know that the previous edge was not a twin.
+						if(VALUE_IS_INVALID(tempEdge->nextIndex)){
+							tempEdge->nextIndex = tempHull.numEdges;
+						}else{
+							tempEdge->twinNextIndex = tempHull.numEdges;
+						}
+					}
+					prevIndex = tempHull.numEdges;
+
+
+					++tempHull.numEdges;
+				}
+			}
+
+			//Make sure the last edge points to the first one.
+			tempEdge = &tempHull.edges[prevIndex];
+			//The value of "nextIndex" is always set before "twinNextIndex",
+			//so if it's unset we know that the previous edge was not a twin.
+			if(VALUE_IS_INVALID(tempEdge->nextIndex)){
+				tempEdge->nextIndex = firstIndex;
+			}else{
+				tempEdge->twinNextIndex = firstIndex;
+			}
+
+
+			//If we're out of space, allocate some more!
+			if(tempHull.numFaces >= tempFacesCapacity){
+				tempFacesCapacity = tempHull.numFaces * 2;
+				//Allocate room for the new normal.
+				tempHull.normals = memoryManagerGlobalRealloc(tempHull.normals, tempFacesCapacity * sizeof(*tempHull.normals));
+				if(tempHull.normals == NULL){
+					/** REALLOC FAILED **/
+				}
+				//Allocate room for the new face.
+				tempHull.faces = memoryManagerGlobalRealloc(tempHull.faces, tempFacesCapacity * sizeof(*tempHull.faces));
+				if(tempHull.faces == NULL){
+					/** REALLOC FAILED **/
+				}
+			}
+
+
+			B = &tempHull.vertices[firstEdgeStartIndex];
+			vec3SubtractVec3FromOut(B, &tempHull.vertices[lastEdgeStartIndex], &AB);
+			vec3SubtractVec3FromOut(&tempHull.vertices[firstEdgeEndIndex], B, &BC);
+			//Calculate the current face's normal.
+			vec3CrossVec3Out(&AB, &BC, &curNormal);
+			vec3NormalizeVec3Out(&curNormal, &tempHull.normals[tempHull.numFaces]);
+
+			//Store a reference to one of the edges on this face.
+			tempHull.faces[tempHull.numFaces] = firstIndex;
+
+			//If this face has more edges than any other we've
+			//loaded so far, keep track of its edge count.
+			if(faceEdgeCount > tempHull.maxFaceEdges){
+				tempHull.maxFaceEdges = faceEdgeCount;
+			}
+
+
+			++tempHull.numFaces;
 
 		//Hull end.
 		}else if(line[0] == '}'){
@@ -228,21 +429,56 @@ return_t colliderHullLoad(void *hull, FILE *hullFile){
 	}
 
 
-	return(success);
+	#ifdef COLLIDER_HULL_DEFAULT_VERTEX_WEIGHT
+	colliderHullGenerateCentroidWeighted(&tempHull, vertexWeights, centroid);
+	colliderHullGenerateInertiaWeighted(&tempHull, vertexWeights, inertia);
+	//Free the array of vertex weights.
+	memoryManagerGlobalFree(vertexWeights);
+	#else
+	colliderHullGenerateCentroid(&tempHull, centroid);
+	colliderHullGenerateInertia(&tempHull, inertia);
+	#endif
+
+	tempHull.centroid = *centroid;
+
+
+	//We'll never be adding to these arrays, so we
+	//can resize them to make sure space isn't wasted.
+	tempHull.vertices = memoryManagerGlobalResize(tempHull.vertices, tempHull.numVertices * sizeof(*tempHull.vertices));
+	if(tempHull.vertices == NULL){
+		/** REALLOC FAILED **/
+	}
+	tempHull.normals = memoryManagerGlobalResize(tempHull.normals, tempHull.numFaces * sizeof(*tempHull.normals));
+	if(tempHull.normals == NULL){
+		/** REALLOC FAILED **/
+	}
+	tempHull.faces = memoryManagerGlobalResize(tempHull.faces, tempHull.numFaces * sizeof(*tempHull.faces));
+	if(tempHull.faces == NULL){
+		/** REALLOC FAILED **/
+	}
+	tempHull.edges = memoryManagerGlobalResize(tempHull.edges, tempHull.numEdges * sizeof(*tempHull.edges));
+	if(tempHull.edges == NULL){
+		/** REALLOC FAILED **/
+	}
+
+	*((colliderHull *)hull) = tempHull;
+
+
+	return(1);
 }
 
 
 /*
-** Calculate the collider's centre of gravity. To
-** do this, we calculate the centroid of each of the
-** hull's triangles and then determine the average.
+** Calculate the collider's centre of gravity.
+** To do this, we calculate the average of the
+** hull's vertices.
 */
-void colliderHullGenerateCentroid(void *hull, vec3 *centroid){
-	const colliderVertexIndex_t numVertices = ((colliderHull *)hull)->numVertices;
+void colliderHullGenerateCentroid(const colliderHull *hull, vec3 *centroid){
+	const colliderVertexIndex_t numVertices = hull->numVertices;
 
 	//We don't want to divide by zero.
 	if(numVertices > 0){
-		const vec3 *curVertex = ((colliderHull *)hull)->vertices;
+		const vec3 *curVertex = hull->vertices;
 		const vec3 *lastVertex = &curVertex[numVertices];
 		vec3 newCentroid;
 		vec3InitZero(&newCentroid);
@@ -254,261 +490,48 @@ void colliderHullGenerateCentroid(void *hull, vec3 *centroid){
 		} while(curVertex < lastVertex);
 
 		vec3DivideBySOut(&newCentroid, numVertices, centroid);
-		((colliderHull *)hull)->centroid = *centroid;
 	}else{
-		memset(centroid, 0.f, sizeof(*centroid));
-		memset(&((colliderHull *)hull)->centroid, 0.f, sizeof(((colliderHull *)hull)->centroid));
-	}
-}
-
-/*
-** Calculate the weighted collider's centre of gravity.
-** To do this, we calculate the centroid of each of the
-** hull's triangles and then determine the average.
-*/
-void colliderHullGenerateCentroidWeighted(void *hull, const float *vertexMasses, vec3 *centroid){
-	const colliderVertexIndex_t numVertices = ((colliderHull *)hull)->numVertices;
-	const vec3 *curVertex = ((colliderHull *)hull)->vertices;
-	const vec3 *lastVertex = &curVertex[numVertices];
-	vec3 newCentroid;
-	float newMass;
-
-	vec3InitZero(&newCentroid);
-
-	//Add each vertex's contribution to the centroid.
-	for(; curVertex < lastVertex; ++curVertex, ++vertexMasses){
-		vec3 weightedVertex;
-		const float massValue = *vertexMasses;
-
-		vec3MultiplySOut(curVertex, massValue, &weightedVertex);
-		vec3AddVec3(&newCentroid, &weightedVertex);
-		newMass += massValue;
-	}
-
-	//We don't want to divide by zero.
-	if(newMass != 0.f){
-		vec3DivideBySOut(&newCentroid, newMass, centroid);
-		((colliderHull *)hull)->centroid = *centroid;
-	}else{
-		memset(centroid, 0.f, sizeof(*centroid));
-		memset(&((colliderHull *)hull)->centroid, 0.f, sizeof(((colliderHull *)hull)->centroid));
-	}
-}
-
-/*
-** Calculate the collider's centre of gravity. To
-** do this, we calculate the centroid of each of the
-** hull's triangles and then determine the average.
-** This function will also return the hull's mass.
-*/
-void colliderHullGenerateMassAndCentroid(void *hull, float *mass, float *invMass, vec3 *centroid){
-	const colliderVertexIndex_t numVertices = ((colliderHull *)hull)->numVertices;
-
-	//We don't want to divide by zero.
-	if(numVertices > 0){
-		const vec3 *curVertex = ((colliderHull *)hull)->vertices;
-		const vec3 *lastVertex = &curVertex[numVertices];
-		vec3 newCentroid;
-		float newMass;
-
-		vec3InitZero(&newCentroid);
-
-		//Add each vertex's contribution to the centroid.
-		for(; curVertex < lastVertex; ++curVertex){
-			vec3AddVec3(&newCentroid, curVertex);
-		}
-
-		//Use the number of vertices to find the total mass.
-		newMass = COLLIDER_HULL_DEFAULT_VERTEX_MASS * numVertices;
-		*mass = newMass;
-		*invMass = 1.f / newMass;
-
-		vec3DivideBySOut(&newCentroid, numVertices, centroid);
-		((colliderHull *)hull)->centroid = *centroid;
-	}else{
-		*mass = 0.f;
-		*invMass = 0.f;
-
-		memset(centroid, 0.f, sizeof(*centroid));
-		memset(&((colliderHull *)hull)->centroid, 0.f, sizeof(((colliderHull *)hull)->centroid));
-	}
-}
-
-/*
-** Calculate the weighted collider's centre of gravity.
-** To do this, we calculate the centroid of each of the
-** hull's triangles and then determine the average.
-** This function will also return the hull's mass.
-*/
-void colliderHullGenerateMassAndCentroidWeighted(void *hull, const float *vertexMasses, float *mass, float *invMass, vec3 *centroid){
-	const colliderVertexIndex_t numVertices = ((colliderHull *)hull)->numVertices;
-	const vec3 *curVertex = ((colliderHull *)hull)->vertices;
-	const vec3 *lastVertex = &curVertex[numVertices];
-	vec3 newCentroid;
-	float newMass;
-
-	vec3InitZero(&newCentroid);
-
-	//Add each vertex's contribution to the centroid.
-	for(; curVertex < lastVertex; ++curVertex, ++vertexMasses){
-		vec3 weightedVertex;
-		const float massValue = *vertexMasses;
-
-		vec3MultiplySOut(curVertex, massValue, &weightedVertex);
-		vec3AddVec3(&newCentroid, &weightedVertex);
-		newMass += massValue;
-	}
-
-	*mass = newMass;
-	//We don't want to divide by zero.
-	if(newMass != 0.f){
-		*invMass = 1.f / newMass;
-
-		vec3MultiplySOut(&newCentroid, *invMass, centroid);
-		((colliderHull *)hull)->centroid = *centroid;
-	}else{
-		*invMass = 0.f;
-
-		memset(centroid, 0.f, sizeof(*centroid));
-		memset(&((colliderHull *)hull)->centroid, 0.f, sizeof(((colliderHull *)hull)->centroid));
-	}
-}
-
-/*
-** Calculate the collider's centre of gravity. To
-** do this, we calculate the centroid of each of the
-** hull's triangles and then determine the average.
-** While this doesn't generate the collider's mass, it
-** should give a more accurate estimate of its centroid.
-*/
-void colliderHullGenerateCentroidAccurate(void *hull, vec3 *centroid){
-	const colliderFaceIndex_t numFaces = ((colliderHull *)hull)->numFaces;
-
-	//We don't want to divide by zero.
-	if(numFaces > 0){
-		const vec3 *hullVertices = ((colliderHull *)hull)->vertices;
-		const colliderHullEdge *hullEdges = ((colliderHull *)hull)->edges;
-
-		const colliderHullFace *curFace = ((colliderHull *)hull)->faces;
-		const colliderHullFace *lastFace = &curFace[numFaces];
-
-		vec3 newCentroid;
-		vec3InitZero(&newCentroid);
-
-		do {
-			const colliderHullEdge *curEdge = &hullEdges[*curFace];
-			const colliderHullEdge *startEdge = curEdge;
-			vec3 faceCentroid;
-
-			vec3InitZero(&faceCentroid);
-
-			//Calculate the current face's
-			//contribution to the centroid!
-			do {
-				//If this edge forms the current
-				//face, get the start vertex!
-				if(*curFace == curEdge->faceIndex){
-					vec3AddVec3(&faceCentroid, &hullVertices[curEdge->startVertexIndex]);
-					curEdge = &hullEdges[curEdge->nextIndex];
-
-				//If this edge's twin forms the current
-				//face, we should use the end vertex!
-				}else{
-					vec3AddVec3(&faceCentroid, &hullVertices[curEdge->endVertexIndex]);
-					curEdge = &hullEdges[curEdge->twinNextIndex];
-				}
-			} while(curEdge != startEdge);
-
-			//Add this face's contribution
-			//to the collider's centroid!
-			vec3MultiplyS(&faceCentroid, 1.f / 3.f);
-			vec3AddVec3(&newCentroid, &faceCentroid);
-		} while(curFace < lastFace);
-
-		vec3DivideBySOut(&newCentroid, numFaces * 3.f, centroid);
-		((colliderHull *)hull)->centroid = *centroid;
-	}else{
-		memset(centroid, 0.f, sizeof(*centroid));
-		memset(&((colliderHull *)hull)->centroid, 0.f, sizeof(((colliderHull *)hull)->centroid));
+		vec3InitZero(centroid);
 	}
 }
 
 /*
 ** Calculate the collider's weighted centre of gravity.
-** To do this, we calculate the centroid of each of the
-** hull's triangles and then determine the average.
-** While this doesn't generate the collider's mass, it
-** should give a more accurate estimate of its centroid.
+** To do this, we calculate the weighted average of the
+** hull's vertices.
 */
-void colliderHullGenerateCentroidAccurateWeighted(void *hull, const float *vertexMasses, vec3 *centroid){
-	const vec3 *hullVertices = ((colliderHull *)hull)->vertices;
-	const colliderHullEdge *hullEdges = ((colliderHull *)hull)->edges;
-
-	const colliderHullFace *curFace = ((colliderHull *)hull)->faces;
-	const colliderHullFace *lastFace = &curFace[((colliderHull *)hull)->numFaces];
-
+void colliderHullGenerateCentroidWeighted(const colliderHull *hull, const float *vertexWeights, vec3 *centroid){
+	const colliderVertexIndex_t numVertices = hull->numVertices;
+	const vec3 *curVertex = hull->vertices;
+	const vec3 *lastVertex = &curVertex[numVertices];
 	vec3 newCentroid;
-	float newMass = 0.f;
+	float totalWeight = 0.f;
 
 	vec3InitZero(&newCentroid);
 
-	for(; curFace < lastFace; ++curFace){
-		const colliderHullEdge *curEdge = &hullEdges[*curFace];
-		const colliderHullEdge *startEdge = curEdge;
-		vec3 faceCentroid;
-		float faceMass = 0.f;
+	//Add each vertex's contribution to the centroid.
+	for(; curVertex < lastVertex; ++curVertex, ++vertexWeights){
+		const float curWeight = *vertexWeights;
+		vec3 weightedVertex;
 
-		vec3InitZero(&faceCentroid);
-
-		//Calculate the current face's
-		//contribution to the centroid!
-		do {
-			vec3 curVertex;
-			float massValue;
-
-			//If this edge forms the current
-			//face, get the start vertex!
-			if(*curFace == curEdge->faceIndex){
-				curVertex = hullVertices[curEdge->startVertexIndex];
-				massValue = vertexMasses[curEdge->startVertexIndex];
-				curEdge = &hullEdges[curEdge->nextIndex];
-
-			//If this edge's twin forms the current
-			//face, we should use the end vertex!
-			}else{
-				curVertex = hullVertices[curEdge->endVertexIndex];
-				massValue = vertexMasses[curEdge->endVertexIndex];
-				curEdge = &hullEdges[curEdge->twinNextIndex];
-			}
-
-			//Add this vertex's contribution
-			//to the current face's centroid!
-			vec3MultiplyS(&curVertex, massValue);
-			vec3AddVec3(&faceCentroid, &curVertex);
-			faceMass += massValue;
-		} while(curEdge != startEdge);
-
-		//Add this face's contribution
-		//to the collider's centroid!
-		vec3DivideByS(&faceCentroid, faceMass);
-		vec3AddVec3(&newCentroid, &faceCentroid);
-		newMass += faceMass;
+		vec3MultiplySOut(curVertex, curWeight, &weightedVertex);
+		vec3AddVec3(&newCentroid, &weightedVertex);
+		totalWeight += curWeight;
 	}
 
 	//We don't want to divide by zero.
-	if(newMass != 0.f){
-		vec3DivideBySOut(&newCentroid, newMass, centroid);
-		((colliderHull *)hull)->centroid = *centroid;
+	if(totalWeight != 0.f){
+		vec3DivideBySOut(&newCentroid, totalWeight, centroid);
 	}else{
-		memset(centroid, 0.f, sizeof(*centroid));
-		memset(&((colliderHull *)hull)->centroid, 0.f, sizeof(((colliderHull *)hull)->centroid));
+		vec3InitZero(centroid);
 	}
 }
 
-//Calculate the collider's inertia tensor relative to "centroid".
-void colliderHullGenerateInertia(const void *hull, const vec3 *centroid, mat3 *inertia){
-	const vec3 *curVertex = ((colliderHull *)hull)->vertices;
-	const vec3 *lastVertex = &curVertex[((colliderHull *)hull)->numVertices];
+//Calculate the collider's inertia tensor.
+void colliderHullGenerateInertia(const colliderHull *hull, mat3 *inertia){
+	const vec3 *centroid = &hull->centroid;
+	const vec3 *curVertex = hull->vertices;
+	const vec3 *lastVertex = &curVertex[hull->numVertices];
 	float tempInertia[6];
 
 	memset(tempInertia, 0.f, sizeof(tempInertia));
@@ -545,35 +568,36 @@ void colliderHullGenerateInertia(const void *hull, const vec3 *centroid, mat3 *i
 }
 
 /*
-** Calculate the collider's weighted inertia tensor
-** relative to "centroid". Vertices with a greater mass
-** will have a greater contribution to the final tensor.
+** Calculate the collider's weighted inertia tensor.
+** Vertices with a greater weight value will have a
+** greater contribution to the final tensor.
 */
-void colliderHullGenerateInertiaWeighted(const void *hull, const vec3 *centroid, const float *vertexMasses, mat3 *inertia){
-	const vec3 *curVertex = ((colliderHull *)hull)->vertices;
-	const vec3 *lastVertex = &curVertex[((colliderHull *)hull)->numVertices];
+void colliderHullGenerateInertiaWeighted(const colliderHull *hull, const float *vertexWeights, mat3 *inertia){
+	const vec3 *centroid = &hull->centroid;
+	const vec3 *curVertex = hull->vertices;
+	const vec3 *lastVertex = &curVertex[hull->numVertices];
 	float tempInertia[6];
 
 	memset(tempInertia, 0.f, sizeof(tempInertia));
 
-	for(; curVertex < lastVertex; ++curVertex, ++vertexMasses){
+	for(; curVertex < lastVertex; ++curVertex, ++vertexWeights){
 		vec3 offset;
 		float xx;
 		float yy;
 		float zz;
-		const float massValue = *vertexMasses;
+		const float curWeight = *vertexWeights;
 
 		vec3SubtractVec3FromOut(curVertex, centroid, &offset);
 		xx = offset.x * offset.x;
 		yy = offset.y * offset.y;
 		zz = offset.z * offset.z;
 
-		tempInertia[0] += (yy + zz) * massValue;
-		tempInertia[1] += (xx + zz) * massValue;
-		tempInertia[2] += (xx + yy) * massValue;
-		tempInertia[3] -= offset.x * offset.y * massValue;
-		tempInertia[4] -= offset.x * offset.z * massValue;
-		tempInertia[5] -= offset.y * offset.z * massValue;
+		tempInertia[0] += (yy + zz) * curWeight;
+		tempInertia[1] += (xx + zz) * curWeight;
+		tempInertia[2] += (xx + yy) * curWeight;
+		tempInertia[3] -= offset.x * offset.y * curWeight;
+		tempInertia[4] -= offset.x * offset.z * curWeight;
+		tempInertia[5] -= offset.y * offset.z * curWeight;
 	}
 
 	inertia->m[0][0] = tempInertia[0];
@@ -645,7 +669,7 @@ void colliderHullUpdate(void *hull, const void *base, const transformState *tran
 		//The hull's faces have been rotated,
 		//so we need to rotate their normals.
 		for(; curFeature < lastFeature; ++curFeature, ++baseFeature){
-			quatApplyRotationFast(&trans->rot, baseFeature, curFeature);
+			quatRotateVec3Fast(&trans->rot, baseFeature, curFeature);
 		}
 
 
@@ -819,21 +843,58 @@ static return_t edgeSeparation(const colliderHull *hullA, const colliderHull *hu
 static void clipManifoldSHC(const colliderHull *hullA, const colliderHull *hullB, const collisionData *cd, contactManifold *cm){
 	const float bestFaceSeparation = maxNumFast(cd->faceA.separation, cd->faceB.separation);
 
-	//If the greatest separation occurs on
-	//an edge normal, clip using the edges.
-	if(cd->edgeData.separation > bestFaceSeparation){
+	//If the greatest separation occurs on an edge normal, clip using
+	//the edges. These bias terms will ensure that face contacts are
+	//preferred over edge contacts, which helps with frame coherence.
+	if(COLLISION_TOLERANCE_COEFFICIENT * cd->edgeData.separation > bestFaceSeparation + COLLISION_TOLERANCE_TERM){
 		clipEdgeContact(hullA, hullB, &cd->edgeData, cm);
 
 	//Otherwise, clip using whichever face has the
 	//greatest separation as the reference face.
 	}else{
-		if(cd->faceB.separation > COLLISION_TOLERANCE_COEFFICIENT * cd->faceA.separation + COLLISION_TOLERANCE_TERM){
+		//We use the bias terms again for the same reason as before.
+		if(COLLISION_TOLERANCE_COEFFICIENT * cd->faceB.separation > cd->faceA.separation + COLLISION_TOLERANCE_TERM){
+			//Use hull B for the reference face.
 			clipFaceContact(hullB, hullA, cd->faceB.index, CLIPPING_SWAPPED, cm);
-			//If the hulls were swapped, we'll
-			//need to invert the contact normal.
-			vec3Negate(&cm->normal);
+
+			//There's a rare chance that clipping will produce no contact points.
+			//In that case, we can either clip using the other hull for the
+			//reference face or treat the collision as an edge-edge contact.
+			if(cm->numContacts == 0){
+				if(cd->edgeData.separation > bestFaceSeparation){
+					clipEdgeContact(hullA, hullB, &cd->edgeData, cm);
+				}else{
+					//Use hull A for the reference face.
+					clipFaceContact(hullA, hullB, cd->faceA.index, CLIPPING_INORDER, cm);
+
+					//If there are still no contact points, just treat it as an edge
+					//contact. This will ensure we have at least one contact point.
+					if(cm->numContacts == 0){
+						clipEdgeContact(hullA, hullB, &cd->edgeData, cm);
+					}
+				}
+			}
 		}else{
+			//Use hull A for the reference face.
 			clipFaceContact(hullA, hullB, cd->faceA.index, CLIPPING_INORDER, cm);
+
+			//There's a rare chance that clipping will produce no contact points.
+			//In that case, we can either clip using the other hull for the
+			//reference face or treat the collision as an edge-edge contact.
+			if(cm->numContacts == 0){
+				if(cd->edgeData.separation > bestFaceSeparation){
+					clipEdgeContact(hullA, hullB, &cd->edgeData, cm);
+				}else{
+					//Use hull B for the reference face.
+					clipFaceContact(hullB, hullA, cd->faceB.index, CLIPPING_SWAPPED, cm);
+
+					//If there are still no contact points, just treat it as an edge
+					//contact. This will ensure we have at least one contact point.
+					if(cm->numContacts == 0){
+						clipEdgeContact(hullA, hullB, &cd->edgeData, cm);
+					}
+				}
+			}
 		}
 	}
 }
@@ -900,7 +961,7 @@ static float edgeDistSquared(const vec3 *pA, const vec3 *edgeDirA,
 	}
 
 
-	vec3MultiplyS(&edgeNormal, fastInvSqrt(edgeCrossLength));
+	vec3MultiplyS(&edgeNormal, fastInvSqrtAccurate(edgeCrossLength));
 	vec3SubtractVec3FromOut(pA, centroid, &offset);
 	//If the edge normal does not point from
 	//object A to object B, we need to invert it.
@@ -995,7 +1056,7 @@ static return_t noSeparatingEdge(const colliderHull *hullA, const colliderHull *
 
 	//We skip every second edge since
 	//it will be the last one's twin.
-	for(a = 0; edgeA < lastEdgeA; ++edgeA, a += 2){
+	for(a = 0; edgeA < lastEdgeA; ++edgeA, ++a){
 		colliderHullEdge *edgeB = hullB->edges;
 		const vec3 *startVertexA = &hullA->vertices[edgeA->startVertexIndex];
 		vec3 invEdgeA;
@@ -1004,7 +1065,7 @@ static return_t noSeparatingEdge(const colliderHull *hullA, const colliderHull *
 		//Get the inverse of edge 1's normal.
 		vec3SubtractVec3FromOut(startVertexA, &hullA->vertices[edgeA->endVertexIndex], &invEdgeA);
 
-		for(b = 0; edgeB < lastEdgeB; ++edgeB, b += 2){
+		for(b = 0; edgeB < lastEdgeB; ++edgeB, ++b){
 			const vec3 *startVertexB = &hullB->vertices[edgeB->startVertexIndex];
 			vec3 invEdgeB;
 			//Get the inverse of edge 2's normal
@@ -1072,7 +1133,9 @@ static colliderFaceIndex_t findIncidentFace(const colliderHull *hull, const vec3
 ** keeping the four points that form the polygon with
 ** the greatest total area.
 */
-static void reduceContacts(const vertexProject *vProj, const vertexProject *vLast, const vertexClip *vClip, contactManifold *cm){
+static void reduceContacts(const vertexProject *vProj, const vertexProject *vLast, const vertexClip *vClip,
+						   const vec3 *refNormal, const unsigned int swapped, contactManifold *cm){
+
 	//We start with our best and worst vertices as the
 	//first one so we can begin the loop on the second.
 	const vertexProject *bestProj = vProj;
@@ -1134,7 +1197,7 @@ static void reduceContacts(const vertexProject *vProj, const vertexProject *vLas
 	//The normal of the edge is the cross product of the reference
 	//face's normal and the difference between the edge's vertices.
 	//This works because every vertex lies on the reference face.
-	vec3CrossVec3Float(&cm->normal, worstProj->v.x - bestProj->v.x, worstProj->v.y - bestProj->v.y, worstProj->v.z - bestProj->v.z, &edgeNormal);
+	vec3CrossVec3Float(refNormal, worstProj->v.x - bestProj->v.x, worstProj->v.y - bestProj->v.y, worstProj->v.z - bestProj->v.z, &edgeNormal);
 
 	//Again, we start with our best and worst vertices as
 	//the first one so we can begin the loop on the second.
@@ -1171,16 +1234,52 @@ static void reduceContacts(const vertexProject *vProj, const vertexProject *vLas
 		}
 	}
 
-	//Add the points to our manifold.
-	curContact->key = bestClip->key;
-	curContact->pA = bestProj->v;
-	curContact->pB = bestClip->v;
-	curContact->separation = bestProj->dist;
-	++curContact;
-	curContact->key = worstClip->key;
-	curContact->pA = worstProj->v;
-	curContact->pB = worstClip->v;
-	curContact->separation = worstProj->dist;
+	//If the hulls were swapped before being passed into
+	//this function, we'll need to swap the key values.
+	if(swapped == CLIPPING_INORDER){
+		//Add the points to our manifold.
+		curContact->pA = bestProj->v;
+		curContact->pB = bestClip->v;
+		curContact->normal = *refNormal;
+		curContact->separation = bestProj->dist;
+		curContact->key = bestClip->key;
+		++curContact;
+		curContact->pA = worstProj->v;
+		curContact->pB = worstClip->v;
+		curContact->normal = *refNormal;
+		curContact->separation = worstProj->dist;
+		curContact->key = worstClip->key;
+
+	}else{
+		//Add the points to our manifold.
+		curContact->pA = bestProj->v;
+		curContact->pB = bestClip->v;
+		vec3NegateOut(refNormal, &curContact->normal);
+		curContact->separation = bestProj->dist;
+		#ifdef CONTACT_MANIFOLD_SIMPLE_KEYS
+		curContact->key.edgeA = bestClip->key.edgeB;
+		curContact->key.edgeB = bestClip->key.edgeA;
+		#else
+		curContact->key.inEdgeA  = bestClip->key.inEdgeB;
+		curContact->key.outEdgeA = bestClip->key.outEdgeB;
+		curContact->key.inEdgeB  = bestClip->key.inEdgeA;
+		curContact->key.outEdgeB = bestClip->key.outEdgeA;
+		#endif
+		++curContact;
+		curContact->pA = worstProj->v;
+		curContact->pB = worstClip->v;
+		vec3NegateOut(refNormal, &curContact->normal);
+		curContact->separation = worstProj->dist;
+		#ifdef CONTACT_MANIFOLD_SIMPLE_KEYS
+		curContact->key.edgeA = worstClip->key.edgeB;
+		curContact->key.edgeB = worstClip->key.edgeA;
+		#else
+		curContact->key.inEdgeA  = worstClip->key.inEdgeB;
+		curContact->key.outEdgeA = worstClip->key.outEdgeB;
+		curContact->key.inEdgeB  = worstClip->key.inEdgeA;
+		curContact->key.outEdgeB = worstClip->key.outEdgeA;
+		#endif
+	}
 
 
 	//We should now have only four contact points.
@@ -1194,11 +1293,7 @@ static void reduceContacts(const vertexProject *vProj, const vertexProject *vLas
 ** "hullA" and the incident face is always assumed to be on "hullB".
 */
 static void clipFaceContact(const colliderHull *hullA, const colliderHull *hullB, const colliderFaceIndex_t refIndex,
-#ifdef CLIPPING_KEYSWAP_USE_OFFSETS
-                            const size_t offset, contactManifold *cm){
-#else
-                            const byte_t swapped, contactManifold *cm){
-#endif
+                            const unsigned int swapped, contactManifold *cm){
 
 	//Meshes store the number of edges that their largest faces have,
 	//so we can use this to preallocate enough memory for any face.
@@ -1451,38 +1546,6 @@ static void clipFaceContact(const colliderHull *hullA, const colliderHull *hullB
 		//that it is within the clipping region.
 		curDist = pointPlaneDist(&curVertex->v, refVertex, &refNormal);
 		if(curDist <= 0.f){
-			//If the hulls were swapped before being passed into
-			//this function, we'll need to swap the key values.
-			#ifdef CLIPPING_KEYSWAP_USE_OFFSETS
-				#ifdef CONTACT_MANIFOLD_SIMPLE_KEYS
-			loopVertex->key.edgeA = clippingGetKeyEdgeA(curVertex->key, offset);
-			loopVertex->key.edgeB = clippingGetKeyEdgeB(curVertex->key, offset);
-				#else
-			loopVertex->key.inEdgeA  = clippingGetKeyInEdgeA(curVertex->key, offset);
-			loopVertex->key.outEdgeA = clippingGetKeyOutEdgeA(curVertex->key, offset);
-			loopVertex->key.inEdgeB  = clippingGetKeyInEdgeB(curVertex->key, offset);
-			loopVertex->key.outEdgeB = clippingGetKeyOutEdgeB(curVertex->key, offset);
-				#endif
-			#else
-				#ifdef CONTACT_MANIFOLD_SIMPLE_KEYS
-			if(swapped == CLIPPING_INORDER){
-				loopVertex->key = curVertex->key;
-			}else{
-				loopVertex->key.edgeA = curVertex->key.edgeB;
-				loopVertex->key.edgeB = curVertex->key.edgeA;
-			}
-				#else
-			if(swapped == CLIPPING_INORDER){
-				loopVertex->key = curVertex->key;
-			}else{
-				loopVertex->key.inEdgeA  = curVertex->key.inEdgeB;
-				loopVertex->key.outEdgeA = curVertex->key.outEdgeB;
-				loopVertex->key.inEdgeB  = curVertex->key.inEdgeA;
-				loopVertex->key.outEdgeB = curVertex->key.outEdgeA;
-			}
-				#endif
-			#endif
-
 			loopVertex->v = curVertex->v;
 			++loopVertex;
 			//Project the vertex onto the reference
@@ -1509,10 +1572,32 @@ static void clipFaceContact(const colliderHull *hullA, const colliderHull *hullB
 		curVertex = loopVertices;
 		//Add out contact points to the manifold.
 		for(; curVertex < loopVertex; ++curVertex, ++clipVertex.p, ++curContact){
-			curContact->key = curVertex->key;
 			curContact->pA = clipVertex.p->v;
 			curContact->pB = curVertex->v;
+			curContact->normal = refNormal;
 			curContact->separation = clipVertex.p->dist;
+
+			//If the hulls were swapped before being passed into
+			//this function, we'll need to swap the key values.
+			if(swapped == CLIPPING_INORDER){
+				curContact->key = curVertex->key;
+
+				curContact->normal = refNormal;
+			}else{
+				#ifdef CONTACT_MANIFOLD_SIMPLE_KEYS
+				curContact->key.edgeA = curVertex->key.edgeB;
+				curContact->key.edgeB = curVertex->key.edgeA;
+
+				vec3NegateOut(&refNormal, &curContact->normal);
+				#else
+				curContact->key.inEdgeA  = curVertex->key.inEdgeB;
+				curContact->key.outEdgeA = curVertex->key.outEdgeB;
+				curContact->key.inEdgeB  = curVertex->key.inEdgeA;
+				curContact->key.outEdgeB = curVertex->key.outEdgeA;
+
+				vec3NegateOut(&refNormal, &curContact->normal);
+				#endif
+			}
 
 			++cm->numContacts;
 		}
@@ -1520,13 +1605,8 @@ static void clipFaceContact(const colliderHull *hullA, const colliderHull *hullB
 	//If there are more than four vertices, we'll
 	//need to perform contact point reduction.
 	}else{
-		reduceContacts(clipVertices.p, clipVertex.p, loopVertices, cm);
+		reduceContacts(clipVertices.p, clipVertex.p, loopVertices, &refNormal, swapped, cm);
 	}
-
-
-	//Store the contact normal. If the hulls were swapped before being
-	//passed in, this normal will be inverted outside this function.
-	cm->normal = refNormal;
 
 
 	memoryManagerGlobalFree(vertices);
@@ -1570,6 +1650,7 @@ static void clipEdgeContact(const colliderHull *hullA, const colliderHull *hullB
 	};
 
 	contactPoint *contact = &cm->contacts[0];
+	vec3 normal;
 
 
 	//The edges may not necessarily be intersecting, so we'll
@@ -1607,13 +1688,14 @@ static void clipEdgeContact(const colliderHull *hullA, const colliderHull *hullB
 
 	//Find the collision's normal. We use the
 	//cross product of the two intersecting edges.
-	vec3CrossVec3Out(&ref, &inc, &cm->normal);
-	vec3NormalizeVec3(&cm->normal);
+	vec3CrossVec3Out(&ref, &inc, &normal);
+	vec3NormalizeVec3(&normal);
 	//We'll need to make sure the normal roughly
 	//points from body A to body B, too.
-	if(vec3DotVec3(&cm->normal, &normalDir) < 0.f){
-		vec3Negate(&cm->normal);
+	if(vec3DotVec3(&normal, &normalDir) < 0.f){
+		vec3Negate(&normal);
 	}
+	contact->normal = normal;
 
 
 	cm->numContacts = 1;

@@ -52,7 +52,7 @@ return_t programInit(program *prg){
 	cameraInit(&prg->cam);
 	cameraStateSetPos(prg->cam.states[0], 0.f, 0.f, 5.f);
 
-	fpsInit(&prg->framerate, UPDATE_RATE, FRAME_RATE);
+	timestepInit(&prg->step, UPDATE_RATE, FRAME_RATE);
 
 
 	if(initLibs(prg) && setupModules() == MODULE_SETUP_SUCCESS){
@@ -80,23 +80,23 @@ void programLoop(program *prg){
 			input(prg);
 			update(prg);
 
-			nextUpdate += prg->framerate.updateTime;
+			nextUpdate += prg->step.updateTime;
 			++updates;
 		}
 
 		//Make sure we don't exceed our framerate cap!
-		if(prg->framerate.renderRate <= 0.f || (startTime = SDL_GetTicks()) >= nextRender){
+		if(prg->step.renderRate <= 0.f || (startTime = SDL_GetTicks()) >= nextRender){
 			//Determine the interpolation period for when we render the scene!
-			prg->framerate.renderDelta = (startTime - (nextUpdate - prg->framerate.updateTime)) / prg->framerate.updateTime;
-			if(prg->framerate.renderDelta < 0.f){
-				prg->framerate.renderDelta = 0.f;
-			}else if(prg->framerate.renderDelta > 1.f){
-				prg->framerate.renderDelta = 1.f;
+			prg->step.renderDelta = (startTime - (nextUpdate - prg->step.updateTime)) * prg->step.updateTickrate;
+			if(prg->step.renderDelta < 0.f){
+				prg->step.renderDelta = 0.f;
+			}else if(prg->step.renderDelta > 1.f){
+				prg->step.renderDelta = 1.f;
 			}
 
 			render(prg);
 
-			nextRender += prg->framerate.renderTime;
+			nextRender += prg->step.renderTime;
 			/** We use this block to stop it from exceeding the framerate if   **/
 			/** there was a lag spike. Unfortunately, it misbehaves with very  **/
 			/** high framerates. We should be able to fix this by using a high **/
@@ -193,24 +193,24 @@ static void updateCameras(program *prg){
 	//If our camera exists, react to the user's input and move it!
 	if(prg->cam.states[0] != NULL){
 		if(prg->keyStates[SDL_SCANCODE_LEFT]){
-			cameraStateAddPosX(prg->cam.states[0], -0.25f, prg->framerate.updateDelta);
+			cameraStateAddPosX(prg->cam.states[0], -0.25f, prg->step.updateTickrate);
 		}
 		if(prg->keyStates[SDL_SCANCODE_RIGHT]){
-			cameraStateAddPosX(prg->cam.states[0], 0.25f, prg->framerate.updateDelta);
+			cameraStateAddPosX(prg->cam.states[0], 0.25f, prg->step.updateTickrate);
 		}
 
 		if(prg->keyStates[SDL_SCANCODE_UP]){
-			cameraStateAddPosY(prg->cam.states[0], 0.25f, prg->framerate.updateDelta);
+			cameraStateAddPosY(prg->cam.states[0], 0.25f, prg->step.updateTickrate);
 		}
 		if(prg->keyStates[SDL_SCANCODE_DOWN]){
-			cameraStateAddPosY(prg->cam.states[0], -0.25f, prg->framerate.updateDelta);
+			cameraStateAddPosY(prg->cam.states[0], -0.25f, prg->step.updateTickrate);
 		}
 
 		if(prg->keyStates[SDL_SCANCODE_W]){
-			cameraStateAddPosZ(prg->cam.states[0], -0.25f, prg->framerate.updateDelta);
+			cameraStateAddPosZ(prg->cam.states[0], -0.25f, prg->step.updateTickrate);
 		}
 		if(prg->keyStates[SDL_SCANCODE_S]){
-			cameraStateAddPosZ(prg->cam.states[0], 0.25f, prg->framerate.updateDelta);
+			cameraStateAddPosZ(prg->cam.states[0], 0.25f, prg->step.updateTickrate);
 		}
 	}
 }
@@ -224,14 +224,14 @@ static void updateRenderObjects(program *prg){
 
 		renderObjState *currentState = (renderObjState *)currentObj->states[0];
 		if(currentState != NULL){
-			texGroupAnimInstUpdateAnim(&currentState->texGroup, prg->framerate.updateTime);
+			texGroupAnimInstUpdateAnim(&currentState->texGroup, prg->step.updateTime);
 
 			if(currentState->skeleObj->numAnims > 0){
 				skeletonAnimInst *curAnim = currentState->skeleObj->anims;
 				skeletonAnimInst *lastAnim = &curAnim[currentState->skeleObj->numAnims];
 				//Update all of the animations!
 				do {
-					skeleAnimInstUpdate((skeleAnimState *)curAnim->states[0], prg->framerate.updateTime);
+					skeleAnimInstUpdate((skeleAnimState *)curAnim->states[0], prg->step.updateTime);
 				} while(curAnim < lastAnim);
 
 				//Merge all of the animations!
@@ -248,10 +248,10 @@ static void updateRenderObjects(program *prg){
 	/** Temporary if statement for temporary code. Don't want the program to crash, do we? **/
 	/*if(allRenderObjects.size > 2){
 		renderObjState *currentObj = ((renderObject *)vectorGet(&allRenderObjects, 1))->states[0];
-		interpTransAddRotEulerDeg(&currentObj->transform, 0.f, 0.f, 2.f, prg->framerate.updateDelta);
+		interpTransAddRotEulerDeg(&currentObj->transform, 0.f, 0.f, 2.f, prg->step.updateTickrate);
 
 		currentObj = ((renderObject *)vectorGet(&allRenderObjects, 2))->states[0];
-		interpTransAddRotEulerDeg(&currentObj->transform, 2.f, 2.f, 2.f, prg->framerate.updateDelta);
+		interpTransAddRotEulerDeg(&currentObj->transform, 2.f, 2.f, 2.f, prg->step.updateTickrate);
 	}*/
 }
 
@@ -272,20 +272,20 @@ static void render(program *prg){
 		vec3InitZero(&target);
 		vec3InitSet(&up, 0.f, 1.f, 0.f);
 		vec3 camPos;
-		interpVec3GenRenderState(&((cameraState *)prg->cam.states[renderState])->pos, prg->framerate.renderDelta, &camPos);
+		interpVec3GenRenderState(&((cameraState *)prg->cam.states[renderState])->pos, prg->step.renderDelta, &camPos);
 		//Generate a view matrix that looks from the camera to target!
 		mat4LookAt(&viewMatrix, &camPos, &target, &up);
 		//Multiply it by the projection matrix!
 		mat4MultiplyByMat4Out(prg->projectionMatrix, viewMatrix, &viewProjectionMatrix);
 		/*mat4 viewProjectionMatrix = prg->projectionMatrix;
-		cameraStateGenerateViewMatrix((cameraState *)prg->cam.states[renderState], prg->framerate.renderDelta, &viewProjectionMatrix);*/
+		cameraStateGenerateViewMatrix((cameraState *)prg->cam.states[renderState], prg->step.renderDelta, &viewProjectionMatrix);*/
 
 		/*size_t i;
 		//Draw our objects!
 		for(i = 0; i < allRenderObjects.size; ++i){
 			renderObject *currentObj = (renderObject *)vectorGet(&allRenderObjects, i);
 			if(renderState < currentObj->numStates && currentObj->states[renderState] != NULL){
-				renderObjStateDraw(currentObj->states[renderState], NULL, &viewProjectionMatrix, &prg->shaderProgram, prg->framerate.renderDelta);
+				renderObjStateDraw(currentObj->states[renderState], NULL, &viewProjectionMatrix, &prg->shaderProgram, prg->step.renderDelta);
 			}
 		}*/
 	}
