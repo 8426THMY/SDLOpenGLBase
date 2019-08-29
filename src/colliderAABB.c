@@ -50,28 +50,28 @@ void colliderAABBCombine(const colliderAABB *aabbA, const colliderAABB *aabbB, c
 }
 
 
-//Return the volume of an axis-aligned bounding box.
+// Return the volume of an axis-aligned bounding box.
 float colliderAABBVolume(const colliderAABB *aabb){
 	vec3 v;
-	//The bounding box is axis-aligned, so this
-	//will calculate the lengths of its sides.
+	// The bounding box is axis-aligned, so this
+	// will calculate the lengths of its sides.
 	vec3SubtractVec3FromOut(&aabb->min, &aabb->max, &v);
 
-	//Now we can just multiply the
-	//lengths to find the volume.
+	// Now we can just multiply the
+	// lengths to find the volume.
 	return(v.x * v.y * v.z);
 }
 
-//Return the surface area of an axis-aligned bounding box.
+// Return the surface area of an axis-aligned bounding box.
 float colliderAABBSurfaceArea(const colliderAABB *aabb){
 	vec3 v;
-	//The bounding box is axis-aligned, so this
-	//will calculate the lengths of its sides.
+	// The bounding box is axis-aligned, so this
+	// will calculate the lengths of its sides.
 	vec3SubtractVec3FromOut(&aabb->min, &aabb->max, &v);
 
-	//Optimised surface area calculation.
-	//Instead of "2.f * (x * y + x * z + y * z)",
-	//we can use "2.f * (x * (y + z) + y * z)".
+	// Optimised surface area calculation.
+	// Instead of "2.f * (x * y + x * z + y * z)",
+	// we can use "2.f * (x * (y + z) + y * z)".
     return(2.f * (v.x * (v.y + v.z) + v.y * v.z));
 }
 
@@ -82,13 +82,13 @@ float colliderAABBSurfaceArea(const colliderAABB *aabb){
 */
 float colliderAABBSurfaceAreaHalf(const colliderAABB *aabb){
 	vec3 v;
-	//The bounding box is axis-aligned, so this
-	//will calculate the lengths of its sides.
+	// The bounding box is axis-aligned, so this
+	// will calculate the lengths of its sides.
 	vec3SubtractVec3FromOut(&aabb->min, &aabb->max, &v);
 
-	//Optimised surface area calculation.
-	//Instead of "x * y + x * z + y * z",
-	//we can use "x * (y + z) + y * z".
+	// Optimised surface area calculation.
+	// Instead of "x * y + x * z + y * z",
+	// we can use "x * (y + z) + y * z".
     return(v.x * (v.y + v.z) + v.y * v.z);
 }
 

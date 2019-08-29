@@ -7,12 +7,12 @@
 #include "utilMath.h"
 
 
-//Initialize the vec4's values to 0!
+// Initialize the vec4's values to 0!
 void vec4InitZero(vec4 *v){
 	memset(v, 0.f, sizeof(*v));
 }
 
-//Initialize the vec4's values to 0!
+// Initialize the vec4's values to 0!
 vec4 vec4InitZeroR(){
 	vec4 v;
 	memset(&v, 0.f, sizeof(v));
@@ -20,7 +20,7 @@ vec4 vec4InitZeroR(){
 	return(v);
 }
 
-//Initialize the vec4's values using a vec3!
+// Initialize the vec4's values using a vec3!
 void vec4InitVec3(vec4 *v1, const vec3 *v2, const float w){
 	v1->x = v1->x;
 	v1->y = v1->y;
@@ -28,7 +28,7 @@ void vec4InitVec3(vec4 *v1, const vec3 *v2, const float w){
 	v1->w = w;
 }
 
-//Initialize the vec4's values using a vec3!
+// Initialize the vec4's values using a vec3!
 vec4 vec4InitVec3R(vec4 v1, const vec3 v2, const float w){
 	v1.x = v1.x;
 	v1.y = v1.y;
@@ -38,7 +38,7 @@ vec4 vec4InitVec3R(vec4 v1, const vec3 v2, const float w){
 	return(v1);
 }
 
-//Initialize the vec4's values to the ones specified!
+// Initialize the vec4's values to the ones specified!
 void vec4InitSet(vec4 *v, const float x, const float y, const float z, const float w){
 	v->x = x;
 	v->y = y;
@@ -46,7 +46,7 @@ void vec4InitSet(vec4 *v, const float x, const float y, const float z, const flo
 	v->w = w;
 }
 
-//Initialize the vec4's values to the ones specified!
+// Initialize the vec4's values to the ones specified!
 vec4 vec4InitSetR(vec4 v, const float x, const float y, const float z, const float w){
 	v.x = x;
 	v.y = y;
@@ -57,7 +57,7 @@ vec4 vec4InitSetR(vec4 v, const float x, const float y, const float z, const flo
 }
 
 
-//Add a vec4 stored as four floats to "v"!
+// Add a vec4 stored as four floats to "v"!
 void vec4Add(vec4 *v, const float x, const float y, const float z, const float w){
 	v->x += x;
 	v->y += y;
@@ -65,7 +65,7 @@ void vec4Add(vec4 *v, const float x, const float y, const float z, const float w
 	v->w += w;
 }
 
-//Add a vec4 stored as four floats to "v" and store the result in "out"!
+// Add a vec4 stored as four floats to "v" and store the result in "out"!
 void vec4AddOut(const vec4 *v, const float x, const float y, const float z, const float w, vec4 *out){
 	out->x = v->x + x;
 	out->y = v->y + y;
@@ -73,7 +73,7 @@ void vec4AddOut(const vec4 *v, const float x, const float y, const float z, cons
 	out->w = v->w + w;
 }
 
-//Add a vec4 stored as four floats to "v"!
+// Add a vec4 stored as four floats to "v"!
 vec4 vec4AddR(vec4 v, const float x, const float y, const float z, const float w){
 	v.x += x;
 	v.y += y;
@@ -83,7 +83,7 @@ vec4 vec4AddR(vec4 v, const float x, const float y, const float z, const float w
 	return(v);
 }
 
-//Add "x" to "v"!
+// Add "x" to "v"!
 void vec4AddS(vec4 *v, const float x){
 	v->x += x;
 	v->y += x;
@@ -91,7 +91,7 @@ void vec4AddS(vec4 *v, const float x){
 	v->w += x;
 }
 
-//Add "x" to "v" and store the result in "out"!
+// Add "x" to "v" and store the result in "out"!
 void vec4AddSOut(const vec4 *v, const float x, vec4 *out){
 	out->x = v->x + x;
 	out->y = v->y + x;
@@ -99,7 +99,7 @@ void vec4AddSOut(const vec4 *v, const float x, vec4 *out){
 	out->w = v->w + x;
 }
 
-//Add "x" to "v"!
+// Add "x" to "v"!
 vec4 vec4AddSR(vec4 v, const float x){
 	v.x += x;
 	v.y += x;
@@ -109,7 +109,7 @@ vec4 vec4AddSR(vec4 v, const float x){
 	return(v);
 }
 
-//Add "v2" to "v1"!
+// Add "v2" to "v1"!
 void vec4AddVec4(vec4 *v1, const vec4 *v2){
 	v1->x += v2->x;
 	v1->y += v2->y;
@@ -117,7 +117,7 @@ void vec4AddVec4(vec4 *v1, const vec4 *v2){
 	v1->w += v2->w;
 }
 
-//Add "v2" to "v1" and store the result in "out"!
+// Add "v2" to "v1" and store the result in "out"!
 void vec4AddVec4Out(const vec4 *v1, const vec4 *v2, vec4 *out){
 	out->x = v1->x + v2->x;
 	out->y = v1->y + v2->y;
@@ -125,7 +125,7 @@ void vec4AddVec4Out(const vec4 *v1, const vec4 *v2, vec4 *out){
 	out->w = v1->w + v2->w;
 }
 
-//Add "v2" to "v1"!
+// Add "v2" to "v1"!
 vec4 vec4AddVec4R(vec4 v1, const vec4 v2){
 	v1.x += v2.x;
 	v1.y += v2.y;
@@ -135,7 +135,7 @@ vec4 vec4AddVec4R(vec4 v1, const vec4 v2){
 	return(v1);
 }
 
-//Subtract a vec4 stored as four floats from "v"!
+// Subtract a vec4 stored as four floats from "v"!
 void vec4Subtract(vec4 *v, const float x, const float y, const float z, const float w){
 	v->x -= x;
 	v->y -= y;
@@ -143,7 +143,7 @@ void vec4Subtract(vec4 *v, const float x, const float y, const float z, const fl
 	v->w -= w;
 }
 
-//Subtract a vec4 stored as four floats from "v" and store the result in "out"!
+// Subtract a vec4 stored as four floats from "v" and store the result in "out"!
 void vec4SubtractOut(const vec4 *v, const float x, const float y, const float z, const float w, vec4 *out){
 	out->x = v->x - x;
 	out->y = v->y - y;
@@ -151,7 +151,7 @@ void vec4SubtractOut(const vec4 *v, const float x, const float y, const float z,
 	out->w = v->w - w;
 }
 
-//Subtract a vec4 stored as four floats from "v"!
+// Subtract a vec4 stored as four floats from "v"!
 vec4 vec4SubtractR(vec4 v, const float x, const float y, const float z, const float w){
 	v.x -= x;
 	v.y -= y;
@@ -161,7 +161,7 @@ vec4 vec4SubtractR(vec4 v, const float x, const float y, const float z, const fl
 	return(v);
 }
 
-//Subtract "v" from a vec4 stored as four floats!
+// Subtract "v" from a vec4 stored as four floats!
 void vec4SubtractFrom(vec4 *v, const float x, const float y, const float z, const float w){
 	v->x = x - v->x;
 	v->y = y - v->y;
@@ -169,7 +169,7 @@ void vec4SubtractFrom(vec4 *v, const float x, const float y, const float z, cons
 	v->w = w - v->w;
 }
 
-//Subtract "v" from a vec4 stored as four floats and store the result in "out"!
+// Subtract "v" from a vec4 stored as four floats and store the result in "out"!
 void vec4SubtractFromOut(const vec4 *v, const float x, const float y, const float z, const float w, vec4 *out){
 	out->x = x - v->x;
 	out->y = y - v->y;
@@ -177,7 +177,7 @@ void vec4SubtractFromOut(const vec4 *v, const float x, const float y, const floa
 	out->w = w - v->w;
 }
 
-//Subtract "v" from a vec4 stored as four floats!
+// Subtract "v" from a vec4 stored as four floats!
 vec4 vec4SubtractFromR(vec4 v, const float x, const float y, const float z, const float w){
 	v.x = x - v.x;
 	v.y = y - v.y;
@@ -187,7 +187,7 @@ vec4 vec4SubtractFromR(vec4 v, const float x, const float y, const float z, cons
 	return(v);
 }
 
-//Subtract "x" from "v"!
+// Subtract "x" from "v"!
 void vec4SubtractSFrom(vec4 *v, const float x){
 	v->x -= x;
 	v->y -= x;
@@ -195,7 +195,7 @@ void vec4SubtractSFrom(vec4 *v, const float x){
 	v->w -= x;
 }
 
-//Subtract "x" from "v" and store the result in "out"!
+// Subtract "x" from "v" and store the result in "out"!
 void vec4SubtractSFromOut(const vec4 *v, const float x, vec4 *out){
 	out->x = v->x - x;
 	out->y = v->y - x;
@@ -203,7 +203,7 @@ void vec4SubtractSFromOut(const vec4 *v, const float x, vec4 *out){
 	out->w = v->w - x;
 }
 
-//Subtract "x" from "v"!
+// Subtract "x" from "v"!
 vec4 vec4SubtractSFromR(vec4 v, const float x){
 	v.x -= x;
 	v.y -= x;
@@ -213,7 +213,7 @@ vec4 vec4SubtractSFromR(vec4 v, const float x){
 	return(v);
 }
 
-//Subtract "v" from "x"!
+// Subtract "v" from "x"!
 void vec4SubtractFromS(vec4 *v, const float x){
 	v->x = x - v->x;
 	v->y = x - v->y;
@@ -221,7 +221,7 @@ void vec4SubtractFromS(vec4 *v, const float x){
 	v->w = x - v->w;
 }
 
-//Subtract "v" from "x" and store the result in "out"!
+// Subtract "v" from "x" and store the result in "out"!
 void vec4SubtractFromSOut(const vec4 *v, const float x, vec4 *out){
 	out->x = x - v->x;
 	out->y = x - v->y;
@@ -229,7 +229,7 @@ void vec4SubtractFromSOut(const vec4 *v, const float x, vec4 *out){
 	out->w = x - v->w;
 }
 
-//Subtract "v" from "x"!
+// Subtract "v" from "x"!
 vec4 vec4SubtractFromSR(vec4 v, const float x){
 	v.x = x - v.x;
 	v.y = x - v.y;
@@ -239,7 +239,7 @@ vec4 vec4SubtractFromSR(vec4 v, const float x){
 	return(v);
 }
 
-//Subtract "v2" from "v1"!
+// Subtract "v2" from "v1"!
 void vec4SubtractVec4From(vec4 *v1, const vec4 *v2){
 	v1->x -= v2->x;
 	v1->y -= v2->y;
@@ -247,7 +247,7 @@ void vec4SubtractVec4From(vec4 *v1, const vec4 *v2){
 	v1->w -= v2->w;
 }
 
-//Subtract "v1" from "v2"!
+// Subtract "v1" from "v2"!
 void vec4SubtractFromVec4(vec4 *v1, const vec4 *v2){
 	v1->x = v2->x - v1->x;
 	v1->y = v2->y - v1->y;
@@ -255,7 +255,7 @@ void vec4SubtractFromVec4(vec4 *v1, const vec4 *v2){
 	v1->w = v2->w - v1->w;
 }
 
-//Subtract "v2" from "v1" and store the result in "out"!
+// Subtract "v2" from "v1" and store the result in "out"!
 void vec4SubtractVec4FromOut(const vec4 *v1, const vec4 *v2, vec4 *out){
 	out->x = v1->x - v2->x;
 	out->y = v1->y - v2->y;
@@ -263,7 +263,7 @@ void vec4SubtractVec4FromOut(const vec4 *v1, const vec4 *v2, vec4 *out){
 	out->w = v1->w - v2->w;
 }
 
-//Subtract "v2" from "v1"!
+// Subtract "v2" from "v1"!
 vec4 vec4SubtractVec4FromR(vec4 v1, const vec4 v2){
 	v1.x -= v2.x;
 	v1.y -= v2.y;
@@ -274,7 +274,7 @@ vec4 vec4SubtractVec4FromR(vec4 v1, const vec4 v2){
 }
 
 
-//Multiply "v" by "x"!
+// Multiply "v" by "x"!
 void vec4MultiplyS(vec4 *v, const float x){
 	v->x *= x;
 	v->y *= x;
@@ -282,7 +282,7 @@ void vec4MultiplyS(vec4 *v, const float x){
 	v->w *= x;
 }
 
-//Multiply "v" by "x" and store the result in "out"!
+// Multiply "v" by "x" and store the result in "out"!
 void vec4MultiplySOut(const vec4 *v, const float x, vec4 *out){
 	out->x = v->x * x;
 	out->y = v->y * x;
@@ -290,7 +290,7 @@ void vec4MultiplySOut(const vec4 *v, const float x, vec4 *out){
 	out->w = v->w * x;
 }
 
-//Multiply "v" by "x"!
+// Multiply "v" by "x"!
 vec4 vec4MultiplySR(vec4 v, const float x){
 	v.x *= x;
 	v.y *= x;
@@ -300,7 +300,7 @@ vec4 vec4MultiplySR(vec4 v, const float x){
 	return(v);
 }
 
-//Multiply "v1" by "v2"!
+// Multiply "v1" by "v2"!
 void vec4MultiplyVec4(vec4 *v1, const vec4 *v2){
 	v1->x *= v2->x;
 	v1->y *= v2->y;
@@ -308,7 +308,7 @@ void vec4MultiplyVec4(vec4 *v1, const vec4 *v2){
 	v1->w *= v2->w;
 }
 
-//Multiply "v1" by "v2" and store the result in "out"!
+// Multiply "v1" by "v2" and store the result in "out"!
 void vec4MultiplyVec4Out(const vec4 *v1, const vec4 *v2, vec4 *out){
 	out->x = v1->x * v2->x;
 	out->y = v1->y * v2->y;
@@ -316,7 +316,7 @@ void vec4MultiplyVec4Out(const vec4 *v1, const vec4 *v2, vec4 *out){
 	out->w = v1->w * v2->w;
 }
 
-//Multiply "v1" by "v2"!
+// Multiply "v1" by "v2"!
 vec4 vec4MultiplyVec4R(vec4 v1, const vec4 v2){
 	v1.x *= v2.x;
 	v1.y *= v2.y;
@@ -326,7 +326,7 @@ vec4 vec4MultiplyVec4R(vec4 v1, const vec4 v2){
 	return(v1);
 }
 
-//Divide "v" by "x"!
+// Divide "v" by "x"!
 void vec4DivideByS(vec4 *v, const float x){
 	const float invX = 1.f / x;
 
@@ -336,7 +336,7 @@ void vec4DivideByS(vec4 *v, const float x){
 	v->w *= invX;
 }
 
-//Divide "v" by "x" and store the result in "out"!
+// Divide "v" by "x" and store the result in "out"!
 void vec4DivideBySOut(const vec4 *v, const float x, vec4 *out){
 	const float invX = 1.f / x;
 
@@ -346,7 +346,7 @@ void vec4DivideBySOut(const vec4 *v, const float x, vec4 *out){
 	out->w = v->w * invX;
 }
 
-//Divide "v" by "x"!
+// Divide "v" by "x"!
 vec4 vec4DivideBySR(vec4 v, const float x){
 	const float invX = 1.f / x;
 
@@ -358,7 +358,7 @@ vec4 vec4DivideBySR(vec4 v, const float x){
 	return(v);
 }
 
-//Divide "x" by "v"!
+// Divide "x" by "v"!
 void vec4DivideSBy(vec4 *v, const float x){
 	v->x = (v->x != 0.f) ? x / v->x : 0.f;
 	v->y = (v->y != 0.f) ? x / v->y : 0.f;
@@ -366,7 +366,7 @@ void vec4DivideSBy(vec4 *v, const float x){
 	v->w = (v->w != 0.f) ? x / v->w : 0.f;
 }
 
-//Divide "x" by "v" and store the result in "out"!
+// Divide "x" by "v" and store the result in "out"!
 void vec4DivideSByOut(const vec4 *v, const float x, vec4 *out){
 	out->x = (v->x != 0.f) ? x / v->x : 0.f;
 	out->y = (v->y != 0.f) ? x / v->y : 0.f;
@@ -374,7 +374,7 @@ void vec4DivideSByOut(const vec4 *v, const float x, vec4 *out){
 	out->w = (v->w != 0.f) ? x / v->w : 0.f;
 }
 
-//Divide "x" by "v"!
+// Divide "x" by "v"!
 vec4 vec4DivideSByR(vec4 v, const float x){
 	v.x = (v.x != 0.f) ? x / v.x : 0.f;
 	v.y = (v.y != 0.f) ? x / v.y : 0.f;
@@ -420,7 +420,7 @@ vec4 vec4DivideSByFastR(vec4 v, const float x){
 	return(v);
 }
 
-//Divide "v" by "v"!
+// Divide "v" by "v"!
 void vec4DivideByVec4(vec4 *v1, const vec4 *v2){
 	v1->x = (v2->x != 0.f) ? v1->x / v2->x : 0.f;
 	v1->y = (v2->y != 0.f) ? v1->y / v2->y : 0.f;
@@ -428,7 +428,7 @@ void vec4DivideByVec4(vec4 *v1, const vec4 *v2){
 	v1->w = (v2->w != 0.f) ? v1->w / v2->w : 0.f;
 }
 
-//Divide "v2" by "v1"!
+// Divide "v2" by "v1"!
 void vec4DivideVec4By(vec4 *v1, const vec4 *v2){
 	v1->x = (v1->x != 0.f) ? v2->x / v1->x : 0.f;
 	v1->y = (v1->y != 0.f) ? v2->y / v1->y : 0.f;
@@ -436,7 +436,7 @@ void vec4DivideVec4By(vec4 *v1, const vec4 *v2){
 	v1->w = (v1->w != 0.f) ? v2->w / v1->w : 0.f;
 }
 
-//Divide "v1" by "v2" and store the result in "out"!
+// Divide "v1" by "v2" and store the result in "out"!
 void vec4DivideByVec4Out(const vec4 *v1, const vec4 *v2, vec4 *out){
 	out->x = (v2->x != 0.f) ? v1->x / v2->x : 0.f;
 	out->y = (v2->y != 0.f) ? v1->y / v2->y : 0.f;
@@ -444,7 +444,7 @@ void vec4DivideByVec4Out(const vec4 *v1, const vec4 *v2, vec4 *out){
 	out->w = (v2->w != 0.f) ? v1->w / v2->w : 0.f;
 }
 
-//Divide "v1" by "v2"!
+// Divide "v1" by "v2"!
 vec4 vec4DivideByVec4R(vec4 v1, const vec4 v2){
 	v1.x = (v2.x != 0.f) ? v1.x / v2.x : 0.f;
 	v1.y = (v2.y != 0.f) ? v1.y / v2.y : 0.f;
@@ -502,84 +502,84 @@ vec4 vec4DivideByVec4FastR(vec4 v1, const vec4 v2){
 }
 
 
-//Find the magnitude (length) of a vec4 stored as four floats!
+// Find the magnitude (length) of a vec4 stored as four floats!
 float vec4Magnitude(const float x, const float y, const float z, const float w){
 	return(sqrtf(vec4Norm(x, y, z, w)));
 }
 
-//Find the magnitude (length) of a vec4!
+// Find the magnitude (length) of a vec4!
 float vec4MagnitudeVec4(const vec4 *v){
 	return(sqrtf(v->x * v->x + v->y * v->y + v->z * v->z + v->w * v->w));
 }
 
-//Find the magnitude (length) of a vec4!
+// Find the magnitude (length) of a vec4!
 float vec4MagnitudeVec4R(const vec4 v){
 	return(sqrtf(v.x * v.x + v.y * v.y + v.z * v.z + v.w * v.w));
 }
 
-//Find the distance between a vec4 and one stored as four floats!
+// Find the distance between a vec4 and one stored as four floats!
 float vec4DistanceSquared(const vec4 *v, const float x, const float y, const float z, const float w){
 	return(vec4Norm(x - v->x, y - v->y, z - v->z, w - v->w));
 }
 
-//Find the distance between a vec4 and one stored as four floats!
+// Find the distance between a vec4 and one stored as four floats!
 float vec4DistanceSquaredR(const vec4 v, const float x, const float y, const float z, const float w){
 	return(vec4Norm(x - v.x, y - v.y, z - v.z, w - v.w));
 }
 
-//Find the distance between two vec4s!
+// Find the distance between two vec4s!
 float vec4DistanceSquaredVec4(const vec4 *v1, const vec4 *v2){
 	return(vec4Norm(v2->x - v1->x, v2->y - v1->y, v2->z - v1->z, v2->w - v1->w));
 }
 
-//Find the distance between two vec4s!
+// Find the distance between two vec4s!
 float vec4DistanceSquaredVec4R(const vec4 v1, const vec4 v2){
 	return(vec4Norm(v2.x - v1.x, v2.y - v1.y, v2.z - v1.z, v2.w - v1.w));
 }
 
 
-//Find the dot product of two vec4s stored as four floats!
+// Find the dot product of two vec4s stored as four floats!
 float vec4Dot(const float x1, const float y1, const float z1, const float w1, const float x2, const float y2, const float z2, const float w2){
 	return(x1 * x2 + y1 * y2 + z1 * z2 + w1 * w2);
 }
 
-//Find the dot product of a vec4 and one stored as four floats!
+// Find the dot product of a vec4 and one stored as four floats!
 float vec4DotVec4Float(const vec4 *v, const float x, const float y, const float z, const float w){
 	return(v->x * x + v->y * y + v->z * z + v->w * w);
 }
 
-//Find the dot product of a vec4 and one stored as four floats!
+// Find the dot product of a vec4 and one stored as four floats!
 float vec4DotVec4FloatR(const vec4 v, const float x, const float y, const float z, const float w){
 	return(v.x * x + v.y * y + v.z * z + v.w * w);
 }
 
-//Find the dot product of two vec4s!
+// Find the dot product of two vec4s!
 float vec4DotVec4(const vec4 *v1, const vec4 *v2){
 	return(v1->x * v2->x + v1->y * v2->y + v1->z * v2->z + v1->w * v2->w);
 }
 
-//Find the dot product of two vec4s!
+// Find the dot product of two vec4s!
 float vec4DotVec4R(const vec4 v1, const vec4 v2){
 	return(v1.x * v2.x + v1.y * v2.y + v1.z * v2.z + v1.w * v2.w);
 }
 
-//Find the norm of a vec4 stored as four floats!
+// Find the norm of a vec4 stored as four floats!
 float vec4Norm(const float x, const float y, const float z, const float w){
 	return(x * x + y * y + z * z + w * w);
 }
 
-//Find the norm of a vec4!
+// Find the norm of a vec4!
 float vec4NormVec4(const vec4 *v){
 	return(v->x * v->x + v->y * v->y + v->z * v->z + v->w * v->w);
 }
 
-//Find the norm of a vec4!
+// Find the norm of a vec4!
 float vec4NormVec4R(const vec4 v){
 	return(v.x * v.x + v.y * v.y + v.z * v.z + v.w * v.w);
 }
 
 
-//Normalize a vec4 stored as four floats and store the result in "out"!
+// Normalize a vec4 stored as four floats and store the result in "out"!
 void vec4Normalize(const float x, const float y, const float z, const float w, vec4 *out){
 	const float magnitude = fastInvSqrtAccurate(x * x + y * y + z * z + w * w);
 
@@ -589,7 +589,7 @@ void vec4Normalize(const float x, const float y, const float z, const float w, v
 	out->w = w * magnitude;
 }
 
-//Normalize a vec4 stored as four floats and store the result in "out"!
+// Normalize a vec4 stored as four floats and store the result in "out"!
 void vec4NormalizeFast(const float x, const float y, const float z, const float w, vec4 *out){
 	const float magnitude = fastInvSqrt(x * x + y * y + z * z + w * w);
 
@@ -599,7 +599,7 @@ void vec4NormalizeFast(const float x, const float y, const float z, const float 
 	out->w = w * magnitude;
 }
 
-//Normalize a vec4 stored as four floats!
+// Normalize a vec4 stored as four floats!
 vec4 vec4NormalizeR(const float x, const float y, const float z, const float w){
 	const float magnitude = fastInvSqrtAccurate(x * x + y * y + z * z + w * w);
 	vec4 v;
@@ -612,7 +612,7 @@ vec4 vec4NormalizeR(const float x, const float y, const float z, const float w){
 	return(v);
 }
 
-//Normalize a vec4 stored as four floats!
+// Normalize a vec4 stored as four floats!
 vec4 vec4NormalizeRFast(const float x, const float y, const float z, const float w){
 	const float magnitude = fastInvSqrt(x * x + y * y + z * z + w * w);
 	vec4 v;
@@ -625,7 +625,7 @@ vec4 vec4NormalizeRFast(const float x, const float y, const float z, const float
 	return(v);
 }
 
-//Normalize a vec4!
+// Normalize a vec4!
 void vec4NormalizeVec4(vec4 *v){
 	const float magnitude = fastInvSqrtAccurate(v->x * v->x + v->y * v->y + v->z * v->z + v->w * v->w);
 
@@ -635,7 +635,7 @@ void vec4NormalizeVec4(vec4 *v){
 	v->w *= magnitude;
 }
 
-//Normalize a vec4!
+// Normalize a vec4!
 void vec4NormalizeVec4Fast(vec4 *v){
 	const float magnitude = fastInvSqrt(v->x * v->x + v->y * v->y + v->z * v->z + v->w * v->w);
 
@@ -645,7 +645,7 @@ void vec4NormalizeVec4Fast(vec4 *v){
 	v->w *= magnitude;
 }
 
-//Normalize a vec4 and store the result in "out"!
+// Normalize a vec4 and store the result in "out"!
 void vec4NormalizeVec4Out(const vec4 *v, vec4 *out){
 	const float magnitude = fastInvSqrtAccurate(v->x * v->x + v->y * v->y + v->z * v->z + v->w * v->w);
 
@@ -655,7 +655,7 @@ void vec4NormalizeVec4Out(const vec4 *v, vec4 *out){
 	out->w = v->w * magnitude;
 }
 
-//Normalize a vec4 and store the result in "out"!
+// Normalize a vec4 and store the result in "out"!
 void vec4NormalizeVec4OutFast(const vec4 *v, vec4 *out){
 	const float magnitude = fastInvSqrt(v->x * v->x + v->y * v->y + v->z * v->z + v->w * v->w);
 
@@ -665,7 +665,7 @@ void vec4NormalizeVec4OutFast(const vec4 *v, vec4 *out){
 	out->w = v->w * magnitude;
 }
 
-//Normalize a vec4!
+// Normalize a vec4!
 vec4 vec4NormalizeVec4R(vec4 v){
 	const float magnitude = fastInvSqrtAccurate(v.x * v.x + v.y * v.y + v.z * v.z + v.w * v.w);
 
@@ -677,7 +677,7 @@ vec4 vec4NormalizeVec4R(vec4 v){
 	return(v);
 }
 
-//Normalize a vec4!
+// Normalize a vec4!
 vec4 vec4NormalizeVec4RFast(vec4 v){
 	const float magnitude = fastInvSqrt(v.x * v.x + v.y * v.y + v.z * v.z + v.w * v.w);
 
@@ -689,7 +689,7 @@ vec4 vec4NormalizeVec4RFast(vec4 v){
 	return(v);
 }
 
-//Negate the values of a vec4!
+// Negate the values of a vec4!
 void vec4Negate(vec4 *v){
 	v->x = -v->x;
 	v->y = -v->y;
@@ -697,7 +697,7 @@ void vec4Negate(vec4 *v){
 	v->w = -v->w;
 }
 
-//Negate the values of a vec4 and store the result in "out"!
+// Negate the values of a vec4 and store the result in "out"!
 void vec4NegateOut(const vec4 *v, vec4 *out){
 	out->x = -v->x;
 	out->y = -v->y;
@@ -705,7 +705,7 @@ void vec4NegateOut(const vec4 *v, vec4 *out){
 	out->w = -v->w;
 }
 
-//Negate the values of a vec4!
+// Negate the values of a vec4!
 vec4 vec4NegateR(vec4 v){
 	v.x = -v.x;
 	v.y = -v.y;
@@ -716,7 +716,7 @@ vec4 vec4NegateR(vec4 v){
 }
 
 
-//Convert a vec4 from degrees to radians!
+// Convert a vec4 from degrees to radians!
 void vec4DegToRad(vec4 *v){
 	v->x *= DEG_TO_RAD;
 	v->y *= DEG_TO_RAD;
@@ -724,7 +724,7 @@ void vec4DegToRad(vec4 *v){
 	v->w *= DEG_TO_RAD;
 }
 
-//Convert a vec4 from radians to degrees!
+// Convert a vec4 from radians to degrees!
 void vec4RadToDeg(vec4 *v){
 	v->x *= RAD_TO_DEG;
 	v->y *= RAD_TO_DEG;
@@ -733,7 +733,7 @@ void vec4RadToDeg(vec4 *v){
 }
 
 
-//Perform linear interpolation between two vec4s and store the result in "out"!
+// Perform linear interpolation between two vec4s and store the result in "out"!
 void vec4Lerp(const vec4 *v1, const vec4 *v2, const float time, vec4 *out){
 	out->x = lerpNum(v1->x, v2->x, time);
 	out->y = lerpNum(v1->y, v2->y, time);
@@ -741,7 +741,7 @@ void vec4Lerp(const vec4 *v1, const vec4 *v2, const float time, vec4 *out){
 	out->w = lerpNum(v1->w, v2->w, time);
 }
 
-//Perform linear interpolation between two vec4s!
+// Perform linear interpolation between two vec4s!
 vec4 vec4LerpR(vec4 v1, const vec4 v2, const float time){
 	v1.x = lerpNum(v1.x, v2.x, time);
 	v1.y = lerpNum(v1.y, v2.y, time);

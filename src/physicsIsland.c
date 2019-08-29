@@ -43,22 +43,22 @@ void physIslandQueryCollisions(physicsIsland *island, const float dt){
 	physicsCollider *collider;
 
 	while(node != NULL){
-		//Update all of the current collider's separations and contacts.
+		// Update all of the current collider's separations and contacts.
 		aabbTreeQueryCollisionsStack(&island->tree, node, &physColliderCollisionCallback);
 
 		collider = (physicsCollider *)node->data.leaf.userData;
 		node = node->data.leaf.next;
 
-		//Remove any separations and contacts that are now inactive.
+		// Remove any separations and contacts that are now inactive.
 		physColliderUpdateSeparations(collider);
-		//For valid contacts, we also need to compute the
-		//new presolve information for each contact point.
+		// For valid contacts, we also need to compute the
+		// new presolve information for each contact point.
 		physColliderUpdateContacts(collider, dt);
 	}
 }
 
 
-//Free every node in a physics island's tree.
+// Free every node in a physics island's tree.
 void physIslandDelete(physicsIsland *island){
 	aabbTreeTraverse(&island->tree, &modulePhysicsAABBNodeFree);
 }

@@ -22,8 +22,9 @@ typedef struct model {
 	GLuint vertexBufferID;
 	GLuint indexBufferID;
 	GLuint vertexArrayID;
-	size_t totalIndices;
+	size_t numIndices;
 
+	#warning "This should be a pointer."
 	skeleton skele;
 	textureGroup *texGroup;
 } model;

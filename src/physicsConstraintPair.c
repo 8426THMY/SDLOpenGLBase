@@ -6,7 +6,7 @@
 #include "physicsCollider.h"
 
 
-//Initialise a separation pair from a separation.
+// Initialise a separation pair from a separation.
 void physSeparationPairInit(physicsSeparationPair *pair, const contactSeparation *separation,
                             physicsCollider *cA, physicsCollider *cB,
                             physicsSeparationPair *prev, physicsSeparationPair *next){
@@ -17,15 +17,15 @@ void physSeparationPairInit(physicsSeparationPair *pair, const contactSeparation
 	pair->cA = cA;
 	pair->cB = cB;
 
-	//Make the previous pair in collider A's
-	//linked list point to the new one.
+	// Make the previous pair in collider A's
+	// linked list point to the new one.
 	if(prev != NULL){
 		prev->nextA = pair;
 	}else{
 		cA->separations = pair;
 	}
-	//Make the next pair in collider A's
-	//linked list point to the new one.
+	// Make the next pair in collider A's
+	// linked list point to the new one.
 	if(next != NULL){
 		if(cA == next->cA){
 			next->prevA = pair;
@@ -33,41 +33,41 @@ void physSeparationPairInit(physicsSeparationPair *pair, const contactSeparation
 			next->prevB = pair;
 		}
 	}
-	//Set the new pair's list
-	//pointers for collider A.
+	// Set the new pair's list
+	// pointers for collider A.
 	pair->prevA = prev;
 	pair->nextA = next;
 
 	prev = NULL;
 	next = cB->separations;
-	//Find the position in collider B's list
-	//where this pair should be inserted.
-	//We insert it after the last pair
-	//whose first collider is collider B.
+	// Find the position in collider B's list
+	// where this pair should be inserted.
+	// We insert it after the last pair
+	// whose first collider is collider B.
 	while(next != NULL && cB == next->cA){
 		prev = next;
 		next = next->nextA;
 	}
 
-	//Make the previous pair in collider B's
-	//linked list point to the new one.
+	// Make the previous pair in collider B's
+	// linked list point to the new one.
 	if(prev != NULL){
 		prev->nextA = pair;
 	}else{
 		cA->separations = pair;
 	}
-	//Make the next pair in collider B's
-	//linked list point to the new one.
+	// Make the next pair in collider B's
+	// linked list point to the new one.
 	if(next != NULL){
 		next->prevB = pair;
 	}
-	//Set the new pair's list
-	//pointers for collider B.
+	// Set the new pair's list
+	// pointers for collider B.
 	pair->prevB = prev;
 	pair->nextB = next;
 }
 
-//Initialise a contact pair from a manifold.
+// Initialise a contact pair from a manifold.
 void physContactPairInit(physicsContactPair *pair, const contactManifold *manifold,
                          physicsCollider *cA, physicsCollider *cB,
                          physicsContactPair *prev, physicsContactPair *next){
@@ -78,15 +78,15 @@ void physContactPairInit(physicsContactPair *pair, const contactManifold *manifo
 	pair->cA = cA;
 	pair->cB = cB;
 
-	//Make the previous pair in collider A's
-	//linked list point to the new one.
+	// Make the previous pair in collider A's
+	// linked list point to the new one.
 	if(prev != NULL){
 		prev->nextA = pair;
 	}else{
 		cA->contacts = pair;
 	}
-	//Make the next pair in collider A's
-	//linked list point to the new one.
+	// Make the next pair in collider A's
+	// linked list point to the new one.
 	if(next != NULL){
 		if(cA == next->cA){
 			next->prevA = pair;
@@ -94,41 +94,41 @@ void physContactPairInit(physicsContactPair *pair, const contactManifold *manifo
 			next->prevB = pair;
 		}
 	}
-	//Set the new pair's list
-	//pointers for collider A.
+	// Set the new pair's list
+	// pointers for collider A.
 	pair->prevA = prev;
 	pair->nextA = next;
 
 	prev = NULL;
 	next = cB->contacts;
-	//Find the position in collider B's list
-	//where this pair should be inserted.
-	//We insert it after the last pair
-	//whose first collider is collider B.
+	// Find the position in collider B's list
+	// where this pair should be inserted.
+	// We insert it after the last pair
+	// whose first collider is collider B.
 	while(next != NULL && cB == next->cA){
 		prev = next;
 		next = next->nextA;
 	}
 
-	//Make the previous pair in collider B's
-	//linked list point to the new one.
+	// Make the previous pair in collider B's
+	// linked list point to the new one.
 	if(prev != NULL){
 		prev->nextA = pair;
 	}else{
 		cA->contacts = pair;
 	}
-	//Make the next pair in collider B's
-	//linked list point to the new one.
+	// Make the next pair in collider B's
+	// linked list point to the new one.
 	if(next != NULL){
 		next->prevB = pair;
 	}
-	//Set the new pair's list
-	//pointers for collider B.
+	// Set the new pair's list
+	// pointers for collider B.
 	pair->prevB = prev;
 	pair->nextB = next;
 }
 
-//Initialise a joint pair from a joint.
+// Initialise a joint pair from a joint.
 void physJointPairInit(physicsJointPair *pair,
                        physicsCollider *cA, physicsCollider *cB,
                        physicsJointPair *prev, physicsJointPair *next){
@@ -136,15 +136,15 @@ void physJointPairInit(physicsJointPair *pair,
 	pair->cA = cA;
 	pair->cB = cB;
 
-	//Make the previous pair in collider A's
-	//linked list point to the new one.
+	// Make the previous pair in collider A's
+	// linked list point to the new one.
 	if(prev != NULL){
 		prev->nextA = pair;
 	}else{
 		cA->joints = pair;
 	}
-	//Make the next pair in collider A's
-	//linked list point to the new one.
+	// Make the next pair in collider A's
+	// linked list point to the new one.
 	if(next != NULL){
 		if(cA == next->cA){
 			next->prevA = pair;
@@ -152,36 +152,36 @@ void physJointPairInit(physicsJointPair *pair,
 			next->prevB = pair;
 		}
 	}
-	//Set the new pair's list
-	//pointers for collider A.
+	// Set the new pair's list
+	// pointers for collider A.
 	pair->prevA = prev;
 	pair->nextA = next;
 
 	prev = NULL;
 	next = cB->joints;
-	//Find the position in collider B's list
-	//where this pair should be inserted.
-	//We insert it after the last pair
-	//whose first collider is collider B.
+	// Find the position in collider B's list
+	// where this pair should be inserted.
+	// We insert it after the last pair
+	// whose first collider is collider B.
 	while(next != NULL && cB == next->cA){
 		prev = next;
 		next = next->nextA;
 	}
 
-	//Make the previous pair in collider B's
-	//linked list point to the new one.
+	// Make the previous pair in collider B's
+	// linked list point to the new one.
 	if(prev != NULL){
 		prev->nextA = pair;
 	}else{
 		cA->joints = pair;
 	}
-	//Make the next pair in collider B's
-	//linked list point to the new one.
+	// Make the next pair in collider B's
+	// linked list point to the new one.
 	if(next != NULL){
 		next->prevB = pair;
 	}
-	//Set the new pair's list
-	//pointers for collider B.
+	// Set the new pair's list
+	// pointers for collider B.
 	pair->prevB = prev;
 	pair->nextB = next;
 }
@@ -194,18 +194,18 @@ void physJointPairInit(physicsJointPair *pair,
 void physSeparationPairDelete(physicsSeparationPair *pair){
 	physicsSeparationPair *nextPair = pair->nextA;
 	physicsSeparationPair *prevPair = pair->prevA;
-	//The next pair in collider A's list
-	//should point to the previous one.
+	// The next pair in collider A's list
+	// should point to the previous one.
 	if(nextPair != NULL){
-		//Make sure we set the right pointer.
+		// Make sure we set the right pointer.
 		if(nextPair->cA == pair->cA){
 			nextPair->prevA = prevPair;
 		}else{
 			nextPair->prevB = prevPair;
 		}
 	}
-	//The previous pair in collider A's
-	//list should point to the next one.
+	// The previous pair in collider A's
+	// list should point to the next one.
 	if(prevPair != NULL){
 		if(prevPair->cA == pair->cA){
 			prevPair->nextA = nextPair;
@@ -213,15 +213,15 @@ void physSeparationPairDelete(physicsSeparationPair *pair){
 			prevPair->nextB = nextPair;
 		}
 
-	//If it's the first pair in the list,
-	//update the collider's list pointer.
+	// If it's the first pair in the list,
+	// update the collider's list pointer.
 	}else{
 		pair->cA->separations = nextPair;
 	}
 
 	nextPair = pair->nextB;
 	prevPair = pair->prevB;
-	//Do the same again but for collider B.
+	// Do the same again but for collider B.
 	if(nextPair != NULL){
 		if(nextPair->cB == pair->cB){
 			nextPair->prevB = prevPair;
@@ -247,18 +247,18 @@ void physSeparationPairDelete(physicsSeparationPair *pair){
 void physContactPairDelete(physicsContactPair *pair){
 	physicsContactPair *nextPair = pair->nextA;
 	physicsContactPair *prevPair = pair->prevA;
-	//The next pair in collider A's list
-	//should point to the previous one.
+	// The next pair in collider A's list
+	// should point to the previous one.
 	if(nextPair != NULL){
-		//Make sure we set the right pointer.
+		// Make sure we set the right pointer.
 		if(nextPair->cA == pair->cA){
 			nextPair->prevA = prevPair;
 		}else{
 			nextPair->prevB = prevPair;
 		}
 	}
-	//The previous pair in collider A's
-	//list should point to the next one.
+	// The previous pair in collider A's
+	// list should point to the next one.
 	if(prevPair != NULL){
 		if(prevPair->cA == pair->cA){
 			prevPair->nextA = nextPair;
@@ -266,15 +266,15 @@ void physContactPairDelete(physicsContactPair *pair){
 			prevPair->nextB = nextPair;
 		}
 
-	//If it's the first pair in the list,
-	//update the collider's list pointer.
+	// If it's the first pair in the list,
+	// update the collider's list pointer.
 	}else{
 		pair->cA->contacts = nextPair;
 	}
 
 	nextPair = pair->nextB;
 	prevPair = pair->prevB;
-	//Do the same again but for collider B.
+	// Do the same again but for collider B.
 	if(nextPair != NULL){
 		if(nextPair->cB == pair->cB){
 			nextPair->prevB = prevPair;
@@ -300,18 +300,18 @@ void physContactPairDelete(physicsContactPair *pair){
 void physJointPairDelete(physicsJointPair *pair){
 	physicsJointPair *nextPair = pair->nextA;
 	physicsJointPair *prevPair = pair->prevA;
-	//The next pair in collider A's list
-	//should point to the previous one.
+	// The next pair in collider A's list
+	// should point to the previous one.
 	if(nextPair != NULL){
-		//Make sure we set the right pointer.
+		// Make sure we set the right pointer.
 		if(nextPair->cA == pair->cA){
 			nextPair->prevA = prevPair;
 		}else{
 			nextPair->prevB = prevPair;
 		}
 	}
-	//The previous pair in collider A's
-	//list should point to the next one.
+	// The previous pair in collider A's
+	// list should point to the next one.
 	if(prevPair != NULL){
 		if(prevPair->cA == pair->cA){
 			prevPair->nextA = nextPair;
@@ -319,15 +319,15 @@ void physJointPairDelete(physicsJointPair *pair){
 			prevPair->nextB = nextPair;
 		}
 
-	//If it's the first pair in the list,
-	//update the collider's list pointer.
+	// If it's the first pair in the list,
+	// update the collider's list pointer.
 	}else{
 		pair->cA->joints = nextPair;
 	}
 
 	nextPair = pair->nextB;
 	prevPair = pair->prevB;
-	//Do the same again but for collider B.
+	// Do the same again but for collider B.
 	if(nextPair != NULL){
 		if(nextPair->cB == pair->cB){
 			nextPair->prevB = prevPair;

@@ -12,8 +12,8 @@
 #include "physicsCollider.h"
 
 
-//If we're using non-linear Gauss-Seidel stabilisation
-//anywhere, we'll need to define some additional functions.
+// If we're using non-linear Gauss-Seidel stabilisation
+// anywhere, we'll need to define some additional functions.
 #if \
 	defined PHYSCONTACT_STABILISER_GAUSS_SEIDEL        || defined PHYSJOINTDISTANCE_STABILISER_GAUSS_SEIDEL || \
 	defined PHYSJOINTFIXED_STABILISER_GAUSS_SEIDEL     || defined PHYSJOINTREVOLUTE_STABILISER_GAUSS_SEIDEL || \
@@ -24,40 +24,40 @@
 
 
 typedef struct physicsRigidBodyDef {
-	//Singly linked list of colliders used by this rigid body.
+	// Singly linked list of colliders used by this rigid body.
 	physicsCollider *colliders;
 
-	//The rigid body's physical properties.
+	// The rigid body's physical properties.
 	float mass;
 	float invMass;
 
 	vec3 centroid;
-	//Matrix that describes how the body
-	//resists rotation around an axis.
+	// Matrix that describes how the body
+	// resists rotation around an axis.
 	mat3 invInertia;
 } physicsRigidBodyDef;
 
-//Rigid body instance.
+// Rigid body instance.
 typedef struct physicsRigidBody {
-	//Singly linked list of colliders used by this rigid body.
+	// Singly linked list of colliders used by this rigid body.
 	physicsCollider *colliders;
 
 	float mass;
 	float invMass;
 
-	//We need to keep the local versions
-	//for when we add new colliders.
+	// We need to keep the local versions
+	// for when we add new colliders.
 	vec3 centroidLocal;
 	vec3 centroidGlobal;
 	mat3 invInertiaLocal;
 	mat3 invInertiaGlobal;
 
-	//Defines the body's spacial configuration.
-	//The position stored here should not be
-	//confused with the rigid body's centroid!
+	// Defines the body's spacial configuration.
+	// The position stored here should not be
+	// confused with the rigid body's centroid!
 	transformState transform;
 
-	//Defines the body's physical configuration.
+	// Defines the body's physical configuration.
 	vec3 linearVelocity;
 	vec3 angularVelocity;
 	vec3 netForce;

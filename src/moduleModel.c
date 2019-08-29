@@ -8,9 +8,9 @@ memoryPool modelManager;
 
 
 return_t moduleModelSetup(){
-	//The module's setup will be successful if we
-	//can allocate enough memory for our manager
-	//and the error object can be setup correctly.
+	// The module's setup will be successful if we
+	// can allocate enough memory for our manager
+	// and the error object can be setup correctly.
 	return(
 		memPoolInit(
 			&modelManager,
@@ -27,19 +27,18 @@ void moduleModelCleanup(){
 }
 
 
-//Allocate memory for a model
-//and return a handle to it.
+// Allocate memory for a model and return a handle to it.
 model *moduleModelAlloc(){
 	return(memPoolAlloc(&modelManager));
 }
 
-//Free a model that has been allocated.
+// Free a model that has been allocated.
 void moduleModelFree(model *mdl){
 	modelDelete(mdl);
 	memPoolFree(&modelManager, mdl);
 }
 
-//Delete every model in the manager.
+// Delete every model in the manager.
 void moduleModelClear(){
 	MEMPOOL_LOOP_BEGIN(modelManager, i, model *)
 		moduleModelFree(i);

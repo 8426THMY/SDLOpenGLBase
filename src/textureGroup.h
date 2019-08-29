@@ -13,54 +13,54 @@
 #include "texture.h"
 
 
-//Stores the data for a frame!
+// Stores the data for a frame!
 typedef struct textureGroupFrame {
-	//The OpenGL ID of the texture used by this frame.
-	size_t texID;
+	const texture *diffuse;
 
-	//Various frame data.
+	// Various frame data.
 	float x;
 	float y;
 	float width;
 	float height;
 } textureGroupFrame;
 
-//Stores the data for an animation!
+// Stores the data for an animation!
 typedef struct textureGroupAnimDef {
 	char *name;
 
-	//Stores all the frames used by the animation!
+	// Stores all the frames used by the animation!
 	textureGroupFrame *animFrames;
-	//Stores the total number of frames and when each frame ends!
+	// Stores the total number of frames and when each frame ends!
 	animationFrameData frameData;
 } textureGroupAnimDef;
+
+// For now, textureGroupAnims don't need to be their own structure.
+typedef struct animationData textureGroupAnim;
 
 typedef struct textureGroup {
 	char *name;
 
-	//Stores all the animations for the textureGroup!
+	#warning "This should probably have its own allocator."
+	// Stores all the animations for the textureGroup!
 	textureGroupAnimDef *texAnims;
 	size_t numAnims;
 } textureGroup;
 
-//Stores the data for a single instance of an animated texture.
-typedef struct textureGroupAnim {
-	#warning "We don't need to store its position anymore."
-	size_t texGroupPos;
-	animationData animData;
-} textureGroupAnim;
+typedef struct textureGroupState {
+	const textureGroup *texGroup;
+	textureGroupAnim texGroupAnim;
+} textureGroupState;
 
 
 void texGroupFrameInit(textureGroupFrame *texGroupFrame);
 void texGroupAnimDefInit(textureGroupAnimDef *texGroupAnimDef);
 void texGroupInit(textureGroup *texGroup);
-void texGroupAnimInit(textureGroupAnim *texGroupAnim, const size_t texGroupPos);
+void texGroupStateInit(textureGroupState *texGroupState, const textureGroup *texGroup);
 
 return_t texGroupLoad(textureGroup *texGroup, const char *texGroupName);
 
-void texGroupAnimSetAnim(textureGroupAnim *texGroupAnim, const size_t currentAnim);
-void texGroupAnimUpdateAnim(textureGroupAnim *texGroupAnim, const float time);
-GLuint texGroupGetFrame(const textureGroup *texGroup, const size_t currentAnim, const size_t currentFrame, const GLuint uvOffsetsID);
+void texGroupStateUpdate(textureGroupState *texGroupState, const float time);
+GLuint texGroupStateGetFrame(const textureGroupState *texGroupState, const GLuint uvOffsetsID);
 
 void texGroupAnimDefDelete(textureGroupAnimDef *texGroupAnimDef);
 void texGroupDelete(textureGroup *texGroup);

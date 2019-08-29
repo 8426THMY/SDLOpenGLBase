@@ -18,23 +18,23 @@
 ** you want this functionality, consider a motor joint.
 */
 typedef struct physicsJointFriction {
-	//These points are in global space, but they
-	//are still relative to the centres of mass.
-	//We get the average point halfway between
-	//contact points points on both bodies.
+	// These points are in global space, but they
+	// are still relative to the centres of mass.
+	// We get the average point halfway between
+	// contact points points on both bodies.
 	vec3 rA;
 	vec3 rB;
 
-	//These points are in global space. Note that
-	//the normal is for a face on body A, and so
-	//should roughly point from body A to body B.
+	// These points are in global space. Note that
+	// the normal is for a face on body A, and so
+	// should roughly point from body A to body B.
 	vec3 normal;
 	vec3 tangents[2];
 
-	//Angular and linear effective masses.
+	// Angular and linear effective masses.
 	mat2 linearMass;
 	float angularMass;
-	//Accumulated impulses used for warm starting.
+	// Accumulated impulses used for warm starting.
 	vec2 linearImpulse;
 	float angularImpulse;
 } physicsJointFriction;

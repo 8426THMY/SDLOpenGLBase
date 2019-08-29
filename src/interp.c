@@ -38,22 +38,22 @@ void interpTransInit(interpTransform *iTrans){
 }
 
 
-//Interpolate between the interpFloat's two values!
+// Interpolate between the interpFloat's two values!
 void interpFloatGenRenderState(const interpFloat *iFloat, const float time, float *out){
 	*out = iFloat->last + (iFloat->next - iFloat->last) * time;
 }
 
-//Interpolate between the interpVec3's two values!
+// Interpolate between the interpVec3's two values!
 void interpVec3GenRenderState(const interpVec3 *iVec3, const float time, vec3 *out){
 	vec3Lerp(&iVec3->last, &iVec3->next, time, out);
 }
 
-//Interpolate between the interpQuat's two values!
+// Interpolate between the interpQuat's two values!
 void interpQuatGenRenderState(const interpQuat *iQuat, const float time, quat *out){
 	quatSlerpFast(&iQuat->last, &iQuat->next, time, out);
 }
 
-//Interpolate between the three components of an interpTransform!
+// Interpolate between the three components of an interpTransform!
 void interpTransGenRenderState(const interpTransform *iTrans, const float time, transformState *out){
 	interpVec3GenRenderState(&iTrans->pos, time, &out->pos);
 	interpQuatGenRenderState(&iTrans->rot, time, &out->rot);
@@ -171,7 +171,7 @@ void interpTransSetNextRotQuat(interpTransform *iTrans, const quat *q){
 }
 
 
-//Below this comment are the functions for interpTransforms. There are a lot of them.
+// Below this comment are the functions for interpTransforms. There are a lot of them.
 void interpTransAddScale(interpTransform *iTrans, const float x, const float y, const float z, const float time){
 	vec3Add(&iTrans->scale.next, x * time, y * time, z * time);
 }

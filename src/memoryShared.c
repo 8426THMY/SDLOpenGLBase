@@ -1,10 +1,10 @@
 #include "memoryShared.h"
 
 
-//These low level functions will almost
-//certainly break things. The only time
-//we can expect them to work is when we
-//are the only ones operating on memory.
+// These low level functions will almost
+// certainly break things. The only time
+// we can expect them to work is when we
+// are the only ones operating on memory.
 #ifdef MEMORY_LOW_LEVEL
 #ifdef _WIN32
 #include <windows.h>
@@ -44,11 +44,11 @@ return_t memoryLowLevelFree(void *block){
 
 void memoryRegionAppend(memoryRegion **region, memoryRegion *newRegion, void *memory){
 	newRegion->start = memory;
-	//Find the last memory region.
+	// Find the last memory region.
 	while(*region != NULL){
 		region = &((*region)->next);
 	}
-	//Make it point to the new one.
+	// Make it point to the new one.
 	*region = newRegion;
 	newRegion->next = NULL;
 }
@@ -72,7 +72,7 @@ void memoryRegionInsertAfter(memoryRegion *region, memoryRegion *newRegion, void
 ** which is not the case for many allocators.
 */
 void memoryAllocatorDelete(memoryRegion *region){
-	//Free every memory region in the allocator.
+	// Free every memory region in the allocator.
 	while(region != NULL){
 		memoryRegion *next = region->next;
 

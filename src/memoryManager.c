@@ -5,7 +5,7 @@
 memoryManager memManager;
 
 
-//Allocate memory for the global memory manager.
+// Allocate memory for the global memory manager.
 #warning "Check if memoryAlloc failed in here instead of the allocators."
 return_t memoryManagerGlobalInit(const size_t heapSize){
 	const size_t regionSize = memTreeMemoryForSize(heapSize);
@@ -37,14 +37,14 @@ void memoryManagerGlobalFree(void *block){
 }
 
 
-//Free memory used by the global memory manager.
+// Free memory used by the global memory manager.
 void memoryManagerGlobalDelete(){
     memTreeDelete(&memManager);
 }
 #endif
 
 #ifdef MEMORY_USE_MODULE_MANAGER
-//Allocate memory for the memory manager.
+// Allocate memory for the memory manager.
 return_t memoryManagerInit(memoryManager *memMngr, const size_t heapSize){
 	const size_t regionSize = memTreeMemoryForSize(heapSize);
 
@@ -75,7 +75,7 @@ void memoryManagerFree(memoryManager *memMngr, void *block){
 }
 
 
-//Free memory used by the memory manager.
+// Free memory used by the memory manager.
 void memoryManagerDelete(memoryManager *memMngr){
     memTreeDelete(memMngr);
 }

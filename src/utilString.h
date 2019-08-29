@@ -7,8 +7,8 @@
 #include <string.h>
 
 
-//These indicate the maximum number of characters
-//required to store a number of each type.
+// These indicate the maximum number of characters
+// required to store a number of each type.
 #define ULONG_MAX_CHARS 10
 
 

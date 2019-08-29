@@ -12,9 +12,9 @@
 #define TEXTURE_PATH_PREFIX_LENGTH (sizeof(TEXTURE_PATH_PREFIX) - 1)
 
 
-//This defines a texture to use when we
-//cannot load the correct one. We can't
-//set up its image data here, however.
+// This defines a texture to use when we
+// cannot load the correct one. We can't
+// set up its image data here, however.
 texture errorTex = {
 	.name = "error",
 
@@ -35,27 +35,27 @@ void textureInit(texture *tex){
 }
 
 
-//Load a texture using the image specified by "imgName".
+// Load a texture using the image specified by "imgName".
 return_t textureLoad(texture *tex, const char *imgName){
 	textureInit(tex);
 
-	//Find the full path for the texture!
-	const size_t imgNameLength = strlen(imgName);
-	char *imgPath = memoryManagerGlobalAlloc(TEXTURE_PATH_PREFIX_LENGTH + imgNameLength + 1);
+	// Find the full path for the texture!
+	const size_t imgNameLength = strlen(imgName) + 1;
+	char *imgPath = memoryManagerGlobalAlloc(TEXTURE_PATH_PREFIX_LENGTH + imgNameLength);
 	if(imgPath == NULL){
 		/** MALLOC FAILED **/
 	}
 	memcpy(imgPath, TEXTURE_PATH_PREFIX, TEXTURE_PATH_PREFIX_LENGTH);
 	strcpy(imgPath + TEXTURE_PATH_PREFIX_LENGTH, imgName);
 
-	//Load the image and create an SDL2 surface!
+	// Load the image and create an SDL2 surface!
 	SDL_Surface *image = IMG_Load(imgPath);
 	if(image != NULL){
 		tex->width = image->w;
 		tex->height = image->h;
 
-		//This switch statement determines the format that the image
-		//data is in by checking how many bytes are used for each pixel.
+		// This switch statement determines the format that the image
+		// data is in by checking how many bytes are used for each pixel.
 		GLint pixelFormat = INVALID_VALUE(pixelFormat);
 		switch(image->format->BytesPerPixel){
 			case 3:
@@ -68,7 +68,7 @@ return_t textureLoad(texture *tex, const char *imgName){
 		}
 
 
-		//Create an OpenGL texture from our SDL2 surface.
+		// Create an OpenGL texture from our SDL2 surface.
 		glGenTextures(1, &tex->id);
 		glBindTexture(GL_TEXTURE_2D, tex->id);
 
@@ -77,18 +77,18 @@ return_t textureLoad(texture *tex, const char *imgName){
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, TEXTURE_FILTER_DEFAULT);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, TEXTURE_FILTER_DEFAULT);
 
-		//Unbind the texture now that we've set its parameters.
+		// Unbind the texture now that we've set its parameters.
 		glBindTexture(GL_TEXTURE_2D, 0);
 
-		//Free the SDL2 surface, as we no longer need it.
+		// Free the SDL2 surface, as we no longer need it.
 		SDL_FreeSurface(image);
 
 
 		GLenum openGLError = glGetError();
-		//If we could set up the texture
-		//successfully, set its name!
+		// If we could set up the texture
+		// successfully, set its name!
 		if(openGLError == GL_NO_ERROR){
-			tex->name = memoryManagerGlobalResize(imgPath, imgNameLength + 1);
+			tex->name = memoryManagerGlobalResize(imgPath, imgNameLength);
 			if(tex->name == NULL){
 				/** REALLOC FAILED **/
 			}
@@ -97,8 +97,8 @@ return_t textureLoad(texture *tex, const char *imgName){
 			return(1);
 		}
 
-		//Otherwise, print out what went
-		//wrong and delete the texture.
+		// Otherwise, print out what went
+		// wrong and delete the texture.
 		printf(
 			"Unable to create OpenGL texture!\n"
 			"Path: %s\n"
@@ -109,7 +109,7 @@ return_t textureLoad(texture *tex, const char *imgName){
 
 		textureDelete(tex);
 
-	//If we could not load the image, print an error message.
+	// If we could not load the image, print an error message.
 	}else{
 		printf(
 			"Unable to create SDL2 surface!\n"
@@ -125,12 +125,12 @@ return_t textureLoad(texture *tex, const char *imgName){
 	return(0);
 }
 
-//Set up the error texture!
+// Set up the error texture!
 return_t textureSetupError(){
 	unsigned int pixels[TEXTURE_ERROR_WIDTH * TEXTURE_ERROR_HEIGHT];
 
-	//Define the pixel data for the error texture!
-	//Source Engine missing texutre. (Make sure to use GL_NEAREST!)
+	// Define the pixel data for the error texture!
+	// Source Engine missing texutre. (Make sure to use GL_NEAREST!)
 	/*size_t pixRow;
 	for(pixRow = 0; pixRow < TEXTURE_ERROR_HEIGHT; ++pixRow){
 		size_t pixCol;
@@ -142,7 +142,7 @@ return_t textureSetupError(){
 			}
 		}
 	}*/
-	//Rainbow missing texture. (Make sure to use GL_LINEAR!)
+	// Rainbow missing texture. (Make sure to use GL_LINEAR!)
 	pixels[0] = 0xFF0000FF;
 	pixels[1] = 0xFF00FFFF;
 	pixels[2] = 0xFF00FF00;
@@ -151,7 +151,7 @@ return_t textureSetupError(){
 	pixels[5] = 0xFFFF00FF;
 
 
-	//Create an OpenGL texture using our pixel data.
+	// Create an OpenGL texture using our pixel data.
 	glGenTextures(1, &errorTex.id);
 	glBindTexture(GL_TEXTURE_2D, errorTex.id);
 
@@ -160,12 +160,12 @@ return_t textureSetupError(){
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, TEXTURE_FILTER_ERROR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, TEXTURE_FILTER_ERROR);
 
-	//Unbind the texture now that we've set its parameters.
+	// Unbind the texture now that we've set its parameters.
 	glBindTexture(GL_TEXTURE_2D, 0);
 
 
 	GLenum openGLError = glGetError();
-	//If there was an error, print an error message.
+	// If there was an error, print an error message.
 	if(openGLError != GL_NO_ERROR){
 		printf(
 			"Unable to create OpenGL texture!\n"
@@ -182,14 +182,14 @@ return_t textureSetupError(){
 	}
 
 
-	//Otherwise, we can keep the texture!
+	// Otherwise, we can keep the texture!
 	return(1);
 }
 
 
 void textureDelete(texture *tex){
-	//Only free the name if it's in use
-	//and it's not the error texture.
+	// Only free the name if it's in use
+	// and it's not the error texture.
 	if(tex->name != NULL && tex != &errorTex){
 		memoryManagerGlobalFree(tex->name);
 	}
@@ -200,7 +200,7 @@ void textureDelete(texture *tex){
 }
 
 
-//Loop through all the textures we've loaded until we find the one we need!
+// Loop through all the textures we've loaded until we find the one we need!
 size_t textureFindNameIndex(const char *name){
 	/*size_t i;
 	for(i = 0; i < loadedTextures.size; ++i){

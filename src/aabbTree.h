@@ -17,8 +17,8 @@ typedef struct aabbNodeChildren {
 
 typedef struct aabbNodeLeaf {
 	void *userData;
-	//Pointer to the next
-	//leaf node in the list.
+	// Pointer to the next
+	// leaf node in the list.
 	aabbNode *next;
 } aabbNodeLeaf;
 
@@ -32,14 +32,14 @@ typedef struct aabbNode {
 		aabbNodeLeaf leaf;
 	} data;
 
-	//Specifies the node's distance from its deepest leaf.
-	//If this node is a leaf itself, this will be zero.
+	// Specifies the node's distance from its deepest leaf.
+	// If this node is a leaf itself, this will be zero.
 	size_t height;
 } aabbNode;
 
 typedef struct aabbTree {
 	aabbNode *root;
-	//Linked list of leaf nodes.
+	// Linked list of leaf nodes.
 	aabbNode *leaves;
 } aabbTree;
 

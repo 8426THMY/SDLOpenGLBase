@@ -53,8 +53,8 @@ void vertexRotate(in vec3 v, in vec4 q, out vec3 outVec){
 
 
 void main(){
-	//vec4 transformPos = vec4(vertexPos, 1.0);
-	vec4 transformPos = vec4(0.0, 0.0, 0.0, 1.0);
+	vec4 transformPos = vec4(vertexPos, 1.0);
+	/*vec4 transformPos = vec4(0.0, 0.0, 0.0, 1.0);
 	uint i;
 	for(i = uint(0); i < uint(MAX_VERTEX_WEIGHTS); ++i){
 		if(vertexBoneIDs[i] != uint(-1) && vertexBoneWeights[i] != 0.0){
@@ -63,7 +63,7 @@ void main(){
 		}else{
 			break;
 		}
-	}
+	}*/
 	gl_Position = mvpMatrix * vec4(transformPos.xyz, 1.0);
 	
 	//Only use the area of the texture specified in the uvOffsets array!

@@ -100,16 +100,16 @@ void physJointFrictionWarmStart(const physicsJointFriction *joint, physicsRigidB
 	vec3 angularImpulse;
 	vec3 impulse;
 
-	//Calculate the linear impulse.
+	// Calculate the linear impulse.
 	vec3MultiplySOut(&joint->tangents[0], joint->linearImpulse.x, &linearImpulse);
 	vec3MultiplySOut(&joint->tangents[1], joint->linearImpulse.y, &impulse);
 	vec3AddVec3(&linearImpulse, &impulse);
 
-	//Calculate the angular impulse.
+	// Calculate the angular impulse.
 	vec3MultiplySOut(&joint->normal, joint->angularImpulse, &angularImpulse);
 
 
-	//Apply the accumulated impulses.
+	// Apply the accumulated impulses.
 	physRigidBodyApplyImpulseAngularBias(bodyA, &joint->rA, &linearImpulse, &angularImpulse);
 	physRigidBodyApplyImpulseAngularBiasInverse(bodyB, &joint->rB, &linearImpulse, &angularImpulse);
 }
@@ -135,7 +135,7 @@ void physJointFrictionCalculateEffectiveMass(physicsJointFriction *joint, const 
 	vec3 rt2IB;
 
 
-	//Calculate the linear effective mass.
+	// Calculate the linear effective mass.
 	vec3CrossVec3Out(&joint->rA, &joint->tangents[0], &rt1A);
 	vec3CrossVec3Out(&joint->rA, &joint->tangents[1], &rt2A);
 	vec3CrossVec3Out(&joint->rB, &joint->tangents[0], &rt1B);
@@ -146,26 +146,26 @@ void physJointFrictionCalculateEffectiveMass(physicsJointFriction *joint, const 
 	mat3MultiplyByVec3Out(invInertiaB, &rt1B, &rt1IB);
 	mat3MultiplyByVec3Out(invInertiaB, &rt2B, &rt2IB);
 
-	//K = JM^-1J^T
-	//[K]_00 = mA^-1 + mB^-1 + (IA^-1 * (rA X t1) . (rA X t1)) + (IB^-1 * (rB X t1) . (rB X t1))
-	//[K]_01 = (IA^-1 * (rA X t1) . (rA X t2)) + (IB^-1 * (rB X t1) . (rB X t2))
-	//[K]_10 = [K]_01
-	//[K]_11 = mA^-1 + mB^-1 + (IA^-1 * (rA X t2) . (rA X t2)) + (IB^-1 * (rB X t2) . (rB X t2))
+	// K = JM^-1J^T
+	// [K]_00 = mA^-1 + mB^-1 + (IA^-1 * (rA X t1) . (rA X t1)) + (IB^-1 * (rB X t1) . (rB X t1))
+	// [K]_01 = (IA^-1 * (rA X t1) . (rA X t2)) + (IB^-1 * (rB X t1) . (rB X t2))
+	// [K]_10 = [K]_01
+	// [K]_11 = mA^-1 + mB^-1 + (IA^-1 * (rA X t2) . (rA X t2)) + (IB^-1 * (rB X t2) . (rB X t2))
 
 	joint->linearMass.m[0][0] = invMass + vec3DotVec3(&rt1IA, &rt1A) + vec3DotVec3(&rt1IB, &rt1B);
 	joint->linearMass.m[0][1] =
 	joint->linearMass.m[1][0] = vec3DotVec3(&rt1IA, &rt2A) + vec3DotVec3(&rt1IB, &rt2B);
 	joint->linearMass.m[1][1] = invMass + vec3DotVec3(&rt2IA, &rt2A) + vec3DotVec3(&rt2IB, &rt2B);
 
-	//m_eff = 1/K
+	// m_eff = 1/K
 	mat2Invert(&joint->linearMass);
 
 
-	//Calculate the angular effective mass.
+	// Calculate the angular effective mass.
 	mat3MultiplyByVec3Out(invInertiaA, &joint->normal, &rt1IA);
 	mat3MultiplyByVec3Out(invInertiaB, &joint->normal, &rt1IB);
 
-	//JM^-1J^T = ((IA^-1 * n) . n) + ((IB^-1 * n) . n)
+	// JM^-1J^T = ((IA^-1 * n) . n) + ((IB^-1 * n) . n)
 	joint->angularMass = 1.f / (
 		vec3DotVec3(&rt1IA, &joint->normal) +
 		vec3DotVec3(&rt1IB, &joint->normal)
@@ -183,23 +183,23 @@ void physJointFrictionSolveVelocity(physicsJointFriction *joint, physicsRigidBod
 	vec3 impulse;
 	vec3 contactVelocity;
 
-	//vcA = vA + wA X rA
-	//vcB = vB + wB X rB
-	//vcR = vcB - vcA
+	// vcA = vA + wA X rA
+	// vcB = vB + wB X rB
+	// vcR = vcB - vcA
 
-	//Calculate the total linear velocity of the contact point on body A.
+	// Calculate the total linear velocity of the contact point on body A.
 	vec3CrossVec3Out(&bodyA->angularVelocity, &joint->rA, &impulse);
 	vec3AddVec3(&impulse, &bodyA->linearVelocity);
-	//Calculate the total linear velocity of the contact point on body B.
+	// Calculate the total linear velocity of the contact point on body B.
 	vec3CrossVec3Out(&bodyB->angularVelocity, &joint->rB, &contactVelocity);
 	vec3AddVec3(&contactVelocity, &bodyB->linearVelocity);
-	//Calculate the relative velocity between the two points.
+	// Calculate the relative velocity between the two points.
 	vec3SubtractVec3From(&contactVelocity, &impulse);
 
 
-	//lambda = -JV/JM^-1J^T
-	//       = -(vcR * t) * m_eff
-	//Calculate the magnitudes for the linear impulses.
+	// lambda = -JV/JM^-1J^T
+	//        = -(vcR * t) * m_eff
+	// Calculate the magnitudes for the linear impulses.
 	lambda.x = -vec3DotVec3(&contactVelocity, &joint->tangents[0]);
 	lambda.y = -vec3DotVec3(&contactVelocity, &joint->tangents[1]);
 	mat2MultiplyByVec2(&joint->linearMass, &lambda);
@@ -207,9 +207,9 @@ void physJointFrictionSolveVelocity(physicsJointFriction *joint, physicsRigidBod
 	oldImpulse = joint->linearImpulse;
 	vec2AddVec2(&joint->linearImpulse, &lambda);
 
-	//C' <= maxFriction
-	//If our accumulated impulse magnitude is larger than the
-	//total force friction is allowed to apply, we need to clamp it.
+	// C' <= maxFriction
+	// If our accumulated impulse magnitude is larger than the
+	// total force friction is allowed to apply, we need to clamp it.
 	#warning "We recalculate this magnitude when we normalize. Yuck."
 	if(vec2DotVec2(&joint->linearImpulse, &joint->linearImpulse) > maxFriction * maxFriction){
 		vec2NormalizeVec2(&joint->linearImpulse);
@@ -217,25 +217,25 @@ void physJointFrictionSolveVelocity(physicsJointFriction *joint, physicsRigidBod
 		vec2SubtractVec2FromOut(&joint->linearImpulse, &oldImpulse, &lambda);
 	}
 
-	//Add the impulse magnitudes for both tangent directions.
+	// Add the impulse magnitudes for both tangent directions.
 	vec3MultiplySOut(&joint->tangents[0], lambda.x, &contactVelocity);
 	vec3MultiplySOut(&joint->tangents[1], lambda.y, &impulse);
 	vec3AddVec3(&impulse, &contactVelocity);
 
-	//Apply the correctional linear impulse.
+	// Apply the correctional linear impulse.
 	physRigidBodyApplyImpulseInverse(bodyA, &joint->rA, &impulse);
 	physRigidBodyApplyImpulse(bodyB, &joint->rB, &impulse);
 
 
-	//lambda = -JV/JM^-1J^T
-	//       = -((wB - wA) . n) * m_eff
-	//Calculate the magnitude for the angular impulse.
+	// lambda = -JV/JM^-1J^T
+	//        = -((wB - wA) . n) * m_eff
+	// Calculate the magnitude for the angular impulse.
 	vec3SubtractVec3FromOut(&bodyB->angularVelocity, &bodyA->angularVelocity, &contactVelocity);
 	lambda.x = -vec3DotVec3(&contactVelocity, &joint->normal) * joint->angularMass;
 	lambda.y = joint->angularImpulse;
 	oldImpulse.x = joint->angularImpulse + lambda.x;
 
-	//Clamp our accumulated impulse for the angular constraint.
+	// Clamp our accumulated impulse for the angular constraint.
 	if(oldImpulse.x < -maxFriction){
 		joint->angularImpulse = -maxFriction;
 		vec3MultiplySOut(&joint->normal, -maxFriction - lambda.y, &impulse);

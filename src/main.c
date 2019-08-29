@@ -14,6 +14,17 @@ Integrate positions.
 Solve positions constraints.
 Update centroids and inertia tensors. (?)
 **/
+
+/**
+Game logic.
+Update objects.
+Update skeletons.
+Update physics objects.
+
+Bones that physics objects are attached to should move during physics object update.
+Otherwise, the mesh will never reflect changes made to physically simulated bones.
+How can we do this?
+**/
 #warning "If collisions are acting funny, it might be because quatRotateVec3Fast is derping. For some reason, it seems to be inaccurate in very rare cases."
 #warning "Not sure if we get 1/dt in our contact functions, either."
 
@@ -23,7 +34,7 @@ Update centroids and inertia tensors. (?)
 int main(int argc, char **argv){
 	program prg;
 
-	//If we're able to initialize the libraries, setup the program and start the loop!
+	// If we're able to initialize the libraries, setup the program and start the loop!
 	if(programInit(&prg)){
 		programLoop(&prg);
 	}
@@ -35,12 +46,12 @@ int main(int argc, char **argv){
 }
 
 
-//#error "Go through your functions and give them clearer descriptions."
-//#error "It would probably be a good idea to try and clean up your code while you're at it."
-//#error "Split some of your functions up into helpers or something too, especially in areas where the helper might be useful in the future."
-//#error "Replace memsets on non-integer types with a loop."
-//#error "Should we use copies for mathematics functions? We also do some unnecessary copies with matrix multiplications."
-//#error "Rigid body damping, layers and flags."
+// #error "Go through your functions and give them clearer descriptions."
+// #error "It would probably be a good idea to try and clean up your code while you're at it."
+// #error "Split some of your functions up into helpers or something too, especially in areas where the helper might be useful in the future."
+// #error "Replace memsets on non-integer types with a loop."
+// #error "Should we use copies for mathematics functions? We also do some unnecessary copies with matrix multiplications."
+// #error "Rigid body damping, layers and flags."
 
 
 /**
@@ -114,13 +125,13 @@ New To-Do List:
 /*
 Here's what a binary model format would need to store:
 
-vp x y z    //Vertex positions.
-vt u v      //Vertex texture coordinates.
-vn x y z    //Vertex normals.
+vp x y z    // Vertex positions.
+vt u v      // Vertex texture coordinates.
+vn x y z    // Vertex normals.
 
-v vp vt vn  //Unique vertex, where "vp", "vt" and "vn" are the data indices.
+v vp vt vn  // Unique vertex, where "vp", "vt" and "vn" are the data indices.
 
-f v v v ... //Face, where "v" is the index for a unique vertex.
+f v v v ... // Face, where "v" is the index for a unique vertex.
 */
 
 

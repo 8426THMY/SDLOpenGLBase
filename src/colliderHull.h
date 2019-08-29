@@ -32,52 +32,52 @@ typedef uint_least16_t colliderEdgeIndex_t;
 typedef uint_least16_t colliderFaceIndex_t;
 
 
-//Stores the indices of data relevant to the edge.
+// Stores the indices of data relevant to the edge.
 typedef struct colliderHullEdge {
-	//Indices of the edge's vertices.
+	// Indices of the edge's vertices.
 	colliderVertexIndex_t startVertexIndex;
 	colliderVertexIndex_t endVertexIndex;
 
-	//Index of the next edge on this face.
+	// Index of the next edge on this face.
 	colliderEdgeIndex_t nextIndex;
-	//Index of the next edge on this face's twin.
+	// Index of the next edge on this face's twin.
 	colliderEdgeIndex_t twinNextIndex;
 
-	//Index of the normal or face that this edge uses.
+	// Index of the normal or face that this edge uses.
 	colliderFaceIndex_t faceIndex;
-	//Index of the normal or face that this edge's twin uses.
+	// Index of the normal or face that this edge's twin uses.
 	colliderFaceIndex_t twinFaceIndex;
 } colliderHullEdge;
 
-//A face can be represented by any edge on
-//its border, so we store it as an index.
+// A face can be represented by any edge on
+// its border, so we store it as an index.
 typedef colliderFaceIndex_t colliderHullFace;
 
-//Stores the data for a hull in a format
-//that we can use for collision detection.
+// Stores the data for a hull in a format
+// that we can use for collision detection.
 typedef struct colliderHull {
-	//These two arrays need to be
-	//reallocated for each instance.
+	// These two arrays need to be
+	// reallocated for each instance.
 	vec3 *vertices;
 	vec3 *normals;
-	//These two don't.
+	// These two don't.
 	colliderHullFace *faces;
 	colliderHullEdge *edges;
 
-	//We don't need to store the number of
-	//normals since we can use "numFaces".
+	// We don't need to store the number of
+	// normals since we can use "numFaces".
 	colliderVertexIndex_t numVertices;
 	colliderFaceIndex_t numFaces;
 	colliderEdgeIndex_t numEdges;
-	//Stores twice the number of edges that the
-	//face with the most edges has, as each edge
-	//can create at most two vertices when we're
-	//clipping. This is mostly useful for memory
-	//preallocation during collision detection.
+	// Stores twice the number of edges that the
+	// face with the most edges has, as each edge
+	// can create at most two vertices when we're
+	// clipping. This is mostly useful for memory
+	// preallocation during collision detection.
 	colliderFaceIndex_t maxFaceEdges;
 
-	//Hulls are the only colliders that
-	//need their centroids for collision.
+	// Hulls are the only colliders that
+	// need their centroids for collision.
 	vec3 centroid;
 } colliderHull;
 

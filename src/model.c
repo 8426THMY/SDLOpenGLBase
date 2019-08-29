@@ -18,7 +18,7 @@
 #define MODEL_PATH_PREFIX        ".\\resource\\models\\"
 #define MODEL_PATH_PREFIX_LENGTH (sizeof(MODEL_PATH_PREFIX) - 1)
 
-//These must be at least 1!
+// These must be at least 1!
 #define BASE_VERTEX_CAPACITY   1
 #define BASE_INDEX_CAPACITY    BASE_VERTEX_CAPACITY
 #define BASE_POSITION_CAPACITY BASE_VERTEX_CAPACITY
@@ -37,8 +37,8 @@ typedef struct vertex {
 } vertex;
 
 
-//By default, the error model only has a name.
-//We need to set up the other data the hard way.
+// By default, the error model only has a name.
+// We need to set up the other data the hard way.
 #warning "This should use the error skeleton."
 model errorMdl = {
 	.name     = "error",
@@ -46,7 +46,7 @@ model errorMdl = {
 };
 
 
-//Forward-declare any helper functions!
+// Forward-declare any helper functions!
 static return_t vertexUnique(const vertex *v1, const vertex *v2);
 
 
@@ -59,34 +59,34 @@ void modelInit(model *mdl){
 	mdl->vertexBufferID = 0;
 	mdl->indexBufferID = 0;
 	mdl->vertexArrayID = 0;
-	mdl->totalIndices = 0;
+	mdl->numIndices = 0;
 
 	skeleInit(&mdl->skele);
 	mdl->texGroup = 0;
 }
 
 
-//Load an OBJ using the model specified by "imgName".
+// Load an OBJ using the model specified by "imgName".
 return_t modelLoadOBJ(model *mdl, const char *mdlName){
 	modelInit(mdl);
 
 
-	//Find the full path for the model!
-	const size_t mdlNameLength = strlen(mdlName);
-	char *mdlPath = memoryManagerGlobalAlloc(MODEL_PATH_PREFIX_LENGTH + mdlNameLength + 1);
+	// Find the full path for the model!
+	const size_t mdlNameLength = strlen(mdlName) + 1;
+	char *mdlPath = memoryManagerGlobalAlloc(MODEL_PATH_PREFIX_LENGTH + mdlNameLength);
 	if(mdlPath == NULL){
 		/** MALLOC FAILED **/
 	}
 	memcpy(mdlPath, MODEL_PATH_PREFIX, MODEL_PATH_PREFIX_LENGTH);
 	strcpy(mdlPath + MODEL_PATH_PREFIX_LENGTH, mdlName);
 
-	//Load the model!
+	// Load the model!
 	FILE *mdlFile = fopen(mdlPath, "r");
 	if(mdlFile != NULL){
 		return_t success = 1;
 
 
-		//Temporarily stores only unique vertices.
+		// Temporarily stores only unique vertices.
 		size_t tempVerticesSize = 0;
 		size_t tempVerticesCapacity = BASE_VERTEX_CAPACITY;
 		vertex *tempVertices = memoryManagerGlobalAlloc(BASE_VERTEX_CAPACITY * sizeof(*tempVertices));
@@ -94,7 +94,7 @@ return_t modelLoadOBJ(model *mdl, const char *mdlName){
 			/** MALLOC FAILED **/
 		}
 
-		//Temporarily stores vertex indices for faces.
+		// Temporarily stores vertex indices for faces.
 		size_t tempIndicesSize = 0;
 		size_t tempIndicesCapacity = BASE_INDEX_CAPACITY;
 		size_t *tempIndices = memoryManagerGlobalAlloc(BASE_INDEX_CAPACITY * sizeof(*tempIndices));
@@ -102,7 +102,7 @@ return_t modelLoadOBJ(model *mdl, const char *mdlName){
 			/** MALLOC FAILED **/
 		}
 
-		//Temporarily stores vertex positions, regardless of whether or not they are unique.
+		// Temporarily stores vertex positions, regardless of whether or not they are unique.
 		size_t tempPositionsSize = 0;
 		size_t tempPositionsCapacity = BASE_POSITION_CAPACITY;
 		vec3 *tempPositions = memoryManagerGlobalAlloc(BASE_POSITION_CAPACITY * sizeof(*tempPositions));
@@ -110,7 +110,7 @@ return_t modelLoadOBJ(model *mdl, const char *mdlName){
 			/** MALLOC FAILED **/
 		}
 
-		//Temporarily stores vertex UVs, regardless of whether or not they are unique.
+		// Temporarily stores vertex UVs, regardless of whether or not they are unique.
 		size_t tempUVsSize = 0;
 		size_t tempUVsCapacity = BASE_UV_CAPACITY;
 		vec2 *tempUVs = memoryManagerGlobalAlloc(BASE_UV_CAPACITY * sizeof(*tempUVs));
@@ -118,7 +118,7 @@ return_t modelLoadOBJ(model *mdl, const char *mdlName){
 			/** MALLOC FAILED **/
 		}
 
-		//Temporarily stores vertex normals, regardless of whether or not they are unique.
+		// Temporarily stores vertex normals, regardless of whether or not they are unique.
 		size_t tempNormalsSize = 0;
 		size_t tempNormalsCapacity = BASE_NORMAL_CAPACITY;
 		vec3 *tempNormals = memoryManagerGlobalAlloc(BASE_NORMAL_CAPACITY * sizeof(*tempNormals));
@@ -126,10 +126,10 @@ return_t modelLoadOBJ(model *mdl, const char *mdlName){
 			/** MALLOC FAILED **/
 		}
 
-		//Stores the name of the textureGroup that the model uses.
+		// Stores the name of the textureGroup that the model uses.
 		char *tempTexGroupName = NULL;
 
-		//Used when reading vertex data.
+		// Used when reading vertex data.
 		char *tokPos;
 
 		char lineBuffer[1024];
@@ -138,11 +138,11 @@ return_t modelLoadOBJ(model *mdl, const char *mdlName){
 
 
 		while(success && (line = readLineFile(mdlFile, &lineBuffer[0], &lineLength)) != NULL){
-			//Vertex positions.
+			// Vertex positions.
 			if(memcmp(line, "v ", 2) == 0){
 				vec3 newPosition;
 
-				//If we're out of space, allocate some more!
+				// If we're out of space, allocate some more!
 				if(tempPositionsSize >= tempPositionsCapacity){
 					tempPositionsCapacity = tempPositionsSize * 2;
 					tempPositions = memoryManagerGlobalRealloc(tempPositions, tempPositionsCapacity * sizeof(*tempPositions));
@@ -151,7 +151,7 @@ return_t modelLoadOBJ(model *mdl, const char *mdlName){
 					}
 				}
 
-				//Read the vertex positions from the line!
+				// Read the vertex positions from the line!
 				newPosition.x = strtod(&line[2], &tokPos);
 				newPosition.y = strtod(tokPos, &tokPos);
 				newPosition.z = strtod(tokPos, NULL);
@@ -159,11 +159,11 @@ return_t modelLoadOBJ(model *mdl, const char *mdlName){
 				tempPositions[tempPositionsSize] = newPosition;
 				++tempPositionsSize;
 
-			//Vertex UVs.
+			// Vertex UVs.
 			}else if(memcmp(line, "vt ", 3) == 0){
 				vec2 newUV;
 
-				//If we're out of space, allocate some more!
+				// If we're out of space, allocate some more!
 				if(tempUVsSize >= tempUVsCapacity){
 					tempUVsCapacity = tempUVsSize * 2;
 					tempUVs = memoryManagerGlobalRealloc(tempUVs, tempUVsCapacity * sizeof(*tempUVs));
@@ -172,18 +172,18 @@ return_t modelLoadOBJ(model *mdl, const char *mdlName){
 					}
 				}
 
-				//Read the vertex UVs from the line!
+				// Read the vertex UVs from the line!
 				newUV.x = strtod(&line[3], &tokPos);
 				newUV.y = -strtod(tokPos, NULL);
 
 				tempUVs[tempUVsSize] = newUV;
 				++tempUVsSize;
 
-			//Vertex normals.
+			// Vertex normals.
 			}else if(memcmp(line, "vn ", 3) == 0){
 				vec3 newNormal;
 
-				//If we're out of space, allocate some more!
+				// If we're out of space, allocate some more!
 				if(tempNormalsSize >= tempNormalsCapacity){
 					tempNormalsCapacity = tempNormalsSize * 2;
 					tempNormals = memoryManagerGlobalRealloc(tempNormals, tempNormalsCapacity * sizeof(*tempNormals));
@@ -192,7 +192,7 @@ return_t modelLoadOBJ(model *mdl, const char *mdlName){
 					}
 				}
 
-				//Read the vertex normals from the line!
+				// Read the vertex normals from the line!
 				newNormal.x = strtod(&line[3], &tokPos);
 				newNormal.y = strtod(tokPos, &tokPos);
 				newNormal.z = strtod(tokPos, NULL);
@@ -200,20 +200,20 @@ return_t modelLoadOBJ(model *mdl, const char *mdlName){
 				tempNormals[tempNormalsSize] = newNormal;
 				++tempNormalsSize;
 
-			//TextureGroup path.
+			// TextureGroup path.
 			}else if(memcmp(line, "usemtl ", 7) == 0){
-				//We don't want to be keeping textureGroups that aren't used, so
-				//we'll load this once we can be sure everything else was successful.
-				//Note that we use realloc, so we only really store one texture.
+				// We don't want to be keeping textureGroups that aren't used, so
+				// we'll load this once we can be sure everything else was successful.
+				// Note that we use realloc, so we only really store one texture.
 				tempTexGroupName = memoryManagerGlobalRealloc(tempTexGroupName, (lineLength - 6) * sizeof(*tempTexGroupName));
 				if(tempTexGroupName == NULL){
 					/** REALLOC FAILED **/
 				}
-				//Our line reading function replaces the line break
-				//with a null terminator, so we need to store it too.
+				// Our line reading function replaces the line break
+				// with a null terminator, so we need to store it too.
 				memcpy(tempTexGroupName, line + 7, (lineLength - 6) * sizeof(*tempTexGroupName));
 
-			//Faces.
+			// Faces.
 			}else if(memcmp(line, "f ", 2) == 0){
 				size_t a;
 				char *tokEnd;
@@ -221,8 +221,8 @@ return_t modelLoadOBJ(model *mdl, const char *mdlName){
 				tokPos = &line[2];
 				tokEnd = getToken(tokPos, ' ');
 
-				//If the vertex we want to add already exists, create an index to it!
-				//Otherwise, add it to the vector!
+				// If the vertex we want to add already exists, create an index to it!
+				// Otherwise, add it to the vector!
 				for(a = 0; a < 3 && tokEnd != NULL; ++a){
 					size_t b;
 
@@ -233,18 +233,18 @@ return_t modelLoadOBJ(model *mdl, const char *mdlName){
 					memset(&tempVertex, 0.f, sizeof(tempVertex));
 
 
-					//Make sure we don't read past the end of the token.
+					// Make sure we don't read past the end of the token.
 					*tokEnd = '\0';
 
-					//Read the indices!
+					// Read the indices!
 					posIndex = strtoul(tokPos, &tokPos, 10) - 1;
 					++tokPos;
 					uvIndex = strtoul(tokPos, &tokPos, 10) - 1;
 					++tokPos;
 					normalIndex = strtoul(tokPos, &tokPos, 10) - 1;
 
-					//Fill up tempVertex with the vertex information
-					//we've stored! If the index is invalid, store a 0!
+					// Fill up tempVertex with the vertex information
+					// we've stored! If the index is invalid, store a 0!
 					if(posIndex < tempPositionsSize){
 						tempVertex.pos = tempPositions[posIndex];
 					}
@@ -262,18 +262,18 @@ return_t modelLoadOBJ(model *mdl, const char *mdlName){
 					memset(&tempVertex.boneWeights[1], 0.f, (MODEL_VERTEX_MAX_WEIGHTS - 1) * sizeof(tempVertex.boneWeights[0]));
 
 
-					//Check if this vertex already exists!
+					// Check if this vertex already exists!
 					for(b = 0; b < tempVerticesSize; ++b){
-						//Looks like it does, so we don't need to store it again!
+						// Looks like it does, so we don't need to store it again!
 						if(vertexUnique(checkVertex, &tempVertex) == 0){
 							break;
 						}
 
 						++checkVertex;
 					}
-					//The vertex does not exist, so add it to the vector!
+					// The vertex does not exist, so add it to the vector!
 					if(b == tempVerticesSize){
-						//If we're out of space, allocate some more!
+						// If we're out of space, allocate some more!
 						if(tempVerticesSize >= tempVerticesCapacity){
 							tempVerticesCapacity = tempVerticesSize * 2;
 							tempVertices = memoryManagerGlobalRealloc(tempVertices, tempVerticesCapacity * sizeof(*tempVertices));
@@ -284,8 +284,8 @@ return_t modelLoadOBJ(model *mdl, const char *mdlName){
 						tempVertices[tempVerticesSize] = tempVertex;
 						++tempVerticesSize;
 					}
-					//If this face has more than three vertices, it needs to be split up!
-					//We'll need to store two additional indices for every extra face.
+					// If this face has more than three vertices, it needs to be split up!
+					// We'll need to store two additional indices for every extra face.
 					if(a >= 3){
 						tempIndicesSize += 2;
 						if(tempIndicesSize >= tempIndicesCapacity){
@@ -295,12 +295,12 @@ return_t modelLoadOBJ(model *mdl, const char *mdlName){
 								/** REALLOC FAILED **/
 							}
 						}
-						//Get the index of the first vertex that this face used.
+						// Get the index of the first vertex that this face used.
 						tempIndices[tempIndicesSize - 2] = tempIndices[tempIndicesSize - 2 - a];
-						//Now get the index of the last vertex that this face used.
+						// Now get the index of the last vertex that this face used.
 						tempIndices[tempIndicesSize - 1] = tempIndices[tempIndicesSize - 3];
 
-					//Otherwise, we only need to store one index!
+					// Otherwise, we only need to store one index!
 					}else{
 						if(tempIndicesSize >= tempIndicesCapacity){
 							tempIndicesCapacity = tempIndicesSize * 2;
@@ -314,13 +314,13 @@ return_t modelLoadOBJ(model *mdl, const char *mdlName){
 					++tempIndicesSize;
 
 
-					//Get the beginning of the next vertex's data!
+					// Get the beginning of the next vertex's data!
 					++tokEnd;
 					tokPos = tokEnd;
 					tokEnd = getToken(tokEnd, ' ');
 				}
 
-			//Syntax error.
+			// Syntax error.
 			}else if(lineLength > 0){
 				printf(
 					"Syntax error loading model!\n"
@@ -336,64 +336,66 @@ return_t modelLoadOBJ(model *mdl, const char *mdlName){
 		fclose(mdlFile);
 
 
-		//If there wasn't an error, add the model to the vector!
+		// If there wasn't an error, add the model to the vector!
 		if(success){
-			//Generate a vertex array object for our model and bind it!
+			// Generate a vertex array object for our model and bind it!
 			glGenVertexArrays(1, &mdl->vertexArrayID);
 			glBindVertexArray(mdl->vertexArrayID);
-				//Generate a vertex buffer object for our vertex data and bind it!
+				// Generate a vertex buffer object for our vertex data and bind it!
 				glGenBuffers(1, &mdl->vertexBufferID);
 				glBindBuffer(GL_ARRAY_BUFFER, mdl->vertexBufferID);
-				//Now add all our data to it!
+				// Now add all our data to it!
 				glBufferData(GL_ARRAY_BUFFER, tempVerticesSize * sizeof(*tempVertices), &tempVertices[0], GL_STATIC_DRAW);
 
-				//Generate a vertex buffer object for our indices and bind it!
+				// Generate a vertex buffer object for our indices and bind it!
 				glGenBuffers(1, &mdl->indexBufferID);
 				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mdl->indexBufferID);
-				//Now add all our data to it!
+				// Now add all our data to it!
 				glBufferData(GL_ELEMENT_ARRAY_BUFFER, tempIndicesSize * sizeof(*tempIndices), &tempIndices[0], GL_STATIC_DRAW);
 
 
-				//Models will need these vertex attributes!
+				// Models will need these vertex attributes!
 				glEnableVertexAttribArray(0);
 				glEnableVertexAttribArray(1);
 				glEnableVertexAttribArray(2);
 				glEnableVertexAttribArray(3);
 				glEnableVertexAttribArray(4);
 
-				//Tell OpenGL which data belongs to the vertex attributes!
+				// Tell OpenGL which data belongs to the vertex attributes!
 				glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vertex), (GLvoid *)offsetof(vertex, pos));
 				glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(vertex), (GLvoid *)offsetof(vertex, uv));
 				glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(vertex), (GLvoid *)offsetof(vertex, normal));
 				glVertexAttribIPointer(3, MODEL_VERTEX_MAX_WEIGHTS, GL_UNSIGNED_INT, sizeof(vertex), (GLvoid *)offsetof(vertex, boneIDs));
 				glVertexAttribPointer(4, MODEL_VERTEX_MAX_WEIGHTS, GL_FLOAT, GL_FALSE, sizeof(vertex), (GLvoid *)offsetof(vertex, boneWeights));
-			//Unbind the array object!
+			// Unbind the array object!
 			glBindVertexArray(0);
 
+			mdl->numIndices = tempIndicesSize;
 
-			//Set the model's name!
-			mdl->name = memoryManagerGlobalResize(mdlPath, mdlNameLength + 1);
+
+			// Set the model's name!
+			mdl->name = memoryManagerGlobalResize(mdlPath, mdlNameLength);
 			if(mdl->name == NULL){
 				/** REALLOC FAILED **/
 			}
 			strcpy(mdl->name, mdlName);
 
-			//Initialise the model's skeleton!
-			skeleInitSet(&mdl->skele, mdl->name, NULL, 0);
+			// Initialise the model's skeleton!
+			skeleInitSet(&mdl->skele, mdl->name, mdlNameLength, NULL, 0);
 
-			//Now that we can be sure everything was
-			//successful, find the textureGroup.
+			// Now that we can be sure everything was
+			// successful, find the textureGroup.
 			if(tempTexGroupName != NULL){
 				mdl->texGroup = moduleTexGroupFind(tempTexGroupName);
-				//If we couldn't find the textureGroup, load it!
+				// If we couldn't find the textureGroup, load it!
 				if(mdl->texGroup == NULL){
-					//Make sure we can allocate
-					//enough memory for the texture.
+					// Make sure we can allocate
+					// enough memory for the texture.
 					if(!(mdl->texGroup = moduleTexGroupAlloc())){
 						/** MALLOC FAILED **/
 					}
-					//If we can't load it, just
-					//use the error texture.
+					// If we can't load it, just
+					// use the error texture.
 					if(!texGroupLoad(mdl->texGroup, tempTexGroupName)){
 						moduleTexGroupFree(mdl->texGroup);
 						mdl->texGroup = &errorTexGroup;
@@ -401,21 +403,21 @@ return_t modelLoadOBJ(model *mdl, const char *mdlName){
 				}
 			}
 
-		//Otherwise, delete the model.
+		// Otherwise, delete the model.
 		}else{
 			modelDelete(mdl);
 			memoryManagerGlobalFree(mdlPath);
 		}
 
 
-		//We don't need to check if these are NULL,
-		//as we do that when we're using them.
+		// We don't need to check if these are NULL,
+		// as we do that when we're using them.
 		memoryManagerGlobalFree(tempVertices);
 		memoryManagerGlobalFree(tempIndices);
 		memoryManagerGlobalFree(tempPositions);
 		memoryManagerGlobalFree(tempUVs);
 		memoryManagerGlobalFree(tempNormals);
-		//This one, however, is allowed to be NULL.
+		// This one, however, is allowed to be NULL.
 		if(tempTexGroupName != NULL){
 			memoryManagerGlobalFree(tempTexGroupName);
 		}
@@ -439,24 +441,27 @@ return_t modelLoadOBJ(model *mdl, const char *mdlName){
 /** When loading bone states, they need to be done in order.     **/
 /** Additionally, we should ensure bone states are specified     **/
 /** after "time". If we skip some frames, we should interpolate. **/
-//Load an SMD using the model specified by "imgName".
+// Load an SMD using the model specified by "imgName".
 return_t modelLoadSMD(model *mdl, const char *mdlName){
 	modelInit(mdl);
 
 
-	//Find the full path for the model!
-	const size_t mdlNameLength = strlen(mdlName);
-	char *mdlPath = malloc(MODEL_PATH_PREFIX_LENGTH + mdlNameLength + 1);
+	// Find the full path for the model!
+	const size_t mdlNameLength = strlen(mdlName) + 1;
+	char *mdlPath = memoryManagerGlobalAlloc(MODEL_PATH_PREFIX_LENGTH + mdlNameLength);
+	if(mdlPath == NULL){
+		/** MALLOC FAILED **/
+	}
 	memcpy(mdlPath, MODEL_PATH_PREFIX, MODEL_PATH_PREFIX_LENGTH);
 	strcpy(mdlPath + MODEL_PATH_PREFIX_LENGTH, mdlName);
 
-	//Load the model!
+	// Load the model!
 	FILE *mdlFile = fopen(mdlPath, "r");
 	if(mdlFile != NULL){
 		return_t success = 1;
 
 
-		//Temporarily stores only unique vertices.
+		// Temporarily stores only unique vertices.
 		size_t tempVerticesSize = 0;
 		size_t tempVerticesCapacity = BASE_VERTEX_CAPACITY;
 		vertex *tempVertices = memoryManagerGlobalAlloc(BASE_VERTEX_CAPACITY * sizeof(*tempVertices));
@@ -464,7 +469,7 @@ return_t modelLoadSMD(model *mdl, const char *mdlName){
 			/** MALLOC FAILED **/
 		}
 
-		//Temporarily stores vertex indices for faces.
+		// Temporarily stores vertex indices for faces.
 		size_t tempIndicesSize = 0;
 		size_t tempIndicesCapacity = BASE_INDEX_CAPACITY;
 		size_t *tempIndices = memoryManagerGlobalAlloc(BASE_INDEX_CAPACITY * sizeof(*tempIndices));
@@ -472,7 +477,7 @@ return_t modelLoadSMD(model *mdl, const char *mdlName){
 			/** MALLOC FAILED **/
 		}
 
-		//Temporarily stores bones.
+		// Temporarily stores bones.
 		size_t tempBonesSize = 0;
 		size_t tempBonesCapacity = BASE_BONE_CAPACITY;
 		bone *tempBones = memoryManagerGlobalAlloc(BASE_BONE_CAPACITY * sizeof(*tempBones));
@@ -481,9 +486,9 @@ return_t modelLoadSMD(model *mdl, const char *mdlName){
 		}
 
 		char *tokPos;
-		//This indicates what sort of data we're currently supposed to be reading.
+		// This indicates what sort of data we're currently supposed to be reading.
 		byte_t dataType = 0;
-		//This variable stores data specific to the type we're currently loading.
+		// This variable stores data specific to the type we're currently loading.
 		unsigned int data = 0;
 
 		char lineBuffer[1024];
@@ -500,7 +505,7 @@ return_t modelLoadSMD(model *mdl, const char *mdlName){
 				}else if(strcmp(line, "triangles") == 0){
 					dataType = 3;
 
-				//If this isn't the version number and the line isn't empty, it's something we can't handle!
+				// If this isn't the version number and the line isn't empty, it's something we can't handle!
 				}else if(lineLength > 0 && strcmp(line, "version 1") != 0){
 					printf(
 						"Error loading model!\n"
@@ -514,7 +519,7 @@ return_t modelLoadSMD(model *mdl, const char *mdlName){
 				}
 			}else{
 				if(strcmp(line, "end") == 0){
-					//If we've finished identifying the skeleton's bones, shrink the vector!
+					// If we've finished identifying the skeleton's bones, shrink the vector!
 					if(dataType == 1){
 						tempBonesCapacity = tempBonesSize;
 						tempBones = memoryManagerGlobalRealloc(tempBones, tempBonesCapacity * sizeof(*tempBones));
@@ -531,21 +536,24 @@ return_t modelLoadSMD(model *mdl, const char *mdlName){
 
 						bone tempBone;
 
-						//Get this bone's ID.
+						// Get this bone's ID.
 						size_t boneID = strtoul(tokPos, &tokPos, 10);
 						if(boneID == tempBonesSize){
-							//Get the bone's name.
+							// Get the bone's name.
 							size_t boneNameLength;
 							tokPos = getMultiDelimitedString(tokPos, line + lineLength - tokPos, "\" ", &boneNameLength);
-							tempBone.name = malloc(boneNameLength + 1);
+							tempBone.name = memoryManagerGlobalAlloc(boneNameLength + 1);
+							if(tempBone.name == NULL){
+								/** MALLOC FAILED **/
+							}
 							memcpy(tempBone.name, tokPos, boneNameLength);
 							tempBone.name[boneNameLength] = '\0';
 
-							//Get the ID of this bone's parent.
+							// Get the ID of this bone's parent.
 							tempBone.parent = strtoul(tokPos + boneNameLength + 1, NULL, 10);
 
 
-							//If we're out of space, allocate some more!
+							// If we're out of space, allocate some more!
 							if(tempBonesSize >= tempBonesCapacity){
 								tempBonesCapacity = tempBonesSize * 2;
 								tempBones = memoryManagerGlobalRealloc(tempBones, tempBonesCapacity * sizeof(*tempBones));
@@ -553,7 +561,7 @@ return_t modelLoadSMD(model *mdl, const char *mdlName){
 									/** REALLOC FAILED **/
 								}
 							}
-							//Add the bone to our vector!
+							// Add the bone to our vector!
 							tempBones[tempBonesSize] = tempBone;
 							++tempBonesSize;
 						}else{
@@ -568,7 +576,7 @@ return_t modelLoadSMD(model *mdl, const char *mdlName){
 							success = 0;
 						}
 					}else if(dataType == 2){
-						//If the line begins with time, get the frame's timestamp!
+						// If the line begins with time, get the frame's timestamp!
 						if(memcmp(line, "time ", 5) == 0){
 							unsigned int newTime = strtoul(&line[5], NULL, 10);
 							if(newTime >= data){
@@ -585,33 +593,33 @@ return_t modelLoadSMD(model *mdl, const char *mdlName){
 								success = 0;
 							}
 
-						//Otherwise, we're setting the bone's state!
+						// Otherwise, we're setting the bone's state!
 						}else{
-							//Get this bone's ID.
+							// Get this bone's ID.
 							size_t boneID = strtoul(line, &tokPos, 10);
-							//Make sure a bone with this ID actually exists.
+							// Make sure a bone with this ID actually exists.
 							if(boneID < tempBonesSize){
 								bone *currentBone = &tempBones[boneID];
 
-								//If the current frame timestamp is 0, set the bone's initial state!
+								// If the current frame timestamp is 0, set the bone's initial state!
 								if(data == 0){
-									//Load the bone's position!
+									// Load the bone's position!
 									float x = strtod(tokPos, &tokPos) * 0.05f;
 									float y = strtod(tokPos, &tokPos) * 0.05f;
 									float z = strtod(tokPos, &tokPos) * 0.05f;
 									vec3InitSet(&currentBone->state.pos, x, y, z);
 
-									//Load the bone's rotation!
+									// Load the bone's rotation!
 									x = strtod(tokPos, &tokPos);
 									y = strtod(tokPos, &tokPos);
 									z = strtod(tokPos, NULL);
 									quatInitEulerRad(&currentBone->state.rot, x, y, z);
 
-									//Set the bone's scale!
+									// Set the bone's scale!
 									vec3InitSet(&currentBone->state.scale, 1.f, 1.f, 1.f);
 
 
-									//If this bone has a parent, append its state to its parent's state!
+									// If this bone has a parent, append its state to its parent's state!
 									if(!VALUE_IS_INVALID(currentBone->parent)){
 										transformStateAppend(&tempBones[currentBone->parent].state, &currentBone->state, &currentBone->state);
 									}
@@ -630,14 +638,14 @@ return_t modelLoadSMD(model *mdl, const char *mdlName){
 						}
 					}else if(dataType == 3){
 						if(data == 0){
-							//This indicates the texture that the face uses.
+							// This indicates the texture that the face uses.
 						}else{
 							vertex tempVertex;
 							memset(&tempVertex, 0.f, sizeof(tempVertex));
 
-							//Read the vertex data from the line!
+							// Read the vertex data from the line!
 							size_t parentBoneID = strtoul(line, &tokPos, 10);
-							//Make sure a bone with this ID actually exists.
+							// Make sure a bone with this ID actually exists.
 							if(parentBoneID < tempBonesSize){
 								tempVertex.pos.x = strtod(tokPos, &tokPos) * 0.05f;
 								tempVertex.pos.y = strtod(tokPos, &tokPos) * 0.05f;
@@ -648,9 +656,9 @@ return_t modelLoadSMD(model *mdl, const char *mdlName){
 								tempVertex.uv.x = strtod(tokPos, &tokPos);
 								tempVertex.uv.y = -strtod(tokPos, &tokPos);
 								size_t numLinks = strtoul(tokPos, &tokPos, 10);
-								//Make sure some links were specified.
+								// Make sure some links were specified.
 								if(numLinks > 0){
-									//If there are more than the maximum number of supported weights, we'll have to clamp it down!
+									// If there are more than the maximum number of supported weights, we'll have to clamp it down!
 									if(numLinks > MODEL_VERTEX_MAX_WEIGHTS){
 										printf(
 											"Error loading model!\n"
@@ -669,11 +677,11 @@ return_t modelLoadSMD(model *mdl, const char *mdlName){
 									size_t *curBoneID = tempVertex.boneIDs;
 									float *curBoneWeight = tempVertex.boneWeights;
 									size_t i;
-									//Load all of the links!
+									// Load all of the links!
 									for(i = 0; i < numLinks; ++i){
-										//Load the bone's ID!
+										// Load the bone's ID!
 										*curBoneID = strtoul(tokPos, &tokPos, 10);
-										//Make sure it exists!
+										// Make sure it exists!
 										if(*curBoneID > tempBonesSize){
 											printf(
 												"Error loading model!\n"
@@ -683,15 +691,15 @@ return_t modelLoadSMD(model *mdl, const char *mdlName){
 												mdlPath, line
 											);
 
-										//If we're loading the parent bone, remember its position!
+										// If we're loading the parent bone, remember its position!
 										}else if(*curBoneID == parentBoneID){
 											parentPos = i;
 										}
 
-										//Load the bone's weights!
+										// Load the bone's weights!
 										*curBoneWeight = strtod(tokPos, &tokPos);
 										totalWeight += *curBoneWeight;
-										//Make sure the total weight doesn't exceed 1!
+										// Make sure the total weight doesn't exceed 1!
 										if(totalWeight > 1.f){
 											*curBoneWeight -= totalWeight - 1.f;
 											totalWeight = 1.f;
@@ -704,9 +712,9 @@ return_t modelLoadSMD(model *mdl, const char *mdlName){
 										++curBoneWeight;
 									}
 
-									//Make sure the total weight isn't less than 1!
+									// Make sure the total weight isn't less than 1!
 									if(totalWeight < 1.f){
-										//If we never loaded the parent bone, see if we can add it!
+										// If we never loaded the parent bone, see if we can add it!
 										if(VALUE_IS_INVALID(parentPos)){
 											if(i < MODEL_VERTEX_MAX_WEIGHTS){
 												*curBoneID = parentBoneID;
@@ -714,7 +722,7 @@ return_t modelLoadSMD(model *mdl, const char *mdlName){
 												parentPos = i;
 												++i;
 
-											//If there's no room, just use the first bone we loaded.
+											// If there's no room, just use the first bone we loaded.
 											}else{
 												parentPos = 0;
 											}
@@ -723,11 +731,11 @@ return_t modelLoadSMD(model *mdl, const char *mdlName){
 										tempVertex.boneWeights[parentPos] += 1.f - totalWeight;
 									}
 
-									//Make sure we fill the rest with invalid values so we know they aren't used.
+									// Make sure we fill the rest with invalid values so we know they aren't used.
 									memset(&curBoneID, -1, (MODEL_VERTEX_MAX_WEIGHTS - i) * sizeof(*tempVertex.boneIDs));
 									memset(&curBoneWeight, 0.f, (MODEL_VERTEX_MAX_WEIGHTS - i) * sizeof(*tempVertex.boneWeights));
 
-								//Otherwise, just bind it to the parent bone.
+								// Otherwise, just bind it to the parent bone.
 								}else{
 									printf(
 										"Error loading model!\n"
@@ -746,18 +754,18 @@ return_t modelLoadSMD(model *mdl, const char *mdlName){
 
 								const vertex *checkVertex = tempVertices;
 								size_t i;
-								//Check if this vertex already exists!
+								// Check if this vertex already exists!
 								for(i = 0; i < tempVerticesSize; ++i){
-									//Looks like it does, so we don't need to store it again!
+									// Looks like it does, so we don't need to store it again!
 									if(vertexUnique(checkVertex, &tempVertex) == 0){
 										break;
 									}
 
 									++checkVertex;
 								}
-								//The vertex does not exist, so add it to the vector!
+								// The vertex does not exist, so add it to the vector!
 								if(i == tempVerticesSize){
-									//If we're out of space, allocate some more!
+									// If we're out of space, allocate some more!
 									if(tempVerticesSize >= tempVerticesCapacity){
 										tempVerticesCapacity = tempVerticesSize * 2;
 										tempVertices = memoryManagerGlobalRealloc(tempVertices, tempVerticesCapacity * sizeof(*tempVertices));
@@ -768,7 +776,7 @@ return_t modelLoadSMD(model *mdl, const char *mdlName){
 									tempVertices[tempVerticesSize] = tempVertex;
 									++tempVerticesSize;
 								}
-								//Add an index for the new vertex!
+								// Add an index for the new vertex!
 								if(tempIndicesSize >= tempIndicesCapacity){
 									tempIndicesCapacity = tempIndicesSize * 2;
 									tempIndices = memoryManagerGlobalRealloc(tempIndices, tempIndicesCapacity * sizeof(*tempIndices));
@@ -804,85 +812,92 @@ return_t modelLoadSMD(model *mdl, const char *mdlName){
 		fclose(mdlFile);
 
 
-		//If there wasn't an error, add the model to the vector!
+		// If there wasn't an error, add the model to the vector!
 		if(success){
-			//Generate a vertex array object for our model and bind it!
+			// Generate a vertex array object for our model and bind it!
 			glGenVertexArrays(1, &mdl->vertexArrayID);
 			glBindVertexArray(mdl->vertexArrayID);
-				//Generate a vertex buffer object for our vertex data and bind it!
+				// Generate a vertex buffer object for our vertex data and bind it!
 				glGenBuffers(1, &mdl->vertexBufferID);
 				glBindBuffer(GL_ARRAY_BUFFER, mdl->vertexBufferID);
-				//Now add all our data to it!
+				// Now add all our data to it!
 				glBufferData(GL_ARRAY_BUFFER, tempVerticesSize * sizeof(*tempVertices), &tempVertices[0], GL_STATIC_DRAW);
 
-				//Generate a vertex buffer object for our indices and bind it!
+				// Generate a vertex buffer object for our indices and bind it!
 				glGenBuffers(1, &mdl->indexBufferID);
 				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mdl->indexBufferID);
-				//Now add all our data to it!
-				glBufferData(GL_ELEMENT_ARRAY_BUFFER, mdl->totalIndices * sizeof(*tempIndices), &tempIndices[0], GL_STATIC_DRAW);
+				// Now add all our data to it!
+				glBufferData(GL_ELEMENT_ARRAY_BUFFER, tempIndicesSize * sizeof(*tempIndices), &tempIndices[0], GL_STATIC_DRAW);
 
 
-				//Models will need these vertex attributes!
+				// Models will need these vertex attributes!
 				glEnableVertexAttribArray(0);
 				glEnableVertexAttribArray(1);
 				glEnableVertexAttribArray(2);
 				glEnableVertexAttribArray(3);
 				glEnableVertexAttribArray(4);
 
-				//Tell OpenGL which data belongs to the vertex attributes!
+				// Tell OpenGL which data belongs to the vertex attributes!
 				glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vertex), (GLvoid *)offsetof(vertex, pos));
 				glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(vertex), (GLvoid *)offsetof(vertex, uv));
 				glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(vertex), (GLvoid *)offsetof(vertex, normal));
 				glVertexAttribIPointer(3, MODEL_VERTEX_MAX_WEIGHTS, GL_UNSIGNED_INT, sizeof(vertex), (GLvoid *)offsetof(vertex, boneIDs));
 				glVertexAttribPointer(4, MODEL_VERTEX_MAX_WEIGHTS, GL_FLOAT, GL_FALSE, sizeof(vertex), (GLvoid *)offsetof(vertex, boneWeights));
-			//Unbind the array object!
+			// Unbind the array object!
 			glBindVertexArray(0);
 
+			mdl->numIndices = tempIndicesSize;
 
-			//Set the model's name!
-			mdl->name = memoryManagerGlobalResize(mdlPath, mdlNameLength + 1);
+
+			// Set the model's name!
+			mdl->name = memoryManagerGlobalResize(mdlPath, mdlNameLength);
 			if(mdl->name == NULL){
 				/** REALLOC FAILED **/
 			}
 			strcpy(mdl->name, mdlName);
 
-			//Initialise the model's skeleton!
-			skeleInitSet(&mdl->skele, mdl->name, NULL, 0);
+			// Initialise the model's skeleton!
+			skeleInitSet(&mdl->skele, mdl->name, mdlNameLength, NULL, 0);
 
 			#warning "This is obviously incomplete."
-			//Now that we can be sure everything was
-			//successful, find the textureGroup.
-			//if(tempTexGroupName != NULL){
+			// Now that we can be sure everything was
+			// successful, find the textureGroup.
+			// if(tempTexGroupName != NULL){
 			mdl->texGroup = moduleTexGroupFind("soldier.tdt");
-			//If we couldn't find the textureGroup, load it!
+			// If we couldn't find the textureGroup, load it!
 			if(mdl->texGroup == NULL){
-				//Make sure we can allocate
-				//enough memory for the texture.
+				// Make sure we can allocate
+				// enough memory for the texture.
 				if(!(mdl->texGroup = moduleTexGroupAlloc())){
 					/** MALLOC FAILED **/
 				}
-				//If we can't load it, just
-				//use the error texture.
+				// If we can't load it, just
+				// use the error texture.
 				if(!texGroupLoad(mdl->texGroup, "soldier.tdt")){
 					moduleTexGroupFree(mdl->texGroup);
 					mdl->texGroup = &errorTexGroup;
 				}
 			}
-			//}
+			// }
 
-		//Otherwise, delete the model.
+		// Otherwise, delete the model.
 		}else{
 			modelDelete(mdl);
 			memoryManagerGlobalFree(mdlPath);
 		}
 
 
-		//We don't need to check if these are NULL,
-		//as we do that when we're using them.
+		// We don't need to check if these are NULL,
+		// as we do that when we're using them.
 		memoryManagerGlobalFree(tempVertices);
 		memoryManagerGlobalFree(tempIndices);
+		#warning "This is temporary too. We should call the skeleton initialisation function."
+		//#error "We're crashing when we call the skeleton deletion function. The bones array pointer is incorrect. Probably because it's pointing to the default bone?"
+		for(size_t i = 0; i < tempBonesSize; ++i){
+			boneDelete(&tempBones[i]);
+		}
 		memoryManagerGlobalFree(tempBones);
-		//This one, however, is allowed to be NULL.
+		// This one, however, is allowed to be NULL.
 		#warning "Remember to do something with this."
 		/*if(tempTexGroupName != NULL){
 			memoryManagerGlobalFree(tempTexGroupName);
@@ -990,12 +1005,12 @@ return_t modelSetupError(){
 	};
 
 
-	//Temporarily stores only unique vertices.
+	// Temporarily stores only unique vertices.
 	size_t verticesSize = 0;
 	vertex vertices[20];
-	//Temporarily stores vertex indices for faces.
-	//We can use the model's totalIndices variable for the size so we don't have to set it later.
-	errorMdl.totalIndices = 0;
+	// Temporarily stores vertex indices for faces.
+	// We can use the model's numIndices variable for the size so we don't have to set it later.
+	errorMdl.numIndices = 0;
 	size_t indices[106];
 
 	size_t a;
@@ -1003,7 +1018,7 @@ return_t modelSetupError(){
 		vertex tempVertex;
 		memset(&tempVertex, 0.f, sizeof(tempVertex));
 
-		//Fill up tempVertex with the vertex information we've stored!
+		// Fill up tempVertex with the vertex information we've stored!
 		tempVertex.pos = tempPositions[tempIndices[a]];
 		tempVertex.uv = tempUVs[tempIndices[a + 1]];
 		tempVertex.normal = tempNormals[tempIndices[a + 2]];
@@ -1016,52 +1031,52 @@ return_t modelSetupError(){
 
 		const vertex *checkVertex = vertices;
 		size_t b;
-		//Check if this vertex already exists!
+		// Check if this vertex already exists!
 		for(b = 0; b < verticesSize; ++b){
-			//Looks like it does, so we don't need to store it again!
+			// Looks like it does, so we don't need to store it again!
 			if(vertexUnique(checkVertex, &tempVertex) == 0){
 				break;
 			}
 
 			++checkVertex;
 		}
-		//The vertex does not exist, so add it to the vector!
+		// The vertex does not exist, so add it to the vector!
 		if(b == verticesSize){
 			vertices[verticesSize] = tempVertex;
 			++verticesSize;
 		}
-		//Add an index for the new vertex!
-		indices[errorMdl.totalIndices] = b;
-		++errorMdl.totalIndices;
+		// Add an index for the new vertex!
+		indices[errorMdl.numIndices] = b;
+		++errorMdl.numIndices;
 	}
 
 
-	//Generate a vertex array object for our model and bind it!
+	// Generate a vertex array object for our model and bind it!
 	glGenVertexArrays(1, &errorMdl.vertexArrayID);
 	glBindVertexArray(errorMdl.vertexArrayID);
-		//Generate a vertex buffer object for our vertex data and bind it!
+		// Generate a vertex buffer object for our vertex data and bind it!
 		glGenBuffers(1, &errorMdl.vertexBufferID);
 		glBindBuffer(GL_ARRAY_BUFFER, errorMdl.vertexBufferID);
-		//Now add all our data to it!
+		// Now add all our data to it!
 		glBufferData(GL_ARRAY_BUFFER, verticesSize * sizeof(*vertices), &vertices[0], GL_STATIC_DRAW);
 
-		//Generate a vertex buffer object for our indices and bind it!
+		// Generate a vertex buffer object for our indices and bind it!
 		glGenBuffers(1, &errorMdl.indexBufferID);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, errorMdl.indexBufferID);
-		//Now add all our data to it!
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, (errorMdl.totalIndices * sizeof(*indices)), &indices[0], GL_STATIC_DRAW);
+		// Now add all our data to it!
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, (errorMdl.numIndices * sizeof(*indices)), &indices[0], GL_STATIC_DRAW);
 
 
-		//Models will need these three vertex attributes!
+		// Models will need these three vertex attributes!
 		glEnableVertexAttribArray(0);
 		glEnableVertexAttribArray(1);
 		glEnableVertexAttribArray(2);
 
-		//Tell OpenGL which data belongs to the vertex attributes!
+		// Tell OpenGL which data belongs to the vertex attributes!
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vertex), (GLvoid*)offsetof(vertex, pos));
 		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(vertex), (GLvoid*)offsetof(vertex, uv));
 		glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(vertex), (GLvoid*)offsetof(vertex, normal));
-	//Unbind the array object!
+	// Unbind the array object!
 	glBindVertexArray(0);
 
 
@@ -1070,8 +1085,8 @@ return_t modelSetupError(){
 
 
 void modelDelete(model *mdl){
-	//Only free the name if it's in
-	//use and it's not the error model.
+	// Only free the name if it's in
+	// use and it's not the error model.
 	if(mdl->name != NULL && mdl != &errorMdl){
 		memoryManagerGlobalFree(mdl->name);
 	}
@@ -1085,10 +1100,12 @@ void modelDelete(model *mdl){
 	if(mdl->vertexArrayID != 0){
 		glDeleteVertexArrays(1, &mdl->vertexArrayID);
 	}
+
+	skeleDelete(&mdl->skele);
 }
 
 
-//This works so long as our vertices have no padding.
+// This works so long as our vertices have no padding.
 static return_t vertexUnique(const vertex *v1, const vertex *v2){
 	return(memcmp(v1, v2, sizeof(*v2)));
 }

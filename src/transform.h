@@ -16,7 +16,7 @@ typedef struct transformState {
 
 void transformStateInit(transformState *trans);
 
-//All of these functions come from bones.
+// All of these functions come from bones.
 void transformStateAppend(const transformState *trans1, const transformState *trans2, transformState *out);
 void transformStateInterpSet(const transformState *trans1, const transformState *trans2, const float time, transformState *out);
 void transformStateInterpAdd(const transformState *trans1, const transformState *trans2, const float time, transformState *out);

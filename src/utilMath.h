@@ -13,7 +13,7 @@
 #define lerpNum(x, y, t) (x + t * (y - x))
 #define lerpNumFast(x, y, t) (x + t * y)
 
-//Note: These are prone to double evaluation!
+// Note: These are prone to double evaluation!
 #define minNumFast(x, y) (((x) <= (y)) ? (x) : (y))
 #define maxNumFast(x, y) (((x) >= (y)) ? (x) : (y))
 #define clampNumFast(min, x, max) (((min) >= (x)) ? (min) : (((x) >= (max)) ? (max) : (x)))

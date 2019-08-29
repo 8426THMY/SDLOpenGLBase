@@ -9,7 +9,7 @@
 
 
 void *memFreeListInit(memoryFreeList *freeList, void *memory, const size_t memorySize, const size_t blockSize){
-	//Make sure the user isn't being difficult.
+	// Make sure the user isn't being difficult.
 	if(memory != NULL){
 		memoryRegion *region;
 
@@ -31,8 +31,8 @@ void *memFreeListInit(memoryFreeList *freeList, void *memory, const size_t memor
 void *memFreeListAlloc(memoryFreeList *freeList){
 	void *newBlock = freeList->nextFreeBlock;
 
-	//If a free block exists, change
-	//the list's free block pointer!
+	// If a free block exists, change
+	// the list's free block pointer!
 	if(newBlock != NULL){
 		freeList->nextFreeBlock = memFreeListBlockFreeGetNext(newBlock);
 	}
@@ -42,8 +42,8 @@ void *memFreeListAlloc(memoryFreeList *freeList){
 
 
 void memFreeListFree(memoryFreeList *freeList, void *data){
-	//Make the block pointer to the next free
-	//block in the list then add it to the front!
+	// Make the block pointer to the next free
+	// block in the list then add it to the front!
 	memFreeListBlockFreeGetNext(data) = freeList->nextFreeBlock;
 	freeList->nextFreeBlock = data;
 }
@@ -58,7 +58,7 @@ void memFreeListClearRegion(memoryFreeList *freeList, memoryRegion *region, void
 	void *currentBlock = region->start;
 	void *nextBlock = memFreeListBlockGetNextBlock(currentBlock, blockSize);
 
-	//Set the next pointer for each block!
+	// Set the next pointer for each block!
 	while(nextBlock < (void *)region){
 		memFreeListBlockFreeGetNext(currentBlock) = nextBlock;
 
@@ -66,7 +66,7 @@ void memFreeListClearRegion(memoryFreeList *freeList, memoryRegion *region, void
 		nextBlock = memFreeListBlockGetNextBlock(currentBlock, blockSize);
 	}
 
-	//Set the next pointer for the last block!
+	// Set the next pointer for the last block!
 	memFreeListBlockFreeGetNext(currentBlock) = next;
 }
 
@@ -79,7 +79,7 @@ void memFreeListClearLastRegion(memoryFreeList *freeList, memoryRegion *region){
 	void *currentBlock = region->start;
 	void *nextBlock = memFreeListBlockGetNextBlock(currentBlock, blockSize);
 
-	//Set the next pointer for each block!
+	// Set the next pointer for each block!
 	while(nextBlock < (void *)region){
 		memFreeListBlockFreeGetNext(currentBlock) = nextBlock;
 
@@ -87,7 +87,7 @@ void memFreeListClearLastRegion(memoryFreeList *freeList, memoryRegion *region){
 		nextBlock = memFreeListBlockGetNextBlock(currentBlock, blockSize);
 	}
 
-	//Set the next pointer for the last block!
+	// Set the next pointer for the last block!
 	memFreeListBlockFreeGetNext(currentBlock) = NULL;
 }
 
@@ -95,16 +95,16 @@ void memFreeListClear(memoryFreeList *freeList){
 	memoryRegion *region = freeList->region;
 	freeList->nextFreeBlock = region->start;
 
-	//Loop through every region in the allocator.
+	// Loop through every region in the allocator.
 	for(;;){
 		memoryRegion *nextRegion = region->next;
 
-		//If this is not the last region, make this region's
-		//last block point to the first in the next region.
+		// If this is not the last region, make this region's
+		// last block point to the first in the next region.
 		if(nextRegion != NULL){
 			memFreeListClearRegion(freeList, region, nextRegion->start);
 
-		//Otherwise, make it point to NULL and break the loop.
+		// Otherwise, make it point to NULL and break the loop.
 		}else{
 			memFreeListClearLastRegion(freeList, region);
 			break;
@@ -118,9 +118,9 @@ void memFreeListClear(memoryFreeList *freeList){
 void *memFreeListExtend(memoryFreeList *freeList, void *memory, const size_t memorySize){
 	if(memory != NULL){
 		memoryRegion *newRegion = memoryGetRegionFromSize(memory, memorySize);
-		//Add the new region to the end of the list!
+		// Add the new region to the end of the list!
 		memoryRegionAppend(&freeList->region, newRegion, memory);
-		//Set up its memory!
+		// Set up its memory!
 		memFreeListClearLastRegion(freeList, newRegion);
 
 		freeList->nextFreeBlock = memory;

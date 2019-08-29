@@ -9,14 +9,14 @@
 #include "state.h"
 
 
-//This type is used to store the interpolated state of a camera.
+// This type is used to store the interpolated state of a camera.
 typedef struct cameraInterpState {
 	vec3 pos;
 	quat rot;
 	float fov;
 } cameraInterpState;
 
-//Stores the current and last positions of the camera.
+// Stores the current and last positions of the camera.
 typedef struct cameraState {
 	interpVec3 pos;
 	interpQuat rot;

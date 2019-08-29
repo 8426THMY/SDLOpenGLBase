@@ -7,7 +7,7 @@
 #include "vec2.h"
 
 
-//Note: Our matrices are column-major, just the way OpenGL likes them.
+// Note: Our matrices are column-major, just the way OpenGL likes them.
 typedef struct mat2 {
 	float m[2][2];
 } mat2;

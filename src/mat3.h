@@ -7,7 +7,7 @@
 #include "vec3.h"
 
 
-//Note: Our matrices are column-major, just the way OpenGL likes them.
+// Note: Our matrices are column-major, just the way OpenGL likes them.
 typedef struct mat3 {
 	float m[3][3];
 } mat3;

@@ -2,11 +2,11 @@
 #define settingsPhysics_h
 
 
-//Collider settings.
+// Collider settings.
 #define COLLIDER_HULL_USE_VERTEX_WEIGHT
 
 
-//Physics settings.
+// Physics settings.
 #define PHYSICS_BASE_UPDATE_RATE 120.f
 #define PHYSICS_UPDATE_RATE 120.f
 #define PHYSICS_SOLVER_NUM_ITERATIONS 4

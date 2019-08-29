@@ -8,11 +8,11 @@
 #include "memoryShared.h"
 
 
-//Example stack diagram:
-//                                   top
-//                                    |
-//                                    v
-//[    data    ][size][  data  ][size][        free        ]
+// Example stack diagram:
+//                                    top
+//                                     |
+//                                     v
+// [    data    ][size][  data  ][size][        free        ]
 
 
 typedef struct memoryStack {

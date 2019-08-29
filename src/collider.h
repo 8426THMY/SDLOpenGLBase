@@ -22,13 +22,13 @@ typedef uint_least8_t colliderType_t;
 
 
 typedef struct collider {
-	//This array should be large enough
-	//to store any type of collider.
+	// This array should be large enough
+	// to store any type of collider.
 	union {
 		colliderHull hull;
 	} data;
-	//Stores which type of
-	//collider this object is.
+	// Stores which type of
+	// collider this object is.
 	colliderType_t type;
 } collider;
 

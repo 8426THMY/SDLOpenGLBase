@@ -4,20 +4,20 @@
 #include "utilTypes.h"
 
 
-//These functions all do the same thing, but
-//they, but make the code a bit easier to read.
+// These functions all do the same thing, but
+// they, but make the code a bit easier to read.
 #define memDoubleListBlockFreeGetNext(block) memDoubleListBlockGetValue(block)
 #define memDoubleListBlockUsedGetNext(block) memDoubleListBlockGetValue(block)
 #define memDoubleListBlockUsedGetPrev(block) memDoubleListBlockGetValue(block)
 #define memDoubleListBlockUsedGetData(block) memDoubleListBlockGetValue(block)
 
-//Write the flag specified by "flag" to the pointer "next".
+// Write the flag specified by "flag" to the pointer "next".
 #define memDoubleListBlockSetFlag(next, flag) ((void *)(((uintptr_t)memDoubleListBlockGetValue(next)) | (flag)))
-//Add the "active" flag to the pointer specified by "next".
+// Add the "active" flag to the pointer specified by "next".
 #define memDoubleListBlockMakeActive(next) memDoubleListBlockSetFlag(next, MEMDOUBLELIST_FLAG_ACTIVE)
-//Add the "inactive" flag to the pointer specified by "next".
+// Add the "inactive" flag to the pointer specified by "next".
 #define memDoubleListBlockMakeInactive(next) memDoubleListBlockSetFlag(next, MEMDOUBLELIST_FLAG_INACTIVE)
-//Add the "invalid" flag to the pointer specified by "next".
+// Add the "invalid" flag to the pointer specified by "next".
 #define memDoubleListBlockMakeInvalid(next) memDoubleListBlockSetFlag(next, MEMDOUBLELIST_FLAG_INVALID)
 
 
@@ -26,7 +26,7 @@
 
 
 void *memDoubleListInit(memoryDoubleList *doubleList, void *memory, const size_t memorySize, const size_t blockSize){
-	//Make sure the user isn't being difficult.
+	// Make sure the user isn't being difficult.
 	if(memory != NULL){
 		memoryRegion *region;
 
@@ -45,15 +45,15 @@ void *memDoubleListInit(memoryDoubleList *doubleList, void *memory, const size_t
 }
 
 
-//Used to create a new array list.
+// Used to create a new array list.
 void *memDoubleListAlloc(memoryDoubleList *doubleList){
 	void *newBlock = doubleList->nextFreeBlock;
 
 	if(newBlock != NULL){
-		//Move the free pointer to the next free block.
+		// Move the free pointer to the next free block.
 		doubleList->nextFreeBlock = memDoubleListBlockFreeGetNext(newBlock);
 
-		//Change this block's pointers.
+		// Change this block's pointers.
 		*memDoubleListBlockUsedDataGetPrev(newBlock) = NULL;
 		*memDoubleListBlockUsedDataGetNext(newBlock) = NULL;
 	}
@@ -61,16 +61,16 @@ void *memDoubleListAlloc(memoryDoubleList *doubleList){
 	return(newBlock);
 }
 
-//Prepend a new block at the start of an array list.
+// Prepend a new block at the start of an array list.
 void *memDoubleListPrepend(memoryDoubleList *doubleList, void **start){
 	void *newBlock = doubleList->nextFreeBlock;
 
 	if(newBlock != NULL){
-		//Move the free pointer to the next free block.
+		// Move the free pointer to the next free block.
 		doubleList->nextFreeBlock = memDoubleListBlockFreeGetNext(newBlock);
 
-		//Make sure the new block points
-		//to the start of the array list.
+		// Make sure the new block points
+		// to the start of the array list.
 		if(start != NULL){
 			*memDoubleListBlockUsedDataGetPrev(newBlock) = NULL;
 			*memDoubleListBlockUsedDataGetNext(newBlock) = *start;
@@ -84,23 +84,23 @@ void *memDoubleListPrepend(memoryDoubleList *doubleList, void **start){
 	return(newBlock);
 }
 
-//Append a new block after another in an array list.
+// Append a new block after another in an array list.
 void *memDoubleListAppend(memoryDoubleList *doubleList, void **start){
 	void *newBlock = doubleList->nextFreeBlock;
 
 	if(newBlock != NULL){
 		void *lastBlock = NULL;
 		void **nextBlock = start;
-		//Find the last block in the array list.
+		// Find the last block in the array list.
 		while(*nextBlock != NULL){
 			lastBlock = *nextBlock;
 			nextBlock = memDoubleListBlockUsedDataGetNext(*nextBlock);
 		}
 
-		//Move the free pointer to the next free block.
+		// Move the free pointer to the next free block.
 		doubleList->nextFreeBlock = memDoubleListBlockFreeGetNext(newBlock);
 
-		//Make our new block the last in the array list!
+		// Make our new block the last in the array list!
 		*nextBlock = newBlock;
 		*memDoubleListBlockUsedDataGetPrev(newBlock) = lastBlock;
 		*memDoubleListBlockUsedDataGetNext(newBlock) = NULL;
@@ -109,47 +109,47 @@ void *memDoubleListAppend(memoryDoubleList *doubleList, void **start){
 	return(newBlock);
 }
 
-//Prepend a new block before another in an array list.
+// Prepend a new block before another in an array list.
 void *memoryDoubleListInsertBefore(memoryDoubleList *doubleList, void **start, void *prevData){
 	void *newBlock = doubleList->nextFreeBlock;
 
 	if(newBlock != NULL){
-		//Move the free pointer to the next free block.
+		// Move the free pointer to the next free block.
 		doubleList->nextFreeBlock = memDoubleListBlockFreeGetNext(newBlock);
 
-		//Make the new block point back to the one before it.
+		// Make the new block point back to the one before it.
 		*memDoubleListBlockUsedDataGetPrev(newBlock) = prevData;
 
-		//If a previous block exists, make it point to the new block.
+		// If a previous block exists, make it point to the new block.
 		if(prevData != NULL){
 			void *block;
 
 			prevData = memDoubleListBlockUsedDataGetNext(prevData);
 			block = memDoubleListBlockUsedGetNext(prevData);
 
-			//Make the block we're inserting after point to the new block.
+			// Make the block we're inserting after point to the new block.
 			memDoubleListBlockUsedGetNext(prevData) = newBlock;
 
-			//Make the block we're inserting before point back to the new block.
+			// Make the block we're inserting before point back to the new block.
 			if(block != NULL){
 				*memDoubleListBlockUsedDataGetPrev(block) = newBlock;
 			}
 
-			//Make the new block point to the one after it.
+			// Make the new block point to the one after it.
 			*memDoubleListBlockUsedDataGetNext(newBlock) = block;
 
-		//Otherwise, the new block should be at the beginning of the list.
+		// Otherwise, the new block should be at the beginning of the list.
 		}else{
 			void *startBlock = *start;
 
 			*memDoubleListBlockUsedDataGetNext(newBlock) = startBlock;
 
-			//Make sure the old start block points back to the new one.
+			// Make sure the old start block points back to the new one.
 			if(startBlock != NULL){
 				*memDoubleListBlockUsedDataGetPrev(startBlock) = newBlock;
 			}
-			//The pointer to the beginning of the
-			//list should now point to the new block.
+			// The pointer to the beginning of the
+			// list should now point to the new block.
 			*start = newBlock;
 		}
 	}
@@ -157,47 +157,47 @@ void *memoryDoubleListInsertBefore(memoryDoubleList *doubleList, void **start, v
 	return(newBlock);
 }
 
-//Append a new block after another in an array list.
+// Append a new block after another in an array list.
 void *memoryDoubleListInsertAfter(memoryDoubleList *doubleList, void **start, void *data){
 	void *newBlock = doubleList->nextFreeBlock;
 
 	if(newBlock != NULL){
-		//Move the free pointer to the next free block.
+		// Move the free pointer to the next free block.
 		doubleList->nextFreeBlock = memDoubleListBlockFreeGetNext(newBlock);
 
-		//Make the new block point back to the one before it.
+		// Make the new block point back to the one before it.
 		*memDoubleListBlockUsedDataGetPrev(newBlock) = data;
 
-		//Fix up the previous block's pointer if it exists.
+		// Fix up the previous block's pointer if it exists.
 		if(data != NULL){
 			void *nextBlock;
 
 			data = memDoubleListBlockUsedDataGetNext(data);
 			nextBlock = memDoubleListBlockUsedGetNext(data);
 
-			//Make the block we're inserting after point to the new block.
+			// Make the block we're inserting after point to the new block.
 			memDoubleListBlockUsedGetNext(data) = newBlock;
 
-			//Make the block we're inserting before point back to the new block.
+			// Make the block we're inserting before point back to the new block.
 			if(nextBlock != NULL){
 				*memDoubleListBlockUsedDataGetPrev(nextBlock) = newBlock;
 			}
 
-			//Make the new block point to the one after it.
+			// Make the new block point to the one after it.
 			*memDoubleListBlockUsedDataGetNext(newBlock) = nextBlock;
 
-		//Otherwise, use the starting block to insert the new one.
+		// Otherwise, use the starting block to insert the new one.
 		}else{
 			void *startBlock = *start;
 
-			//If there's a starting block, insert the new one after it.
+			// If there's a starting block, insert the new one after it.
 			if(startBlock != NULL){
 				startBlock = memDoubleListBlockUsedDataGetNext(startBlock);
 
 				*memDoubleListBlockUsedDataGetNext(newBlock) = memDoubleListBlockUsedGetNext(startBlock);
 				memDoubleListBlockUsedGetNext(startBlock) = newBlock;
 
-			//Otherwise, just start a new array list.
+			// Otherwise, just start a new array list.
 			}else{
 				*memDoubleListBlockUsedDataGetNext(newBlock) = NULL;
 				*start = newBlock;
@@ -214,12 +214,12 @@ void memDoubleListFree(memoryDoubleList *doubleList, void **start, void *data){
 
 	void *nextBlock = memDoubleListBlockUsedGetNext(block);
 	void *prevBlock = *memDoubleListBlockUsedNextGetPrev(block);
-	//We'll need to fix the pointers for
-	//any preceding or succeeding nodes.
+	// We'll need to fix the pointers for
+	// any preceding or succeeding nodes.
 	if(prevBlock != NULL){
 		*memDoubleListBlockUsedDataGetNext(prevBlock) = nextBlock;
 
-	//Otherwise, set the start pointer if it was specified.
+	// Otherwise, set the start pointer if it was specified.
 	}else if(start != NULL){
 		*start = nextBlock;
 	}
@@ -227,13 +227,13 @@ void memDoubleListFree(memoryDoubleList *doubleList, void **start, void *data){
 		*memDoubleListBlockUsedDataGetPrev(nextBlock) = prevBlock;
 	}
 
-	//Now we can add the block to the free list!
+	// Now we can add the block to the free list!
 	memDoubleListBlockFreeGetFlag(block) = MEMDOUBLELIST_FLAG_INACTIVE;
 	memDoubleListBlockFreeGetNext(data) = doubleList->nextFreeBlock;
 	doubleList->nextFreeBlock = data;
 }
 
-//Free every block in a single array.
+// Free every block in a single array.
 void memDoubleListFreeArray(memoryDoubleList *doubleList, void *start){
 	if(start != NULL){
 		void *block = start;
@@ -258,7 +258,7 @@ void memDoubleListClearRegion(memoryDoubleList *doubleList, memoryRegion *region
 	void *currentBlock = region->start;
 	void *nextBlock = memDoubleListBlockGetNextBlock(currentBlock, blockSize);
 
-	//Set the flag and next pointer for each block!
+	// Set the flag and next pointer for each block!
 	while(nextBlock < (void *)region){
 		*memDoubleListBlockFreeNextGetFlag(currentBlock) = flag;
 		memDoubleListBlockFreeGetNext(currentBlock) = nextBlock;
@@ -267,7 +267,7 @@ void memDoubleListClearRegion(memoryDoubleList *doubleList, memoryRegion *region
 		nextBlock = memDoubleListBlockGetNextBlock(currentBlock, blockSize);
 	}
 
-	//Set the flag and next pointer for the last block!
+	// Set the flag and next pointer for the last block!
 	*memDoubleListBlockFreeNextGetFlag(currentBlock) = flag;
 	memDoubleListBlockFreeGetNext(currentBlock) = next;
 }
@@ -281,7 +281,7 @@ void memDoubleListClearLastRegion(memoryDoubleList *doubleList, memoryRegion *re
 	void *currentBlock = region->start;
 	void *nextBlock = memDoubleListBlockGetNextBlock(currentBlock, blockSize);
 
-	//Set the flag and next pointer for each block!
+	// Set the flag and next pointer for each block!
 	while(nextBlock < (void *)region){
 		*memDoubleListBlockFreeNextGetFlag(currentBlock) = MEMDOUBLELIST_FLAG_INVALID;
 		memDoubleListBlockFreeGetNext(currentBlock) = nextBlock;
@@ -290,7 +290,7 @@ void memDoubleListClearLastRegion(memoryDoubleList *doubleList, memoryRegion *re
 		nextBlock = memDoubleListBlockGetNextBlock(currentBlock, blockSize);
 	}
 
-	//Set the flag and next pointer for the last block!
+	// Set the flag and next pointer for the last block!
 	*memDoubleListBlockFreeNextGetFlag(currentBlock) = MEMDOUBLELIST_FLAG_INVALID;
 	memDoubleListBlockFreeGetNext(currentBlock) = NULL;
 }
@@ -303,16 +303,16 @@ void memDoubleListClear(memoryDoubleList *doubleList){
 	memoryRegion *region = doubleList->region;
 	doubleList->nextFreeBlock = region->start;
 
-	//Loop through every region in the allocator.
+	// Loop through every region in the allocator.
 	for(;;){
 		memoryRegion *nextRegion = region->next;
 
-		//If this is not the last region, make this region's
-		//last block point to the first in the next region.
+		// If this is not the last region, make this region's
+		// last block point to the first in the next region.
 		if(nextRegion != NULL){
 			memDoubleListClearRegion(doubleList, region, MEMDOUBLELIST_FLAG_INVALID, nextRegion->start);
 
-		//Otherwise, make it point to NULL and break the loop.
+		// Otherwise, make it point to NULL and break the loop.
 		}else{
 			memDoubleListClearLastRegion(doubleList, region);
 			break;
@@ -323,13 +323,13 @@ void memDoubleListClear(memoryDoubleList *doubleList){
 }
 
 
-//Append a new memory region to the end of our allocator's region list!
+// Append a new memory region to the end of our allocator's region list!
 void *memDoubleListExtend(memoryDoubleList *doubleList, void *memory, const size_t memorySize){
 	if(memory != NULL){
 		memoryRegion *newRegion = memoryGetRegionFromSize(memory, memorySize);
-		//Add the new region to the end of the list!
+		// Add the new region to the end of the list!
 		memoryRegionAppend(&doubleList->region, newRegion, memory);
-		//Set up its memory!
+		// Set up its memory!
 		memDoubleListClearLastRegion(doubleList, newRegion);
 
 		doubleList->nextFreeBlock = memDoubleListBlockFreeFlagGetNext(memory);
@@ -341,7 +341,7 @@ void *memDoubleListExtend(memoryDoubleList *doubleList, void *memory, const size
 
 void memDoubleListDelete(memoryDoubleList *doubleList){
 	memoryRegion *region = doubleList->region;
-	//Free every memory region in the allocator.
+	// Free every memory region in the allocator.
 	while(region != NULL){
 		memoryRegion *next = region->next;
 

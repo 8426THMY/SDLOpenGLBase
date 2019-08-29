@@ -9,7 +9,7 @@
 #include "quat.h"
 
 
-//Note: Our matrices are column-major, just the way OpenGL likes them.
+// Note: Our matrices are column-major, just the way OpenGL likes them.
 typedef struct mat4 {
 	float m[4][4];
 } mat4;

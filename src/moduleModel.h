@@ -10,7 +10,7 @@
 #include "model.h"
 
 
-#define MODULEMODEL
+#define MODULE_MODEL
 #define MODULE_MODEL_SETUP_FAIL 5
 
 #define MODULE_MODEL_ELEMENT_SIZE sizeof(model)

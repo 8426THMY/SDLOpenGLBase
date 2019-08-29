@@ -28,8 +28,8 @@ typedef struct physicsCollider physicsCollider;
 typedef uint_least8_t physPairTimestamp_t;
 
 typedef struct physicsSeparationPair physicsSeparationPair;
-//Stores the data required to represent
-//a separation between two rigid bodies.
+// Stores the data required to represent
+// a separation between two rigid bodies.
 typedef struct physicsSeparationPair {
 	contactSeparation separation;
 	physPairTimestamp_t inactive;
@@ -37,8 +37,8 @@ typedef struct physicsSeparationPair {
 	physicsCollider *cA;
 	physicsCollider *cB;
 
-	//Each collision pair is a member of two doubly linked
-	//lists, one for both bodies involved in the pair.
+	// Each collision pair is a member of two doubly linked
+	// lists, one for both bodies involved in the pair.
 	physicsSeparationPair *prevA;
 	physicsSeparationPair *nextA;
 	physicsSeparationPair *prevB;
@@ -46,8 +46,8 @@ typedef struct physicsSeparationPair {
 } physicsSeparationPair;
 
 typedef struct physicsContactPair physicsContactPair;
-//Stores the data required to represent
-//a contact between two rigid bodies.
+// Stores the data required to represent
+// a contact between two rigid bodies.
 typedef struct physicsContactPair {
 	physicsManifold manifold;
 	physPairTimestamp_t inactive;
@@ -55,25 +55,26 @@ typedef struct physicsContactPair {
 	physicsCollider *cA;
 	physicsCollider *cB;
 
-	//Each collision pair is a member of two doubly linked
-	//lists, one for both bodies involved in the pair.
+	// Each collision pair is a member of two doubly linked
+	// lists, one for both bodies involved in the pair.
 	physicsContactPair *prevA;
 	physicsContactPair *nextA;
 	physicsContactPair *prevB;
 	physicsContactPair *nextB;
 } physicsContactPair;
 
+#warning "Maybe move this somewhere else?"
 typedef struct physicsJointPair physicsJointPair;
-//Stores the data required to represent
-//a joint between two rigid bodies.
+// Stores the data required to represent
+// a joint between two rigid bodies.
 typedef struct physicsJointPair {
 	physicsJoint joint;
 
 	physicsCollider *cA;
 	physicsCollider *cB;
 
-	//Each joint pair is a member of two doubly linked
-	//lists, one for both bodies involved in the pair.
+	// Each joint pair is a member of two doubly linked
+	// lists, one for both bodies involved in the pair.
 	physicsJointPair *prevA;
 	physicsJointPair *nextA;
 	physicsJointPair *prevB;

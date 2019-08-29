@@ -22,8 +22,8 @@ typedef uint_least8_t separationType_t;
 typedef uint_least8_t contactPointIndex_t;
 
 
-//Stores either the two faces or the two edges
-//that is causing a separation between two hulls.
+// Stores either the two faces or the two edges
+// that is causing a separation between two hulls.
 typedef struct contactSeparation {
 	separationFeature_t featureA;
 	separationFeature_t featureB;
@@ -31,8 +31,8 @@ typedef struct contactSeparation {
 } contactSeparation;
 
 
-//Identifying features used to
-//construct the contact point.
+// Identifying features used to
+// construct the contact point.
 typedef struct contactKey {
 	#ifdef CONTACT_MANIFOLD_SIMPLE_KEYS
 	colliderEdgeIndex_t edgeA;
@@ -46,21 +46,21 @@ typedef struct contactKey {
 } contactKey;
 
 typedef struct contactPoint {
-	//Position of the contacts in global space.
-	//They are not relative to the centres of mass.
+	// Position of the contacts in global space.
+	// They are not relative to the centres of mass.
 	vec3 pA;
 	vec3 pB;
 
 	vec3 normal;
 
-	//Separation between the colliders.
-	//Note that this is a negative quantity.
+	// Separation between the colliders.
+	// Note that this is a negative quantity.
 	float separation;
-	//Used to uniquely identify the contact point.
+	// Used to uniquely identify the contact point.
 	contactKey key;
 } contactPoint;
 
-//Stores every contact point involved in the collision.
+// Stores every contact point involved in the collision.
 typedef struct contactManifold {
 	contactPoint contacts[CONTACT_MAX_POINTS];
 	contactPointIndex_t numContacts;

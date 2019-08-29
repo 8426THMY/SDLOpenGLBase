@@ -6,10 +6,10 @@
 
 
 typedef struct stateObject {
-	//Vector of pointers to data for each state the object was active in.
-	//We store a vector of pointers so we don't have to copy huge amounts
-	//of data when we shift the arrays over.
-	//Note: If states[0] is NULL, the object has most likely been removed.
+	// Vector of pointers to data for each state the object was active in.
+	// We store a vector of pointers so we don't have to copy huge amounts
+	// of data when we shift the arrays over.
+	// Note: If states[0] is NULL, the object has most likely been removed.
 	void **states;
 	size_t numStates;
 } stateObject;

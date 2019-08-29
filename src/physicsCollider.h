@@ -25,13 +25,13 @@
 
 typedef struct physicsRigidBody physicsRigidBody;
 typedef struct physicsCollider {
-	//To reduce computation between frames, specifically
-	//for convex hulls, we store a copy of the collider
-	//in local space and one in global space.
+	// To reduce computation between frames, specifically
+	// for convex hulls, we store a copy of the collider
+	// in local space and one in global space.
 	collider global;
 	collider *local;
-	//Tightly-fitting bounding box, used to check
-	//if we should perform narrowphase collision.
+	// Tightly-fitting bounding box, used to check
+	// if we should perform narrowphase collision.
 	colliderAABB aabb;
 
 	float density;
@@ -41,18 +41,18 @@ typedef struct physicsCollider {
 	physicsRigidBody *owner;
 	aabbNode *node;
 
-	//Colliders store linked lists of active contacts
-	//and separations. These lists are mostly sorted
-	//according to the addresses of the second collider
-	//involved in the contact or separation. I say
-	//"mostly" because only pairs where this collider
-	//is the first really need to be sorted.
+	// Colliders store linked lists of active contacts
+	// and separations. These lists are mostly sorted
+	// according to the addresses of the second collider
+	// involved in the contact or separation. I say
+	// "mostly" because only pairs where this collider
+	// is the first really need to be sorted.
 	physicsSeparationPair *separations;
 	physicsContactPair *contacts;
 
-	//They also store a linked list of joints
-	//that they are a part of. These behave
-	//similarly to the previous linked lists.
+	// They also store a linked list of joints
+	// that they are a part of. These behave
+	// similarly to the previous linked lists.
 	physicsJointPair *joints;
 } physicsCollider;
 
@@ -83,7 +83,7 @@ void physColliderCollisionCallback(void *colliderA, void *colliderB);
 
 
 extern void (*physColliderGenerateCentroidTable[COLLIDER_NUM_TYPES])(
-	void *collider,
+	const void *collider,
 	vec3 *centroid
 );
 

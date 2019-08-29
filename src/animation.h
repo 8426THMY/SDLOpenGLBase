@@ -7,17 +7,17 @@
 #include "utilTypes.h"
 
 
-//Stores frame data for an instance of any sort of animation.
+// Stores frame data for an instance of any sort of animation.
 typedef struct animationFrameData {
-	//Vector storing the timestamp for when each frame ends.
+	// Vector storing the timestamp for when each frame ends.
 	float *time;
 	size_t numFrames;
 
-	//How many times the animation should be played!
+	// How many times the animation should be played!
 	unsigned int playNum;
 } animationFrameData;
 
-//Stores information required for an instance of any sort of animation.
+// Stores information required for an instance of any sort of animation.
 typedef struct animationData {
 	unsigned int currentPlayNum;
 

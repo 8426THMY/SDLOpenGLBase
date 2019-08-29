@@ -24,9 +24,9 @@
 #define COLLISION_TOLERANCE_TERM        0.025f
 
 #define CLIPPING_INORDER 0
-//We can use byte offsets or a conditional check to swap our keys around.
-//It shouldn't matter which of these we use if the function gets inlined.
-//If it doesn't, however, I'm not exactly sure which would be faster.
+// We can use byte offsets or a conditional check to swap our keys around.
+// It shouldn't matter which of these we use if the function gets inlined.
+// If it doesn't, however, I'm not exactly sure which would be faster.
 #ifdef CLIPPING_KEYSWAP_USE_OFFSETS
 
 	#ifdef CONTACT_MANIFOLD_SIMPLE_KEYS
@@ -54,29 +54,29 @@
 #endif
 
 
-//These must be at least 1!
+// These must be at least 1!
 #define BASE_VERTEX_CAPACITY 1
 #define BASE_FACE_CAPACITY   1
 #define BASE_EDGE_CAPACITY   1
 
 
-//Stores the index of a face and its distance
-//from the closest point on another object.
+// Stores the index of a face and its distance
+// from the closest point on another object.
 typedef struct hullFaceData {
 	colliderHullFace index;
 	float separation;
 } hullFaceData;
 
-//Stores the index of an edge pair
-//and their distance from each other.
+// Stores the index of an edge pair
+// and their distance from each other.
 typedef struct hullEdgeData {
 	colliderEdgeIndex_t edgeA;
 	colliderEdgeIndex_t edgeB;
 	float separation;
 } hullEdgeData;
 
-//Stores the collision information
-//returned by the Separating Axis Theorem.
+// Stores the collision information
+// returned by the Separating Axis Theorem.
 typedef struct collisionData {
 	hullFaceData faceA;
 	hullFaceData faceB;
@@ -84,22 +84,22 @@ typedef struct collisionData {
 } collisionData;
 
 
-//Clipped vertices need to store the
-//indices of the edges that formed them.
+// Clipped vertices need to store the
+// indices of the edges that formed them.
 typedef struct vertexClip {
 	vec3 v;
 	contactKey key;
 } vertexClip;
 
-//When we project vertices onto the
-//reference face, we store their separation.
+// When we project vertices onto the
+// reference face, we store their separation.
 typedef struct vertexProject {
 	vec3 v;
 	float dist;
 } vertexProject;
 
 
-//Forward-declare any helper functions!
+// Forward-declare any helper functions!
 static void hullFaceDataInit(hullFaceData *faceData);
 static void hullEdgeDataInit(hullEdgeData *edgeData);
 static void collisionDataInit(collisionData *cd);
@@ -133,12 +133,12 @@ static void clipEdgeContact(const colliderHull *hullA, const colliderHull *hullB
 
 
 void colliderHullInit(colliderHull *hull){
-	//Clear the hull's data so it's ready for use.
+	// Clear the hull's data so it's ready for use.
 	memset(hull, 0, sizeof(colliderHull));
 }
 
 void colliderHullInstantiate(void *hull, const void *base){
-	//Allocate memory for the instance's arrays.
+	// Allocate memory for the instance's arrays.
 	((colliderHull *)hull)->vertices = memoryManagerGlobalAlloc(
 		sizeof(*(((colliderHull *)hull)->vertices)) * ((colliderHull *)base)->numVertices
 	);
@@ -152,7 +152,7 @@ void colliderHullInstantiate(void *hull, const void *base){
 		/** MALLOC FAILED **/
 	}
 
-	//Copy the rest of the components over from the base collider.
+	// Copy the rest of the components over from the base collider.
 	memcpy(((colliderHull *)hull)->edges, ((colliderHull *)base)->edges, COLLIDER_HULL_INSTANCE_STATIC_BYTES);
 }
 
@@ -175,7 +175,7 @@ return_t colliderHullLoad(void *hull, FILE *hullFile, vec3 *centroid, mat3 *iner
 	colliderEdgeIndex_t tempEdgesCapacity = BASE_EDGE_CAPACITY;
 
 
-	//Used when reading various data.
+	// Used when reading various data.
 	char *tokPos;
 	char *tokEnd;
 
@@ -185,10 +185,10 @@ return_t colliderHullLoad(void *hull, FILE *hullFile, vec3 *centroid, mat3 *iner
 
 
 	colliderHull tempHull;
-	//This will set every variable in the hull to 0.
+	// This will set every variable in the hull to 0.
 	colliderHullInit(&tempHull);
 
-	//Set up the collider's data arrays!
+	// Set up the collider's data arrays!
 	#ifdef COLLIDER_HULL_USE_VERTEX_WEIGHT
 	vertexWeights     = memoryManagerGlobalAlloc(BASE_VERTEX_CAPACITY * sizeof(*vertexWeights));
 	#endif
@@ -199,23 +199,23 @@ return_t colliderHullLoad(void *hull, FILE *hullFile, vec3 *centroid, mat3 *iner
 
 
 	while((line = readLineFile(hullFile, &lineBuffer[0], &lineLength)) != NULL){
-		//Hull vertex.
+		// Hull vertex.
 		if(memcmp(line, "v ", 2) == 0){
 			vec3 newVertex;
 			#ifdef COLLIDER_HULL_USE_VERTEX_WEIGHT
 			float newWeight;
 			#endif
 
-			//If we're out of space, allocate some more!
+			// If we're out of space, allocate some more!
 			if(tempHull.numVertices >= tempVerticesCapacity){
 				tempVerticesCapacity = tempHull.numVertices * 2;
-				//Allocate room for the new vertex.
+				// Allocate room for the new vertex.
 				tempHull.vertices = memoryManagerGlobalRealloc(tempHull.vertices, tempVerticesCapacity * sizeof(*tempHull.vertices));
 				if(tempHull.vertices == NULL){
 					/** REALLOC FAILED **/
 				}
 				#ifdef COLLIDER_HULL_USE_VERTEX_WEIGHT
-				//Allocate room for the new weight.
+				// Allocate room for the new weight.
 				vertexWeights = memoryManagerGlobalRealloc(vertexWeights, tempVerticesCapacity * sizeof(*vertexWeights));
 				if(vertexWeights == NULL){
 					/** REALLOC FAILED **/
@@ -223,13 +223,13 @@ return_t colliderHullLoad(void *hull, FILE *hullFile, vec3 *centroid, mat3 *iner
 				#endif
 			}
 
-			//Read the vertex positions from the line!
+			// Read the vertex positions from the line!
 			newVertex.x = strtod(&line[2], &tokPos);
 			newVertex.y = strtod(tokPos, &tokPos);
 			newVertex.z = strtod(tokPos, &tokPos);
 			#ifdef COLLIDER_HULL_USE_VERTEX_WEIGHT
 			newWeight = strtod(tokPos, &tokEnd);
-			//If no weight was specified, use the default value.
+			// If no weight was specified, use the default value.
 			if(tokPos == tokEnd){
 				newWeight = COLLIDER_HULL_DEFAULT_VERTEX_WEIGHT;
 			}
@@ -240,31 +240,31 @@ return_t colliderHullLoad(void *hull, FILE *hullFile, vec3 *centroid, mat3 *iner
 			tempHull.vertices[tempHull.numVertices] = newVertex;
 			++tempHull.numVertices;
 
-		//Hull face.
+		// Hull face.
 		}else if(memcmp(line, "f ", 2) == 0){
 			colliderVertexIndex_t startIndex;
 			colliderVertexIndex_t endIndex;
 
-			//Hulls store the maximum number of edges a face
-			//can have, so we'll need to count this face's
-			//edges to check if it's the new maximum.
+			// Hulls store the maximum number of edges a face
+			// can have, so we'll need to count this face's
+			// edges to check if it's the new maximum.
 			colliderFaceIndex_t faceEdgeCount = 0;
 
 			colliderHullEdge *tempEdge;
-			//None of the new face's edges will be twins of each other,
-			//so we only need to loop through the ones we've loaded up
-			//until this point when we're searching for an edge's twin.
+			// None of the new face's edges will be twins of each other,
+			// so we only need to loop through the ones we've loaded up
+			// until this point when we're searching for an edge's twin.
 			colliderEdgeIndex_t lastIndex = tempHull.numEdges;
-			//We also need to know the first edge's index
-			//so we can make the last edge point to it.
+			// We also need to know the first edge's index
+			// so we can make the last edge point to it.
 			colliderEdgeIndex_t firstIndex = INVALID_VALUE(firstIndex);
-			//Keep the index of the last edge
+			// Keep the index of the last edge
 			colliderEdgeIndex_t prevIndex;
-			//This is the value of the first edge's start vertex.
-			//We can't just use the pointer above, as we don't
-			//know whether or not the first edge was a twin.
+			// This is the value of the first edge's start vertex.
+			// We can't just use the pointer above, as we don't
+			// know whether or not the first edge was a twin.
 			colliderVertexIndex_t firstEdgeStartIndex;
-			//We use these when calculating the normal.
+			// We use these when calculating the normal.
 			colliderVertexIndex_t lastEdgeStartIndex;
 			colliderVertexIndex_t firstEdgeEndIndex;
 
@@ -278,19 +278,19 @@ return_t colliderHullLoad(void *hull, FILE *hullFile, vec3 *centroid, mat3 *iner
 			endIndex = strtoul(tokPos, &tokEnd, 10);
 
 
-			//Load all of this face's edges and add them to our collider!
+			// Load all of this face's edges and add them to our collider!
 			while(tokPos != tokEnd){
 				colliderEdgeIndex_t twinIndex = 0;
 
 
-				//Move onto the next index.
+				// Move onto the next index.
 				tokPos = tokEnd;
 				++tokEnd;
 
 				startIndex = endIndex;
 				endIndex = strtoul(tokPos, &tokEnd, 10);
-				//If this is the last edge, the end index
-				//should be the first one's start index.
+				// If this is the last edge, the end index
+				// should be the first one's start index.
 				if(tokPos == tokEnd){
 					endIndex = firstEdgeStartIndex;
 					lastEdgeStartIndex = startIndex;
@@ -300,28 +300,28 @@ return_t colliderHullLoad(void *hull, FILE *hullFile, vec3 *centroid, mat3 *iner
 
 
 				tempEdge = tempHull.edges;
-				//Find this edge's twin if it exists.
+				// Find this edge's twin if it exists.
 				while(twinIndex < lastIndex && (tempEdge->startVertexIndex != endIndex || tempEdge->endVertexIndex != startIndex)){
 					++tempEdge;
 					++twinIndex;
 				}
 
-				//If we were able to find a twin, set its properties.
+				// If we were able to find a twin, set its properties.
 				if(twinIndex != lastIndex){
 					tempEdge->twinFaceIndex = tempHull.numFaces;
 
-					//If this is the first edge we've loaded,
-					//we'll need to keep a reference to it.
+					// If this is the first edge we've loaded,
+					// we'll need to keep a reference to it.
 					if(VALUE_IS_INVALID(firstIndex)){
 						firstIndex = twinIndex;
 						firstEdgeStartIndex = startIndex;
 						firstEdgeEndIndex = endIndex;
 
-					//Make sure the last edge we loaded points to this one.
+					// Make sure the last edge we loaded points to this one.
 					}else{
 						tempEdge = &tempHull.edges[prevIndex];
-						//The value of "nextIndex" is always set before "twinNextIndex",
-						//so if it's unset we know that the previous edge was not a twin.
+						// The value of "nextIndex" is always set before "twinNextIndex",
+						// so if it's unset we know that the previous edge was not a twin.
 						if(VALUE_IS_INVALID(tempEdge->nextIndex)){
 							tempEdge->nextIndex = twinIndex;
 						}else{
@@ -330,7 +330,7 @@ return_t colliderHullLoad(void *hull, FILE *hullFile, vec3 *centroid, mat3 *iner
 					}
 					prevIndex = twinIndex;
 
-				//Otherwise, create a new edge.
+				// Otherwise, create a new edge.
 				}else{
 					colliderHullEdge newEdge = {
 						.startVertexIndex = startIndex,
@@ -339,7 +339,7 @@ return_t colliderHullLoad(void *hull, FILE *hullFile, vec3 *centroid, mat3 *iner
 						.faceIndex = tempHull.numFaces
 					};
 
-					//If we're out of space, allocate some more!
+					// If we're out of space, allocate some more!
 					if(tempHull.numEdges >= tempEdgesCapacity){
 						tempEdgesCapacity = tempHull.numEdges * 2;
 						tempHull.edges = memoryManagerGlobalRealloc(tempHull.edges, tempEdgesCapacity * sizeof(*tempHull.edges));
@@ -351,18 +351,18 @@ return_t colliderHullLoad(void *hull, FILE *hullFile, vec3 *centroid, mat3 *iner
 					tempHull.edges[tempHull.numEdges] = newEdge;
 
 
-					//If this is the first edge we've loaded,
-					//we'll need to keep a reference to it.
+					// If this is the first edge we've loaded,
+					// we'll need to keep a reference to it.
 					if(VALUE_IS_INVALID(firstIndex)){
 						firstIndex = tempHull.numEdges;
 						firstEdgeStartIndex = startIndex;
 						firstEdgeEndIndex = endIndex;
 
-					//Make sure the last edge we loaded points to this one.
+					// Make sure the last edge we loaded points to this one.
 					}else{
 						tempEdge = &tempHull.edges[prevIndex];
-						//The value of "nextIndex" is always set before "twinNextIndex",
-						//so if it's unset we know that the previous edge was not a twin.
+						// The value of "nextIndex" is always set before "twinNextIndex",
+						// so if it's unset we know that the previous edge was not a twin.
 						if(VALUE_IS_INVALID(tempEdge->nextIndex)){
 							tempEdge->nextIndex = tempHull.numEdges;
 						}else{
@@ -376,10 +376,10 @@ return_t colliderHullLoad(void *hull, FILE *hullFile, vec3 *centroid, mat3 *iner
 				}
 			}
 
-			//Make sure the last edge points to the first one.
+			// Make sure the last edge points to the first one.
 			tempEdge = &tempHull.edges[prevIndex];
-			//The value of "nextIndex" is always set before "twinNextIndex",
-			//so if it's unset we know that the previous edge was not a twin.
+			// The value of "nextIndex" is always set before "twinNextIndex",
+			// so if it's unset we know that the previous edge was not a twin.
 			if(VALUE_IS_INVALID(tempEdge->nextIndex)){
 				tempEdge->nextIndex = firstIndex;
 			}else{
@@ -387,15 +387,15 @@ return_t colliderHullLoad(void *hull, FILE *hullFile, vec3 *centroid, mat3 *iner
 			}
 
 
-			//If we're out of space, allocate some more!
+			// If we're out of space, allocate some more!
 			if(tempHull.numFaces >= tempFacesCapacity){
 				tempFacesCapacity = tempHull.numFaces * 2;
-				//Allocate room for the new normal.
+				// Allocate room for the new normal.
 				tempHull.normals = memoryManagerGlobalRealloc(tempHull.normals, tempFacesCapacity * sizeof(*tempHull.normals));
 				if(tempHull.normals == NULL){
 					/** REALLOC FAILED **/
 				}
-				//Allocate room for the new face.
+				// Allocate room for the new face.
 				tempHull.faces = memoryManagerGlobalRealloc(tempHull.faces, tempFacesCapacity * sizeof(*tempHull.faces));
 				if(tempHull.faces == NULL){
 					/** REALLOC FAILED **/
@@ -406,15 +406,15 @@ return_t colliderHullLoad(void *hull, FILE *hullFile, vec3 *centroid, mat3 *iner
 			B = &tempHull.vertices[firstEdgeStartIndex];
 			vec3SubtractVec3FromOut(B, &tempHull.vertices[lastEdgeStartIndex], &AB);
 			vec3SubtractVec3FromOut(&tempHull.vertices[firstEdgeEndIndex], B, &BC);
-			//Calculate the current face's normal.
+			// Calculate the current face's normal.
 			vec3CrossVec3Out(&AB, &BC, &curNormal);
 			vec3NormalizeVec3Out(&curNormal, &tempHull.normals[tempHull.numFaces]);
 
-			//Store a reference to one of the edges on this face.
+			// Store a reference to one of the edges on this face.
 			tempHull.faces[tempHull.numFaces] = firstIndex;
 
-			//If this face has more edges than any other we've
-			//loaded so far, keep track of its edge count.
+			// If this face has more edges than any other we've
+			// loaded so far, keep track of its edge count.
 			if(faceEdgeCount > tempHull.maxFaceEdges){
 				tempHull.maxFaceEdges = faceEdgeCount;
 			}
@@ -422,7 +422,7 @@ return_t colliderHullLoad(void *hull, FILE *hullFile, vec3 *centroid, mat3 *iner
 
 			++tempHull.numFaces;
 
-		//Hull end.
+		// Hull end.
 		}else if(line[0] == '}'){
 			break;
 		}
@@ -432,7 +432,7 @@ return_t colliderHullLoad(void *hull, FILE *hullFile, vec3 *centroid, mat3 *iner
 	#ifdef COLLIDER_HULL_DEFAULT_VERTEX_WEIGHT
 	colliderHullGenerateCentroidWeighted(&tempHull, vertexWeights, centroid);
 	colliderHullGenerateInertiaWeighted(&tempHull, vertexWeights, inertia);
-	//Free the array of vertex weights.
+	// Free the array of vertex weights.
 	memoryManagerGlobalFree(vertexWeights);
 	#else
 	colliderHullGenerateCentroid(&tempHull, centroid);
@@ -442,8 +442,8 @@ return_t colliderHullLoad(void *hull, FILE *hullFile, vec3 *centroid, mat3 *iner
 	tempHull.centroid = *centroid;
 
 
-	//We'll never be adding to these arrays, so we
-	//can resize them to make sure space isn't wasted.
+	// We'll never be adding to these arrays, so we
+	// can resize them to make sure space isn't wasted.
 	tempHull.vertices = memoryManagerGlobalResize(tempHull.vertices, tempHull.numVertices * sizeof(*tempHull.vertices));
 	if(tempHull.vertices == NULL){
 		/** REALLOC FAILED **/
@@ -476,14 +476,14 @@ return_t colliderHullLoad(void *hull, FILE *hullFile, vec3 *centroid, mat3 *iner
 void colliderHullGenerateCentroid(const colliderHull *hull, vec3 *centroid){
 	const colliderVertexIndex_t numVertices = hull->numVertices;
 
-	//We don't want to divide by zero.
+	// We don't want to divide by zero.
 	if(numVertices > 0){
 		const vec3 *curVertex = hull->vertices;
 		const vec3 *lastVertex = &curVertex[numVertices];
 		vec3 newCentroid;
 		vec3InitZero(&newCentroid);
 
-		//Add each vertex's contribution to the centroid.
+		// Add each vertex's contribution to the centroid.
 		do {
 			vec3AddVec3(&newCentroid, curVertex);
 			++curVertex;
@@ -509,7 +509,7 @@ void colliderHullGenerateCentroidWeighted(const colliderHull *hull, const float 
 
 	vec3InitZero(&newCentroid);
 
-	//Add each vertex's contribution to the centroid.
+	// Add each vertex's contribution to the centroid.
 	for(; curVertex < lastVertex; ++curVertex, ++vertexWeights){
 		const float curWeight = *vertexWeights;
 		vec3 weightedVertex;
@@ -519,7 +519,7 @@ void colliderHullGenerateCentroidWeighted(const colliderHull *hull, const float 
 		totalWeight += curWeight;
 	}
 
-	//We don't want to divide by zero.
+	// We don't want to divide by zero.
 	if(totalWeight != 0.f){
 		vec3DivideBySOut(&newCentroid, totalWeight, centroid);
 	}else{
@@ -527,7 +527,7 @@ void colliderHullGenerateCentroidWeighted(const colliderHull *hull, const float 
 	}
 }
 
-//Calculate the collider's inertia tensor.
+// Calculate the collider's inertia tensor.
 void colliderHullGenerateInertia(const colliderHull *hull, mat3 *inertia){
 	const vec3 *centroid = &hull->centroid;
 	const vec3 *curVertex = hull->vertices;
@@ -561,7 +561,7 @@ void colliderHullGenerateInertia(const colliderHull *hull, mat3 *inertia){
 	inertia->m[0][1] = tempInertia[3];
 	inertia->m[0][2] = tempInertia[4];
 	inertia->m[1][2] = tempInertia[5];
-	//These should be the same as the values we've already calculated.
+	// These should be the same as the values we've already calculated.
 	inertia->m[1][0] = tempInertia[3];
 	inertia->m[2][0] = tempInertia[4];
 	inertia->m[2][1] = tempInertia[5];
@@ -606,7 +606,7 @@ void colliderHullGenerateInertiaWeighted(const colliderHull *hull, const float *
 	inertia->m[0][1] = tempInertia[3];
 	inertia->m[0][2] = tempInertia[4];
 	inertia->m[1][2] = tempInertia[5];
-	//These should be the same as the values we've already calculated.
+	// These should be the same as the values we've already calculated.
 	inertia->m[1][0] = tempInertia[3];
 	inertia->m[2][0] = tempInertia[4];
 	inertia->m[2][1] = tempInertia[5];
@@ -622,38 +622,38 @@ void colliderHullUpdate(void *hull, const void *base, const transformState *tran
 	const vec3 *baseFeature = ((colliderHull *)base)->vertices;
 	const vec3 *lastFeature = &curFeature[((colliderHull *)hull)->numVertices];
 
-	//Find the collider's new centroid!
+	// Find the collider's new centroid!
 	transformStateTransformVec3(trans, &(((colliderHull *)base)->centroid), &(((colliderHull *)hull)->centroid));
 
-	//We can only update the hull's
-	//vertices if it actually has any.
+	// We can only update the hull's
+	// vertices if it actually has any.
 	if(curFeature < lastFeature){
 		colliderAABB tempAABB;
 
-		//Transform the first vertex and use it for the bounding box.
+		// Transform the first vertex and use it for the bounding box.
 		transformStateTransformVec3(trans, baseFeature, curFeature);
 		tempAABB.min = tempAABB.max = *curFeature;
 
-		//Transform the remaining vertices!
+		// Transform the remaining vertices!
 		for(; curFeature < lastFeature;){
 			transformStateTransformVec3(trans, ++baseFeature, ++curFeature);
 
-			//If this vertex exceeds the bounds of
-			//our current bounding box, we should
-			//update the bounding box to contain it.
-			//Left and right.
+			// If this vertex exceeds the bounds of
+			// our current bounding box, we should
+			// update the bounding box to contain it.
+			// Left and right.
 			if(curFeature->x < tempAABB.min.x){
 				tempAABB.min.x = curFeature->x;
 			}else if(curFeature->x > tempAABB.max.x){
 				tempAABB.max.x = curFeature->x;
 			}
-			//Up and down.
+			// Up and down.
 			if(curFeature->y < tempAABB.min.y){
 				tempAABB.min.y = curFeature->y;
 			}else if(curFeature->y > tempAABB.max.y){
 				tempAABB.max.y = curFeature->y;
 			}
-			//Front and back.
+			// Front and back.
 			if(curFeature->z < tempAABB.min.z){
 				tempAABB.min.z = curFeature->z;
 			}else if(curFeature->z > tempAABB.max.z){
@@ -666,8 +666,8 @@ void colliderHullUpdate(void *hull, const void *base, const transformState *tran
 		baseFeature = ((colliderHull *)base)->normals;
 		lastFeature = &curFeature[((colliderHull *)hull)->numFaces];
 
-		//The hull's faces have been rotated,
-		//so we need to rotate their normals.
+		// The hull's faces have been rotated,
+		// so we need to rotate their normals.
 		for(; curFeature < lastFeature; ++curFeature, ++baseFeature){
 			quatRotateVec3Fast(&trans->rot, baseFeature, curFeature);
 		}
@@ -677,15 +677,15 @@ void colliderHullUpdate(void *hull, const void *base, const transformState *tran
 			*aabb = tempAABB;
 		}
 
-	//If the hull has no vertices but we
-	//want a bounding box, initialise it.
+	// If the hull has no vertices but we
+	// want a bounding box, initialise it.
 	}else if(aabb != NULL){
 		memset(aabb, 0.f, sizeof(*aabb));
 	}
 }
 
 
-//Return a pointer to the vertex farthest from the origin in the direction "dir".
+// Return a pointer to the vertex farthest from the origin in the direction "dir".
 const vec3 *colliderHullSupport(const colliderHull *hull, const vec3 *dir){
 	const vec3 *bestVertex = hull->vertices;
 	float bestDistance = vec3DotVec3(bestVertex, dir);
@@ -695,8 +695,8 @@ const vec3 *colliderHullSupport(const colliderHull *hull, const vec3 *dir){
 
 	for(; curVertex < lastVertex; ++curVertex){
 		const float curDistance = vec3DotVec3(curVertex, dir);
-		//If the current vertex is farther in the direction
-		//of "dir" than our current best, store it instead.
+		// If the current vertex is farther in the direction
+		// of "dir" than our current best, store it instead.
 		if(curDistance > bestDistance){
 			bestVertex = curVertex;
 			bestDistance = curDistance;
@@ -707,7 +707,7 @@ const vec3 *colliderHullSupport(const colliderHull *hull, const vec3 *dir){
 }
 
 
-//Check if a separation still exists between two hulls.
+// Check if a separation still exists between two hulls.
 return_t colliderHullSeparated(const void *hullA, const void *hullB, contactSeparation *cs){
 	switch(cs->type){
 		case COLLIDER_HULL_SEPARATION_FACE_A:
@@ -730,15 +730,15 @@ return_t colliderHullSeparated(const void *hullA, const void *hullB, contactSepa
 */
 return_t colliderHullCollidingSAT(const void *hullA, const void *hullB, contactSeparation *separation, contactManifold *cm){
 	collisionData cd;
-	//We technically don't need to initialise
-	//this, but it's always good to be safe.
+	// We technically don't need to initialise
+	// this, but it's always good to be safe.
 	collisionDataInit(&cd);
 
 	if(noSeparatingFace((colliderHull *)hullA, (colliderHull *)hullB, &cd.faceA, separation, COLLIDER_HULL_SEPARATION_FACE_A)){
 		if(noSeparatingFace((colliderHull *)hullB, (colliderHull *)hullA, &cd.faceB, separation, COLLIDER_HULL_SEPARATION_FACE_B)){
 			if(noSeparatingEdge((colliderHull *)hullA, (colliderHull *)hullB, &cd.edgeData, separation)){
-				//If there are no separating axes, the hulls are colliding and
-				//we can clip the colliding area to create a contact manifold.
+				// If there are no separating axes, the hulls are colliding and
+				// we can clip the colliding area to create a contact manifold.
 				clipManifoldSHC((colliderHull *)hullA, (colliderHull *)hullB, &cd, cm);
 
 				return(1);
@@ -797,7 +797,7 @@ static void collisionDataInit(collisionData *cd){
 }
 
 
-//Return whether a face separation between two convex hulls still exists.
+// Return whether a face separation between two convex hulls still exists.
 static return_t faceSeparation(const colliderHull *hullA, const colliderHull *hullB, contactSeparation *cs){
 	const vec3 *normal = &hullA->normals[cs->featureA];
 	const vec3 invNormal = {
@@ -815,7 +815,7 @@ static return_t faceSeparation(const colliderHull *hullA, const colliderHull *hu
 	);
 }
 
-//Return whether an edge separation between two convex hulls still exists.
+// Return whether an edge separation between two convex hulls still exists.
 static return_t edgeSeparation(const colliderHull *hullA, const colliderHull *hullB, contactSeparation *cs){
 	const colliderHullEdge *edgeA = &hullA->edges[cs->featureA];
 	const vec3 *startVertexA = &hullA->vertices[edgeA->endVertexIndex];
@@ -843,53 +843,53 @@ static return_t edgeSeparation(const colliderHull *hullA, const colliderHull *hu
 static void clipManifoldSHC(const colliderHull *hullA, const colliderHull *hullB, const collisionData *cd, contactManifold *cm){
 	const float bestFaceSeparation = maxNumFast(cd->faceA.separation, cd->faceB.separation);
 
-	//If the greatest separation occurs on an edge normal, clip using
-	//the edges. These bias terms will ensure that face contacts are
-	//preferred over edge contacts, which helps with frame coherence.
+	// If the greatest separation occurs on an edge normal, clip using
+	// the edges. These bias terms will ensure that face contacts are
+	// preferred over edge contacts, which helps with frame coherence.
 	if(COLLISION_TOLERANCE_COEFFICIENT * cd->edgeData.separation > bestFaceSeparation + COLLISION_TOLERANCE_TERM){
 		clipEdgeContact(hullA, hullB, &cd->edgeData, cm);
 
-	//Otherwise, clip using whichever face has the
-	//greatest separation as the reference face.
+	// Otherwise, clip using whichever face has the
+	// greatest separation as the reference face.
 	}else{
-		//We use the bias terms again for the same reason as before.
+		// We use the bias terms again for the same reason as before.
 		if(COLLISION_TOLERANCE_COEFFICIENT * cd->faceB.separation > cd->faceA.separation + COLLISION_TOLERANCE_TERM){
-			//Use hull B for the reference face.
+			// Use hull B for the reference face.
 			clipFaceContact(hullB, hullA, cd->faceB.index, CLIPPING_SWAPPED, cm);
 
-			//There's a rare chance that clipping will produce no contact points.
-			//In that case, we can either clip using the other hull for the
-			//reference face or treat the collision as an edge-edge contact.
+			// There's a rare chance that clipping will produce no contact points.
+			// In that case, we can either clip using the other hull for the
+			// reference face or treat the collision as an edge-edge contact.
 			if(cm->numContacts == 0){
 				if(cd->edgeData.separation > bestFaceSeparation){
 					clipEdgeContact(hullA, hullB, &cd->edgeData, cm);
 				}else{
-					//Use hull A for the reference face.
+					// Use hull A for the reference face.
 					clipFaceContact(hullA, hullB, cd->faceA.index, CLIPPING_INORDER, cm);
 
-					//If there are still no contact points, just treat it as an edge
-					//contact. This will ensure we have at least one contact point.
+					// If there are still no contact points, just treat it as an edge
+					// contact. This will ensure we have at least one contact point.
 					if(cm->numContacts == 0){
 						clipEdgeContact(hullA, hullB, &cd->edgeData, cm);
 					}
 				}
 			}
 		}else{
-			//Use hull A for the reference face.
+			// Use hull A for the reference face.
 			clipFaceContact(hullA, hullB, cd->faceA.index, CLIPPING_INORDER, cm);
 
-			//There's a rare chance that clipping will produce no contact points.
-			//In that case, we can either clip using the other hull for the
-			//reference face or treat the collision as an edge-edge contact.
+			// There's a rare chance that clipping will produce no contact points.
+			// In that case, we can either clip using the other hull for the
+			// reference face or treat the collision as an edge-edge contact.
 			if(cm->numContacts == 0){
 				if(cd->edgeData.separation > bestFaceSeparation){
 					clipEdgeContact(hullA, hullB, &cd->edgeData, cm);
 				}else{
-					//Use hull B for the reference face.
+					// Use hull B for the reference face.
 					clipFaceContact(hullB, hullA, cd->faceB.index, CLIPPING_SWAPPED, cm);
 
-					//If there are still no contact points, just treat it as an edge
-					//contact. This will ensure we have at least one contact point.
+					// If there are still no contact points, just treat it as an edge
+					// contact. This will ensure we have at least one contact point.
 					if(cm->numContacts == 0){
 						clipEdgeContact(hullA, hullB, &cd->edgeData, cm);
 					}
@@ -915,26 +915,26 @@ static return_t isMinkowskiFace(const colliderHull *hullA, const colliderHull *h
                                 const colliderHullEdge *eA, const vec3 *invEdgeA,
                                 const colliderHullEdge *eB, const vec3 *invEdgeB){
 
-	//Note that in this function, the following terminology is used:
-	//A  - Normal of edge A's face.
-	//B  - Normal of edge A's twin face.
-	//C  - Normal of edge B's face.
-	//D  - Normal of edge B's twin face.
-	//BA - Cross product of B and A (normal of their shared edge).
-	//DC - Cross product of D and C (normal of their shared edge).
+	// Note that in this function, the following terminology is used:
+	// A  - Normal of edge A's face.
+	// B  - Normal of edge A's twin face.
+	// C  - Normal of edge B's face.
+	// D  - Normal of edge B's twin face.
+	// BA - Cross product of B and A (normal of their shared edge).
+	// DC - Cross product of D and C (normal of their shared edge).
 
 	const float CBA = vec3DotVec3(&hullB->normals[eB->faceIndex], invEdgeA);
 
-	//First, make sure the edge formed by CD are on
-	//opposite sides of the plane with normal BA.
+	// First, make sure the edge formed by CD are on
+	// opposite sides of the plane with normal BA.
 	if(CBA * vec3DotVec3(&hullB->normals[eB->twinFaceIndex], invEdgeA) < 0.f){
 		const float BDC = vec3DotVec3(&hullA->normals[eA->twinFaceIndex], invEdgeB);
 
-		//Now make sure the edge formed by AB are on
-		//opposite sides of the plane with normal DC.
+		// Now make sure the edge formed by AB are on
+		// opposite sides of the plane with normal DC.
 		if(vec3DotVec3(&hullA->normals[eA->faceIndex], invEdgeB) * BDC < 0.f){
-			//If the two arcs are on the same hemisphere of the unit
-			//sphere, they form a face on the Minkowski difference!
+			// If the two arcs are on the same hemisphere of the unit
+			// sphere, they form a face on the Minkowski difference!
 			return(CBA * BDC > 0.f);
 		}
 	}
@@ -942,7 +942,7 @@ static return_t isMinkowskiFace(const colliderHull *hullA, const colliderHull *h
 	return(0);
 }
 
-//Return the squared distance between two edges.
+// Return the squared distance between two edges.
 static float edgeDistSquared(const vec3 *pA, const vec3 *edgeDirA,
                              const vec3 *pB, const vec3 *edgeDirB,
                              const vec3 *centroid){
@@ -953,9 +953,9 @@ static float edgeDistSquared(const vec3 *pA, const vec3 *edgeDirA,
 
 
 	vec3CrossVec3Out(edgeDirA, edgeDirB, &edgeNormal);
-	//The norm of the vector is the square of its magnitude.
+	// The norm of the vector is the square of its magnitude.
 	edgeCrossLength = vec3NormVec3(&edgeNormal);
-	//If the two edges are parallel, we can exit early.
+	// If the two edges are parallel, we can exit early.
 	if(edgeCrossLength < COLLISION_PARALLEL_THRESHOLD * (vec3NormVec3(edgeDirA) + vec3NormVec3(edgeDirB))){
 		return(-INFINITY);
 	}
@@ -963,8 +963,8 @@ static float edgeDistSquared(const vec3 *pA, const vec3 *edgeDirA,
 
 	vec3MultiplyS(&edgeNormal, fastInvSqrtAccurate(edgeCrossLength));
 	vec3SubtractVec3FromOut(pA, centroid, &offset);
-	//If the edge normal does not point from
-	//object A to object B, we need to invert it.
+	// If the edge normal does not point from
+	// object A to object B, we need to invert it.
 	if(vec3DotVec3(&edgeNormal, &offset) < 0.f){
 		vec3Negate(&edgeNormal);
 	}
@@ -972,7 +972,7 @@ static float edgeDistSquared(const vec3 *pA, const vec3 *edgeDirA,
 
 	vec3SubtractVec3FromOut(pB, pA, &offset);
 
-	//Return the distance between the edges.
+	// Return the distance between the edges.
 	return(vec3DotVec3(&edgeNormal, &offset));
 }
 
@@ -1001,17 +1001,17 @@ static return_t noSeparatingFace(const colliderHull *hullA, const colliderHull *
 			.y = -curNormal->y,
 			.z = -curNormal->z
 		};
-		//First, find the point on "hullB" farthest in the
-		//direction opposite the current face's normal.
-		//Then, find the distance between the two.
+		// First, find the point on "hullB" farthest in the
+		// direction opposite the current face's normal.
+		// Then, find the distance between the two.
 		const float curDistance = pointPlaneDist(
 			colliderHullSupport(hullB, &invNormal),
 			&hullA->vertices[hullA->edges[*curFace].startVertexIndex],
 			curNormal
 		);
 
-		//If the distance is greater than zero, we can
-		//exit early as the hulls aren't colliding.
+		// If the distance is greater than zero, we can
+		// exit early as the hulls aren't colliding.
 		if(curDistance > 0.f){
 			if(separation != NULL){
 				separation->featureA = i;
@@ -1020,8 +1020,8 @@ static return_t noSeparatingFace(const colliderHull *hullA, const colliderHull *
 
 			return(0);
 
-		//If this is the least separating face we've
-		//found so far, record its index and distance.
+		// If this is the least separating face we've
+		// found so far, record its index and distance.
 		}else if(curDistance > faceData->separation){
 			faceData->index = i;
 			faceData->separation = curDistance;
@@ -1054,30 +1054,30 @@ static return_t noSeparatingEdge(const colliderHull *hullA, const colliderHull *
 	const colliderHullEdge *lastEdgeB = &hullB->edges[hullB->numEdges];
 	colliderEdgeIndex_t a;
 
-	//We skip every second edge since
-	//it will be the last one's twin.
+	// We skip every second edge since
+	// it will be the last one's twin.
 	for(a = 0; edgeA < lastEdgeA; ++edgeA, ++a){
 		colliderHullEdge *edgeB = hullB->edges;
 		const vec3 *startVertexA = &hullA->vertices[edgeA->startVertexIndex];
 		vec3 invEdgeA;
 		colliderEdgeIndex_t b;
 
-		//Get the inverse of edge 1's normal.
+		// Get the inverse of edge 1's normal.
 		vec3SubtractVec3FromOut(startVertexA, &hullA->vertices[edgeA->endVertexIndex], &invEdgeA);
 
 		for(b = 0; edgeB < lastEdgeB; ++edgeB, ++b){
 			const vec3 *startVertexB = &hullB->vertices[edgeB->startVertexIndex];
 			vec3 invEdgeB;
-			//Get the inverse of edge 2's normal
+			// Get the inverse of edge 2's normal
 			vec3SubtractVec3FromOut(startVertexB, &hullB->vertices[edgeB->endVertexIndex], &invEdgeB);
 
-			//We only need to compare two edges if they
-			//form a face on the Minkowski difference.
+			// We only need to compare two edges if they
+			// form a face on the Minkowski difference.
 			if(isMinkowskiFace(hullA, hullB, edgeA, &invEdgeA, edgeB, &invEdgeB)){
 				const float curDistance = edgeDistSquared(startVertexA, &invEdgeA, startVertexB, &invEdgeB, &hullA->centroid);
 
-				//If the distance is less than zero, we can
-				//exit early as the hulls aren't colliding.
+				// If the distance is less than zero, we can
+				// exit early as the hulls aren't colliding.
 				if(curDistance > 0.f){
 					if(separation != NULL){
 						separation->featureA = a;
@@ -1087,8 +1087,8 @@ static return_t noSeparatingEdge(const colliderHull *hullA, const colliderHull *
 
 					return(0);
 
-				//If this is the least separating edge pair we've
-				//found so far, record the edges and their distance.
+				// If this is the least separating edge pair we've
+				// found so far, record the edges and their distance.
 				}else if(curDistance > edgeData->separation){
 					edgeData->edgeA = a;
 					edgeData->edgeB = b;
@@ -1116,8 +1116,8 @@ static colliderFaceIndex_t findIncidentFace(const colliderHull *hull, const vec3
 
 	for(i = 1; i < hull->numFaces; ++i){
 		const float curDistance = vec3DotVec3(++curNormal, refNormal);
-		//If the current face's normal is farther in the direction
-		//of "refNormal" than our current best, store it instead.
+		// If the current face's normal is farther in the direction
+		// of "refNormal" than our current best, store it instead.
 		if(curDistance < bestDistance){
 			bestFace = i;
 			bestDistance = curDistance;
@@ -1136,8 +1136,8 @@ static colliderFaceIndex_t findIncidentFace(const colliderHull *hull, const vec3
 static void reduceContacts(const vertexProject *vProj, const vertexProject *vLast, const vertexClip *vClip,
 						   const vec3 *refNormal, const unsigned int swapped, contactManifold *cm){
 
-	//We start with our best and worst vertices as the
-	//first one so we can begin the loop on the second.
+	// We start with our best and worst vertices as the
+	// first one so we can begin the loop on the second.
 	const vertexProject *bestProj = vProj;
 	const vertexClip *bestClip = vClip;
 	float bestDist = vec3NormVec3(&bestProj->v);
@@ -1156,19 +1156,19 @@ static void reduceContacts(const vertexProject *vProj, const vertexProject *vLas
 	float curDist;
 
 
-	//Start by finding the vertices with the greatest
-	//positive and negative distances from the origin.
+	// Start by finding the vertices with the greatest
+	// positive and negative distances from the origin.
 	for(; curProj < vLast; ++curProj, ++curClip){
 		curDist = vec3NormVec3(&curProj->v);
-		//The first vertex will be the one with the
-		//most positive distance from the origin.
+		// The first vertex will be the one with the
+		// most positive distance from the origin.
 		if(curDist > bestDist){
 			bestProj = curProj;
 			bestClip = curClip;
 			bestDist = curDist;
 
-		//The second vertex will be the one with the
-		//most negative distance from the origin.
+		// The second vertex will be the one with the
+		// most negative distance from the origin.
 		}else if(curDist < worstDist){
 			worstProj = curProj;
 			worstClip = curClip;
@@ -1176,12 +1176,12 @@ static void reduceContacts(const vertexProject *vProj, const vertexProject *vLas
 		}
 	}
 
-	//We need to remember these pointers so we
-	//don't store the same points multiple times.
+	// We need to remember these pointers so we
+	// don't store the same points multiple times.
 	firstContact = &bestProj->v;
 	secondContact = &worstProj->v;
 
-	//Add the points to our manifold.
+	// Add the points to our manifold.
 	curContact->key = bestClip->key;
 	curContact->pA = bestProj->v;
 	curContact->pB = bestClip->v;
@@ -1194,13 +1194,13 @@ static void reduceContacts(const vertexProject *vProj, const vertexProject *vLas
 	++curContact;
 
 
-	//The normal of the edge is the cross product of the reference
-	//face's normal and the difference between the edge's vertices.
-	//This works because every vertex lies on the reference face.
+	// The normal of the edge is the cross product of the reference
+	// face's normal and the difference between the edge's vertices.
+	// This works because every vertex lies on the reference face.
 	vec3CrossVec3Float(refNormal, worstProj->v.x - bestProj->v.x, worstProj->v.y - bestProj->v.y, worstProj->v.z - bestProj->v.z, &edgeNormal);
 
-	//Again, we start with our best and worst vertices as
-	//the first one so we can begin the loop on the second.
+	// Again, we start with our best and worst vertices as
+	// the first one so we can begin the loop on the second.
 	bestProj  = vProj;
 	bestClip = vClip;
 	bestDist = vec3DotVec3Float(&edgeNormal, firstContact->x - bestProj->v.x, firstContact->y - bestProj->v.y, firstContact->z - bestProj->v.z);
@@ -1211,21 +1211,21 @@ static void reduceContacts(const vertexProject *vProj, const vertexProject *vLas
 	curProj = &vProj[1];
 	curClip = &vClip[1];
 
-	//Now, we can find the points with the greatest positive
-	//and negative distances from the edge we have created.
+	// Now, we can find the points with the greatest positive
+	// and negative distances from the edge we have created.
 	for(; curProj < vLast; ++curProj, ++curClip){
-		//Make sure this vertex is not already part of the manifold.
+		// Make sure this vertex is not already part of the manifold.
 		if(&curProj->v != firstContact && &curProj->v != secondContact){
 			curDist = vec3DotVec3Float(&edgeNormal, firstContact->x - curProj->v.x, firstContact->y - curProj->v.y, firstContact->z - curProj->v.z);
-			//The third vertex will be the one with
-			//the most positive distance from our edge.
+			// The third vertex will be the one with
+			// the most positive distance from our edge.
 			if(curDist > bestDist){
 				bestProj = curProj;
 				bestClip = curClip;
 				bestDist = curDist;
 
-			//The fourth vertex will be the one with
-			//the most negative distance from our edge.
+			// The fourth vertex will be the one with
+			// the most negative distance from our edge.
 			}else if(curDist < worstDist){
 				worstProj = curProj;
 				worstClip = curClip;
@@ -1234,10 +1234,10 @@ static void reduceContacts(const vertexProject *vProj, const vertexProject *vLas
 		}
 	}
 
-	//If the hulls were swapped before being passed into
-	//this function, we'll need to swap the key values.
+	// If the hulls were swapped before being passed into
+	// this function, we'll need to swap the key values.
 	if(swapped == CLIPPING_INORDER){
-		//Add the points to our manifold.
+		// Add the points to our manifold.
 		curContact->pA = bestProj->v;
 		curContact->pB = bestClip->v;
 		curContact->normal = *refNormal;
@@ -1251,7 +1251,7 @@ static void reduceContacts(const vertexProject *vProj, const vertexProject *vLas
 		curContact->key = worstClip->key;
 
 	}else{
-		//Add the points to our manifold.
+		// Add the points to our manifold.
 		curContact->pA = bestProj->v;
 		curContact->pB = bestClip->v;
 		vec3NegateOut(refNormal, &curContact->normal);
@@ -1282,7 +1282,7 @@ static void reduceContacts(const vertexProject *vProj, const vertexProject *vLas
 	}
 
 
-	//We should now have only four contact points.
+	// We should now have only four contact points.
 	cm->numContacts = CONTACT_MAX_POINTS;
 }
 
@@ -1295,25 +1295,25 @@ static void reduceContacts(const vertexProject *vProj, const vertexProject *vLas
 static void clipFaceContact(const colliderHull *hullA, const colliderHull *hullB, const colliderFaceIndex_t refIndex,
                             const unsigned int swapped, contactManifold *cm){
 
-	//Meshes store the number of edges that their largest faces have,
-	//so we can use this to preallocate enough memory for any face.
-	//We will need to store two arrays that are both large enough
-	//to store twice the maximum number of edges that a face has, as
-	//each edge can intersect two faces at most. This means that, in
-	//practice, we are really storing four times the number of edges.
+	// Meshes store the number of edges that their largest faces have,
+	// so we can use this to preallocate enough memory for any face.
+	// We will need to store two arrays that are both large enough
+	// to store twice the maximum number of edges that a face has, as
+	// each edge can intersect two faces at most. This means that, in
+	// practice, we are really storing four times the number of edges.
 	vertexClip *vertices = memoryManagerGlobalAlloc(hullB->maxFaceEdges * sizeof(*vertices) * 2);
 	if(vertices == NULL){
 		/** MALLOC FAILED **/
 	}
 
-	//Points to the beginning of the
-	//array of vertices to loop through.
+	// Points to the beginning of the
+	// array of vertices to loop through.
 	vertexClip *loopVertices = vertices;
 	vertexClip *loopVertex;
-	//The variable "clipVertices" points to the beginning
-	//of the array of vertices that have been clipped. It
-	//will also store the separation of each vertex when
-	//we clip against the reference face itself.
+	// The variable "clipVertices" points to the beginning
+	// of the array of vertices that have been clipped. It
+	// will also store the separation of each vertex when
+	// we clip against the reference face itself.
 	union {
 		vertexClip *v;
 		vertexProject *p;
@@ -1321,8 +1321,8 @@ static void clipFaceContact(const colliderHull *hullA, const colliderHull *hullB
 	clipVertices.v = &vertices[hullB->maxFaceEdges];
 
 	vec3 refNormal = hullA->normals[refIndex];
-	//Using the normal of the reference face, find the face
-	//on the incident hull whose normal is most opposite it.
+	// Using the normal of the reference face, find the face
+	// on the incident hull whose normal is most opposite it.
 	const colliderFaceIndex_t incIndex = findIncidentFace(hullB, &refNormal);
 
 	float curDist;
@@ -1336,10 +1336,10 @@ static void clipFaceContact(const colliderHull *hullA, const colliderHull *hullB
 	colliderEdgeIndex_t inEdgeIndex;
 	colliderEdgeIndex_t outEdgeIndex = incIndex;
 
-	//Store the incident face's vertices in the array.
+	// Store the incident face's vertices in the array.
 	for(;;){
-		//The "inEdgeIndex" variable will not be set on
-		//the first iteration, so we can't use it here.
+		// The "inEdgeIndex" variable will not be set on
+		// the first iteration, so we can't use it here.
 		#ifdef CONTACT_MANIFOLD_SIMPLE_KEYS
 		lastVertex->key.edgeB = outEdgeIndex;
 		#else
@@ -1348,10 +1348,10 @@ static void clipFaceContact(const colliderHull *hullA, const colliderHull *hullB
 		#endif
 		inEdgeIndex = outEdgeIndex;
 
-		//Edges are shared by both faces that use
-		//them, so we need to check whether or not
-		//the incident face is this edge's twin
-		//face to make sure we get the right vertex.
+		// Edges are shared by both faces that use
+		// them, so we need to check whether or not
+		// the incident face is this edge's twin
+		// face to make sure we get the right vertex.
 		if(curEdge->faceIndex == incIndex){
 			lastVertex->v = hullB->vertices[curEdge->startVertexIndex];
 			outEdgeIndex = curEdge->nextIndex;
@@ -1361,17 +1361,17 @@ static void clipFaceContact(const colliderHull *hullA, const colliderHull *hullB
 		}
 		curEdge = &hullB->edges[outEdgeIndex];
 
-		//If we've finished adding all of the vertices, break the loop.
+		// If we've finished adding all of the vertices, break the loop.
 		if(curEdge == startEdge){
 			break;
 		}
-		//Otherwise, add the next vertex. We only increment after
-		//checking if the loop can be ended to ensure that "lastVertex"
-		//points to the last vertex and not the one before the last.
+		// Otherwise, add the next vertex. We only increment after
+		// checking if the loop can be ended to ensure that "lastVertex"
+		// points to the last vertex and not the one before the last.
 		++lastVertex;
-		//Now we can set the in-edge for the next vertex.
-		//This ensures that every vertex except the first
-		//will have a valid in-edge by the time we're done.
+		// Now we can set the in-edge for the next vertex.
+		// This ensures that every vertex except the first
+		// will have a valid in-edge by the time we're done.
 		#ifdef CONTACT_MANIFOLD_SIMPLE_KEYS
 		lastVertex->key.edgeA = inEdgeIndex;
 		#else
@@ -1380,9 +1380,9 @@ static void clipFaceContact(const colliderHull *hullA, const colliderHull *hullB
 		#endif
 	}
 
-	//We skipped setting the first vertex's
-	//in-edge since we didn't know what it was,
-	//but now that we do we can set it here.
+	// We skipped setting the first vertex's
+	// in-edge since we didn't know what it was,
+	// but now that we do we can set it here.
 	#ifdef CONTACT_MANIFOLD_SIMPLE_KEYS
 	loopVertices[0].key.edgeA = inEdgeIndex;
 	#else
@@ -1395,17 +1395,17 @@ static void clipFaceContact(const colliderHull *hullA, const colliderHull *hullB
 	startEdge = curEdge;
 	inEdgeIndex = refIndex;
 
-	//For each face surrounding the reference face,
-	//clip each incident vertex against its normal.
+	// For each face surrounding the reference face,
+	// clip each incident vertex against its normal.
 	do {
 		const vertexClip *nextVertex;
 		const vec3 *adjNormal;
 
 		clipVertex.v = clipVertices.v;
-		//Edges are shared by both faces that use
-		//them, so we need to check whether or not
-		//the reference face is this edge's twin
-		//face to make sure we get the right data.
+		// Edges are shared by both faces that use
+		// them, so we need to check whether or not
+		// the reference face is this edge's twin
+		// face to make sure we get the right data.
 		if(curEdge->faceIndex == refIndex){
 			refVertex = &hullA->vertices[curEdge->startVertexIndex];
 			adjNormal = &hullA->normals[curEdge->twinFaceIndex];
@@ -1420,12 +1420,12 @@ static void clipFaceContact(const colliderHull *hullA, const colliderHull *hullB
 		curVertex = lastVertex;
 		curDist = pointPlaneDist(&curVertex->v, refVertex, adjNormal);
 		nextVertex = loopVertices;
-		//For each edge on the incident face, clip
-		//it against the current reference face.
+		// For each edge on the incident face, clip
+		// it against the current reference face.
 		do {
 			const float nextDist = pointPlaneDist(&nextVertex->v, refVertex, adjNormal);
-			//The starting vertex is inside the clipping
-			//region, so we will have to keep it.
+			// The starting vertex is inside the clipping
+			// region, so we will have to keep it.
 			if(curDist <= 0.f){
 				/*
 				The starting incident vertex sI is behind the plane,
@@ -1445,8 +1445,8 @@ static void clipFaceContact(const colliderHull *hullA, const colliderHull *hullB
 				*clipVertex.v = *curVertex;
 				++clipVertex.v;
 
-				//The edge leaves the clipping region, so we
-				//need to find and keep the intersection point.
+				// The edge leaves the clipping region, so we
+				// need to find and keep the intersection point.
 				if(nextDist > 0.f){
 					/*
 					An intersection between incident edge I (sI, eI)
@@ -1477,9 +1477,9 @@ static void clipFaceContact(const colliderHull *hullA, const colliderHull *hullB
 					++clipVertex.v;
 				}
 
-			//If the starting vertex is outside the clipping
-			//region and the ending vertex is inside it, we
-			//need to find and keep the intersection point.
+			// If the starting vertex is outside the clipping
+			// region and the ending vertex is inside it, we
+			// need to find and keep the intersection point.
 			}else if(nextDist <= 0.f){
 				/*
 				An intersection between incident edge I (sI, eI)
@@ -1509,76 +1509,76 @@ static void clipFaceContact(const colliderHull *hullA, const colliderHull *hullB
 				++clipVertex.v;
 			}
 
-			//We already know the next vertex and its
-			//distance, so set the current vertex to it.
+			// We already know the next vertex and its
+			// distance, so set the current vertex to it.
 			curVertex = nextVertex;
 			curDist = nextDist;
 			inEdgeIndex = outEdgeIndex;
 			++nextVertex;
 		} while(curVertex != lastVertex);
 
-		//After clipping the face, we need to swap the "loop" array
-		//with the "clip" array. This will allow us to loop through
-		//the newly clipped vertices on the next iteration.
+		// After clipping the face, we need to swap the "loop" array
+		// with the "clip" array. This will allow us to loop through
+		// the newly clipped vertices on the next iteration.
 		lastVertex = clipVertices.v;
 		clipVertices.v = loopVertices;
 		loopVertices = lastVertex;
-		//The variable "clipVertex" will point to the vertex after the
-		//last one that was set, so we need to get the one before it.
-		//The array should never be empty, so we don't have to worry
-		//about funny stuff happening as a result of this subtraction.
+		// The variable "clipVertex" will point to the vertex after the
+		// last one that was set, so we need to get the one before it.
+		// The array should never be empty, so we don't have to worry
+		// about funny stuff happening as a result of this subtraction.
 		lastVertex = &clipVertex.v[-1];
 	} while(curEdge != startEdge);
 
 	loopVertex = loopVertices;
 	clipVertex.p = clipVertices.p;
 	curVertex = loopVertices;
-	//Keep any points below the reference face and project them
-	//onto it. We won't keep any intersection points, as they do
-	//not contribute towards the stability of the contact manifold.
+	// Keep any points below the reference face and project them
+	// onto it. We won't keep any intersection points, as they do
+	// not contribute towards the stability of the contact manifold.
 	//
-	//Note that we do not need to set "refVertex". This is because we
-	//guarantee that it will always be set to one of the reference face's
-	//vertices in the previous loop by only looping through its edges.
+	// Note that we do not need to set "refVertex". This is because we
+	// guarantee that it will always be set to one of the reference face's
+	// vertices in the previous loop by only looping through its edges.
 	for(; curVertex <= lastVertex; ++curVertex){
-		//Use the distance between the current
-		//vertex and the reference face to ensure
-		//that it is within the clipping region.
+		// Use the distance between the current
+		// vertex and the reference face to ensure
+		// that it is within the clipping region.
 		curDist = pointPlaneDist(&curVertex->v, refVertex, &refNormal);
 		if(curDist <= 0.f){
 			loopVertex->v = curVertex->v;
 			++loopVertex;
-			//Project the vertex onto the reference
-			//face and store it in "clipVertices".
+			// Project the vertex onto the reference
+			// face and store it in "clipVertices".
 			pointPlaneProject(&curVertex->v, refVertex, &refNormal, &clipVertex.p->v);
-			//Keep the vertex's separation, too.
+			// Keep the vertex's separation, too.
 			clipVertex.p->dist = curDist;
 			++clipVertex.p;
 		}
 	}
 
 
-	//Now that we've finished clipping, we can begin adding
-	//our remaining contact points to the manifold.
+	// Now that we've finished clipping, we can begin adding
+	// our remaining contact points to the manifold.
 
-	//If there are four or less vertices, we can
-	//simply keep all of them. Note that we check
-	//"loopVertex" instead of "lastVertex", as it
-	//points to the vertex after the last valid one.
+	// If there are four or less vertices, we can
+	// simply keep all of them. Note that we check
+	// "loopVertex" instead of "lastVertex", as it
+	// points to the vertex after the last valid one.
 	if(loopVertex <= &loopVertices[CONTACT_MAX_POINTS]){
 		contactPoint *curContact = cm->contacts;
 
 		clipVertex.p = clipVertices.p;
 		curVertex = loopVertices;
-		//Add out contact points to the manifold.
+		// Add out contact points to the manifold.
 		for(; curVertex < loopVertex; ++curVertex, ++clipVertex.p, ++curContact){
 			curContact->pA = clipVertex.p->v;
 			curContact->pB = curVertex->v;
 			curContact->normal = refNormal;
 			curContact->separation = clipVertex.p->dist;
 
-			//If the hulls were swapped before being passed into
-			//this function, we'll need to swap the key values.
+			// If the hulls were swapped before being passed into
+			// this function, we'll need to swap the key values.
 			if(swapped == CLIPPING_INORDER){
 				curContact->key = curVertex->key;
 
@@ -1602,8 +1602,8 @@ static void clipFaceContact(const colliderHull *hullA, const colliderHull *hullB
 			++cm->numContacts;
 		}
 
-	//If there are more than four vertices, we'll
-	//need to perform contact point reduction.
+	// If there are more than four vertices, we'll
+	// need to perform contact point reduction.
 	}else{
 		reduceContacts(clipVertices.p, clipVertex.p, loopVertices, &refNormal, swapped, cm);
 	}
@@ -1653,23 +1653,23 @@ static void clipEdgeContact(const colliderHull *hullA, const colliderHull *hullB
 	vec3 normal;
 
 
-	//The edges may not necessarily be intersecting, so we'll
-	//need to find the closest points on both line segments.
-	//This is basically copied from "segmentClosestPoints".
+	// The edges may not necessarily be intersecting, so we'll
+	// need to find the closest points on both line segments.
+	// This is basically copied from "segmentClosestPoints".
 	const float d11 = vec3NormVec3(&ref);
 	const float d21 = vec3DotVec3(&offset, &ref);
 	const float d23 = vec3DotVec3(&offset, &inc);
 	const float d31 = vec3DotVec3(&inc, &ref);
 	const float d33 = vec3NormVec3(&inc);
 	const float denom = d11 * d33 - d31 * d31;
-	//If the two edges are perfectly parallel, the closest
-	//points should be in the middle of the first segment.
+	// If the two edges are perfectly parallel, the closest
+	// points should be in the middle of the first segment.
 	const float m1 = (denom != 0.f) ? (d23 * d31 - d21 * d33) / denom : 0.5f;
 	const float m2 = (d23 + d31 * m1) / d33;
 
-	//Find the closest point on the first line.
+	// Find the closest point on the first line.
 	vec3LerpFast(refStart, &ref, m1, &contact->pA);
-	//Find the closest point on the second line.
+	// Find the closest point on the second line.
 	vec3LerpFast(incStart, &inc, m2, &contact->pB);
 
 
@@ -1686,12 +1686,12 @@ static void clipEdgeContact(const colliderHull *hullA, const colliderHull *hullB
 	contact->separation = edgeData->separation;
 
 
-	//Find the collision's normal. We use the
-	//cross product of the two intersecting edges.
+	// Find the collision's normal. We use the
+	// cross product of the two intersecting edges.
 	vec3CrossVec3Out(&ref, &inc, &normal);
 	vec3NormalizeVec3(&normal);
-	//We'll need to make sure the normal roughly
-	//points from body A to body B, too.
+	// We'll need to make sure the normal roughly
+	// points from body A to body B, too.
 	if(vec3DotVec3(&normal, &normalDir) < 0.f){
 		vec3Negate(&normal);
 	}

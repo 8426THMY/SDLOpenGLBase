@@ -8,7 +8,7 @@
 #define SKELETON_PATH_PREFIX        ".\\resource\\models\\"
 #define SKELETON_PATH_PREFIX_LENGTH (sizeof(SKELETON_PATH_PREFIX) - 1)
 
-//This must be at least 1!
+// This must be at least 1!
 #define BASE_BONE_CAPACITY 1
 
 #define SKELE_ANIM_FRAME_RATE 24.f
@@ -19,19 +19,25 @@
 #warning "We still need to do animation blending and create bone lookups in case the animation's bones don't match the model's skeleton's (such as with the Scout)."
 
 
-//Forward-declare any helper functions!
-static void getBlendStates(const skeleAnimState *animState, const skeleAnimState *blendState, const size_t boneNum,
+// Forward-declare any helper functions!
+static void getBlendStates(const skeletonAnimState *animState, const skeletonAnimState *blendState, const size_t boneNum,
                            const boneState *defState, const boneState **startState, const boneState **endState);
 
 
-//When a model doesn't have a skeleton, it needs to have a single root bone. Rather
-//than create it every time, we can use this. The state is also useful when blending.
+// When a model doesn't have a skeleton, it needs to have a single root bone. Rather
+// than create it every time, we can use these. The state is also useful when blending.
 static bone defaultBone = {
 	.name = "root",
 	.state.pos.x   = 0.f, .state.pos.y   = 0.f, .state.pos.z   = 0.f,
 	.state.rot.x   = 0.f, .state.rot.y   = 0.f, .state.rot.z   = 0.f, .state.rot.w = 1.f,
 	.state.scale.x = 1.f, .state.scale.y = 1.f, .state.scale.z = 1.f,
 	.parent = INVALID_VALUE(defaultBone.parent)
+};
+
+skeleton errorSkele = {
+	.name = "default",
+	.bones = &defaultBone,
+	.numBones = 1
 };
 
 
@@ -42,11 +48,11 @@ void boneInit(bone *bone, char *name, const size_t parent, const boneState *stat
 	bone->name = name;
 	bone->parent = parent;
 
-	//If the bone's state has been specified, we can just set it.
+	// If the bone's state has been specified, we can just set it.
 	if(state != NULL){
 		bone->state = *state;
 
-	//Otherwise, use the default bone state!
+	// Otherwise, use the default bone state!
 	}else{
 		bone->state = defaultBone.state;
 	}
@@ -59,15 +65,19 @@ void skeleInit(skeleton *skele){
 	skele->numBones = 0;
 }
 
-void skeleInitSet(skeleton *skele, char *name, bone *bones, const size_t numBones){
-	skele->name = name;
+void skeleInitSet(skeleton *skele, const char *name, const size_t nameLength, bone *bones, const size_t numBones){
+	skele->name = memoryManagerGlobalAlloc(nameLength);
+	if(skele->name == NULL){
+		/** MALLOC FAILED **/
+	}
+	strcpy(skele->name, name);
 
-	//If the skeleton actually has some bones, we can just copy the pointers.
-	if(numBones > 0 && bones != NULL){
+	// If the skeleton actually has some bones, we can just copy the pointers.
+	if(bones != NULL){
 		bone *curBone = bones;
 		const bone *lastBone = &curBone[skele->numBones];
 
-		//Make sure we invert each bone's state!
+		// Make sure we invert each bone's state!
 		for(; curBone < lastBone; ++curBone){
 			transformStateInvert(&curBone->state, &curBone->state);
 		}
@@ -75,7 +85,7 @@ void skeleInitSet(skeleton *skele, char *name, bone *bones, const size_t numBone
 		skele->bones = bones;
 		skele->numBones = numBones;
 
-	//Otherwise, we need to store a single root bone.
+	// Otherwise, we need to store a single root bone.
 	}else{
 		skele->bones = &defaultBone;
 		skele->numBones = 1;
@@ -92,7 +102,7 @@ void skeleAnimInit(skeletonAnim *anim){
 	anim->numBones = 0;
 }
 
-void skeleAnimStateInit(skeleAnimState *animState){
+void skeleAnimStateInit(skeletonAnimState *animState){
 	animState->anim = NULL;
 
 	animationInit(&animState->animData);
@@ -107,8 +117,8 @@ void skeleAnimStateInit(skeleAnimState *animState){
 }
 
 void skeleAnimInstInit(skeletonAnimInst *animInst){
-	stateObjInit(animInst, sizeof(skeleAnimState));
-	skeleAnimStateInit((skeleAnimState *)animInst->states[0]);
+	stateObjInit(animInst, sizeof(skeletonAnimState));
+	skeleAnimStateInit((skeletonAnimState *)animInst->states[0]);
 }
 
 void skeleObjInit(skeletonObject *skeleObj, skeleton *skele){
@@ -117,7 +127,7 @@ void skeleObjInit(skeletonObject *skeleObj, skeleton *skele){
 	skeleObj->anims = NULL;
 	skeleObj->numAnims = 0;
 
-	//Allocate memory for the transformed bone states!
+	// Allocate memory for the transformed bone states!
 	if(skele != NULL && skele->numBones > 0){
 		skeleObj->state = memoryManagerGlobalAlloc(skele->numBones * sizeof(*skeleObj->state));
 		if(skeleObj->state == NULL){
@@ -132,29 +142,29 @@ void skeleObjInit(skeletonObject *skeleObj, skeleton *skele){
 /** When loading bone states, they need to be done in order.     **/
 /** Additionally, we should ensure bone states are specified     **/
 /** after "time". If we skip some frames, we should interpolate. **/
-//Load an SMD animation! This is temporary and should
-//be merged with the function in "model.c" or removed.
+// Load an SMD animation! This is temporary and should
+// be merged with the function in "model.c" or removed.
 return_t skeleAnimLoadSMD(skeletonAnim *skeleAnim, const char *skeleAnimName){
 	skeleAnimInit(skeleAnim);
 
 
-	//Find the full path for the skeleton!
-	const size_t skeleAnimNameLength = strlen(skeleAnimName);
-	char *skeleAnimPath = memoryManagerGlobalAlloc(SKELETON_PATH_PREFIX_LENGTH + skeleAnimNameLength + 1);
+	// Find the full path for the skeleton!
+	const size_t skeleAnimNameLength = strlen(skeleAnimName) + 1;
+	char *skeleAnimPath = memoryManagerGlobalAlloc(SKELETON_PATH_PREFIX_LENGTH + skeleAnimNameLength);
 	if(skeleAnimPath == NULL){
 		/** MALLOC FAILED **/
 	}
 	memcpy(skeleAnimPath, SKELETON_PATH_PREFIX, SKELETON_PATH_PREFIX_LENGTH);
 	strcpy(skeleAnimPath + SKELETON_PATH_PREFIX_LENGTH, skeleAnimName);
 
-	//Load the skeleton!
+	// Load the skeleton!
 	FILE *skeleAnimFile = fopen(skeleAnimPath, "r");
 	if(skeleAnimFile != NULL){
 		return_t success = 1;
 
 
 		size_t tempCapacity = BASE_BONE_CAPACITY;
-		//Temporarily stores bones.
+		// Temporarily stores bones.
 		size_t tempBonesSize = 0;
 		bone *tempBones = memoryManagerGlobalAlloc(BASE_BONE_CAPACITY * sizeof(*tempBones));
 		if(tempBones == NULL){
@@ -171,12 +181,12 @@ return_t skeleAnimLoadSMD(skeletonAnim *skeleAnim, const char *skeleAnimName){
 			/** MALLOC FAILED **/
 		}
 
-		//Store a reference to the current frame that we're loading.
+		// Store a reference to the current frame that we're loading.
 		boneState *currentFrame = NULL;
 
-		//This indicates what sort of data we're currently supposed to be reading.
+		// This indicates what sort of data we're currently supposed to be reading.
 		byte_t dataType = 0;
-		//This variable stores data specific to the type we're currently loading.
+		// This variable stores data specific to the type we're currently loading.
 		unsigned int data = 0;
 
 		char *tokPos;
@@ -187,15 +197,15 @@ return_t skeleAnimLoadSMD(skeletonAnim *skeleAnim, const char *skeleAnimName){
 
 
 		while(success && (line = readLineFile(skeleAnimFile, &lineBuffer[0], &lineLength)) != NULL){
-			//No command.
+			// No command.
 			if(dataType == 0){
 				if(strcmp(line, "nodes") == 0){
 					dataType = 1;
 				}else if(strcmp(line, "skeleton") == 0){
 					dataType = 2;
 
-				//If this isn't the version number and the line
-				//isn't empty, it's something we can't handle!
+				// If this isn't the version number and the line
+				// isn't empty, it's something we can't handle!
 				}else if(lineLength > 0 && strcmp(line, "version 1") != 0){
 					printf(
 						"Error loading skeletal animtion!\n"
@@ -208,16 +218,16 @@ return_t skeleAnimLoadSMD(skeletonAnim *skeleAnim, const char *skeleAnimName){
 					success = 0;
 				}
 			}else{
-				//Finished command.
+				// Finished command.
 				if(strcmp(line, "end") == 0){
-					//Finished loading bone names.
+					// Finished loading bone names.
 					if(dataType == 1){
 						bone *curBone;
 						char **curName;
 						const bone *lastBone;
 
-						//If we've finished identifying the skeleton's
-						//bones, copy the data into our animation object!
+						// If we've finished identifying the skeleton's
+						// bones, copy the data into our animation object!
 						#warning "Do we even need to do this?"
 						tempBones = memoryManagerGlobalRealloc(tempBones, tempBonesSize * sizeof(*tempBones));
 						if(tempBones == NULL){
@@ -232,16 +242,16 @@ return_t skeleAnimLoadSMD(skeletonAnim *skeleAnim, const char *skeleAnimName){
 						curBone = tempBones;
 						curName = skeleAnim->boneNames;
 						lastBone = &tempBones[tempBonesSize];
-						//Fill the array of bone names!
+						// Fill the array of bone names!
 						for(; curBone < lastBone; ++curBone, ++curName){
 							*curName = curBone->name;
 						}
 
 						tempCapacity = 1;
 
-					//Finished loading keyframes.
+					// Finished loading keyframes.
 					}else if(dataType == 2){
-						//If we've finished loading the animation, shrink the vectors!
+						// If we've finished loading the animation, shrink the vectors!
 						skeleAnim->frameData.time = memoryManagerGlobalResize(skeleAnim->frameData.time, skeleAnim->frameData.numFrames * sizeof(*skeleAnim->frameData.time));
 						if(skeleAnim->frameData.time == NULL){
 							/** REALLOC FAILED **/
@@ -257,17 +267,17 @@ return_t skeleAnimLoadSMD(skeletonAnim *skeleAnim, const char *skeleAnimName){
 					dataType = 0;
 					data = 0;
 				}else{
-					//Loading bone names.
+					// Loading bone names.
 					if(dataType == 1){
 						bone tempBone;
 
-						//Get this bone's ID.
+						// Get this bone's ID.
 						size_t boneID = strtoul(line, &tokPos, 10);
-						//Make sure a bone with this ID actually exists.
+						// Make sure a bone with this ID actually exists.
 						if(boneID == tempBonesSize){
 							size_t boneNameLength;
 							tokPos = getMultiDelimitedString(tokPos, line + lineLength - tokPos, "\" ", &boneNameLength);
-							//Get the bone's name.
+							// Get the bone's name.
 							tempBone.name = memoryManagerGlobalAlloc(boneNameLength + 1);
 							if(tempBone.name == NULL){
 								/** MALLOC FAILED **/
@@ -275,11 +285,11 @@ return_t skeleAnimLoadSMD(skeletonAnim *skeleAnim, const char *skeleAnimName){
 							memcpy(tempBone.name, tokPos, boneNameLength);
 							tempBone.name[boneNameLength] = '\0';
 
-							//Get the ID of this bone's parent.
+							// Get the ID of this bone's parent.
 							tempBone.parent = strtoul(tokPos + boneNameLength + 1, NULL, 10);
 
 
-							//If we're out of space, allocate some more!
+							// If we're out of space, allocate some more!
 							if(tempBonesSize >= tempCapacity){
 								tempCapacity = tempBonesSize * 2;
 								tempBones = memoryManagerGlobalRealloc(tempBones, tempCapacity * sizeof(*tempBones));
@@ -287,7 +297,7 @@ return_t skeleAnimLoadSMD(skeletonAnim *skeleAnim, const char *skeleAnimName){
 									/** REALLOC FAILED **/
 								}
 							}
-							//Add the bone to our vector!
+							// Add the bone to our vector!
 							tempBones[tempBonesSize] = tempBone;
 							++tempBonesSize;
 						}else{
@@ -302,23 +312,23 @@ return_t skeleAnimLoadSMD(skeletonAnim *skeleAnim, const char *skeleAnimName){
 							success = 0;
 						}
 
-					//Loading keyframes.
+					// Loading keyframes.
 					}else if(dataType == 2){
-						//If the line begins with time, get the frame's timestamp!
+						// If the line begins with time, get the frame's timestamp!
 						if(memcmp(line, "time ", 5) == 0){
 							unsigned int newTime = strtoul(&line[5], NULL, 10);
 							if(newTime >= data){
 								data = newTime;
 
-								//Allocate memory for the new frame if we have to!
+								// Allocate memory for the new frame if we have to!
 								if(skeleAnim->frameData.numFrames >= tempCapacity){
 									tempCapacity = skeleAnim->frameData.numFrames * 2;
-									//Resize the time array!
+									// Resize the time array!
 									skeleAnim->frameData.time = memoryManagerGlobalRealloc(skeleAnim->frameData.time, tempCapacity * sizeof(*skeleAnim->frameData.time));
 									if(skeleAnim->frameData.time == NULL){
 										/** REALLOC FAILED **/
 									}
-									//Resize the frames array!
+									// Resize the frames array!
 									skeleAnim->frames = memoryManagerGlobalRealloc(skeleAnim->frames, tempCapacity * sizeof(*skeleAnim->frames));
 									if(skeleAnim->frames == NULL){
 										/** REALLOC FAILED **/
@@ -326,7 +336,7 @@ return_t skeleAnimLoadSMD(skeletonAnim *skeleAnim, const char *skeleAnimName){
 								}
 
 								currentFrame = skeleAnim->frames[skeleAnim->frameData.numFrames];
-								//Allocate memory for each bone state in this frame!
+								// Allocate memory for each bone state in this frame!
 								currentFrame = memoryManagerGlobalAlloc(skeleAnim->numBones * sizeof(**skeleAnim->frames));
 								if(currentFrame == NULL){
 									/** MALLOC FAILED **/
@@ -346,26 +356,26 @@ return_t skeleAnimLoadSMD(skeletonAnim *skeleAnim, const char *skeleAnimName){
 								success = 0;
 							}
 
-						//Otherwise, we're setting the bone's state!
+						// Otherwise, we're setting the bone's state!
 						}else{
-							//Get this bone's ID.
+							// Get this bone's ID.
 							size_t boneID = strtoul(line, &tokPos, 10);
 							if(boneID < tempBonesSize){
 								boneState *currentState = &currentFrame[boneID];
 
-								//Load the bone's position!
+								// Load the bone's position!
 								float x = strtod(tokPos, &tokPos) * 0.05f;
 								float y = strtod(tokPos, &tokPos) * 0.05f;
 								float z = strtod(tokPos, &tokPos) * 0.05f;
 								vec3InitSet(&currentState->pos, x, y, z);
 
-								//Load the bone's rotation!
+								// Load the bone's rotation!
 								x = strtod(tokPos, &tokPos);
 								y = strtod(tokPos, &tokPos);
 								z = strtod(tokPos, NULL);
 								quatInitEulerRad(&currentState->rot, x, y, z);
 
-								//Set the bone's scale!
+								// Set the bone's scale!
 								vec3InitSet(&currentState->scale, 1.f, 1.f, 1.f);
 							}else{
 								printf(
@@ -387,14 +397,14 @@ return_t skeleAnimLoadSMD(skeletonAnim *skeleAnim, const char *skeleAnimName){
 		fclose(skeleAnimFile);
 
 
-		//We don't delete them properly because
-		//we store the bones' names elsewhere.
+		// We don't delete them properly because
+		// we store the bones' names elsewhere.
 		memoryManagerGlobalFree(tempBones);
 
 
-		//If there wasn't an error, add it to the vector!
+		// If there wasn't an error, add it to the vector!
 		if(success){
-			skeleAnim->name = memoryManagerGlobalResize(skeleAnimPath, skeleAnimNameLength + 1);
+			skeleAnim->name = memoryManagerGlobalResize(skeleAnimPath, skeleAnimNameLength);
 			if(skeleAnim->name == NULL){
 				/** REALLOC FAILED **/
 			}
@@ -403,7 +413,7 @@ return_t skeleAnimLoadSMD(skeletonAnim *skeleAnim, const char *skeleAnimName){
 			return(1);
 		}
 
-		//Otherwise, delete the animation.
+		// Otherwise, delete the animation.
 		skeleAnimDelete(skeleAnim);
 
 	}else{
@@ -421,15 +431,15 @@ return_t skeleAnimLoadSMD(skeletonAnim *skeleAnim, const char *skeleAnimName){
 }
 
 
-//Animate all of an animation instance's bones!
-void skeleAnimInstUpdate(skeleAnimState *animState, const float time){
-	//No point in animating if nothing has changed.
+// Animate all of an animation instance's bones!
+void skeleAnimInstUpdate(skeletonAnimState *animState, const float time){
+	// No point in animating if nothing has changed.
 	/** Not sure if this would break things or not... **/
 	if(time != 0.f){
 		animationData *animData = &animState->animData;
 		const animationFrameData *frameData = &animState->anim->frameData;
 
-		//Progress the animation!
+		// Progress the animation!
 		animationUpdate(animData, frameData, time);
 		animState->interpTime = animationGetFrameProgress(animData, frameData);
 
@@ -437,7 +447,7 @@ void skeleAnimInstUpdate(skeleAnimState *animState, const float time){
 		boneState **nextFrame = &animState->anim->frames[animState->animData.nextFrame];
 		boneState *curState = animState->skeleState;
 		const boneState *lastState = &curState[animState->anim->numBones];
-		//Update each bone's state!
+		// Update each bone's state!
 		for(; curState < lastState; ++currentFrame, ++nextFrame, ++curState){
 			transformStateInterpSet(
 				*currentFrame,
@@ -466,7 +476,7 @@ You also need to be able to blend animations together.
 /**
 Make it so these variables of skeletonAnimInsts are vectors, containing an element for each game state.
 If an animation's blendTime is greater than or equal to 1.f, we should skip it. If it's less than 0.f
-on the last game state, which we're getting rid of, then we can delete the skeleAnimState and shift
+on the last game state, which we're getting rid of, then we can delete the skeletonAnimState and shift
 the others in the blend over.
 
 animationData animData;
@@ -476,20 +486,20 @@ size_t *lookup;
 boneState *skeleState;
 **/
 
-//blendBone(animState, blendState, state, numStateBones, unchangedState, updateFunc);
+// blendBone(animState, blendState, state, numStateBones, unchangedState, updateFunc);
 
 #warning "This can be optimised much, much better than this by finding the states and lookup IDs here instead of in getBlendStates."
-void skeleAnimStateBlendSet(skeletonObject *skeleObj, const skeleAnimState *animState, const skeleAnimState *blendState){
+void skeleAnimStateBlendSet(skeletonObject *skeleObj, const skeletonAnimState *animState, const skeletonAnimState *blendState){
 	boneState *curState = skeleObj->state;
 	size_t i;
-	//Loop through all the bones in the entity (or whatever is using the blended animations).
+	// Loop through all the bones in the entity (or whatever is using the blended animations).
 	for(i = 0; i < skeleObj->skele->numBones; ++i){
 		const boneState *startState, *endState;
-		//If this is the first blend we've applied, we'll
-		//need to blend to and from the bone's current state.
+		// If this is the first blend we've applied, we'll
+		// need to blend to and from the bone's current state.
 		getBlendStates(animState, blendState, i, curState, &startState, &endState);
 
-		//Blend between the two states and update the bone!
+		// Blend between the two states and update the bone!
 		transformStateInterpSet(startState, endState, animState->blendTime, curState);
 
 		++curState;
@@ -497,17 +507,17 @@ void skeleAnimStateBlendSet(skeletonObject *skeleObj, const skeleAnimState *anim
 }
 
 /** This function is a duplicate of the one above it, but the last line and default state things are different. **/
-void skeleAnimStateBlendAdd(skeletonObject *skeleObj, const skeleAnimState *animState, const skeleAnimState *blendState){
+void skeleAnimStateBlendAdd(skeletonObject *skeleObj, const skeletonAnimState *animState, const skeletonAnimState *blendState){
 	boneState *curState = skeleObj->state;
 	size_t i;
-	//Loop through all the bones in the entity (or whatever is using the blended animations).
+	// Loop through all the bones in the entity (or whatever is using the blended animations).
 	for(i = 0; i < skeleObj->skele->numBones; ++i){
 		const boneState *startState, *endState;
-		//If we're appending this to another blend, we'll need to blend to and
-		//from the default state by default, as it applies no transformations.
+		// If we're appending this to another blend, we'll need to blend to and
+		// from the default state by default, as it applies no transformations.
 		getBlendStates(animState, blendState, i, &defaultBone.state, &startState, &endState);
 
-		//Blend between the two states and update the bone!
+		// Blend between the two states and update the bone!
 		transformStateInterpAdd(startState, endState, animState->blendTime, curState);
 
 		++curState;
@@ -515,7 +525,7 @@ void skeleAnimStateBlendAdd(skeletonObject *skeleObj, const skeleAnimState *anim
 }
 
 
-//Add an animation to the skeletonObject!
+// Add an animation to the skeletonObject!
 void skeleObjAddAnim(skeletonObject *skeleObj, skeletonAnim *anim){
 	++skeleObj->numAnims;
 	skeleObj->anims = memoryManagerGlobalRealloc(skeleObj->anims, skeleObj->numAnims * sizeof(*skeleObj->anims));
@@ -524,7 +534,7 @@ void skeleObjAddAnim(skeletonObject *skeleObj, skeletonAnim *anim){
 	}
 	skeleAnimInstInit(&skeleObj->anims[skeleObj->numAnims - 1]);
 
-	skeleAnimState *animState = skeleObj->anims[0].states[0];
+	skeletonAnimState *animState = skeleObj->anims[0].states[0];
 	animState->anim = anim;
 	animState->skeleState = memoryManagerGlobalAlloc(anim->numBones * sizeof(*animState->skeleState));
 	if(animState->skeleState == NULL){
@@ -532,22 +542,22 @@ void skeleObjAddAnim(skeletonObject *skeleObj, skeletonAnim *anim){
 	}
 }
 
-//Accumulate the transformations of every animation!
+// Accumulate the transformations of every animation!
 void skeleObjGenerateRenderState(skeletonObject *skeleObj){
-	boneState *animState = ((skeleAnimState *)skeleObj->anims[0].states[0])->skeleState;
+	boneState *animState = ((skeletonAnimState *)skeleObj->anims[0].states[0])->skeleState;
 
 	const bone *curSkeleBone = skeleObj->skele->bones;
 	const boneState *curAnimBone = animState;
 	boneState *curObjBone = skeleObj->state;
 	const bone *lastSkeleBone = &curSkeleBone[skeleObj->skele->numBones];
-	//Accumulate the transformations for each bone in the animation!
+	// Accumulate the transformations for each bone in the animation!
 	for(; curSkeleBone < lastSkeleBone; ++curSkeleBone, ++curAnimBone, ++curObjBone){
 		const size_t parentID = curSkeleBone->parent;
-		//If this bone has a parent, add its animation transformations to those of its parent!
+		// If this bone has a parent, add its animation transformations to those of its parent!
 		if(!VALUE_IS_INVALID(parentID)){
 			transformStateAppend(&skeleObj->state[parentID], curAnimBone, curObjBone);
 
-		//Otherwise, just use it by itself!
+		// Otherwise, just use it by itself!
 		}else{
 			*curObjBone = *curAnimBone;
 		}
@@ -556,7 +566,7 @@ void skeleObjGenerateRenderState(skeletonObject *skeleObj){
 	curSkeleBone = skeleObj->skele->bones;
 	curObjBone = skeleObj->state;
 	lastSkeleBone = &curSkeleBone[skeleObj->skele->numBones];
-	//Append each bone's inverse reference state!
+	// Append each bone's inverse reference state!
 	for(; curSkeleBone < lastSkeleBone; ++curSkeleBone, ++curObjBone){
 		transformStateAppend(curObjBone, &curSkeleBone->state, curObjBone);
 	}
@@ -564,19 +574,25 @@ void skeleObjGenerateRenderState(skeletonObject *skeleObj){
 
 
 void boneDelete(bone *bone){
-	//We can't free the default bone's name.
+	// We can't free the default bone's name.
 	if(bone->name != NULL && bone != &defaultBone){
 		memoryManagerGlobalFree(bone->name);
 	}
 }
 
 void skeleDelete(skeleton *skele){
+	bone *curBone = skele->bones;
+
 	if(skele->name != NULL){
 		memoryManagerGlobalFree(skele->name);
 	}
 
-	//Make sure we don't free the bone array if its set to "defaultBone"!
-	if(skele->bones != NULL && skele->bones != &defaultBone){
+	// Make sure we don't free the bone array if its set to "defaultBone"!
+	if(curBone != NULL && curBone != &defaultBone){
+		const bone *lastBone = &curBone[skele->numBones];
+		for(; curBone < lastBone; ++curBone){
+			boneDelete(curBone);
+		}
 		memoryManagerGlobalFree(skele->bones);
 	}
 }
@@ -591,33 +607,33 @@ void skeleAnimDelete(skeletonAnim *anim){
 	char **curName = anim->boneNames;
 	if(curName != NULL){
 		char **lastName = &curName[anim->numBones];
-		//Free each bone name!
+		// Free each bone name!
 		for(; curName < lastName; ++curName){
 			char *curNameValue = *curName;
 			if(curNameValue != NULL){
 				memoryManagerGlobalFree(curNameValue);
 			}
 		}
-		//Now free the array!
+		// Now free the array!
 		memoryManagerGlobalFree(anim->boneNames);
 	}
 	boneState **curFrame = anim->frames;
 	if(curFrame != NULL){
 		boneState **lastFrame = &curFrame[anim->frameData.numFrames];
-		//Free each bone state!
+		// Free each bone state!
 		for(; curFrame < lastFrame; ++curFrame){
 			boneState *curFrameValue = *curFrame;
 			if(curFrameValue != NULL){
 				memoryManagerGlobalFree(curFrameValue);
 			}
 		}
-		//Now free the array!
+		// Now free the array!
 		memoryManagerGlobalFree(anim->frames);
 	}
 }
 
 void skeleAnimStateDelete(void *s){
-	skeleAnimState *animState = (skeleAnimState *)s;
+	skeletonAnimState *animState = (skeletonAnimState *)s;
 	if(animState->blendAnim != NULL){
 		skeleAnimInstDelete(animState->blendAnim);
 	}
@@ -639,11 +655,11 @@ void skeleObjDelete(skeletonObject *skeleObj){
 	if(skeleObj->anims != NULL){
 		skeletonAnimInst *curAnim = skeleObj->anims;
 		skeletonAnimInst *lastAnim = &curAnim[skeleObj->numAnims];
-		//Free each animation instance!
+		// Free each animation instance!
 		for(; curAnim < lastAnim; ++curAnim){
 			stateObjDelete(curAnim, &skeleAnimStateDelete);
 		}
-		//Now free the array!
+		// Now free the array!
 		memoryManagerGlobalFree(skeleObj->anims);
 	}
 
@@ -653,12 +669,12 @@ void skeleObjDelete(skeletonObject *skeleObj){
 }
 
 
-//Find the bone states to blend between and store pointers to them in "startState" and "endState"!
-static void getBlendStates(const skeleAnimState *animState, const skeleAnimState *blendState, const size_t boneNum,
+// Find the bone states to blend between and store pointers to them in "startState" and "endState"!
+static void getBlendStates(const skeletonAnimState *animState, const skeletonAnimState *blendState, const size_t boneNum,
                            const boneState *defState, const boneState **startState, const boneState **endState){
 
-	//If this entity bone appears in the first animation,
-	//start blending from the first animation's state!
+	// If this entity bone appears in the first animation,
+	// start blending from the first animation's state!
 	if(animState->lookup == NULL){
 		*startState = &animState->skeleState[boneNum];
 	}else{
@@ -667,14 +683,14 @@ static void getBlendStates(const skeleAnimState *animState, const skeleAnimState
 		if(lookupID < animState->anim->numBones){
 			*startState = &animState->skeleState[lookupID];
 
-		//Otherwise, blend from the default state that was specified.
+		// Otherwise, blend from the default state that was specified.
 		}else{
 			*startState = defState;
 		}
 	}
 
-	//If this entity bone appears in the second
-	//animation, blend to the second animation's state!
+	// If this entity bone appears in the second
+	// animation, blend to the second animation's state!
 	if(blendState->lookup == NULL){
 		*endState = &blendState->skeleState[boneNum];
 	}else{
@@ -683,8 +699,8 @@ static void getBlendStates(const skeleAnimState *animState, const skeleAnimState
 		if(lookupID < blendState->anim->numBones){
 			*endState = &blendState->skeleState[lookupID];
 
-		//Otherwise, blend to the state of the
-		//bone before this animation was applied.
+		// Otherwise, blend to the state of the
+		// bone before this animation was applied.
 		}else{
 			*endState = defState;
 		}

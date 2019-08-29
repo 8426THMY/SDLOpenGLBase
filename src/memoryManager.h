@@ -16,8 +16,8 @@
 typedef memoryTree memoryManager;
 
 
-//This will define a memory manager with global scope
-//and functions that are "more optimised" for it.
+// This will define a memory manager with global scope
+// and functions that are "more optimised" for it.
 /** Would it be better to define these as macros that  **/
 /** just call the regular versions of these functions? **/
 #ifdef MEMORY_USE_GLOBAL_MANAGER
@@ -35,8 +35,8 @@ void memoryManagerGlobalDelete();
 extern memoryManager memManager;
 #endif
 
-//This will define memory manager functions
-//that can be used with a user-defined manager.
+// This will define memory manager functions
+// that can be used with a user-defined manager.
 #ifdef MEMORY_USE_MODULE_MANAGER
 return_t memoryManagerInit(memoryManager *memMngr, const size_t heapSize);
 

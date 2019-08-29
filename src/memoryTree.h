@@ -14,20 +14,20 @@
 
 #define memTreeRegionStart(region) (((memoryRegion *)(region))->start)
 
-//Return the minimum block size for an element of "size" bytes.
+// Return the minimum block size for an element of "size" bytes.
 #define memTreeGetBlockSize(size) ((size_t)memoryAlign( \
 	((size) > MEMTREE_BLOCK_MIN_BODY_SIZE) ? (size) : MEMTREE_BLOCK_MIN_BODY_SIZE \
 ))
-//Return the amount of memory required for a
-//memory tree with "size" many usable bytes.
+// Return the amount of memory required for a
+// memory tree with "size" many usable bytes.
 #define memTreeMemoryForSize(size) memoryGetRequiredSize(size)
 
 
-//Block data usage diagrams:
-//Used:      [list][           data           ]
-//Free:      [list][tree][        fill        ]
-//List Node: [prevSize][size]
-//Tree Node: [left][right][parent]
+// Block data usage diagrams:
+// Used:      [list][           data           ]
+// Free:      [list][tree][        fill        ]
+// List Node: [prevSize][size]
+// Tree Node: [left][right][parent]
 
 /* Our blocks are aligned to addresses that are evenly   */
 /* divisible by 8. Because of this, the size of blocks   */
@@ -45,22 +45,22 @@
 /** It may be worthwhile to investigate solutions such as TLSF. **/
 
 
-//Our generic pool uses a doubly linked list that joins every block...
+// Our generic pool uses a doubly linked list that joins every block...
 typedef struct memTreeListNode {
-	//Note that these sizes include the block's header.
-	//The "prevSize" element also includes flags in
-	//the last three bits specifying if it's active,
-	//if it's the first block in the allocator and
-	//if it's the last block in the allocator.
+	// Note that these sizes include the block's header.
+	// The "prevSize" element also includes flags in
+	// the last three bits specifying if it's active,
+	// if it's the first block in the allocator and
+	// if it's the last block in the allocator.
 	size_t prevSize;
 	size_t size;
 } memTreeListNode;
 
-//... and a red-black tree that only connects free blocks.
+// ... and a red-black tree that only connects free blocks.
 typedef struct memTreeNode memTreeNode;
 typedef struct memTreeNode {
-	//The last bit of the parent pointer
-	//stores whether or not the node is red.
+	// The last bit of the parent pointer
+	// stores whether or not the node is red.
 	memTreeNode *parent;
 	memTreeNode *left;
 	memTreeNode *right;
@@ -70,12 +70,12 @@ typedef struct memTreeNode {
 typedef struct memoryTree {
 	memTreeNode *root;
 
-	//This is stored at the very end of the allocated memory,
-	//meaning it can be used as a pointer to the end. The
-	//structure contains a pointer to the start of the region
-	//as well as a pointer to the extension that follows it.
-	//The start of the region is used as the
-	//start of the tree's linked list component.
+	// This is stored at the very end of the allocated memory,
+	// meaning it can be used as a pointer to the end. The
+	// structure contains a pointer to the start of the region
+	// as well as a pointer to the extension that follows it.
+	// The start of the region is used as the
+	// start of the tree's linked list component.
 	memoryRegion *region;
 } memoryTree;
 

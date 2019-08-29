@@ -1,7 +1,7 @@
 #include "contact.h"
 
 
-//Jump table for checking separation independent of collider types.
+// Jump table for checking separation independent of collider types.
 return_t (*contactSeparationTable[COLLIDER_NUM_TYPES][COLLIDER_NUM_TYPES])(
 	const void *cA,
 	const void *cB,
@@ -12,7 +12,7 @@ return_t (*contactSeparationTable[COLLIDER_NUM_TYPES][COLLIDER_NUM_TYPES])(
 	}
 };
 
-//Jump table for checking collision independent of collider types.
+// Jump table for checking collision independent of collider types.
 return_t (*contactCollisionTable[COLLIDER_NUM_TYPES][COLLIDER_NUM_TYPES])(
 	const void *cA,
 	const void *cB,

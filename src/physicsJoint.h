@@ -29,8 +29,8 @@ typedef uint_least8_t physJointBodyIndex_t;
 
 
 typedef struct physicsJointDef {
-	//This array should be large enough
-	//to store any type of joint.
+	// This array should be large enough
+	// to store any type of joint.
 	union {
 		physicsJointDistanceDef distance;
 		physicsJointFixedDef fixed;
@@ -38,20 +38,20 @@ typedef struct physicsJointDef {
 		physicsJointPrismaticDef prismatic;
 		physicsJointSphereDef sphere;
 	} data;
-	//Stores which type of
-	//joint this object is.
+	// Stores which type of
+	// joint this object is.
 	physJointType_t type;
 
-	//The objects that store these joints should have
-	//an array of rigid bodies. These indicate which
-	//of those bodies are associated with this joint.
+	// The objects that store these joints should have
+	// an array of rigid bodies. These indicate which
+	// of those bodies are associated with this joint.
 	physJointBodyIndex_t indexA;
 	physJointBodyIndex_t indexB;
 } physicsJointDef;
 
 typedef struct physicsJoint {
-	//This array should be large enough
-	//to store any type of joint.
+	// This array should be large enough
+	// to store any type of joint.
 	union {
 		physicsJointDistance distance;
 		physicsJointFixed fixed;
@@ -59,8 +59,8 @@ typedef struct physicsJoint {
 		physicsJointPrismatic prismatic;
 		physicsJointSphere sphere;
 	} data;
-	//Stores which type of
-	//joint this object is.
+	// Stores which type of
+	// joint this object is.
 	physJointType_t type;
 } physicsJoint;
 
