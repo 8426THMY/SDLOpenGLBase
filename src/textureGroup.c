@@ -488,6 +488,7 @@ return_t texGroupLoad(textureGroup *texGroup, const char *texGroupName){
 		fclose(texGroupFile);
 
 
+		#warning "Seems a bit silly to not use this for the default animation."
 		// We don't need to check if this is NULL,
 		// as we do that when we're using it.
 		memoryManagerGlobalFree(textures);

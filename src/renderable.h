@@ -18,7 +18,7 @@ typedef struct renderable {
 } renderable;
 
 
-void renderableDefInit(renderableDef *renderDef, const model *mdl);
+void renderableDefInit(renderableDef *renderDef, model *mdl);
 void renderableInit(renderable *render, const renderableDef *renderDef);
 
 void renderableUpdate(renderable *render, const float time);

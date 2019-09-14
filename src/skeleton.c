@@ -75,7 +75,7 @@ void skeleInitSet(skeleton *skele, const char *name, const size_t nameLength, bo
 	// If the skeleton actually has some bones, we can just copy the pointers.
 	if(bones != NULL){
 		bone *curBone = bones;
-		const bone *lastBone = &curBone[skele->numBones];
+		const bone *lastBone = &curBone[numBones];
 
 		// Make sure we invert each bone's state!
 		for(; curBone < lastBone; ++curBone){

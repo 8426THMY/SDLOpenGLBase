@@ -9,11 +9,12 @@
 
 /*
 ** With friction constraints, we start with three velocity
-** constraints. We have two linear ones, one for each tangent,
-** and an angular one that uses the normal direction.
+** constraints derived similarly to the contact constraint.
+** We have two linear ones, one for each tangent, and an
+** angular one that uses the normal direction.
 **
-** C1' : |((vB + wB X rB) - (vA + wA X rA)) . t1| <= maxFriction
-** C2' : |((vB + wB X rB) - (vA + wA X rA)) . t2| <= maxFriction
+** C1' : |((vB + wB X rB) - (vA + wA X rA)) . u1| <= maxFriction
+** C2' : |((vB + wB X rB) - (vA + wA X rA)) . u2| <= maxFriction
 ** C3' : |(wB - wA) . n| <= maxFriction
 **
 ** In these equations, "maxFriction" is the magnitude of the
@@ -26,41 +27,38 @@
 ** component. Note that our Jacobian is a 2x4 matrix rather
 ** than the usual 1x4, as we have two linear constraints.
 **
-**     [-t1, -(rA X t1), t1, (rB X t1)]
-** J = [-t2, -(rA X t2), t2, (rB X t2)]
+**     [-u1, -(rA X u1), u1, (rB X u1)]
+** J = [-u2, -(rA X u2), u2, (rB X u2)]
 **
-**       [       -t1,        -t2]
-**       [-(rA X t1), -(rA X t2)]
-** J^T = [        t1,         t2]
-**       [ (rB X t1),  (rB X t2)]
+**        [mA^-1     0     0     0]
+**        [    0 IA^-1     0     0]
+** M^-1 = [    0     0 mB^-1     0]
+**        [    0     0     0 IB^-1]
 **
-**     [mA^-1     0     0     0]
-**     [    0 IA^-1     0     0]
-** M = [    0     0 mB^-1     0]
-**     [    0     0     0 IB^-1]
+**       [       -u1,        -u2]
+**       [-(rA X u1), -(rA X u2)]
+** J^T = [        u1,         u2]
+**       [ (rB X u1),  (rB X u2)]
 **
 **
 ** Calculating JM^-1J^T gives us a 2x2 matrix, which we can
 ** invert to get our effective mass:
 **
-**         [mA^-1 * -t1, IA^-1 * -(rA X t1), mB^-1 * t1, IB^-1 * (rB X t1)]
-** JM^-1 = [mA^-1 * -t2, IA^-1 * -(rA X t2), mB^-1 * t2, IB^-1 * (rB X t2)]
+**         [-u1 * mA^-1, -(rA X u1) * IA^-1, u1 * mB^-1, (rB X u1) * IB^-1]
+** JM^-1 = [-u2 * mA^-1, -(rA X u2) * IA^-1, u2 * mB^-1, (rB X u2) * IB^-1]
 **
 ** K = JM^-1J^T
-** [K]_00 = mA^-1 + mB^-1 + (IA^-1 * (rA X t1) . (rA X t1)) + (IB^-1 * (rB X t1) . (rB X t1))
-** [K]_01 = (IA^-1 * (rA X t1) . (rA X t2)) + (IB^-1 * (rB X t1) . (rB X t2))
-** [K]_10 = [K]_01
-** [K]_11 = mA^-1 + mB^-1 + (IA^-1 * (rA X t2) . (rA X t2)) + (IB^-1 * (rB X t2) . (rB X t2))
-**
-**            [mA^-1 + mB^-1 + (IA^-1 * (rA X t1) . (rA X t1)) + (IB^-1 * (rB X t1) . (rB X t1)),                 (IA^-1 * (rA X t1) . (rA X t2)) + (IB^-1 * (rB X t1) . (rB X t2))]
-** JM^-1J^T = [                (IA^-1 * (rA X t1) . (rA X t2)) + (IB^-1 * (rB X t1) . (rB X t2)), mA^-1 + mB^-1 + (IA^-1 * (rA X t2) . (rA X t2)) + (IB^-1 * (rB X t2) . (rB X t2))]
+** [K]_00 = mA^-1 + mB^-1 + (((rA X u1) * IA^-1) . (rA X u1)) + (((rB X u1) * IB^-1) . (rB X u1))
+** [K]_01 =                 (((rA X u1) * IA^-1) . (rA X u2)) + (((rB X u1) * IB^-1) . (rB X u2))
+** [K]_10 =                 (((rA X u1) * IA^-1) . (rA X u2)) + (((rB X u1) * IB^-1) . (rB X u2))
+** [K]_11 = mA^-1 + mB^-1 + (((rA X u2) * IA^-1) . (rA X u2)) + (((rB X u2) * IB^-1) . (rB X u2))
 **
 **
 ** It is also worth noting that in this case, "JV" is not
 ** a scalar either. It is the following 2x1 matrix:
 **
-**      [((vB + wB X rB) - (vA + wA X rA)) . t1]
-** JV = [((vB + wB X rB) - (vA + wA X rA)) . t2]
+**      [((vB + wB X rB) - (vA + wA X rA)) . u1]
+** JV = [((vB + wB X rB) - (vA + wA X rA)) . u2]
 **
 ** Multiplying the inverse of our effective mass by this matrix
 ** gives us a 2D vector, where each row contains the magnitude
@@ -75,10 +73,11 @@
 **
 ** Using this, we get that the effective mass is the inverse of:
 **
-** JM^-1J^T = ((IA^-1 * n) . n) + ((IB^-1 * n) . n)
+** JM^-1J^T = ((n * IA^-1) . n) + ((n * IB^-1) . n)
 */
 
 
+#warning "We never set joint->linearImpulse."
 /*
 ** By applying the impulse from the previous update,
 ** we can make the constraint converge more quickly.
@@ -124,51 +123,49 @@ void physJointFrictionCalculateEffectiveMass(physicsJointFriction *joint, const 
 	const mat3 *invInertiaA = &bodyA->invInertiaGlobal;
 	const mat3 *invInertiaB = &bodyB->invInertiaGlobal;
 
-	vec3 rt1A;
-	vec3 rt2A;
-	vec3 rt1B;
-	vec3 rt2B;
+	vec3 rAu1;
+	vec3 rAu2;
+	vec3 rBu1;
+	vec3 rBu2;
 
-	vec3 rt1IA;
-	vec3 rt2IA;
-	vec3 rt1IB;
-	vec3 rt2IB;
+	vec3 rAu1IA;
+	vec3 rAu2IA;
+	vec3 rBu1IB;
+	vec3 rBu2IB;
 
-
-	// Calculate the linear effective mass.
-	vec3CrossVec3Out(&joint->rA, &joint->tangents[0], &rt1A);
-	vec3CrossVec3Out(&joint->rA, &joint->tangents[1], &rt2A);
-	vec3CrossVec3Out(&joint->rB, &joint->tangents[0], &rt1B);
-	vec3CrossVec3Out(&joint->rB, &joint->tangents[1], &rt2B);
-
-	mat3MultiplyByVec3Out(invInertiaA, &rt1A, &rt1IA);
-	mat3MultiplyByVec3Out(invInertiaA, &rt2A, &rt2IA);
-	mat3MultiplyByVec3Out(invInertiaB, &rt1B, &rt1IB);
-	mat3MultiplyByVec3Out(invInertiaB, &rt2B, &rt2IB);
 
 	// K = JM^-1J^T
-	// [K]_00 = mA^-1 + mB^-1 + (IA^-1 * (rA X t1) . (rA X t1)) + (IB^-1 * (rB X t1) . (rB X t1))
-	// [K]_01 = (IA^-1 * (rA X t1) . (rA X t2)) + (IB^-1 * (rB X t1) . (rB X t2))
+	// [K]_00 = mA^-1 + mB^-1 + (((rA X u1) * IA^-1) . (rA X u1)) + (((rB X u1) * IB^-1) . (rB X u1))
+	// [K]_01 =                 (((rA X u1) * IA^-1) . (rA X u2)) + (((rB X u1) * IB^-1) . (rB X u2))
 	// [K]_10 = [K]_01
-	// [K]_11 = mA^-1 + mB^-1 + (IA^-1 * (rA X t2) . (rA X t2)) + (IB^-1 * (rB X t2) . (rB X t2))
+	// [K]_11 = mA^-1 + mB^-1 + (((rA X u2) * IA^-1) . (rA X u2)) + (((rB X u2) * IB^-1) . (rB X u2))
+	vec3CrossVec3Out(&joint->rA, &joint->tangents[0], &rAu1);
+	vec3CrossVec3Out(&joint->rA, &joint->tangents[1], &rAu2);
+	vec3CrossVec3Out(&joint->rB, &joint->tangents[0], &rBu1);
+	vec3CrossVec3Out(&joint->rB, &joint->tangents[1], &rBu2);
 
-	joint->linearMass.m[0][0] = invMass + vec3DotVec3(&rt1IA, &rt1A) + vec3DotVec3(&rt1IB, &rt1B);
+	mat3MultiplyByVec3Out(invInertiaA, &rAu1, &rAu1IA);
+	mat3MultiplyByVec3Out(invInertiaA, &rAu2, &rAu2IA);
+	mat3MultiplyByVec3Out(invInertiaB, &rBu1, &rBu1IB);
+	mat3MultiplyByVec3Out(invInertiaB, &rBu2, &rBu2IB);
+
+	// Calculate the linear effective mass.
+	joint->linearMass.m[0][0] = invMass + vec3DotVec3(&rAu1IA, &rAu1) + vec3DotVec3(&rBu1IB, &rBu1);
 	joint->linearMass.m[0][1] =
-	joint->linearMass.m[1][0] = vec3DotVec3(&rt1IA, &rt2A) + vec3DotVec3(&rt1IB, &rt2B);
-	joint->linearMass.m[1][1] = invMass + vec3DotVec3(&rt2IA, &rt2A) + vec3DotVec3(&rt2IB, &rt2B);
-
+	joint->linearMass.m[1][0] = vec3DotVec3(&rAu1IA, &rAu2) + vec3DotVec3(&rBu1IB, &rBu2);
+	joint->linearMass.m[1][1] = invMass + vec3DotVec3(&rAu2IA, &rAu2) + vec3DotVec3(&rBu2IB, &rBu2);
 	// m_eff = 1/K
 	mat2Invert(&joint->linearMass);
 
 
-	// Calculate the angular effective mass.
-	mat3MultiplyByVec3Out(invInertiaA, &joint->normal, &rt1IA);
-	mat3MultiplyByVec3Out(invInertiaB, &joint->normal, &rt1IB);
-
 	// JM^-1J^T = ((IA^-1 * n) . n) + ((IB^-1 * n) . n)
+	mat3MultiplyByVec3Out(invInertiaA, &joint->normal, &rAu1IA);
+	mat3MultiplyByVec3Out(invInertiaB, &joint->normal, &rBu1IB);
+
+	// Calculate the angular effective mass.
 	joint->angularMass = 1.f / (
-		vec3DotVec3(&rt1IA, &joint->normal) +
-		vec3DotVec3(&rt1IB, &joint->normal)
+		vec3DotVec3(&rAu1IA, &joint->normal) +
+		vec3DotVec3(&rBu1IB, &joint->normal)
 	);
 }
 
@@ -181,27 +178,29 @@ void physJointFrictionSolveVelocity(physicsJointFriction *joint, physicsRigidBod
 	vec2 lambda;
 	vec2 oldImpulse;
 	vec3 impulse;
-	vec3 contactVelocity;
+	vec3 relativeVelocity;
+	float impulseMagnitude;
 
-	// vcA = vA + wA X rA
-	// vcB = vB + wB X rB
-	// vcR = vcB - vcA
+	// vA_anchor  = vA + wA X rA
+	// vB_anchor  = vB + wB X rB
+	// v_relative = vB_anchor - vA_anchor
 
-	// Calculate the total linear velocity of the contact point on body A.
+	// Calculate the total linear velocity of the anchor point on body A.
 	vec3CrossVec3Out(&bodyA->angularVelocity, &joint->rA, &impulse);
 	vec3AddVec3(&impulse, &bodyA->linearVelocity);
-	// Calculate the total linear velocity of the contact point on body B.
-	vec3CrossVec3Out(&bodyB->angularVelocity, &joint->rB, &contactVelocity);
-	vec3AddVec3(&contactVelocity, &bodyB->linearVelocity);
+	// Calculate the total linear velocity of the anchor point on body B.
+	vec3CrossVec3Out(&bodyB->angularVelocity, &joint->rB, &relativeVelocity);
+	vec3AddVec3(&relativeVelocity, &bodyB->linearVelocity);
 	// Calculate the relative velocity between the two points.
-	vec3SubtractVec3From(&contactVelocity, &impulse);
+	vec3SubtractVec3From(&relativeVelocity, &impulse);
 
 
-	// lambda = -JV/JM^-1J^T
-	//        = -(vcR * t) * m_eff
+	// lambda    = -JV/JM^-1J^T
+	// lambda[0] = -(v_relative . u1) * m_eff
+	// lambda[1] = -(v_relative . u2) * m_eff
 	// Calculate the magnitudes for the linear impulses.
-	lambda.x = -vec3DotVec3(&contactVelocity, &joint->tangents[0]);
-	lambda.y = -vec3DotVec3(&contactVelocity, &joint->tangents[1]);
+	lambda.x = -vec3DotVec3(&relativeVelocity, &joint->tangents[0]);
+	lambda.y = -vec3DotVec3(&relativeVelocity, &joint->tangents[1]);
 	mat2MultiplyByVec2(&joint->linearMass, &lambda);
 
 	oldImpulse = joint->linearImpulse;
@@ -210,17 +209,17 @@ void physJointFrictionSolveVelocity(physicsJointFriction *joint, physicsRigidBod
 	// C' <= maxFriction
 	// If our accumulated impulse magnitude is larger than the
 	// total force friction is allowed to apply, we need to clamp it.
-	#warning "We recalculate this magnitude when we normalize. Yuck."
-	if(vec2DotVec2(&joint->linearImpulse, &joint->linearImpulse) > maxFriction * maxFriction){
-		vec2NormalizeVec2(&joint->linearImpulse);
-		vec2MultiplyS(&joint->linearImpulse, maxFriction);
+	impulseMagnitude = vec2DotVec2(&joint->linearImpulse, &joint->linearImpulse);
+	if(impulseMagnitude > maxFriction * maxFriction){
+		// Normalize the vector and multiply by maxFriction at the same time.
+		vec2MultiplyS(&joint->linearImpulse, maxFriction / impulseMagnitude);
 		vec2SubtractVec2FromOut(&joint->linearImpulse, &oldImpulse, &lambda);
 	}
 
 	// Add the impulse magnitudes for both tangent directions.
-	vec3MultiplySOut(&joint->tangents[0], lambda.x, &contactVelocity);
+	vec3MultiplySOut(&joint->tangents[0], lambda.x, &relativeVelocity);
 	vec3MultiplySOut(&joint->tangents[1], lambda.y, &impulse);
-	vec3AddVec3(&impulse, &contactVelocity);
+	vec3AddVec3(&impulse, &relativeVelocity);
 
 	// Apply the correctional linear impulse.
 	physRigidBodyApplyImpulseInverse(bodyA, &joint->rA, &impulse);
@@ -230,20 +229,20 @@ void physJointFrictionSolveVelocity(physicsJointFriction *joint, physicsRigidBod
 	// lambda = -JV/JM^-1J^T
 	//        = -((wB - wA) . n) * m_eff
 	// Calculate the magnitude for the angular impulse.
-	vec3SubtractVec3FromOut(&bodyB->angularVelocity, &bodyA->angularVelocity, &contactVelocity);
-	lambda.x = -vec3DotVec3(&contactVelocity, &joint->normal) * joint->angularMass;
+	vec3SubtractVec3FromOut(&bodyB->angularVelocity, &bodyA->angularVelocity, &relativeVelocity);
+	lambda.x = -vec3DotVec3(&relativeVelocity, &joint->normal) * joint->angularMass;
 	lambda.y = joint->angularImpulse;
-	oldImpulse.x = joint->angularImpulse + lambda.x;
+	impulseMagnitude = joint->angularImpulse + lambda.x;
 
 	// Clamp our accumulated impulse for the angular constraint.
-	if(oldImpulse.x < -maxFriction){
+	if(impulseMagnitude <= -maxFriction){
 		joint->angularImpulse = -maxFriction;
 		vec3MultiplySOut(&joint->normal, -maxFriction - lambda.y, &impulse);
-	}else if(oldImpulse.x > maxFriction){
+	}else if(impulseMagnitude > maxFriction){
 		joint->angularImpulse = maxFriction;
 		vec3MultiplySOut(&joint->normal, maxFriction - lambda.y, &impulse);
 	}else{
-		joint->angularImpulse = oldImpulse.x;
+		joint->angularImpulse = impulseMagnitude;
 		vec3MultiplySOut(&joint->normal, lambda.x, &impulse);
 	}
 

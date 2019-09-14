@@ -4,6 +4,9 @@
 #include "physicsRigidBody.h"
 
 
+//
+
+
 /*
 ** Calculate any values required by collision resolution
 ** that are not expected to change between iterations.
@@ -25,8 +28,9 @@ void physJointFixedSolveVelocity(void *joint, physicsRigidBody *bodyA, physicsRi
 /*
 ** When we're using full non-linear Gauss-Seidel, we apply
 ** an impulse directly to the rigid bodies' positions.
-** This may also be called multiple times.
+** This may also be called multiple times, but by returning
+** the amount of error we'll know when to stop.
 */
-void physJointFixedSolvePosition(void *joint, physicsRigidBody *bodyA, physicsRigidBody *bodyB){
-	//
+float physJointFixedSolvePosition(void *joint, physicsRigidBody *bodyA, physicsRigidBody *bodyB){
+	return(0.f);
 }

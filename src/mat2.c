@@ -36,6 +36,38 @@ mat2 mat2InitIdentityR(){
 }
 
 
+// Add the matrix "m2" to "m1"!
+void mat2AddMat2(mat2 *m1, const mat2 *m2){
+	m1->m[0][0] += m2->m[0][0];
+	m1->m[0][1] += m2->m[0][1];
+
+	m1->m[1][0] += m2->m[1][0];
+	m1->m[1][1] += m2->m[1][1];
+}
+
+// Add the matrix "m2" to "m1" and store the result in "out"!
+void mat2AddMat2Out(const mat2 *m1, const mat2 *m2, mat2 *out){
+	out->m[0][0] = m1->m[0][0] + m2->m[0][0];
+	out->m[0][1] = m1->m[0][1] + m2->m[0][1];
+
+	out->m[1][0] = m1->m[1][0] + m2->m[1][0];
+	out->m[1][1] = m1->m[1][1] + m2->m[1][1];
+}
+
+// Add the matrix "m2" to "m1" and return the result!
+mat2 mat2AddMat2R(const mat2 m1, const mat2 m2){
+	const mat2 out = {
+		.m[0][0] = m1.m[0][0] + m2.m[0][0],
+		.m[0][1] = m1.m[0][1] + m2.m[0][1],
+
+		.m[1][0] = m1.m[1][0] + m2.m[1][0],
+		.m[1][1] = m1.m[1][1] + m2.m[1][1]
+	};
+
+	return(out);
+}
+
+
 // Multiply a matrix by a vec2!
 void mat2MultiplyByVec2(const mat2 *m, vec2 *v){
 	vec2 temp = *v;
@@ -52,10 +84,10 @@ void mat2MultiplyByVec2Out(const mat2 *m, const vec2 *v, vec2 *out){
 
 // Multiply a matrix by a vec2!
 vec2 mat2MultiplyByVec2R(const mat2 m, const vec2 v){
-	vec2 out;
-
-	out.x = m.m[0][0] * v.x + m.m[1][0] * v.y;
-	out.y = m.m[0][1] * v.x + m.m[1][1] * v.y;
+	const vec2 out = {
+		.x = m.m[0][0] * v.x + m.m[1][0] * v.y,
+		.y = m.m[0][1] * v.x + m.m[1][1] * v.y
+	};
 
 	return(out);
 }
@@ -82,7 +114,7 @@ void mat2MultiplyVec2ByOut(const mat2 m, const vec2 *v, mat2 *out){
 
 // Multiply a vec2 by a matrix!
 mat2 mat2MultiplyVec2ByR(const mat2 m, const vec2 v){
-	mat2 out = m;
+	mat2 out;
 
 	out.m[0][0] =
 	out.m[0][1] = m.m[0][0] * v.x + m.m[0][1] * v.y;
@@ -128,13 +160,13 @@ void mat2MultiplyByMat2Out(const mat2 m1, const mat2 m2, mat2 *out){
 
 // Multiply "m1" by "m2"!
 mat2 mat2MultiplyByMat2R(const mat2 m1, const mat2 m2){
-	mat2 out;
+	const mat2 out = {
+		.m[0][0] = m1.m[0][0] * m2.m[0][0] + m1.m[1][0] * m2.m[0][1],
+		.m[0][1] = m1.m[0][1] * m2.m[0][0] + m1.m[1][1] * m2.m[0][1],
 
-	out.m[0][0] = m1.m[0][0] * m2.m[0][0] + m1.m[1][0] * m2.m[0][1];
-	out.m[0][1] = m1.m[0][1] * m2.m[0][0] + m1.m[1][1] * m2.m[0][1];
-
-	out.m[1][0] = m1.m[0][0] * m2.m[1][0] + m1.m[1][0] * m2.m[1][1];
-	out.m[1][1] = m1.m[0][1] * m2.m[1][0] + m1.m[1][1] * m2.m[1][1];
+		.m[1][0] = m1.m[0][0] * m2.m[1][0] + m1.m[1][0] * m2.m[1][1],
+		.m[1][1] = m1.m[0][1] * m2.m[1][0] + m1.m[1][1] * m2.m[1][1]
+	};
 
 	return(out);
 }
@@ -171,13 +203,13 @@ void mat2TransposeOut(const mat2 m, mat2 *out){
 ** translates it to a row-major matrix. The reverse is true for row-major matrices.
 */
 mat2 mat2TransposeR(const mat2 m){
-	mat2 out;
+	const mat2 out = {
+		.m[0][0] = m.m[0][0],
+		.m[0][1] = m.m[1][0],
 
-	out.m[0][0] = m.m[0][0];
-	out.m[0][1] = m.m[1][0];
-
-	out.m[1][0] = m.m[0][1];
-	out.m[1][1] = m.m[1][1];
+		.m[1][0] = m.m[0][1],
+		.m[1][1] = m.m[1][1]
+	};
 
 	return(out);
 }

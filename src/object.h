@@ -33,6 +33,20 @@ typedef struct objectDef {
 } objectDef;
 
 #warning "We need something for interpolation. Skeletons are also very incomplete."
+/**
+IMPORTANT NOTE ABOUT SKELETONS:
+
+Here's what we need:
+
+1. Animation skeletons are mapped onto model (renderable) skeletons.
+2. What if renderables and animations all have different skeletons?
+3. We need a mapping for each renderable/animation pair.
+4. Alternatively, we have a "parent" skeleton that all child renderables are mapped onto.
+5. Each animation is then mapped onto that.
+6. This is where it stops making sense to have objects with multiple renderables, though.
+7. We would need to assume that all renderables in an object have the same skeleton.
+8. We could use the first renderable's skeleton too.
+**/
 typedef struct object {
 	const objectDef *objDef;
 

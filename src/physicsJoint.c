@@ -17,7 +17,7 @@ void (*physJointSolveVelocityTable[PHYSJOINT_NUM_TYPES])(void *joint, physicsRig
 	physJointSphereSolveVelocity
 };
 
-void (*physJointSolvePositionTable[PHYSJOINT_NUM_TYPES])(void *joint, physicsRigidBody *bodyA, physicsRigidBody *bodyB) = {
+float (*physJointSolvePositionTable[PHYSJOINT_NUM_TYPES])(void *joint, physicsRigidBody *bodyA, physicsRigidBody *bodyB) = {
 	physJointDistanceSolvePosition,
 	physJointFixedSolvePosition,
 	physJointRevoluteSolvePosition,

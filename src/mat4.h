@@ -38,6 +38,10 @@ mat4 mat4InitScaleVec3R(const vec3 v);
 void mat4InitScaleVec4(mat4 *m, const vec4 *v);
 mat4 mat4InitScaleVec4R(const vec4 v);
 
+void mat4AddMat4(mat4 *m1, const mat4 *m2);
+void mat4AddMat4Out(const mat4 *m1, const mat4 *m2, mat4 *out);
+mat4 mat4AddMat4R(const mat4 m1, const mat4 m2);
+
 void mat4MultiplyByVec3(const mat4 *m, vec3 *v);
 void mat4MultiplyByVec3Out(const mat4 *m, const vec3 *v, vec3 *out);
 vec3 mat4MultiplyByVec3R(const mat4 m, const vec3 v);

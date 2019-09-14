@@ -64,27 +64,27 @@ void mat4InitTranslate(mat4 *m, const float x, const float y, const float z){
 
 // Initialise a matrix to a translation matrix!
 mat4 mat4InitTranslateR(const float x, const float y, const float z){
-	mat4 m;
+	const mat4 m = {
+		.m[0][0] = 1.f,
+		.m[0][1] = 0.f,
+		.m[0][2] = 0.f,
+		.m[0][3] = 0.f,
 
-	m.m[0][0] = 1.f;
-	m.m[0][1] = 0.f;
-	m.m[0][2] = 0.f;
-	m.m[0][3] = 0.f;
+		.m[1][0] = 0.f,
+		.m[1][1] = 1.f,
+		.m[1][2] = 0.f,
+		.m[1][3] = 0.f,
 
-	m.m[1][0] = 0.f;
-	m.m[1][1] = 1.f;
-	m.m[1][2] = 0.f;
-	m.m[1][3] = 0.f;
+		.m[2][0] = 0.f,
+		.m[2][1] = 0.f,
+		.m[2][2] = 1.f,
+		.m[2][3] = 0.f,
 
-	m.m[2][0] = 0.f;
-	m.m[2][1] = 0.f;
-	m.m[2][2] = 1.f;
-	m.m[2][3] = 0.f;
-
-	m.m[3][0] = x;
-	m.m[3][1] = y;
-	m.m[3][2] = z;
-	m.m[3][3] = 1.f;
+		.m[3][0] = x,
+		.m[3][1] = y,
+		.m[3][2] = z,
+		.m[3][3] = 1.f
+	};
 
 	return(m);
 }
@@ -114,27 +114,27 @@ void mat4InitTranslate4(mat4 *m, const float x, const float y, const float z, co
 
 // Initialise a matrix to a translation matrix!
 mat4 mat4InitTranslate4R(const float x, const float y, const float z, const float w){
-	mat4 m;
+	const mat4 m = {
+		.m[0][0] = 1.f,
+		.m[0][1] = 0.f,
+		.m[0][2] = 0.f,
+		.m[0][3] = 0.f,
 
-	m.m[0][0] = 1.f;
-	m.m[0][1] = 0.f;
-	m.m[0][2] = 0.f;
-	m.m[0][3] = 0.f;
+		.m[1][0] = 0.f,
+		.m[1][1] = 1.f,
+		.m[1][2] = 0.f,
+		.m[1][3] = 0.f,
 
-	m.m[1][0] = 0.f;
-	m.m[1][1] = 1.f;
-	m.m[1][2] = 0.f;
-	m.m[1][3] = 0.f;
+		.m[2][0] = 0.f,
+		.m[2][1] = 0.f,
+		.m[2][2] = 1.f,
+		.m[2][3] = 0.f,
 
-	m.m[2][0] = 0.f;
-	m.m[2][1] = 0.f;
-	m.m[2][2] = 1.f;
-	m.m[2][3] = 0.f;
-
-	m.m[3][0] = x;
-	m.m[3][1] = y;
-	m.m[3][2] = z;
-	m.m[3][3] = w;
+		.m[3][0] = x,
+		.m[3][1] = y,
+		.m[3][2] = z,
+		.m[3][3] = w
+	};
 
 	return(m);
 }
@@ -204,28 +204,30 @@ mat4 mat4InitRotateQuatR(const quat q){
 	const float yw = q.y * q.w;
 	const float zz = q.z * q.z;
 	const float zw = q.z * q.w;
-	mat4 m;
 
 	// Rotate our matrix by the quaternion!
-	m.m[0][0] = 1.f - 2.f * (yy + zz);
-	m.m[0][1] = 2.f * (xy + zw);
-	m.m[0][2] = 2.f * (xz - yw);
-	m.m[0][3] = 0.f;
+	const mat4 m = {
+		.m[0][0] = 1.f - 2.f * (yy + zz),
+		.m[0][1] = 2.f * (xy + zw),
+		.m[0][2] = 2.f * (xz - yw),
+		.m[0][3] = 0.f,
 
-	m.m[1][0] = 2.f * (xy - zw);
-	m.m[1][1] = 1.f - 2.f * (xx + zz);
-	m.m[1][2] = 2.f * (yz + xw);
-	m.m[1][3] = 0.f;
+		.m[1][0] = 2.f * (xy - zw),
+		.m[1][1] = 1.f - 2.f * (xx + zz),
+		.m[1][2] = 2.f * (yz + xw),
+		.m[1][3] = 0.f,
 
-	m.m[2][0] = 2.f * (xz + yw);
-	m.m[2][1] = 2.f * (yz - xw);
-	m.m[2][2] = 1.f - 2.f * (xx + yy);
-	m.m[2][3] = 0.f;
+		.m[2][0] = 2.f * (xz + yw),
+		.m[2][1] = 2.f * (yz - xw),
+		.m[2][2] = 1.f - 2.f * (xx + yy),
+		.m[2][3] = 0.f,
 
-	m.m[3][0] = 0.f;
-	m.m[3][1] = 0.f;
-	m.m[3][2] = 0.f;
-	m.m[3][3] = 1.f;
+		.m[3][0] = 0.f,
+		.m[3][1] = 0.f,
+		.m[3][2] = 0.f,
+		.m[3][3] = 1.f
+	};
+
 
 	return(m);
 }
@@ -255,27 +257,27 @@ void mat4InitScale(mat4 *m, const float x, const float y, const float z){
 
 // Initialise a matrix to a scale matrix!
 mat4 mat4InitScaleR(const float x, const float y, const float z){
-	mat4 m;
+	const mat4 m = {
+		.m[0][0] = x,
+		.m[0][1] = 0.f,
+		.m[0][2] = 0.f,
+		.m[0][3] = 0.f,
 
-	m.m[0][0] = x;
-	m.m[0][1] = 0.f;
-	m.m[0][2] = 0.f;
-	m.m[0][3] = 0.f;
+		.m[1][0] = 0.f,
+		.m[1][1] = y,
+		.m[1][2] = 0.f,
+		.m[1][3] = 0.f,
 
-	m.m[1][0] = 0.f;
-	m.m[1][1] = y;
-	m.m[1][2] = 0.f;
-	m.m[1][3] = 0.f;
+		.m[2][0] = 0.f,
+		.m[2][1] = 0.f,
+		.m[2][2] = z,
+		.m[2][3] = 0.f,
 
-	m.m[2][0] = 0.f;
-	m.m[2][1] = 0.f;
-	m.m[2][2] = z;
-	m.m[2][3] = 0.f;
-
-	m.m[3][0] = 0.f;
-	m.m[3][1] = 0.f;
-	m.m[3][2] = 0.f;
-	m.m[3][3] = 1.f;
+		.m[3][0] = 0.f,
+		.m[3][1] = 0.f,
+		.m[3][2] = 0.f,
+		.m[3][3] = 1.f
+	};
 
 	return(m);
 }
@@ -305,27 +307,27 @@ void mat4InitScale4(mat4 *m, const float x, const float y, const float z, const 
 
 // Initialise a matrix to a scale matrix!
 mat4 mat4InitScale4R(const float x, const float y, const float z, const float w){
-	mat4 m;
+	const mat4 m = {
+		.m[0][0] = x,
+		.m[0][1] = 0.f,
+		.m[0][2] = 0.f,
+		.m[0][3] = 0.f,
 
-	m.m[0][0] = x;
-	m.m[0][1] = 0.f;
-	m.m[0][2] = 0.f;
-	m.m[0][3] = 0.f;
+		.m[1][0] = 0.f,
+		.m[1][1] = y,
+		.m[1][2] = 0.f,
+		.m[1][3] = 0.f,
 
-	m.m[1][0] = 0.f;
-	m.m[1][1] = y;
-	m.m[1][2] = 0.f;
-	m.m[1][3] = 0.f;
+		.m[2][0] = 0.f,
+		.m[2][1] = 0.f,
+		.m[2][2] = z,
+		.m[2][3] = 0.f,
 
-	m.m[2][0] = 0.f;
-	m.m[2][1] = 0.f;
-	m.m[2][2] = z;
-	m.m[2][3] = 0.f;
-
-	m.m[3][0] = 0.f;
-	m.m[3][1] = 0.f;
-	m.m[3][2] = 0.f;
-	m.m[3][3] = w;
+		.m[3][0] = 0.f,
+		.m[3][1] = 0.f,
+		.m[3][2] = 0.f,
+		.m[3][3] = w
+	};
 
 	return(m);
 }
@@ -351,6 +353,80 @@ mat4 mat4InitScaleVec4R(const vec4 v){
 }
 
 
+// Add the matrix "m2" to "m1"!
+void mat4AddMat4(mat4 *m1, const mat4 *m2){
+	m1->m[0][0] += m2->m[0][0];
+	m1->m[0][1] += m2->m[0][1];
+	m1->m[0][2] += m2->m[0][2];
+	m1->m[0][3] += m2->m[0][3];
+
+	m1->m[1][0] += m2->m[1][0];
+	m1->m[1][1] += m2->m[1][1];
+	m1->m[1][2] += m2->m[1][2];
+	m1->m[1][3] += m2->m[1][3];
+
+	m1->m[2][0] += m2->m[2][0];
+	m1->m[2][1] += m2->m[2][1];
+	m1->m[2][2] += m2->m[2][2];
+	m1->m[2][3] += m2->m[2][3];
+
+	m1->m[3][0] += m2->m[3][0];
+	m1->m[3][1] += m2->m[3][1];
+	m1->m[3][2] += m2->m[3][2];
+	m1->m[3][3] += m2->m[3][3];
+}
+
+// Add the matrix "m2" to "m1" and store the result in "out"!
+void mat4AddMat4Out(const mat4 *m1, const mat4 *m2, mat4 *out){
+	out->m[0][0] = m1->m[0][0] + m2->m[0][0];
+	out->m[0][1] = m1->m[0][1] + m2->m[0][1];
+	out->m[0][2] = m1->m[0][2] + m2->m[0][2];
+	out->m[0][3] = m1->m[0][3] + m2->m[0][3];
+
+	out->m[1][0] = m1->m[1][0] + m2->m[1][0];
+	out->m[1][1] = m1->m[1][1] + m2->m[1][1];
+	out->m[1][2] = m1->m[1][2] + m2->m[1][2];
+	out->m[1][3] = m1->m[1][3] + m2->m[1][3];
+
+	out->m[2][0] = m1->m[2][0] + m2->m[2][0];
+	out->m[2][1] = m1->m[2][1] + m2->m[2][1];
+	out->m[2][2] = m1->m[2][2] + m2->m[2][2];
+	out->m[2][3] = m1->m[2][3] + m2->m[2][3];
+
+	out->m[3][0] = m1->m[3][0] + m2->m[3][0];
+	out->m[3][1] = m1->m[3][1] + m2->m[3][1];
+	out->m[3][2] = m1->m[3][2] + m2->m[3][2];
+	out->m[3][3] = m1->m[3][3] + m2->m[3][3];
+}
+
+// Add the matrix "m2" to "m1" and return the result!
+mat4 mat4AddMat4R(const mat4 m1, const mat4 m2){
+	const mat4 out = {
+		.m[0][0] = m1.m[0][0] + m2.m[0][0],
+		.m[0][1] = m1.m[0][1] + m2.m[0][1],
+		.m[0][2] = m1.m[0][2] + m2.m[0][2],
+		.m[0][3] = m1.m[0][3] + m2.m[0][3],
+
+		.m[1][0] = m1.m[1][0] + m2.m[1][0],
+		.m[1][1] = m1.m[1][1] + m2.m[1][1],
+		.m[1][2] = m1.m[1][2] + m2.m[1][2],
+		.m[1][3] = m1.m[1][3] + m2.m[1][3],
+
+		.m[2][0] = m1.m[2][0] + m2.m[2][0],
+		.m[2][1] = m1.m[2][1] + m2.m[2][1],
+		.m[2][2] = m1.m[2][2] + m2.m[2][2],
+		.m[2][3] = m1.m[2][3] + m2.m[2][3],
+
+		.m[3][0] = m1.m[3][0] + m2.m[3][0],
+		.m[3][1] = m1.m[3][1] + m2.m[3][1],
+		.m[3][2] = m1.m[3][2] + m2.m[3][2],
+		.m[3][3] = m1.m[3][3] + m2.m[3][3]
+	};
+
+	return(out);
+}
+
+
 // Multiply a matrix by a vec3!
 void mat4MultiplyByVec3(const mat4 *m, vec3 *v){
 	vec3 temp = *v;
@@ -369,11 +445,11 @@ void mat4MultiplyByVec3Out(const mat4 *m, const vec3 *v, vec3 *out){
 
 // Multiply a matrix by a vec3!
 vec3 mat4MultiplyByVec3R(const mat4 m, const vec3 v){
-	vec3 out;
-
-	out.x = m.m[0][0] * v.x + m.m[1][0] * v.y + m.m[2][0] * v.z + m.m[3][0];
-	out.y = m.m[0][1] * v.x + m.m[1][1] * v.y + m.m[2][1] * v.z + m.m[3][1];
-	out.z = m.m[0][2] * v.x + m.m[1][2] * v.y + m.m[2][2] * v.z + m.m[3][2];
+	const vec3 out = {
+		.x = m.m[0][0] * v.x + m.m[1][0] * v.y + m.m[2][0] * v.z + m.m[3][0],
+		.y = m.m[0][1] * v.x + m.m[1][1] * v.y + m.m[2][1] * v.z + m.m[3][1],
+		.z = m.m[0][2] * v.x + m.m[1][2] * v.y + m.m[2][2] * v.z + m.m[3][2]
+	};
 
 	return(out);
 }
@@ -473,12 +549,12 @@ void mat4MultiplyByVec4Out(const mat4 *m, const vec4 *v, vec4 *out){
 
 // Multiply a matrix by a vec4!
 vec4 mat4MultiplyByVec4R(const mat4 m, const vec4 v){
-	vec4 out;
-
-	out.x = m.m[0][0] * v.x + m.m[1][0] * v.y + m.m[2][0] * v.z + m.m[3][0] * v.w;
-	out.y = m.m[0][1] * v.x + m.m[1][1] * v.y + m.m[2][1] * v.z + m.m[3][1] * v.w;
-	out.z = m.m[0][2] * v.x + m.m[1][2] * v.y + m.m[2][2] * v.z + m.m[3][2] * v.w;
-	out.w = m.m[0][3] * v.x + m.m[1][3] * v.y + m.m[2][3] * v.z + m.m[3][3] * v.w;
+	const vec4 out = {
+		.x = m.m[0][0] * v.x + m.m[1][0] * v.y + m.m[2][0] * v.z + m.m[3][0] * v.w,
+		.y = m.m[0][1] * v.x + m.m[1][1] * v.y + m.m[2][1] * v.z + m.m[3][1] * v.w,
+		.z = m.m[0][2] * v.x + m.m[1][2] * v.y + m.m[2][2] * v.z + m.m[3][2] * v.w,
+		.w = m.m[0][3] * v.x + m.m[1][3] * v.y + m.m[2][3] * v.z + m.m[3][3] * v.w
+	};
 
 	return(out);
 }
@@ -558,27 +634,27 @@ void mat4MultiplyByMat4Out(const mat4 m1, const mat4 m2, mat4 *out){
 
 // Multiply "m1" by "m2" and store the result in "out"!
 mat4 mat4MultiplyByMat4R(const mat4 m1, const mat4 m2){
-	mat4 out;
+	const mat4 out = {
+		.m[0][0] = m1.m[0][0] * m2.m[0][0] + m1.m[1][0] * m2.m[0][1] + m1.m[2][0] * m2.m[0][2] + m1.m[3][0] * m2.m[0][3],
+		.m[0][1] = m1.m[0][1] * m2.m[0][0] + m1.m[1][1] * m2.m[0][1] + m1.m[2][1] * m2.m[0][2] + m1.m[3][1] * m2.m[0][3],
+		.m[0][2] = m1.m[0][2] * m2.m[0][0] + m1.m[1][2] * m2.m[0][1] + m1.m[2][2] * m2.m[0][2] + m1.m[3][2] * m2.m[0][3],
+		.m[0][3] = m1.m[0][3] * m2.m[0][0] + m1.m[1][3] * m2.m[0][1] + m1.m[2][3] * m2.m[0][2] + m1.m[3][3] * m2.m[0][3],
 
-	out.m[0][0] = m1.m[0][0] * m2.m[0][0] + m1.m[1][0] * m2.m[0][1] + m1.m[2][0] * m2.m[0][2] + m1.m[3][0] * m2.m[0][3];
-	out.m[0][1] = m1.m[0][1] * m2.m[0][0] + m1.m[1][1] * m2.m[0][1] + m1.m[2][1] * m2.m[0][2] + m1.m[3][1] * m2.m[0][3];
-	out.m[0][2] = m1.m[0][2] * m2.m[0][0] + m1.m[1][2] * m2.m[0][1] + m1.m[2][2] * m2.m[0][2] + m1.m[3][2] * m2.m[0][3];
-	out.m[0][3] = m1.m[0][3] * m2.m[0][0] + m1.m[1][3] * m2.m[0][1] + m1.m[2][3] * m2.m[0][2] + m1.m[3][3] * m2.m[0][3];
+		.m[1][0] = m1.m[0][0] * m2.m[1][0] + m1.m[1][0] * m2.m[1][1] + m1.m[2][0] * m2.m[1][2] + m1.m[3][0] * m2.m[1][3],
+		.m[1][1] = m1.m[0][1] * m2.m[1][0] + m1.m[1][1] * m2.m[1][1] + m1.m[2][1] * m2.m[1][2] + m1.m[3][1] * m2.m[1][3],
+		.m[1][2] = m1.m[0][2] * m2.m[1][0] + m1.m[1][2] * m2.m[1][1] + m1.m[2][2] * m2.m[1][2] + m1.m[3][2] * m2.m[1][3],
+		.m[1][3] = m1.m[0][3] * m2.m[1][0] + m1.m[1][3] * m2.m[1][1] + m1.m[2][3] * m2.m[1][2] + m1.m[3][3] * m2.m[1][3],
 
-	out.m[1][0] = m1.m[0][0] * m2.m[1][0] + m1.m[1][0] * m2.m[1][1] + m1.m[2][0] * m2.m[1][2] + m1.m[3][0] * m2.m[1][3];
-	out.m[1][1] = m1.m[0][1] * m2.m[1][0] + m1.m[1][1] * m2.m[1][1] + m1.m[2][1] * m2.m[1][2] + m1.m[3][1] * m2.m[1][3];
-	out.m[1][2] = m1.m[0][2] * m2.m[1][0] + m1.m[1][2] * m2.m[1][1] + m1.m[2][2] * m2.m[1][2] + m1.m[3][2] * m2.m[1][3];
-	out.m[1][3] = m1.m[0][3] * m2.m[1][0] + m1.m[1][3] * m2.m[1][1] + m1.m[2][3] * m2.m[1][2] + m1.m[3][3] * m2.m[1][3];
+		.m[2][0] = m1.m[0][0] * m2.m[2][0] + m1.m[1][0] * m2.m[2][1] + m1.m[2][0] * m2.m[2][2] + m1.m[3][0] * m2.m[2][3],
+		.m[2][1] = m1.m[0][1] * m2.m[2][0] + m1.m[1][1] * m2.m[2][1] + m1.m[2][1] * m2.m[2][2] + m1.m[3][1] * m2.m[2][3],
+		.m[2][2] = m1.m[0][2] * m2.m[2][0] + m1.m[1][2] * m2.m[2][1] + m1.m[2][2] * m2.m[2][2] + m1.m[3][2] * m2.m[2][3],
+		.m[2][3] = m1.m[0][3] * m2.m[2][0] + m1.m[1][3] * m2.m[2][1] + m1.m[2][3] * m2.m[2][2] + m1.m[3][3] * m2.m[2][3],
 
-	out.m[2][0] = m1.m[0][0] * m2.m[2][0] + m1.m[1][0] * m2.m[2][1] + m1.m[2][0] * m2.m[2][2] + m1.m[3][0] * m2.m[2][3];
-	out.m[2][1] = m1.m[0][1] * m2.m[2][0] + m1.m[1][1] * m2.m[2][1] + m1.m[2][1] * m2.m[2][2] + m1.m[3][1] * m2.m[2][3];
-	out.m[2][2] = m1.m[0][2] * m2.m[2][0] + m1.m[1][2] * m2.m[2][1] + m1.m[2][2] * m2.m[2][2] + m1.m[3][2] * m2.m[2][3];
-	out.m[2][3] = m1.m[0][3] * m2.m[2][0] + m1.m[1][3] * m2.m[2][1] + m1.m[2][3] * m2.m[2][2] + m1.m[3][3] * m2.m[2][3];
-
-	out.m[3][0] = m1.m[0][0] * m2.m[3][0] + m1.m[1][0] * m2.m[3][1] + m1.m[2][0] * m2.m[3][2] + m1.m[3][0] * m2.m[3][3];
-	out.m[3][1] = m1.m[0][1] * m2.m[3][0] + m1.m[1][1] * m2.m[3][1] + m1.m[2][1] * m2.m[3][2] + m1.m[3][1] * m2.m[3][3];
-	out.m[3][2] = m1.m[0][2] * m2.m[3][0] + m1.m[1][2] * m2.m[3][1] + m1.m[2][2] * m2.m[3][2] + m1.m[3][2] * m2.m[3][3];
-	out.m[3][3] = m1.m[0][3] * m2.m[3][0] + m1.m[1][3] * m2.m[3][1] + m1.m[2][3] * m2.m[3][2] + m1.m[3][3] * m2.m[3][3];
+		.m[3][0] = m1.m[0][0] * m2.m[3][0] + m1.m[1][0] * m2.m[3][1] + m1.m[2][0] * m2.m[3][2] + m1.m[3][0] * m2.m[3][3],
+		.m[3][1] = m1.m[0][1] * m2.m[3][0] + m1.m[1][1] * m2.m[3][1] + m1.m[2][1] * m2.m[3][2] + m1.m[3][1] * m2.m[3][3],
+		.m[3][2] = m1.m[0][2] * m2.m[3][0] + m1.m[1][2] * m2.m[3][1] + m1.m[2][2] * m2.m[3][2] + m1.m[3][2] * m2.m[3][3],
+		.m[3][3] = m1.m[0][3] * m2.m[3][0] + m1.m[1][3] * m2.m[3][1] + m1.m[2][3] * m2.m[3][2] + m1.m[3][3] * m2.m[3][3]
+	};
 
 	return(out);
 }
@@ -808,8 +884,6 @@ mat4 mat4RotateAxisAngleR(const mat4 m, const vec4 v){
 	const float c = cosf(v.w);
 	const float s = sinf(v.w);
 	const float t = 1.f - c;
-	mat3 rotMatrix;
-	mat4 out;
 
 	// Normalize the axis!
 	const vec3 normalAxis = vec3NormalizeR(v.x, v.y, v.z);
@@ -817,34 +891,39 @@ mat4 mat4RotateAxisAngleR(const mat4 m, const vec4 v){
 
 	// Convert the axis angle to a rotation matrix! Note that this is
 	// a row-major matrix as opposed to our usual column-major format.
-	rotMatrix.m[0][0] = tempAxis.x * normalAxis.x + c;
-	rotMatrix.m[0][1] = tempAxis.x * normalAxis.y + normalAxis.z * s;
-	rotMatrix.m[0][2] = tempAxis.x * normalAxis.z - normalAxis.y * s;
+	const mat3 rotMatrix = {
+		.m[0][0] = tempAxis.x * normalAxis.x + c,
+		.m[0][1] = tempAxis.x * normalAxis.y + normalAxis.z * s,
+		.m[0][2] = tempAxis.x * normalAxis.z - normalAxis.y * s,
 
-	rotMatrix.m[1][0] = tempAxis.y * normalAxis.x - normalAxis.z * s;
-	rotMatrix.m[1][1] = tempAxis.y * normalAxis.y + c;
-	rotMatrix.m[1][2] = tempAxis.y * normalAxis.z + normalAxis.x * s;
+		.m[1][0] = tempAxis.y * normalAxis.x - normalAxis.z * s,
+		.m[1][1] = tempAxis.y * normalAxis.y + c,
+		.m[1][2] = tempAxis.y * normalAxis.z + normalAxis.x * s,
 
-	rotMatrix.m[2][0] = tempAxis.z * normalAxis.x + normalAxis.y * s;
-	rotMatrix.m[2][1] = tempAxis.z * normalAxis.y - normalAxis.x * s;
-	rotMatrix.m[2][2] = tempAxis.z * normalAxis.z + c;
+		.m[2][0] = tempAxis.z * normalAxis.x + normalAxis.y * s,
+		.m[2][1] = tempAxis.z * normalAxis.y - normalAxis.x * s,
+		.m[2][2] = tempAxis.z * normalAxis.z + c
+	};
 
 	// Now rotate our matrix by it!
-	out.m[0][0] = rotMatrix.m[0][0] * m.m[0][0] + rotMatrix.m[0][1] * m.m[1][0] + rotMatrix.m[0][2] * m.m[2][0];
-	out.m[0][1] = rotMatrix.m[1][0] * m.m[0][0] + rotMatrix.m[1][1] * m.m[1][0] + rotMatrix.m[1][2] * m.m[2][0];
-	out.m[0][2] = rotMatrix.m[2][0] * m.m[0][0] + rotMatrix.m[2][1] * m.m[1][0] + rotMatrix.m[2][2] * m.m[2][0];
+	const mat4 out = {
+		.m[0][0] = rotMatrix.m[0][0] * m.m[0][0] + rotMatrix.m[0][1] * m.m[1][0] + rotMatrix.m[0][2] * m.m[2][0],
+		.m[0][1] = rotMatrix.m[1][0] * m.m[0][0] + rotMatrix.m[1][1] * m.m[1][0] + rotMatrix.m[1][2] * m.m[2][0],
+		.m[0][2] = rotMatrix.m[2][0] * m.m[0][0] + rotMatrix.m[2][1] * m.m[1][0] + rotMatrix.m[2][2] * m.m[2][0],
 
-	out.m[1][0] = rotMatrix.m[0][0] * m.m[0][1] + rotMatrix.m[0][1] * m.m[1][1] + rotMatrix.m[0][2] * m.m[2][1];
-	out.m[1][1] = rotMatrix.m[1][0] * m.m[0][1] + rotMatrix.m[1][1] * m.m[1][1] + rotMatrix.m[1][2] * m.m[2][1];
-	out.m[1][2] = rotMatrix.m[2][0] * m.m[0][1] + rotMatrix.m[2][1] * m.m[1][1] + rotMatrix.m[2][2] * m.m[2][1];
+		.m[1][0] = rotMatrix.m[0][0] * m.m[0][1] + rotMatrix.m[0][1] * m.m[1][1] + rotMatrix.m[0][2] * m.m[2][1],
+		.m[1][1] = rotMatrix.m[1][0] * m.m[0][1] + rotMatrix.m[1][1] * m.m[1][1] + rotMatrix.m[1][2] * m.m[2][1],
+		.m[1][2] = rotMatrix.m[2][0] * m.m[0][1] + rotMatrix.m[2][1] * m.m[1][1] + rotMatrix.m[2][2] * m.m[2][1],
 
-	out.m[2][0] = rotMatrix.m[0][0] * m.m[0][2] + rotMatrix.m[0][1] * m.m[1][2] + rotMatrix.m[0][2] * m.m[2][2];
-	out.m[2][1] = rotMatrix.m[1][0] * m.m[0][2] + rotMatrix.m[1][1] * m.m[1][2] + rotMatrix.m[1][2] * m.m[2][2];
-	out.m[2][2] = rotMatrix.m[2][0] * m.m[0][2] + rotMatrix.m[2][1] * m.m[1][2] + rotMatrix.m[2][2] * m.m[2][2];
+		.m[2][0] = rotMatrix.m[0][0] * m.m[0][2] + rotMatrix.m[0][1] * m.m[1][2] + rotMatrix.m[0][2] * m.m[2][2],
+		.m[2][1] = rotMatrix.m[1][0] * m.m[0][2] + rotMatrix.m[1][1] * m.m[1][2] + rotMatrix.m[1][2] * m.m[2][2],
+		.m[2][2] = rotMatrix.m[2][0] * m.m[0][2] + rotMatrix.m[2][1] * m.m[1][2] + rotMatrix.m[2][2] * m.m[2][2],
 
-	out.m[3][0] = rotMatrix.m[0][0] * m.m[0][3] + rotMatrix.m[0][1] * m.m[1][3] + rotMatrix.m[0][2] * m.m[2][3];
-	out.m[3][1] = rotMatrix.m[1][0] * m.m[0][3] + rotMatrix.m[1][1] * m.m[1][3] + rotMatrix.m[1][2] * m.m[2][3];
-	out.m[3][2] = rotMatrix.m[2][0] * m.m[0][3] + rotMatrix.m[2][1] * m.m[1][3] + rotMatrix.m[2][2] * m.m[2][3];
+		.m[3][0] = rotMatrix.m[0][0] * m.m[0][3] + rotMatrix.m[0][1] * m.m[1][3] + rotMatrix.m[0][2] * m.m[2][3],
+		.m[3][1] = rotMatrix.m[1][0] * m.m[0][3] + rotMatrix.m[1][1] * m.m[1][3] + rotMatrix.m[1][2] * m.m[2][3],
+		.m[3][2] = rotMatrix.m[2][0] * m.m[0][3] + rotMatrix.m[2][1] * m.m[1][3] + rotMatrix.m[2][2] * m.m[2][3]
+	};
+
 
 	return(out);
 }
@@ -860,21 +939,22 @@ void mat4RotateQuat(mat4 *m, const quat *q){
 	const float yw = q->y * q->w;
 	const float zz = q->z * q->z;
 	const float zw = q->z * q->w;
-	mat3 rotMatrix;
 	const mat4 tempMatrix = *m;
 
 	// Convert the quaternion to a rotation matrix!
-	rotMatrix.m[0][0] = 1.f - 2.f * (yy + zz);
-	rotMatrix.m[0][1] = 2.f * (xy + zw);
-	rotMatrix.m[0][2] = 2.f * (xz - yw);
+	const mat3 rotMatrix = {
+		.m[0][0] = 1.f - 2.f * (yy + zz),
+		.m[0][1] = 2.f * (xy + zw),
+		.m[0][2] = 2.f * (xz - yw),
 
-	rotMatrix.m[1][0] = 2.f * (xy - zw);
-	rotMatrix.m[1][1] = 1.f - 2.f * (xx + zz);
-	rotMatrix.m[1][2] = 2.f * (yz + xw);
+		.m[1][0] = 2.f * (xy - zw),
+		.m[1][1] = 1.f - 2.f * (xx + zz),
+		.m[1][2] = 2.f * (yz + xw),
 
-	rotMatrix.m[2][0] = 2.f * (xz + yw);
-	rotMatrix.m[2][1] = 2.f * (yz - xw);
-	rotMatrix.m[2][2] = 1.f - 2.f * (xx + yy);
+		.m[2][0] = 2.f * (xz + yw),
+		.m[2][1] = 2.f * (yz - xw),
+		.m[2][2] = 1.f - 2.f * (xx + yy)
+	};
 
 	// Now rotate our matrix by it!
 	m->m[0][0] = rotMatrix.m[0][0] * tempMatrix.m[0][0] + rotMatrix.m[0][1] * tempMatrix.m[1][0] + rotMatrix.m[0][2] * tempMatrix.m[2][0];
@@ -904,37 +984,40 @@ mat4 mat4RotateQuatR(const mat4 m, const quat q){
 	const float yw = q.y * q.w;
 	const float zz = q.z * q.z;
 	const float zw = q.z * q.w;
-	mat3 rotMatrix;
-	mat4 out;
 
 	// Convert the quaternion to a rotation matrix!
-	rotMatrix.m[0][0] = 1.f - 2.f * (yy + zz);
-	rotMatrix.m[0][1] = 2.f * (xy + zw);
-	rotMatrix.m[0][2] = 2.f * (xz - yw);
+	const mat3 rotMatrix = {
+		.m[0][0] = 1.f - 2.f * (yy + zz),
+		.m[0][1] = 2.f * (xy + zw),
+		.m[0][2] = 2.f * (xz - yw),
 
-	rotMatrix.m[1][0] = 2.f * (xy - zw);
-	rotMatrix.m[1][1] = 1.f - 2.f * (xx + zz);
-	rotMatrix.m[1][2] = 2.f * (yz + xw);
+		.m[1][0] = 2.f * (xy - zw),
+		.m[1][1] = 1.f - 2.f * (xx + zz),
+		.m[1][2] = 2.f * (yz + xw),
 
-	rotMatrix.m[2][0] = 2.f * (xz + yw);
-	rotMatrix.m[2][1] = 2.f * (yz - xw);
-	rotMatrix.m[2][2] = 1.f - 2.f * (xx + yy);
+		.m[2][0] = 2.f * (xz + yw),
+		.m[2][1] = 2.f * (yz - xw),
+		.m[2][2] = 1.f - 2.f * (xx + yy)
+	};
 
 	// Now rotate our matrix by it!
-	out.m[0][0] = rotMatrix.m[0][0] * m.m[0][0] + rotMatrix.m[0][1] * m.m[1][0] + rotMatrix.m[0][2] * m.m[2][0];
-	out.m[0][1] = rotMatrix.m[0][0] * m.m[0][1] + rotMatrix.m[0][1] * m.m[1][1] + rotMatrix.m[0][2] * m.m[2][1];
-	out.m[0][2] = rotMatrix.m[0][0] * m.m[0][2] + rotMatrix.m[0][1] * m.m[1][2] + rotMatrix.m[0][2] * m.m[2][2];
-	out.m[0][3] = rotMatrix.m[0][0] * m.m[0][3] + rotMatrix.m[0][1] * m.m[1][3] + rotMatrix.m[0][2] * m.m[2][3];
+	const mat4 out = {
+		.m[0][0] = rotMatrix.m[0][0] * m.m[0][0] + rotMatrix.m[0][1] * m.m[1][0] + rotMatrix.m[0][2] * m.m[2][0],
+		.m[0][1] = rotMatrix.m[0][0] * m.m[0][1] + rotMatrix.m[0][1] * m.m[1][1] + rotMatrix.m[0][2] * m.m[2][1],
+		.m[0][2] = rotMatrix.m[0][0] * m.m[0][2] + rotMatrix.m[0][1] * m.m[1][2] + rotMatrix.m[0][2] * m.m[2][2],
+		.m[0][3] = rotMatrix.m[0][0] * m.m[0][3] + rotMatrix.m[0][1] * m.m[1][3] + rotMatrix.m[0][2] * m.m[2][3],
 
-	out.m[1][0] = rotMatrix.m[1][0] * m.m[0][0] + rotMatrix.m[1][1] * m.m[1][0] + rotMatrix.m[1][2] * m.m[2][0];
-	out.m[1][1] = rotMatrix.m[1][0] * m.m[0][1] + rotMatrix.m[1][1] * m.m[1][1] + rotMatrix.m[1][2] * m.m[2][1];
-	out.m[1][2] = rotMatrix.m[1][0] * m.m[0][2] + rotMatrix.m[1][1] * m.m[1][2] + rotMatrix.m[1][2] * m.m[2][2];
-	out.m[1][3] = rotMatrix.m[1][0] * m.m[0][3] + rotMatrix.m[1][1] * m.m[1][3] + rotMatrix.m[1][2] * m.m[2][3];
+		.m[1][0] = rotMatrix.m[1][0] * m.m[0][0] + rotMatrix.m[1][1] * m.m[1][0] + rotMatrix.m[1][2] * m.m[2][0],
+		.m[1][1] = rotMatrix.m[1][0] * m.m[0][1] + rotMatrix.m[1][1] * m.m[1][1] + rotMatrix.m[1][2] * m.m[2][1],
+		.m[1][2] = rotMatrix.m[1][0] * m.m[0][2] + rotMatrix.m[1][1] * m.m[1][2] + rotMatrix.m[1][2] * m.m[2][2],
+		.m[1][3] = rotMatrix.m[1][0] * m.m[0][3] + rotMatrix.m[1][1] * m.m[1][3] + rotMatrix.m[1][2] * m.m[2][3],
 
-	out.m[2][0] = rotMatrix.m[2][0] * m.m[0][0] + rotMatrix.m[2][1] * m.m[1][0] + rotMatrix.m[2][2] * m.m[2][0];
-	out.m[2][1] = rotMatrix.m[2][0] * m.m[0][1] + rotMatrix.m[2][1] * m.m[1][1] + rotMatrix.m[2][2] * m.m[2][1];
-	out.m[2][2] = rotMatrix.m[2][0] * m.m[0][2] + rotMatrix.m[2][1] * m.m[1][2] + rotMatrix.m[2][2] * m.m[2][2];
-	out.m[2][3] = rotMatrix.m[2][0] * m.m[0][3] + rotMatrix.m[2][1] * m.m[1][3] + rotMatrix.m[2][2] * m.m[2][3];
+		.m[2][0] = rotMatrix.m[2][0] * m.m[0][0] + rotMatrix.m[2][1] * m.m[1][0] + rotMatrix.m[2][2] * m.m[2][0],
+		.m[2][1] = rotMatrix.m[2][0] * m.m[0][1] + rotMatrix.m[2][1] * m.m[1][1] + rotMatrix.m[2][2] * m.m[2][1],
+		.m[2][2] = rotMatrix.m[2][0] * m.m[0][2] + rotMatrix.m[2][1] * m.m[1][2] + rotMatrix.m[2][2] * m.m[2][2],
+		.m[2][3] = rotMatrix.m[2][0] * m.m[0][3] + rotMatrix.m[2][1] * m.m[1][3] + rotMatrix.m[2][2] * m.m[2][3]
+	};
+
 
 	return(out);
 }
@@ -960,17 +1043,18 @@ void mat4RotateXRad(mat4 *m, const float x){
 mat4 mat4RotateXRadR(const mat4 m, const float x){
 	const float a = cosf(x);
 	const float b = sinf(x);
-	mat4 out;
 
-	out.m[1][0] = a * m.m[1][0] + b * m.m[2][0];
-	out.m[1][1] = a * m.m[1][1] + b * m.m[2][1];
-	out.m[1][2] = a * m.m[1][2] + b * m.m[2][2];
-	out.m[1][3] = a * m.m[1][3] + b * m.m[2][3];
+	const mat4 out = {
+		.m[1][0] = a * m.m[1][0] + b * m.m[2][0],
+		.m[1][1] = a * m.m[1][1] + b * m.m[2][1],
+		.m[1][2] = a * m.m[1][2] + b * m.m[2][2],
+		.m[1][3] = a * m.m[1][3] + b * m.m[2][3],
 
-	out.m[2][0] = a * m.m[2][0] - b * m.m[1][0];
-	out.m[2][1] = a * m.m[2][1] - b * m.m[1][1];
-	out.m[2][2] = a * m.m[2][2] - b * m.m[1][2];
-	out.m[2][3] = a * m.m[2][3] - b * m.m[1][3];
+		.m[2][0] = a * m.m[2][0] - b * m.m[1][0],
+		.m[2][1] = a * m.m[2][1] - b * m.m[1][1],
+		.m[2][2] = a * m.m[2][2] - b * m.m[1][2],
+		.m[2][3] = a * m.m[2][3] - b * m.m[1][3]
+	};
 
 	return(out);
 }
@@ -1006,17 +1090,18 @@ void mat4RotateYRad(mat4 *m, const float y){
 mat4 mat4RotateYRadR(const mat4 m, const float y){
 	const float c = cosf(y);
 	const float d = sinf(y);
-	mat4 out;
 
-	out.m[0][0] = c * m.m[0][0] - d * m.m[2][0];
-	out.m[0][1] = c * m.m[0][1] - d * m.m[2][1];
-	out.m[0][2] = c * m.m[0][2] - d * m.m[2][2];
-	out.m[0][3] = c * m.m[0][3] - d * m.m[2][3];
+	const mat4 out = {
+		.m[0][0] = c * m.m[0][0] - d * m.m[2][0],
+		.m[0][1] = c * m.m[0][1] - d * m.m[2][1],
+		.m[0][2] = c * m.m[0][2] - d * m.m[2][2],
+		.m[0][3] = c * m.m[0][3] - d * m.m[2][3],
 
-	out.m[2][0] = d * m.m[0][0] + c * m.m[2][0];
-	out.m[2][1] = d * m.m[0][1] + c * m.m[2][1];
-	out.m[2][2] = d * m.m[0][2] + c * m.m[2][2];
-	out.m[2][3] = d * m.m[0][3] + c * m.m[2][3];
+		.m[2][0] = d * m.m[0][0] + c * m.m[2][0],
+		.m[2][1] = d * m.m[0][1] + c * m.m[2][1],
+		.m[2][2] = d * m.m[0][2] + c * m.m[2][2],
+		.m[2][3] = d * m.m[0][3] + c * m.m[2][3]
+	};
 
 	return(out);
 }
@@ -1052,17 +1137,18 @@ void mat4RotateZRad(mat4 *m, const float z){
 mat4 mat4RotateZRadR(const mat4 m, const float z){
 	const float e = cosf(z);
 	const float f = sinf(z);
-	mat4 out;
 
-	out.m[0][0] = e * m.m[0][0] + f * m.m[1][0];
-	out.m[0][1] = e * m.m[0][1] + f * m.m[1][1];
-	out.m[0][2] = e * m.m[0][2] + f * m.m[1][2];
-	out.m[0][3] = e * m.m[0][3] + f * m.m[1][3];
+	const mat4 out = {
+		.m[0][0] = e * m.m[0][0] + f * m.m[1][0],
+		.m[0][1] = e * m.m[0][1] + f * m.m[1][1],
+		.m[0][2] = e * m.m[0][2] + f * m.m[1][2],
+		.m[0][3] = e * m.m[0][3] + f * m.m[1][3],
 
-	out.m[1][0] = e * m.m[1][0] - f * m.m[0][0];
-	out.m[1][1] = e * m.m[1][1] - f * m.m[0][1];
-	out.m[1][2] = e * m.m[1][2] - f * m.m[0][2];
-	out.m[1][3] = e * m.m[1][3] - f * m.m[0][3];
+		.m[1][0] = e * m.m[1][0] - f * m.m[0][0],
+		.m[1][1] = e * m.m[1][1] - f * m.m[0][1],
+		.m[1][2] = e * m.m[1][2] - f * m.m[0][2],
+		.m[1][3] = e * m.m[1][3] - f * m.m[0][3]
+	};
 
 	return(out);
 }
@@ -1310,27 +1396,27 @@ void mat4TransposeOut(const mat4 m, mat4 *out){
 ** translates it to a row-major matrix. The reverse is true for row-major matrices.
 */
 mat4 mat4TransposeR(const mat4 m){
-	mat4 out;
-	
-	out.m[0][0] = m.m[0][0];
-	out.m[0][1] = m.m[1][0];
-	out.m[0][2] = m.m[2][0];
-	out.m[0][3] = m.m[3][0];
+	const mat4 out = {
+		.m[0][0] = m.m[0][0],
+		.m[0][1] = m.m[1][0],
+		.m[0][2] = m.m[2][0],
+		.m[0][3] = m.m[3][0],
 
-	out.m[1][0] = m.m[0][1];
-	out.m[1][1] = m.m[1][1];
-	out.m[1][2] = m.m[2][1];
-	out.m[1][3] = m.m[3][1];
+		.m[1][0] = m.m[0][1],
+		.m[1][1] = m.m[1][1],
+		.m[1][2] = m.m[2][1],
+		.m[1][3] = m.m[3][1],
 
-	out.m[2][0] = m.m[0][2];
-	out.m[2][1] = m.m[1][2];
-	out.m[2][2] = m.m[2][2];
-	out.m[2][3] = m.m[3][2];
+		.m[2][0] = m.m[0][2],
+		.m[2][1] = m.m[1][2],
+		.m[2][2] = m.m[2][2],
+		.m[2][3] = m.m[3][2],
 
-	out.m[3][0] = m.m[0][3];
-	out.m[3][1] = m.m[1][3];
-	out.m[3][2] = m.m[2][3];
-	out.m[3][3] = m.m[3][3];
+		.m[3][0] = m.m[0][3],
+		.m[3][1] = m.m[1][3],
+		.m[3][2] = m.m[2][3],
+		.m[3][3] = m.m[3][3]
+	};
 
 	return(out);
 }
@@ -1490,7 +1576,7 @@ mat4 mat4InvertR(const mat4 m){
 	// Make sure we don't divide by 0!
 	if(invDet != 0.f){
 		mat4 out;
-		
+
 		invDet = 1.f / invDet;
 
 		// Now use the determinant to find the inverse of the matrix!
@@ -1534,7 +1620,7 @@ mat4 mat4InvertR(const mat4 m){
 		out.m[3][3] =  m.m[0][0] * m.m[1][1] * m.m[2][2] - m.m[0][0] * m.m[1][2] * m.m[2][1] -
 		               m.m[1][0] * m.m[0][1] * m.m[2][2] + m.m[1][0] * m.m[0][2] * m.m[2][1] +
 		               m.m[2][0] * m.m[0][1] * m.m[1][2] - m.m[2][0] * m.m[0][2] * m.m[1][1];
-		
+
 		return(out);
 	}
 

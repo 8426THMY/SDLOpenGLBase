@@ -74,16 +74,17 @@ void objectDraw(const object *obj, const vec3 *camPos, mat4 mvpMatrix, const sha
 	mat4 *curState;
 	// Before sending our bones to the shader, we
 	// convert them all to a matrix representation.
-	mat4 *boneStates = memoryManagerGlobalAlloc(numBones * sizeof(*boneStates));
+	mat4 *boneStates = memoryManagerGlobalAlloc(sizeof(*boneStates) * numBones);
 	if(boneStates == NULL){
 		/** MALLOC FAILED **/
 	}
+	curState = boneStates;
 	// Convert our bone states to matrices!
 	for(; curBone < lastBone; ++curBone, ++curState){
 		transformStateToMat4(curBone, curState);
 	}
 	// Send them to the shader!
-	glUniformMatrix4fv(shaderProgram->boneStatesID, numBones, GL_FALSE, (GLfloat *)&boneStates);
+	glUniformMatrix4fv(shaderProgram->boneStatesID, numBones, GL_FALSE, (GLfloat *)boneStates);
 	// Now we can free the bone states.
 	memoryManagerGlobalFree(boneStates);
 

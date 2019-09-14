@@ -78,7 +78,7 @@ extern void (*physJointPresolveTable[PHYSJOINT_NUM_TYPES])(
 extern void (*physJointSolveVelocityTable[PHYSJOINT_NUM_TYPES])(
 	void *joint, physicsRigidBody *bodyA, physicsRigidBody *bodyB
 );
-extern void (*physJointSolvePositionTable[PHYSJOINT_NUM_TYPES])(
+extern float (*physJointSolvePositionTable[PHYSJOINT_NUM_TYPES])(
 	void *joint, physicsRigidBody *bodyA, physicsRigidBody *bodyB
 );
 

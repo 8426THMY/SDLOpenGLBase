@@ -18,7 +18,7 @@ typedef struct physicsRigidBody physicsRigidBody;
 
 void physJointFixedPresolve(void *joint, physicsRigidBody *bodyA, physicsRigidBody *bodyB, const float dt);
 void physJointFixedSolveVelocity(void *joint, physicsRigidBody *bodyA, physicsRigidBody *bodyB);
-void physJointFixedSolvePosition(void *joint, physicsRigidBody *bodyA, physicsRigidBody *bodyB);
+float physJointFixedSolvePosition(void *joint, physicsRigidBody *bodyA, physicsRigidBody *bodyB);
 
 
 #endif

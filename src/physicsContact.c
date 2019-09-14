@@ -37,10 +37,22 @@
 ** C' : JV + b >= 0
 **
 **
-** Expanding using "V = v + M^-1 * P" (semi-implicit Euler)
-** and "P = lambda * J^T", then by solving for lambda:
+** Semi-implicit Euler gives us the following equations,
+** which we can use to derive an expression for lambda:
 **
-** lambda = -(Jv + b)/JM^-1J^T
+** V   = V_i + dt * M^-1 * F_ext
+** V_f = V   + dt * M^-1 * P_C
+**
+**
+** Using "P_C = J^T * lambda" and "lambda' = dt * lambda":
+**
+** JV_f + b = 0
+** J(V + dt * M^-1 * P_C) + b = 0
+** JV + dt * JM^-1P_C + b = 0
+** JV + dt * JM^-1J^T . lambda + b = 0
+** dt * JM^-1J^T . lambda = -(JV + b)
+** dt * lambda = -(JV + b)/JM^-1J^T
+** lambda' = -(JV + b)/JM^-1J^T
 */
 
 
@@ -391,17 +403,12 @@ static void calculateEffectiveMass(const physicsManifold *pm, physicsContactPoin
 	const mat3 *invInertiaA = &bodyA->invInertiaGlobal;
 	const mat3 *invInertiaB = &bodyB->invInertiaGlobal;
 
-	// JA = (IA^-1 * (rA X n)) . (rA X n)
-	// JB = (IB^-1 * (rB X n)) . (rB X n)
-	//
-	// m_eff = 1/JM^-1J^T
-	//       = 1/(mA^-1 + mB^-1 + JA + JB)
-
-	// Calculate the effective mass along the normal.
+	// JM^-1J^T = mA^-1 + mB^-1 + (((rA X n) * IA^-1) . (rA X n)) + (((rB X n) * IB^-1) . (rB X n))
 	vec3CrossVec3Out(&contact->rA, &physContactNormal(pm), &rnA);
 	mat3MultiplyByVec3Out(invInertiaA, &rnA, &rnIA);
 	vec3CrossVec3Out(&contact->rB, &physContactNormal(pm), &rnB);
 	mat3MultiplyByVec3Out(invInertiaB, &rnB, &rnIB);
+	// Calculate the effective mass along the normal.
 	contact->normalEffectiveMass = 1.f / (
 		invMass +
 		vec3DotVec3(&rnA, &rnIA) +
@@ -409,22 +416,24 @@ static void calculateEffectiveMass(const physicsManifold *pm, physicsContactPoin
 	);
 
 	#ifndef PHYSCONTACT_USE_FRICTION_JOINT
-	// Calculate the effective mass along the first tangent.
-	vec3CrossVec3Out(&pm->tangents[0], &contact->rA, &rnA);
+	// JM^-1J^T = mA^-1 + mB^-1 + (((rA X u1) * IA^-1) . (rA X u1)) + (((rB X u1) * IB^-1) . (rB X u1))
+	vec3CrossVec3Out(&contact->rA, &pm->tangents[0], &rnA);
 	mat3MultiplyByVec3Out(invInertiaA, &rnA, &rnIA);
-	vec3CrossVec3Out(&pm->tangents[0], &contact->rB, &rnB);
+	vec3CrossVec3Out(&contact->rB, &pm->tangents[0], &rnB);
 	mat3MultiplyByVec3Out(invInertiaB, &rnB, &rnIB);
+	// Calculate the effective mass along the first tangent.
 	contact->tangentEffectiveMass[0] = 1.f / (
 		invMass +
 		vec3DotVec3(&rnA, &rnIA) +
 		vec3DotVec3(&rnB, &rnIB)
 	);
 
-	// Calculate the effective mass along the second tangent.
-	vec3CrossVec3Out(&pm->tangents[1], &contact->rA, &rnA);
+	// JM^-1J^T = mA^-1 + mB^-1 + (((rA X u2) * IA^-1) . (rA X u2)) + (((rB X u2) * IB^-1) . (rB X u2))
+	vec3CrossVec3Out(&contact->rA, &pm->tangents[1], &rnA);
 	mat3MultiplyByVec3Out(invInertiaA, &rnA, &rnIA);
-	vec3CrossVec3Out(&pm->tangents[1], &contact->rB, &rnB);
+	vec3CrossVec3Out(&contact->rB, &pm->tangents[1], &rnB);
 	mat3MultiplyByVec3Out(invInertiaB, &rnB, &rnIB);
+	// Calculate the effective mass along the second tangent.
 	contact->tangentEffectiveMass[1] = 1.f / (
 		invMass +
 		vec3DotVec3(&rnA, &rnIA) +
@@ -440,17 +449,19 @@ static void calculateBias(const physicsManifold *pm, physicsContactPoint *contac
 	vec3 contactVelocity;
 
 
-	// b = -B/dt * d
 	// Calculate the Baumgarte bias term.
 	#ifdef PHYSCONTACT_STABILISER_BAUMGARTE
-	tempBias = -contact->separation + PHYSCONSTRAINT_LINEAR_SLOP;
+	// C(x) = (pB - pA) . n
+	tempBias = contact->separation - PHYSCONSTRAINT_LINEAR_SLOP;
+	// B = Baumgarte constant
+	// b_penetration = B/dt * C(x)
 	contact->bias = (tempBias > 0.f) ? (PHYSCONTACT_BAUMGARTE_BIAS * dt * tempBias) : 0.f;
 	#endif
 
 
-	// vtA = vA + wA X rA
-	// vtB = vB + wB X rB
-	// vcR = vcB - vcA
+	// vA_contact = vA + wA X rA
+	// vB_contact = vB + wB X rB
+	// v_relative = vB_contact - vA_contact
 
 	// Calculate the total linear velocity of the contact point on body A.
 	vec3CrossVec3Out(&bodyA->angularVelocity, &contact->rA, &tempVelocity);
@@ -461,13 +472,26 @@ static void calculateBias(const physicsManifold *pm, physicsContactPoint *contac
 	// Calculate the relative velocity between the two points.
 	vec3SubtractVec3From(&contactVelocity, &tempVelocity);
 
+	// After the contact, we want the following relative velocity v':
+	// v' >= -e * (v_relative . n)
+	// v' >= -b_restitution
+	// v' + b_restitution >= 0
+
 	// Calculate the restitution bias term.
+	// b_restitution = e * (v_relative . n)
 	tempBias = vec3DotVec3(&contactVelocity, &physContactNormal(pm));
+	// Calculate the total bias.
 	if(tempBias < -PHYSCONTACT_RESTITUTION_THRESHOLD){
 	#ifdef PHYSCONTACT_STABILISER_BAUMGARTE
-		contact->bias -= pm->restitution * tempBias;
+		// b = b_penetration + b_restitution
+		//   = B/dt * C(x) + e * (v_relative . n)
+		contact->bias += pm->restitution * tempBias;
 	#else
-		contact->bias = -pm->restitution * tempBias;
+		// If we're not using Baumgarte stabilisation,
+		// we only have the restitution bias here.
+		//
+		// b = e * (v_relative . n)
+		contact->bias = pm->restitution * tempBias;
 	}else{
 		contact->bias = 0.f;
 	#endif
@@ -486,9 +510,10 @@ static void solveTangents(const physicsManifold *pm, physicsContactPoint *contac
 	vec3 contactVelocity;
 	vec3 impulse;
 
-	// vtA = wA X rA + vA
-	// vtB = wB X rB + vB
-	// vcR = vcB - vcA
+
+	// vA_contact = vA + wA X rA
+	// vB_contact = vB + wB X rB
+	// v_relative = vB_contact - vA_contact
 
 	// Calculate the total linear velocity of the contact point on body A.
 	vec3CrossVec3Out(&bodyA->angularVelocity, &contact->rA, &temp);
@@ -501,7 +526,7 @@ static void solveTangents(const physicsManifold *pm, physicsContactPoint *contac
 
 
 	// lambda = -(JV + b)/JM^-1J^T
-	//        = -(vcR . n) * m_eff
+	//        = -(v_relative . n) * m_eff
 	lambda = -vec3DotVec3(&contactVelocity, &pm->tangents[0]) * contact->tangentEffectiveMass[0];
 	oldImpulse = contact->tangentImpulse[0];
 	newImpulse = oldImpulse + lambda;
@@ -521,14 +546,14 @@ static void solveTangents(const physicsManifold *pm, physicsContactPoint *contac
 
 
 	// lambda = -(JV + b)/JM^-1J^T
-	//        = -(vcR . n) * m_eff
+	//        = -(v_relative . n) * m_eff
 	lambda = -vec3DotVec3(&contactVelocity, &pm->tangents[1]) * contact->tangentEffectiveMass[1];
 	oldImpulse = contact->tangentImpulse[1];
 	newImpulse = oldImpulse + lambda;
 
 	// -f < lambda < f
 	// Clamp our accumulated impulse for the second tangent.
-	if(newImpulse < -maxFriction){
+	if(newImpulse <= -maxFriction){
 		contact->tangentImpulse[1] = -maxFriction;
 		vec3MultiplySOut(&pm->tangents[1], -maxFriction - oldImpulse, &impulse);
 	}else if(newImpulse > maxFriction){
@@ -557,9 +582,10 @@ static void solveNormal(const physicsManifold *pm, physicsContactPoint *contact,
 	vec3 impulse;
 	vec3 contactVelocity;
 
-	// vcA = vA + wA X rA
-	// vcB = vB + wB X rB
-	// vcR = vcB - vcA
+
+	// vA_contact = vA + wA X rA
+	// vB_contact = vB + wB X rB
+	// v_relative = vB_contact - vA_contact
 
 	// Calculate the total linear velocity of the contact point on body A.
 	vec3CrossVec3Out(&bodyA->angularVelocity, &contact->rA, &impulse);
@@ -572,8 +598,8 @@ static void solveNormal(const physicsManifold *pm, physicsContactPoint *contact,
 
 
 	// lambda = -(JV + b)/JM^-1J^T
-	//        = -((vcR . n) + b) * m_eff
-	lambda = -(vec3DotVec3(&contactVelocity, &physContactNormal(pm)) - contact->bias) * contact->normalEffectiveMass;
+	//        = -((v_relative . n) + b) * m_eff
+	lambda = -(vec3DotVec3(&contactVelocity, &physContactNormal(pm)) + contact->bias) * contact->normalEffectiveMass;
 	oldImpulse = contact->normalImpulse;
 	newImpulse = oldImpulse + lambda;
 
@@ -596,12 +622,12 @@ static void solveNormal(const physicsManifold *pm, physicsContactPoint *contact,
 }
 
 
-#ifdef PHYSCONTACT_STABILISER_GAUSS_SEIDEL
 /*
 ** Calculate the positional correction to apply using non-linear
 ** Gauss-Seidel. We usually call this multiple times per update,
 ** but by returning the amount of error we'll know when to stop.
 */
+#ifdef PHYSCONTACT_STABILISER_GAUSS_SEIDEL
 float solvePosition(const physicsManifold *pm, const physicsContactPoint *contact, physicsRigidBody *bodyA, physicsRigidBody *bodyB){
 	vec3 rA;
 	vec3 rB;

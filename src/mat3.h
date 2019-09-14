@@ -18,6 +18,10 @@ mat3 mat3InitZeroR();
 void mat3InitIdentity(mat3 *m);
 mat3 mat3InitIdentityR();
 
+void mat3AddMat3(mat3 *m1, const mat3 *m2);
+void mat3AddMat3Out(const mat3 *m1, const mat3 *m2, mat3 *out);
+mat3 mat3AddMat3R(const mat3 m1, const mat3 m2);
+
 void mat3MultiplyByVec3(const mat3 *m, vec3 *v);
 void mat3MultiplyByVec3Out(const mat3 *m, const vec3 *v, vec3 *out);
 vec3 mat3MultiplyByVec3R(const mat3 m, vec3 v);

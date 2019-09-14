@@ -37,6 +37,56 @@ mat3 mat3InitIdentityR(){
 }
 
 
+// Add the matrix "m2" to "m1"!
+void mat3AddMat3(mat3 *m1, const mat3 *m2){
+	m1->m[0][0] += m2->m[0][0];
+	m1->m[0][1] += m2->m[0][1];
+	m1->m[0][2] += m2->m[0][2];
+
+	m1->m[1][0] += m2->m[1][0];
+	m1->m[1][1] += m2->m[1][1];
+	m1->m[1][2] += m2->m[1][2];
+
+	m1->m[2][0] += m2->m[2][0];
+	m1->m[2][1] += m2->m[2][1];
+	m1->m[2][2] += m2->m[2][2];
+}
+
+// Add the matrix "m2" to "m1" and store the result in "out"!
+void mat3AddMat3Out(const mat3 *m1, const mat3 *m2, mat3 *out){
+	out->m[0][0] = m1->m[0][0] + m2->m[0][0];
+	out->m[0][1] = m1->m[0][1] + m2->m[0][1];
+	out->m[0][2] = m1->m[0][2] + m2->m[0][2];
+
+	out->m[1][0] = m1->m[1][0] + m2->m[1][0];
+	out->m[1][1] = m1->m[1][1] + m2->m[1][1];
+	out->m[1][2] = m1->m[1][2] + m2->m[1][2];
+
+	out->m[2][0] = m1->m[2][0] + m2->m[2][0];
+	out->m[2][1] = m1->m[2][1] + m2->m[2][1];
+	out->m[2][2] = m1->m[2][2] + m2->m[2][2];
+}
+
+// Add the matrix "m2" to "m1" and return the result!
+mat3 mat3AddMat3R(const mat3 m1, const mat3 m2){
+	const mat3 out = {
+		.m[0][0] = m1.m[0][0] + m2.m[0][0],
+		.m[0][1] = m1.m[0][1] + m2.m[0][1],
+		.m[0][2] = m1.m[0][2] + m2.m[0][2],
+
+		.m[1][0] = m1.m[1][0] + m2.m[1][0],
+		.m[1][1] = m1.m[1][1] + m2.m[1][1],
+		.m[1][2] = m1.m[1][2] + m2.m[1][2],
+
+		.m[2][0] = m1.m[2][0] + m2.m[2][0],
+		.m[2][1] = m1.m[2][1] + m2.m[2][1],
+		.m[2][2] = m1.m[2][2] + m2.m[2][2]
+	};
+
+	return(out);
+}
+
+
 // Multiply a matrix by a vec3!
 void mat3MultiplyByVec3(const mat3 *m, vec3 *v){
 	vec3 temp = *v;
@@ -55,11 +105,11 @@ void mat3MultiplyByVec3Out(const mat3 *m, const vec3 *v, vec3 *out){
 
 // Multiply a matrix by a vec3!
 vec3 mat3MultiplyByVec3R(const mat3 m, const vec3 v){
-	vec3 out;
-
-	out.x = m.m[0][0] * v.x + m.m[1][0] * v.y + m.m[2][0] * v.z;
-	out.y = m.m[0][1] * v.x + m.m[1][1] * v.y + m.m[2][1] * v.z;
-	out.z = m.m[0][2] * v.x + m.m[1][2] * v.y + m.m[2][2] * v.z;
+	const vec3 out = {
+		.x = m.m[0][0] * v.x + m.m[1][0] * v.y + m.m[2][0] * v.z,
+		.y = m.m[0][1] * v.x + m.m[1][1] * v.y + m.m[2][1] * v.z,
+		.z = m.m[0][2] * v.x + m.m[1][2] * v.y + m.m[2][2] * v.z
+	};
 
 	return(out);
 }
@@ -98,7 +148,7 @@ void mat3MultiplyVec3ByOut(const mat3 m, const vec3 *v, mat3 *out){
 
 // Multiply a vec3 by a matrix!
 mat3 mat3MultiplyVec3ByR(const mat3 m, const vec3 v){
-	mat3 out = m;
+	mat3 out;
 
 	out.m[0][0] =
 	out.m[0][1] =
@@ -168,19 +218,19 @@ void mat3MultiplyByMat3Out(const mat3 m1, const mat3 m2, mat3 *out){
 
 // Multiply "m1" by "m2"!
 mat3 mat3MultiplyByMat3R(const mat3 m1, const mat3 m2){
-	mat3 out;
+	const mat3 out = {
+		.m[0][0] = m1.m[0][0] * m2.m[0][0] + m1.m[1][0] * m2.m[0][1] + m1.m[2][0] * m2.m[0][2],
+		.m[0][1] = m1.m[0][1] * m2.m[0][0] + m1.m[1][1] * m2.m[0][1] + m1.m[2][1] * m2.m[0][2],
+		.m[0][2] = m1.m[0][2] * m2.m[0][0] + m1.m[1][2] * m2.m[0][1] + m1.m[2][2] * m2.m[0][2],
 
-	out.m[0][0] = m1.m[0][0] * m2.m[0][0] + m1.m[1][0] * m2.m[0][1] + m1.m[2][0] * m2.m[0][2];
-	out.m[0][1] = m1.m[0][1] * m2.m[0][0] + m1.m[1][1] * m2.m[0][1] + m1.m[2][1] * m2.m[0][2];
-	out.m[0][2] = m1.m[0][2] * m2.m[0][0] + m1.m[1][2] * m2.m[0][1] + m1.m[2][2] * m2.m[0][2];
+		.m[1][0] = m1.m[0][0] * m2.m[1][0] + m1.m[1][0] * m2.m[1][1] + m1.m[2][0] * m2.m[1][2],
+		.m[1][1] = m1.m[0][1] * m2.m[1][0] + m1.m[1][1] * m2.m[1][1] + m1.m[2][1] * m2.m[1][2],
+		.m[1][2] = m1.m[0][2] * m2.m[1][0] + m1.m[1][2] * m2.m[1][1] + m1.m[2][2] * m2.m[1][2],
 
-	out.m[1][0] = m1.m[0][0] * m2.m[1][0] + m1.m[1][0] * m2.m[1][1] + m1.m[2][0] * m2.m[1][2];
-	out.m[1][1] = m1.m[0][1] * m2.m[1][0] + m1.m[1][1] * m2.m[1][1] + m1.m[2][1] * m2.m[1][2];
-	out.m[1][2] = m1.m[0][2] * m2.m[1][0] + m1.m[1][2] * m2.m[1][1] + m1.m[2][2] * m2.m[1][2];
-
-	out.m[2][0] = m1.m[0][0] * m2.m[2][0] + m1.m[1][0] * m2.m[2][1] + m1.m[2][0] * m2.m[2][2];
-	out.m[2][1] = m1.m[0][1] * m2.m[2][0] + m1.m[1][1] * m2.m[2][1] + m1.m[2][1] * m2.m[2][2];
-	out.m[2][2] = m1.m[0][2] * m2.m[2][0] + m1.m[1][2] * m2.m[2][1] + m1.m[2][2] * m2.m[2][2];
+		.m[2][0] = m1.m[0][0] * m2.m[2][0] + m1.m[1][0] * m2.m[2][1] + m1.m[2][0] * m2.m[2][2],
+		.m[2][1] = m1.m[0][1] * m2.m[2][0] + m1.m[1][1] * m2.m[2][1] + m1.m[2][1] * m2.m[2][2],
+		.m[2][2] = m1.m[0][2] * m2.m[2][0] + m1.m[1][2] * m2.m[2][1] + m1.m[2][2] * m2.m[2][2]
+	};
 
 	return(out);
 }
@@ -229,19 +279,19 @@ void mat3TransposeOut(const mat3 m, mat3 *out){
 ** translates it to a row-major matrix. The reverse is true for row-major matrices.
 */
 mat3 mat3TransposeR(const mat3 m){
-	mat3 out;
+	const mat3 out = {
+		.m[0][0] = m.m[0][0],
+		.m[0][1] = m.m[1][0],
+		.m[0][2] = m.m[2][0],
 
-	out.m[0][0] = m.m[0][0];
-	out.m[0][1] = m.m[1][0];
-	out.m[0][2] = m.m[2][0];
+		.m[1][0] = m.m[0][1],
+		.m[1][1] = m.m[1][1],
+		.m[1][2] = m.m[2][1],
 
-	out.m[1][0] = m.m[0][1];
-	out.m[1][1] = m.m[1][1];
-	out.m[1][2] = m.m[2][1];
-
-	out.m[2][0] = m.m[0][2];
-	out.m[2][1] = m.m[1][2];
-	out.m[2][2] = m.m[2][2];
+		.m[2][0] = m.m[0][2],
+		.m[2][1] = m.m[1][2],
+		.m[2][2] = m.m[2][2]
+	};
 
 	return(out);
 }

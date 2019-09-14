@@ -11,6 +11,8 @@
 #include "transform.h"
 
 #include "memoryManager.h"
+#include "moduleSkeleton.h"
+#include "moduleTextureGroup.h"
 
 #include "vec2.h"
 
@@ -39,9 +41,9 @@ typedef struct vertex {
 
 // By default, the error model only has a name.
 // We need to set up the other data the hard way.
-#warning "This should use the error skeleton."
 model errorMdl = {
 	.name     = "error",
+	.skele    = &errorSkele,
 	.texGroup = &errorTexGroup
 };
 
@@ -61,8 +63,8 @@ void modelInit(model *mdl){
 	mdl->vertexArrayID = 0;
 	mdl->numIndices = 0;
 
-	skeleInit(&mdl->skele);
-	mdl->texGroup = 0;
+	mdl->skele = &errorSkele;
+	mdl->texGroup = &errorTexGroup;
 }
 
 
@@ -255,7 +257,7 @@ return_t modelLoadOBJ(model *mdl, const char *mdlName){
 						tempVertex.normal = tempNormals[normalIndex];
 					}
 
-					/** This is only temporary since we don't support bones here yet. **/
+					#warning "This is only temporary since we don't support bones here yet."
 					tempVertex.boneIDs[0] = 0;
 					memset(&tempVertex.boneIDs[1], -1, (MODEL_VERTEX_MAX_WEIGHTS - 1) * sizeof(tempVertex.boneIDs[0]));
 					tempVertex.boneWeights[0] = 1.f;
@@ -379,9 +381,6 @@ return_t modelLoadOBJ(model *mdl, const char *mdlName){
 				/** REALLOC FAILED **/
 			}
 			strcpy(mdl->name, mdlName);
-
-			// Initialise the model's skeleton!
-			skeleInitSet(&mdl->skele, mdl->name, mdlNameLength, NULL, 0);
 
 			// Now that we can be sure everything was
 			// successful, find the textureGroup.
@@ -856,8 +855,12 @@ return_t modelLoadSMD(model *mdl, const char *mdlName){
 			}
 			strcpy(mdl->name, mdlName);
 
+			tempBones = memoryManagerGlobalResize(tempBones, sizeof(*tempBones) * tempBonesSize);
 			// Initialise the model's skeleton!
-			skeleInitSet(&mdl->skele, mdl->name, mdlNameLength, NULL, 0);
+			if(tempBones != NULL && tempBonesSize > 0){
+				mdl->skele = moduleSkeletonAlloc();
+				skeleInitSet(mdl->skele, mdl->name, mdlNameLength, tempBones, tempBonesSize);
+			}
 
 			#warning "This is obviously incomplete."
 			// Now that we can be sure everything was
@@ -891,12 +894,6 @@ return_t modelLoadSMD(model *mdl, const char *mdlName){
 		// as we do that when we're using them.
 		memoryManagerGlobalFree(tempVertices);
 		memoryManagerGlobalFree(tempIndices);
-		#warning "This is temporary too. We should call the skeleton initialisation function."
-		//#error "We're crashing when we call the skeleton deletion function. The bones array pointer is incorrect. Probably because it's pointing to the default bone?"
-		for(size_t i = 0; i < tempBonesSize; ++i){
-			boneDelete(&tempBones[i]);
-		}
-		memoryManagerGlobalFree(tempBones);
 		// This one, however, is allowed to be NULL.
 		#warning "Remember to do something with this."
 		/*if(tempTexGroupName != NULL){
@@ -1100,8 +1097,6 @@ void modelDelete(model *mdl){
 	if(mdl->vertexArrayID != 0){
 		glDeleteVertexArrays(1, &mdl->vertexArrayID);
 	}
-
-	skeleDelete(&mdl->skele);
 }
 
 

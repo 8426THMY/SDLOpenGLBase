@@ -18,6 +18,10 @@ mat2 mat2InitZeroR();
 void mat2InitIdentity(mat2 *m);
 mat2 mat2InitIdentityR();
 
+void mat2AddMat2(mat2 *m1, const mat2 *m2);
+void mat2AddMat2Out(const mat2 *m1, const mat2 *m2, mat2 *out);
+mat2 mat2AddMat2R(const mat2 m1, const mat2 m2);
+
 void mat2MultiplyByVec2(const mat2 *m, vec2 *v);
 void mat2MultiplyByVec2Out(const mat2 *m, const vec2 *v, vec2 *out);
 vec2 mat2MultiplyByVec2R(const mat2 m, vec2 v);

@@ -5,7 +5,7 @@
 #include <GL/glew.h>
 
 
-void renderableDefInit(renderableDef *renderDef, const model *mdl){
+void renderableDefInit(renderableDef *renderDef, model *mdl){
 	renderDef->mdl = mdl;
 	renderDef->texGroup = mdl->texGroup;
 }

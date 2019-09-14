@@ -25,8 +25,9 @@ void physJointSphereSolveVelocity(void *joint, physicsRigidBody *bodyA, physicsR
 /*
 ** When we're using full non-linear Gauss-Seidel, we apply
 ** an impulse directly to the rigid bodies' positions.
-** This may also be called multiple times.
+** This may also be called multiple times, but by returning
+** the amount of error we'll know when to stop.
 */
-void physJointSphereSolvePosition(void *joint, physicsRigidBody *bodyA, physicsRigidBody *bodyB){
-	//
+float physJointSphereSolvePosition(void *joint, physicsRigidBody *bodyA, physicsRigidBody *bodyB){
+	return(0.f);
 }

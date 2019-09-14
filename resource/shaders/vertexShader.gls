@@ -25,21 +25,21 @@ layout(location = 4) in vec4 vertexBoneWeights;
 out vec2 uv;
 
 
-void vertexRotate(in vec3 v, in vec4 q, out vec3 outVec){
+/*void vertexRotate(in vec3 v, in vec4 q, out vec3 outVec){
 	outVec = 2.f * cross(q.xyz, q.w * v + cross(q.xyz, v)) + v;
 	
-	//Should use less temporary variables, not
-	//that I'd claim to know how GLSL works.
-	/*vec3 qvCross = cross(q.xyz, v);
-	vec3 tempVec = q.w * v;
-	qvCross += tempVec;
-	qvCross = cross(q.xyz, qvCross);
-	tempVec = 2.0 * qvCross;
-	outVec += tempVec;*/
+	// Should use less temporary variables, not
+	// that I'd claim to know how GLSL works.
+	//vec3 qvCross = cross(q.xyz, v);
+	//vec3 tempVec = q.w * v;
+	//qvCross += tempVec;
+	//qvCross = cross(q.xyz, qvCross);
+	//tempVec = 2.0 * qvCross;
+	//outVec += tempVec;
 }
 
-//This is slower than multiplying by a matrix.
-/*void vertexTransform(out vec3 outPos, uint boneID, float boneWeight){
+// This is slower than multiplying by a matrix.
+void vertexTransform(out vec3 outPos, uint boneID, float boneWeight){
 	//Scale the vertex!
 	outPos *= boneScale[boneID];
 	//Rotate the vertex!
@@ -53,20 +53,23 @@ void vertexRotate(in vec3 v, in vec4 q, out vec3 outVec){
 
 
 void main(){
-	vec4 transformPos = vec4(vertexPos, 1.0);
-	/*vec4 transformPos = vec4(0.0, 0.0, 0.0, 1.0);
+	//vec4 transformPos = vec4(vertexPos, 1.0);
+	vec4 vertexPos4 = vec4(vertexPos, 1.0);
+	vec4 transformPos = vec4(0.0, 0.0, 0.0, 1.0);
+	
 	uint i;
 	for(i = uint(0); i < uint(MAX_VERTEX_WEIGHTS); ++i){
-		if(vertexBoneIDs[i] != uint(-1) && vertexBoneWeights[i] != 0.0){
-			transformPos = boneStates[vertexBoneIDs[i]] * vec4(vertexPos, 1.0) *
-			               vertexBoneWeights[i] + transformPos;
+		uint id = vertexBoneIDs[i];
+		float weight = vertexBoneWeights[i];
+		if(id != uint(-1) && weight != 0.0){
+			transformPos += boneStates[id] * vertexPos4 * weight;
 		}else{
 			break;
 		}
-	}*/
+	}
 	gl_Position = mvpMatrix * vec4(transformPos.xyz, 1.0);
 	
-	//Only use the area of the texture specified in the uvOffsets array!
+	// Only use the area of the texture specified in the uvOffsets array!
 	uv.x = (vertexUV.x * uvOffsets[2]) + uvOffsets[0];
 	uv.y = (vertexUV.y * uvOffsets[3]) + uvOffsets[1] + uvOffsets[3];
 }

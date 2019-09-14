@@ -10,10 +10,11 @@
 /*
 ** Original constraint equation:
 **
-** C : (1/2)((pB - pA)^2 - L^2) = 0
+** C : (1/2)(d^2 - L^2) = 0
+**   : (1/2)(d . d - L^2) = 0
 **
 **
-** Differentiate, letting "p = (pB - pA)",
+** Differentiate, letting "d = (pB - pA)",
 ** as we want to make a change in velocity:
 **
 ** C' : ((vB + wB X rB) - (vA + wA X rA)) . (pB - pA) = 0
@@ -21,7 +22,7 @@
 **
 ** By inspection:
 **
-** J = [-p, -(rA X p), p, (rB X p)]
+** J = [-d, -(rA X d), d, (rB X d)]
 ** V = [vA, wA, vB, wB]
 **
 **
@@ -39,12 +40,12 @@
 /*
 ** "Magic" formulas for ODE's soft constraints:
 **
-** C : x - L = 0
+** C  : d - L = 0
 ** C' : JV + b = 0
-** JV + beta/h * C(p) + gamma * lambda = 0
+** JV + beta/h * C(x) + gamma * lambda = 0
 **
-** gamma = 1/(hk + c)
-** beta = hk/(hk + c)
+** gamma = 1/(c + hk)
+** beta = hk/(c + hk)
 **
 **
 ** Note that h is the timestep, k is the spring's
@@ -71,7 +72,7 @@ static void calculateBias(physicsJointDistance *joint, const physicsRigidBody *b
 void physJointDistanceInit(physicsJointDistance *joint, const float frequency, const float dampingRatio){
 	// w = 2pi * f
 	joint->angularFrequency = 2.f * M_PI * frequency;
-	// d = 2w * zeta
+	// damp = 2w * zeta
 	joint->damping = 2.f * joint->angularFrequency * dampingRatio;
 }
 
@@ -81,11 +82,10 @@ void physJointDistanceInit(physicsJointDistance *joint, const float frequency, c
 ** we can make the constraint converge more quickly.
 ** Joints are always active so we always warm start.
 */
-void physJointDistanceWarmStart(physicsJointDistance *joint, physicsRigidBody *bodyA, physicsRigidBody *bodyB, const float dt){
+void physJointDistanceWarmStart(physicsJointDistance *joint, physicsRigidBody *bodyA, physicsRigidBody *bodyB, const float dtRatio){
 	vec3 impulse;
 
-	#warning "Do we really need to do a division here? Surely we've stored 1/dt somewhere..."
-	joint->impulse /= dt;
+	joint->impulse *= dtRatio;
 	vec3MultiplySOut(&joint->rAB, joint->impulse, &impulse);
 
 	// Apply the accumulated impulse.
@@ -113,25 +113,26 @@ void physJointDistancePresolve(void *joint, physicsRigidBody *bodyA, physicsRigi
 void physJointDistanceSolveVelocity(void *joint, physicsRigidBody *bodyA, physicsRigidBody *bodyB){
 	float lambda;
 	vec3 impulse;
-	vec3 contactVelocity;
+	vec3 relativeVelocity;
 
-	// vcA = vA + wA X rA
-	// vcB = vB + wB X rB
-	// vcR = vcB - vcA
 
-	// Calculate the total linear velocity of the contact point on body A.
+	// vA_anchor  = vA + wA X rA
+	// vB_anchor  = vB + wB X rB
+	// v_relative = vB_anchor - vA_anchor
+
+	// Calculate the total linear velocity of the anchor point on body A.
 	vec3CrossVec3Out(&bodyA->angularVelocity, &((physicsJointDistance *)joint)->rA, &impulse);
 	vec3AddVec3(&impulse, &bodyA->linearVelocity);
-	// Calculate the total linear velocity of the contact point on body B.
-	vec3CrossVec3Out(&bodyB->angularVelocity, &((physicsJointDistance *)joint)->rB, &contactVelocity);
-	vec3AddVec3(&contactVelocity, &bodyB->linearVelocity);
+	// Calculate the total linear velocity of the anchor point on body B.
+	vec3CrossVec3Out(&bodyB->angularVelocity, &((physicsJointDistance *)joint)->rB, &relativeVelocity);
+	vec3AddVec3(&relativeVelocity, &bodyB->linearVelocity);
 	// Calculate the relative velocity between the two points.
-	vec3SubtractVec3From(&contactVelocity, &impulse);
+	vec3SubtractVec3From(&relativeVelocity, &impulse);
 
 
 	// lambda = -(JV + b)/JM^-1J^T
-	//        = -((vcR . p) + b) * m_eff
-	lambda = -(vec3DotVec3(&contactVelocity, &((physicsJointDistance *)joint)->rAB) + ((physicsJointDistance *)joint)->bias +
+	//        = -((v_relative . d) + b) * m_eff
+	lambda = -(vec3DotVec3(&relativeVelocity, &((physicsJointDistance *)joint)->rAB) + ((physicsJointDistance *)joint)->bias +
 	         ((physicsJointDistance *)joint)->gamma * ((physicsJointDistance *)joint)->impulse) * ((physicsJointDistance *)joint)->effectiveMass;
 	((physicsJointDistance *)joint)->impulse += lambda;
 	vec3MultiplySOut(&((physicsJointDistance *)joint)->rAB, lambda, &impulse);
@@ -164,7 +165,7 @@ float physJointDistanceSolvePosition(void *joint, physicsRigidBody *bodyA, physi
 		quatRotateVec3Fast(&bodyB->transform.rot, &rB, &rB);
 
 		// Find the relative position of the two bodies.
-		// p = (pB - pA)
+		// d = (pB - pA)
 		//   = (cB + rB - cA - rA)
 		rAB = bodyB->centroidGlobal;
 		vec3AddVec3(&rAB, &rB);
@@ -174,7 +175,7 @@ float physJointDistanceSolvePosition(void *joint, physicsRigidBody *bodyA, physi
 		distance = vec3MagnitudeVec3(&rAB);
 		constraint = distance - ((physicsJointDistance *)joint)->distance;
 		// Clamp the constraint value.
-		if(constraint < -PHYSCONSTRAINT_MAX_LINEAR_CORRECTION){
+		if(constraint <= -PHYSCONSTRAINT_MAX_LINEAR_CORRECTION){
 			constraint = -PHYSCONSTRAINT_MAX_LINEAR_CORRECTION;
 		}else if(constraint > PHYSCONSTRAINT_MAX_LINEAR_CORRECTION){
 			constraint = PHYSCONSTRAINT_MAX_LINEAR_CORRECTION;
@@ -198,7 +199,7 @@ float physJointDistanceSolvePosition(void *joint, physicsRigidBody *bodyA, physi
 
 
 /*
-** Updates the global positions of the anchor points
+** Update the global positions of the anchor points
 ** and some of the other variables that depend on them.
 */
 static void updateConstraintData(physicsJointDistance *joint, const physicsRigidBody *bodyA, const physicsRigidBody *bodyB){
@@ -211,7 +212,7 @@ static void updateConstraintData(physicsJointDistance *joint, const physicsRigid
 	quatRotateVec3Fast(&bodyB->transform.rot, &joint->rB, &joint->rB);
 
 	// Find the relative position of the two bodies.
-	// p = (pB - pA)
+	// d = (pB - pA)
 	//   = (cB + rB - cA - rA)
 	joint->rAB = bodyB->centroidGlobal;
 	vec3AddVec3(&joint->rAB, &joint->rB);
@@ -227,16 +228,16 @@ static void updateConstraintData(physicsJointDistance *joint, const physicsRigid
 	}else{
 		vec3InitZero(&joint->rAB);
 	}
-	// Calculate C(p) for our bias term.
-	// beta = hk/(hk + c)
-	// bias = beta/h * C(p)
+	// Calculate C(x) for our bias term.
+	// beta = hk/(c + hk)
+	// bias = beta/h * C(x)
 	joint->bias = distance - joint->distance;
 }
 
 /*
 ** Calculate the effective mass of the constraint, which won't
 ** change between velocity iterations. We can just do it once
-** per update. Note that we don't take its inverse yet.
+** per update. Note that we take its inverse elsewhere.
 */
 static void calculateEffectiveMass(physicsJointDistance *joint, const physicsRigidBody *bodyA, const physicsRigidBody *bodyB){
 	vec3 rpA;
@@ -244,12 +245,7 @@ static void calculateEffectiveMass(physicsJointDistance *joint, const physicsRig
 	vec3 rpB;
 	vec3 rpIB;
 
-	// JA = (IA^-1 * (rA X p)) . (rA X p)
-	// JB = (IB^-1 * (rB X p)) . (rB X p)
-	//
-	// m_eff = 1/JM^-1J^T
-	//       = 1/(mA^-1 + mB^-1 + JA + JB)
-
+	// JM^-1J^T = mA^-1 + mB^-1 + (((rA X d) * IA^-1) . (rA X d)) + (((rB X d) * IB^-1) . (rB X d))
 	vec3CrossVec3Out(&joint->rA, &joint->rAB, &rpA);
 	mat3MultiplyByVec3Out(&bodyA->invInertiaGlobal, &rpA, &rpIA);
 	vec3CrossVec3Out(&joint->rB, &joint->rAB, &rpB);
@@ -266,17 +262,25 @@ static void calculateEffectiveMass(physicsJointDistance *joint, const physicsRig
 static void calculateBias(physicsJointDistance *joint, const physicsRigidBody *bodyA, const physicsRigidBody *bodyB, const float dt){
 	// Only use soft constraints if the frequency is greater than 0.
 	if(joint->angularFrequency > 0.f){
-		const float tempMass = 1.f / joint->effectiveMass;
+		const float invEffectiveMass = 1.f / joint->effectiveMass;
 		// k = m_eff * w^2
-		const float stiffness = tempMass * joint->angularFrequency * joint->angularFrequency;
+		const float stiffness = invEffectiveMass * joint->angularFrequency * joint->angularFrequency;
 
-		// c = m_eff * d
-		// gamma = 1/(hk + c)
-		joint->gamma = 1.f / (dt * (dt * stiffness + tempMass * joint->damping));
-		// beta = hk/(hk + c)
-		// bias = beta/h * C(p)
+		// c = m_eff * damp
+		// gamma = 1/(c + hk) = 1/(hk + m_eff * damp)
+		joint->gamma = 1.f / (dt * (invEffectiveMass * joint->damping + dt * stiffness));
+		// beta = hk/(c + hk) = hk * gamma
+		// bias = beta/h * C(x) = k * gamma * C(x)
+		// Note that bias is already set to C(x).
 		joint->bias *= dt * stiffness * joint->gamma;
 
+		// lambda = -((v_relative . d) + beta/h * C(x) + gamma*lambda)/m_eff^-1
+		//        = -((v_relative . d) + b)/m_eff^-1 - (gamma*lambda)/m_eff^-1
+		//
+		// lambda(1 + gamma/m_eff^-1) = -((v_relative . d) + b)/m_eff^-1
+		//
+		// lambda = -((v_relative . d) + b)/m_eff^-1(1 + gamma/m_eff^-1)
+		//        = -((v_relative . d) + b)/(m_eff^-1 + gamma)
 		joint->effectiveMass += joint->gamma;
 	}else{
 		joint->gamma = 0.f;

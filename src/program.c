@@ -134,27 +134,27 @@ void programClose(program *prg){
 static void input(program *prg){
 	// If the aspect ratio doesn't match the window size you get weird results, especially if you haven't resized the window.
 	// Additionally, you may need to recalculate the perspective matrix after changing the window size (or aspect ratio, preferably).
-	int tempWidth = prg->windowWidth;
-	int tempHeight = prg->windowHeight;
+	int tempX = prg->windowWidth;
+	int tempY = prg->windowHeight;
 	SDL_GetWindowSize(prg->window, &prg->windowWidth, &prg->windowHeight);
 
 	// If the window has been resized, resize the viewport!
-	if(prg->windowWidth != tempWidth || prg->windowHeight != tempHeight){
+	if(prg->windowWidth != tempX || prg->windowHeight != tempY){
 		// Make sure we preserve the aspect ratio!
-		tempWidth = prg->windowWidth / ASPECT_RATIO_X;
-		tempHeight = prg->windowHeight / ASPECT_RATIO_Y;
-		if(tempWidth < tempHeight){
-			tempHeight = tempWidth * ASPECT_RATIO_Y;
-			tempWidth  = prg->windowWidth;
-		}else if(tempWidth > tempHeight){
-			tempWidth  = tempHeight * ASPECT_RATIO_X;
-			tempHeight = prg->windowHeight;
+		tempX = prg->windowWidth / ASPECT_RATIO_X;
+		tempY = prg->windowHeight / ASPECT_RATIO_Y;
+		if(tempX < tempY){
+			tempY = tempX * ASPECT_RATIO_Y;
+			tempX  = prg->windowWidth;
+		}else if(tempX > tempY){
+			tempX  = tempY * ASPECT_RATIO_X;
+			tempY = prg->windowHeight;
 		}else{
-			tempWidth = prg->windowWidth;
-			tempHeight = prg->windowHeight;
+			tempX = prg->windowWidth;
+			tempY = prg->windowHeight;
 		}
 
-		glViewport((prg->windowWidth - tempWidth) / 2, (prg->windowHeight - tempHeight) / 2, tempWidth, tempHeight);
+		glViewport((prg->windowWidth - tempX) / 2, (prg->windowHeight - tempY) / 2, tempX, tempY);
 	}
 
 
@@ -408,11 +408,24 @@ static void initResources(){
 	objectDef *objDef = moduleObjectDefAlloc();
 	object *obj = moduleObjectAlloc();
 
+	boneState *curBoneState;
+	const boneState *lastBoneState;
+
+
 	modelLoadSMD(mdl, "soldier_reference.smd");
 	renderableDefInit(renderDef, mdl);
 	objectDefInit(objDef);
+	objDef->skele = mdl->skele;
 	objDef->renderables = renderDef;
 	objectInit(obj, objDef);
+
+
+	obj->bones = memoryManagerGlobalAlloc(sizeof(*obj->bones) * mdl->skele->numBones);
+	curBoneState = obj->bones;
+	lastBoneState = &(obj->bones[mdl->skele->numBones]);
+	for(; curBoneState < lastBoneState; ++curBoneState){
+		transformStateInit(curBoneState);
+	}
 }
 
 // Set up the allocators for our modules.
