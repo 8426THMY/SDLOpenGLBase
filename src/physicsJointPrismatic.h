@@ -2,12 +2,16 @@
 #define physicsJointPrismatic_h
 
 
-#define PHYSJOINT_TYPE_PRISMATIC 3
-
-
 #include "vec3.h"
 #include "mat2.h"
 #include "mat3.h"
+
+
+#define PHYSJOINT_TYPE_PRISMATIC 3
+
+#ifndef PHYSJOINTPRISMATIC_BAUMGARTE_BIAS
+	#define PHYSJOINTPRISMATIC_BAUMGARTE_BIAS 0.4f
+#endif
 
 
 /*
@@ -62,6 +66,8 @@ typedef struct physicsJointPrismatic {
 	// Accumulated impulses used for warm starting.
 	vec2 linearImpulse;
 	float angularImpulse;
+	float limitImpulse;
+	float motorImpulse;
 } physicsJointPrismatic;
 
 
@@ -69,7 +75,7 @@ typedef struct physicsRigidBody physicsRigidBody;
 
 void physJointPrismaticInit(physicsJointPrismatic *joint);
 
-void physJointPrismaticWarmStart(physicsJointPrismatic *joint, physicsRigidBody *bodyA, physicsRigidBody *bodyB, const float dtRatio);
+void physJointPrismaticWarmStart(physicsJointPrismatic *joint, physicsRigidBody *bodyA, physicsRigidBody *bodyB);
 void physJointPrismaticPresolve(void *joint, physicsRigidBody *bodyA, physicsRigidBody *bodyB, const float dt);
 void physJointPrismaticSolveVelocity(void *joint, physicsRigidBody *bodyA, physicsRigidBody *bodyB);
 #ifdef PHYSJOINTDISTANCE_STABILISER_GAUSS_SEIDEL

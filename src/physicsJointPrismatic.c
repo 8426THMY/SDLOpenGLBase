@@ -5,78 +5,121 @@
 
 
 /*
-** We start with two linear constraints that prevent the
-** bodies from moving perpendicular to the constraint axis
-** "a" and an angular constraint that prevents them from
-** rotating relative to each other.
+** ----------------------------------------------------------------------
 **
-** C1 : d . u1 = 0
-** C2 : d . u2 = 0
-** C3 : qB - qA - qI = 0
+** Prismatic constraints only allow relative motion between two rigid
+** bodies along a specified axis, which we call the constraint axis.
 **
-** Note that "u1" and "u2" are the two tangent vectors,
-** "qA" and "qB" are the orientations of the two bodies
-** and "qI" is their initial relative orientation.
+** ----------------------------------------------------------------------
+**
+** Prismatic constraint equations:
+**
+** C1 : d . u1 = 0,
+** C2 : d . u2 = 0,
+** C3 : qB - qA - qI = 0,
+**
+** where d = (pB + rB - pA - rA) is the separation between the
+** two bodies, u1 and u2 are the tangent vectors to the constraint
+** axis, qA and qB are the orientations of the two bodies and qI
+** is the initial offset in their orientations.
 **
 **
-** We will begin by differentiating the linear constraints,
-** constraints letting "d = (pB - pA)":
+** Differentiate with respect to time to get velocity constraints:
 **
-** C1' : ((vB + wB X rB) - (vA + wA X rA)) . u1 + d . (wA X u1) = 0
-**     : -(u1 . vA) - (((rA + d) X u1) . wA) + (u1 . vB) + ((rB X u1) . wB) = 0
-** C2' : -(u2 . vA) - (((rA + d) X u2) . wA) + (u2 . vB) + ((rB X u2) . wB) = 0
+** C1' : ((vB + wB X rB) - (vA + wA X rA)) . u1 + d . (wA X u1) = 0,
+**     : -(u1 . vA) - (((rA + d) X u1) . wA) + (u1 . vB) + ((rB X u1) . wB) = 0,
+** C2' : -(u2 . vA) - (((rA + d) X u2) . wA) + (u2 . vB) + ((rB X u2) . wB) = 0,
+** C3' : wB - wA = 0.
 **
 ** Note that for this derivation, we assume that the sliding
-** axis "a" has been transformed into body A's space. Hence,
-** we get that "u1" and "u2" are rotating at "wA":
+** axis a and its tangents have been transformed into body A's
+** space. Hence, we get the following derivatives:
 **
-** d(u1)/dt = wA X u1
-** d(u2)/dt = wA X u2
+** da/dt    = wA X a,
+** d(u1)/dt = wA X u1,
+** d(u2)/dt = wA X u2.
+**
+** ----------------------------------------------------------------------
+**
+** Given the velocity vector
+**
+**     [vA]
+**     [wA]
+** V = [vB]
+**     [wB]
+**
+** and the identity C' = JV, we can solve for the Jacobian J.
+** We will use two separate Jacobians, one for the two linear
+** constraints C1' and C2', which we will call J1, and the
+** other for the angular constraint C3', which we will call J2.
+**
+**      [-u1, -((rA + d) X u1), u1, (rB X u1)]
+** J1 = [-u2, -((rA + d) X u2), u2, (rB X u2)],
+**
+** J2 = [0, -1, 0, 1].
+**
+** ----------------------------------------------------------------------
+**
+** The effective mass for the constraint is given by (JM^-1)J^T,
+** where M^-1 is the inverse mass matrix and J^T is the transposed
+** Jacobian.
+**
+**        [mA^-1  0    0    0  ]
+**        [  0  IA^-1  0    0  ]
+** M^-1 = [  0    0  mB^-1  0  ]
+**        [  0    0    0  IB^-1],
+**
+**        [       -u1,        -u2]
+**        [-(rA X u1), -(rA X u2)]
+** J1^T = [        u1,         u2]
+**        [ (rB X u1),  (rB X u2,
+**
+**        [ 0]
+**        [-1]
+** J2^T = [ 0]
+**        [ 1].
 **
 **
-** By inspection:
+** Evaluating this expression gives us the
+** following matrix for our linear constraints:
 **
-**     [-u1, -((rA + d) X u1), u1, (rB X u1)]
-** J = [-u2, -((rA + d) X u2), u2, (rB X u2)]
+**          [-u1 * mA^-1, -((rA + d) X u1) * IA^-1, u1 * mB^-1, (rB X u1) * IB^-1]
+** J1M^-1 = [-u2 * mA^-1, -((rA + d) X u2) * IA^-1, u2 * mB^-1, (rB X u2) * IB^-1]
 **
-**        [mA^-1     0     0     0]
-**        [    0 IA^-1     0     0]
-** M^-1 = [    0     0 mB^-1     0]
-**        [    0     0     0 IB^-1]
+** K = (J1M^-1)J1^T
+** [K]_00 = mA^-1 + mB^-1 + ((((rA + d) X u1) * IA^-1) . ((rA + d) X u1)) + (((rB X u1) * IB^-1) . (rB X u1)),
+** [K]_01 =                 ((((rA + d) X u1) * IA^-1) . ((rA + d) X u2)) + (((rB X u1) * IB^-1) . (rB X u2)),
+** [K]_10 =                 ((((rA + d) X u1) * IA^-1) . ((rA + d) X u2)) + (((rB X u1) * IB^-1) . (rB X u2)),
+** [K]_11 = mA^-1 + mB^-1 + ((((rA + d) X u2) * IA^-1) . ((rA + d) X u2)) + (((rB X u2) * IB^-1) . (rB X u2)).
 **
-**       [             -u1,              -u2]
-**       [-((rA + d) X u1), -((rA + d) X u2)]
-** J^T = [              u1,               u2]
-**       [       (rB X u1),        (rB X u2)]
+** It is also worth noting that in this case, J1V is not
+** a scalar either. It is the following 2x1 matrix:
 **
+**       [-(u1 . vA) - (((rA + d) X u1) . wA) + (u1 . vB) + ((rB X u1) . wB)]
+** J1V = [-(u2 . vA) - (((rA + d) X u2) . wA) + (u2 . vB) + ((rB X u2) . wB)].
 **
-** Calculating JM^-1J^T gives us a 2x2 matrix, which we can
-** invert to get our effective mass:
-**
-**         [-u1 * mA^-1, -((rA + d) X u1) * IA^-1, u1 * mB^-1, (rB X u1) * IB^-1]
-** JM^-1 = [-u2 * mA^-1, -((rA + d) X u2) * IA^-1, u2 * mB^-1, (rB X u2) * IB^-1]
-**
-** K = JM^-1J^T
-** [K]_00 = mA^-1 + mB^-1 + ((((rA + d) X u1) * IA^-1) . ((rA + d) X u1)) + (((rB X u1) * IB^-1) . (rB X u1))
-** [K]_01 =                 ((((rA + d) X u1) * IA^-1) . ((rA + d) X u2)) + (((rB X u1) * IB^-1) . (rB X u2))
-** [K]_10 =                 ((((rA + d) X u1) * IA^-1) . ((rA + d) X u2)) + (((rB X u1) * IB^-1) . (rB X u2))
-** [K]_11 = mA^-1 + mB^-1 + ((((rA + d) X u2) * IA^-1) . ((rA + d) X u2)) + (((rB X u2) * IB^-1) . (rB X u2))
+** Multiplying the inverse of our effective mass by this matrix
+** gives us a 2D vector, where each row contains the magnitude
+** of the impulse to be applied in a tangent direction. From
+** here, we just multiply the magnitudes by the directions
+** and add them up to get the total impulse to apply.
 **
 **
-** For the angular constraint, we get:
+** For our angular constraint, we simply get:
 **
-** C3' : wB - wA = 0
-**
-**
-** By inspection:
-**
-** J = [0, -1, 0, 1]
-** V = [vA, wA, vB, wB]
+** (J2M^-1)J2^T = IA^-1 + IB^-1.
 **
 **
-** Using this, we get that the effective mass is the inverse of:
+** Finally, adding a potential bias term, we have
 **
-** JM^-1J^T = IA^-1 + IB^-1
+** bn = B/dt * Cn(x),
+**
+** C_linear'  : [[J1V]_0 + b1, [J1V]_1 + b2],
+** C_angular' : J2V + b3,
+**
+** where B is the Baumgarte constant.
+**
+** ----------------------------------------------------------------------
 */
 
 #warning "We use the same constraint for the motor and the limits."
@@ -110,7 +153,7 @@
 ** J2 = [ a,  ((rA + d) X a), -a, -(rB X a)]
 **
 **
-** Using this, we get that the effective mass is the inverse of:
+** Using this, we get that the effective mass is:
 **
 ** J1M^-1J1^T = J2M^-1J2^T = mA^-1 + mB^-1 + (((rA + d) X a) * IA^-1) . ((rA + d) X a) + (((rB X a) * IB^-1) . (rB X a))
 **/
@@ -131,16 +174,15 @@
 ** J = [-a, 0, a, 0]
 **
 **
-** Using this, we get that the effective mass is the inverse of:
+** Using this, we get that the effective mass is:
 **
-** JM^-1J^T = mA^-1 + mB^-1
+** (JM^-1)J^T = mA^-1 + mB^-1
 **/
 
 
 // Forward-declare any helper functions!
 static void updateConstraintData(physicsJointPrismatic *joint, const physicsRigidBody *bodyA, const physicsRigidBody *bodyB);
 static void calculateEffectiveMass(physicsJointPrismatic *joint, const physicsRigidBody *bodyA, const physicsRigidBody *bodyB);
-static void calculateBias(physicsJointPrismatic *joint, const physicsRigidBody *bodyA, const physicsRigidBody *bodyB, const float dt);
 
 
 void physJointPrismaticInit(physicsJointPrismatic *joint){
@@ -153,8 +195,39 @@ void physJointPrismaticInit(physicsJointPrismatic *joint){
 ** we can make the constraint converge more quickly.
 ** Joints are always active so we always warm start.
 */
-void physJointPrismaticWarmStart(physicsJointPrismatic *joint, physicsRigidBody *bodyA, physicsRigidBody *bodyB, const float dtRatio){
-	//
+void physJointPrismaticWarmStart(physicsJointPrismatic *joint, physicsRigidBody *bodyA, physicsRigidBody *bodyB){
+	vec3 linearImpulse;
+	vec3 angularImpulseA;
+	vec3 angularImpulseB;
+	vec3 temp;
+
+	// Calculate the linear impulse.
+	vec3MultiplySOut(&joint->tangentsGlobal[0], joint->linearImpulse.x, &linearImpulse);
+	vec3MultiplySOut(&joint->tangentsGlobal[1], joint->linearImpulse.y, &temp);
+	vec3AddVec3(&linearImpulse, &temp);
+	vec3MultiplySOut(&joint->axisGlobal, joint->limitImpulse + joint->motorImpulse, &temp);
+	vec3AddVec3(&linearImpulse, &temp);
+
+	// Calculate the angular impulse for body A.
+	vec3MultiplySOut(&joint->rAu1, joint->linearImpulse.x, &angularImpulseA);
+	vec3MultiplySOut(&joint->rAu2, joint->linearImpulse.y, &temp);
+	vec3AddVec3(&angularImpulseA, &temp);
+	vec3MultiplySOut(&joint->rAa, joint->limitImpulse + joint->motorImpulse, &temp);
+	vec3AddVec3(&angularImpulseA, &temp);
+
+	// Calculate the angular impulse for body B.
+	vec3MultiplySOut(&joint->rBu1, joint->linearImpulse.x, &angularImpulseB);
+	vec3MultiplySOut(&joint->rBu2, joint->linearImpulse.y, &temp);
+	vec3AddVec3(&angularImpulseB, &temp);
+	vec3MultiplySOut(&joint->rBa, joint->limitImpulse + joint->motorImpulse, &temp);
+	vec3AddVec3(&angularImpulseB, &temp);
+
+
+	// Apply the accumulated impulses.
+	physRigidBodyApplyLinearImpulseInverse(bodyA, linearImpulse);
+	physRigidBodyApplyAngularImpulseInverse(bodyA, angularImpulseA);
+	physRigidBodyApplyLinearImpulse(bodyB, linearImpulse);
+	physRigidBodyApplyAngularImpulse(bodyB, angularImpulseB);
 }
 
 /*
@@ -165,8 +238,7 @@ void physJointPrismaticWarmStart(physicsJointPrismatic *joint, physicsRigidBody 
 void physJointPrismaticPresolve(void *joint, physicsRigidBody *bodyA, physicsRigidBody *bodyB, const float dt){
 	updateConstraintData((physicsJointPrismatic *)joint, bodyA, bodyB);
 	calculateEffectiveMass((physicsJointPrismatic *)joint, bodyA, bodyB);
-	calculateBias((physicsJointPrismatic *)joint, bodyA, bodyB, dt);
-	physJointPrismaticWarmStart((physicsJointPrismatic *)joint, bodyA, bodyB, 1.f/dt);
+	physJointPrismaticWarmStart((physicsJointPrismatic *)joint, bodyA, bodyB);
 }
 
 /*
@@ -175,7 +247,8 @@ void physJointPrismaticPresolve(void *joint, physicsRigidBody *bodyA, physicsRig
 ** This may be called multiple times with sequential impulse.
 */
 void physJointPrismaticSolveVelocity(void *joint, physicsRigidBody *bodyA, physicsRigidBody *bodyB){
-	//
+	/** We should calculate and add the bias here if we're using Baumgarte. **/
+	/** Most of these need d though, so should we calculate it elsewhere?   **/
 }
 
 /*
@@ -199,6 +272,7 @@ static void updateConstraintData(physicsJointPrismatic *joint, const physicsRigi
 	vec3 rA;
 	vec3 rB;
 	vec3 d;
+	float axisSeparation;
 
 	// Transform the anchor points using the bodies' new scales and rotations.
 	vec3MultiplyVec3Out(&bodyA->transform.scale, &joint->anchorA, &rA);
@@ -236,6 +310,8 @@ static void updateConstraintData(physicsJointPrismatic *joint, const physicsRigi
 
 	// Now we can subtract rA.
 	vec3SubtractVec3From(&d, &rA);
+	// Calculate the rigid bodies' separation along the constraint axis.
+	axisSeparation = vec3DotVec3(&d, &joint->axisGlobal);
 	/** Do stuff **/
 }
 
@@ -262,16 +338,16 @@ static void calculateEffectiveMass(physicsJointPrismatic *joint, const physicsRi
 	vec3 rBu2IB;
 
 
-	// JM^-1J^T = mA^-1 + mB^-1 + (((rA + d) X a) * IA^-1) . ((rA + d) X a) + (((rB X a) * IB^-1) . (rB X a))
+	// (JM^-1)J^T = mA^-1 + mB^-1 + (((rA + d) X a) * IA^-1) . ((rA + d) X a) + (((rB X a) * IB^-1) . (rB X a))
 	mat3MultiplyByVec3Out(invInertiaA, rAa, &rAu1IA);
 	mat3MultiplyByVec3Out(invInertiaB, rBa, &rBu1IB);
 
-	// Calculate the limit effective mass.
+	// Calculate the inverse limit and motor effective mass.
 	// The motor and both limits have the same effective mass.
 	joint->limitMotorMass = 1.f / (invMass + vec3DotVec3(&rAu1IA, rAa) + vec3DotVec3(&rBu1IB, rBa));
 
 
-	// K = JM^-1J^T
+	// K = (JM^-1)J^T
 	// [K]_00 = mA^-1 + mB^-1 + ((((rA + d) X u1) * IA^-1) . ((rA + d) X u1)) + (((rB X u1) * IB^-1) . (rB X u1))
 	// [K]_01 =                 ((((rA + d) X u1) * IA^-1) . ((rA + d) X u2)) + (((rB X u1) * IB^-1) . (rB X u2))
 	// [K]_10 = [K]_01
@@ -281,26 +357,16 @@ static void calculateEffectiveMass(physicsJointPrismatic *joint, const physicsRi
 	mat3MultiplyByVec3Out(invInertiaB, rBu1, &rBu1IB);
 	mat3MultiplyByVec3Out(invInertiaB, rBu2, &rBu2IB);
 
-	// Calculate the linear effective mass.
+	// Calculate the inverse linear effective mass.
 	joint->linearMass.m[0][0] = invMass + vec3DotVec3(&rAu1IA, rAu1) + vec3DotVec3(&rBu1IB, rBu1);
 	joint->linearMass.m[0][1] =
 	joint->linearMass.m[1][0] = vec3DotVec3(&rAu1IA, rAu2) + vec3DotVec3(&rBu1IB, rBu2);
 	joint->linearMass.m[1][1] = invMass + vec3DotVec3(&rAu2IA, rAu2) + vec3DotVec3(&rBu2IB, rBu2);
-	// m_eff = 1/K
 	mat2Invert(&joint->linearMass);
 
 
-	// JM^-1J^T = IA^-1 + IB^-1
-	// Calculate the angular effective mass.
+	// (JM^-1)J^T = IA^-1 + IB^-1
+	// Calculate the inverse angular effective mass.
     mat3AddMat3Out(invInertiaA, invInertiaB, &joint->angularMass);
-	// m_eff = 1/K
 	mat3Invert(&joint->angularMass);
-}
-
-/*
-** Calculate the joint's bias term. This will help
-** to soften the constraint and make it springy.
-*/
-static void calculateBias(physicsJointPrismatic *joint, const physicsRigidBody *bodyA, const physicsRigidBody *bodyB, const float dt){
-	//
 }

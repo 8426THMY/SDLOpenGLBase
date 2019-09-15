@@ -17,6 +17,10 @@ void mat3InitZero(mat3 *m);
 mat3 mat3InitZeroR();
 void mat3InitIdentity(mat3 *m);
 mat3 mat3InitIdentityR();
+void mat3InitDiagonal(mat3 *m, const float x);
+mat3 mat3InitDiagonalR(const float x);
+void mat3InitSkew(mat3 *m, const vec3 *v);
+mat3 mat3InitSkewR(const vec3 v);
 
 void mat3AddMat3(mat3 *m1, const mat3 *m2);
 void mat3AddMat3Out(const mat3 *m1, const mat3 *m2, mat3 *out);

@@ -28,7 +28,6 @@ How can we do this?
 #warning "If collisions are acting funny, it might be because quatRotateVec3Fast is derping. For some reason, it seems to be inaccurate in very rare cases."
 #warning "Not sure if we get 1/dt in our contact functions, either."
 #warning "Differentiate between joints and constraints. Constraints are always between two physics objects and joints often have an anchor point."
-#warning "Redo constraint comments."
 
 #warning "Do we extend the total memory when we run out? Maybe make it so this functionality can be toggled."
 

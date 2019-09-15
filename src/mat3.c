@@ -36,6 +36,74 @@ mat3 mat3InitIdentityR(){
 	return(identityMat3);
 }
 
+// Initialize the matrix to a uniform scale matrix!
+void mat3InitDiagonal(mat3 *m, const float x){
+	m->m[0][0] = x;
+	m->m[0][1] = 0.f;
+	m->m[0][2] = 0.f;
+
+	m->m[1][0] = 0.f;
+	m->m[1][1] = x;
+	m->m[1][2] = 0.f;
+
+	m->m[2][0] = 0.f;
+	m->m[2][1] = 0.f;
+	m->m[2][2] = x;
+}
+
+// Initialize the matrix to a uniform scale matrix!
+mat3 mat3InitDiagonalR(const float x){
+	const mat3 out = {
+		.m[0][0] = x,
+		.m[0][1] = 0.f,
+		.m[0][2] = 0.f,
+
+		.m[1][0] = 0.f,
+		.m[1][1] = x,
+		.m[1][2] = 0.f,
+
+		.m[2][0] = 0.f,
+		.m[2][1] = 0.f,
+		.m[2][2] = x
+	};
+
+	return(out);
+}
+
+// Initialize the matrix to a skew-symmetric cross product matrix!
+void mat3InitSkew(mat3 *m, const vec3 *v){
+	m->m[0][0] = 0.f;
+	m->m[0][1] = v->z;
+	m->m[0][2] = -v->y;
+
+	m->m[1][0] = -v->z;
+	m->m[1][1] = 0.f;
+	m->m[1][2] = v->x;
+
+	m->m[2][0] = v->y;
+	m->m[2][1] = -v->x;
+	m->m[2][2] = 0.f;
+}
+
+// Initialize the matrix to a skew-symmetric cross product matrix!
+mat3 mat3InitSkewR(const vec3 v){
+	const mat3 out = {
+		.m[0][0] = 0.f,
+		.m[0][1] = v.z,
+		.m[0][2] = -v.y,
+
+		.m[1][0] = -v.z,
+		.m[1][1] = 0.f,
+		.m[1][2] = v.x,
+
+		.m[2][0] = v.y,
+		.m[2][1] = -v.x,
+		.m[2][2] = 0.f
+	};
+
+	return(out);
+}
+
 
 // Add the matrix "m2" to "m1"!
 void mat3AddMat3(mat3 *m1, const mat3 *m2){

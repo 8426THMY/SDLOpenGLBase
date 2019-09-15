@@ -483,32 +483,30 @@ void physRigidBodyIntegratePositionSymplecticEuler(physicsRigidBody *body, const
 }
 
 
-// Add a translational and rotational impulse to a rigid body.
-void physRigidBodyApplyPositionalImpulse(physicsRigidBody *body, vec3 J){
+// Add a translational impulse to a rigid body.
+void physRigidBodyApplyLinearImpulse(physicsRigidBody *body, vec3 J){
 	// Linear velocity.
 	vec3MultiplyS(&J, body->mass);
 	vec3AddVec3(&body->linearVelocity, &J);
 }
 
 // Subtract a translational impulse from a rigid body.
-void physRigidBodyApplyPositionalImpulseInverse(physicsRigidBody *body, vec3 J){
+void physRigidBodyApplyLinearImpulseInverse(physicsRigidBody *body, vec3 J){
 	// Linear velocity.
 	vec3MultiplyS(&J, body->mass);
 	vec3SubtractVec3From(&body->linearVelocity, &J);
 }
 
 // Add a rotational impulse to a rigid body.
-void physRigidBodyApplyAngularImpulse(physicsRigidBody *body, const vec3 *r, vec3 J){
+void physRigidBodyApplyAngularImpulse(physicsRigidBody *body, vec3 J){
 	// Angular velocity.
-	vec3CrossVec3By(r, &J);
 	mat3MultiplyByVec3(&body->invInertiaGlobal, &J);
 	vec3AddVec3(&body->angularVelocity, &J);
 }
 
 // Subtract a rotational impulse from a rigid body.
-void physRigidBodyApplyAngularImpulseInverse(physicsRigidBody *body, const vec3 *r, vec3 J){
+void physRigidBodyApplyAngularImpulseInverse(physicsRigidBody *body, vec3 J){
 	// Angular velocity.
-	vec3CrossVec3By(r, &J);
 	mat3MultiplyByVec3(&body->invInertiaGlobal, &J);
 	vec3SubtractVec3From(&body->angularVelocity, &J);
 }
@@ -538,36 +536,6 @@ void physRigidBodyApplyImpulseInverse(physicsRigidBody *body, const vec3 *r, con
 	// Angular velocity.
 	vec3CrossVec3Out(r, J, &impulse);
 	mat3MultiplyByVec3(&body->invInertiaGlobal, &impulse);
-	vec3SubtractVec3From(&body->angularVelocity, &impulse);
-}
-
-// Add a translational and rotational (plus some bias) impulse to a rigid body.
-void physRigidBodyApplyImpulseAngularBias(physicsRigidBody *body, const vec3 *r, const vec3 *J, const vec3 *b){
-	vec3 impulse;
-
-	// Linear velocity.
-	vec3MultiplySOut(J, body->mass, &impulse);
-	vec3AddVec3(&body->linearVelocity, &impulse);
-
-	// Angular velocity.
-	vec3CrossVec3Out(r, J, &impulse);
-	mat3MultiplyByVec3(&body->invInertiaGlobal, &impulse);
-	vec3AddVec3(&impulse, b);
-	vec3AddVec3(&body->angularVelocity, &impulse);
-}
-
-// Subtract a translational and rotational (plus some bias) impulse from a rigid body.
-void physRigidBodyApplyImpulseAngularBiasInverse(physicsRigidBody *body, const vec3 *r, const vec3 *J, const vec3 *b){
-	vec3 impulse;
-
-	// Linear velocity.
-	vec3MultiplySOut(J, body->mass, &impulse);
-	vec3SubtractVec3From(&body->linearVelocity, &impulse);
-
-	// Angular velocity.
-	vec3CrossVec3Out(r, J, &impulse);
-	mat3MultiplyByVec3(&body->invInertiaGlobal, &impulse);
-	vec3AddVec3(&impulse, b);
 	vec3SubtractVec3From(&body->angularVelocity, &impulse);
 }
 

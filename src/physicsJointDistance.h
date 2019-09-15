@@ -73,7 +73,7 @@ typedef struct physicsRigidBody physicsRigidBody;
 
 void physJointDistanceInit(physicsJointDistance *joint, const float frequency, const float dampingRatio);
 
-void physJointDistanceWarmStart(physicsJointDistance *joint, physicsRigidBody *bodyA, physicsRigidBody *bodyB, const float dtRatio);
+void physJointDistanceWarmStart(physicsJointDistance *joint, physicsRigidBody *bodyA, physicsRigidBody *bodyB);
 void physJointDistancePresolve(void *joint, physicsRigidBody *bodyA, physicsRigidBody *bodyB, const float dt);
 void physJointDistanceSolveVelocity(void *joint, physicsRigidBody *bodyA, physicsRigidBody *bodyB);
 #ifdef PHYSJOINTDISTANCE_STABILISER_GAUSS_SEIDEL

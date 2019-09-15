@@ -88,7 +88,7 @@ typedef struct physicsContactPoint {
 	float tangentImpulse[2];
 	#endif
 
-	// Stores the result of 1/JM^-1J^T (which is equivalent
+	// Stores the result of 1/((JM^-1)J^T) (which is equivalent
 	// to the inverse denominator of the impulse equation)
 	// prior to collision response, as it only needs to be
 	// calculated once.

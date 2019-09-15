@@ -16,43 +16,96 @@
 
 
 /*
-** Original constraint inequality:
+** ----------------------------------------------------------------------
 **
-** C : (pB - pA) . n >= 0
+** Contact constraints ensure that the separation between two
+** bodies is always greater than or equal to zero, that is,
+** they aren't penetrating. We also solve a friction constraint
+** here, check "physicsJointFriction.c" for more information.
 **
+** ----------------------------------------------------------------------
 **
-** Differentiate, as we want to make a change in velocity:
+** Contact constraint inequality:
 **
-** C' : ((vB + wB X rB) - (vA + wA X rA)) . n >= 0
+** C : (pB - pA) . n >= 0,
 **
-**
-** By inspection:
-**
-** J = [-n, -(rA X n), n, (rB X n)]
-** V = [vA, wA, vB, wB]
-**
-**
-** After adding a bias term:
-**
-** C' : JV + b >= 0
+** where pA and pB are the global positions of the
+** contact points and n is the contact normal.
 **
 **
-** Semi-implicit Euler gives us the following equations,
-** which we can use to derive an expression for lambda:
+** Differentiate with respect to time to get a velocity constraint:
 **
-** V   = V_i + dt * M^-1 * F_ext
-** V_f = V   + dt * M^-1 * P_C
+** C' : (((wB X rB) + vB) - ((wA X rA) + vA)) . n >= 0.
+**
+** ----------------------------------------------------------------------
+**
+** Given the velocity vector
+**
+**     [vA]
+**     [wA]
+** V = [vB]
+**     [wB]
+**
+** and the identity C' = JV, we can solve for the Jacobian J:
+**
+** J = [-n, -(rA X n), n, (rB X n)].
 **
 **
-** Using "P_C = J^T * lambda" and "lambda' = dt * lambda":
+** Finally, adding a potential bias term, we have
+**
+** b = b_penetration + b_restitution
+**   = B/dt * C(x) + e * C'(x),
+**
+** C' : JV + b >= 0,
+**
+** where B is the Baumgarte constant and e is the contact restitution.
+**
+** ----------------------------------------------------------------------
+**
+** Semi-implicit Euler:
+**
+** V   = V_i + dt * M^-1 * F_ext,
+** V_f = V   + dt * M^-1 * F_C.
+**
+** Where V_i is the initial velocity vector, V_f is the final
+** velocity vector, F_ext is the external force on the body
+** F_C is the constraint force and dt is the timestep.
+**
+**
+** Using F_C = J^T * lambda and lambda' = dt * lambda, we can
+** solve for the impulse magnitude (constraint Lagrange
+** multiplier) lambda':
 **
 ** JV_f + b = 0
-** J(V + dt * M^-1 * P_C) + b = 0
-** JV + dt * JM^-1P_C + b = 0
-** JV + dt * JM^-1J^T . lambda + b = 0
-** dt * JM^-1J^T . lambda = -(JV + b)
-** dt * lambda = -(JV + b)/JM^-1J^T
-** lambda' = -(JV + b)/JM^-1J^T
+** J(V + dt * M^-1 * F_C) + b = 0
+** JV + dt * (JM^-1)F_C + b = 0
+** JV + dt * (JM^-1)J^T . lambda + b = 0
+** dt * (JM^-1)J^T . lambda = -(JV + b)
+** dt * lambda = -(JV + b)/((JM^-1)J^T)
+** lambda' = -(JV + b)/((JM^-1)J^T).
+**
+** ----------------------------------------------------------------------
+**
+** The effective mass for the constraint is given by (JM^-1)J^T,
+** where M^-1 is the inverse mass matrix and J^T is the transposed
+** Jacobian.
+**
+**        [mA^-1  0    0    0  ]
+**        [  0  IA^-1  0    0  ]
+** M^-1 = [  0    0  mB^-1  0  ]
+**        [  0    0    0  IB^-1],
+**
+**       [    -n   ]
+**       [-(rA X n)]
+** J^T = [     n   ]
+**       [ (rB X n)].
+**
+**
+** Evaluating this expression gives us:
+**
+** (JM^-1)J^T = mA^-1 + mB^-1 + ((rA X n) . (IA^-1 * (rA X n))) + ((rB X n) . (IB^-1 * (rB X n))).
+**
+** ----------------------------------------------------------------------
 */
 
 
@@ -137,6 +190,7 @@ void physManifoldInit(physicsManifold *pm, const contactManifold *cm, const phys
 	normalBasis(&normal, &physContactTangent(pm, 0), &physContactTangent(pm, 1));
 	physContactNormal(pm) = normal;
 
+	// If we're using a friction join, we initialize it here.
 	#ifdef PHYSCONTACT_USE_FRICTION_JOINT
 	// Get the average point halfway between contact points.
 	vec3DivideByS(&halfway, cm->numContacts);
@@ -403,12 +457,12 @@ static void calculateEffectiveMass(const physicsManifold *pm, physicsContactPoin
 	const mat3 *invInertiaA = &bodyA->invInertiaGlobal;
 	const mat3 *invInertiaB = &bodyB->invInertiaGlobal;
 
-	// JM^-1J^T = mA^-1 + mB^-1 + (((rA X n) * IA^-1) . (rA X n)) + (((rB X n) * IB^-1) . (rB X n))
+	// (JM^-1)J^T = mA^-1 + mB^-1 + (((rA X n) * IA^-1) . (rA X n)) + (((rB X n) * IB^-1) . (rB X n))
 	vec3CrossVec3Out(&contact->rA, &physContactNormal(pm), &rnA);
 	mat3MultiplyByVec3Out(invInertiaA, &rnA, &rnIA);
 	vec3CrossVec3Out(&contact->rB, &physContactNormal(pm), &rnB);
 	mat3MultiplyByVec3Out(invInertiaB, &rnB, &rnIB);
-	// Calculate the effective mass along the normal.
+	// Calculate the inverse effective mass along the normal.
 	contact->normalEffectiveMass = 1.f / (
 		invMass +
 		vec3DotVec3(&rnA, &rnIA) +
@@ -416,24 +470,24 @@ static void calculateEffectiveMass(const physicsManifold *pm, physicsContactPoin
 	);
 
 	#ifndef PHYSCONTACT_USE_FRICTION_JOINT
-	// JM^-1J^T = mA^-1 + mB^-1 + (((rA X u1) * IA^-1) . (rA X u1)) + (((rB X u1) * IB^-1) . (rB X u1))
+	// (JM^-1)J^T = mA^-1 + mB^-1 + (((rA X u1) * IA^-1) . (rA X u1)) + (((rB X u1) * IB^-1) . (rB X u1))
 	vec3CrossVec3Out(&contact->rA, &pm->tangents[0], &rnA);
 	mat3MultiplyByVec3Out(invInertiaA, &rnA, &rnIA);
 	vec3CrossVec3Out(&contact->rB, &pm->tangents[0], &rnB);
 	mat3MultiplyByVec3Out(invInertiaB, &rnB, &rnIB);
-	// Calculate the effective mass along the first tangent.
+	// Calculate the inverse effective mass along the first tangent.
 	contact->tangentEffectiveMass[0] = 1.f / (
 		invMass +
 		vec3DotVec3(&rnA, &rnIA) +
 		vec3DotVec3(&rnB, &rnIB)
 	);
 
-	// JM^-1J^T = mA^-1 + mB^-1 + (((rA X u2) * IA^-1) . (rA X u2)) + (((rB X u2) * IB^-1) . (rB X u2))
+	// (JM^-1)J^T = mA^-1 + mB^-1 + (((rA X u2) * IA^-1) . (rA X u2)) + (((rB X u2) * IB^-1) . (rB X u2))
 	vec3CrossVec3Out(&contact->rA, &pm->tangents[1], &rnA);
 	mat3MultiplyByVec3Out(invInertiaA, &rnA, &rnIA);
 	vec3CrossVec3Out(&contact->rB, &pm->tangents[1], &rnB);
 	mat3MultiplyByVec3Out(invInertiaB, &rnB, &rnIB);
-	// Calculate the effective mass along the second tangent.
+	// Calculate the inverse effective mass along the second tangent.
 	contact->tangentEffectiveMass[1] = 1.f / (
 		invMass +
 		vec3DotVec3(&rnA, &rnIA) +
@@ -476,6 +530,8 @@ static void calculateBias(const physicsManifold *pm, physicsContactPoint *contac
 	// v' >= -e * (v_relative . n)
 	// v' >= -b_restitution
 	// v' + b_restitution >= 0
+	// The restitution bias represents how much of the contact
+	// velocity we should "give back" to the rigid bodies.
 
 	// Calculate the restitution bias term.
 	// b_restitution = e * (v_relative . n)
@@ -489,7 +545,6 @@ static void calculateBias(const physicsManifold *pm, physicsContactPoint *contac
 	#else
 		// If we're not using Baumgarte stabilisation,
 		// we only have the restitution bias here.
-		//
 		// b = e * (v_relative . n)
 		contact->bias = pm->restitution * tempBias;
 	}else{
@@ -525,8 +580,8 @@ static void solveTangents(const physicsManifold *pm, physicsContactPoint *contac
 	vec3SubtractVec3From(&contactVelocity, &temp);
 
 
-	// lambda = -(JV + b)/JM^-1J^T
-	//        = -(v_relative . n) * m_eff
+	// lambda = -(JV + b)/((JM^-1)J^T)
+	//        = -(v_relative . n)/K
 	lambda = -vec3DotVec3(&contactVelocity, &pm->tangents[0]) * contact->tangentEffectiveMass[0];
 	oldImpulse = contact->tangentImpulse[0];
 	newImpulse = oldImpulse + lambda;
@@ -545,8 +600,8 @@ static void solveTangents(const physicsManifold *pm, physicsContactPoint *contac
 	}
 
 
-	// lambda = -(JV + b)/JM^-1J^T
-	//        = -(v_relative . n) * m_eff
+	// lambda = -(JV + b)/((JM^-1)J^T)
+	//        = -(v_relative . n)/K
 	lambda = -vec3DotVec3(&contactVelocity, &pm->tangents[1]) * contact->tangentEffectiveMass[1];
 	oldImpulse = contact->tangentImpulse[1];
 	newImpulse = oldImpulse + lambda;
@@ -597,8 +652,8 @@ static void solveNormal(const physicsManifold *pm, physicsContactPoint *contact,
 	vec3SubtractVec3From(&contactVelocity, &impulse);
 
 
-	// lambda = -(JV + b)/JM^-1J^T
-	//        = -((v_relative . n) + b) * m_eff
+	// lambda = -(JV + b)/((JM^-1)J^T)
+	//        = -((v_relative . n) + b)/K
 	lambda = -(vec3DotVec3(&contactVelocity, &physContactNormal(pm)) + contact->bias) * contact->normalEffectiveMass;
 	oldImpulse = contact->normalImpulse;
 	newImpulse = oldImpulse + lambda;
@@ -673,8 +728,8 @@ float solvePosition(const physicsManifold *pm, const physicsContactPoint *contac
 		// JA = (IA * (rA X n)) . (rA X n)
 		// JB = (IB * (rB X n)) . (rB X n)
 		//
-		// m_eff = 1/JM^-1J^T
-		//       = 1/(mA^-1 + mB^-1 + JA + JB)
+		// K = (JM^-1)J^T
+		//   = mA^-1 + mB^-1 + JA + JB
 
 		// We use *full* non-linear Gauss-Seidel, which
 		// requires us to recompute the effective mass.
