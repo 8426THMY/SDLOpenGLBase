@@ -160,6 +160,7 @@ static void input(program *prg){
 
 	// Refresh SDL2 events!
 	SDL_Event event;
+	#warning "This is causing microstutters for some reason."
 	while(SDL_PollEvent(&event) != 0){
 		switch(event.type){
 			case SDL_MOUSEMOTION:
@@ -174,8 +175,8 @@ static void input(program *prg){
 		}
 	}
 
-
 	// Refresh SDL2 key presses! PollEvent should do this automatically, but we'll do it again just in case.
+	#warning "So is this."
 	SDL_PumpEvents();
 
 	if(prg->keyStates[SDL_SCANCODE_ESCAPE]){
@@ -194,56 +195,32 @@ static void updateCameras(program *prg){
 	// If our camera exists, react to the user's input and move it!
 	if(prg->cam.states[0] != NULL){
 		if(prg->keyStates[SDL_SCANCODE_LEFT]){
-			cameraStateAddPosX(prg->cam.states[0], -0.25f, prg->step.updateTickrate);
+			cameraStateAddPosX(prg->cam.states[0], -1.f, prg->step.updateTickrate);
 		}
 		if(prg->keyStates[SDL_SCANCODE_RIGHT]){
-			cameraStateAddPosX(prg->cam.states[0], 0.25f, prg->step.updateTickrate);
+			cameraStateAddPosX(prg->cam.states[0], 1.f, prg->step.updateTickrate);
 		}
 
 		if(prg->keyStates[SDL_SCANCODE_UP]){
-			cameraStateAddPosY(prg->cam.states[0], 0.25f, prg->step.updateTickrate);
+			cameraStateAddPosY(prg->cam.states[0], 1.f, prg->step.updateTickrate);
 		}
 		if(prg->keyStates[SDL_SCANCODE_DOWN]){
-			cameraStateAddPosY(prg->cam.states[0], -0.25f, prg->step.updateTickrate);
+			cameraStateAddPosY(prg->cam.states[0], -1.f, prg->step.updateTickrate);
 		}
 
 		if(prg->keyStates[SDL_SCANCODE_W]){
-			cameraStateAddPosZ(prg->cam.states[0], -0.25f, prg->step.updateTickrate);
+			cameraStateAddPosZ(prg->cam.states[0], -1.f, prg->step.updateTickrate);
 		}
 		if(prg->keyStates[SDL_SCANCODE_S]){
-			cameraStateAddPosZ(prg->cam.states[0], 0.25f, prg->step.updateTickrate);
+			cameraStateAddPosZ(prg->cam.states[0], 1.f, prg->step.updateTickrate);
 		}
 	}
 }
 
 static void updateObjects(program *prg){
-	/*size_t a;
-	// Create a new state for all of our renderObjects!
-	for(a = 0; a < allRenderObjects.size; ++a){
-		renderObject *currentObj = ((renderObject *)vectorGet(&allRenderObjects, a));
-		renderObjStateShift(currentObj);
-
-		renderObjState *currentState = (renderObjState *)currentObj->states[0];
-		if(currentState != NULL){
-			texGroupAnimInstUpdateAnim(&currentState->texGroup, prg->step.updateTime);
-
-			if(currentState->skeleObj->numAnims > 0){
-				skeletonAnimInst *curAnim = currentState->skeleObj->anims;
-				skeletonAnimInst *lastAnim = &curAnim[currentState->skeleObj->numAnims];
-				// Update all of the animations!
-				do {
-					skeleAnimInstUpdate((skeletonAnimState *)curAnim->states[0], prg->step.updateTime);
-				} while(curAnim < lastAnim);
-
-				// Merge all of the animations!
-				//
-
-				// Find the bones' global positions!
-				skeleObjGenerateRenderState(currentState->skeleObj);
-			}
-		}
-	}*/
-
+	MEMSINGLELIST_LOOP_BEGIN(objectManager, curObj, object *)
+		objectUpdate(curObj, prg->step.updateTime);
+	MEMSINGLELIST_LOOP_END(objectManager, curObj, object *, return)
 
 	// Update the models' positions and rotations!
 	/** Temporary if statement for temporary code. Don't want the program to crash, do we? **/
@@ -254,9 +231,6 @@ static void updateObjects(program *prg){
 		currentObj = ((renderObject *)vectorGet(&allRenderObjects, 2))->states[0];
 		interpTransAddRotEulerDeg(&currentObj->transform, 2.f, 2.f, 2.f, prg->step.updateTickrate);
 	}*/
-	MEMSINGLELIST_LOOP_BEGIN(objectManager, curObj, object *)
-		objectUpdate(curObj, prg->step.updateTime);
-	MEMSINGLELIST_LOOP_END(objectManager, curObj, object *, return)
 }
 
 /** Don't forget, some modules may not always be loaded! **/
@@ -281,8 +255,8 @@ static void render(program *prg){
 		mat4LookAt(&viewMatrix, &camPos, &target, &up);
 		// Multiply it by the projection matrix!
 		mat4MultiplyByMat4Out(prg->projectionMatrix, viewMatrix, &viewProjectionMatrix);
-		viewProjectionMatrix = prg->projectionMatrix;
-		cameraStateGenerateViewMatrix((cameraState *)prg->cam.states[renderState], prg->step.renderDelta, &viewProjectionMatrix);
+		//viewProjectionMatrix = prg->projectionMatrix;
+		//cameraStateGenerateViewMatrix((cameraState *)prg->cam.states[renderState], prg->step.renderDelta, &viewProjectionMatrix);
 
 		/*size_t i;
 		// Draw our objects!
@@ -391,7 +365,7 @@ static void initResources(){
 	/*renderObjCreate(5);
 	renderObjState *currentObj = ((renderObject *)vectorGet(&allRenderObjects, allRenderObjects.size - 1))->states[0];
 	if(loadedSkeleAnims.size > 0){
-		skeleObjAddAnim(currentObj->skeleObj, (skeletonAnim *)vectorGet(&loadedSkeleAnims, 0));
+		skeleObjAddAnim(currentObj->skeleObj, (skeletonAnimDef *)vectorGet(&loadedSkeleAnims, 0));
 	}
 	interpTransSetPosX(&currentObj->transform, -2.f);
 
@@ -406,8 +380,8 @@ static void initResources(){
 	model *mdl = moduleModelAlloc();
 	renderableDef *renderDef = moduleRenderableDefAlloc();
 	objectDef *objDef = moduleObjectDefAlloc();
-	object *obj = moduleObjectAlloc();
 
+	object *obj = moduleObjectAlloc();
 	boneState *curBoneState;
 	const boneState *lastBoneState;
 
@@ -417,15 +391,26 @@ static void initResources(){
 	objectDefInit(objDef);
 	objDef->skele = mdl->skele;
 	objDef->renderables = renderDef;
+	// Temporary animation stuff.
+	objDef->animDefs = memoryManagerGlobalAlloc(sizeof(*objDef->animDefs) * 1);
+	objDef->animDefs[0] = moduleSkeleAnimDefAlloc();
+	//skeleAnimLoadSMD(objDef->animDefs[0], "soldier_animations_anims_old\\stand_melee.smd");
+	//objDef->animDefs[1] = moduleSkeleAnimDefAlloc();
+	skeleAnimLoadSMD(objDef->animDefs[0], "soldier_animations_anims_old\\a_runN_melee.smd");
+	objDef->numAnims = 1;
+
 	objectInit(obj, objDef);
-
-
 	obj->bones = memoryManagerGlobalAlloc(sizeof(*obj->bones) * mdl->skele->numBones);
 	curBoneState = obj->bones;
 	lastBoneState = &(obj->bones[mdl->skele->numBones]);
 	for(; curBoneState < lastBoneState; ++curBoneState){
 		transformStateInit(curBoneState);
 	}
+	// More temporary animation stuff.
+	//obj->anims = moduleSkeleAnimPrepend(&obj->anims);
+	//skeleAnimInit(obj->anims, objDef->animDefs[1]);
+	obj->anims = moduleSkeleAnimPrepend(&obj->anims);
+	skeleAnimInit(obj->anims, objDef->animDefs[0]);
 }
 
 // Set up the allocators for our modules.
@@ -479,7 +464,7 @@ static return_t setupModules(){
 
 static void cleanupModules(){
 	puts("Beginning cleanup...\n");
-	memTreePrintAllSizes(&memManager);
+	//memTreePrintAllSizes(&memManager);
 
 	#ifdef MODULE_OBJECT
 	moduleObjectCleanup();

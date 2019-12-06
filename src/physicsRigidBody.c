@@ -479,7 +479,7 @@ void physRigidBodyIntegratePositionSymplecticEuler(physicsRigidBody *body, const
 	quatIntegrate(&body->transform.rot, &body->angularVelocity, dt);
 	// Don't forget to normalize it, as
 	// this process can introduce errors.
-	quatNormalizeQuat(&body->transform.rot);
+	quatNormalizeQuatFast(&body->transform.rot);
 }
 
 
@@ -554,7 +554,7 @@ void physRigidBodyApplyImpulsePosition(physicsRigidBody *body, const vec3 *r, co
 	mat3MultiplyByVec3(&body->invInertiaGlobal, &impulse);
 	quatDifferentiateOut(&body->transform.rot, &impulse, &tempRot);
 	quatAddVec4(&body->transform.rot, &tempRot);
-	quatNormalizeQuat(&body->transform.rot);
+	quatNormalizeQuatFast(&body->transform.rot);
 }
 
 // Subtract a translational and rotational impulse from a rigid body's position.
@@ -571,7 +571,7 @@ void physRigidBodyApplyImpulsePositionInverse(physicsRigidBody *body, const vec3
 	mat3MultiplyByVec3(&body->invInertiaGlobal, &impulse);
 	quatDifferentiateOut(&body->transform.rot, &impulse, &tempRot);
 	quatSubtractVec4From(&body->transform.rot, &tempRot);
-	quatNormalizeQuat(&body->transform.rot);
+	quatNormalizeQuatFast(&body->transform.rot);
 }
 #endif
 

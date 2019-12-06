@@ -142,6 +142,26 @@ void normalBasis(const vec3 *a, vec3 *b, vec3 *c){
 }
 
 /*
+** Compute an orthonormal basis from the normalised vector
+** "a" and store the other two vectors in "b" and "c".
+**
+** Special thanks to Erin Catto for this implementation!
+*/
+void normalBasisFast(const vec3 *a, vec3 *b, vec3 *c){
+	// The magic number "0x3F13CD3A" is approximately equivalent to the
+	// square root of 1 over 3. In three dimensions, at least one component
+	// of any unit vector must be greater than or equal to this number.
+	if(fabsf(a->x) >= SQRT_ONE_THIRD){
+		vec3InitSet(b, a->y, -a->x, 0.f);
+	}else{
+		vec3InitSet(b, 0.f, a->z, -a->y);
+	}
+
+	vec3NormalizeVec3Fast(b);
+	vec3CrossVec3Out(a, b, c);
+}
+
+/*
 ** Find the two closest points on two line segments,
 ** with starting points "sn" and ending points "en",
 ** and store the new points in the variables "pn".

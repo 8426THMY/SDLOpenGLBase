@@ -961,7 +961,7 @@ static float edgeDistSquared(const vec3 *pA, const vec3 *edgeDirA,
 	}
 
 
-	vec3MultiplyS(&edgeNormal, fastInvSqrtAccurate(edgeCrossLength));
+	vec3MultiplyS(&edgeNormal, invSqrt(edgeCrossLength));
 	vec3SubtractVec3FromOut(pA, centroid, &offset);
 	// If the edge normal does not point from
 	// object A to object B, we need to invert it.
@@ -1689,7 +1689,7 @@ static void clipEdgeContact(const colliderHull *hullA, const colliderHull *hullB
 	// Find the collision's normal. We use the
 	// cross product of the two intersecting edges.
 	vec3CrossVec3Out(&ref, &inc, &normal);
-	vec3NormalizeVec3(&normal);
+	vec3NormalizeVec3Fast(&normal);
 	// We'll need to make sure the normal roughly
 	// points from body A to body B, too.
 	if(vec3DotVec3(&normal, &normalDir) < 0.f){

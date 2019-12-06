@@ -8,7 +8,7 @@
 #include "mat3.h"
 
 
-static mat4 identityMat4 = {
+mat4 identityMat4 = {
 	.m[0][0] = 1.f, .m[0][1] = 0.f, .m[0][2] = 0.f, .m[0][3] = 0.f,
 	.m[1][0] = 0.f, .m[1][1] = 1.f, .m[1][2] = 0.f, .m[1][3] = 0.f,
 	.m[2][0] = 0.f, .m[2][1] = 0.f, .m[2][2] = 1.f, .m[2][3] = 0.f,
@@ -843,7 +843,7 @@ void mat4RotateAxisAngle(mat4 *m, const vec4 *v){
 
 	// Normalize the axis!
 	vec3 normalAxis;
-	vec3Normalize(v->x, v->y, v->z, &normalAxis);
+	vec3NormalizeFast(v->x, v->y, v->z, &normalAxis);
 	vec3 tempAxis;
 	vec3MultiplySOut(&normalAxis, t, &tempAxis);
 
@@ -886,7 +886,7 @@ mat4 mat4RotateAxisAngleR(const mat4 m, const vec4 v){
 	const float t = 1.f - c;
 
 	// Normalize the axis!
-	const vec3 normalAxis = vec3NormalizeR(v.x, v.y, v.z);
+	const vec3 normalAxis = vec3NormalizeFastR(v.x, v.y, v.z);
 	const vec3 tempAxis = vec3MultiplySR(normalAxis, t);
 
 	// Convert the axis angle to a rotation matrix! Note that this is
@@ -1953,10 +1953,10 @@ mat4 mat4PerspectiveOldR(const float fov, const float aspectRatio, const float n
 void mat4LookAt(mat4 *m, const vec3 *eye, const vec3 *target, const vec3 *worldUp){
 	vec3 right, up, forward;
 	// Get the forward vector!
-	vec3Normalize(eye->x - target->x, eye->y - target->y, eye->z - target->z, &forward);
+	vec3NormalizeFast(eye->x - target->x, eye->y - target->y, eye->z - target->z, &forward);
 	// Get the right vector!
 	vec3CrossVec3Out(worldUp, &forward, &right);
-	vec3NormalizeVec3(&right);
+	vec3NormalizeVec3Fast(&right);
 	// Get the up vector!
 	vec3CrossVec3Out(&forward, &right, &up);
 
@@ -1984,8 +1984,8 @@ void mat4LookAt(mat4 *m, const vec3 *eye, const vec3 *target, const vec3 *worldU
 
 // Generate a look-at matrix!
 mat4 mat4LookAtR(const vec3 eye, const vec3 target, const vec3 worldUp){
-	const vec3 forward = vec3NormalizeVec3R(vec3SubtractVec3FromR(eye, target));
-	const vec3 right = vec3NormalizeVec3R(vec3CrossVec3R(worldUp, forward));
+	const vec3 forward = vec3NormalizeVec3FastR(vec3SubtractVec3FromR(eye, target));
+	const vec3 right = vec3NormalizeVec3FastR(vec3CrossVec3R(worldUp, forward));
 	const vec3 up = vec3CrossVec3R(forward, right);
 	mat4 m;
 

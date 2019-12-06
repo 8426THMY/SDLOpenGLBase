@@ -47,4 +47,7 @@ return_t mat3CanInvert(mat3 *m);
 return_t mat3CanInvertOut(const mat3 m, mat3 *out);
 
 
+extern mat3 identityMat3;
+
+
 #endif

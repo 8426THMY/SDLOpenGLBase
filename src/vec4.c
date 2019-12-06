@@ -581,7 +581,7 @@ float vec4NormVec4R(const vec4 v){
 
 // Normalize a vec4 stored as four floats and store the result in "out"!
 void vec4Normalize(const float x, const float y, const float z, const float w, vec4 *out){
-	const float magnitude = fastInvSqrtAccurate(x * x + y * y + z * z + w * w);
+	const float magnitude = invSqrt(x * x + y * y + z * z + w * w);
 
 	out->x = x * magnitude;
 	out->y = y * magnitude;
@@ -591,7 +591,7 @@ void vec4Normalize(const float x, const float y, const float z, const float w, v
 
 // Normalize a vec4 stored as four floats and store the result in "out"!
 void vec4NormalizeFast(const float x, const float y, const float z, const float w, vec4 *out){
-	const float magnitude = fastInvSqrt(x * x + y * y + z * z + w * w);
+	const float magnitude = invSqrtFast(x * x + y * y + z * z + w * w);
 
 	out->x = x * magnitude;
 	out->y = y * magnitude;
@@ -601,7 +601,7 @@ void vec4NormalizeFast(const float x, const float y, const float z, const float 
 
 // Normalize a vec4 stored as four floats!
 vec4 vec4NormalizeR(const float x, const float y, const float z, const float w){
-	const float magnitude = fastInvSqrtAccurate(x * x + y * y + z * z + w * w);
+	const float magnitude = invSqrt(x * x + y * y + z * z + w * w);
 	vec4 v;
 
 	v.x = x * magnitude;
@@ -613,8 +613,8 @@ vec4 vec4NormalizeR(const float x, const float y, const float z, const float w){
 }
 
 // Normalize a vec4 stored as four floats!
-vec4 vec4NormalizeRFast(const float x, const float y, const float z, const float w){
-	const float magnitude = fastInvSqrt(x * x + y * y + z * z + w * w);
+vec4 vec4NormalizeFastR(const float x, const float y, const float z, const float w){
+	const float magnitude = invSqrtFast(x * x + y * y + z * z + w * w);
 	vec4 v;
 
 	v.x = x * magnitude;
@@ -627,7 +627,7 @@ vec4 vec4NormalizeRFast(const float x, const float y, const float z, const float
 
 // Normalize a vec4!
 void vec4NormalizeVec4(vec4 *v){
-	const float magnitude = fastInvSqrtAccurate(v->x * v->x + v->y * v->y + v->z * v->z + v->w * v->w);
+	const float magnitude = invSqrt(v->x * v->x + v->y * v->y + v->z * v->z + v->w * v->w);
 
 	v->x *= magnitude;
 	v->y *= magnitude;
@@ -637,7 +637,7 @@ void vec4NormalizeVec4(vec4 *v){
 
 // Normalize a vec4!
 void vec4NormalizeVec4Fast(vec4 *v){
-	const float magnitude = fastInvSqrt(v->x * v->x + v->y * v->y + v->z * v->z + v->w * v->w);
+	const float magnitude = invSqrtFast(v->x * v->x + v->y * v->y + v->z * v->z + v->w * v->w);
 
 	v->x *= magnitude;
 	v->y *= magnitude;
@@ -647,7 +647,7 @@ void vec4NormalizeVec4Fast(vec4 *v){
 
 // Normalize a vec4 and store the result in "out"!
 void vec4NormalizeVec4Out(const vec4 *v, vec4 *out){
-	const float magnitude = fastInvSqrtAccurate(v->x * v->x + v->y * v->y + v->z * v->z + v->w * v->w);
+	const float magnitude = invSqrt(v->x * v->x + v->y * v->y + v->z * v->z + v->w * v->w);
 
 	out->x = v->x * magnitude;
 	out->y = v->y * magnitude;
@@ -656,8 +656,8 @@ void vec4NormalizeVec4Out(const vec4 *v, vec4 *out){
 }
 
 // Normalize a vec4 and store the result in "out"!
-void vec4NormalizeVec4OutFast(const vec4 *v, vec4 *out){
-	const float magnitude = fastInvSqrt(v->x * v->x + v->y * v->y + v->z * v->z + v->w * v->w);
+void vec4NormalizeVec4FastOut(const vec4 *v, vec4 *out){
+	const float magnitude = invSqrtFast(v->x * v->x + v->y * v->y + v->z * v->z + v->w * v->w);
 
 	out->x = v->x * magnitude;
 	out->y = v->y * magnitude;
@@ -667,7 +667,7 @@ void vec4NormalizeVec4OutFast(const vec4 *v, vec4 *out){
 
 // Normalize a vec4!
 vec4 vec4NormalizeVec4R(vec4 v){
-	const float magnitude = fastInvSqrtAccurate(v.x * v.x + v.y * v.y + v.z * v.z + v.w * v.w);
+	const float magnitude = invSqrt(v.x * v.x + v.y * v.y + v.z * v.z + v.w * v.w);
 
 	v.x *= magnitude;
 	v.y *= magnitude;
@@ -678,8 +678,8 @@ vec4 vec4NormalizeVec4R(vec4 v){
 }
 
 // Normalize a vec4!
-vec4 vec4NormalizeVec4RFast(vec4 v){
-	const float magnitude = fastInvSqrt(v.x * v.x + v.y * v.y + v.z * v.z + v.w * v.w);
+vec4 vec4NormalizeVec4FastR(vec4 v){
+	const float magnitude = invSqrtFast(v.x * v.x + v.y * v.y + v.z * v.z + v.w * v.w);
 
 	v.x *= magnitude;
 	v.y *= magnitude;

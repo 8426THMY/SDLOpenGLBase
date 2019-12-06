@@ -600,7 +600,7 @@ vec3 vec3CrossVec3R(const vec3 v1, const vec3 v2){
 
 // Normalize a vec3 stored as three floats and store the result in "out"!
 void vec3Normalize(const float x, const float y, const float z, vec3 *out){
-	const float magnitude = fastInvSqrtAccurate(x * x + y * y + z * z);
+	const float magnitude = invSqrt(x * x + y * y + z * z);
 
 	out->x = x * magnitude;
 	out->y = y * magnitude;
@@ -609,7 +609,7 @@ void vec3Normalize(const float x, const float y, const float z, vec3 *out){
 
 // Normalize a vec3 stored as three floats and store the result in "out"!
 void vec3NormalizeFast(const float x, const float y, const float z, vec3 *out){
-	const float magnitude = fastInvSqrt(x * x + y * y + z * z);
+	const float magnitude = invSqrtFast(x * x + y * y + z * z);
 
 	out->x = x * magnitude;
 	out->y = y * magnitude;
@@ -618,7 +618,7 @@ void vec3NormalizeFast(const float x, const float y, const float z, vec3 *out){
 
 // Normalize a vec3 stored as three floats and store the result in "out"!
 vec3 vec3NormalizeR(const float x, const float y, const float z){
-	const float magnitude = fastInvSqrtAccurate(x * x + y * y + z * z);
+	const float magnitude = invSqrt(x * x + y * y + z * z);
 	vec3 v;
 
 	v.x = x * magnitude;
@@ -629,8 +629,8 @@ vec3 vec3NormalizeR(const float x, const float y, const float z){
 }
 
 // Normalize a vec3 stored as three floats and store the result in "out"!
-vec3 vec3NormalizeRFast(const float x, const float y, const float z){
-	const float magnitude = fastInvSqrt(x * x + y * y + z * z);
+vec3 vec3NormalizeFastR(const float x, const float y, const float z){
+	const float magnitude = invSqrtFast(x * x + y * y + z * z);
 	vec3 v;
 
 	v.x = x * magnitude;
@@ -642,7 +642,7 @@ vec3 vec3NormalizeRFast(const float x, const float y, const float z){
 
 // Normalize a vec3!
 void vec3NormalizeVec3(vec3 *v){
-	const float magnitude = fastInvSqrtAccurate(v->x * v->x + v->y * v->y + v->z * v->z);
+	const float magnitude = invSqrt(v->x * v->x + v->y * v->y + v->z * v->z);
 
 	v->x *= magnitude;
 	v->y *= magnitude;
@@ -651,7 +651,7 @@ void vec3NormalizeVec3(vec3 *v){
 
 // Normalize a vec3!
 void vec3NormalizeVec3Fast(vec3 *v){
-	const float magnitude = fastInvSqrt(v->x * v->x + v->y * v->y + v->z * v->z);
+	const float magnitude = invSqrtFast(v->x * v->x + v->y * v->y + v->z * v->z);
 
 	v->x *= magnitude;
 	v->y *= magnitude;
@@ -660,7 +660,7 @@ void vec3NormalizeVec3Fast(vec3 *v){
 
 // Normalize a vec3 and store the result in "out"!
 void vec3NormalizeVec3Out(const vec3 *v, vec3 *out){
-	const float magnitude = fastInvSqrtAccurate(v->x * v->x + v->y * v->y + v->z * v->z);
+	const float magnitude = invSqrt(v->x * v->x + v->y * v->y + v->z * v->z);
 
 	out->x = v->x * magnitude;
 	out->y = v->y * magnitude;
@@ -668,8 +668,8 @@ void vec3NormalizeVec3Out(const vec3 *v, vec3 *out){
 }
 
 // Normalize a vec3 and store the result in "out"!
-void vec3NormalizeVec3OutFast(const vec3 *v, vec3 *out){
-	const float magnitude = fastInvSqrt(v->x * v->x + v->y * v->y + v->z * v->z);
+void vec3NormalizeVec3FastOut(const vec3 *v, vec3 *out){
+	const float magnitude = invSqrtFast(v->x * v->x + v->y * v->y + v->z * v->z);
 
 	out->x = v->x * magnitude;
 	out->y = v->y * magnitude;
@@ -678,7 +678,7 @@ void vec3NormalizeVec3OutFast(const vec3 *v, vec3 *out){
 
 // Normalize a vec3!
 vec3 vec3NormalizeVec3R(vec3 v){
-	const float magnitude = fastInvSqrtAccurate(v.x * v.x + v.y * v.y + v.z * v.z);
+	const float magnitude = invSqrt(v.x * v.x + v.y * v.y + v.z * v.z);
 
 	v.x *= magnitude;
 	v.y *= magnitude;
@@ -688,8 +688,8 @@ vec3 vec3NormalizeVec3R(vec3 v){
 }
 
 // Normalize a vec3!
-vec3 vec3NormalizeVec3RFast(vec3 v){
-	const float magnitude = fastInvSqrt(v.x * v.x + v.y * v.y + v.z * v.z);
+vec3 vec3NormalizeVec3FastR(vec3 v){
+	const float magnitude = invSqrtFast(v.x * v.x + v.y * v.y + v.z * v.z);
 
 	v.x *= magnitude;
 	v.y *= magnitude;

@@ -7,11 +7,12 @@
 #include "utilMath.h"
 
 
-// We'll do linear interpolation if the angle between the two quaternions is less than 1 degree.
-#define QUAT_LERP_EPSILON cos(DEG_TO_RAD)
+// We'll do linear interpolation if the angle between
+// the two quaternions is less than half a degree.
+#define QUAT_LERP_THRESHOLD cos(1.f*DEG_TO_RAD)
 
 
-static quat identityQuat = {
+quat identityQuat = {
 	.x = 0.f,
 	.y = 0.f,
 	.z = 0.f,
@@ -646,14 +647,12 @@ quat quatDivideVec4ByFastR(quat q, const vec4 v){
 
 // Multiply "q1" by "q2" (apply a rotation of "q1" to "q2")!
 void quatMultiplyByQuat(quat *q1, const quat *q2){
-	quat result;
+	quat tempQuat = *q1;
 
-	result.x = q1->w * q2->x + q1->x * q2->w + q1->y * q2->z - q1->z * q2->y;
-	result.y = q1->w * q2->y + q1->y * q2->w + q1->z * q2->x - q1->x * q2->z;
-	result.z = q1->w * q2->z + q1->z * q2->w + q1->x * q2->y - q1->y * q2->x;
-	result.w = q1->w * q2->w - q1->x * q2->x - q1->y * q2->y - q1->z * q2->z;
-
-	*q1 = result;
+	q1->x = tempQuat.w * q2->x + tempQuat.x * q2->w + tempQuat.y * q2->z - tempQuat.z * q2->y;
+	q1->y = tempQuat.w * q2->y + tempQuat.y * q2->w + tempQuat.z * q2->x - tempQuat.x * q2->z;
+	q1->z = tempQuat.w * q2->z + tempQuat.z * q2->w + tempQuat.x * q2->y - tempQuat.y * q2->x;
+	q1->w = tempQuat.w * q2->w - tempQuat.x * q2->x - tempQuat.y * q2->y - tempQuat.z * q2->z;
 }
 
 // Multiply "q2" by "q1" (apply a rotation of "q2" to "q1")!
@@ -666,8 +665,16 @@ void quatMultiplyQuatBy(quat *q1, const quat *q2){
 	q1->w = q2->w * tempQuat.w - q2->x * tempQuat.x - q2->y * tempQuat.y - q2->z * tempQuat.z;
 }
 
-// Multiply "q1" by "q2" (apply a rotation of "q1" to "q2") and store the result in "q1"! This assumes that "out" isn't "q1" or "q2".
-void quatMultiplyByQuatOut(const quat *q1, const quat *q2, quat *out){
+// Multiply "q1" by "q2" (apply a rotation of "q1" to "q2") and store the result in "out"!
+void quatMultiplyByQuatOut(const quat q1, const quat q2, quat *out){
+	out->x = q1.w * q2.x + q1.x * q2.w + q1.y * q2.z - q1.z * q2.y;
+	out->y = q1.w * q2.y + q1.y * q2.w + q1.z * q2.x - q1.x * q2.z;
+	out->z = q1.w * q2.z + q1.z * q2.w + q1.x * q2.y - q1.y * q2.x;
+	out->w = q1.w * q2.w - q1.x * q2.x - q1.y * q2.y - q1.z * q2.z;
+}
+
+// Multiply "q1" by "q2" (apply a rotation of "q1" to "q2") and store the result in "out"! This assumes that "out" isn't "q1" or "q2".
+void quatMultiplyByQuatFastOut(const quat *q1, const quat *q2, quat *out){
 	out->x = q1->w * q2->x + q1->x * q2->w + q1->y * q2->z - q1->z * q2->y;
 	out->y = q1->w * q2->y + q1->y * q2->w + q1->z * q2->x - q1->x * q2->z;
 	out->z = q1->w * q2->z + q1->z * q2->w + q1->x * q2->y - q1->y * q2->x;
@@ -867,7 +874,7 @@ float quatNormQuatR(const quat q){
 
 // Normalize a quaternion stored as four floats and store the result in "out"!
 void quatNormalize(const float x, const float y, const float z, const float w, quat *out){
-	const float magnitude = fastInvSqrtAccurate(x * x + y * y + z * z + w * w);
+	const float magnitude = invSqrt(x * x + y * y + z * z + w * w);
 
 	out->x = x * magnitude;
 	out->y = y * magnitude;
@@ -877,7 +884,7 @@ void quatNormalize(const float x, const float y, const float z, const float w, q
 
 // Normalize a quaternion stored as four floats and store the result in "out"!
 void quatNormalizeFast(const float x, const float y, const float z, const float w, quat *out){
-	const float magnitude = fastInvSqrt(x * x + y * y + z * z + w * w);
+	const float magnitude = invSqrtFast(x * x + y * y + z * z + w * w);
 
 	out->x = x * magnitude;
 	out->y = y * magnitude;
@@ -887,7 +894,7 @@ void quatNormalizeFast(const float x, const float y, const float z, const float 
 
 // Normalize a quaternion stored as four floats!
 quat quatNormalizeR(const float x, const float y, const float z, const float w){
-	const float magnitude = fastInvSqrtAccurate(x * x + y * y + z * z + w * w);
+	const float magnitude = invSqrt(x * x + y * y + z * z + w * w);
 	quat q;
 
 	q.x = x * magnitude;
@@ -899,8 +906,8 @@ quat quatNormalizeR(const float x, const float y, const float z, const float w){
 }
 
 // Normalize a quaternion stored as four floats!
-quat quatNormalizeRFast(const float x, const float y, const float z, const float w){
-	const float magnitude = fastInvSqrt(x * x + y * y + z * z + w * w);
+quat quatNormalizeFastR(const float x, const float y, const float z, const float w){
+	const float magnitude = invSqrtFast(x * x + y * y + z * z + w * w);
 	quat q;
 
 	q.x = x * magnitude;
@@ -913,7 +920,7 @@ quat quatNormalizeRFast(const float x, const float y, const float z, const float
 
 // Normalize a quaternion!
 void quatNormalizeQuat(quat *q){
-	const float magnitude = fastInvSqrtAccurate(q->x * q->x + q->y * q->y + q->z * q->z + q->w * q->w);
+	const float magnitude = invSqrt(q->x * q->x + q->y * q->y + q->z * q->z + q->w * q->w);
 
 	q->x *= magnitude;
 	q->y *= magnitude;
@@ -923,7 +930,7 @@ void quatNormalizeQuat(quat *q){
 
 // Normalize a quaternion!
 void quatNormalizeQuatFast(quat *q){
-	const float magnitude = fastInvSqrt(q->x * q->x + q->y * q->y + q->z * q->z + q->w * q->w);
+	const float magnitude = invSqrtFast(q->x * q->x + q->y * q->y + q->z * q->z + q->w * q->w);
 
 	q->x *= magnitude;
 	q->y *= magnitude;
@@ -933,7 +940,7 @@ void quatNormalizeQuatFast(quat *q){
 
 // Normalize a quaternion and store the result in "out"!
 void quatNormalizeQuatOut(const quat *q, quat *out){
-	const float magnitude = fastInvSqrtAccurate(q->x * q->x + q->y * q->y + q->z * q->z + q->w * q->w);
+	const float magnitude = invSqrt(q->x * q->x + q->y * q->y + q->z * q->z + q->w * q->w);
 
 	out->x = q->x * magnitude;
 	out->y = q->y * magnitude;
@@ -942,8 +949,8 @@ void quatNormalizeQuatOut(const quat *q, quat *out){
 }
 
 // Normalize a quaternion and store the result in "out"!
-void quatNormalizeQuatOutFast(const quat *q, quat *out){
-	const float magnitude = fastInvSqrt(q->x * q->x + q->y * q->y + q->z * q->z + q->w * q->w);
+void quatNormalizeQuatFastOut(const quat *q, quat *out){
+	const float magnitude = invSqrtFast(q->x * q->x + q->y * q->y + q->z * q->z + q->w * q->w);
 
 	out->x = q->x * magnitude;
 	out->y = q->y * magnitude;
@@ -953,7 +960,7 @@ void quatNormalizeQuatOutFast(const quat *q, quat *out){
 
 // Normalize a quaternion!
 quat quatNormalizeQuatR(quat q){
-	const float magnitude = fastInvSqrtAccurate(q.x * q.x + q.y * q.y + q.z * q.z + q.w * q.w);
+	const float magnitude = invSqrt(q.x * q.x + q.y * q.y + q.z * q.z + q.w * q.w);
 
 	q.x *= magnitude;
 	q.y *= magnitude;
@@ -964,8 +971,8 @@ quat quatNormalizeQuatR(quat q){
 }
 
 // Normalize a quaternion!
-quat quatNormalizeQuatRFast(quat q){
-	const float magnitude = fastInvSqrt(q.x * q.x + q.y * q.y + q.z * q.z + q.w * q.w);
+quat quatNormalizeQuatFastR(quat q){
+	const float magnitude = invSqrtFast(q.x * q.x + q.y * q.y + q.z * q.z + q.w * q.w);
 
 	q.x *= magnitude;
 	q.y *= magnitude;
@@ -1014,6 +1021,7 @@ void quatConjugateFast(quat *q){
 
 // Find the conjugate of a quaternion and store the result in "out"!
 void quatConjugateFastOut(const quat *q, quat *out){
+	*out = *q;
 	out->w = -q->w;
 }
 
@@ -1028,7 +1036,7 @@ quat quatConjugateFastR(quat q){
 // Convert a quaternion to an axis and an angle and store the result in "out"!
 void quatToAxisAngle(const quat *q, vec4 *out){
 	if(q->w > -1.f && q->w < 1.f){
-		const float scale = fastInvSqrt(1.f - q->w * q->w);
+		const float scale = invSqrt(1.f - q->w * q->w);
 
 		out->x = q->x * scale;
 		out->y = q->y * scale;
@@ -1044,7 +1052,7 @@ void quatToAxisAngle(const quat *q, vec4 *out){
 // Convert a quaternion to an axis and an angle and store the result in "out"!
 void quatToAxisAngleFast(const quat *q, vec4 *out){
 	if(q->w > -1.f && q->w < 1.f){
-		const float scale = fastInvSqrtAccurate(1.f - q->w * q->w);
+		const float scale = invSqrtFast(1.f - q->w * q->w);
 
 		out->x = q->x * scale;
 		out->y = q->y * scale;
@@ -1062,7 +1070,7 @@ vec4 quatToAxisAngleR(const quat q){
 	vec4 v;
 
 	if(q.w > -1.f && q.w < 1.f){
-		const float scale = fastInvSqrtAccurate(1.f - q.w * q.w);
+		const float scale = invSqrt(1.f - q.w * q.w);
 
 		v.x = q.x * scale;
 		v.y = q.y * scale;
@@ -1078,11 +1086,11 @@ vec4 quatToAxisAngleR(const quat q){
 }
 
 // Convert a quaternion to an axis and an angle!
-vec4 quatToAxisAngleRFast(const quat q){
+vec4 quatToAxisAngleFastR(const quat q){
 	vec4 v;
 
 	if(q.w > -1.f && q.w < 1.f){
-		const float scale = fastInvSqrt(1.f - q.w * q.w);
+		const float scale = invSqrtFast(1.f - q.w * q.w);
 
 		v.x = q.x * scale;
 		v.y = q.y * scale;
@@ -1141,8 +1149,19 @@ quat quatRotateByVec3DegR(const quat q, const vec3 v){
 }
 
 
+// Perform linear interpolation between two quaternions!
+void quatLerp(quat *q1, const quat *q2, const float time){
+	q1->x = lerpNum(q1->x, q2->x, time);
+	q1->y = lerpNum(q1->y, q2->y, time);
+	q1->z = lerpNum(q1->z, q2->z, time);
+	q1->w = lerpNum(q1->w, q2->w, time);
+
+	// It's nice to be safe... but it isn't very fast.
+	quatNormalizeQuat(q1);
+}
+
 // Perform linear interpolation between two quaternions and store the result in "out"!
-void quatLerp(const quat *q1, const quat *q2, const float time, quat *out){
+void quatLerpOut(const quat *q1, const quat *q2, const float time, quat *out){
 	out->x = lerpNum(q1->x, q2->x, time);
 	out->y = lerpNum(q1->y, q2->y, time);
 	out->z = lerpNum(q1->z, q2->z, time);
@@ -1164,11 +1183,26 @@ quat quatLerpR(quat q1, const quat q2, const float time){
 }
 
 /*
+** Perform linear interpolation between two quaternions!
+** Instead of entering the two vectors to interpolate between, this function accepts
+** the starting orientation and the difference between it and the ending orientation.
+*/
+void quatLerpFast(quat *q, const quat *offset, const float time){
+	q->x = lerpNumFast(q->x, offset->x, time);
+	q->y = lerpNumFast(q->y, offset->y, time);
+	q->z = lerpNumFast(q->z, offset->z, time);
+	q->w = lerpNumFast(q->w, offset->w, time);
+
+	// It's nice to be safe... but it isn't very fast.
+	quatNormalizeQuat(q);
+}
+
+/*
 ** Perform linear interpolation between two quaternions and store the result in "out"!
 ** Instead of entering the two vectors to interpolate between, this function accepts
 ** the starting orientation and the difference between it and the ending orientation.
 */
-void quatLerpFast(const quat *q, const quat *offset, const float time, quat *out){
+void quatLerpFastOut(const quat *q, const quat *offset, const float time, quat *out){
 	out->x = lerpNumFast(q->x, offset->x, time);
 	out->y = lerpNumFast(q->y, offset->y, time);
 	out->z = lerpNumFast(q->z, offset->z, time);
@@ -1193,16 +1227,48 @@ quat quatLerpFastR(quat q, const quat offset, const float time){
 	return(quatNormalizeQuatR(q));
 }
 
+// Perform spherical linear interpolation between two quaternions!
+void quatSlerp(quat *q1, const quat *q2, const float time){
+	const float cosTheta = quatDotQuat(q1, q2);
+	const float absCosTheta = fabsf(cosTheta);
+	// We can perform linear interpolation if the angle is
+	// small enough (in this case, less than half a degree).
+	if(absCosTheta > QUAT_LERP_THRESHOLD){
+		quatLerp(q1, q2, time);
+	}else{
+		const float theta = acosf(absCosTheta);
+		const float invSinTheta = 1.f / sinf(theta);
+		const float sinThetaInvT = sinf(theta * (1.f - time)) * invSinTheta;
+		// If the dot product is negative, the interpolation won't take the shortest path.
+		// We can fix this easily by negating the second quaternion.
+		float sinThetaT;
+		if(cosTheta >= 0.f){
+			sinThetaT = sinf(theta * time) * invSinTheta;
+		}else{
+			sinThetaT = -(sinf(theta * time) * invSinTheta);
+		}
+
+		q1->x = q1->x * sinThetaInvT + q2->x * sinThetaT;
+		q1->y = q1->y * sinThetaInvT + q2->y * sinThetaT;
+		q1->z = q1->z * sinThetaInvT + q2->z * sinThetaT;
+		q1->w = q1->w * sinThetaInvT + q2->w * sinThetaT;
+
+		// It's nice to be safe... but it isn't very fast.
+		quatNormalizeQuat(q1);
+	}
+}
+
 /*
 ** Perform spherical linear interpolation between
 ** two quaternions and store the result in "out"!
 */
-void quatSlerp(const quat *q1, const quat *q2, const float time, quat *out){
+void quatSlerpOut(const quat *q1, const quat *q2, const float time, quat *out){
 	const float cosTheta = quatDotQuat(q1, q2);
 	const float absCosTheta = fabsf(cosTheta);
-	// We can perform linear interpolation of the angle is small enough (in this case, less than 1 degree).
-	if(absCosTheta > QUAT_LERP_EPSILON){
-		quatLerp(q1, q2, time, out);
+	// We can perform linear interpolation if the angle is
+	// small enough (in this case, less than half a degree).
+	if(absCosTheta > QUAT_LERP_THRESHOLD){
+		quatLerpOut(q1, q2, time, out);
 	}else{
 		const float theta = acosf(absCosTheta);
 		const float invSinTheta = 1.f / sinf(theta);
@@ -1230,8 +1296,9 @@ void quatSlerp(const quat *q1, const quat *q2, const float time, quat *out){
 quat quatSlerpR(quat q1, const quat q2, const float time){
 	const float cosTheta = quatDotQuatR(q1, q2);
 	const float absCosTheta = fabsf(cosTheta);
-	// We can perform linear interpolation of the angle is small enough (in this case, less than 1 degree).
-	if(absCosTheta > QUAT_LERP_EPSILON){
+	// We can perform linear interpolation if the angle is
+	// small enough (in this case, less than half a degree).
+	if(absCosTheta > QUAT_LERP_THRESHOLD){
 		return(quatLerpR(q1, q2, time));
 	}else{
 		const float theta = acosf(absCosTheta);
@@ -1254,9 +1321,6 @@ quat quatSlerpR(quat q1, const quat q2, const float time){
 		// It's nice to be safe... but it isn't very fast.
 		return(quatNormalizeQuatR(q1));
 	}
-
-	// If we couldn't interpolate the quaternion, return the original one!
-	return(q1);
 }
 
 /*
@@ -1265,15 +1329,51 @@ quat quatSlerpR(quat q1, const quat q2, const float time){
 ** Note: Although this should be significantly faster than
 ** the former method, it may also be slightly less accurate.
 */
-void quatSlerpFast(const quat *q1, const quat *q2, const float time, quat *out){
+void quatSlerpFast(quat *q1, const quat *q2, const float time){
 	const float cosTheta = quatDotQuat(q1, q2);
 	const float absCosTheta = fabsf(cosTheta);
-	// We can perform linear interpolation of the angle is small enough (in this case, less than 1 degree).
-	if(absCosTheta > QUAT_LERP_EPSILON){
-		quatLerp(q1, q2, time, out);
+	// We can perform linear interpolation if the angle is
+	// small enough (in this case, less than half a degree).
+	if(absCosTheta > QUAT_LERP_THRESHOLD){
+		quatLerp(q1, q2, time);
 	}else{
 		const float theta = acosf(absCosTheta);
-		const float sinTheta = fastInvSqrt(1.f - absCosTheta * absCosTheta);
+		const float sinTheta = invSqrtFast(1.f - absCosTheta * absCosTheta);
+		const float sinThetaInvT = sinf(theta * (1.f - time)) * sinTheta;
+		// If the dot product is negative, the interpolation won't take the shortest path.
+		// We can fix this easily by negating the second quaternion.
+		float sinThetaT;
+		if(cosTheta >= 0.f){
+			sinThetaT = sinf(theta * time) * sinTheta;
+		}else{
+			sinThetaT = -(sinf(theta * time) * sinTheta);
+		}
+
+		q1->x = q1->x * sinThetaInvT + q2->x * sinThetaT;
+		q1->y = q1->y * sinThetaInvT + q2->y * sinThetaT;
+		q1->z = q1->z * sinThetaInvT + q2->z * sinThetaT;
+		q1->w = q1->w * sinThetaInvT + q2->w * sinThetaT;
+
+		// It's nice to be safe... but it isn't very fast.
+		quatNormalizeQuatFast(q1);
+	}
+}
+
+/*
+** Perform spherical linear interpolation between
+** two quaternions using an optimized algorithm
+** and store the result in "out"!
+*/
+void quatSlerpFastOut(const quat *q1, const quat *q2, const float time, quat *out){
+	const float cosTheta = quatDotQuat(q1, q2);
+	const float absCosTheta = fabsf(cosTheta);
+	// We can perform linear interpolation if the angle is
+	// small enough (in this case, less than half a degree).
+	if(absCosTheta > QUAT_LERP_THRESHOLD){
+		quatLerpOut(q1, q2, time, out);
+	}else{
+		const float theta = acosf(absCosTheta);
+		const float sinTheta = invSqrtFast(1.f - absCosTheta * absCosTheta);
 		const float sinThetaInvT = sinf(theta * (1.f - time)) * sinTheta;
 		// If the dot product is negative, the interpolation won't take the shortest path.
 		// We can fix this easily by negating the second quaternion.
@@ -1290,7 +1390,7 @@ void quatSlerpFast(const quat *q1, const quat *q2, const float time, quat *out){
 		out->w = q1->w * sinThetaInvT + q2->w * sinThetaT;
 
 		// It's nice to be safe... but it isn't very fast.
-		quatNormalizeQuat(out);
+		quatNormalizeQuatFast(out);
 	}
 }
 
@@ -1298,12 +1398,13 @@ void quatSlerpFast(const quat *q1, const quat *q2, const float time, quat *out){
 quat quatSlerpFastR(quat q1, const quat q2, const float time){
 	const float cosTheta = quatDotQuatR(q1, q2);
 	const float absCosTheta = fabsf(cosTheta);
-	// We can perform linear interpolation of the angle is small enough (in this case, less than 1 degree).
-	if(absCosTheta > QUAT_LERP_EPSILON){
+	// We can perform linear interpolation if the angle is
+	// small enough (in this case, less than half a degree).
+	if(absCosTheta > QUAT_LERP_THRESHOLD){
 		return(quatLerpR(q1, q2, time));
 	}else{
 		const float theta = acosf(absCosTheta);
-		const float sinTheta = fastInvSqrt(1.f - absCosTheta * absCosTheta);
+		const float sinTheta = invSqrtFast(1.f - absCosTheta * absCosTheta);
 		const float sinThetaInvT = sinf(theta * (1.f - time)) * sinTheta;
 		// If the dot product is negative, the interpolation won't take the shortest path.
 		// We can fix this easily by negating the second quaternion.
@@ -1320,11 +1421,196 @@ quat quatSlerpFastR(quat q1, const quat q2, const float time){
 		q1.w = q1.w * sinThetaInvT + q2.w * sinThetaT;
 
 		// It's nice to be safe... but it isn't very fast.
-		return(quatNormalizeQuatR(q1));
+		return(quatNormalizeQuatFastR(q1));
 	}
+}
 
-	// If we couldn't interpolate the quaternion, return the original one!
-	return(q1);
+
+/*
+** Scale a quaternion by slerping between
+** it and the identity quaternion!
+*/
+void quatScale(quat *q, const float x){
+	const float absCosTheta = fabsf(q->w);
+	// We can perform linear interpolation if the angle is
+	// small enough (in this case, less than half a degree).
+	if(absCosTheta > QUAT_LERP_THRESHOLD){
+		quatMultiplyS(q, x);
+	}else{
+		const float theta = acosf(absCosTheta);
+		const float invSinTheta = 1.f / sinf(theta);
+		const float sinThetaInvT = sinf(theta * (1.f - x)) * invSinTheta;
+		// If the dot product is negative, the interpolation won't take the shortest path.
+		// We can fix this easily by negating the second quaternion.
+		float sinThetaT;
+		if(q->w >= 0.f){
+			sinThetaT = sinf(theta * x) * invSinTheta;
+		}else{
+			sinThetaT = -(sinf(theta * x) * invSinTheta);
+		}
+
+		quatMultiplyS(q, sinThetaT);
+		q->w += sinThetaInvT;
+
+		// It's nice to be safe... but it isn't very fast.
+		quatNormalizeQuatFast(q);
+	}
+}
+
+/*
+** Scale a quaternion by slerping between
+** it and the identity quaternion and store
+** the result in "out"!
+*/
+void quatScaleOut(const quat *q, const float x, quat *out){
+	const float absCosTheta = fabsf(q->w);
+	// We can perform linear interpolation if the angle is
+	// small enough (in this case, less than half a degree).
+	if(absCosTheta > QUAT_LERP_THRESHOLD){
+		quatMultiplySOut(q, x, out);
+	}else{
+		const float theta = acosf(absCosTheta);
+		const float invSinTheta = 1.f / sinf(theta);
+		const float sinThetaInvT = sinf(theta * (1.f - x)) * invSinTheta;
+		// If the dot product is negative, the interpolation won't take the shortest path.
+		// We can fix this easily by negating the second quaternion.
+		float sinThetaT;
+		if(q->w >= 0.f){
+			sinThetaT = sinf(theta * x) * invSinTheta;
+		}else{
+			sinThetaT = -(sinf(theta * x) * invSinTheta);
+		}
+
+		quatMultiplySOut(q, sinThetaT, out);
+		out->w += sinThetaInvT;
+
+		// It's nice to be safe... but it isn't very fast.
+		quatNormalizeQuat(out);
+	}
+}
+
+/*
+** Scale a quaternion by slerping between
+** it and the identity quaternion!
+*/
+quat quatScaleR(quat q, const float x){
+	const float absCosTheta = fabsf(q.w);
+	// We can perform linear interpolation if the angle is
+	// small enough (in this case, less than half a degree).
+	if(absCosTheta > QUAT_LERP_THRESHOLD){
+		return(quatMultiplySR(q, x));
+	}else{
+		const float theta = acosf(absCosTheta);
+		const float invSinTheta = 1.f / sinf(theta);
+		const float sinThetaInvT = sinf(theta * (1.f - x)) * invSinTheta;
+		// If the dot product is negative, the interpolation won't take the shortest path.
+		// We can fix this easily by negating the second quaternion.
+		float sinThetaT;
+		if(q.w >= 0.f){
+			sinThetaT = sinf(theta * x) * invSinTheta;
+		}else{
+			sinThetaT = -(sinf(theta * x) * invSinTheta);
+		}
+
+		q = quatMultiplySR(q, sinThetaT);
+		q.w += sinThetaInvT;
+
+		// It's nice to be safe... but it isn't very fast.
+		return(quatNormalizeQuatR(q));
+	}
+}
+
+/*
+** Scale a quaternion by slerping between
+** it and the identity quaternion!
+**
+** Note: Although this should be significantly faster than
+** the former method, it may also be slightly less accurate.
+*/
+void quatScaleFast(quat *q, const float x){
+	const float absCosTheta = fabsf(q->w);
+	// We can perform linear interpolation if the angle is
+	// small enough (in this case, less than half a degree).
+	if(absCosTheta > QUAT_LERP_THRESHOLD){
+		quatMultiplyS(q, x);
+	}else{
+		const float theta = acosf(absCosTheta);
+		const float sinTheta = invSqrtFast(1.f - absCosTheta * absCosTheta);
+		const float sinThetaInvT = sinf(theta * (1.f - x)) * sinTheta;
+		// If the dot product is negative, the interpolation won't take the shortest path.
+		// We can fix this easily by negating the second quaternion.
+		float sinThetaT;
+		if(q->w >= 0.f){
+			sinThetaT = sinf(theta * x) * sinTheta;
+		}else{
+			sinThetaT = -(sinf(theta * x) * sinTheta);
+		}
+
+		quatMultiplyS(q, sinThetaT);
+		q->w += sinThetaInvT;
+
+		// It's nice to be safe... but it isn't very fast.
+		quatNormalizeQuatFast(q);
+	}
+}
+
+/*
+** Scale a quaternion using an optimized
+** algorithm and store the result in "out"!
+*/
+void quatScaleFastOut(const quat *q, const float x, quat *out){
+	const float absCosTheta = fabsf(q->w);
+	// We can perform linear interpolation if the angle is
+	// small enough (in this case, less than half a degree).
+	if(absCosTheta > QUAT_LERP_THRESHOLD){
+		quatMultiplySOut(q, x, out);
+	}else{
+		const float theta = acosf(absCosTheta);
+		const float sinTheta = invSqrtFast(1.f - absCosTheta * absCosTheta);
+		const float sinThetaInvT = sinf(theta * (1.f - x)) * sinTheta;
+		// If the dot product is negative, the interpolation won't take the shortest path.
+		// We can fix this easily by negating the second quaternion.
+		float sinThetaT;
+		if(q->w >= 0.f){
+			sinThetaT = sinf(theta * x) * sinTheta;
+		}else{
+			sinThetaT = -(sinf(theta * x) * sinTheta);
+		}
+
+		quatMultiplySOut(q, sinThetaT, out);
+		out->w += sinThetaInvT;
+
+		// It's nice to be safe... but it isn't very fast.
+		quatNormalizeQuatFast(out);
+	}
+}
+
+// Scale a quaternion using an optimized algorithm!
+quat quatScaleFastR(quat q, const float x){
+	const float absCosTheta = fabsf(q.w);
+	// We can perform linear interpolation if the angle is
+	// small enough (in this case, less than half a degree).
+	if(absCosTheta > QUAT_LERP_THRESHOLD){
+		return(quatMultiplySR(q, x));
+	}else{
+		const float theta = acosf(absCosTheta);
+		const float sinTheta = invSqrtFast(1.f - absCosTheta * absCosTheta);
+		const float sinThetaInvT = sinf(theta * (1.f - x)) * sinTheta;
+		// If the dot product is negative, the interpolation won't take the shortest path.
+		// We can fix this easily by negating the second quaternion.
+		float sinThetaT;
+		if(q.w >= 0.f){
+			sinThetaT = sinf(theta * x) * sinTheta;
+		}else{
+			sinThetaT = -(sinf(theta * x) * sinTheta);
+		}
+
+		q = quatMultiplySR(q, sinThetaT);
+		q.w += sinThetaInvT;
+
+		// It's nice to be safe... but it isn't very fast.
+		return(quatNormalizeQuatFastR(q));
+	}
 }
 
 
@@ -1359,7 +1645,7 @@ void quatDifferentiateOut(const quat *q, const vec3 *w, quat *out){
 		.w = 0.f
 	};
 
-	quatMultiplyByQuatOut(&spin, q, out);
+	quatMultiplyByQuatFastOut(&spin, q, out);
 }
 
 /*

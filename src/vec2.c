@@ -463,7 +463,7 @@ float vec2NormVec2R(const vec2 v){
 
 // Normalize a vec2 stored as two floats and store the result in "out"!
 void vec2Normalize(const float x, const float y, vec2 *out){
-	const float magnitude = fastInvSqrtAccurate(x * x + y * y);
+	const float magnitude = invSqrt(x * x + y * y);
 
 	out->x = x * magnitude;
 	out->y = y * magnitude;
@@ -471,7 +471,7 @@ void vec2Normalize(const float x, const float y, vec2 *out){
 
 // Normalize a vec2 stored as two floats and store the result in "out"!
 void vec2NormalizeFast(const float x, const float y, vec2 *out){
-	const float magnitude = fastInvSqrt(x * x + y * y);
+	const float magnitude = invSqrtFast(x * x + y * y);
 
 	out->x = x * magnitude;
 	out->y = y * magnitude;
@@ -479,7 +479,7 @@ void vec2NormalizeFast(const float x, const float y, vec2 *out){
 
 // Normalize a vec2 stored as two floats!
 vec2 vec2NormalizeR(const float x, const float y){
-	const float magnitude = fastInvSqrtAccurate(x * x + y * y);
+	const float magnitude = invSqrt(x * x + y * y);
 	vec2 v;
 
 	v.x = x * magnitude;
@@ -489,8 +489,8 @@ vec2 vec2NormalizeR(const float x, const float y){
 }
 
 // Normalize a vec2 stored as two floats!
-vec2 vec2NormalizeRFast(const float x, const float y){
-	const float magnitude = fastInvSqrt(x * x + y * y);
+vec2 vec2NormalizeFastR(const float x, const float y){
+	const float magnitude = invSqrtFast(x * x + y * y);
 	vec2 v;
 
 	v.x = x * magnitude;
@@ -501,7 +501,7 @@ vec2 vec2NormalizeRFast(const float x, const float y){
 
 // Normalize a vec2!
 void vec2NormalizeVec2(vec2 *v){
-	const float magnitude = fastInvSqrtAccurate(v->x * v->x + v->y * v->y);
+	const float magnitude = invSqrt(v->x * v->x + v->y * v->y);
 
 	v->x *= magnitude;
 	v->y *= magnitude;
@@ -509,7 +509,7 @@ void vec2NormalizeVec2(vec2 *v){
 
 // Normalize a vec2!
 void vec2NormalizeVec2Fast(vec2 *v){
-	const float magnitude = fastInvSqrt(v->x * v->x + v->y * v->y);
+	const float magnitude = invSqrtFast(v->x * v->x + v->y * v->y);
 
 	v->x *= magnitude;
 	v->y *= magnitude;
@@ -517,15 +517,15 @@ void vec2NormalizeVec2Fast(vec2 *v){
 
 // Normalize a vec2 and store the result in "out"!
 void vec2NormalizeVec2Out(const vec2 *v, vec2 *out){
-	const float magnitude = fastInvSqrtAccurate(v->x * v->x + v->y * v->y);
+	const float magnitude = invSqrt(v->x * v->x + v->y * v->y);
 
 	out->x = v->x * magnitude;
 	out->y = v->y * magnitude;
 }
 
 // Normalize a vec2 and store the result in "out"!
-void vec2NormalizeVec2OutFast(const vec2 *v, vec2 *out){
-	const float magnitude = fastInvSqrt(v->x * v->x + v->y * v->y);
+void vec2NormalizeVec2FastOut(const vec2 *v, vec2 *out){
+	const float magnitude = invSqrtFast(v->x * v->x + v->y * v->y);
 
 	out->x = v->x * magnitude;
 	out->y = v->y * magnitude;
@@ -533,7 +533,7 @@ void vec2NormalizeVec2OutFast(const vec2 *v, vec2 *out){
 
 // Normalize a vec2!
 vec2 vec2NormalizeVec2R(vec2 v){
-	const float magnitude = fastInvSqrtAccurate(v.x * v.x + v.y * v.y);
+	const float magnitude = invSqrt(v.x * v.x + v.y * v.y);
 
 	v.x *= magnitude;
 	v.y *= magnitude;
@@ -542,8 +542,8 @@ vec2 vec2NormalizeVec2R(vec2 v){
 }
 
 // Normalize a vec2!
-vec2 vec2NormalizeVec2RFast(vec2 v){
-	const float magnitude = fastInvSqrt(v.x * v.x + v.y * v.y);
+vec2 vec2NormalizeVec2FastR(vec2 v){
+	const float magnitude = invSqrtFast(v.x * v.x + v.y * v.y);
 
 	v.x *= magnitude;
 	v.y *= magnitude;

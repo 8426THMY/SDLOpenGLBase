@@ -145,6 +145,8 @@ void animationUpdate(animationData *animData, const animationFrameData *frameDat
 	}
 }
 
+// Return a number between 0 and 1 that tells
+// us how far through the current frame we are.
 float animationGetFrameProgress(const animationData *animData, const animationFrameData *frameData){
 	// If the animation length is less than or equal to 0, we don't want to divide by 0.
 	if(frameData->time[frameData->numFrames - 1] > 0.f){

@@ -13,7 +13,7 @@ void objectDefInit(objectDef *objDef){
 	objDef->name = NULL;
 
 	objDef->skele = NULL;
-	objDef->anims = NULL;
+	objDef->animDefs = NULL;
 	objDef->numAnims = 0;
 
 	objDef->colliders = NULL;
@@ -56,6 +56,55 @@ return_t renderObjDefLoad(objectDef *objDef, const char *objFile){
 
 
 void objectUpdate(object *obj, const float time){
+	skeletonAnim *curAnim = obj->anims;
+	if(curAnim != NULL){
+		const bone *curSkeleBone = obj->objDef->skele->bones;
+		const boneState *curAnimBone = obj->anims->skeleState;
+
+		// Set each of the object's bones to the default states!
+		boneState *curObjBone = obj->bones;
+		const boneState *lastObjBone = &curObjBone[obj->objDef->skele->numBones];
+		for(; curObjBone < lastObjBone; ++curObjBone, ++curSkeleBone){
+			//transformStateInit(curObjBone);
+			*curObjBone = curSkeleBone->localBind;
+		}
+
+		/**
+		How does blending work?
+
+		For each animation {
+			Interpolate between previous frame and current frame -> frameState;
+			Interpolate between bind pose and animState based on intensity -> animState;
+			Append animState to objState;
+		}
+		**/
+		// Update each of the object's animations!
+		while(curAnim != NULL){
+			skeleAnimUpdate(curAnim, obj->objDef->skele, time, obj->bones);
+			curAnim = memSingleListNext(curAnim);
+		}
+
+		#warning "Temporary skeletal animation stuff."
+		curObjBone = obj->bones;
+		curSkeleBone = obj->objDef->skele->bones;
+		// Accumulate the transformations for each bone in the animation!
+		for(; curObjBone < lastObjBone; ++curObjBone, ++curSkeleBone, ++curAnimBone){
+			const size_t parentID = curSkeleBone->parent;
+			// If this bone has a parent, add its animation transformations to those of its parent!
+			if(!VALUE_IS_INVALID(parentID)){
+				transformStateAppend(&obj->bones[parentID], curObjBone, curObjBone);
+			}
+		}
+
+		curSkeleBone = obj->objDef->skele->bones;
+		curObjBone = obj->bones;
+		// Append each bone's inverse reference state!
+		for(; curObjBone < lastObjBone; ++curObjBone, ++curSkeleBone){
+			transformStateAppend(curObjBone, &curSkeleBone->invGlobalBind, curObjBone);
+		}
+	}
+
+
 	renderable *curRenderable = obj->renderables;
 	// Animate each of the renderables.
 	while(curRenderable != NULL){
@@ -108,7 +157,7 @@ void objectDraw(const object *obj, const vec3 *camPos, mat4 mvpMatrix, const sha
 
 /** We don't currently have a way of freeing the stuff that's commented out. **/
 void objectDelete(object *obj){
-	moduleSkeleAnimStateFreeArray(&obj->anims);
+	moduleSkeleAnimFreeArray(&obj->anims);
 	if(obj->bones != NULL){
 		memoryManagerGlobalFree(obj->bones);
 	}
@@ -125,8 +174,8 @@ void objectDefDelete(objectDef *objDef){
 		memoryManagerGlobalFree(objDef->name);
 	}
 
-	if(objDef->anims != NULL){
-		memoryManagerGlobalFree(objDef->anims);
+	if(objDef->animDefs != NULL){
+		memoryManagerGlobalFree(objDef->animDefs);
 	}
 
 	// objDef->colliders = NULL;

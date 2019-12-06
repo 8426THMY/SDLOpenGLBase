@@ -20,7 +20,7 @@ typedef struct objectDef {
 	skeleton *skele;
 	// Array containing the animations
 	// this object is allowed to play.
-	skeletonAnim **anims;
+	skeletonAnimDef **animDefs;
 	size_t numAnims;
 
 	// Arrays of colliders and rigid bodies for each bone.
@@ -51,7 +51,7 @@ typedef struct object {
 	const objectDef *objDef;
 
 	// Array of animations this object is currently playing.
-	skeletonAnimState *anims;
+	skeletonAnim *anims;
 	// This stores the current state of the object's bones.
 	boneState *bones;
 
@@ -62,6 +62,30 @@ typedef struct object {
 
 	// These models are drawn at the object's bones.
 	renderable *renderables;
+
+	/**
+	Object {
+		Renderables [{
+			Model {
+				Skeleton {
+					Bones;
+				}
+			}
+			TextureState;
+		}];
+
+		SkeletonAnims [{
+			BaseAnim;
+			AnimState;
+			skeleState;
+
+			Intensity;
+		}];
+
+		Colliders;
+		PhysObjects;
+	}
+	**/
 } object;
 
 
@@ -75,6 +99,58 @@ void objectDraw(const object *obj, const vec3 *camPos, mat4 mvpMatrix, const sha
 
 void objectDelete(object *obj);
 void objectDefDelete(objectDef *objDef);
+
+
+/**
+Object 1 {
+	skeleton = skele1;
+	anims;
+
+	lookup = NULL;
+	boneState[skele1->numBones];
+
+	children = Object 2;
+}
+
+Object 2 {
+	skeleton = skele2;
+	anims;
+
+	lookup[skele1->numBones];
+	boneState[skele2->numBones];
+
+	children = NULL;
+}
+
+
+Update object 1 {
+	Animate skeleton;
+
+	Update children {
+		Update object 2 {
+
+			If object 2 lookup != NULL
+				// If object 2 is attached to object 1 in a special
+				// way, it's skeleton should animate with object 1's.
+				Append parent animation {
+					For each i=0..n bone in skele1 {
+						If object 2 lookup[i] != -1 {
+							object 2 boneState[object 2 lookup[i]] = object 1 boneState[i];
+						}
+					}
+				}
+			}
+
+			//
+			Animate skeleton {
+				For each bone {
+					If lookup
+				}
+			}
+		}
+	}
+}
+**/
 
 
 /**

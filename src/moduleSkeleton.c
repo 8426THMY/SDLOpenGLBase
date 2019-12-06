@@ -2,8 +2,8 @@
 
 
 memoryPool skeletonManager;
-memoryPool skeleAnimManager;
-memorySingleList skeleAnimStateManager;
+memoryPool skeleAnimDefManager;
+memorySingleList skeleAnimManager;
 
 
 #warning "How are we going to store animations? How about bones?"
@@ -21,28 +21,28 @@ return_t moduleSkeletonSetup(){
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_SKELETON_MANAGER_SIZE)),
 			MODULE_SKELETON_MANAGER_SIZE, MODULE_SKELETON_ELEMENT_SIZE
 		) != NULL &&
-		// skeletonAnim
+		// skeletonAnimDef
 		memPoolInit(
+			&skeleAnimDefManager,
+			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_SKELEANIMDEF_MANAGER_SIZE)),
+			MODULE_SKELEANIMDEF_MANAGER_SIZE, MODULE_SKELEANIMDEF_ELEMENT_SIZE
+		) != NULL &&
+		// skeletonAnim
+		memSingleListInit(
 			&skeleAnimManager,
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_SKELEANIM_MANAGER_SIZE)),
 			MODULE_SKELEANIM_MANAGER_SIZE, MODULE_SKELEANIM_ELEMENT_SIZE
-		) != NULL &&
-		// skeletonAnimState
-		memSingleListInit(
-			&skeleAnimStateManager,
-			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_SKELEANIMSTATE_MANAGER_SIZE)),
-			MODULE_SKELEANIMSTATE_MANAGER_SIZE, MODULE_SKELEANIMSTATE_ELEMENT_SIZE
 		) != NULL
 	);
 }
 
 void moduleSkeletonCleanup(){
-	// skeletonAnimState
-	moduleSkeleAnimStateClear();
-	memoryManagerGlobalFree(memSingleListRegionStart(skeleAnimStateManager.region));
 	// skeletonAnim
 	moduleSkeleAnimClear();
-	memoryManagerGlobalFree(memPoolRegionStart(skeleAnimManager.region));
+	memoryManagerGlobalFree(memSingleListRegionStart(skeleAnimManager.region));
+	// skeletonAnimDef
+	moduleSkeleAnimDefClear();
+	memoryManagerGlobalFree(memPoolRegionStart(skeleAnimDefManager.region));
 	// skeleton
 	moduleSkeletonClear();
 	memoryManagerGlobalFree(memPoolRegionStart(skeletonManager.region));
@@ -68,67 +68,68 @@ void moduleSkeletonClear(){
 }
 
 
-// Allocate memory for a skeleton animation and return a handle to it.
-skeletonAnim *moduleSkeleAnimAlloc(){
-	return(memPoolAlloc(&skeleAnimManager));
+// Allocate memory for a skeleton animation base and return a handle to it.
+skeletonAnimDef *moduleSkeleAnimDefAlloc(){
+	return(memPoolAlloc(&skeleAnimDefManager));
 }
 
-// Free a skeleton animation that has been allocated.
-void moduleSkeletonAnimFree(skeletonAnim *skeleAnim){
-	skeleAnimDelete(skeleAnim);
-	memPoolFree(&skeleAnimManager, skeleAnim);
+// Free a skeleton animation base that has been allocated.
+void moduleSkeletonAnimDefFree(skeletonAnimDef *animDef){
+	skeleAnimDefDelete(animDef);
+	memPoolFree(&skeleAnimDefManager, animDef);
 }
 
-// Delete every skeleton animation in the manager.
-void moduleSkeleAnimClear(){
-	MEMPOOL_LOOP_BEGIN(skeleAnimManager, i, skeletonAnim *)
-		moduleSkeletonAnimFree(i);
-	MEMPOOL_LOOP_END(skeleAnimManager, i, skeletonAnim *, return)
+// Delete every skeleton animation base in the manager.
+void moduleSkeleAnimDefClear(){
+	MEMPOOL_LOOP_BEGIN(skeleAnimDefManager, i, skeletonAnimDef *)
+		moduleSkeletonAnimDefFree(i);
+	MEMPOOL_LOOP_END(skeleAnimDefManager, i, skeletonAnimDef *, return)
 }
 
 
 // Allocate a new skeleton animation state array.
-skeletonAnimState *moduleSkeleAnimStateAlloc(){
-	return(memSingleListAlloc(&skeleAnimStateManager));
+skeletonAnim *moduleSkeleAnimAlloc(){
+	return(memSingleListAlloc(&skeleAnimManager));
 }
 
 // Insert a skeleton animation state at the beginning of an array.
-skeletonAnimState *moduleSkeleAnimStatePrepend(skeletonAnimState **start){
-	return(memSingleListPrepend(&skeleAnimStateManager, (void **)start));
+skeletonAnim *moduleSkeleAnimPrepend(skeletonAnim **start){
+	return(memSingleListPrepend(&skeleAnimManager, (void **)start));
 }
 
 // Insert a skeleton animation state at the end of an array.
-skeletonAnimState *moduleSkeleAnimStateAppend(skeletonAnimState **start){
-	return(memSingleListAppend(&skeleAnimStateManager, (void **)start));
+skeletonAnim *moduleSkeleAnimAppend(skeletonAnim **start){
+	return(memSingleListAppend(&skeleAnimManager, (void **)start));
 }
 
 // Insert a skeleton animation state after the element "prevData".
-skeletonAnimState *moduleSkeleAnimStateInsertBefore(skeletonAnimState **start, skeletonAnimState *prevData){
-	return(memSingleListInsertBefore(&skeleAnimStateManager, (void **)start, (void *)prevData));
+skeletonAnim *moduleSkeleAnimInsertBefore(skeletonAnim **start, skeletonAnim *prevData){
+	return(memSingleListInsertBefore(&skeleAnimManager, (void **)start, (void *)prevData));
 }
 
 // Insert a skeleton animation state after the element "data".
-skeletonAnimState *moduleSkeleAnimStateInsertAfter(skeletonAnimState **start, skeletonAnimState *data){
-	return(memSingleListInsertAfter(&skeleAnimStateManager, (void **)start, (void *)data));
+skeletonAnim *moduleSkeleAnimInsertAfter(skeletonAnim **start, skeletonAnim *data){
+	return(memSingleListInsertAfter(&skeleAnimManager, (void **)start, (void *)data));
 }
 
 // Free a skeleton animation state that has been allocated.
-void moduleSkeleAnimStateFree(skeletonAnimState **start, skeletonAnimState *animState, skeletonAnimState *prevData){
-	memSingleListFree(&skeleAnimStateManager, (void **)start, (void *)animState, (void *)prevData);
+void moduleSkeleAnimFree(skeletonAnim **start, skeletonAnim *anim, skeletonAnim *prevData){
+	skeleAnimDelete(anim);
+	memSingleListFree(&skeleAnimManager, (void **)start, (void *)anim, (void *)prevData);
 }
 
 // Free an entire skeleton animation state array.
-void moduleSkeleAnimStateFreeArray(skeletonAnimState **start){
-	skeletonAnimState *animState = *start;
-	while(animState != NULL){
-		moduleSkeleAnimStateFree(start, animState, NULL);
-		animState = *start;
+void moduleSkeleAnimFreeArray(skeletonAnim **start){
+	skeletonAnim *anim = *start;
+	while(anim != NULL){
+		moduleSkeleAnimFree(start, anim, NULL);
+		anim = *start;
 	}
 }
 
 // Delete every skeleton animation state in the manager.
-void moduleSkeleAnimStateClear(){
-	MEMSINGLELIST_LOOP_BEGIN(skeleAnimStateManager, i, skeletonAnimState *)
-		moduleSkeleAnimStateFree(NULL, i, NULL);
-	MEMSINGLELIST_LOOP_END(skeleAnimStateManager, i, skeletonAnimState *, return)
+void moduleSkeleAnimClear(){
+	MEMSINGLELIST_LOOP_BEGIN(skeleAnimManager, i, skeletonAnim *)
+		moduleSkeleAnimFree(NULL, i, NULL);
+	MEMSINGLELIST_LOOP_END(skeleAnimManager, i, skeletonAnim *, return)
 }

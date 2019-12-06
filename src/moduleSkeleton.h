@@ -15,22 +15,22 @@
 #define MODULE_SKELETON_SETUP_FAIL 3
 
 #define MODULE_SKELETON_ELEMENT_SIZE       sizeof(skeleton)
-#define MODULE_SKELEANIM_ELEMENT_SIZE      sizeof(skeletonAnim)
-#define MODULE_SKELEANIMSTATE_ELEMENT_SIZE sizeof(skeletonAnimState)
+#define MODULE_SKELEANIMDEF_ELEMENT_SIZE      sizeof(skeletonAnimDef)
+#define MODULE_SKELEANIM_ELEMENT_SIZE sizeof(skeletonAnim)
 
 #ifndef MEMORY_MODULE_NUM_SKELETONS
 	#define MEMORY_MODULE_NUM_SKELETONS 1
 #endif
+#ifndef MEMORY_MODULE_NUM_SKELEANIMDEFS
+	#define MEMORY_MODULE_NUM_SKELEANIMDEFS 1
+#endif
 #ifndef MEMORY_MODULE_NUM_SKELEANIMS
 	#define MEMORY_MODULE_NUM_SKELEANIMS 1
 #endif
-#ifndef MEMORY_MODULE_NUM_SKELEANIMSTATES
-	#define MEMORY_MODULE_NUM_SKELEANIMSTATES 1
-#endif
 
-#define MODULE_SKELETON_MANAGER_SIZE       memPoolMemoryForBlocks(MEMORY_MODULE_NUM_SKELETONS, MODULE_SKELETON_ELEMENT_SIZE)
-#define MODULE_SKELEANIM_MANAGER_SIZE      memPoolMemoryForBlocks(MEMORY_MODULE_NUM_SKELEANIMS, MODULE_SKELEANIM_ELEMENT_SIZE)
-#define MODULE_SKELEANIMSTATE_MANAGER_SIZE memSingleListMemoryForBlocks(MEMORY_MODULE_NUM_SKELEANIMSTATES, MODULE_SKELEANIMSTATE_ELEMENT_SIZE)
+#define MODULE_SKELETON_MANAGER_SIZE     memPoolMemoryForBlocks(MEMORY_MODULE_NUM_SKELETONS, MODULE_SKELETON_ELEMENT_SIZE)
+#define MODULE_SKELEANIMDEF_MANAGER_SIZE memPoolMemoryForBlocks(MEMORY_MODULE_NUM_SKELEANIMDEFS, MODULE_SKELEANIMDEF_ELEMENT_SIZE)
+#define MODULE_SKELEANIM_MANAGER_SIZE    memSingleListMemoryForBlocks(MEMORY_MODULE_NUM_SKELEANIMS, MODULE_SKELEANIM_ELEMENT_SIZE)
 
 
 return_t moduleSkeletonSetup();
@@ -40,23 +40,23 @@ skeleton *moduleSkeletonAlloc();
 void moduleSkeletonFree(skeleton *skele);
 void moduleSkeletonClear();
 
-skeletonAnim *moduleSkeleAnimAlloc();
-void moduleSkeleAnimFree(skeletonAnim *skeleAnim);
-void moduleSkeleAnimClear();
+skeletonAnimDef *moduleSkeleAnimDefAlloc();
+void moduleSkeleAnimDefFree(skeletonAnimDef *animDef);
+void moduleSkeleAnimDefClear();
 
-skeletonAnimState *moduleSkeleAnimStateAlloc();
-skeletonAnimState *moduleSkeleAnimStatePrepend(skeletonAnimState **start);
-skeletonAnimState *moduleSkeleAnimStateAppend(skeletonAnimState **start);
-skeletonAnimState *moduleSkeleAnimStateInsertBefore(skeletonAnimState **start, skeletonAnimState *prevData);
-skeletonAnimState *moduleSkeleAnimStateInsertAfter(skeletonAnimState **start, skeletonAnimState *data);
-void moduleSkeleAnimStateFree(skeletonAnimState **start, skeletonAnimState *animState, skeletonAnimState *prevData);
-void moduleSkeleAnimStateFreeArray(skeletonAnimState **start);
-void moduleSkeleAnimStateClear();
+skeletonAnim *moduleSkeleAnimAlloc();
+skeletonAnim *moduleSkeleAnimPrepend(skeletonAnim **start);
+skeletonAnim *moduleSkeleAnimAppend(skeletonAnim **start);
+skeletonAnim *moduleSkeleAnimInsertBefore(skeletonAnim **start, skeletonAnim *prevData);
+skeletonAnim *moduleSkeleAnimInsertAfter(skeletonAnim **start, skeletonAnim *data);
+void moduleSkeleAnimFree(skeletonAnim **start, skeletonAnim *animInst, skeletonAnim *prevData);
+void moduleSkeleAnimFreeArray(skeletonAnim **start);
+void moduleSkeleAnimClear();
 
 
 extern memoryPool skeletonManager;
-extern memoryPool skeleAnimManager;
-extern memorySingleList skeleAnimStateManager;
+extern memoryPool skeleAnimDefManager;
+extern memorySingleList skeleAnimManager;
 
 
 #endif

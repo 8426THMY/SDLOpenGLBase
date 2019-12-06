@@ -3,6 +3,8 @@
 
 #include <math.h>
 
+#include "utilMath.h"
+
 #include "physicsJoint.h"
 #include "physicsRigidBody.h"
 
@@ -120,9 +122,9 @@ void physJointFrictionWarmStart(const physicsJointFriction *joint, physicsRigidB
 
 	// Apply the accumulated impulses.
 	physRigidBodyApplyImpulse(bodyA, &joint->rA, &linearImpulse);
-	physRigidBodyApplyAngularImpulse(bodyA, &angularImpulse);
+	physRigidBodyApplyAngularImpulse(bodyA, angularImpulse);
 	physRigidBodyApplyImpulse(bodyB, &joint->rB, &linearImpulse);
-	physRigidBodyApplyAngularImpulseInverse(bodyB, &angularImpulse);
+	physRigidBodyApplyAngularImpulseInverse(bodyB, angularImpulse);
 }
 
 /*
@@ -224,7 +226,7 @@ void physJointFrictionSolveVelocity(physicsJointFriction *joint, physicsRigidBod
 	impulseMagnitude = vec2DotVec2(&joint->linearImpulse, &joint->linearImpulse);
 	if(impulseMagnitude > maxFriction * maxFriction){
 		// Normalize the vector and multiply by maxFriction at the same time.
-		vec2MultiplyS(&joint->linearImpulse, maxFriction * fastInvSqrt(impulseMagnitude));
+		vec2MultiplyS(&joint->linearImpulse, maxFriction * invSqrtFast(impulseMagnitude));
 		vec2SubtractVec2FromOut(&joint->linearImpulse, &oldImpulse, &lambda);
 	}
 

@@ -606,21 +606,27 @@ return_t modelLoadSMD(model *mdl, const char *mdlName){
 									float x = strtod(tokPos, &tokPos) * 0.05f;
 									float y = strtod(tokPos, &tokPos) * 0.05f;
 									float z = strtod(tokPos, &tokPos) * 0.05f;
-									vec3InitSet(&currentBone->state.pos, x, y, z);
+									vec3InitSet(&currentBone->localBind.pos, x, y, z);
 
 									// Load the bone's rotation!
 									x = strtod(tokPos, &tokPos);
 									y = strtod(tokPos, &tokPos);
 									z = strtod(tokPos, NULL);
-									quatInitEulerRad(&currentBone->state.rot, x, y, z);
+									quatInitEulerRad(&currentBone->localBind.rot, x, y, z);
 
 									// Set the bone's scale!
-									vec3InitSet(&currentBone->state.scale, 1.f, 1.f, 1.f);
+									vec3InitSet(&currentBone->localBind.scale, 1.f, 1.f, 1.f);
 
 
+									// Set the inverse bind state!
+									currentBone->invGlobalBind = currentBone->localBind;
 									// If this bone has a parent, append its state to its parent's state!
 									if(!VALUE_IS_INVALID(currentBone->parent)){
-										transformStateAppend(&tempBones[currentBone->parent].state, &currentBone->state, &currentBone->state);
+										transformStateAppend(
+											&tempBones[currentBone->parent].invGlobalBind,
+											&currentBone->invGlobalBind,
+											&currentBone->invGlobalBind
+										);
 									}
 								}
 							}else{

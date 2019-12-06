@@ -27,4 +27,7 @@ void transformStateToMat4(const transformState *trans, mat4 *out);
 void transformStateTransformVec3(const transformState *trans, const vec3 *v, vec3 *out);
 
 
+extern transformState identityTransform;
+
+
 #endif

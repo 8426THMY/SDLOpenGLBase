@@ -184,10 +184,10 @@ void physManifoldInit(physicsManifold *pm, const contactManifold *cm, const phys
 	pm->numContacts = cm->numContacts;
 
 
-	vec3NormalizeVec3(&normal);
+	vec3NormalizeVec3Fast(&normal);
 	// Set the tangent vectors such that they form an
 	// orthonormal basis together with the contact normal.
-	normalBasis(&normal, &physContactTangent(pm, 0), &physContactTangent(pm, 1));
+	normalBasisFast(&normal, &physContactTangent(pm, 0), &physContactTangent(pm, 1));
 	physContactNormal(pm) = normal;
 
 	// If we're using a friction join, we initialize it here.
@@ -279,10 +279,10 @@ void physManifoldPersist(physicsManifold *pm, const contactManifold *cm, const p
 	} while(cmContact < lastContact);
 
 
-	vec3NormalizeVec3(&normal);
+	vec3NormalizeVec3Fast(&normal);
 	// Set the tangent vectors such that they form an
 	// orthonormal basis together with the contact normal.
-	normalBasis(&normal, &physContactTangent(pm, 0), &physContactTangent(pm, 1));
+	normalBasisFast(&normal, &physContactTangent(pm, 0), &physContactTangent(pm, 1));
 	physContactNormal(pm) = normal;
 
 	pm->friction = combineFriction(cA->friction, cB->friction);

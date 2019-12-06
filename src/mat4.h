@@ -118,4 +118,7 @@ void mat4LookAt(mat4 *m, const vec3 *eye, const vec3 *target, const vec3 *worldU
 mat4 mat4LookAtR(const vec3 eye, const vec3 target, const vec3 worldUp);
 
 
+extern mat4 identityMat4;
+
+
 #endif

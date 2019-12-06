@@ -6,7 +6,7 @@
 #include "utilMath.h"
 
 
-static mat2 identityMat2 = {
+mat2 identityMat2 = {
 	.m[0][0] = 1.f, .m[0][1] = 0.f,
 	.m[1][0] = 0.f, .m[1][1] = 1.f
 };
