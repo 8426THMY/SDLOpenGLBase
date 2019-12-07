@@ -24,6 +24,7 @@ typedef struct textureGroupFrame {
 	float height;
 } textureGroupFrame;
 
+#warning "Can we allocate frame times and animation frames in one memory manager call?"
 // Stores the data for an animation!
 typedef struct textureGroupAnimDef {
 	char *name;

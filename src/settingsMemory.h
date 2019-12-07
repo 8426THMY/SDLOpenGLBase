@@ -15,10 +15,10 @@
 // Define the base pool sizes for our object allocators!
 #define MEMORY_MODULE_NUM_TEXTURES            1
 #define MEMORY_MODULE_NUM_TEXGROUPS           1
-#define MEMORY_MODULE_NUM_SKELETONS           1
+#define MEMORY_MODULE_NUM_SKELETONS           2
 #define MEMORY_MODULE_NUM_SKELEANIMDEFS       2
 #define MEMORY_MODULE_NUM_SKELEANIMS          2
-#define MEMORY_MODULE_NUM_MODELS              1
+#define MEMORY_MODULE_NUM_MODELS              2
 #define MEMORY_MODULE_NUM_PHYSCONTACTPAIRS    1
 #define MEMORY_MODULE_NUM_PHYSSEPARATIONPAIRS 1
 #define MEMORY_MODULE_NUM_AABBNODES           1

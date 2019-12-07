@@ -2,7 +2,9 @@
 
 
 #include "utilString.h"
+
 #include "memoryManager.h"
+#include "moduleSkeleton.h"
 
 
 #define SKELETON_PATH_PREFIX        ".\\resource\\models\\"
@@ -103,16 +105,22 @@ void skeleAnimDefInit(skeletonAnimDef *animDef){
 	animDef->numBones = 0;
 }
 
-void skeleAnimInit(skeletonAnim *anim, skeletonAnimDef *animDef){
+void skeleAnimInit(skeletonAnim *anim, skeletonAnimDef *animDef, const float intensity){
 	anim->animDef = animDef;
 
 	animationInit(&anim->animData);
 	anim->interpTime = 0.f;
-	anim->intensity = 1.f;
+	anim->intensity = intensity;
+}
 
-	anim->lookup = NULL;
-
-	anim->skeleState = memoryManagerGlobalAlloc(sizeof(*anim->skeleState) * animDef->numBones);
+void skeleObjInit(skeletonObject *skeleObj, skeleton *skele){
+	skeleObj->skele = skele;
+	moduleSkeleAnimFreeArray(&skeleObj->anims);
+	skeleObj->anims = NULL;
+	skeleObj->bones = memoryManagerGlobalRealloc(skeleObj->bones, sizeof(*skeleObj->bones) * skele->numBones);
+	if(skeleObj->bones == NULL){
+		/** REALLOC FAILED **/
+	}
 }
 
 
@@ -355,7 +363,7 @@ return_t skeleAnimLoadSMD(skeletonAnimDef *animDef, const char *skeleAnimName){
 								quatInitEulerRad(&currentState->rot, x, y, z);
 
 								//The Source Engine uses Z as its up axis, so we need to fix that with the root bone.
-								if(boneID == 0){
+								if(boneID == 0 && strcmp(skeleAnimName, "soldier_animations_anims_new\\a_flinch01.smd") != 0){
 									quat rotateUp = {.x = -0.70710678118654752440084436210485f, .y = 0.f, .z = 0.f, .w = 0.70710678118654752440084436210485f};
 									quatMultiplyQuatBy(&currentState->rot, &rotateUp);
 
@@ -420,44 +428,80 @@ return_t skeleAnimLoadSMD(skeletonAnimDef *animDef, const char *skeleAnimName){
 }
 
 
+// Progress an animation!
+void skeleAnimUpdate(skeletonAnim *anim, const float time){
+	animationData *animData = &anim->animData;
+	const animationFrameData *frameData = &anim->animDef->frameData;
+
+	animationUpdate(animData, frameData, time);
+	anim->interpTime = animationGetFrameProgress(animData, frameData);
+}
+
 #warning "If interpolation is turned off, we don't need to call the transform functions."
-// Animate all of an animation instance's bones!
-void skeleAnimUpdate(skeletonAnim *anim, const skeleton *skele, const float time, boneState *bones){
-	// No point in animating if nothing has changed.
-	/** Not sure if this would break things or not... **/
-	if(time != 0.f){
-		animationData *animData = &anim->animData;
-		const animationFrameData *frameData = &anim->animDef->frameData;
+// Animate a particular bone in an animation instance!
+void skeleObjGenerateBoneState(const skeletonObject *skeleData, const size_t boneID, const char *boneName){
+	const skeletonAnim *curAnim = skeleData->anims;
 
-		// Progress the animation!
-		animationUpdate(animData, frameData, time);
-		anim->interpTime = animationGetFrameProgress(animData, frameData);
-
-		const boneState *currentFrame = anim->animDef->frames[anim->animData.currentFrame];
-		const boneState *nextFrame = anim->animDef->frames[anim->animData.nextFrame];
-		const boneState *lastState = &bones[anim->animDef->numBones];
-		const bone *bindBone = skele->bones;
-		// Update each bone's state!
-		for(; bones < lastState; ++bones, ++currentFrame, ++nextFrame, ++bindBone){
+	// Update the bone using each animation!
+	while(curAnim != NULL){
+		const size_t animBoneID = skeleAnimFindBone(curAnim, boneName);
+		// Make sure this bone exists in the animation!
+		if(!VALUE_IS_INVALID(animBoneID)){
 			boneState animState;
 			boneState invLocalBind;
 
 			// Interpolate between the current
 			// and next frames of the animation.
+			#error "This doesn't work with layer_taunt07!"
 			transformStateInterpSet(
-				currentFrame, nextFrame,
-				anim->interpTime,
+				&curAnim->animDef->frames[curAnim->animData.currentFrame][animBoneID],
+				&curAnim->animDef->frames[curAnim->animData.nextFrame][animBoneID],
+				curAnim->interpTime, //&skeleData->bones[boneID]
 				&animState
 			);
 			// Invert the local bind pose for the object's skeleton.
 			/** Should we do this when we're loading animations? **/
-			transformStateInvert(&bindBone->localBind, &invLocalBind);
+			transformStateInvert(&skeleData->skele->bones[boneID].localBind, &invLocalBind);
 			// Remove the bind pose's "contribution" to the animation.
+			if(strcmp(curAnim->animDef->name, "soldier_animations_anims_new\\a_flinch01.smd") != 0){
 			transformStateAppend(&invLocalBind, &animState, &animState);
+			}
 			// Set the animation's intensity by blending from the identity state.
-			transformStateInterpAdd(&identityTransform, &animState, anim->intensity, bones);
+			transformStateInterpAdd(&identityTransform, &animState, curAnim->intensity, &skeleData->bones[boneID]);
+		}
+
+		// Continue to the next animation in the list.
+		curAnim = memSingleListNext(curAnim);
+	}
+}
+
+
+// Find a bone from its name and return its index.
+size_t skeleFindBone(const skeleton *skele, const char *name){
+	const bone *curBone = skele->bones;
+	const bone *lastBone = &curBone[skele->numBones];
+	size_t i = 0;
+	for(; curBone < lastBone; ++curBone, ++i){
+		if(strcmp(curBone->name, name) == 0){
+			return(i);
 		}
 	}
+
+	return(-1);
+}
+
+// Find a bone from its name and return its index.
+size_t skeleAnimFindBone(const skeletonAnim *skeleAnim, const char *name){
+	char **curName = skeleAnim->animDef->boneNames;
+	char **lastName = &curName[skeleAnim->animDef->numBones];
+	size_t i = 0;
+	for(; curName < lastName; ++curName, ++i){
+		if(strcmp(*curName, name) == 0){
+			return(i);
+		}
+	}
+
+	return(-1);
 }
 
 /**
@@ -547,12 +591,9 @@ void skeleAnimDefDelete(skeletonAnimDef *animDef){
 	}
 }
 
-void skeleAnimDelete(skeletonAnim *anim){
-	if(anim->lookup != NULL){
-		memoryManagerGlobalFree(anim->lookup);
-	}
-
-	if(anim->skeleState != NULL){
-		memoryManagerGlobalFree(anim->skeleState);
+void skeleObjDelete(skeletonObject *skeleObj){
+	moduleSkeleAnimFreeArray(&skeleObj->anims);
+	if(skeleObj->bones != NULL){
+		memoryManagerGlobalFree(skeleObj->bones);
 	}
 }

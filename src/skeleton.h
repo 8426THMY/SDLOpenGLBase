@@ -63,39 +63,43 @@ typedef struct skeletonAnim {
 	// Pointer to the animation being used.
 	skeletonAnimDef *animDef;
 
-	// Stores data relating to the animation.
+	// Stores data relating to the animation's playback.
 	animationData animData;
-	// This is a number between 0 and 1 that tells us how far through the current frame we are.
+	// Progress through the current frame.
 	float interpTime;
-	// This is a number between 0 and 1 that tells us how much the animation should affect the bones.
+	// Animation weight factor.
 	float intensity;
-
-	// Stores the ID of the animation bone that each entity bone relates to.
-	// If the lookup is a NULL pointer, the animation uses the same skeleton as the entity.
-	size_t *lookup;
-
-	// Stores the current state of each bone.
-	/** Temporary. We can remove this by merging bone's     **/
-	/** transformations with their parent's transformations **/
-	/** when we're loading animations.                      **/
-	boneState *skeleState;
 } skeletonAnim;
+
+
+// Stores skeleton data for objects.
+typedef struct skeletonObject {
+	skeleton *skele;
+	// Animations are stored in a singleList.
+	skeletonAnim *anims;
+	boneState *bones;
+} skeletonObject;
 
 
 void boneInit(bone *bone, char *name, const size_t parent, const boneState *state);
 void skeleInit(skeleton *skele);
 void skeleInitSet(skeleton *skele, const char *name, const size_t nameLength, bone *bones, const size_t numBones);
 void skeleAnimDefInit(skeletonAnimDef *animDef);
-void skeleAnimInit(skeletonAnim *anim, skeletonAnimDef *animDef);
+void skeleAnimInit(skeletonAnim *anim, skeletonAnimDef *animDef, const float intensity);
+void skeleObjInit(skeletonObject *skeleObj, skeleton *skele);
 
 return_t skeleAnimLoadSMD(skeletonAnimDef *skeleAnim, const char *skeleAnimName);
 
-void skeleAnimUpdate(skeletonAnim *anim, const skeleton *skele, const float time, boneState *bones);
+void skeleAnimUpdate(skeletonAnim *anim, const float time);
+void skeleObjGenerateBoneState(const skeletonObject *skeleData, const size_t boneID, const char *boneName);
+
+size_t skeleFindBone(const skeleton *skele, const char *name);
+size_t skeleAnimFindBone(const skeletonAnim *skeleAnim, const char *name);
 
 void boneDelete(bone *bone);
 void skeleDelete(skeleton *skele);
 void skeleAnimDefDelete(skeletonAnimDef *animDef);
-void skeleAnimDelete(skeletonAnim *anim);
+void skeleObjDelete(skeletonObject *skeleObj);
 
 
 extern skeleton errorSkele;

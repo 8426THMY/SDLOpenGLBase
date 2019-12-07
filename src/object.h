@@ -17,11 +17,8 @@
 typedef struct objectDef {
 	char *name;
 
+	// Default skeleton for this object.
 	skeleton *skele;
-	// Array containing the animations
-	// this object is allowed to play.
-	skeletonAnimDef **animDefs;
-	size_t numAnims;
 
 	// Arrays of colliders and rigid bodies for each bone.
 	collider *colliders;
@@ -50,10 +47,8 @@ Here's what we need:
 typedef struct object {
 	const objectDef *objDef;
 
-	// Array of animations this object is currently playing.
-	skeletonAnim *anims;
-	// This stores the current state of the object's bones.
-	boneState *bones;
+	// Stores the skeleton and animations that this object is using.
+	skeletonObject skeleData;
 
 	// Arrays of colliders and rigid bodies for each bone.
 	// The colliders are for object collision, not rigid body collision.

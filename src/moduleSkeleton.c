@@ -114,7 +114,6 @@ skeletonAnim *moduleSkeleAnimInsertAfter(skeletonAnim **start, skeletonAnim *dat
 
 // Free a skeleton animation state that has been allocated.
 void moduleSkeleAnimFree(skeletonAnim **start, skeletonAnim *anim, skeletonAnim *prevData){
-	skeleAnimDelete(anim);
 	memSingleListFree(&skeleAnimManager, (void **)start, (void *)anim, (void *)prevData);
 }
 

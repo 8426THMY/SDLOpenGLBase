@@ -248,6 +248,8 @@ static void render(program *prg){
 		mat4 viewMatrix, viewProjectionMatrix;
 		vec3 target, up;
 		vec3InitZero(&target);
+		/** TEMPORARY CAMERA STUFF **/
+		target.y = 2.f;
 		vec3InitSet(&up, 0.f, 1.f, 0.f);
 		vec3 camPos;
 		interpVec3GenRenderState(&((cameraState *)prg->cam.states[renderState])->pos, prg->step.renderDelta, &camPos);
@@ -380,10 +382,8 @@ static void initResources(){
 	model *mdl = moduleModelAlloc();
 	renderableDef *renderDef = moduleRenderableDefAlloc();
 	objectDef *objDef = moduleObjectDefAlloc();
-
 	object *obj = moduleObjectAlloc();
-	boneState *curBoneState;
-	const boneState *lastBoneState;
+	skeletonAnimDef *animDef;
 
 
 	modelLoadSMD(mdl, "soldier_reference.smd");
@@ -391,26 +391,24 @@ static void initResources(){
 	objectDefInit(objDef);
 	objDef->skele = mdl->skele;
 	objDef->renderables = renderDef;
-	// Temporary animation stuff.
-	objDef->animDefs = memoryManagerGlobalAlloc(sizeof(*objDef->animDefs) * 1);
-	objDef->animDefs[0] = moduleSkeleAnimDefAlloc();
-	//skeleAnimLoadSMD(objDef->animDefs[0], "soldier_animations_anims_old\\stand_melee.smd");
-	//objDef->animDefs[1] = moduleSkeleAnimDefAlloc();
-	skeleAnimLoadSMD(objDef->animDefs[0], "soldier_animations_anims_old\\a_runN_melee.smd");
-	objDef->numAnims = 1;
 
 	objectInit(obj, objDef);
-	obj->bones = memoryManagerGlobalAlloc(sizeof(*obj->bones) * mdl->skele->numBones);
-	curBoneState = obj->bones;
-	lastBoneState = &(obj->bones[mdl->skele->numBones]);
-	for(; curBoneState < lastBoneState; ++curBoneState){
-		transformStateInit(curBoneState);
-	}
-	// More temporary animation stuff.
-	//obj->anims = moduleSkeleAnimPrepend(&obj->anims);
-	//skeleAnimInit(obj->anims, objDef->animDefs[1]);
-	obj->anims = moduleSkeleAnimPrepend(&obj->anims);
-	skeleAnimInit(obj->anims, objDef->animDefs[0]);
+	// Temporary object stuff.
+	//mdl = moduleModelAlloc();
+	//modelLoadSMD(mdl, "soldier_reference.smd");
+	//skeleObjInit(&obj->skeleData, mdl->skele);
+
+	// Temporary animation stuff.
+	animDef = moduleSkeleAnimDefAlloc();
+	skeleAnimLoadSMD(animDef, "soldier_animations_anims_old\\layer_taunt07.smd");
+	//skeleAnimLoadSMD(animDef, "soldier_animations_anims_old\\a_runN_MELEE.smd");
+	obj->skeleData.anims = moduleSkeleAnimPrepend(&obj->skeleData.anims);
+	skeleAnimInit(obj->skeleData.anims, animDef, 1.f);
+
+	animDef = moduleSkeleAnimDefAlloc();
+	skeleAnimLoadSMD(animDef, "soldier_animations_anims_old\\stand_MELEE.smd");
+	obj->skeleData.anims = moduleSkeleAnimPrepend(&obj->skeleData.anims);
+	skeleAnimInit(obj->skeleData.anims, animDef, 0.f);
 }
 
 // Set up the allocators for our modules.

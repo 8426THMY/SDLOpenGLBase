@@ -4,6 +4,7 @@
 
 #include "model.h"
 #include "textureGroup.h"
+#include "skeleton.h"
 #include "shader.h"
 
 
@@ -22,7 +23,7 @@ void renderableDefInit(renderableDef *renderDef, model *mdl);
 void renderableInit(renderable *render, const renderableDef *renderDef);
 
 void renderableUpdate(renderable *render, const float time);
-void renderableDraw(const renderable *render, const shader *shaderProgram);
+void renderableDraw(const renderable *render, const skeleton *skele, const mat4 *animStates, const shader *shaderProgram);
 
 
 #endif
