@@ -364,12 +364,12 @@ return_t skeleAnimLoadSMD(skeletonAnimDef *animDef, const char *skeleAnimName){
 
 								//The Source Engine uses Z as its up axis, so we need to fix that with the root bone.
 								if(boneID == 0 && strcmp(skeleAnimName, "soldier_animations_anims_new\\a_flinch01.smd") != 0){
-									quat rotateUp = {.x = -0.70710678118654752440084436210485f, .y = 0.f, .z = 0.f, .w = 0.70710678118654752440084436210485f};
-									quatMultiplyQuatBy(&currentState->rot, &rotateUp);
-
-									y = currentState->pos.y;
-									currentState->pos.y = currentState->pos.z;
-									currentState->pos.z = y;
+									transformState rotateUp = {
+										.pos.x = 0.f, .pos.y = 0.f, .pos.z = 0.f,
+										.rot.x = -0.70710678118654752440084436210485f, .rot.y = 0.f, .rot.z = 0.f, .rot.w = 0.70710678118654752440084436210485f,
+										.scale.x = 1.f, .scale.y = 1.f, .scale.z = 1.f
+									};
+									transformStateAppend(&rotateUp, currentState, currentState);
 								}
 
 								// Set the bone's scale!
@@ -448,26 +448,24 @@ void skeleObjGenerateBoneState(const skeletonObject *skeleData, const size_t bon
 		// Make sure this bone exists in the animation!
 		if(!VALUE_IS_INVALID(animBoneID)){
 			boneState animState;
-			boneState invLocalBind;
 
 			// Interpolate between the current
 			// and next frames of the animation.
-			#error "This doesn't work with layer_taunt07!"
 			transformStateInterpSet(
 				&curAnim->animDef->frames[curAnim->animData.currentFrame][animBoneID],
 				&curAnim->animDef->frames[curAnim->animData.nextFrame][animBoneID],
-				curAnim->interpTime, //&skeleData->bones[boneID]
+				curAnim->interpTime,
 				&animState
 			);
-			// Invert the local bind pose for the object's skeleton.
-			/** Should we do this when we're loading animations? **/
-			transformStateInvert(&skeleData->skele->bones[boneID].localBind, &invLocalBind);
 			// Remove the bind pose's "contribution" to the animation.
 			if(strcmp(curAnim->animDef->name, "soldier_animations_anims_new\\a_flinch01.smd") != 0){
-			transformStateAppend(&invLocalBind, &animState, &animState);
+				boneState invLocalBind;
+				transformStateInvert(&skeleData->skele->bones[boneID].localBind, &invLocalBind);
+				transformStateAppend(&invLocalBind, &animState, &animState);
 			}
 			// Set the animation's intensity by blending from the identity state.
-			transformStateInterpAdd(&identityTransform, &animState, curAnim->intensity, &skeleData->bones[boneID]);
+			transformStateInterpSet(&identityTransform, &animState, curAnim->intensity, &animState);
+			transformStateAppend(&skeleData->bones[boneID], &animState, &skeleData->bones[boneID]);
 		}
 
 		// Continue to the next animation in the list.

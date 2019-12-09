@@ -51,8 +51,8 @@ mat4 mat4MultiplyVec4ByR(const mat4 m, const vec4 v);
 void mat4MultiplyByVec4(const mat4 *m, vec4 *v);
 void mat4MultiplyByVec4Out(const mat4 *m, const vec4 *v, vec4 *out);
 vec4 mat4MultiplyByVec4R(const mat4 m, const vec4 v);
-void mat4MultiplyByMat4(mat4 *m1, const mat4 m2, mat4 *out);
-void mat4MultiplyMat4By(mat4 *m1, const mat4 m2, mat4 *out);
+void mat4MultiplyByMat4(mat4 *m1, const mat4 m2);
+void mat4MultiplyMat4By(mat4 *m1, const mat4 m2);
 void mat4MultiplyByMat4Out(const mat4 m1, const mat4 m2, mat4 *out);
 mat4 mat4MultiplyByMat4R(const mat4 m1, const mat4 m2);
 
@@ -116,6 +116,9 @@ void mat4PerspectiveOld(mat4 *m, const float fov, const float aspectRatio, const
 mat4 mat4PerspectiveOldR(const float fov, const float aspectRatio, const float near, const float far);
 void mat4LookAt(mat4 *m, const vec3 *eye, const vec3 *target, const vec3 *worldUp);
 mat4 mat4LookAtR(const vec3 eye, const vec3 target, const vec3 worldUp);
+
+void quatToMat4(const quat *q, mat4 *out);
+mat4 quatToMat4R(const quat q);
 
 
 extern mat4 identityMat4;

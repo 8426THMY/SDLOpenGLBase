@@ -560,7 +560,7 @@ vec4 mat4MultiplyByVec4R(const mat4 m, const vec4 v){
 }
 
 // Multiply "m1" by "m2"!
-void mat4MultiplyByMat4(mat4 *m1, const mat4 m2, mat4 *out){
+void mat4MultiplyByMat4(mat4 *m1, const mat4 m2){
 	const mat4 tempMatrix1 = *m1;
 
 	m1->m[0][0] = tempMatrix1.m[0][0] * m2.m[0][0] + tempMatrix1.m[1][0] * m2.m[0][1] + tempMatrix1.m[2][0] * m2.m[0][2] + tempMatrix1.m[3][0] * m2.m[0][3];
@@ -585,7 +585,7 @@ void mat4MultiplyByMat4(mat4 *m1, const mat4 m2, mat4 *out){
 }
 
 // Multiply "m2" by "m1"!
-void mat4MultiplyMat4By(mat4 *m1, const mat4 m2, mat4 *out){
+void mat4MultiplyMat4By(mat4 *m1, const mat4 m2){
 	const mat4 tempMatrix1 = *m1;
 
 	m1->m[0][0] = m2.m[0][0] * tempMatrix1.m[0][0] + m2.m[1][0] * tempMatrix1.m[0][1] + m2.m[2][0] * tempMatrix1.m[0][2] + m2.m[3][0] * tempMatrix1.m[0][3];
@@ -2011,4 +2011,82 @@ mat4 mat4LookAtR(const vec3 eye, const vec3 target, const vec3 worldUp){
 	m.m[3][3] = 1.f;
 
 	return(m);
+}
+
+
+// Convert a quaternion to a 4x4 matrix and store the result in "out"!
+void quatToMat4(const quat *q, mat4 *out){
+	const float xx = q->x*q->x;
+	const float yy = q->y*q->y;
+	const float zz = q->z*q->z;
+	const float ww = q->w*q->w;
+	float temp1;
+	float temp2;
+
+	out->m[0][0] = 1 - 2*(yy + zz);
+	out->m[1][1] = 1 - 2*(xx - zz);
+	out->m[2][2] = 1 - 2*(xx - yy);
+	out->m[3][3] = 1.f;
+
+	temp1 = q->x*q->y;
+	temp2 = q->w*q->z;
+	out->m[0][1] = 2*(temp1 - temp2);
+	out->m[1][0] = 2*(temp1 + temp2);
+
+	temp1 = q->x*q->z;
+	temp2 = q->w*q->y;
+	out->m[0][2] = 2*(temp1 + temp2);
+	out->m[2][0] = 2*(temp1 - temp2);
+
+	temp1 = q->y*q->z;
+	temp2 = q->w*q->w;
+	out->m[1][2] = 2*(temp1 - temp2);
+	out->m[2][1] = 2*(temp1 + temp2);
+
+	out->m[0][3] =
+	out->m[1][3] =
+	out->m[2][3] =
+	out->m[3][0] =
+	out->m[3][1] =
+	out->m[3][2] = 0.f;
+}
+
+// Convert a quaternion to a 4x4 matrix!
+mat4 quatToMat4R(const quat q){
+	const float xx = q.x*q.x;
+	const float yy = q.y*q.y;
+	const float zz = q.z*q.z;
+	const float ww = q.w*q.w;
+	float temp1;
+	float temp2;
+	mat4 out;
+
+	out.m[0][0] = 1 - 2*(yy + zz);
+	out.m[1][1] = 1 - 2*(xx - zz);
+	out.m[2][2] = 1 - 2*(xx - yy);
+	out.m[3][3] = 1.f;
+
+	temp1 = q.x*q.y;
+	temp2 = q.w*q.z;
+	out.m[0][1] = 2*(temp1 - temp2);
+	out.m[1][0] = 2*(temp1 + temp2);
+
+	temp1 = q.x*q.z;
+	temp2 = q.w*q.y;
+	out.m[0][2] = 2*(temp1 + temp2);
+	out.m[2][0] = 2*(temp1 - temp2);
+
+	temp1 = q.y*q.z;
+	temp2 = q.w*q.x;
+	out.m[1][2] = 2*(temp1 - temp2);
+	out.m[2][1] = 2*(temp1 + temp2);
+
+	out.m[0][3] =
+	out.m[1][3] =
+	out.m[2][3] =
+	out.m[3][0] =
+	out.m[3][1] =
+	out.m[3][2] = 0.f;
+
+	return(out);
 }

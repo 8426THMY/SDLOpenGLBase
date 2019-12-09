@@ -248,8 +248,10 @@ static void render(program *prg){
 		mat4 viewMatrix, viewProjectionMatrix;
 		vec3 target, up;
 		vec3InitZero(&target);
+
 		/** TEMPORARY CAMERA STUFF **/
 		target.y = 2.f;
+
 		vec3InitSet(&up, 0.f, 1.f, 0.f);
 		vec3 camPos;
 		interpVec3GenRenderState(&((cameraState *)prg->cam.states[renderState])->pos, prg->step.renderDelta, &camPos);
@@ -400,10 +402,9 @@ static void initResources(){
 
 	// Temporary animation stuff.
 	animDef = moduleSkeleAnimDefAlloc();
-	skeleAnimLoadSMD(animDef, "soldier_animations_anims_old\\layer_taunt07.smd");
-	//skeleAnimLoadSMD(animDef, "soldier_animations_anims_old\\a_runN_MELEE.smd");
+	skeleAnimLoadSMD(animDef, "soldier_animations_anims_old\\a_runN_MELEE.smd");
 	obj->skeleData.anims = moduleSkeleAnimPrepend(&obj->skeleData.anims);
-	skeleAnimInit(obj->skeleData.anims, animDef, 1.f);
+	skeleAnimInit(obj->skeleData.anims, animDef, 1.4f);
 
 	animDef = moduleSkeleAnimDefAlloc();
 	skeleAnimLoadSMD(animDef, "soldier_animations_anims_old\\stand_MELEE.smd");

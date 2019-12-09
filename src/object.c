@@ -51,6 +51,13 @@ void objectInit(object *obj, const objectDef *objDef){
 
 
 void objectUpdate(object *obj, const float time){
+	skeletonAnim *curAnim = obj->skeleData.anims;
+	// Update which frame each animation is currently on!
+	while(curAnim != NULL){
+		skeleAnimUpdate(curAnim, time);
+		curAnim = memSingleListNext(curAnim);
+	}
+
 	updateBones(obj, time);
 
 	renderable *curRenderable = obj->renderables;
@@ -133,18 +140,10 @@ void objectDefDelete(objectDef *objDef){
 
 // Update all of an object's bones!
 static void updateBones(object *obj, const float time){
-	skeletonAnim *curAnim;
 	boneState *curObjBone;
 	const boneState *lastObjBone;
 	const bone *curSkeleBone;
 	size_t i;
-
-	curAnim = obj->skeleData.anims;
-	// Update which frame each animation is currently on!
-	while(curAnim != NULL){
-		skeleAnimUpdate(curAnim, time);
-		curAnim = memSingleListNext(curAnim);
-	}
 
 	curObjBone = obj->skeleData.bones;
 	lastObjBone = &curObjBone[obj->skeleData.skele->numBones];

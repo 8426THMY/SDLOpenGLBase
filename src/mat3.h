@@ -5,6 +5,7 @@
 #include "utilTypes.h"
 
 #include "vec3.h"
+#include "quat.h"
 
 
 // Note: Our matrices are column-major, just the way OpenGL likes them.
@@ -45,6 +46,9 @@ void mat3InvertOut(const mat3 m, mat3 *out);
 mat3 mat3InvertR(const mat3 m);
 return_t mat3CanInvert(mat3 *m);
 return_t mat3CanInvertOut(const mat3 m, mat3 *out);
+
+void quatToMat3(const quat *q, mat3 *out);
+mat3 quatToMat3R(const quat q);
 
 
 extern mat3 identityMat3;

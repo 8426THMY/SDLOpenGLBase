@@ -529,3 +529,65 @@ return_t mat3CanInvertOut(const mat3 m, mat3 *out){
 
 	return(0);
 }
+
+
+// Convert a quaternion to a 3x3 matrix and store the result in "out"!
+void quatToMat3(const quat *q, mat3 *out){
+	const float xx = q->x*q->x;
+	const float yy = q->y*q->y;
+	const float zz = q->z*q->z;
+	const float ww = q->w*q->w;
+	float temp1;
+	float temp2;
+
+	out->m[0][0] = 1 - 2*(yy + zz);
+	out->m[1][1] = 1 - 2*(xx - zz);
+	out->m[2][2] = 1 - 2*(xx - yy);
+
+	temp1 = q->x*q->y;
+	temp2 = q->w*q->z;
+	out->m[0][1] = 2*(temp1 - temp2);
+	out->m[1][0] = 2*(temp1 + temp2);
+
+	temp1 = q->x*q->z;
+	temp2 = q->w*q->y;
+	out->m[0][2] = 2*(temp1 + temp2);
+	out->m[2][0] = 2*(temp1 - temp2);
+
+	temp1 = q->y*q->z;
+	temp2 = q->w*q->x;
+	out->m[1][2] = 2*(temp1 - temp2);
+	out->m[2][1] = 2*(temp1 + temp2);
+}
+
+// Convert a quaternion to a 3x3 matrix!
+mat3 quatToMat3R(const quat q){
+	const float xx = q.x*q.x;
+	const float yy = q.y*q.y;
+	const float zz = q.z*q.z;
+	const float ww = q.w*q.w;
+	float temp1;
+	float temp2;
+	mat3 out;
+
+	out.m[0][0] = 1 - 2*(yy + zz);
+	out.m[1][1] = 1 - 2*(xx - zz);
+	out.m[2][2] = 1 - 2*(xx - yy);
+
+	temp1 = q.x*q.y;
+	temp2 = q.w*q.z;
+	out.m[0][1] = 2*(temp1 - temp2);
+	out.m[1][0] = 2*(temp1 + temp2);
+
+	temp1 = q.x*q.z;
+	temp2 = q.w*q.y;
+	out.m[0][2] = 2*(temp1 + temp2);
+	out.m[2][0] = 2*(temp1 - temp2);
+
+	temp1 = q.y*q.z;
+	temp2 = q.w*q.x;
+	out.m[1][2] = 2*(temp1 - temp2);
+	out.m[2][1] = 2*(temp1 + temp2);
+
+	return(out);
+}
