@@ -257,7 +257,7 @@ return_t colliderHullLoad(void *hull, FILE *hullFile, vec3 *centroid, mat3 *iner
 			colliderEdgeIndex_t lastIndex = tempHull.numEdges;
 			// We also need to know the first edge's index
 			// so we can make the last edge point to it.
-			colliderEdgeIndex_t firstIndex = INVALID_VALUE(firstIndex);
+			colliderEdgeIndex_t firstIndex = invalidValue(firstIndex);
 			// Keep the index of the last edge
 			colliderEdgeIndex_t prevIndex;
 			// This is the value of the first edge's start vertex.
@@ -312,7 +312,7 @@ return_t colliderHullLoad(void *hull, FILE *hullFile, vec3 *centroid, mat3 *iner
 
 					// If this is the first edge we've loaded,
 					// we'll need to keep a reference to it.
-					if(VALUE_IS_INVALID(firstIndex)){
+					if(valueIsInvalid(firstIndex)){
 						firstIndex = twinIndex;
 						firstEdgeStartIndex = startIndex;
 						firstEdgeEndIndex = endIndex;
@@ -322,7 +322,7 @@ return_t colliderHullLoad(void *hull, FILE *hullFile, vec3 *centroid, mat3 *iner
 						tempEdge = &tempHull.edges[prevIndex];
 						// The value of "nextIndex" is always set before "twinNextIndex",
 						// so if it's unset we know that the previous edge was not a twin.
-						if(VALUE_IS_INVALID(tempEdge->nextIndex)){
+						if(valueIsInvalid(tempEdge->nextIndex)){
 							tempEdge->nextIndex = twinIndex;
 						}else{
 							tempEdge->twinNextIndex = twinIndex;
@@ -353,7 +353,7 @@ return_t colliderHullLoad(void *hull, FILE *hullFile, vec3 *centroid, mat3 *iner
 
 					// If this is the first edge we've loaded,
 					// we'll need to keep a reference to it.
-					if(VALUE_IS_INVALID(firstIndex)){
+					if(valueIsInvalid(firstIndex)){
 						firstIndex = tempHull.numEdges;
 						firstEdgeStartIndex = startIndex;
 						firstEdgeEndIndex = endIndex;
@@ -363,7 +363,7 @@ return_t colliderHullLoad(void *hull, FILE *hullFile, vec3 *centroid, mat3 *iner
 						tempEdge = &tempHull.edges[prevIndex];
 						// The value of "nextIndex" is always set before "twinNextIndex",
 						// so if it's unset we know that the previous edge was not a twin.
-						if(VALUE_IS_INVALID(tempEdge->nextIndex)){
+						if(valueIsInvalid(tempEdge->nextIndex)){
 							tempEdge->nextIndex = tempHull.numEdges;
 						}else{
 							tempEdge->twinNextIndex = tempHull.numEdges;
@@ -380,7 +380,7 @@ return_t colliderHullLoad(void *hull, FILE *hullFile, vec3 *centroid, mat3 *iner
 			tempEdge = &tempHull.edges[prevIndex];
 			// The value of "nextIndex" is always set before "twinNextIndex",
 			// so if it's unset we know that the previous edge was not a twin.
-			if(VALUE_IS_INVALID(tempEdge->nextIndex)){
+			if(valueIsInvalid(tempEdge->nextIndex)){
 				tempEdge->nextIndex = firstIndex;
 			}else{
 				tempEdge->twinNextIndex = firstIndex;

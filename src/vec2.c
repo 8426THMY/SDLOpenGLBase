@@ -391,32 +391,38 @@ float vec2Magnitude(const float x, const float y){
 
 // Find the magnitude (length) of a vec2!
 float vec2MagnitudeVec2(const vec2 *v){
-	return(sqrtf(v->x * v->x + v->y * v->y));
+	return(sqrtf(vec2NormVec2(v)));
 }
 
 // Find the magnitude (length) of a vec2!
 float vec2MagnitudeVec2R(const vec2 v){
-	return(sqrtf(v.x * v.x + v.y * v.y));
+	return(sqrtf(vec2NormVec2R(v)));
 }
 
 // Find the distance between a vec2 and one stored as two floats!
 float vec2DistanceSquared(const vec2 *v, const float x, const float y){
-	return(vec2Norm(x - v->x, y - v->y));
+	vec2 dist;
+	vec2SubtractFromOut(v, x, y, &dist);
+	return(vec2NormVec2(&dist));
 }
 
 // Find the distance between a vec2 and one stored as two floats!
 float vec2DistanceSquaredR(const vec2 v, const float x, const float y){
-	return(vec2Norm(x - v.x, y - v.y));
+	const vec2 dist = vec2SubtractFromR(v, x, y);
+	return(vec2NormVec2R(dist));
 }
 
 // Find the distance between two vec2s!
 float vec2DistanceSquaredVec2(const vec2 *v1, const vec2 *v2){
-	return(vec2Norm(v2->x - v1->x, v2->y - v1->y));
+	vec2 dist;
+	vec2SubtractVec2FromOut(v1, v2, &dist);
+	return(vec2NormVec2(&dist));
 }
 
 // Find the distance between two vec2s!
 float vec2DistanceSquaredVec2R(const vec2 v1, const vec2 v2){
-	return(vec2Norm(v2.x - v1.x, v2.y - v1.y));
+	const vec2 dist = vec2SubtractVec2FromR(v1, v2);
+	return(vec2NormVec2R(dist));
 }
 
 

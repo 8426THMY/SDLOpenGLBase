@@ -15,7 +15,7 @@
 // This defines a texture to use when we
 // cannot load the correct one. We can't
 // set up its image data here, however.
-texture errorTex = {
+texture texDefault = {
 	.name = "error",
 
 	.width = TEXTURE_ERROR_WIDTH,
@@ -56,7 +56,7 @@ return_t textureLoad(texture *tex, const char *imgName){
 
 		// This switch statement determines the format that the image
 		// data is in by checking how many bytes are used for each pixel.
-		GLint pixelFormat = INVALID_VALUE(pixelFormat);
+		GLint pixelFormat = invalidValue(pixelFormat);
 		switch(image->format->BytesPerPixel){
 			case 3:
 				pixelFormat = GL_RGB;
@@ -126,7 +126,7 @@ return_t textureLoad(texture *tex, const char *imgName){
 }
 
 // Set up the error texture!
-return_t textureSetupError(){
+return_t textureSetupDefault(){
 	unsigned int pixels[TEXTURE_ERROR_WIDTH * TEXTURE_ERROR_HEIGHT];
 
 	// Define the pixel data for the error texture!
@@ -152,8 +152,8 @@ return_t textureSetupError(){
 
 
 	// Create an OpenGL texture using our pixel data.
-	glGenTextures(1, &errorTex.id);
-	glBindTexture(GL_TEXTURE_2D, errorTex.id);
+	glGenTextures(1, &texDefault.id);
+	glBindTexture(GL_TEXTURE_2D, texDefault.id);
 
 	glTexImage2D(GL_TEXTURE_2D, 0, TEXTURE_ERROR_FORMAT, TEXTURE_ERROR_WIDTH, TEXTURE_ERROR_HEIGHT, 0, TEXTURE_ERROR_FORMAT, GL_UNSIGNED_BYTE, pixels);
 
@@ -172,10 +172,10 @@ return_t textureSetupError(){
 			"Path: error\n"
 			"Texture ID: %u\n"
 			"Error: %i\n",
-			errorTex.id, openGLError
+			texDefault.id, openGLError
 		);
 
-		textureDelete(&errorTex);
+		textureDelete(&texDefault);
 
 
 		return(0);
@@ -190,7 +190,7 @@ return_t textureSetupError(){
 void textureDelete(texture *tex){
 	// Only free the name if it's in use
 	// and it's not the error texture.
-	if(tex->name != NULL && tex != &errorTex){
+	if(tex->name != NULL && tex != &texDefault){
 		memoryManagerGlobalFree(tex->name);
 	}
 

@@ -30,14 +30,14 @@ typedef struct texture {
 void textureInit(texture *tex);
 
 return_t textureLoad(texture *tex, const char *imgName);
-return_t textureSetupError();
+return_t textureSetupDefault();
 
 void textureDelete(texture *tex);
 
 size_t textureFindNameIndex(const char *name);
 
 
-extern texture errorTex;
+extern texture texDefault;
 
 
 #endif

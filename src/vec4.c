@@ -509,32 +509,38 @@ float vec4Magnitude(const float x, const float y, const float z, const float w){
 
 // Find the magnitude (length) of a vec4!
 float vec4MagnitudeVec4(const vec4 *v){
-	return(sqrtf(v->x * v->x + v->y * v->y + v->z * v->z + v->w * v->w));
+	return(sqrtf(vec4NormVec4(v)));
 }
 
 // Find the magnitude (length) of a vec4!
 float vec4MagnitudeVec4R(const vec4 v){
-	return(sqrtf(v.x * v.x + v.y * v.y + v.z * v.z + v.w * v.w));
+	return(sqrtf(vec4NormVec4R(v)));
 }
 
 // Find the distance between a vec4 and one stored as four floats!
 float vec4DistanceSquared(const vec4 *v, const float x, const float y, const float z, const float w){
-	return(vec4Norm(x - v->x, y - v->y, z - v->z, w - v->w));
+	vec4 dist;
+	vec4SubtractFromOut(v, x, y, z, w, &dist);
+	return(vec4NormVec4(&dist));
 }
 
 // Find the distance between a vec4 and one stored as four floats!
 float vec4DistanceSquaredR(const vec4 v, const float x, const float y, const float z, const float w){
-	return(vec4Norm(x - v.x, y - v.y, z - v.z, w - v.w));
+	const vec4 dist = vec4SubtractFromR(v, x, y, z, w);
+	return(vec4NormVec4R(dist));
 }
 
 // Find the distance between two vec4s!
 float vec4DistanceSquaredVec4(const vec4 *v1, const vec4 *v2){
-	return(vec4Norm(v2->x - v1->x, v2->y - v1->y, v2->z - v1->z, v2->w - v1->w));
+	vec4 dist;
+	vec4SubtractVec4FromOut(v1, v2, &dist);
+	return(vec4NormVec4(&dist));
 }
 
 // Find the distance between two vec4s!
 float vec4DistanceSquaredVec4R(const vec4 v1, const vec4 v2){
-	return(vec4Norm(v2.x - v1.x, v2.y - v1.y, v2.z - v1.z, v2.w - v1.w));
+	const vec4 dist = vec4SubtractVec4FromR(v1, v2);
+	return(vec4NormVec4R(dist));
 }
 
 

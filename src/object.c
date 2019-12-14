@@ -15,7 +15,7 @@ static void updateBones(object *obj, const float time);
 void objectDefInit(objectDef *objDef){
 	objDef->name = NULL;
 
-	objDef->skele = &errorSkele;
+	objDef->skele = &skeleDefault;
 
 	objDef->colliders = NULL;
 	objDef->physBodies = NULL;
@@ -69,7 +69,7 @@ void objectUpdate(object *obj, const float time){
 }
 
 #warning "A lot of this stuff should be moved outside, especially the OpenGL code and skeleton stuff."
-void objectDraw(const object *obj, const vec3 *camPos, mat4 mvpMatrix, const shader *shaderProgram, const float time){
+void objectDraw(const object *obj, const vec3 *camPos, mat4 mvpMatrix, const shader *shaderPrg, const float time){
 	const renderable *curRenderable;
 	mat4 *animStates;
 	mat4 *curState;
@@ -78,10 +78,7 @@ void objectDraw(const object *obj, const vec3 *camPos, mat4 mvpMatrix, const sha
 
 
 	// Send the new model view projection matrix to the shader!
-	glUniformMatrix4fv(shaderProgram->modelViewMatrixID, 1, GL_FALSE, (GLfloat *)&mvpMatrix);
-
-	glActiveTexture(GL_TEXTURE0);
-
+	glUniformMatrix4fv(shaderPrg->mvpMatrixID, 1, GL_FALSE, (GLfloat *)&mvpMatrix);
 
 	#warning "Could we store these in the skeleton object and allocate them in the same call as the bone states?"
 	animStates = memoryManagerGlobalAlloc(sizeof(*animStates) * obj->skeleData.skele->numBones);
@@ -99,19 +96,22 @@ void objectDraw(const object *obj, const vec3 *camPos, mat4 mvpMatrix, const sha
 		++curBone;
 	} while(curBone != lastBone);
 
+
+	glActiveTexture(GL_TEXTURE0);
+
 	curRenderable = obj->renderables;
 	// Draw each of the renderables.
 	while(curRenderable != NULL){
-		renderableDraw(curRenderable, obj->skeleData.skele, animStates, shaderProgram);
+		renderableDraw(curRenderable, obj->skeleData.skele, animStates, shaderPrg);
 		curRenderable = memSingleListNext(curRenderable);
 	}
 
-	// Now we can free the bone states.
-	memoryManagerGlobalFree(animStates);
-
-
 	glBindVertexArray(0);
 	glBindTexture(GL_TEXTURE_2D, 0);
+
+
+	// Now we can free the bone states.
+	memoryManagerGlobalFree(animStates);
 }
 
 
@@ -161,7 +161,7 @@ static void updateBones(object *obj, const float time){
 
 		// If this bone has a parent, add its animation
 		// transformations to those of its parent.
-		if(!VALUE_IS_INVALID(parentID)){
+		if(!valueIsInvalid(parentID)){
 			transformStateAppend(&obj->skeleData.bones[parentID], curObjBone, curObjBone);
 		}
 	}

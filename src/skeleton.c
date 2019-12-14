@@ -34,10 +34,10 @@ static bone defaultBone = {
 	.invGlobalBind.rot.x   = 0.f, .invGlobalBind.rot.y   = 0.f, .invGlobalBind.rot.z   = 0.f, .invGlobalBind.rot.w = 1.f,
 	.invGlobalBind.scale.x = 1.f, .invGlobalBind.scale.y = 1.f, .invGlobalBind.scale.z = 1.f,
 
-	.parent = INVALID_VALUE(defaultBone.parent)
+	.parent = invalidValue(defaultBone.parent)
 };
 
-skeleton errorSkele = {
+skeleton skeleDefault = {
 	.name = "default",
 	.bones = &defaultBone,
 	.numBones = 1
@@ -248,7 +248,7 @@ return_t skeleAnimLoadSMD(skeletonAnimDef *animDef, const char *skeleAnimName){
 							/** REALLOC FAILED **/
 						}
 
-						animDef->frameData.playNum = INVALID_VALUE(animDef->frameData.playNum);
+						animDef->frameData.playNum = invalidValue(animDef->frameData.playNum);
 					}
 
 					dataType = 0;
@@ -446,7 +446,7 @@ void skeleObjGenerateBoneState(const skeletonObject *skeleData, const size_t bon
 	while(curAnim != NULL){
 		const size_t animBoneID = skeleAnimFindBone(curAnim, boneName);
 		// Make sure this bone exists in the animation!
-		if(!VALUE_IS_INVALID(animBoneID)){
+		if(!valueIsInvalid(animBoneID)){
 			boneState animState;
 
 			// Interpolate between the current
@@ -474,7 +474,7 @@ void skeleObjGenerateBoneState(const skeletonObject *skeleData, const size_t bon
 }
 
 
-// Find a bone from its name and return its index.
+// Find a bone in a skeleton from its name and return its index.
 size_t skeleFindBone(const skeleton *skele, const char *name){
 	const bone *curBone = skele->bones;
 	const bone *lastBone = &curBone[skele->numBones];
@@ -488,7 +488,7 @@ size_t skeleFindBone(const skeleton *skele, const char *name){
 	return(-1);
 }
 
-// Find a bone from its name and return its index.
+// Find a bone in an animation from its name and return its index.
 size_t skeleAnimFindBone(const skeletonAnim *skeleAnim, const char *name){
 	char **curName = skeleAnim->animDef->boneNames;
 	char **lastName = &curName[skeleAnim->animDef->numBones];
@@ -501,33 +501,6 @@ size_t skeleAnimFindBone(const skeletonAnim *skeleAnim, const char *name){
 
 	return(-1);
 }
-
-/**
-Here's what needs to happen. For starters, you have two choices for approaching the main animation system:
-1. Entities can only use animations that share their skeletons. In that case, for bones that aren't included
-   in an animation, you'll need to store a NULL pointer for their boneSequences and anims.
-2. Entities can use any animation, but each animation would need to store a lookup to the entity's skeleton.
-
-You also need to be able to blend animations together.
-1. If an animation contains bones that don't move, the anims will either be NULL (idea 1) or nonexistant
-   (idea 2).
-2. Some animations should set the bones' states (walking, standing, hand motions, core actions), while
-   others should simply add the offsets (flinching, sub actions). This isn't necessary,
-   but it'd make things easier for people making projects as they wouldn't need separate animations for the
-   upper and lower bodies, for instance.
-**/
-/**
-Make it so these variables of skeletonAnims are vectors, containing an element for each game state.
-If an animation's blendTime is greater than or equal to 1.f, we should skip it. If it's less than 0.f
-on the last game state, which we're getting rid of, then we can delete the skeletonAnim and shift
-the others in the blend over.
-
-animationData animData;
-float interpTime;
-float blendTime;
-size_t *lookup;
-boneState *skeleState;
-**/
 
 
 void boneDelete(bone *bone){

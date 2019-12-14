@@ -536,7 +536,6 @@ void quatToMat3(const quat *q, mat3 *out){
 	const float xx = q->x*q->x;
 	const float yy = q->y*q->y;
 	const float zz = q->z*q->z;
-	const float ww = q->w*q->w;
 	float temp1;
 	float temp2;
 
@@ -565,7 +564,6 @@ mat3 quatToMat3R(const quat q){
 	const float xx = q.x*q.x;
 	const float yy = q.y*q.y;
 	const float zz = q.z*q.z;
-	const float ww = q.w*q.w;
 	float temp1;
 	float temp2;
 	mat3 out;

@@ -21,46 +21,45 @@
 #warning "What if we aren't using the global memory manager?"
 
 
-static textureGroupFrame defaultTexGroupFrame = {
-	.diffuse = &errorTex,
-
-	.x = 0.f,
-	.y = 0.f,
-	.width = 1.f,
-	.height = 1.f
+static textureGroupFrame texGroupFrameDefault = {
+	.diffuse = &texDefault,
+	.bounds.x = 0.f,
+	.bounds.y = 0.f,
+	.bounds.w = 1.f,
+	.bounds.h = 1.f
 };
 
-static textureGroupAnimDef defaultTexGroupAnim = {
+static textureGroupAnimDef texGroupAnimDefault = {
 	.name = "default",
 
-	.animFrames = &defaultTexGroupFrame,
+	.animFrames = &texGroupFrameDefault,
 	// This defines an animation with only
 	// one frame, being the error texture.
 	.frameData = {
 		.playNum = 0,
 
-		.time = &defaultAnimTime,
+		.time = &animTimeDefault,
 		.numFrames = 1
 	}
 };
 
 // This texture group is used when the
 // real one cannot be found for some reason.
-textureGroup errorTexGroup = {
+textureGroup texGroupDefault = {
 	.name = "error",
 
-	.texAnims = &defaultTexGroupAnim,
+	.texAnims = &texGroupAnimDefault,
 	.numAnims = 1
 };
 
 
 void texGroupFrameInit(textureGroupFrame *texGroupFrame){
-	texGroupFrame->diffuse = &errorTex;
+	texGroupFrame->diffuse = &texDefault;
 
-	texGroupFrame->x      = 0.f;
-	texGroupFrame->y      = 0.f;
-	texGroupFrame->width  = 1.f;
-	texGroupFrame->height = 1.f;
+	texGroupFrame->bounds.x = 0.f;
+	texGroupFrame->bounds.y = 0.f;
+	texGroupFrame->bounds.w = 1.f;
+	texGroupFrame->bounds.h = 1.f;
 }
 
 void texGroupAnimDefInit(textureGroupAnimDef *texGroupAnimDef){
@@ -123,7 +122,7 @@ return_t texGroupLoad(textureGroup *texGroup, const char *texGroupName){
 		animationFrameData *tempAnimFrameData = NULL;
 
 		// This is the index of the animation we're currently working on.
-		size_t currentAnim = INVALID_VALUE(currentAnim);
+		size_t currentAnim = invalidValue(currentAnim);
 
 		char lineBuffer[1024];
 		char *line;
@@ -133,7 +132,7 @@ return_t texGroupLoad(textureGroup *texGroup, const char *texGroupName){
 		while((line = readLineFile(texGroupFile, &lineBuffer[0], &lineLength)) != NULL){
 			// If we aren't loading an animation, check
 			// for any texture or animation definitions.
-			if(VALUE_IS_INVALID(currentAnim)){
+			if(valueIsInvalid(currentAnim)){
 				// Texture path.
 				if(memcmp(line, "t ", 2) == 0){
 					char *tempName;
@@ -227,7 +226,7 @@ return_t texGroupLoad(textureGroup *texGroup, const char *texGroupName){
 							// use the error texture.
 							if(!textureLoad(tex, namePointer)){
 								moduleTextureFree(tex);
-								tex = &errorTex;
+								tex = &texDefault;
 							}
 						}
 
@@ -300,7 +299,7 @@ return_t texGroupLoad(textureGroup *texGroup, const char *texGroupName){
 						tempAnimFrameData->playNum = strtol(tempEnd, &playNumEnd, 10);
 						// If no digits were read, set playNum to -1 (so it loops indefinitely).
 						if(playNumEnd == tempEnd){
-							tempAnimFrameData->playNum = INVALID_VALUE(tempAnimFrameData->playNum);
+							tempAnimFrameData->playNum = invalidValue(tempAnimFrameData->playNum);
 						}
 					}
 
@@ -310,7 +309,7 @@ return_t texGroupLoad(textureGroup *texGroup, const char *texGroupName){
 						texGroupAnimDefDelete(tempAnim);
 						--texAnimsSize;
 
-						currentAnim = INVALID_VALUE(currentAnim);
+						currentAnim = invalidValue(currentAnim);
 					}
 
 				// Animation frame.
@@ -381,9 +380,9 @@ return_t texGroupLoad(textureGroup *texGroup, const char *texGroupName){
 
 						// Otherwise, get the error texture's!
 						}else{
-							tempFrame.diffuse = &errorTex;
-							tempTexWidth      = errorTex.width;
-							tempTexHeight     = errorTex.height;
+							tempFrame.diffuse = &texDefault;
+							tempTexWidth      = texDefault.width;
+							tempTexHeight     = texDefault.height;
 						}
 
 
@@ -392,17 +391,17 @@ return_t texGroupLoad(textureGroup *texGroup, const char *texGroupName){
 						for(b = 0; b < tempFramesPerTex; ++b){
 							frameTime += tempTime;
 
-							tempFrame.x = tempX / tempTexWidth + tempWidth / tempTexWidth * currentLineX;
-							tempFrame.y = tempY / tempTexHeight + tempHeight / tempTexHeight * currentLineY;
+							tempFrame.bounds.x = tempX / tempTexWidth + tempWidth / tempTexWidth * currentLineX;
+							tempFrame.bounds.y = tempY / tempTexHeight + tempHeight / tempTexHeight * currentLineY;
 							if(tempWidth > 0.f){
-								tempFrame.width = tempWidth / tempTexWidth;
+								tempFrame.bounds.w = tempWidth / tempTexWidth;
 							}else{
-								tempFrame.width = 1.f;
+								tempFrame.bounds.w = 1.f;
 							}
 							if(tempHeight > 0.f){
-								tempFrame.height = tempHeight / tempTexHeight;
+								tempFrame.bounds.h = tempHeight / tempTexHeight;
 							}else{
-								tempFrame.height = 1.f;
+								tempFrame.bounds.h = 1.f;
 							}
 
 
@@ -480,7 +479,7 @@ return_t texGroupLoad(textureGroup *texGroup, const char *texGroupName){
 					animFramesSize = 0;
 					animFramesCapacity = 0;
 
-					currentAnim = INVALID_VALUE(currentAnim);
+					currentAnim = invalidValue(currentAnim);
 				}
 			}
 		}
@@ -502,7 +501,7 @@ return_t texGroupLoad(textureGroup *texGroup, const char *texGroupName){
 				// will free any memory that it is using.
 				texGroupDelete(texGroup);
 
-				texGroup->texAnims = &defaultTexGroupAnim;
+				texGroup->texAnims = &texGroupAnimDefault;
 				texGroup->numAnims = 1;
 
 				memoryManagerGlobalFree(texAnims);
@@ -568,10 +567,10 @@ GLuint texGroupStateGetFrame(const textureGroupState *texGroupState, const GLuin
 			textureGroupFrame *tempFrame = &(tempAnim->animFrames[animData->currentFrame]);
 
 			tempTexID    = tempFrame->diffuse->id;
-			uvOffsets[0] = tempFrame->x;
-			uvOffsets[1] = tempFrame->y;
-			uvOffsets[2] = tempFrame->width;
-			uvOffsets[3] = tempFrame->height;
+			uvOffsets[0] = tempFrame->bounds.x;
+			uvOffsets[1] = tempFrame->bounds.y;
+			uvOffsets[2] = tempFrame->bounds.w;
+			uvOffsets[3] = tempFrame->bounds.h;
 
 			// Give the current UV offsets to the shader!
 			glUniform1fv(uvOffsetsID, 4, uvOffsets);
@@ -583,7 +582,7 @@ GLuint texGroupStateGetFrame(const textureGroupState *texGroupState, const GLuin
 
 
 	// If the animation or frame is invalid, use the error texture!
-	tempTexID    = errorTex.id;
+	tempTexID    = texDefault.id;
 	uvOffsets[0] = 0.f;
 	uvOffsets[1] = 0.f;
 	uvOffsets[2] = 1.f;
@@ -610,14 +609,14 @@ void texGroupAnimDefDelete(textureGroupAnimDef *texGroupAnimDef){
 void texGroupDelete(textureGroup *texGroup){
 	// We can only free this stuff if we
 	// are not freeing the error textureGroup.
-	if(texGroup != &errorTexGroup){
+	if(texGroup != &texGroupDefault){
 		if(texGroup->name != NULL){
 			memoryManagerGlobalFree(texGroup->name);
 		}
 
 		textureGroupAnimDef *curAnim = texGroup->texAnims;
 		// Delete the textureGroup's animations.
-		if(curAnim != NULL && curAnim != &defaultTexGroupAnim){
+		if(curAnim != NULL && curAnim != &texGroupAnimDefault){
 			const textureGroupAnimDef *lastAnim = &curAnim[texGroup->numAnims];
 			for(; curAnim < lastAnim; ++curAnim){
 				texGroupAnimDefDelete(curAnim);

@@ -13,9 +13,6 @@
 #include "moduleTextureGroup.h"
 
 
-#define MODEL_VERTEX_MAX_WEIGHTS 4
-
-
 typedef struct model {
 	char *name;
 
@@ -33,12 +30,12 @@ void modelInit(model *mdl);
 
 return_t modelLoadOBJ(model *mdl, const char *mdlName);
 return_t modelLoadSMD(model *mdl, const char *mdlName);
-return_t modelSetupError();
+return_t modelSetupDefault();
 
 void modelDelete(model *mdl);
 
 
-extern model errorMdl;
+extern model mdlDefault;
 
 
 #endif

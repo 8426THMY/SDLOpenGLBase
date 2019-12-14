@@ -5,17 +5,17 @@
 #include <stdlib.h>
 
 
-void shaderInit(shader *shaderProgram){
-	shaderProgram->shaderID = 0;
+void shaderInit(shader *shaderPrg){
+	shaderPrg->shaderID = 0;
 
-	shaderProgram->modelViewMatrixID = 0;
-	shaderProgram->uvOffsetsID = 0;
-	shaderProgram->boneStatesID = 0;
+	shaderPrg->mvpMatrixID = 0;
+	shaderPrg->uvOffsetsID = 0;
+	shaderPrg->boneStatesID = 0;
 }
 
 #warning "We still use some mallocs here because this is called before we initialise the memory managers."
 #warning "This is bad, because we may need to call this after we've set them up."
-return_t shaderLoad(shader *shaderProgram, const char *vertexPath, const char *fragmentPath){
+return_t shaderLoad(shader *shaderPrg, const char *vertexPath, const char *fragmentPath){
 	FILE *shaderFile;
 
 	GLint compiled = GL_FALSE;
@@ -140,55 +140,55 @@ return_t shaderLoad(shader *shaderProgram, const char *vertexPath, const char *f
 	}
 
 
-	shaderProgram->shaderID = glCreateProgram();
-	glAttachShader(shaderProgram->shaderID, vertexShader);
-	glAttachShader(shaderProgram->shaderID, fragmentShader);
-	glLinkProgram(shaderProgram->shaderID);
+	shaderPrg->shaderID = glCreateProgram();
+	glAttachShader(shaderPrg->shaderID, vertexShader);
+	glAttachShader(shaderPrg->shaderID, fragmentShader);
+	glLinkProgram(shaderPrg->shaderID);
 
-	glGetProgramiv(shaderProgram->shaderID, GL_LINK_STATUS, &compiled);
+	glGetProgramiv(shaderPrg->shaderID, GL_LINK_STATUS, &compiled);
 	if(!compiled){
 		printf("Shader program could not be compiled!\n");
 
 		// If the compilation was unsuccessful, try to print the error message!
-		glGetProgramiv(shaderProgram->shaderID, GL_INFO_LOG_LENGTH, &infoLogLength);
+		glGetProgramiv(shaderPrg->shaderID, GL_INFO_LOG_LENGTH, &infoLogLength);
 		// According to the documentation, the length should be 0 if there is no error despite normally counting the null terminator.
 		// When using Intel integrated graphics, however, I've found that the size is 1 when there is no error.
 		if(infoLogLength > 1){
 			char programError[infoLogLength + 1];
-			glGetShaderInfoLog(shaderProgram->shaderID, infoLogLength, NULL, programError);
+			glGetShaderInfoLog(shaderPrg->shaderID, infoLogLength, NULL, programError);
 
 			printf("%s\n", programError);
 		}
 
-		shaderProgram->shaderID = 0;
+		shaderPrg->shaderID = 0;
 
 
 		return(0);
 	}
 
 
-	glDetachShader(shaderProgram->shaderID, vertexShader);
+	glDetachShader(shaderPrg->shaderID, vertexShader);
 	glDeleteShader(vertexShader);
-	glDetachShader(shaderProgram->shaderID, fragmentShader);
+	glDetachShader(shaderPrg->shaderID, fragmentShader);
 	glDeleteShader(fragmentShader);
 
 
 	// Enable the shader we just loaded!
-	glUseProgram(shaderProgram->shaderID);
+	glUseProgram(shaderPrg->shaderID);
 
 	// Find the positions of our shader's uniform variables (pretty sure they're positioned in alphabetical order)!
-	shaderProgram->modelViewMatrixID = glGetUniformLocation(shaderProgram->shaderID, "mvpMatrix");
-	shaderProgram->uvOffsetsID = glGetUniformLocation(shaderProgram->shaderID, "uvOffsets");
-	shaderProgram->boneStatesID = glGetUniformLocation(shaderProgram->shaderID, "boneStates");
+	shaderPrg->mvpMatrixID = glGetUniformLocation(shaderPrg->shaderID, "mvpMatrix");
+	shaderPrg->uvOffsetsID = glGetUniformLocation(shaderPrg->shaderID, "uvOffsets");
+	shaderPrg->boneStatesID = glGetUniformLocation(shaderPrg->shaderID, "boneStates");
 
 	// Bind uniform variable "baseTex0" to the first texture mapping unit (GL_TEXTURE0)!
-	glUniform1i(glGetUniformLocation(shaderProgram->shaderID, "baseTex0"), 0);
+	glUniform1i(glGetUniformLocation(shaderPrg->shaderID, "baseTex0"), 0);
 
 
 	return(1);
 }
 
-void shaderDelete(shader *shaderProgram){
+void shaderDelete(shader *shaderPrg){
 	glUseProgram(0);
-	glDeleteProgram(shaderProgram->shaderID);
+	glDeleteProgram(shaderPrg->shaderID);
 }

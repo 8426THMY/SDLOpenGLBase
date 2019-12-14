@@ -9,6 +9,7 @@
 
 #include "utilTypes.h"
 
+#include "rectangle.h"
 #include "animation.h"
 #include "texture.h"
 
@@ -16,12 +17,7 @@
 // Stores the data for a frame!
 typedef struct textureGroupFrame {
 	const texture *diffuse;
-
-	// Various frame data.
-	float x;
-	float y;
-	float width;
-	float height;
+	rectangle bounds;
 } textureGroupFrame;
 
 #warning "Can we allocate frame times and animation frames in one memory manager call?"
@@ -70,7 +66,7 @@ size_t texGroupFindAnimNameIndex(const textureGroup *texGroup, const char *name)
 size_t texGroupFindNameIndex(const char *name);
 
 
-extern textureGroup errorTexGroup;
+extern textureGroup texGroupDefault;
 
 
 #endif

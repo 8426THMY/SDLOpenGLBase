@@ -11,15 +11,15 @@
 typedef struct shader {
 	GLuint shaderID;
 
-	GLuint modelViewMatrixID;
+	GLuint mvpMatrixID;
 	GLuint uvOffsetsID;
 	GLuint boneStatesID;
 } shader;
 
 
-void shaderInit(shader *shaderProgram);
-return_t shaderLoad(shader *shaderProgram, const char *vertexPath, const char *fragmentPath);
-void shaderDelete(shader *shaderProgram);
+void shaderInit(shader *shaderPrg);
+return_t shaderLoad(shader *shaderPrg, const char *vertexPath, const char *fragmentPath);
+void shaderDelete(shader *shaderPrg);
 
 
 #endif

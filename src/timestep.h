@@ -15,6 +15,8 @@ typedef struct timestep {
 	float updateTime;
 	float renderTime;
 
+	// This is really just the inverse update rate.
+	float updateDelta;
 	// This is the time to interpolate
 	// for when we're rendering the scene.
 	float renderDelta;

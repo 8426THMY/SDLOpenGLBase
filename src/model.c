@@ -4,17 +4,17 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "utilString.h"
-
+#include "vec2.h"
 #include "vec3.h"
 #include "quat.h"
 #include "transform.h"
+#include "vertex.h"
 
 #include "memoryManager.h"
 #include "moduleSkeleton.h"
 #include "moduleTextureGroup.h"
 
-#include "vec2.h"
+#include "utilString.h"
 
 
 #define MODEL_PATH_PREFIX        ".\\resource\\models\\"
@@ -29,27 +29,13 @@
 #define BASE_BONE_CAPACITY     1
 
 
-typedef struct vertex {
-	vec3 pos;
-	vec2 uv;
-	vec3 normal;
-
-	size_t boneIDs[MODEL_VERTEX_MAX_WEIGHTS];
-	float boneWeights[MODEL_VERTEX_MAX_WEIGHTS];
-} vertex;
-
-
 // By default, the error model only has a name.
 // We need to set up the other data the hard way.
-model errorMdl = {
+model mdlDefault = {
 	.name     = "error",
-	.skele    = &errorSkele,
-	.texGroup = &errorTexGroup
+	.skele    = &skeleDefault,
+	.texGroup = &texGroupDefault
 };
-
-
-// Forward-declare any helper functions!
-static return_t vertexUnique(const vertex *v1, const vertex *v2);
 
 
 #warning "What if we aren't using the global memory manager?"
@@ -63,8 +49,8 @@ void modelInit(model *mdl){
 	mdl->vertexArrayID = 0;
 	mdl->numIndices = 0;
 
-	mdl->skele = &errorSkele;
-	mdl->texGroup = &errorTexGroup;
+	mdl->skele = &skeleDefault;
+	mdl->texGroup = &texGroupDefault;
 }
 
 
@@ -259,15 +245,15 @@ return_t modelLoadOBJ(model *mdl, const char *mdlName){
 
 					#warning "This is only temporary since we don't support bones here yet."
 					tempVertex.boneIDs[0] = 0;
-					memset(&tempVertex.boneIDs[1], -1, (MODEL_VERTEX_MAX_WEIGHTS - 1) * sizeof(tempVertex.boneIDs[0]));
+					memset(&tempVertex.boneIDs[1], -1, (VERTEX_MAX_WEIGHTS - 1) * sizeof(tempVertex.boneIDs[0]));
 					tempVertex.boneWeights[0] = 1.f;
-					memset(&tempVertex.boneWeights[1], 0.f, (MODEL_VERTEX_MAX_WEIGHTS - 1) * sizeof(tempVertex.boneWeights[0]));
+					memset(&tempVertex.boneWeights[1], 0.f, (VERTEX_MAX_WEIGHTS - 1) * sizeof(tempVertex.boneWeights[0]));
 
 
 					// Check if this vertex already exists!
 					for(b = 0; b < tempVerticesSize; ++b){
 						// Looks like it does, so we don't need to store it again!
-						if(vertexUnique(checkVertex, &tempVertex) == 0){
+						if(vertexDifferent(checkVertex, &tempVertex) == 0){
 							break;
 						}
 
@@ -367,8 +353,8 @@ return_t modelLoadOBJ(model *mdl, const char *mdlName){
 				glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vertex), (GLvoid *)offsetof(vertex, pos));
 				glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(vertex), (GLvoid *)offsetof(vertex, uv));
 				glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(vertex), (GLvoid *)offsetof(vertex, normal));
-				glVertexAttribIPointer(3, MODEL_VERTEX_MAX_WEIGHTS, GL_UNSIGNED_INT, sizeof(vertex), (GLvoid *)offsetof(vertex, boneIDs));
-				glVertexAttribPointer(4, MODEL_VERTEX_MAX_WEIGHTS, GL_FLOAT, GL_FALSE, sizeof(vertex), (GLvoid *)offsetof(vertex, boneWeights));
+				glVertexAttribIPointer(3, VERTEX_MAX_WEIGHTS, GL_UNSIGNED_INT, sizeof(vertex), (GLvoid *)offsetof(vertex, boneIDs));
+				glVertexAttribPointer(4, VERTEX_MAX_WEIGHTS, GL_FLOAT, GL_FALSE, sizeof(vertex), (GLvoid *)offsetof(vertex, boneWeights));
 			// Unbind the array object!
 			glBindVertexArray(0);
 
@@ -397,7 +383,7 @@ return_t modelLoadOBJ(model *mdl, const char *mdlName){
 					// use the error texture.
 					if(!texGroupLoad(mdl->texGroup, tempTexGroupName)){
 						moduleTexGroupFree(mdl->texGroup);
-						mdl->texGroup = &errorTexGroup;
+						mdl->texGroup = &texGroupDefault;
 					}
 				}
 			}
@@ -621,7 +607,7 @@ return_t modelLoadSMD(model *mdl, const char *mdlName){
 									// Set the inverse bind state!
 									currentBone->invGlobalBind = currentBone->localBind;
 									// If this bone has a parent, append its state to its parent's state!
-									if(!VALUE_IS_INVALID(currentBone->parent)){
+									if(!valueIsInvalid(currentBone->parent)){
 										transformStateAppend(
 											&tempBones[currentBone->parent].invGlobalBind,
 											&currentBone->invGlobalBind,
@@ -664,7 +650,7 @@ return_t modelLoadSMD(model *mdl, const char *mdlName){
 								// Make sure some links were specified.
 								if(numLinks > 0){
 									// If there are more than the maximum number of supported weights, we'll have to clamp it down!
-									if(numLinks > MODEL_VERTEX_MAX_WEIGHTS){
+									if(numLinks > VERTEX_MAX_WEIGHTS){
 										printf(
 											"Error loading model!\n"
 											"Path: %s\n"
@@ -673,10 +659,10 @@ return_t modelLoadSMD(model *mdl, const char *mdlName){
 											mdlPath, line
 										);
 
-										numLinks = MODEL_VERTEX_MAX_WEIGHTS;
+										numLinks = VERTEX_MAX_WEIGHTS;
 									}
 
-									size_t parentPos = INVALID_VALUE(parentPos);
+									size_t parentPos = invalidValue(parentPos);
 									float totalWeight = 0.f;
 
 									size_t *curBoneID = tempVertex.boneIDs;
@@ -720,8 +706,8 @@ return_t modelLoadSMD(model *mdl, const char *mdlName){
 									// Make sure the total weight isn't less than 1!
 									if(totalWeight < 1.f){
 										// If we never loaded the parent bone, see if we can add it!
-										if(VALUE_IS_INVALID(parentPos)){
-											if(i < MODEL_VERTEX_MAX_WEIGHTS){
+										if(valueIsInvalid(parentPos)){
+											if(i < VERTEX_MAX_WEIGHTS){
 												*curBoneID = parentBoneID;
 												*curBoneWeight = 0.f;
 												parentPos = i;
@@ -737,8 +723,8 @@ return_t modelLoadSMD(model *mdl, const char *mdlName){
 									}
 
 									// Make sure we fill the rest with invalid values so we know they aren't used.
-									memset(&curBoneID, -1, (MODEL_VERTEX_MAX_WEIGHTS - i) * sizeof(*tempVertex.boneIDs));
-									memset(&curBoneWeight, 0.f, (MODEL_VERTEX_MAX_WEIGHTS - i) * sizeof(*tempVertex.boneWeights));
+									memset(&curBoneID, -1, (VERTEX_MAX_WEIGHTS - i) * sizeof(*tempVertex.boneIDs));
+									memset(&curBoneWeight, 0.f, (VERTEX_MAX_WEIGHTS - i) * sizeof(*tempVertex.boneWeights));
 
 								// Otherwise, just bind it to the parent bone.
 								}else{
@@ -751,9 +737,9 @@ return_t modelLoadSMD(model *mdl, const char *mdlName){
 									);
 
 									tempVertex.boneIDs[0] = parentBoneID;
-									memset(&tempVertex.boneIDs[1], -1, (MODEL_VERTEX_MAX_WEIGHTS - 1) * sizeof(*tempVertex.boneIDs));
+									memset(&tempVertex.boneIDs[1], -1, (VERTEX_MAX_WEIGHTS - 1) * sizeof(*tempVertex.boneIDs));
 									tempVertex.boneWeights[0] = 1.f;
-									memset(&tempVertex.boneWeights[1], 0.f, (MODEL_VERTEX_MAX_WEIGHTS - 1) * sizeof(*tempVertex.boneWeights));
+									memset(&tempVertex.boneWeights[1], 0.f, (VERTEX_MAX_WEIGHTS - 1) * sizeof(*tempVertex.boneWeights));
 								}
 
 
@@ -762,7 +748,7 @@ return_t modelLoadSMD(model *mdl, const char *mdlName){
 								// Check if this vertex already exists!
 								for(i = 0; i < tempVerticesSize; ++i){
 									// Looks like it does, so we don't need to store it again!
-									if(vertexUnique(checkVertex, &tempVertex) == 0){
+									if(vertexDifferent(checkVertex, &tempVertex) == 0){
 										break;
 									}
 
@@ -846,8 +832,8 @@ return_t modelLoadSMD(model *mdl, const char *mdlName){
 				glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vertex), (GLvoid *)offsetof(vertex, pos));
 				glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(vertex), (GLvoid *)offsetof(vertex, uv));
 				glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(vertex), (GLvoid *)offsetof(vertex, normal));
-				glVertexAttribIPointer(3, MODEL_VERTEX_MAX_WEIGHTS, GL_UNSIGNED_INT, sizeof(vertex), (GLvoid *)offsetof(vertex, boneIDs));
-				glVertexAttribPointer(4, MODEL_VERTEX_MAX_WEIGHTS, GL_FLOAT, GL_FALSE, sizeof(vertex), (GLvoid *)offsetof(vertex, boneWeights));
+				glVertexAttribIPointer(3, VERTEX_MAX_WEIGHTS, GL_UNSIGNED_INT, sizeof(vertex), (GLvoid *)offsetof(vertex, boneIDs));
+				glVertexAttribPointer(4, VERTEX_MAX_WEIGHTS, GL_FLOAT, GL_FALSE, sizeof(vertex), (GLvoid *)offsetof(vertex, boneWeights));
 			// Unbind the array object!
 			glBindVertexArray(0);
 
@@ -884,7 +870,7 @@ return_t modelLoadSMD(model *mdl, const char *mdlName){
 				// use the error texture.
 				if(!texGroupLoad(mdl->texGroup, "soldier.tdt")){
 					moduleTexGroupFree(mdl->texGroup);
-					mdl->texGroup = &errorTexGroup;
+					mdl->texGroup = &texGroupDefault;
 				}
 			}
 			// }
@@ -922,163 +908,177 @@ return_t modelLoadSMD(model *mdl, const char *mdlName){
 	return(0);
 }
 
-return_t modelSetupError(){
-	vec3 tempPositions[8] = {
-		{.x =  1.f, .y = 2.f, .z = -1.f},
-		{.x = -1.f, .y = 0.f, .z = -1.f},
-		{.x = -1.f, .y = 2.f, .z = -1.f},
-		{.x =  1.f, .y = 2.f, .z =  1.f},
-		{.x =  1.f, .y = 0.f, .z = -1.f},
-		{.x = -1.f, .y = 2.f, .z =  1.f},
-		{.x =  1.f, .y = 0.f, .z =  1.f},
-		{.x = -1.f, .y = 0.f, .z =  1.f}
-	};
-
-	vec2 tempUVs[20] = {
-		{.x = 0.f, .y = 1.f},
-		{.x = 1.f, .y = 0.f},
-		{.x = 1.f, .y = 1.f},
-		{.x = 0.f, .y = 1.f},
-		{.x = 1.f, .y = 0.f},
-		{.x = 1.f, .y = 1.f},
-		{.x = 0.f, .y = 1.f},
-		{.x = 1.f, .y = 0.f},
-		{.x = 1.f, .y = 1.f},
-		{.x = 0.f, .y = 1.f},
-		{.x = 1.f, .y = 0.f},
-		{.x = 1.f, .y = 1.f},
-		{.x = 0.f, .y = 1.f},
-		{.x = 0.f, .y = 0.f},
-		{.x = 1.f, .y = 0.f},
-		{.x = 0.f, .y = 0.f},
-		{.x = 0.f, .y = 0.f},
-		{.x = 0.f, .y = 0.f},
-		{.x = 0.f, .y = 0.f},
-		{.x = 1.f, .y = 1.f}
-	};
-
-	vec3 tempNormals[8] = {
-		{.x =  0.5774f, .y =  0.5774f, .z = -0.5774f},
-		{.x = -0.5774f, .y = -0.5774f, .z = -0.5774f},
-		{.x = -0.5774f, .y =  0.5774f, .z = -0.5774f},
-		{.x =  0.5774f, .y =  0.5774f, .z =  0.5774f},
-		{.x =  0.5774f, .y = -0.5774f, .z = -0.5774f},
-		{.x = -0.5774f, .y =  0.5774f, .z =  0.5774f},
-		{.x =  0.5774f, .y = -0.5774f, .z =  0.5774f},
-		{.x = -0.5774f, .y = -0.5774f, .z =  0.5774f}
-	};
-
-	size_t tempIndices[108] = {
-		0,  0, 0,
-		1,  1, 1,
-		2,  2, 2,
-		3,  3, 3,
-		4,  4, 4,
-		0,  5, 0,
-		5,  6, 5,
-		6,  7, 6,
-		3,  8, 3,
-		2,  9, 2,
-		7, 10, 7,
-		5, 11, 5,
-		4,  4, 4,
-		7, 12, 7,
-		1, 13, 1,
-		3, 14, 3,
-		2,  9, 2,
-		5, 15, 5,
-		0,  0, 0,
-		4, 16, 4,
-		1,  1, 1,
-		3,  3, 3,
-		6, 17, 6,
-		4,  4, 4,
-		5,  6, 5,
-		7, 18, 7,
-		6,  7, 6,
-		2,  9, 2,
-		1, 13, 1,
-		7, 10, 7,
-		4,  4, 4,
-		6, 19, 6,
-		7, 12, 7,
-		3, 14, 3,
-		0,  5, 0,
-		2,  9, 2
-	};
-
-
-	// Temporarily stores only unique vertices.
-	size_t verticesSize = 0;
-	vertex vertices[20];
-	// Temporarily stores vertex indices for faces.
-	// We can use the model's numIndices variable for the size so we don't have to set it later.
-	errorMdl.numIndices = 0;
-	size_t indices[106];
-
-	size_t a;
-	for(a = 0; a < sizeof(tempIndices) / sizeof(*tempIndices); a += 3){
-		vertex tempVertex;
-		memset(&tempVertex, 0.f, sizeof(tempVertex));
-
-		// Fill up tempVertex with the vertex information we've stored!
-		tempVertex.pos = tempPositions[tempIndices[a]];
-		tempVertex.uv = tempUVs[tempIndices[a + 1]];
-		tempVertex.normal = tempNormals[tempIndices[a + 2]];
-
-		tempVertex.boneIDs[0] = 0;
-		memset(&tempVertex.boneIDs[1], -1, (MODEL_VERTEX_MAX_WEIGHTS - 1) * sizeof(tempVertex.boneIDs[0]));
-		tempVertex.boneWeights[0] = 1.f;
-		memset(&tempVertex.boneWeights[1], 0.f, (MODEL_VERTEX_MAX_WEIGHTS - 1) * sizeof(tempVertex.boneWeights[0]));
-
-
-		const vertex *checkVertex = vertices;
-		size_t b;
-		// Check if this vertex already exists!
-		for(b = 0; b < verticesSize; ++b){
-			// Looks like it does, so we don't need to store it again!
-			if(vertexUnique(checkVertex, &tempVertex) == 0){
-				break;
-			}
-
-			++checkVertex;
+return_t modelSetupDefault(){
+	const vertex vertices[20] = {
+		{
+			.pos.x = 0.5f, .pos.y = 1.f, .pos.z = -0.5f,
+			.uv.x = 0.f, .uv.y = 1.f,
+			.normal.x = 0.5774f, .normal.y = 0.5774f, .normal.z = -0.5774f,
+			.boneIDs = {0, -1, -1, -1}, .boneWeights = {1.f, 0.f, 0.f, 0.f}
+		},
+		{
+			.pos.x = -0.5f, .pos.y = 0.f, .pos.z = -0.5f,
+			.uv.x = 1.f, .uv.y = 0.f,
+			.normal.x = -0.5774f, .normal.y = -0.5774f, .normal.z = -0.5774f,
+			.boneIDs = {0, -1, -1, -1}, .boneWeights = {1.f, 0.f, 0.f, 0.f}
+		},
+		{
+			.pos.x = -0.5f, .pos.y = 1.f, .pos.z = -0.5f,
+			.uv.x = 1.f, .uv.y = 1.f,
+			.normal.x = -0.5774f, .normal.y = 0.5774f, .normal.z = -0.5774f,
+			.boneIDs = {0, -1, -1, -1}, .boneWeights = {1.f, 0.f, 0.f, 0.f}
+		},
+		{
+			.pos.x = 0.5f, .pos.y = 1.f, .pos.z = 0.5f,
+			.uv.x = 0.f, .uv.y = 1.f,
+			.normal.x = 0.5774f, .normal.y = 0.5774f, .normal.z = 0.5774f,
+			.boneIDs = {0, -1, -1, -1}, .boneWeights = {1.f, 0.f, 0.f, 0.f}
+		},
+		{
+			.pos.x = 0.5f, .pos.y = 0.f, .pos.z = -0.5f,
+			.uv.x = 1.f, .uv.y = 0.f,
+			.normal.x = 0.5774f, .normal.y = -0.5774f, .normal.z = -0.5774f,
+			.boneIDs = {0, -1, -1, -1}, .boneWeights = {1.f, 0.f, 0.f, 0.f}
+		},
+		{
+			.pos.x = 0.5f, .pos.y = 1.f, .pos.z = -0.5f,
+			.uv.x = 1.f, .uv.y = 1.f,
+			.normal.x = 0.5774f, .normal.y = 0.5774f, .normal.z = -0.5774f,
+			.boneIDs = {0, -1, -1, -1}, .boneWeights = {1.f, 0.f, 0.f, 0.f}
+		},
+		{
+			.pos.x = -0.5f, .pos.y = 1.f, .pos.z = 0.5f,
+			.uv.x = 0.f, .uv.y = 1.f,
+			.normal.x = -0.5774f, .normal.y = 0.5774f, .normal.z = 0.5774f,
+			.boneIDs = {0, -1, -1, -1}, .boneWeights = {1.f, 0.f, 0.f, 0.f}
+		},
+		{
+			.pos.x = 0.5f, .pos.y = 0.f, .pos.z = 0.5f,
+			.uv.x = 1.f, .uv.y = 0.f,
+			.normal.x = 0.5774f, .normal.y = -0.5774f, .normal.z = 0.5774f,
+			.boneIDs = {0, -1, -1, -1}, .boneWeights = {1.f, 0.f, 0.f, 0.f}
+		},
+		{
+			.pos.x = 0.5f, .pos.y = 1.f, .pos.z = 0.5f,
+			.uv.x = 1.f, .uv.y = 1.f,
+			.normal.x = 0.5774f, .normal.y = 0.5774f, .normal.z = 0.5774f,
+			.boneIDs = {0, -1, -1, -1}, .boneWeights = {1.f, 0.f, 0.f, 0.f}
+		},
+		{
+			.pos.x = -0.5f, .pos.y = 1.f, .pos.z = -0.5f,
+			.uv.x = 0.f, .uv.y = 1.f,
+			.normal.x = -0.5774f, .normal.y = 0.5774f, .normal.z = -0.5774f,
+			.boneIDs = {0, -1, -1, -1}, .boneWeights = {1.f, 0.f, 0.f, 0.f}
+		},
+		{
+			.pos.x = -0.5f, .pos.y = 0.f, .pos.z = 0.5f,
+			.uv.x = 1.f, .uv.y = 0.f,
+			.normal.x = -0.5774f, .normal.y = -0.5774f, .normal.z = 0.5774f,
+			.boneIDs = {0, -1, -1, -1}, .boneWeights = {1.f, 0.f, 0.f, 0.f}
+		},
+		{
+			.pos.x = -0.5f, .pos.y = 1.f, .pos.z = 0.5f,
+			.uv.x = 1.f, .uv.y = 1.f,
+			.normal.x = -0.5774f, .normal.y = 0.5774f, .normal.z = 0.5774f,
+			.boneIDs = {0, -1, -1, -1}, .boneWeights = {1.f, 0.f, 0.f, 0.f}
+		},
+		{
+			.pos.x = -0.5f, .pos.y = 0.f, .pos.z = 0.5f,
+			.uv.x = 0.f, .uv.y = 1.f,
+			.normal.x = -0.5774f, .normal.y = -0.5774f, .normal.z = 0.5774f,
+			.boneIDs = {0, -1, -1, -1}, .boneWeights = {1.f, 0.f, 0.f, 0.f}
+		},
+		{
+			.pos.x = -0.5f, .pos.y = 0.f, .pos.z = -0.5f,
+			.uv.x = 0.f, .uv.y = 0.f,
+			.normal.x = -0.5774f, .normal.y = -0.5774f, .normal.z = -0.5774f,
+			.boneIDs = {0, -1, -1, -1}, .boneWeights = {1.f, 0.f, 0.f, 0.f}
+		},
+		{
+			.pos.x = 0.5f, .pos.y = 1.f, .pos.z = 0.5f,
+			.uv.x = 1.f, .uv.y = 0.f,
+			.normal.x = 0.5774f, .normal.y = 0.5774f, .normal.z = 0.5774f,
+			.boneIDs = {0, -1, -1, -1}, .boneWeights = {1.f, 0.f, 0.f, 0.f}
+		},
+		{
+			.pos.x = -0.5f, .pos.y = 1.f, .pos.z = 0.5f,
+			.uv.x = 0.f, .uv.y = 0.f,
+			.normal.x = -0.5774f, .normal.y = 0.5774f, .normal.z = 0.5774f,
+			.boneIDs = {0, -1, -1, -1}, .boneWeights = {1.f, 0.f, 0.f, 0.f}
+		},
+		{
+			.pos.x = 0.5f, .pos.y = 0.f, .pos.z = -0.5f,
+			.uv.x = 0.f, .uv.y = 0.f,
+			.normal.x = 0.5774f, .normal.y = -0.5774f, .normal.z = -0.5774f,
+			.boneIDs = {0, -1, -1, -1}, .boneWeights = {1.f, 0.f, 0.f, 0.f}
+		},
+		{
+			.pos.x = 0.5f, .pos.y = 0.f, .pos.z = 0.5f,
+			.uv.x = 0.f, .uv.y = 0.f,
+			.normal.x = 0.5774f, .normal.y = -0.5774f, .normal.z = 0.5774f,
+			.boneIDs = {0, -1, -1, -1}, .boneWeights = {1.f, 0.f, 0.f, 0.f}
+		},
+		{
+			.pos.x = -0.5f, .pos.y = 0.f, .pos.z = 0.5f,
+			.uv.x = 0.f, .uv.y = 0.f,
+			.normal.x = -0.5774f, .normal.y = -0.5774f, .normal.z = 0.5774f,
+			.boneIDs = {0, -1, -1, -1}, .boneWeights = {1.f, 0.f, 0.f, 0.f}
+		},
+		{
+			.pos.x = 0.5f, .pos.y = 0.f, .pos.z = 0.5f,
+			.uv.x = 1.f, .uv.y = 1.f,
+			.normal.x = 0.5774f, .normal.y = -0.5774f, .normal.z = 0.5774f,
+			.boneIDs = {0, -1, -1, -1}, .boneWeights = {1.f, 0.f, 0.f, 0.f}
 		}
-		// The vertex does not exist, so add it to the vector!
-		if(b == verticesSize){
-			vertices[verticesSize] = tempVertex;
-			++verticesSize;
-		}
-		// Add an index for the new vertex!
-		indices[errorMdl.numIndices] = b;
-		++errorMdl.numIndices;
-	}
+	};
 
+	const size_t indices[36] = {
+		 0,  1,  2,
+		 3,  4,  5,
+		 6,  7,  8,
+		 9, 10, 11,
+		 4, 12, 13,
+		14,  9, 15,
+		 0, 16,  1,
+		 3, 17,  4,
+		 6, 18,  7,
+		 9, 13, 10,
+		 4, 19, 12,
+		14,  5,  9
+	};
+
+
+	mdlDefault.numIndices = sizeof(indices)/sizeof(*indices);
 
 	// Generate a vertex array object for our model and bind it!
-	glGenVertexArrays(1, &errorMdl.vertexArrayID);
-	glBindVertexArray(errorMdl.vertexArrayID);
+	glGenVertexArrays(1, &mdlDefault.vertexArrayID);
+	glBindVertexArray(mdlDefault.vertexArrayID);
 		// Generate a vertex buffer object for our vertex data and bind it!
-		glGenBuffers(1, &errorMdl.vertexBufferID);
-		glBindBuffer(GL_ARRAY_BUFFER, errorMdl.vertexBufferID);
+		glGenBuffers(1, &mdlDefault.vertexBufferID);
+		glBindBuffer(GL_ARRAY_BUFFER, mdlDefault.vertexBufferID);
 		// Now add all our data to it!
-		glBufferData(GL_ARRAY_BUFFER, verticesSize * sizeof(*vertices), &vertices[0], GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), &vertices[0], GL_STATIC_DRAW);
 
 		// Generate a vertex buffer object for our indices and bind it!
-		glGenBuffers(1, &errorMdl.indexBufferID);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, errorMdl.indexBufferID);
+		glGenBuffers(1, &mdlDefault.indexBufferID);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mdlDefault.indexBufferID);
 		// Now add all our data to it!
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, (errorMdl.numIndices * sizeof(*indices)), &indices[0], GL_STATIC_DRAW);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), &indices[0], GL_STATIC_DRAW);
 
 
 		// Models will need these three vertex attributes!
 		glEnableVertexAttribArray(0);
 		glEnableVertexAttribArray(1);
 		glEnableVertexAttribArray(2);
+		glEnableVertexAttribArray(3);
+		glEnableVertexAttribArray(4);
 
 		// Tell OpenGL which data belongs to the vertex attributes!
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vertex), (GLvoid*)offsetof(vertex, pos));
 		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(vertex), (GLvoid*)offsetof(vertex, uv));
 		glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(vertex), (GLvoid*)offsetof(vertex, normal));
+		glVertexAttribIPointer(3, VERTEX_MAX_WEIGHTS, GL_UNSIGNED_INT, sizeof(vertex), (GLvoid *)offsetof(vertex, boneIDs));
+		glVertexAttribPointer(4, VERTEX_MAX_WEIGHTS, GL_FLOAT, GL_FALSE, sizeof(vertex), (GLvoid *)offsetof(vertex, boneWeights));
 	// Unbind the array object!
 	glBindVertexArray(0);
 
@@ -1090,7 +1090,7 @@ return_t modelSetupError(){
 void modelDelete(model *mdl){
 	// Only free the name if it's in
 	// use and it's not the error model.
-	if(mdl->name != NULL && mdl != &errorMdl){
+	if(mdl->name != NULL && mdl != &mdlDefault){
 		memoryManagerGlobalFree(mdl->name);
 	}
 
@@ -1103,10 +1103,4 @@ void modelDelete(model *mdl){
 	if(mdl->vertexArrayID != 0){
 		glDeleteVertexArrays(1, &mdl->vertexArrayID);
 	}
-}
-
-
-// This works so long as our vertices have no padding.
-static return_t vertexUnique(const vertex *v1, const vertex *v2){
-	return(memcmp(v1, v2, sizeof(*v2)));
 }

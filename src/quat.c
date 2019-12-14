@@ -822,12 +822,12 @@ float quatMagnitude(const float x, const float y, const float z, const float w){
 
 // Find the magnitude (length) of a quaternion!
 float quatMagnitudeQuat(const quat *q){
-	return(sqrtf(q->x * q->x + q->y * q->y + q->z * q->z + q->w * q->w));
+	return(sqrtf(quatNormQuat(q)));
 }
 
 // Find the magnitude (length) of a quaternion!
 float quatMagnitudeQuatR(const quat q){
-	return(sqrtf(q.x * q.x + q.y * q.y + q.z * q.z + q.w * q.w));
+	return(sqrtf(quatNormQuatR(q)));
 }
 
 

@@ -1,129 +1,69 @@
 #include "camera.h"
 
 
+#include "utilMath.h"
+
 #include "settingsProgram.h"
 
 
-void cameraStateInit(cameraState *camState){
-	interpVec3InitZero(&camState->pos);
-	interpQuatInitIdentity(&camState->rot);
-	interpFloatInitSet(&camState->fov, FOV_DEFAULT);
-}
-
 void cameraInit(camera *cam){
-	stateObjInit(cam, sizeof(cameraState));
-	cameraStateInit((cameraState *)cam->states[0]);
+	vec3InitZero(&cam->pos);
+	cam->rot = identityQuat;
+	cam->fov = FOV_DEFAULT;
+
+	vec3InitSet(&cam->up, 0.f, 1.f, 0.f);
+	cam->target = NULL;
+
+	cam->viewMatrix           =
+	cam->projectionMatrix     =
+	cam->viewProjectionMatrix = identityMat4;
+
+	cam->flags = CAMERA_TYPE_FRUSTUM;
 }
 
 
-void cameraStateAddPos(cameraState *camState, const float x, const float y, const float z, const float time){
-	vec3Add(&camState->pos.next, x * time, y * time, z * time);
+void cameraUpdateViewMatrix(camera *cam){
+	// Make the camera look at its target if it has one.
+	//if(cam->target != NULL){
+		//mat4LookAt(&cam->viewMatrix, &cam->pos, cam->target, &cam->up);
+		vec3 target = {0.f, 0.f, 0.f};
+		mat4LookAt(&cam->viewMatrix, &cam->pos, &target, &cam->up);
+		mat4RotateQuat(&cam->viewMatrix, &cam->rot);
+	//}
 }
 
-void cameraStateAddPosX(cameraState *camState, const float x, const float time){
-	camState->pos.next.x += x * time;
+void cameraUpdateProjectionMatrix(camera *cam, const float windowWidth, const float windowHeight){
+	// If the camera is set in projection mode, create a perspective matrix.
+	if(flagsAreSet(cam->flags, CAMERA_TYPE_FRUSTUM)){
+		mat4Perspective(&cam->projectionMatrix, cam->fov*DEG_TO_RAD, windowWidth/windowHeight, 0.1f/cam->fov, 1000.f);
+
+	// Otherwise, use an orthographic matrix.
+	}else{
+		const float screenSizeMod = 1.f / ((windowWidth < windowHeight) ? windowWidth : windowHeight);
+		mat4Orthographic(&cam->projectionMatrix, 0.f, windowWidth*screenSizeMod, 0.f, windowHeight*screenSizeMod, 0.1f, 1000.f);
+	}
 }
 
-void cameraStateAddPosY(cameraState *camState, const float y, const float time){
-	camState->pos.next.y += y * time;
-}
+// Only update the view projection matrix if the others should be changed.
+void cameraUpdateViewProjectionMatrix(camera *cam, const float windowWidth, const float windowHeight){
+	const int viewUpdate = 1;
+	const int projectionUpdate = 1;
 
-void cameraStateAddPosZ(cameraState *camState, const float z, const float time){
-	camState->pos.next.z += z * time;
-}
+	if(viewUpdate){
+		cameraUpdateViewMatrix(cam);
+	}
+	if(projectionUpdate){
+		cameraUpdateProjectionMatrix(cam, windowWidth, windowHeight);
+	}
 
-void cameraStateSetPos(cameraState *camState, const float x, const float y, const float z){
-	vec3InitSet(&camState->pos.next, x, y, z);
-	camState->pos.last = camState->pos.next;
-}
-
-void cameraStateSetPosX(cameraState *camState, const float x){
-	camState->pos.next.x = x;
-	camState->pos.last.x = x;
-}
-
-void cameraStateSetPosY(cameraState *camState, const float y){
-	camState->pos.next.y = y;
-	camState->pos.last.y = y;
-}
-
-void cameraStateSetPosZ(cameraState *camState, const float z){
-	camState->pos.next.z = z;
-	camState->pos.last.x = z;
-}
-
-void cameraStateAddRotEulerRad(cameraState *camState, const float x, const float y, const float z, const float time){
-	quat q = camState->rot.next;
-	quatRotateByRad(&q, x, y, z);
-	quatSlerpFast(&camState->rot.next, &q, time);
-}
-
-void cameraStateAddRotEulerDeg(cameraState *camState, const float x, const float y, const float z, const float time){
-	quat q = camState->rot.next;
-	quatRotateByDeg(&q, x, y, z);
-	quatSlerpFast(&camState->rot.next, &q, time);
-}
-
-void cameraStateAddRotQuat(cameraState *camState, const quat *q, const float time){
-	quatSlerpFast(&camState->rot.next, q, time);
-}
-
-void cameraStateSetRotEulerRad(cameraState *camState, const float x, const float y, const float z){
-	quatInitEulerRad(&camState->rot.next, x, y, z);
-	camState->rot.last = camState->rot.next;
-}
-
-void cameraStateSetRotEulerDeg(cameraState *camState, const float x, const float y, const float z){
-	quatInitEulerDeg(&camState->rot.next, x, y, z);
-	camState->rot.last = camState->rot.next;
-}
-
-void cameraStateSetRotQuat(cameraState *camState, const quat *q){
-	camState->rot.next = *q;
-	camState->rot.last = *q;
-}
-
-void cameraStateAddFov(cameraState *camState, const float fov, const float time){
-	camState->fov.next += fov * time;
-}
-
-void cameraStateSetFov(cameraState *camState, const float fov){
-	camState->fov.next = fov;
-	camState->fov.last = fov;
-}
-
-
-// Interpolate between the camera's previous state and current state!
-void cameraStateGenRenderState(const cameraState *camState, const float time, cameraInterpState *out){
-	interpVec3GenRenderState(&camState->pos, time, &out->pos);
-	interpQuatGenRenderState(&camState->rot, time, &out->rot);
-	interpFloatGenRenderState(&camState->fov, time, &out->fov);
-}
-
-// Find the camera's render state and generate a view matrix for it!
-/** To create a view matrix, just create a regular transformation matrix! The camera's position will need to be reversed though. **/
-void cameraStateGenerateViewMatrix(const cameraState *camState, const float time, mat4 *out){
-	cameraInterpState camInterp;
-	cameraStateGenRenderState(camState, time, &camInterp);
-	vec3Negate(&camInterp.pos);
-
-	mat4TranslateVec3(out, &camInterp.pos);
-	mat4RotateQuat(out, &camInterp.rot);
-}
-
-
-void cameraStateShift(camera *cam){
-	stateObjShift(cam, sizeof(cameraState), NULL, NULL);
-
-	cameraState *currentState = cam->states[0];
-	if(currentState != NULL){
-		interpVec3MoveToNextState(&currentState->pos);
-		interpQuatMoveToNextState(&currentState->rot);
-		interpFloatMoveToNextState(&currentState->fov);
+	// Update the view projection matrix if either of its components have changed.
+	if(viewUpdate || projectionUpdate){
+		mat4MultiplyByMat4Out(cam->projectionMatrix, cam->viewMatrix, &cam->viewProjectionMatrix);
 	}
 }
 
 
-void cameraDelete(camera *cam){
-	stateObjDelete(cam, NULL);
+// Compute a target's distance from a camera!
+float cameraDistance(const camera *cam, const vec3 *target){
+	return(sqrtf(vec3DistanceSquaredVec3(&cam->pos, target)));
 }

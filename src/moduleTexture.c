@@ -17,7 +17,7 @@ return_t moduleTextureSetup(){
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_TEXTURE_MANAGER_SIZE)),
 			MODULE_TEXTURE_MANAGER_SIZE, MODULE_TEXTURE_ELEMENT_SIZE
 		) != NULL &&
-		textureSetupError()
+		textureSetupDefault()
 	);
 }
 

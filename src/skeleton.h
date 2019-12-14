@@ -102,7 +102,7 @@ void skeleAnimDefDelete(skeletonAnimDef *animDef);
 void skeleObjDelete(skeletonObject *skeleObj);
 
 
-extern skeleton errorSkele;
+extern skeleton skeleDefault;
 
 
 /*

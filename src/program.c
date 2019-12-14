@@ -49,9 +49,8 @@ return_t programInit(program *prg){
 	prg->mouseY = 0;
 	prg->keyStates = SDL_GetKeyboardState(NULL);
 
-	mat4InitZero(&prg->projectionMatrix);
 	cameraInit(&prg->cam);
-	cameraStateSetPos(prg->cam.states[0], 0.f, 0.f, 5.f);
+	prg->cam.pos.z = 5.f;
 
 	timestepInit(&prg->step, UPDATE_RATE, FRAME_RATE);
 
@@ -132,8 +131,10 @@ void programClose(program *prg){
 
 /** Note: Some of this stuff should be inside the update function! **/
 static void input(program *prg){
-	// If the aspect ratio doesn't match the window size you get weird results, especially if you haven't resized the window.
-	// Additionally, you may need to recalculate the perspective matrix after changing the window size (or aspect ratio, preferably).
+	// If the aspect ratio doesn't match the window size you get
+	// weird results, especially if you haven't resized the window.
+	// Additionally, you may need to recalculate the perspective matrix
+	// after changing the window size (or aspect ratio, preferably).
 	int tempX = prg->windowWidth;
 	int tempY = prg->windowHeight;
 	SDL_GetWindowSize(prg->window, &prg->windowWidth, &prg->windowHeight);
@@ -143,18 +144,23 @@ static void input(program *prg){
 		// Make sure we preserve the aspect ratio!
 		tempX = prg->windowWidth / ASPECT_RATIO_X;
 		tempY = prg->windowHeight / ASPECT_RATIO_Y;
+
+		// If the window is too tall, add bars to the top and bottom.
 		if(tempX < tempY){
 			tempY = tempX * ASPECT_RATIO_Y;
-			tempX  = prg->windowWidth;
-		}else if(tempX > tempY){
-			tempX  = tempY * ASPECT_RATIO_X;
-			tempY = prg->windowHeight;
-		}else{
-			tempX = prg->windowWidth;
-			tempY = prg->windowHeight;
-		}
+			glViewport(0, (prg->windowHeight - tempY) / 2, prg->windowWidth, tempY);
+			prg->windowHeight = tempY;
 
-		glViewport((prg->windowWidth - tempX) / 2, (prg->windowHeight - tempY) / 2, tempX, tempY);
+		// If the window is too wide, add bars to the sides.
+		}else if(tempX > tempY){
+			tempX = tempY * ASPECT_RATIO_X;
+			glViewport((prg->windowWidth - tempX) / 2, 0, tempX, prg->windowHeight);
+			prg->windowWidth = tempX;
+
+		// Otherwise, we don't need any bars.
+		}else{
+			glViewport(0, 0, prg->windowWidth, prg->windowHeight);
+		}
 	}
 
 
@@ -190,30 +196,25 @@ static void input(program *prg){
 }
 
 static void updateCameras(program *prg){
-	cameraStateShift(&prg->cam);
+	if(prg->keyStates[SDL_SCANCODE_LEFT]){
+		prg->cam.pos.x -= 10.f * prg->step.updateDelta;
+	}
+	if(prg->keyStates[SDL_SCANCODE_RIGHT]){
+		prg->cam.pos.x += 10.f * prg->step.updateDelta;
+	}
 
-	// If our camera exists, react to the user's input and move it!
-	if(prg->cam.states[0] != NULL){
-		if(prg->keyStates[SDL_SCANCODE_LEFT]){
-			cameraStateAddPosX(prg->cam.states[0], -1.f, prg->step.updateTickrate);
-		}
-		if(prg->keyStates[SDL_SCANCODE_RIGHT]){
-			cameraStateAddPosX(prg->cam.states[0], 1.f, prg->step.updateTickrate);
-		}
+	if(prg->keyStates[SDL_SCANCODE_UP]){
+		prg->cam.pos.y += 10.f * prg->step.updateDelta;
+	}
+	if(prg->keyStates[SDL_SCANCODE_DOWN]){
+		prg->cam.pos.y -= 10.f * prg->step.updateDelta;
+	}
 
-		if(prg->keyStates[SDL_SCANCODE_UP]){
-			cameraStateAddPosY(prg->cam.states[0], 1.f, prg->step.updateTickrate);
-		}
-		if(prg->keyStates[SDL_SCANCODE_DOWN]){
-			cameraStateAddPosY(prg->cam.states[0], -1.f, prg->step.updateTickrate);
-		}
-
-		if(prg->keyStates[SDL_SCANCODE_W]){
-			cameraStateAddPosZ(prg->cam.states[0], -1.f, prg->step.updateTickrate);
-		}
-		if(prg->keyStates[SDL_SCANCODE_S]){
-			cameraStateAddPosZ(prg->cam.states[0], 1.f, prg->step.updateTickrate);
-		}
+	if(prg->keyStates[SDL_SCANCODE_W]){
+		prg->cam.pos.z -= 10.f * prg->step.updateDelta;
+	}
+	if(prg->keyStates[SDL_SCANCODE_S]){
+		prg->cam.pos.z += 10.f * prg->step.updateDelta;
 	}
 }
 
@@ -226,54 +227,64 @@ static void updateObjects(program *prg){
 	/** Temporary if statement for temporary code. Don't want the program to crash, do we? **/
 	/*if(allRenderObjects.size > 2){
 		renderObjState *currentObj = ((renderObject *)vectorGet(&allRenderObjects, 1))->states[0];
-		interpTransAddRotEulerDeg(&currentObj->transform, 0.f, 0.f, 2.f, prg->step.updateTickrate);
+		interpTransAddRotEulerDeg(&currentObj->transform, 0.f, 0.f, 2.f, prg->step.updateDelta);
 
 		currentObj = ((renderObject *)vectorGet(&allRenderObjects, 2))->states[0];
-		interpTransAddRotEulerDeg(&currentObj->transform, 2.f, 2.f, 2.f, prg->step.updateTickrate);
+		interpTransAddRotEulerDeg(&currentObj->transform, 2.f, 2.f, 2.f, prg->step.updateDelta);
 	}*/
 }
 
 /** Don't forget, some modules may not always be loaded! **/
+#warning "REMOVE THIS! PLEASE DON'T FORGET!"
+#include "guiElement.h"
+static guiElement gui;
 static void update(program *prg){
-	updateCameras(prg);
+	//updateCameras(prg);
 	updateObjects(prg);
+
+
+	/** TEMPORARY GUI MOVING STUFF! **/
+	if(prg->keyStates[SDL_SCANCODE_LEFT]){
+		gui.root.pos.x -= 100.f * prg->step.updateDelta;
+	}
+	if(prg->keyStates[SDL_SCANCODE_RIGHT]){
+		gui.root.pos.x += 100.f * prg->step.updateDelta;
+	}
+	if(prg->keyStates[SDL_SCANCODE_UP]){
+		gui.root.pos.y += 100.f * prg->step.updateDelta;
+	}
+	if(prg->keyStates[SDL_SCANCODE_DOWN]){
+		gui.root.pos.y -= 100.f * prg->step.updateDelta;
+	}
+
+	if(prg->keyStates[SDL_SCANCODE_A]){
+		gui.root.scale.x -= 100.f * prg->step.updateDelta;
+	}
+	if(prg->keyStates[SDL_SCANCODE_D]){
+		gui.root.scale.x += 100.f * prg->step.updateDelta;
+	}
+	if(prg->keyStates[SDL_SCANCODE_W]){
+		gui.root.scale.y += 100.f * prg->step.updateDelta;
+	}
+	if(prg->keyStates[SDL_SCANCODE_S]){
+		gui.root.scale.y -= 100.f * prg->step.updateDelta;
+	}
 }
 
 static void render(program *prg){
+	#warning "We should stop clearing the colour buffer eventually."
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
-	/** Temporary check to see if the current renderState exists for our one and only camera. **/
-	if(prg->cam.states[renderState] != NULL){
-		mat4 viewMatrix, viewProjectionMatrix;
-		vec3 target, up;
-		vec3InitZero(&target);
+	cameraUpdateViewProjectionMatrix(&prg->cam, prg->windowWidth, prg->windowHeight);
 
-		/** TEMPORARY CAMERA STUFF **/
-		target.y = 2.f;
+	MEMSINGLELIST_LOOP_BEGIN(objectManager, curObj, object *)
+		objectDraw(curObj, NULL, prg->cam.viewProjectionMatrix, &prg->shaderPrg, prg->step.renderDelta);
+	MEMSINGLELIST_LOOP_END(objectManager, curObj, object *, NULL)
 
-		vec3InitSet(&up, 0.f, 1.f, 0.f);
-		vec3 camPos;
-		interpVec3GenRenderState(&((cameraState *)prg->cam.states[renderState])->pos, prg->step.renderDelta, &camPos);
-		// Generate a view matrix that looks from the camera to target!
-		mat4LookAt(&viewMatrix, &camPos, &target, &up);
-		// Multiply it by the projection matrix!
-		mat4MultiplyByMat4Out(prg->projectionMatrix, viewMatrix, &viewProjectionMatrix);
-		//viewProjectionMatrix = prg->projectionMatrix;
-		//cameraStateGenerateViewMatrix((cameraState *)prg->cam.states[renderState], prg->step.renderDelta, &viewProjectionMatrix);
-
-		/*size_t i;
-		// Draw our objects!
-		for(i = 0; i < allRenderObjects.size; ++i){
-			renderObject *currentObj = (renderObject *)vectorGet(&allRenderObjects, i);
-			if(renderState < currentObj->numStates && currentObj->states[renderState] != NULL){
-				renderObjStateDraw(currentObj->states[renderState], NULL, &viewProjectionMatrix, &prg->shaderProgram, prg->step.renderDelta);
-			}
-		}*/
-		MEMSINGLELIST_LOOP_BEGIN(objectManager, curObj, object *)
-			objectDraw(curObj, NULL, viewProjectionMatrix, &prg->shaderProgram, prg->step.renderDelta);
-		MEMSINGLELIST_LOOP_END(objectManager, curObj, object *, NULL)
-	}
+	/** Do we need this? **/
+	glClear(GL_DEPTH_BUFFER_BIT);
+	guiElementDraw(&gui, prg->windowWidth, prg->windowHeight, &prg->shaderPrg);
 
 
 	SDL_GL_SwapWindow(prg->window);
@@ -335,52 +346,20 @@ static return_t initLibs(program *prg){
 
 
 	// Load, compile and attach our OpenGL shaders!
-	if(!shaderLoad(&prg->shaderProgram, ".\\resource\\shaders\\vertexShader.gls", ".\\resource\\shaders\\fragmentShader.gls")){
+	if(!shaderLoad(&prg->shaderPrg, ".\\resource\\shaders\\vertexShader.gls", ".\\resource\\shaders\\fragmentShader.gls")){
 		return(0);
 	}
-
-	// Create the perspective matrix and get its uniform variable ID in the shader.
-	mat4Perspective(&prg->projectionMatrix, ((cameraState *)prg->cam.states[0])->fov.next * M_PI / 180.f, ((float)prg->windowWidth / (float)prg->windowHeight), 0.1f, 100.f);
-	// mat4Orthographic(&prg->projectionMatrix, -5.f, 5.f, -5.f, 5.f, 0.1f, 100.f);
 
 
 	return(1);
 }
 
-#warning "We're testing physics now, so this stuff isn't necessary."
 static void initResources(){
-	/*skeleAnimLoadSMD(moduleSkeletonAnimAlloc(), "soldier_animations_anims\\jump_float_PRIMARY.smd");
-	// skeleAnimLoadSMD(moduleSkeletonAnimAlloc(), "soldier_animations_anims\\selectionMenu_Anim0l.smd");
-	// skeleAnimLoadSMD(moduleSkeletonAnimAlloc(), "soldier_animations_anims\\competitive_winnerstate_idle.smd");
-	// skeleAnimLoadSMD(moduleSkeletonAnimAlloc(), "scout_animations_anims\\a_runN_PRIMARY.smd");
-	// skeleAnimLoadSMD(moduleSkeletonAnimAlloc(), "scout_animations_anims\\selectionMenu_Anim01.smd");
-	// Someday, this function won't need to exist.
-	// Load all of the models we're using!
-	modelLoadOBJ(moduleModelAlloc(), "drNeoCortex.obj");
-	modelLoadOBJ(moduleModelAlloc(), "nTrance.obj");
-	modelLoadOBJ(moduleModelAlloc(), "neoTwin.obj");
-	modelLoadOBJ(moduleModelAlloc(), "cubeQuads.obj");
-	modelLoadSMD(moduleModelAlloc(), "soldier_reference.smd");*/
-	/** The Scout's arms don't work properly because the model's **/
-	/** skeleton has more bones than the animations' skeletons.  **/
-	// modelLoadSMD(moduleModelAlloc(), "scout_reference.smd");
-
-	// Create renderObjects to represent the models we want to draw!
-	/*renderObjCreate(5);
-	renderObjState *currentObj = ((renderObject *)vectorGet(&allRenderObjects, allRenderObjects.size - 1))->states[0];
-	if(loadedSkeleAnims.size > 0){
-		skeleObjAddAnim(currentObj->skeleObj, (skeletonAnimDef *)vectorGet(&loadedSkeleAnims, 0));
-	}
-	interpTransSetPosX(&currentObj->transform, -2.f);
+	guiPanelSetupDefault();
+	guiElementInit(&gui, GUI_TYPE_PANEL);
 
 
-	renderObjCreate(2);
-	currentObj = ((renderObject *)vectorGet(&allRenderObjects, allRenderObjects.size - 1))->states[0];
-	interpTransSetPosX(&currentObj->transform, 2.f);
-
-	renderObjCreate(3);
-	currentObj = ((renderObject *)vectorGet(&allRenderObjects, allRenderObjects.size - 1))->states[0];
-	interpTransSetPosY(&currentObj->transform, -2.f);*/
+	/** TEMPORARY OBJECT STUFF **/
 	model *mdl = moduleModelAlloc();
 	renderableDef *renderDef = moduleRenderableDefAlloc();
 	objectDef *objDef = moduleObjectDefAlloc();
@@ -397,19 +376,19 @@ static void initResources(){
 	objectInit(obj, objDef);
 	// Temporary object stuff.
 	//mdl = moduleModelAlloc();
-	//modelLoadSMD(mdl, "soldier_reference.smd");
+	//modelLoadSMD(mdl, "scout_reference.smd");
 	//skeleObjInit(&obj->skeleData, mdl->skele);
 
 	// Temporary animation stuff.
 	animDef = moduleSkeleAnimDefAlloc();
 	skeleAnimLoadSMD(animDef, "soldier_animations_anims_old\\a_runN_MELEE.smd");
 	obj->skeleData.anims = moduleSkeleAnimPrepend(&obj->skeleData.anims);
-	skeleAnimInit(obj->skeleData.anims, animDef, 1.4f);
+	skeleAnimInit(obj->skeleData.anims, animDef, 0.5f);
 
 	animDef = moduleSkeleAnimDefAlloc();
 	skeleAnimLoadSMD(animDef, "soldier_animations_anims_old\\stand_MELEE.smd");
 	obj->skeleData.anims = moduleSkeleAnimPrepend(&obj->skeleData.anims);
-	skeleAnimInit(obj->skeleData.anims, animDef, 0.f);
+	skeleAnimInit(obj->skeleData.anims, animDef, 0.5f);
 }
 
 // Set up the allocators for our modules.

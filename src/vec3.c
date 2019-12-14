@@ -443,27 +443,38 @@ float vec3Magnitude(const float x, const float y, const float z){
 
 // Find the magnitude (length) of a vec3!
 float vec3MagnitudeVec3(const vec3 *v){
-	return(sqrtf(v->x * v->x + v->y * v->y + v->z * v->z));
+	return(sqrtf(vec3NormVec3(v)));
 }
 
 // Find the magnitude (length) of a vec3!
 float vec3MagnitudeVec3R(const vec3 v){
-	return(sqrtf(v.x * v.x + v.y * v.y + v.z * v.z));
+	return(sqrtf(vec3NormVec3R(v)));
 }
 
 // Find the distance between a vec3 and one stored as three floats!
 float vec3DistanceSquared(const vec3 *v, const float x, const float y, const float z){
-	return(vec3Norm(x - v->x, y - v->y, z - v->z));
+	vec3 dist;
+	vec3SubtractFromOut(v, x, y, z, &dist);
+	return(vec3NormVec3(&dist));
+}
+
+// Find the distance between a vec3 and one stored as three floats!
+float vec3DistanceSquaredR(const vec3 v, const float x, const float y, const float z){
+	const vec3 dist = vec3SubtractFromR(v, x, y, z);
+	return(vec3NormVec3R(dist));
 }
 
 // Find the distance between two vec3s!
 float vec3DistanceSquaredVec3(const vec3 *v1, const vec3 *v2){
-	return(vec3Norm(v2->x - v1->x, v2->y - v1->y, v2->z - v1->z));
+	vec3 dist;
+	vec3SubtractVec3FromOut(v1, v2, &dist);
+	return(vec3NormVec3(&dist));
 }
 
 // Find the distance between two vec3s!
 float vec3DistanceSquaredVec3R(const vec3 v1, const vec3 v2){
-	return(vec3Norm(v2.x - v1.x, v2.y - v1.y, v2.z - v1.z));
+	const vec3 dist = vec3SubtractVec3FromR(v1, v2);
+	return(vec3NormVec3R(dist));
 }
 
 

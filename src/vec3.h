@@ -68,6 +68,7 @@ float vec3Magnitude(const float x, const float y, const float z);
 float vec3MagnitudeVec3(const vec3 *v);
 float vec3MagnitudeVec3R(const vec3 v);
 float vec3DistanceSquared(const vec3 *v, const float x, const float y, const float z);
+float vec3DistanceSquaredR(const vec3 v, const float x, const float y, const float z);
 float vec3DistanceSquaredVec3(const vec3 *v1, const vec3 *v2);
 float vec3DistanceSquaredVec3R(const vec3 v1, const vec3 v2);
 

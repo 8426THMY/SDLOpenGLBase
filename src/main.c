@@ -33,6 +33,12 @@ How can we do this?
 
 #warning "Add more matrix functions for left- and right-multiplying vectors by matrices. We need bra and ket functions that produce a vector on left-multiplication."
 
+#warning "Add 'const restrict' keywords to pointers where applicable? That's a lot of work though."
+#warning "Should we use our 'R' math functions? It would also be a good idea to stop passing so many things by pointer."
+
+#warning "With UV coordinates, we can add offsets[3] to offsets[1] to help when rendering."
+#warning "Probably move them out of the textureGroup stuff, too."
+
 
 int main(int argc, char **argv){
 	program prg;

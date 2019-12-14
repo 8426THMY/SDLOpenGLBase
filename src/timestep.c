@@ -16,4 +16,9 @@ void timestepInit(timestep *step, const float updateRate, const float renderRate
 	// Milliseconds per update/render.
 	step->updateTime = 1000.f / updateRate;
 	step->renderTime = 1000.f / renderRate;
+
+	// Seconds per update/render.
+	step->updateDelta = 1.f / updateRate;
+	// This is set during the program loop.
+	step->renderDelta = 0.f;
 }

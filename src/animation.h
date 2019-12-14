@@ -30,16 +30,16 @@ typedef struct animationData {
 
 
 void animFrameDataInit(animationFrameData *frameData);
-void animationInit(animationData *anim);
+void animationInit(animationData *animData);
 
 void animationSetAnim(animationData *animData, const size_t playNum, const size_t animNum);
-void animationUpdate(animationData *anim, const animationFrameData *animData, const float time);
-float animationGetFrameProgress(const animationData *anim, const animationFrameData *animData);
+void animationUpdate(animationData *animData, const animationFrameData *frameData, const float time);
+float animationGetFrameProgress(const animationData *animData, const animationFrameData *frameData);
 
 void animFrameDataClear(animationFrameData *frameData);
 
 
-extern float defaultAnimTime;
+extern float animTimeDefault;
 
 
 #endif

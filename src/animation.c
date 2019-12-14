@@ -11,7 +11,7 @@
 
 // This is used by "error" objects
 // which require animation data.
-float defaultAnimTime = 0.f;
+float animTimeDefault = 0.f;
 
 
 void animFrameDataInit(animationFrameData *frameData){
@@ -54,7 +54,7 @@ void animationUpdate(animationData *animData, const animationFrameData *frameDat
 			/** Note: If the animation has finished looping and you play it in the opposite direction   **/
 			/**       (without completing a loop) then the original direction again, it will just stop. **/
 			// We're animating forwards and we've haven't finished looping!
-			if(time >= 0.f && (VALUE_IS_INVALID(animData->currentPlayNum) || animData->currentPlayNum != frameData->playNum)){
+			if(time >= 0.f && (valueIsInvalid(animData->currentPlayNum) || animData->currentPlayNum != frameData->playNum)){
 				animData->animTime += time;
 
 				// If we've finished the animation, continue looping if we can!
@@ -66,8 +66,8 @@ void animationUpdate(animationData *animData, const animationFrameData *frameDat
 					} while(animData->animTime > lastFrameTime);
 
 					// If the old loop counter was -1, we're looping indefinitely.
-					if(VALUE_IS_INVALID(oldLoops)){
-						animData->currentPlayNum = INVALID_VALUE(animData->currentPlayNum);
+					if(valueIsInvalid(oldLoops)){
+						animData->currentPlayNum = invalidValue(animData->currentPlayNum);
 
 					// If we've finished looping, end on the last frame!
 					}else if(animData->currentPlayNum >= frameData->playNum){
@@ -92,7 +92,7 @@ void animationUpdate(animationData *animData, const animationFrameData *frameDat
 				}
 
 			// We're animating backwards and we haven't finished looping!
-			}else if(VALUE_IS_INVALID(animData->currentPlayNum) || animData->currentPlayNum != 0){
+			}else if(valueIsInvalid(animData->currentPlayNum) || animData->currentPlayNum != 0){
 				animData->animTime += time;
 
 				// If we've finished the animation, continue from the end!
@@ -104,8 +104,8 @@ void animationUpdate(animationData *animData, const animationFrameData *frameDat
 					} while(animData->animTime < 0.f);
 
 					// If the old loop counter was -1, we're looping indefinitely.
-					if(VALUE_IS_INVALID(oldLoops)){
-						animData->currentPlayNum = INVALID_VALUE(animData->currentPlayNum);
+					if(valueIsInvalid(oldLoops)){
+						animData->currentPlayNum = invalidValue(animData->currentPlayNum);
 
 					// If we've finished looping, end on the first frame!
 					}else if(animData->currentPlayNum == 0 || animData->currentPlayNum > oldLoops){

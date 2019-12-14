@@ -29,21 +29,6 @@ typedef struct objectDef {
 	renderableDef *renderables;
 } objectDef;
 
-#warning "We need something for interpolation. Skeletons are also very incomplete."
-/**
-IMPORTANT NOTE ABOUT SKELETONS:
-
-Here's what we need:
-
-1. Animation skeletons are mapped onto model (renderable) skeletons.
-2. What if renderables and animations all have different skeletons?
-3. We need a mapping for each renderable/animation pair.
-4. Alternatively, we have a "parent" skeleton that all child renderables are mapped onto.
-5. Each animation is then mapped onto that.
-6. This is where it stops making sense to have objects with multiple renderables, though.
-7. We would need to assume that all renderables in an object have the same skeleton.
-8. We could use the first renderable's skeleton too.
-**/
 typedef struct object {
 	const objectDef *objDef;
 
@@ -57,30 +42,6 @@ typedef struct object {
 
 	// These models are drawn at the object's bones.
 	renderable *renderables;
-
-	/**
-	Object {
-		Renderables [{
-			Model {
-				Skeleton {
-					Bones;
-				}
-			}
-			TextureState;
-		}];
-
-		SkeletonAnims [{
-			BaseAnim;
-			AnimState;
-			skeleState;
-
-			Intensity;
-		}];
-
-		Colliders;
-		PhysObjects;
-	}
-	**/
 } object;
 
 
@@ -90,62 +51,10 @@ void objectInit(object *obj, const objectDef *objDef);
 return_t objectDefLoad(objectDef *objDef, const char *objFile);
 
 void objectUpdate(object *obj, const float time);
-void objectDraw(const object *obj, const vec3 *camPos, mat4 mvpMatrix, const shader *shaderProgram, const float time);
+void objectDraw(const object *obj, const vec3 *camPos, mat4 mvpMatrix, const shader *shaderPrg, const float time);
 
 void objectDelete(object *obj);
 void objectDefDelete(objectDef *objDef);
-
-
-/**
-Object 1 {
-	skeleton = skele1;
-	anims;
-
-	lookup = NULL;
-	boneState[skele1->numBones];
-
-	children = Object 2;
-}
-
-Object 2 {
-	skeleton = skele2;
-	anims;
-
-	lookup[skele1->numBones];
-	boneState[skele2->numBones];
-
-	children = NULL;
-}
-
-
-Update object 1 {
-	Animate skeleton;
-
-	Update children {
-		Update object 2 {
-
-			If object 2 lookup != NULL
-				// If object 2 is attached to object 1 in a special
-				// way, it's skeleton should animate with object 1's.
-				Append parent animation {
-					For each i=0..n bone in skele1 {
-						If object 2 lookup[i] != -1 {
-							object 2 boneState[object 2 lookup[i]] = object 1 boneState[i];
-						}
-					}
-				}
-			}
-
-			//
-			Animate skeleton {
-				For each bone {
-					If lookup
-				}
-			}
-		}
-	}
-}
-**/
 
 
 /**

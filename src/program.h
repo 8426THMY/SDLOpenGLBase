@@ -22,7 +22,7 @@ typedef struct program {
 	int windowWidth;
 	int windowHeight;
 
-	shader shaderProgram;
+	shader shaderPrg;
 
 	return_t running;
 
@@ -30,7 +30,6 @@ typedef struct program {
 	int mouseY;
 	const Uint8 *keyStates;
 
-	mat4 projectionMatrix;
 	camera cam;
 
 	timestep step;
