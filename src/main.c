@@ -37,7 +37,7 @@ How can we do this?
 #warning "Should we use our 'R' math functions? It would also be a good idea to stop passing so many things by pointer."
 
 #warning "With UV coordinates, we can add offsets[3] to offsets[1] to help when rendering."
-#warning "Probably move them out of the textureGroup stuff, too."
+#warning "Texture group animation needs a rewrite. It's messy and we can't do diagonal scrolling effects."
 
 
 int main(int argc, char **argv){

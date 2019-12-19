@@ -16,10 +16,7 @@ void renderableDefInit(renderableDef *renderDef, model *mdl){
 void renderableInit(renderable *render, const renderableDef *renderDef){
 	render->mdl = renderDef->mdl;
 	texGroupStateInit(&render->texState, renderDef->texGroup);
-
-	render->flags = BILLBOARD_DISABLED;
-	render->axis = NULL;
-	render->target = NULL;
+	billboardInit(&render->billboardData);
 }
 
 
@@ -30,108 +27,24 @@ void renderableUpdate(renderable *render, const float time){
 
 #warning "We probably shouldn't have the OpenGL drawing stuff split up so much."
 void renderableDraw(const renderable *render, const skeleton *objSkele, const mat4 *animStates, const shader *shaderPrg){
+	const textureGroupFrame *texFrame = texGroupStateGetFrame(&render->texState);
+
+
 	updateShaderBones(render->mdl->skele, objSkele, animStates, shaderPrg->boneStatesID);
 
+	glActiveTexture(GL_TEXTURE0);
 	// Bind the texture we're using!
-	glBindTexture(GL_TEXTURE_2D, texGroupStateGetFrame(&render->texState, shaderPrg->uvOffsetsID));
+	glBindTexture(GL_TEXTURE_2D, texFrame->diffuse->id);
+	glUniform1fv(shaderPrg->uvOffsetsID, 4, (GLfloat *)&texFrame->bounds);
 	// Bind the vertex array object for the model!
-	glBindVertexArray(render->mdl->vertexArrayID);
+	glBindVertexArray(render->mdl->meshData.vertexArrayID);
 
 	// Draw the renderable!
-	glDrawElements(GL_TRIANGLES, render->mdl->numIndices, GL_UNSIGNED_INT, 0);
-}
+	glDrawElements(GL_TRIANGLES, render->mdl->meshData.numIndices, GL_UNSIGNED_INT, 0);
 
 
-void renderableGenerateBillboardMatrix(
-	const renderable *render, const camera *cam,
-	const vec3 *centroid, const mat4 *root, mat4 *out
-){
-
-	// Use the camera's axes for billboarding.
-	// We can just use the columns of its view matrix.
-	if(flagsAreSet(render->flags, BILLBOARD_SPRITE)){
-		vec3InitSet((vec3 *)&out->m[0][0], cam->viewMatrix.m[0][0], cam->viewMatrix.m[1][0], cam->viewMatrix.m[2][0]);
-
-		if(render->axis != NULL){
-			*((vec3 *)&out->m[1][0]) = *render->axis;
-		}else{
-			vec3InitSet((vec3 *)&out->m[1][0], cam->viewMatrix.m[0][1], cam->viewMatrix.m[1][1], cam->viewMatrix.m[2][1]);
-		}
-
-		vec3InitSet((vec3 *)&out->m[2][0], cam->viewMatrix.m[0][2], cam->viewMatrix.m[1][2], cam->viewMatrix.m[2][2]);
-
-		out->m[0][3] =
-		out->m[1][3] =
-		out->m[2][3] = 0.f;
-		out->m[3][3] = 1.f;
-
-
-		// Scale the renderable based on its distance from the camera.
-		if(flagsAreSet(render->flags, BILLBOARD_SCALE)){
-			const float distance = cameraDistance(cam, centroid);// * render->scale;
-			mat4Scale(out, distance, distance, distance);
-		}
-
-	// Lock some axes to prevent billboarding around them.
-	}else if(flagsAreSet(render->flags, BILLBOARD_LOCK_XYZ)){
-		vec3 eye, target, up;
-
-		// The up vector is the axis to billboard on.
-		if(render->axis != NULL){
-			up = *render->axis;
-		}else{
-			up = cam->up;
-		}
-
-		// Set the eye and target vectors.
-		if(flagsAreSet(render->flags, BILLBOARD_TARGET_SPRITE)){
-			eye = *cam->target;
-			target = cam->pos;
-		}else if(render->target != NULL){
-			eye = *centroid;
-			target = *render->target;
-		}else{
-			eye = *centroid;
-			target = cam->pos;
-		}
-
-		// Prevent the renderable from rotating on some axes.
-		if(flagsAreUnset(render->flags, BILLBOARD_LOCK_X)){
-			target.y = eye.y;
-		}
-		if(flagsAreUnset(render->flags, BILLBOARD_LOCK_Y)){
-			target.x = eye.x;
-		}
-		if(flagsAreUnset(render->flags, BILLBOARD_LOCK_Z)){
-			vec3InitSet(&up, 0.f, 1.f, 0.f);
-		}
-
-
-		// Translate the matrix back to the origin so we can transform it.
-		//configuration = mat4TranslatePost(configuration, -centroid.x, -centroid.y, -centroid.z);
-
-		// Scale the renderable based on its distance from the camera.
-		if(flagsAreSet(render->flags, BILLBOARD_SCALE)){
-			const float distance = cameraDistance(cam, centroid);// * render->scale;
-			//configuration = mat4ScalePost(configuration, distance, distance, distance);
-		}
-
-		// Now translate it back and rotate it to face the target.
-		/*configuration = mat4TranslatePost(
-			mat4MMultM(
-				mat4RotateToFace(eye, target, up),
-				configuration
-			),
-			centroid.x, centroid.y, centroid.z
-		);*/
-
-	// If we're not using sprites or locking any axes, just use scale billboarding.
-	}else{
-		if(flagsAreSet(render->flags, BILLBOARD_SCALE)){
-			const float distance = cameraDistance(cam, centroid);// * render->scale;
-			mat4Scale(out, distance, distance, distance);
-		}
-	}
+	glBindVertexArray(0);
+	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 

@@ -97,17 +97,12 @@ void objectDraw(const object *obj, const vec3 *camPos, mat4 mvpMatrix, const sha
 	} while(curBone != lastBone);
 
 
-	glActiveTexture(GL_TEXTURE0);
-
 	curRenderable = obj->renderables;
 	// Draw each of the renderables.
 	while(curRenderable != NULL){
 		renderableDraw(curRenderable, obj->skeleData.skele, animStates, shaderPrg);
 		curRenderable = memSingleListNext(curRenderable);
 	}
-
-	glBindVertexArray(0);
-	glBindTexture(GL_TEXTURE_2D, 0);
 
 
 	// Now we can free the bone states.

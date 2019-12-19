@@ -56,6 +56,14 @@ void mat4MultiplyMat4By(mat4 *m1, const mat4 m2);
 void mat4MultiplyByMat4Out(const mat4 m1, const mat4 m2, mat4 *out);
 mat4 mat4MultiplyByMat4R(const mat4 m1, const mat4 m2);
 
+void mat4TranslatePre(mat4 *m, const float x, const float y, const float z);
+mat4 mat4TranslatePreR(mat4 m, const float x, const float y, const float z);
+void mat4TranslatePre4(mat4 *m, const float x, const float y, const float z, const float w);
+mat4 mat4TranslatePre4R(mat4 m, const float x, const float y, const float z, const float w);
+void mat4TranslatePreVec3(mat4 *m, const vec3 *v);
+mat4 mat4TranslatePreVec3R(const mat4 m, const vec3 v);
+void mat4TranslatePreVec4(mat4 *m, const vec4 *v);
+mat4 mat4TranslatePreVec4R(const mat4 m, const vec4 v);
 void mat4Translate(mat4 *m, const float x, const float y, const float z);
 mat4 mat4TranslateR(mat4 m, const float x, const float y, const float z);
 void mat4Translate4(mat4 *m, const float x, const float y, const float z, const float w);
@@ -90,6 +98,14 @@ mat4 mat4RotateZRadR(const mat4 m, const float z);
 void mat4RotateZDeg(mat4 *m, const float z);
 mat4 mat4RotateZDegR(const mat4 m, const float z);
 
+void mat4ScalePre(mat4 *m, const float x, const float y, const float z);
+mat4 mat4ScalePreR(mat4 m, const float x, const float y, const float z);
+void mat4ScalePre4(mat4 *m, const float x, const float y, const float z, const float w);
+mat4 mat4ScalePre4R(mat4 m, const float x, const float y, const float z, const float w);
+void mat4ScalePreVec3(mat4 *m, const vec3 *v);
+mat4 mat4ScalePreVec3R(mat4 m, const vec3 v);
+void mat4ScalePreVec4(mat4 *m, const vec4 *v);
+mat4 mat4ScalePreVec4R(mat4 m, const vec4 v);
 void mat4Scale(mat4 *m, const float x, const float y, const float z);
 mat4 mat4ScaleR(mat4 m, const float x, const float y, const float z);
 void mat4Scale4(mat4 *m, const float x, const float y, const float z, const float w);
@@ -114,6 +130,8 @@ void mat4Perspective(mat4 *m, const float fov, const float aspectRatio, const fl
 mat4 mat4PerspectiveR(const float fov, const float aspectRatio, const float near, const float far);
 void mat4PerspectiveOld(mat4 *m, const float fov, const float aspectRatio, const float near, const float far);
 mat4 mat4PerspectiveOldR(const float fov, const float aspectRatio, const float near, const float far);
+void mat4RotateToFace(mat4 *m, const vec3 *eye, const vec3 *target, const vec3 *worldUp);
+mat4 mat4RotateToFaceR(const vec3 eye, const vec3 target, const vec3 worldUp);
 void mat4LookAt(mat4 *m, const vec3 *eye, const vec3 *target, const vec3 *worldUp);
 mat4 mat4LookAtR(const vec3 eye, const vec3 target, const vec3 worldUp);
 

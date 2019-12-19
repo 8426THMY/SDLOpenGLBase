@@ -632,7 +632,7 @@ void mat4MultiplyByMat4Out(const mat4 m1, const mat4 m2, mat4 *out){
 	out->m[3][3] = m1.m[0][3] * m2.m[3][0] + m1.m[1][3] * m2.m[3][1] + m1.m[2][3] * m2.m[3][2] + m1.m[3][3] * m2.m[3][3];
 }
 
-// Multiply "m1" by "m2" and store the result in "out"!
+// Multiply "m1" by "m2" and return the result!
 mat4 mat4MultiplyByMat4R(const mat4 m1, const mat4 m2){
 	const mat4 out = {
 		.m[0][0] = m1.m[0][0] * m2.m[0][0] + m1.m[1][0] * m2.m[0][1] + m1.m[2][0] * m2.m[0][2] + m1.m[3][0] * m2.m[0][3],
@@ -659,6 +659,114 @@ mat4 mat4MultiplyByMat4R(const mat4 m1, const mat4 m2){
 	return(out);
 }
 
+
+// Translate a matrix!
+void mat4TranslatePre(mat4 *m, const float x, const float y, const float z){
+	m->m[0][0] += m->m[0][3] * x;
+	m->m[0][1] += m->m[0][3] * y;
+	m->m[0][2] += m->m[0][3] * z;
+
+	m->m[1][0] += m->m[1][3] * x;
+	m->m[1][1] += m->m[1][3] * y;
+	m->m[1][2] += m->m[1][3] * z;
+
+	m->m[2][0] += m->m[2][3] * x;
+	m->m[2][1] += m->m[2][3] * y;
+	m->m[2][2] += m->m[2][3] * z;
+
+	m->m[3][0] += m->m[3][3] * x;
+	m->m[3][1] += m->m[3][3] * y;
+	m->m[3][2] += m->m[3][3] * z;
+}
+
+// Translate a matrix!
+mat4 mat4TranslatePreR(mat4 m, const float x, const float y, const float z){
+	m.m[0][0] += m.m[0][3] * x;
+	m.m[0][1] += m.m[0][3] * y;
+	m.m[0][2] += m.m[0][3] * z;
+
+	m.m[1][0] += m.m[1][3] * x;
+	m.m[1][1] += m.m[1][3] * y;
+	m.m[1][2] += m.m[1][3] * z;
+
+	m.m[2][0] += m.m[2][3] * x;
+	m.m[2][1] += m.m[2][3] * y;
+	m.m[2][2] += m.m[2][3] * z;
+
+	m.m[3][0] += m.m[3][3] * x;
+	m.m[3][1] += m.m[3][3] * y;
+	m.m[3][2] += m.m[3][3] * z;
+
+	return(m);
+}
+
+// Translate a matrix!
+void mat4TranslatePre4(mat4 *m, const float x, const float y, const float z, const float w){
+	m->m[0][0] += m->m[0][3] * x;
+	m->m[0][1] += m->m[0][3] * y;
+	m->m[0][2] += m->m[0][3] * z;
+	m->m[0][3] += m->m[0][3] * w;
+
+	m->m[1][0] += m->m[1][3] * x;
+	m->m[1][1] += m->m[1][3] * y;
+	m->m[1][2] += m->m[1][3] * z;
+	m->m[1][3] += m->m[1][3] * w;
+
+	m->m[2][0] += m->m[2][3] * x;
+	m->m[2][1] += m->m[2][3] * y;
+	m->m[2][2] += m->m[2][3] * z;
+	m->m[2][3] += m->m[2][3] * w;
+
+	m->m[3][0] += m->m[3][3] * x;
+	m->m[3][1] += m->m[3][3] * y;
+	m->m[3][2] += m->m[3][3] * z;
+	m->m[3][3] += m->m[3][3] * w;
+}
+
+// Translate a matrix!
+mat4 mat4TranslatePre4R(mat4 m, const float x, const float y, const float z, const float w){
+	m.m[0][0] += m.m[0][3] * x;
+	m.m[0][1] += m.m[0][3] * y;
+	m.m[0][2] += m.m[0][3] * z;
+	m.m[0][3] += m.m[0][3] * w;
+
+	m.m[1][0] += m.m[1][3] * x;
+	m.m[1][1] += m.m[1][3] * y;
+	m.m[1][2] += m.m[1][3] * z;
+	m.m[1][3] += m.m[1][3] * w;
+
+	m.m[2][0] += m.m[2][3] * x;
+	m.m[2][1] += m.m[2][3] * y;
+	m.m[2][2] += m.m[2][3] * z;
+	m.m[2][3] += m.m[2][3] * w;
+
+	m.m[3][0] += m.m[3][3] * x;
+	m.m[3][1] += m.m[3][3] * y;
+	m.m[3][2] += m.m[3][3] * z;
+	m.m[3][3] += m.m[3][3] * w;
+
+	return(m);
+}
+
+// Translate a matrix by a vec3!
+void mat4TranslatePreVec3(mat4 *m, const vec3 *v){
+	mat4TranslatePre(m, v->x, v->y, v->z);
+}
+
+// Translate a matrix by a vec3!
+mat4 mat4TranslatePreVec3R(const mat4 m, const vec3 v){
+	return(mat4TranslatePreR(m, v.x, v.y, v.z));
+}
+
+// Translate a matrix by a vec4!
+void mat4TranslatePreVec4(mat4 *m, const vec4 *v){
+	mat4TranslatePre4(m, v->x, v->y, v->z, v->w);
+}
+
+// Translate a matrix by a vec4!
+mat4 mat4TranslatePreVec4R(const mat4 m, const vec4 v){
+	return(mat4TranslatePre4R(m, v.x, v.y, v.z, v.w));
+}
 
 // Translate a matrix!
 void mat4Translate(mat4 *m, const float x, const float y, const float z){
@@ -1165,6 +1273,114 @@ mat4 mat4RotateZDegR(const mat4 m, const float z){
 
 
 // Scale a matrix by three floats!
+void mat4ScalePre(mat4 *m, const float x, const float y, const float z){
+	m->m[0][0] *= x;
+	m->m[0][1] *= y;
+	m->m[0][2] *= z;
+
+	m->m[1][0] *= x;
+	m->m[1][1] *= y;
+	m->m[1][2] *= z;
+
+	m->m[2][0] *= x;
+	m->m[2][1] *= y;
+	m->m[2][2] *= z;
+
+	m->m[3][0] *= x;
+	m->m[3][1] *= y;
+	m->m[3][2] *= z;
+}
+
+// Scale a matrix by three floats!
+mat4 mat4ScalePreR(mat4 m, const float x, const float y, const float z){
+	m.m[0][0] *= x;
+	m.m[0][1] *= y;
+	m.m[0][2] *= z;
+
+	m.m[1][0] *= x;
+	m.m[1][1] *= y;
+	m.m[1][2] *= z;
+
+	m.m[2][0] *= x;
+	m.m[2][1] *= y;
+	m.m[2][2] *= z;
+
+	m.m[3][0] *= x;
+	m.m[3][1] *= y;
+	m.m[3][2] *= z;
+
+	return(m);
+}
+
+// Scale a matrix by four floats!
+void mat4ScalePre4(mat4 *m, const float x, const float y, const float z, const float w){
+	m->m[0][0] *= x;
+	m->m[0][1] *= y;
+	m->m[0][2] *= z;
+	m->m[0][3] *= w;
+
+	m->m[1][0] *= x;
+	m->m[1][1] *= y;
+	m->m[1][2] *= z;
+	m->m[1][3] *= w;
+
+	m->m[2][0] *= x;
+	m->m[2][1] *= y;
+	m->m[2][2] *= z;
+	m->m[2][3] *= w;
+
+	m->m[3][0] *= x;
+	m->m[3][1] *= y;
+	m->m[3][2] *= z;
+	m->m[3][3] *= w;
+}
+
+// Scale a matrix by four floats!
+mat4 mat4ScalePre4R(mat4 m, const float x, const float y, const float z, const float w){
+	m.m[0][0] *= x;
+	m.m[0][1] *= y;
+	m.m[0][2] *= z;
+	m.m[0][3] *= w;
+
+	m.m[1][0] *= x;
+	m.m[1][1] *= y;
+	m.m[1][2] *= z;
+	m.m[1][3] *= w;
+
+	m.m[2][0] *= x;
+	m.m[2][1] *= y;
+	m.m[2][2] *= z;
+	m.m[2][3] *= w;
+
+	m.m[3][0] *= x;
+	m.m[3][1] *= y;
+	m.m[3][2] *= z;
+	m.m[3][3] *= w;
+
+	return(m);
+}
+
+// Scale a matrix by a vec3!
+void mat4ScalePreVec3(mat4 *m, const vec3 *v){
+	mat4ScalePre(m, v->x, v->y, v->z);
+}
+
+// Scale a matrix by a vec3!
+mat4 mat4ScalePreVec3R(mat4 m, const vec3 v){
+	return(mat4ScalePreR(m, v.x, v.y, v.z));
+}
+
+// Scale a matrix by a vec4!
+void mat4ScalePreVec4(mat4 *m, const vec4 *v){
+	mat4ScalePre4(m, v->x, v->y, v->z, v->w);
+}
+
+// Scale a matrix by a vec4!
+mat4 mat4ScalePreVec4R(mat4 m, const vec4 v){
+	return(mat4ScalePre4R(m, v.x, v.y, v.z, v.w));
+}
+
+// Scale a matrix by three floats!
 void mat4Scale(mat4 *m, const float x, const float y, const float z){
 	m->m[0][0] *= x;
 	m->m[0][1] *= x;
@@ -1252,88 +1468,22 @@ mat4 mat4Scale4R(mat4 m, const float x, const float y, const float z, const floa
 
 // Scale a matrix by a vec3!
 void mat4ScaleVec3(mat4 *m, const vec3 *v){
-	m->m[0][0] *= v->x;
-	m->m[0][1] *= v->x;
-	m->m[0][2] *= v->x;
-	m->m[0][3] *= v->x;
-
-	m->m[1][0] *= v->y;
-	m->m[1][1] *= v->y;
-	m->m[1][2] *= v->y;
-	m->m[1][3] *= v->y;
-
-	m->m[2][0] *= v->z;
-	m->m[2][1] *= v->z;
-	m->m[2][2] *= v->z;
-	m->m[2][3] *= v->z;
+	mat4Scale(m, v->x, v->y, v->z);
 }
 
 // Scale a matrix by a vec3!
 mat4 mat4ScaleVec3R(mat4 m, const vec3 v){
-	m.m[0][0] *= v.x;
-	m.m[0][1] *= v.x;
-	m.m[0][2] *= v.x;
-	m.m[0][3] *= v.x;
-
-	m.m[1][0] *= v.y;
-	m.m[1][1] *= v.y;
-	m.m[1][2] *= v.y;
-	m.m[1][3] *= v.y;
-
-	m.m[2][0] *= v.z;
-	m.m[2][1] *= v.z;
-	m.m[2][2] *= v.z;
-	m.m[2][3] *= v.z;
-
-	return(m);
+	return(mat4ScaleR(m, v.x, v.y, v.z));
 }
 
 // Scale a matrix by a vec4!
 void mat4ScaleVec4(mat4 *m, const vec4 *v){
-	m->m[0][0] *= v->x;
-	m->m[0][1] *= v->x;
-	m->m[0][2] *= v->x;
-	m->m[0][3] *= v->x;
-
-	m->m[1][0] *= v->y;
-	m->m[1][1] *= v->y;
-	m->m[1][2] *= v->y;
-	m->m[1][3] *= v->y;
-
-	m->m[2][0] *= v->z;
-	m->m[2][1] *= v->z;
-	m->m[2][2] *= v->z;
-	m->m[2][3] *= v->z;
-
-	m->m[3][0] *= v->w;
-	m->m[3][1] *= v->w;
-	m->m[3][2] *= v->w;
-	m->m[3][3] *= v->w;
+	mat4Scale4(m, v->x, v->y, v->z, v->w);
 }
 
 // Scale a matrix by a vec4!
 mat4 mat4ScaleVec4R(mat4 m, const vec4 v){
-	m.m[0][0] *= v.x;
-	m.m[0][1] *= v.x;
-	m.m[0][2] *= v.x;
-	m.m[0][3] *= v.x;
-
-	m.m[1][0] *= v.y;
-	m.m[1][1] *= v.y;
-	m.m[1][2] *= v.y;
-	m.m[1][3] *= v.y;
-
-	m.m[2][0] *= v.z;
-	m.m[2][1] *= v.z;
-	m.m[2][2] *= v.z;
-	m.m[2][3] *= v.z;
-
-	m.m[3][0] *= v.w;
-	m.m[3][1] *= v.w;
-	m.m[3][2] *= v.w;
-	m.m[3][3] *= v.w;
-
-	return(m);
+	return(mat4Scale4R(m, v.x, v.y, v.z, v.w));
 }
 
 
@@ -1808,27 +1958,12 @@ mat4 mat4OrthographicR(const float right, const float left, const float bottom, 
 	const float invRightMinLeft = 1.f / (right - left);
 	const float invTopMinBottom = 1.f / (top - bottom);
 	const float invFarMinNear   = 1.f / (far - near);
-	mat4 m;
-
-	m.m[0][0] = -invRightMinLeft - invRightMinLeft;
-	m.m[0][1] = 0.f;
-	m.m[0][2] = 0.f;
-	m.m[0][3] = -((right + left) * invRightMinLeft);
-
-	m.m[1][0] = 0.f;
-	m.m[1][1] = invTopMinBottom + invTopMinBottom;
-	m.m[1][2] = 0.f;
-	m.m[1][3] = -((top + bottom) * invTopMinBottom);
-
-	m.m[2][0] = 0.f;
-	m.m[2][1] = 0.f;
-	m.m[2][2] = -invFarMinNear - invFarMinNear;
-	m.m[2][3] = 0.f;
-
-	m.m[3][0] = 0.f;
-	m.m[3][1] = 0.f;
-	m.m[3][2] = -((far + near) * invFarMinNear);
-	m.m[3][3] = 1.f;
+	const mat4 m = {
+		.m[0][0] = -invRightMinLeft - invRightMinLeft, .m[0][1] = 0.f,                               .m[0][2] = 0.f,                             .m[0][3] = -((right + left) * invRightMinLeft),
+		.m[1][0] = 0.f,                                .m[1][1] = invTopMinBottom + invTopMinBottom, .m[1][2] = 0.f,                             .m[1][3] = -((top + bottom) * invTopMinBottom),
+		.m[2][0] = 0.f,                                .m[2][1] = 0.f,                               .m[2][2] = -invFarMinNear - invFarMinNear,  .m[2][3] = 0.f,
+		.m[3][0] = 0.f,                                .m[3][1] = 0.f,                               .m[3][2] = -((far + near) * invFarMinNear), .m[3][3] = 1.f
+	};
 
 	return(m);
 }
@@ -1863,27 +1998,12 @@ void mat4Perspective(mat4 *m, const float fov, const float aspectRatio, const fl
 mat4 mat4PerspectiveR(const float fov, const float aspectRatio, const float near, const float far){
 	const float invScale = 1.f / tan(fov * 0.5f);
 	const float invFarMinNear = 1.f / (far - near);
-	mat4 m;
-
-	m.m[0][0] = invScale / aspectRatio;
-	m.m[0][1] = 0.f;
-	m.m[0][2] = 0.f;
-	m.m[0][3] = 0.f;
-
-	m.m[1][0] = 0.f;
-	m.m[1][1] = invScale;
-	m.m[1][2] = 0.f;
-	m.m[1][3] = 0.f;
-
-	m.m[2][0] = 0.f;
-	m.m[2][1] = 0.f;
-	m.m[2][2] = -((far + near) * invFarMinNear);
-	m.m[2][3] = -1.f;
-
-	m.m[3][0] = 0.f;
-	m.m[3][1] = 0.f;
-	m.m[3][2] = -((far + far * near) * invFarMinNear);
-	m.m[3][3] = 0.f;
+	const mat4 m = {
+		.m[0][0] = invScale / aspectRatio, .m[0][1] = 0.f,      .m[0][2] = 0.f,                                   .m[0][3] = 0.f,
+		.m[1][0] = 0.f,                    .m[1][1] = invScale, .m[1][2] = 0.f,                                   .m[1][3] = 0.f,
+		.m[2][0] = 0.f,                    .m[2][1] = 0.f,      .m[2][2] = -((far + near) * invFarMinNear),       .m[2][3] = -1.f,
+		.m[3][0] = 0.f,                    .m[3][1] = 0.f,      .m[3][2] = -((far + far * near) * invFarMinNear), .m[3][3] = 0.f
+	};
 
 	return(m);
 }
@@ -1924,27 +2044,61 @@ mat4 mat4PerspectiveOldR(const float fov, const float aspectRatio, const float n
 	const float invRightMinLeft = 1.f / (right + right);
 	const float invTopMinBottom = 1.f / (top + top);
 	const float invFarMinNear   = 1.f / (far - near);
-	mat4 m;
+	const mat4 m = {
+		.m[0][0] = (near + near) * invRightMinLeft, .m[0][1] = 0.f,                             .m[0][2] = 0.f,                                   .m[0][3] = 0.f,
+		.m[1][0] = 0.f,                             .m[1][1] = (near + near) * invTopMinBottom, .m[1][2] = 0.f,                                   .m[1][3] = 0.f,
+		.m[2][0] = 0.f,                             .m[2][1] = 0.f,                             .m[2][2] = -((far + near) * invFarMinNear),       .m[2][3] = -1.f,
+		.m[3][0] = 0.f,                             .m[3][1] = 0.f,                             .m[3][2] = -((far + far * near) * invFarMinNear), .m[3][3] = 0.f
+	};
 
-	m.m[0][0] = (near + near) * invRightMinLeft;
-	m.m[0][1] = 0.f;
-	m.m[0][2] = 0.f;
-	m.m[0][3] = 0.f;
+	return(m);
+}
 
-	m.m[1][0] = 0.f;
-	m.m[1][1] = (near + near) * invTopMinBottom;
-	m.m[1][2] = 0.f;
-	m.m[1][3] = 0.f;
+// Generate a rotation matrix that faces a target!
+void mat4RotateToFace(mat4 *m, const vec3 *eye, const vec3 *target, const vec3 *worldUp){
+	vec3 right, up, forward;
+	// Get the forward vector!
+	vec3NormalizeFast(eye->x - target->x, eye->y - target->y, eye->z - target->z, &forward);
+	// Get the right vector!
+	vec3CrossVec3Out(worldUp, &forward, &right);
+	vec3NormalizeVec3Fast(&right);
+	// Get the up vector!
+	vec3CrossVec3Out(&forward, &right, &up);
 
-	m.m[2][0] = 0.f;
-	m.m[2][1] = 0.f;
-	m.m[2][2] = -((far + near) * invFarMinNear);
-	m.m[2][3] = -1.f;
+	// Rotate the matrix to look at "target"!
+	m->m[0][0] = right.x;
+	m->m[0][1] = up.x;
+	m->m[0][2] = forward.x;
+	m->m[0][3] = 0.f;
 
-	m.m[3][0] = 0.f;
-	m.m[3][1] = 0.f;
-	m.m[3][2] = -((far + far * near) * invFarMinNear);
-	m.m[3][3] = 0.f;
+	m->m[1][0] = right.y;
+	m->m[1][1] = up.y;
+	m->m[1][2] = forward.y;
+	m->m[1][3] = 0.f;
+
+	m->m[2][0] = right.z;
+	m->m[2][1] = up.z;
+	m->m[2][2] = forward.z;
+	m->m[2][3] = 0.f;
+
+	m->m[3][0] = 0.f;
+	m->m[3][1] = 0.f;
+	m->m[3][2] = 0.f;
+	m->m[3][3] = 1.f;
+}
+
+// Generate a rotation matrix that faces a target!
+mat4 mat4RotateToFaceR(const vec3 eye, const vec3 target, const vec3 worldUp){
+	const vec3 forward = vec3NormalizeVec3FastR(vec3SubtractVec3FromR(eye, target));
+	const vec3 right = vec3NormalizeVec3FastR(vec3CrossVec3R(worldUp, forward));
+	const vec3 up = vec3CrossVec3R(forward, right);
+	// Rotate the matrix to look at "target"!
+	const mat4 m = {
+		.m[0][0] = right.x, .m[0][1] = up.x, .m[0][2] = forward.x, .m[0][3] = 0.f,
+		.m[1][0] = right.y, .m[1][1] = up.y, .m[1][2] = forward.y, .m[1][3] = 0.f,
+		.m[2][0] = right.z, .m[2][1] = up.z, .m[2][2] = forward.z, .m[2][3] = 0.f,
+		.m[3][0] = 0.f,     .m[3][1] = 0.f,  .m[3][2] = 0.f,       .m[3][3] = 1.f
+	};
 
 	return(m);
 }
@@ -1960,7 +2114,7 @@ void mat4LookAt(mat4 *m, const vec3 *eye, const vec3 *target, const vec3 *worldU
 	// Get the up vector!
 	vec3CrossVec3Out(&forward, &right, &up);
 
-	// Translate the matrix to eye and make it look at target!
+	// Translate the matrix to "eye" and make it look at "target"!
 	m->m[0][0] = right.x;
 	m->m[0][1] = up.x;
 	m->m[0][2] = forward.x;
@@ -1987,28 +2141,13 @@ mat4 mat4LookAtR(const vec3 eye, const vec3 target, const vec3 worldUp){
 	const vec3 forward = vec3NormalizeVec3FastR(vec3SubtractVec3FromR(eye, target));
 	const vec3 right = vec3NormalizeVec3FastR(vec3CrossVec3R(worldUp, forward));
 	const vec3 up = vec3CrossVec3R(forward, right);
-	mat4 m;
-
-	// Translate the matrix to eye and make it look at target!
-	m.m[0][0] = right.x;
-	m.m[0][1] = up.x;
-	m.m[0][2] = forward.x;
-	m.m[0][3] = 0.f;
-
-	m.m[1][0] = right.y;
-	m.m[1][1] = up.y;
-	m.m[1][2] = forward.y;
-	m.m[1][3] = 0.f;
-
-	m.m[2][0] = right.z;
-	m.m[2][1] = up.z;
-	m.m[2][2] = forward.z;
-	m.m[2][3] = 0.f;
-
-	m.m[3][0] = -vec3DotVec3R(right, eye);
-	m.m[3][1] = -vec3DotVec3R(up, eye);
-	m.m[3][2] = -vec3DotVec3R(forward, eye);
-	m.m[3][3] = 1.f;
+	// Translate the matrix to "eye" and make it look at "target"!
+	const mat4 m = {
+		.m[0][0] = right.x,                   .m[0][1] = up.x,                   .m[0][2] = forward.x,                   .m[0][3] = 0.f,
+		.m[1][0] = right.y,                   .m[1][1] = up.y,                   .m[1][2] = forward.y,                   .m[1][3] = 0.f,
+		.m[2][0] = right.z,                   .m[2][1] = up.z,                   .m[2][2] = forward.z,                   .m[2][3] = 0.f,
+		.m[3][0] = -vec3DotVec3R(right, eye), .m[3][1] = -vec3DotVec3R(up, eye), .m[3][2] = -vec3DotVec3R(forward, eye), .m[3][3] = 1.f
+	};
 
 	return(m);
 }

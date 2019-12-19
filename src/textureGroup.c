@@ -5,12 +5,13 @@
 #include <string.h>
 
 #include "utilString.h"
+#include "utilFile.h"
 
 #include "memoryManager.h"
 #include "moduleTexture.h"
 
 
-#define TEXTUREGROUP_PATH_PREFIX        ".\\resource\\textures\\"
+#define TEXTUREGROUP_PATH_PREFIX        ".\\resource\\texgroups\\"
 #define TEXTUREGROUP_PATH_PREFIX_LENGTH (sizeof(TEXTUREGROUP_PATH_PREFIX) - 1)
 
 // These must be at least 1!
@@ -83,21 +84,25 @@ void texGroupStateInit(textureGroupState *texGroupState, const textureGroup *tex
 }
 
 
-// Load a textureGroup using the file specified by "texGroupName".
-return_t texGroupLoad(textureGroup *texGroup, const char *texGroupName){
-	texGroupInit(texGroup);
+// Load a textureGroup using the file specified by "texGroupPath".
+return_t texGroupLoad(textureGroup *texGroup, const char *texGroupPath){
+	FILE *texGroupFile;
+	char texGroupFullPath[FILE_MAX_LINE_LENGTH];
+	size_t texGroupPathLength = strlen(texGroupPath);
 
 	// Find the full path for the textureGroup!
-	const size_t texGroupNameLength = strlen(texGroupName) + 1;
-	char *texGroupPath = memoryManagerGlobalAlloc(TEXTUREGROUP_PATH_PREFIX_LENGTH + texGroupNameLength);
-	if(texGroupPath == NULL){
-		/** MALLOC FAILED **/
-	}
-	memcpy(texGroupPath, TEXTUREGROUP_PATH_PREFIX, TEXTUREGROUP_PATH_PREFIX_LENGTH);
-	strcpy(texGroupPath + TEXTUREGROUP_PATH_PREFIX_LENGTH, texGroupName);
+	fileGenerateFullPath(
+		texGroupPath, texGroupPathLength,
+		TEXTUREGROUP_PATH_PREFIX, TEXTUREGROUP_PATH_PREFIX_LENGTH,
+		texGroupFullPath
+	);
+
+
+	texGroupInit(texGroup);
+
 
 	// Load the textureGroup!
-	FILE *texGroupFile = fopen(texGroupPath, "r");
+	texGroupFile = fopen(texGroupFullPath, "r");
 	if(texGroupFile != NULL){
 		// Stores the positions of the textures being used!
 		size_t texturesSize = 0;
@@ -124,12 +129,12 @@ return_t texGroupLoad(textureGroup *texGroup, const char *texGroupName){
 		// This is the index of the animation we're currently working on.
 		size_t currentAnim = invalidValue(currentAnim);
 
-		char lineBuffer[1024];
+		char lineBuffer[FILE_MAX_LINE_LENGTH];
 		char *line;
 		size_t lineLength;
 
 
-		while((line = readLineFile(texGroupFile, &lineBuffer[0], &lineLength)) != NULL){
+		while((line = fileReadLine(texGroupFile, &lineBuffer[0], &lineLength)) != NULL){
 			// If we aren't loading an animation, check
 			// for any texture or animation definitions.
 			if(valueIsInvalid(currentAnim)){
@@ -370,7 +375,7 @@ return_t texGroupLoad(textureGroup *texGroup, const char *texGroupName){
 					texture **endTex = &textures[tempStartTex];
 					texture **lastTex = &textures[texturesSize];
 					// Loop through all the textures that we need to use!
-					for(; startTex <= endTex; ++startTex){
+					for(; tempStartTex <= tempEndTex; ++tempStartTex, ++startTex){
 						// If this texture is valid, get its ID, width and height!
 						if(startTex < lastTex){
 							texture *currentTex = *startTex;
@@ -487,24 +492,28 @@ return_t texGroupLoad(textureGroup *texGroup, const char *texGroupName){
 		fclose(texGroupFile);
 
 
-		#warning "Seems a bit silly to not use this for the default animation."
-		// We don't need to check if this is NULL,
-		// as we do that when we're using it.
-		memoryManagerGlobalFree(textures);
-
-
 		if(texturesSize > 0){
 			// If the textureGroup has no
 			// animations, use the default one.
 			if(texAnimsSize == 0){
-				// We delete the textureGroup here, as that
-				// will free any memory that it is using.
-				texGroupDelete(texGroup);
+				// Allocate memory for a single default animation.
+				texAnims = memoryManagerGlobalRealloc(texAnims, sizeof(*texAnims));
+				texAnims->name = memoryManagerGlobalAlloc(sizeof("default"));
+				texAnims->animFrames = memoryManagerGlobalAlloc(sizeof(*texAnims->animFrames));
 
-				texGroup->texAnims = &texGroupAnimDefault;
+				memcpy(texAnims->name, "default", sizeof("default"));
+				// Initialise its frame data!
+				texAnims->frameData.playNum = 0;
+				texAnims->frameData.time = &animTimeDefault;
+				texAnims->frameData.numFrames = 1;
+				texGroupFrameInit(texAnims->animFrames);
+				// The animation should use the first texture we loaded.
+				texAnims->animFrames->diffuse = *textures;
+
+				texGroup->texAnims = texAnims;
 				texGroup->numAnims = 1;
 
-				memoryManagerGlobalFree(texAnims);
+				memoryManagerGlobalFree(textures);
 
 			// If there are animations, resize the
 			// array so we aren't wasting memory!
@@ -515,18 +524,22 @@ return_t texGroupLoad(textureGroup *texGroup, const char *texGroupName){
 				}
 			}
 
-			// If we could set up the textureGroup
-			// successfully, set its name!
-			texGroup->name = memoryManagerGlobalResize(texGroupPath, texGroupNameLength);
+			// If we could set up the textureGroup successfully, set its name!
+			++texGroupPathLength;
+			texGroup->name = memoryManagerGlobalAlloc(texGroupPathLength);
 			if(texGroup->name == NULL){
-				/** REALLOC FAILED **/
+				/** MALLOC FAILED **/
 			}
-			strcpy(texGroup->name, texGroupName);
+			memcpy(texGroup->name, texGroupPath, texGroupPathLength);
 
 
 			return(1);
 		}
 
+
+		// We don't need to check if this is NULL,
+		// as we do that when we're using it.
+		memoryManagerGlobalFree(textures);
 		// If the textureGroup referenced
 		// no textures, just delete it.
 		texGroupDelete(texGroup);
@@ -535,11 +548,9 @@ return_t texGroupLoad(textureGroup *texGroup, const char *texGroupName){
 		printf(
 			"Unable to open textureGroup!\n"
 			"Path: %s\n",
-			texGroupPath
+			texGroupFullPath
 		);
 	}
-
-	memoryManagerGlobalFree(texGroupPath);
 
 
 	return(0);
@@ -551,48 +562,20 @@ void texGroupStateUpdate(textureGroupState *texGroupState, const float time){
 	animationUpdate(&texGroupState->texGroupAnim, &(texGroupState->texGroup->texAnims[texGroupState->texGroupAnim.currentAnim].frameData), time);
 }
 
-// Get the sub-image coordinates for the current frame!
-GLuint texGroupStateGetFrame(const textureGroupState *texGroupState, const GLuint uvOffsetsID){
-	GLuint tempTexID;
-	float uvOffsets[4];
-
+// Get the current frame of a texture group instance!
+textureGroupFrame *texGroupStateGetFrame(const textureGroupState *texGroupState){
 	const textureGroup *texGroup = texGroupState->texGroup;
 	const textureGroupAnim *animData = &texGroupState->texGroupAnim;
-
 
 	// If the animation and frame are valid, get the texture's ID and set the UV offsets!
 	if(animData->currentAnim < texGroup->numAnims){
 		textureGroupAnimDef *tempAnim = &(texGroup->texAnims[animData->currentAnim]);
 		if(animData->currentFrame < tempAnim->frameData.numFrames){
-			textureGroupFrame *tempFrame = &(tempAnim->animFrames[animData->currentFrame]);
-
-			tempTexID    = tempFrame->diffuse->id;
-			uvOffsets[0] = tempFrame->bounds.x;
-			uvOffsets[1] = tempFrame->bounds.y;
-			uvOffsets[2] = tempFrame->bounds.w;
-			uvOffsets[3] = tempFrame->bounds.h;
-
-			// Give the current UV offsets to the shader!
-			glUniform1fv(uvOffsetsID, 4, uvOffsets);
-
-
-			return(tempTexID);
+			return(&(tempAnim->animFrames[animData->currentFrame]));
 		}
 	}
 
-
-	// If the animation or frame is invalid, use the error texture!
-	tempTexID    = texDefault.id;
-	uvOffsets[0] = 0.f;
-	uvOffsets[1] = 0.f;
-	uvOffsets[2] = 1.f;
-	uvOffsets[3] = 1.f;
-
-	// Give the current UV offsets to the shader!
-	glUniform1fv(uvOffsetsID, 4, uvOffsets);
-
-
-	return(tempTexID);
+	return(&texGroupFrameDefault);
 }
 
 

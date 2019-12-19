@@ -15,7 +15,6 @@
 #define getToken(str, delim) (strchr(str, delim))
 
 
-char *readLineFile(FILE *file, char *line, size_t *lineLength);
 size_t ultostr(unsigned long num, char *str);
 char *getDelimitedString(char *str, const size_t strLength, const char delim, size_t *outLength);
 char *getMultiDelimitedString(char *str, const size_t strLength, const char *delims, size_t *outLength);

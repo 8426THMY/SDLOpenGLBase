@@ -88,7 +88,7 @@ void skeleAnimDefInit(skeletonAnimDef *animDef);
 void skeleAnimInit(skeletonAnim *anim, skeletonAnimDef *animDef, const float intensity);
 void skeleObjInit(skeletonObject *skeleObj, skeleton *skele);
 
-return_t skeleAnimLoadSMD(skeletonAnimDef *skeleAnim, const char *skeleAnimName);
+return_t skeleAnimLoadSMD(skeletonAnimDef *skeleAnim, const char *skeleAnimPath);
 
 void skeleAnimUpdate(skeletonAnim *anim, const float time);
 void skeleObjGenerateBoneState(const skeletonObject *skeleData, const size_t boneID, const char *boneName);

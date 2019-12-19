@@ -4,6 +4,8 @@
 #include <stdio.h>
 
 #include "utilString.h"
+#include "utilFile.h"
+
 #include "modulePhysics.h"
 
 
@@ -35,20 +37,23 @@ void physRigidBodyInit(physicsRigidBody *body, const physicsRigidBodyDef *bodyDe
 
 // Load a rigid body, including any of its colliders.
 return_t physRigidBodyDefLoad(physicsRigidBodyDef *bodyDef, const char *bodyPath){
+	FILE *bodyFile;
+	char bodyFullPath[FILE_MAX_LINE_LENGTH];
+	const size_t bodyPathLength = strlen(bodyPath);
+
+	// Find the full path for the rigid body!
+	fileGenerateFullPath(
+		bodyPath, bodyPathLength,
+		PHYSRIGIDBODYDEF_PATH_PREFIX, PHYSRIGIDBODYDEF_PATH_PREFIX_LENGTH,
+		bodyFullPath
+	);
+
+
 	physRigidBodyDefInit(bodyDef);
 
 
-	// Find the full path for the rigid body!
-	const size_t bodyPathLength = strlen(bodyPath);
-	char *bodyFullPath = memoryManagerGlobalAlloc(PHYSRIGIDBODYDEF_PATH_PREFIX_LENGTH + bodyPathLength + 1);
-	if(bodyFullPath == NULL){
-		/** MALLOC FAILED **/
-	}
-	memcpy(bodyFullPath, PHYSRIGIDBODYDEF_PATH_PREFIX, PHYSRIGIDBODYDEF_PATH_PREFIX_LENGTH);
-	strcpy(bodyFullPath + PHYSRIGIDBODYDEF_PATH_PREFIX_LENGTH, bodyPath);
-
 	// Load the rigid body!
-	FILE *bodyFile = fopen(bodyFullPath, "r");
+	bodyFile = fopen(bodyFullPath, "r");
 	if(bodyFile != NULL){
 		return_t success = 0;
 
@@ -61,11 +66,11 @@ return_t physRigidBodyDefLoad(physicsRigidBodyDef *bodyDef, const char *bodyPath
 
 		char *tokPos;
 
-		char lineBuffer[1024];
+		char lineBuffer[FILE_MAX_LINE_LENGTH];
 		char *line;
 		size_t lineLength;
 
-		while((line = readLineFile(bodyFile, &lineBuffer[0], &lineLength)) != NULL){
+		while((line = fileReadLine(bodyFile, &lineBuffer[0], &lineLength)) != NULL){
 			if(curCollider != NULL){
 				// New collider.
 				if(memcmp(line, "c ", 2) == 0 && line[lineLength - 1] == '{'){
@@ -173,7 +178,6 @@ return_t physRigidBodyDefLoad(physicsRigidBodyDef *bodyDef, const char *bodyPath
 		}
 
 		fclose(bodyFile);
-		memoryManagerGlobalFree(bodyFullPath);
 
 
 		// If we loaded at least one

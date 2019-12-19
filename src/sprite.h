@@ -2,21 +2,20 @@
 #define sprite_h
 
 
-#include "model.h"
+#include "mesh.h"
 
 #include "utilTypes.h"
 
 
 typedef struct sprite {
-	model *mdl;
+	mesh *meshData;
 } sprite;
 
 
 return_t spriteSetupDefault();
 
 
-extern model spriteMdlDefault;
-extern sprite spriteDefault;
+extern mesh spriteMeshDefault;
 
 
 #endif

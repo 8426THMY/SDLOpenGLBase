@@ -162,7 +162,7 @@ float animationGetFrameProgress(const animationData *animData, const animationFr
 
 
 void animFrameDataClear(animationFrameData *frameData){
-	if(frameData->time != NULL){
+	if(frameData->time != &animTimeDefault && frameData->time != NULL){
 		memoryManagerGlobalFree(frameData->time);
 	}
 }

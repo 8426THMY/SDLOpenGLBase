@@ -1,7 +1,7 @@
 #include "transform.h"
 
 
-transformState identityTransform = {
+ transformState identityTransform = {
 	.pos.x   = 0.f, .pos.y   = 0.f, .pos.z   = 0.f,
 	.rot.x   = 0.f, .rot.y   = 0.f, .rot.z   = 0.f, .rot.w = 1.f,
 	.scale.x = 1.f, .scale.y = 1.f, .scale.z = 1.f

@@ -54,10 +54,10 @@ void texGroupAnimDefInit(textureGroupAnimDef *texGroupAnimDef);
 void texGroupInit(textureGroup *texGroup);
 void texGroupStateInit(textureGroupState *texGroupState, const textureGroup *texGroup);
 
-return_t texGroupLoad(textureGroup *texGroup, const char *texGroupName);
+return_t texGroupLoad(textureGroup *texGroup, const char *texGroupPath);
 
 void texGroupStateUpdate(textureGroupState *texGroupState, const float time);
-GLuint texGroupStateGetFrame(const textureGroupState *texGroupState, const GLuint uvOffsetsID);
+textureGroupFrame *texGroupStateGetFrame(const textureGroupState *texGroupState);
 
 void texGroupAnimDefDelete(textureGroupAnimDef *texGroupAnimDef);
 void texGroupDelete(textureGroup *texGroup);

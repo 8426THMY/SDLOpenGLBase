@@ -10,31 +10,28 @@
 #include "utilTypes.h"
 
 
-#define TEXTURE_FILTER_DEFAULT GL_LINEAR
-#define TEXTURE_FILTER_ERROR   GL_LINEAR
-
-#define TEXTURE_ERROR_WIDTH  6
-#define TEXTURE_ERROR_HEIGHT 1
-#define TEXTURE_ERROR_FORMAT GL_RGBA
-
-
 typedef struct texture {
 	char *name;
 
 	GLuint id;
 	GLuint width;
 	GLuint height;
+
+	GLint format;
+	GLint filtering;
 } texture;
 
 
 void textureInit(texture *tex);
 
-return_t textureLoad(texture *tex, const char *imgName);
+return_t textureLoad(texture *tex, const char *texPath);
 return_t textureSetupDefault();
 
-void textureDelete(texture *tex);
+void textureSetFiltering(texture *tex, GLint filtering, const uint_least8_t mips);
 
 size_t textureFindNameIndex(const char *name);
+
+void textureDelete(texture *tex);
 
 
 extern texture texDefault;

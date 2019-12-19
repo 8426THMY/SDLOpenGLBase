@@ -2,6 +2,7 @@
 
 
 #include "utilString.h"
+#include "utilFile.h"
 
 #include "memoryManager.h"
 #include "moduleSkeleton.h"
@@ -131,21 +132,24 @@ void skeleObjInit(skeletonObject *skeleObj, skeleton *skele){
 /** frames, their states will be undefined. This is very bad!    **/
 // Load an SMD animation! This is temporary and should
 // be merged with the function in "model.c" or removed.
-return_t skeleAnimLoadSMD(skeletonAnimDef *animDef, const char *skeleAnimName){
+return_t skeleAnimLoadSMD(skeletonAnimDef *animDef, const char *skeleAnimPath){
+	FILE *skeleAnimFile;
+	char skeleAnimFullPath[FILE_MAX_LINE_LENGTH];
+	size_t skeleAnimPathLength = strlen(skeleAnimPath);
+
+	// Find the full path for the skeleton!
+	fileGenerateFullPath(
+		skeleAnimPath, skeleAnimPathLength,
+		SKELETON_PATH_PREFIX, SKELETON_PATH_PREFIX_LENGTH,
+		skeleAnimFullPath
+	);
+
+
 	skeleAnimDefInit(animDef);
 
 
-	// Find the full path for the skeleton!
-	const size_t skeleAnimNameLength = strlen(skeleAnimName) + 1;
-	char *skeleAnimPath = memoryManagerGlobalAlloc(SKELETON_PATH_PREFIX_LENGTH + skeleAnimNameLength);
-	if(skeleAnimPath == NULL){
-		/** MALLOC FAILED **/
-	}
-	memcpy(skeleAnimPath, SKELETON_PATH_PREFIX, SKELETON_PATH_PREFIX_LENGTH);
-	strcpy(skeleAnimPath + SKELETON_PATH_PREFIX_LENGTH, skeleAnimName);
-
 	// Load the skeleton!
-	FILE *skeleAnimFile = fopen(skeleAnimPath, "r");
+	skeleAnimFile = fopen(skeleAnimFullPath, "r");
 	if(skeleAnimFile != NULL){
 		return_t success = 1;
 
@@ -183,7 +187,7 @@ return_t skeleAnimLoadSMD(skeletonAnimDef *animDef, const char *skeleAnimName){
 		size_t lineLength;
 
 
-		while(success && (line = readLineFile(skeleAnimFile, &lineBuffer[0], &lineLength)) != NULL){
+		while(success && (line = fileReadLine(skeleAnimFile, &lineBuffer[0], &lineLength)) != NULL){
 			// No command.
 			if(dataType == 0){
 				if(strcmp(line, "nodes") == 0){
@@ -199,7 +203,7 @@ return_t skeleAnimLoadSMD(skeletonAnimDef *animDef, const char *skeleAnimName){
 						"Path: %s\n"
 						"Line: %s\n"
 						"Error: Unexpected identifier!\n",
-						skeleAnimPath, line
+						skeleAnimFullPath, line
 					);
 
 					success = 0;
@@ -293,7 +297,7 @@ return_t skeleAnimLoadSMD(skeletonAnimDef *animDef, const char *skeleAnimName){
 								"Path: %s\n"
 								"Line: %s\n"
 								"Error: Found node %u when expecting node %u!\n",
-								skeleAnimPath, line, boneID, tempBonesSize
+								skeleAnimFullPath, line, boneID, tempBonesSize
 							);
 
 							success = 0;
@@ -337,7 +341,7 @@ return_t skeleAnimLoadSMD(skeletonAnimDef *animDef, const char *skeleAnimName){
 									"Path: %s\n"
 									"Line: %s\n"
 									"Error: Frame timestamps do not increment sequentially!\n",
-									skeleAnimPath, line
+									skeleAnimFullPath, line
 								);
 
 								success = 0;
@@ -363,7 +367,7 @@ return_t skeleAnimLoadSMD(skeletonAnimDef *animDef, const char *skeleAnimName){
 								quatInitEulerRad(&currentState->rot, x, y, z);
 
 								//The Source Engine uses Z as its up axis, so we need to fix that with the root bone.
-								if(boneID == 0 && strcmp(skeleAnimName, "soldier_animations_anims_new\\a_flinch01.smd") != 0){
+								if(boneID == 0 && strcmp(skeleAnimPath, "soldier_animations_anims_new\\a_flinch01.smd") != 0){
 									transformState rotateUp = {
 										.pos.x = 0.f, .pos.y = 0.f, .pos.z = 0.f,
 										.rot.x = -0.70710678118654752440084436210485f, .rot.y = 0.f, .rot.z = 0.f, .rot.w = 0.70710678118654752440084436210485f,
@@ -380,7 +384,7 @@ return_t skeleAnimLoadSMD(skeletonAnimDef *animDef, const char *skeleAnimName){
 									"Path: %s\n"
 									"Line: %s\n"
 									"Error: Found skeletal data for bone %u, which doesn't exist!\n",
-									skeleAnimPath, line, boneID
+									skeleAnimFullPath, line, boneID
 								);
 
 								success = 0;
@@ -401,11 +405,12 @@ return_t skeleAnimLoadSMD(skeletonAnimDef *animDef, const char *skeleAnimName){
 
 		// If there wasn't an error, add it to the vector!
 		if(success){
-			animDef->name = memoryManagerGlobalResize(skeleAnimPath, skeleAnimNameLength);
+			++skeleAnimPathLength;
+			animDef->name = memoryManagerGlobalAlloc(skeleAnimPathLength);
 			if(animDef->name == NULL){
-				/** REALLOC FAILED **/
+				/** MALLOC FAILED **/
 			}
-			strcpy(animDef->name, skeleAnimName);
+			memcpy(animDef->name, skeleAnimPath, skeleAnimPathLength);
 
 			return(1);
 		}
@@ -417,11 +422,11 @@ return_t skeleAnimLoadSMD(skeletonAnimDef *animDef, const char *skeleAnimName){
 		printf(
 			"Unable to open skeletal animation file!\n"
 			"Path: %s\n",
-			skeleAnimPath
+			skeleAnimFullPath
 		);
 	}
 
-	memoryManagerGlobalFree(skeleAnimPath);
+	memoryManagerGlobalFree(skeleAnimFullPath);
 
 
 	return(0);

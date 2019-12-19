@@ -5,37 +5,6 @@
 #include <ctype.h>
 
 
-// Read a line from a file, removing any unwanted stuff!
-char *readLineFile(FILE *file, char *line, size_t *lineLength){
-	line = fgets(line, 1024, file);
-	if(line != NULL){
-		*lineLength = strlen(line);
-
-		// Remove comments.
-		char *tempPos = strstr(line, "// ");
-		if(tempPos != NULL){
-			*lineLength -= *lineLength - (tempPos - line);
-		}
-
-		// "Remove" whitespace characters from the beginning of the line!
-		tempPos = &line[*lineLength];
-		while(line < tempPos && isspace(*line)){
-			++line;
-		}
-		*lineLength = tempPos - line;
-
-		// "Remove" whitespace characters from the end of the line!
-		while(*lineLength > 0 && isspace(line[*lineLength - 1])){
-			--*lineLength;
-		}
-
-		line[*lineLength] = '\0';
-	}
-
-
-	return(line);
-}
-
 /*
 ** Convert an integer to a string. We assume that "str" points
 ** to an array with at least (ULONG_MAX_CHARS + 1) characters.

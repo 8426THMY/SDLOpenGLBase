@@ -6,7 +6,8 @@
 #include <string.h>
 
 #include "utilMath.h"
-#include "utilString.h"
+#include "utilFile.h"
+
 #include "memoryManager.h"
 
 #include "colliderAABB.h"
@@ -179,7 +180,7 @@ return_t colliderHullLoad(void *hull, FILE *hullFile, vec3 *centroid, mat3 *iner
 	char *tokPos;
 	char *tokEnd;
 
-	char lineBuffer[1024];
+	char lineBuffer[FILE_MAX_LINE_LENGTH];
 	char *line;
 	size_t lineLength;
 
@@ -198,7 +199,7 @@ return_t colliderHullLoad(void *hull, FILE *hullFile, vec3 *centroid, mat3 *iner
 	tempHull.edges    = memoryManagerGlobalAlloc(BASE_EDGE_CAPACITY * sizeof(*tempHull.edges));
 
 
-	while((line = readLineFile(hullFile, &lineBuffer[0], &lineLength)) != NULL){
+	while((line = fileReadLine(hullFile, &lineBuffer[0], &lineLength)) != NULL){
 		// Hull vertex.
 		if(memcmp(line, "v ", 2) == 0){
 			vec3 newVertex;

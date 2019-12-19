@@ -234,17 +234,13 @@ static void updateObjects(program *prg){
 	}*/
 }
 
-/** Don't forget, some modules may not always be loaded! **/
-#warning "REMOVE THIS! PLEASE DON'T FORGET!"
-#include "guiElement.h"
-static guiElement gui;
 static void update(program *prg){
-	//updateCameras(prg);
+	updateCameras(prg);
 	updateObjects(prg);
 
 
 	/** TEMPORARY GUI MOVING STUFF! **/
-	if(prg->keyStates[SDL_SCANCODE_LEFT]){
+	/*if(prg->keyStates[SDL_SCANCODE_LEFT]){
 		gui.root.pos.x -= 100.f * prg->step.updateDelta;
 	}
 	if(prg->keyStates[SDL_SCANCODE_RIGHT]){
@@ -269,6 +265,8 @@ static void update(program *prg){
 	if(prg->keyStates[SDL_SCANCODE_S]){
 		gui.root.scale.y -= 100.f * prg->step.updateDelta;
 	}
+
+	guiElementUpdate(&gui, prg->step.updateTime);*/
 }
 
 static void render(program *prg){
@@ -283,8 +281,8 @@ static void render(program *prg){
 	MEMSINGLELIST_LOOP_END(objectManager, curObj, object *, NULL)
 
 	/** Do we need this? **/
-	glClear(GL_DEPTH_BUFFER_BIT);
-	guiElementDraw(&gui, prg->windowWidth, prg->windowHeight, &prg->shaderPrg);
+	//glClear(GL_DEPTH_BUFFER_BIT);
+	//guiElementDraw(&gui, prg->windowWidth, prg->windowHeight, &prg->shaderPrg);
 
 
 	SDL_GL_SwapWindow(prg->window);
@@ -355,10 +353,6 @@ static return_t initLibs(program *prg){
 }
 
 static void initResources(){
-	guiPanelSetupDefault();
-	guiElementInit(&gui, GUI_TYPE_PANEL);
-
-
 	/** TEMPORARY OBJECT STUFF **/
 	model *mdl = moduleModelAlloc();
 	renderableDef *renderDef = moduleRenderableDefAlloc();
@@ -380,6 +374,7 @@ static void initResources(){
 	//skeleObjInit(&obj->skeleData, mdl->skele);
 
 	// Temporary animation stuff.
+	/** Playing "soldier_animations_anims_old\\a_runN_LOSER.smd" on the Scout makes his left arm flip. **/
 	animDef = moduleSkeleAnimDefAlloc();
 	skeleAnimLoadSMD(animDef, "soldier_animations_anims_old\\a_runN_MELEE.smd");
 	obj->skeleData.anims = moduleSkeleAnimPrepend(&obj->skeleData.anims);
@@ -389,6 +384,65 @@ static void initResources(){
 	skeleAnimLoadSMD(animDef, "soldier_animations_anims_old\\stand_MELEE.smd");
 	obj->skeleData.anims = moduleSkeleAnimPrepend(&obj->skeleData.anims);
 	skeleAnimInit(obj->skeleData.anims, animDef, 0.5f);
+
+
+	/** EVEN MORE TEMPORARY GUI STUFF **/
+	/*textureGroup *texGroup;
+
+	guiPanelSetupDefault();
+	guiElementInit(&gui, GUI_TYPE_PANEL);
+
+	texGroup = moduleTexGroupAlloc();
+	texGroupLoad(texGroup, "gui\\border.tdg");
+	gui.data.panel.borderTexState.texGroup = texGroup;
+
+	texGroup = moduleTexGroupAlloc();
+	texGroupLoad(texGroup, "gui\\body.tdg");
+	gui.data.panel.bodyTexState.texGroup = texGroup;
+
+	// Bottom-right corner.
+	gui.data.panel.uvCoords[0].x = 0.75f;
+	gui.data.panel.uvCoords[0].y = 0.8f;
+	gui.data.panel.uvCoords[0].w = 0.25f;
+	gui.data.panel.uvCoords[0].h = 0.2f;
+	// Top-right corner.
+	gui.data.panel.uvCoords[1].x = 0.f;
+	gui.data.panel.uvCoords[1].y = 0.8f;
+	gui.data.panel.uvCoords[1].w = 0.25f;
+	gui.data.panel.uvCoords[1].h = 0.2f;
+	// Top-left corner.
+	gui.data.panel.uvCoords[2].x = 0.25f;
+	gui.data.panel.uvCoords[2].y = 0.8f;
+	gui.data.panel.uvCoords[2].w = 0.25f;
+	gui.data.panel.uvCoords[2].h = 0.2f;
+	// Bottom-left corner.
+	gui.data.panel.uvCoords[3].x = 0.5f;
+	gui.data.panel.uvCoords[3].y = 0.8f;
+	gui.data.panel.uvCoords[3].w = 0.25f;
+	gui.data.panel.uvCoords[3].h = 0.2f;
+
+	// Right edge.
+	gui.data.panel.uvCoords[4].x = 0.f;
+	gui.data.panel.uvCoords[4].y = 0.6f;
+	gui.data.panel.uvCoords[4].w = 1.f;
+	gui.data.panel.uvCoords[4].h = 0.2f;
+	// Top edge.
+	gui.data.panel.uvCoords[5].x = 0.f;
+	gui.data.panel.uvCoords[5].y = 0.f;
+	gui.data.panel.uvCoords[5].w = 1.f;
+	gui.data.panel.uvCoords[5].h = 0.2f;
+	// Left edge.
+	gui.data.panel.uvCoords[6].x = 0.f;
+	gui.data.panel.uvCoords[6].y = 0.2f;
+	gui.data.panel.uvCoords[6].w = 1.f;
+	gui.data.panel.uvCoords[6].h = 0.2f;
+	// Bottom edge.
+	gui.data.panel.uvCoords[7].x = 0.f;
+	gui.data.panel.uvCoords[7].y = 0.4f;
+	gui.data.panel.uvCoords[7].w = 1.f;
+	gui.data.panel.uvCoords[7].h = 0.2f;
+
+	gui.data.panel.flags |= GUIPANEL_TILE_BODY;*/
 }
 
 // Set up the allocators for our modules.
@@ -432,6 +486,11 @@ static return_t setupModules(){
 		return(MODULE_OBJECT_SETUP_FAIL);
 	}
 	#endif
+	#ifdef MODULE_PARTICLE
+	if(!moduleParticleSetup()){
+		return(MODULE_PARTICLE_SETUP_FAIL);
+	}
+	#endif
 
 	memTreePrintAllSizes(&memManager);
 	puts("Setup complete!\n");
@@ -444,6 +503,9 @@ static void cleanupModules(){
 	puts("Beginning cleanup...\n");
 	//memTreePrintAllSizes(&memManager);
 
+	#ifdef MODULE_PARTICLE
+	moduleParticleCleanup();
+	#endif
 	#ifdef MODULE_OBJECT
 	moduleObjectCleanup();
 	#endif

@@ -9,24 +9,11 @@
 #include "textureGroup.h"
 #include "skeleton.h"
 
+#include "billboard.h"
 #include "camera.h"
 #include "shader.h"
 
 #include "utilTypes.h"
-
-
-#define BILLBOARD_DISABLED         0x00
-// Stop the renderable from billboarding on certain axes.
-#define BILLBOARD_LOCK_X           0x01
-#define BILLBOARD_LOCK_Y           0x02
-#define BILLBOARD_LOCK_Z           0x04
-#define BILLBOARD_LOCK_XYZ         0x07
-// Make the renderable keep a fixed scale regardless of distance.
-#define BILLBOARD_SCALE            0x08
-#define BILLBOARD_SPRITE           0x10
-#define BILLBOARD_TARGET_SPRITE    0x20
-#define BILLBOARD_TARGET_CAMERA    0x40
-#define BILLBOARD_TARGET_ARBITRARY 0x80
 
 
 typedef struct renderableDef {
@@ -37,13 +24,7 @@ typedef struct renderableDef {
 typedef struct renderable {
 	model *mdl;
 	textureGroupState texState;
-
-	// Axis to rotate around.
-	vec3 *axis;
-	// Target position to look at.
-	vec3 *target;
-
-	flags_t flags;
+	billboard billboardData;
 } renderable;
 
 
