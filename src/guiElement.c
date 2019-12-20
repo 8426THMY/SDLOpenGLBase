@@ -8,7 +8,7 @@ void guiElementInit(guiElement *gui, const guiType_t type){
 	guiPanelInit(&gui->data.panel);
 	gui->type = type;
 
-	gui->root = identityTransform;
+	transformStateInit(&gui->root);
 	gui->root.scale.x = gui->root.scale.y = 100.f;
 
 	gui->parent = NULL;

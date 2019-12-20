@@ -9,6 +9,7 @@
 #include "modulePhysics.h"
 
 
+// Forward-declare any helper functions!
 static void updateBones(object *obj, const float time);
 
 

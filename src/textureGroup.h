@@ -45,6 +45,8 @@ typedef struct textureGroup {
 
 typedef struct textureGroupState {
 	const textureGroup *texGroup;
+
+	size_t currentAnim;
 	textureGroupAnim texGroupAnim;
 } textureGroupState;
 

@@ -4,6 +4,9 @@
 
 #include <stddef.h>
 
+#include "vec3.h"
+#include "quat.h"
+
 #include "particleEmitter.h"
 #include "particle.h"
 
@@ -14,6 +17,7 @@
 
 
 /** Temporary typedefs, these should be function pointers. Maybe make a separate file for them. **/
+typedef void* particleInitializer;
 typedef void* particleOperator;
 typedef void* particleConstraint;
 
@@ -38,34 +42,30 @@ typedef struct particleSystemChildDef {
 typedef struct particleSystemDef {
 	char *name;
 
-
 	// Base particle properties.
-	// Mesh?
-	// TextureGroup?
-	// Colour?
-	// What else? Maybe check Source's particle system.
-
+	particleDef properties;
+	// Number of particles to begin with.
+	size_t initialParticles;
+	// The maximum number of particles that the system can spawn, excluding those spawned
+	// by its children. This can be no greater than "PARTICLESYSTEM_MAX_PARTICLES".
+	size_t maxParticles;
 
 	// These properties control the behaviour of the particles.
+	particleInitializer *initializers;
+	particleInitializer *lastInitializer;
 	particleEmitterDef *emitters;
 	size_t numEmitters;
 	particleOperator *operators;
-	size_t numOperators;
+	particleOperator *lastOperator;
 	particleConstraint *constraints;
-	size_t numConstraints;
+	particleConstraint *lastConstraint;
 
+	// How long the system should live for.
+	// If set to INFINITY, it will never die.
+	float lifetime;
 
-	particleSystemChildDef children;
+	particleSystemChildDef *children;
 	size_t numChildren;
-
-
-	// initial particle count?
-	// The maximum number of particles that the system can spawn, excluding those spawned
-	// by its children. This can be no greater than "PARTICLESYSTEM_MAX_PARTICLES".
-	//
-	// Because children always contribute one to this count,
-	// this must also be greater than or equal to "numChildren".
-	size_t maxParticles;
 } particleSystemDef;
 
 // This is simply an instance of a particle system definition.
@@ -75,10 +75,21 @@ typedef struct particleSystem {
 	particleEmitter *emitters;
 	particleSystem *children;
 
+	vec3 pos;
+	quat rot;
+
 	// This array is always exactly big enough to store
 	// the number of particles given by "maxParticles".
 	particle *particles;
+	// Current number of spawned particles.
+	size_t numParticles;
 } particleSystem;
+
+
+void particleSysDefInit(particleSystemDef *partSysDef);
+
+void particleSysUpdate(particleSystem *partSys, const float time);
+void particleSysDraw(const particleSystem *partSys, const float time);
 
 
 /**

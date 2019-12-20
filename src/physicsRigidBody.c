@@ -26,7 +26,7 @@ void physRigidBodyInit(physicsRigidBody *body, const physicsRigidBodyDef *bodyDe
 	body->centroidLocal = bodyDef->centroid;
 	body->invInertiaLocal = bodyDef->invInertia;
 
-	transformStateInit(&body->transform);
+	transformStateInit(&body->state);
 
 	vec3InitZero(&body->linearVelocity);
 	vec3InitZero(&body->angularVelocity);
@@ -477,13 +477,13 @@ void physRigidBodyIntegratePositionSymplecticEuler(physicsRigidBody *body, const
 
 	vec3MultiplySOut(&body->linearVelocity, dt, &linearVelocityDelta);
 	// Compute the object's new position.
-	vec3AddVec3(&body->transform.pos, &linearVelocityDelta);
+	vec3AddVec3(&body->state.pos, &linearVelocityDelta);
 
 	// Calculate the change in orientation.
-	quatIntegrate(&body->transform.rot, &body->angularVelocity, dt);
+	quatIntegrate(&body->state.rot, &body->angularVelocity, dt);
 	// Don't forget to normalize it, as
 	// this process can introduce errors.
-	quatNormalizeQuatFast(&body->transform.rot);
+	quatNormalizeQuatFast(&body->state.rot);
 }
 
 
@@ -551,14 +551,14 @@ void physRigidBodyApplyImpulsePosition(physicsRigidBody *body, const vec3 *r, co
 
 	// Position.
 	vec3MultiplySOut(J, body->mass, &impulse);
-	vec3AddVec3(&body->transform.pos, &impulse);
+	vec3AddVec3(&body->state.pos, &impulse);
 
 	// Orientation.
 	vec3CrossVec3Out(r, J, &impulse);
 	mat3MultiplyByVec3(&body->invInertiaGlobal, &impulse);
-	quatDifferentiateOut(&body->transform.rot, &impulse, &tempRot);
-	quatAddVec4(&body->transform.rot, &tempRot);
-	quatNormalizeQuatFast(&body->transform.rot);
+	quatDifferentiateOut(&body->state.rot, &impulse, &tempRot);
+	quatAddVec4(&body->state.rot, &tempRot);
+	quatNormalizeQuatFast(&body->state.rot);
 }
 
 // Subtract a translational and rotational impulse from a rigid body's position.
@@ -568,14 +568,14 @@ void physRigidBodyApplyImpulsePositionInverse(physicsRigidBody *body, const vec3
 
 	// Position.
 	vec3MultiplySOut(J, body->mass, &impulse);
-	vec3SubtractVec3From(&body->transform.pos, &impulse);
+	vec3SubtractVec3From(&body->state.pos, &impulse);
 
 	// Orientation.
 	vec3CrossVec3Out(r, J, &impulse);
 	mat3MultiplyByVec3(&body->invInertiaGlobal, &impulse);
-	quatDifferentiateOut(&body->transform.rot, &impulse, &tempRot);
-	quatSubtractVec4From(&body->transform.rot, &tempRot);
-	quatNormalizeQuatFast(&body->transform.rot);
+	quatDifferentiateOut(&body->state.rot, &impulse, &tempRot);
+	quatSubtractVec4From(&body->state.rot, &tempRot);
+	quatNormalizeQuatFast(&body->state.rot);
 }
 #endif
 

@@ -5,6 +5,7 @@
 #include <GL/glew.h>
 
 
+// Forward-declare any helper functions!
 static void updateShaderBones(const skeleton *mdlSkele, const skeleton *objSkele, const mat4 *animStates, const GLuint boneStatesID);
 
 

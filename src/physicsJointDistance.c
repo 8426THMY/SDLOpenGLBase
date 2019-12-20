@@ -196,10 +196,10 @@ float physJointDistanceSolvePosition(void *joint, physicsRigidBody *bodyA, physi
 		float constraint;
 
 		// Transform the anchor points using the bodies' new scales and rotations.
-		vec3MultiplyVec3Out(&bodyA->transform.scale, &((physicsJointDistance *)joint)->anchorA, &rA);
-		quatRotateVec3Fast(&bodyA->transform.rot, &rA, &rA);
-		vec3MultiplyVec3Out(&bodyB->transform.scale, &((physicsJointDistance *)joint)->anchorB, &rB);
-		quatRotateVec3Fast(&bodyB->transform.rot, &rB, &rB);
+		vec3MultiplyVec3Out(&bodyA->state.scale, &((physicsJointDistance *)joint)->anchorA, &rA);
+		quatRotateVec3Fast(&bodyA->state.rot, &rA, &rA);
+		vec3MultiplyVec3Out(&bodyB->state.scale, &((physicsJointDistance *)joint)->anchorB, &rB);
+		quatRotateVec3Fast(&bodyB->state.rot, &rB, &rB);
 
 		// Find the relative position of the two bodies.
 		// d = (pB - pA)
@@ -243,10 +243,10 @@ static void updateConstraintData(physicsJointDistance *joint, const physicsRigid
 	float distance;
 
 	// Transform the anchor points using the bodies' new scales and rotations.
-	vec3MultiplyVec3Out(&bodyA->transform.scale, &joint->anchorA, &joint->rA);
-	quatRotateVec3Fast(&bodyA->transform.rot, &joint->rA, &joint->rA);
-	vec3MultiplyVec3Out(&bodyB->transform.scale, &joint->anchorB, &joint->rB);
-	quatRotateVec3Fast(&bodyB->transform.rot, &joint->rB, &joint->rB);
+	vec3MultiplyVec3Out(&bodyA->state.scale, &joint->anchorA, &joint->rA);
+	quatRotateVec3Fast(&bodyA->state.rot, &joint->rA, &joint->rA);
+	vec3MultiplyVec3Out(&bodyB->state.scale, &joint->anchorB, &joint->rB);
+	quatRotateVec3Fast(&bodyB->state.rot, &joint->rB, &joint->rB);
 
 	// Find the relative position of the two bodies.
 	// d = (pB - pA)

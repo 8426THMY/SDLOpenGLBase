@@ -26,19 +26,17 @@ void animationInit(animationData *animData){
 
 	animData->animTime = 0.f;
 
-	animData->currentAnim = 0;
 	animData->currentFrame = 0;
 	animData->nextFrame = 0;
 }
 
 
 // Change the current animation!
-void animationSetAnim(animationData *animData, const size_t playNum, const size_t animNum){
+void animationSetAnim(animationData *animData, const size_t playNum){
 	animData->currentPlayNum = playNum;
 
 	animData->animTime = 0.f;
 
-	animData->currentAnim = animNum;
 	animData->currentFrame = 0;
 	animData->nextFrame = 0;
 }

@@ -8,15 +8,15 @@
 
 void cameraInit(camera *cam){
 	vec3InitZero(&cam->pos);
-	cam->rot = identityQuat;
+	quatInitIdentity(&cam->rot);
 	cam->fov = FOV_DEFAULT;
 
 	vec3InitSet(&cam->up, 0.f, 1.f, 0.f);
 	cam->target = NULL;
 
-	cam->viewMatrix           =
-	cam->projectionMatrix     =
-	cam->viewProjectionMatrix = identityMat4;
+	mat4InitIdentity(&cam->viewMatrix);
+	mat4InitIdentity(&cam->projectionMatrix);
+	mat4InitIdentity(&cam->viewProjectionMatrix);
 
 	cam->flags = CAMERA_TYPE_FRUSTUM;
 }

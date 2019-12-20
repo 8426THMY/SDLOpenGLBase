@@ -9,6 +9,7 @@ void meshInit(mesh *meshData){
 }
 
 
+#warning "The way we generate buffers really depends on the shader we want to use."
 // Generate vertex and index buffers to hold our mesh data!
 void meshGenerateBuffers(mesh *meshData, const vertex *vertices, const size_t numVertices, const size_t *indices, const size_t numIndices){
 	// Generate a vertex array object for our mesh and bind it!

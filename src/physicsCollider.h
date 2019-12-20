@@ -41,6 +41,7 @@ typedef struct physicsCollider {
 	physicsRigidBody *owner;
 	aabbNode *node;
 
+	#warning "Use quad-lists for these!"
 	// Colliders store linked lists of active contacts
 	// and separations. These lists are mostly sorted
 	// according to the addresses of the second collider
@@ -49,11 +50,6 @@ typedef struct physicsCollider {
 	// is the first really need to be sorted.
 	physicsSeparationPair *separations;
 	physicsContactPair *contacts;
-
-	// They also store a linked list of joints
-	// that they are a part of. These behave
-	// similarly to the previous linked lists.
-	physicsJointPair *joints;
 } physicsCollider;
 
 
@@ -68,10 +64,14 @@ void physColliderGenerateInertia(physicsCollider *collider, const vec3 *centroid
 void physColliderUpdate(physicsCollider *collider, physicsIsland *island);
 void physColliderQueryCollisions(physicsCollider *collider);
 
-physicsSeparationPair *physColliderFindSeparation(const physicsCollider *colliderA, const physicsCollider *colliderB,
-                                                  physicsSeparationPair **prev, physicsSeparationPair **next);
-physicsContactPair *physColliderFindContact(const physicsCollider *colliderA, const physicsCollider *colliderB,
-                                            physicsContactPair **prev, physicsContactPair **next);
+physicsSeparationPair *physColliderFindSeparation(
+	const physicsCollider *colliderA, const physicsCollider *colliderB,
+	physicsSeparationPair **prev, physicsSeparationPair **next
+);
+physicsContactPair *physColliderFindContact(
+	const physicsCollider *colliderA, const physicsCollider *colliderB,
+	physicsContactPair **prev, physicsContactPair **next
+);
 void physColliderUpdateSeparations(physicsCollider *collider);
 void physColliderUpdateContacts(physicsCollider *collider, const float dt);
 void physColliderClearPairs(physicsCollider *collider);

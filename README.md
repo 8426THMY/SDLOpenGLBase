@@ -3,9 +3,10 @@ An graphical application framework built using SDL2 and the OpenGL graphics API.
 
 Features that need to be completed:
 
-* Skeletal animation. Though animations can be loaded and viewed, a lot of the functions are placeholders and it thus lacks a significant amount of the functionality I would like it to have.
-* Physics engine. The beginning of a physics engine exists right now, but it is very much a work in progress and does not function at all. I would like to allow physical simulation of bones to enable things such as jiggle bones or ragdolls.
-* Batched sprite system.
+* Skeletal animation. This should be mostly completed, but it needs to be optimized a bit more.
+* Physics engine. The components exist and are fully implemented save for a few constraints, but there is currently no way of testing it.
+* Source-like particle system. The system has mostly been planned, and the implementation is being actively worked on.
+* GUI system. Work on a simple GUI has been started, but this will be expanded once the particle system is usable.
 * Quake-like console.
 * Multi-threading.
 

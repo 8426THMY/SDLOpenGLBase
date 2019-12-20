@@ -109,25 +109,39 @@ static return_t faceSeparation(const colliderHull *hullA, const colliderHull *hu
 static return_t edgeSeparation(const colliderHull *hullA, const colliderHull *hullB, contactSeparation *cs);
 
 static void clipManifoldSHC(const colliderHull *hullA, const colliderHull *hullB, const collisionData *cd, contactManifold *cm);
-static return_t isMinkowskiFace(const colliderHull *hullA, const colliderHull *hullB,
-                                const colliderHullEdge *eA, const vec3 *invEdgeA,
-                                const colliderHullEdge *eB, const vec3 *invEdgeB);
-static float edgeDistSquared(const vec3 *pA, const vec3 *edgeDirA,
-                             const vec3 *pB, const vec3 *edgeDirB,
-                             const vec3 *centroid);
+static return_t isMinkowskiFace(
+	const colliderHull *hullA, const colliderHull *hullB,
+	const colliderHullEdge *eA, const vec3 *invEdgeA,
+	const colliderHullEdge *eB, const vec3 *invEdgeB
+);
+static float edgeDistSquared(
+	const vec3 *pA, const vec3 *edgeDirA,
+	const vec3 *pB, const vec3 *edgeDirB,
+	const vec3 *centroid
+);
 
-static return_t noSeparatingFace(const colliderHull *hullA, const colliderHull *hullB, hullFaceData *faceData,
-                                 contactSeparation *separation, const separationType_t separationType);
-static return_t noSeparatingEdge(const colliderHull *hullA, const colliderHull *hullB,
-                                 hullEdgeData *edgeData, contactSeparation *separation);
+static return_t noSeparatingFace(
+	const colliderHull *hullA, const colliderHull *hullB, hullFaceData *faceData,
+	contactSeparation *separation, const separationType_t separationType
+);
+static return_t noSeparatingEdge(
+	const colliderHull *hullA, const colliderHull *hullB,
+	hullEdgeData *edgeData, contactSeparation *separation
+);
 
 static colliderFaceIndex_t findIncidentFace(const colliderHull *hull, const vec3 *refNormal);
-static void reduceContacts(const vertexProject *vProj, const vertexProject *vLast, const vertexClip *vClip,
-                           const vec3 *refNormal, const unsigned int swapped, contactManifold *cm);
-static void clipFaceContact(const colliderHull *hullA, const colliderHull *hullB, const colliderFaceIndex_t refIndex,
-                            const unsigned int swapped, contactManifold *cm);
-static void clipEdgeContact(const colliderHull *hullA, const colliderHull *hullB,
-                            const hullEdgeData *edgeData, contactManifold *cm);
+static void reduceContacts(
+	const vertexProject *vProj, const vertexProject *vLast, const vertexClip *vClip,
+	const vec3 *refNormal, const unsigned int swapped, contactManifold *cm
+);
+static void clipFaceContact(
+	const colliderHull *hullA, const colliderHull *hullB, const colliderFaceIndex_t refIndex,
+	const unsigned int swapped, contactManifold *cm
+);
+static void clipEdgeContact(
+	const colliderHull *hullA, const colliderHull *hullB,
+	const hullEdgeData *edgeData, contactManifold *cm
+);
 
 
 #warning "What if we aren't using the global memory manager?"
@@ -912,9 +926,11 @@ static void clipManifoldSHC(const colliderHull *hullA, const colliderHull *hullB
 ** whether their arcs intersect. This will tell us
 ** whether they form a face on the Minkowski difference.
 */
-static return_t isMinkowskiFace(const colliderHull *hullA, const colliderHull *hullB,
-                                const colliderHullEdge *eA, const vec3 *invEdgeA,
-                                const colliderHullEdge *eB, const vec3 *invEdgeB){
+static return_t isMinkowskiFace(
+	const colliderHull *hullA, const colliderHull *hullB,
+	const colliderHullEdge *eA, const vec3 *invEdgeA,
+	const colliderHullEdge *eB, const vec3 *invEdgeB
+){
 
 	// Note that in this function, the following terminology is used:
 	// A  - Normal of edge A's face.
@@ -944,9 +960,11 @@ static return_t isMinkowskiFace(const colliderHull *hullA, const colliderHull *h
 }
 
 // Return the squared distance between two edges.
-static float edgeDistSquared(const vec3 *pA, const vec3 *edgeDirA,
-                             const vec3 *pB, const vec3 *edgeDirB,
-                             const vec3 *centroid){
+static float edgeDistSquared(
+	const vec3 *pA, const vec3 *edgeDirA,
+	const vec3 *pB, const vec3 *edgeDirB,
+	const vec3 *centroid
+){
 
 	vec3 edgeNormal;
 	vec3 offset;
@@ -988,8 +1006,10 @@ static float edgeDistSquared(const vec3 *pA, const vec3 *edgeDirA,
 ** We store the index of the least separating face in
 ** the variable "faceData".
 */
-static return_t noSeparatingFace(const colliderHull *hullA, const colliderHull *hullB, hullFaceData *faceData,
-                                 contactSeparation *separation, const separationType_t separationType){
+static return_t noSeparatingFace(
+	const colliderHull *hullA, const colliderHull *hullB, hullFaceData *faceData,
+	contactSeparation *separation, const separationType_t separationType
+){
 
 	const colliderHullFace *curFace = hullA->faces;
 	const vec3 *curNormal = hullA->normals;
@@ -1047,8 +1067,10 @@ static return_t noSeparatingFace(const colliderHull *hullA, const colliderHull *
 **
 ** We store the least separating edge pair in "edgeData".
 */
-static return_t noSeparatingEdge(const colliderHull *hullA, const colliderHull *hullB,
-                                 hullEdgeData *edgeData, contactSeparation *separation){
+static return_t noSeparatingEdge(
+	const colliderHull *hullA, const colliderHull *hullB,
+	hullEdgeData *edgeData, contactSeparation *separation
+){
 
 	colliderHullEdge *edgeA = hullA->edges;
 	const colliderHullEdge *lastEdgeA = &edgeA[hullA->numEdges];
@@ -1134,8 +1156,10 @@ static colliderFaceIndex_t findIncidentFace(const colliderHull *hull, const vec3
 ** keeping the four points that form the polygon with
 ** the greatest total area.
 */
-static void reduceContacts(const vertexProject *vProj, const vertexProject *vLast, const vertexClip *vClip,
-						   const vec3 *refNormal, const unsigned int swapped, contactManifold *cm){
+static void reduceContacts(
+	const vertexProject *vProj, const vertexProject *vLast, const vertexClip *vClip,
+	const vec3 *refNormal, const unsigned int swapped, contactManifold *cm
+){
 
 	// We start with our best and worst vertices as the
 	// first one so we can begin the loop on the second.
@@ -1293,8 +1317,10 @@ static void reduceContacts(const vertexProject *vProj, const vertexProject *vLas
 ** clipping algorithm. The reference face is always assumed to be on
 ** "hullA" and the incident face is always assumed to be on "hullB".
 */
-static void clipFaceContact(const colliderHull *hullA, const colliderHull *hullB, const colliderFaceIndex_t refIndex,
-                            const unsigned int swapped, contactManifold *cm){
+static void clipFaceContact(
+	const colliderHull *hullA, const colliderHull *hullB, const colliderFaceIndex_t refIndex,
+	const unsigned int swapped, contactManifold *cm
+){
 
 	// Meshes store the number of edges that their largest faces have,
 	// so we can use this to preallocate enough memory for any face.
@@ -1618,8 +1644,10 @@ static void clipFaceContact(const colliderHull *hullA, const colliderHull *hullB
 ** by an edge pair, the contact point must be the
 ** closest points between the minimising edges.
 */
-static void clipEdgeContact(const colliderHull *hullA, const colliderHull *hullB,
-                            const hullEdgeData *edgeData, contactManifold *cm){
+static void clipEdgeContact(
+	const colliderHull *hullA, const colliderHull *hullB,
+	const hullEdgeData *edgeData, contactManifold *cm
+){
 
 	const colliderHullEdge *refEdge = &hullA->edges[edgeData->edgeA];
 	const vec3 *refStart = &hullA->vertices[refEdge->startVertexIndex];

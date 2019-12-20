@@ -25,9 +25,9 @@
 
 
 typedef uint_least8_t physJointType_t;
-typedef uint_least8_t physJointBodyIndex_t;
 
 
+#warning "We might be able to remove this."
 typedef struct physicsJointDef {
 	// This array should be large enough
 	// to store any type of joint.
@@ -41,12 +41,6 @@ typedef struct physicsJointDef {
 	// Stores which type of
 	// joint this object is.
 	physJointType_t type;
-
-	// The objects that store these joints should have
-	// an array of rigid bodies. These indicate which
-	// of those bodies are associated with this joint.
-	physJointBodyIndex_t indexA;
-	physJointBodyIndex_t indexB;
 } physicsJointDef;
 
 typedef struct physicsJoint {
@@ -62,6 +56,11 @@ typedef struct physicsJoint {
 	// Stores which type of
 	// joint this object is.
 	physJointType_t type;
+
+	// Rigid body A's address in memory is always
+	// guaranteed to be greater than rigid body B's.
+	physicsRigidBody *bodyA;
+	physicsRigidBody *bodyB;
 } physicsJoint;
 
 

@@ -7,6 +7,8 @@
 #include "physicsIsland.h"
 #include "physicsRigidBody.h"
 
+#include "utilTypes.h"
+
 
 #warning "These are temporary (duh)."
 void (*physColliderGenerateCentroidTable[COLLIDER_NUM_TYPES])(const void *collider, vec3 *centroid) = {
@@ -80,7 +82,7 @@ void physColliderGenerateInertia(physicsCollider *collider, const vec3 *centroid
 */
 void physColliderUpdate(physicsCollider *collider, physicsIsland *island){
 	// Update the collider and generate its new bounding box!
-	colliderUpdate(&collider->global, collider->local, &collider->owner->transform, &collider->aabb);
+	colliderUpdate(&collider->global, collider->local, &collider->owner->state, &collider->aabb);
 	// Update its tree node if required.
 	physIslandUpdateCollider(island, collider);
 }
@@ -106,8 +108,10 @@ void physColliderQueryCollisions(physicsCollider *collider){
 ** in the collision. If we find a pair whose second collider's address
 ** is greater than "colliderB", we can exit early.
 */
-physicsSeparationPair *physColliderFindSeparation(const physicsCollider *colliderA, const physicsCollider *colliderB,
-                                                  physicsSeparationPair **prev, physicsSeparationPair **next){
+physicsSeparationPair *physColliderFindSeparation(
+	const physicsCollider *colliderA, const physicsCollider *colliderB,
+	physicsSeparationPair **prev, physicsSeparationPair **next
+){
 
 	physicsSeparationPair *prevPair = NULL;
 	physicsSeparationPair *curPair = colliderA->separations;
@@ -140,8 +144,10 @@ physicsSeparationPair *physColliderFindSeparation(const physicsCollider *collide
 ** in the collision. If we find a pair whose second collider's address
 ** is greater than "colliderB", we can exit early.
 */
-physicsContactPair *physColliderFindContact(const physicsCollider *colliderA, const physicsCollider *colliderB,
-                                            physicsContactPair **prev, physicsContactPair **next){
+physicsContactPair *physColliderFindContact(
+	const physicsCollider *colliderA, const physicsCollider *colliderB,
+	physicsContactPair **prev, physicsContactPair **next
+){
 
 	physicsContactPair *prevPair = NULL;
 	physicsContactPair *curPair = colliderA->contacts;

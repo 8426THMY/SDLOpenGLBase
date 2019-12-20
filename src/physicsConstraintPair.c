@@ -7,9 +7,11 @@
 
 
 // Initialise a separation pair from a separation.
-void physSeparationPairInit(physicsSeparationPair *pair, const contactSeparation *separation,
-                            physicsCollider *cA, physicsCollider *cB,
-                            physicsSeparationPair *prev, physicsSeparationPair *next){
+void physSeparationPairInit(
+	physicsSeparationPair *pair, const contactSeparation *separation,
+	physicsCollider *cA, physicsCollider *cB,
+	physicsSeparationPair *prev, physicsSeparationPair *next
+){
 
 	pair->separation = *separation;
 	physPairRefresh(pair);
@@ -68,9 +70,11 @@ void physSeparationPairInit(physicsSeparationPair *pair, const contactSeparation
 }
 
 // Initialise a contact pair from a manifold.
-void physContactPairInit(physicsContactPair *pair, const contactManifold *manifold,
-                         physicsCollider *cA, physicsCollider *cB,
-                         physicsContactPair *prev, physicsContactPair *next){
+void physContactPairInit(
+	physicsContactPair *pair, const contactManifold *manifold,
+	physicsCollider *cA, physicsCollider *cB,
+	physicsContactPair *prev, physicsContactPair *next
+){
 
 	physManifoldInit(&pair->manifold, manifold, cA, cB);
 	physPairRefresh(pair);
@@ -129,9 +133,11 @@ void physContactPairInit(physicsContactPair *pair, const contactManifold *manifo
 }
 
 // Initialise a joint pair from a joint.
-void physJointPairInit(physicsJointPair *pair,
-                       physicsCollider *cA, physicsCollider *cB,
-                       physicsJointPair *prev, physicsJointPair *next){
+/*void physJointPairInit(
+	physicsJointPair *pair,
+	physicsCollider *cA, physicsCollider *cB,
+	physicsJointPair *prev, physicsJointPair *next
+){
 
 	pair->cA = cA;
 	pair->cB = cB;
@@ -184,7 +190,7 @@ void physJointPairInit(physicsJointPair *pair,
 	// pointers for collider B.
 	pair->prevB = prev;
 	pair->nextB = next;
-}
+}*/
 
 
 /*
@@ -297,7 +303,7 @@ void physContactPairDelete(physicsContactPair *pair){
 ** Delete a joint pair and remove it from the linked
 ** lists of both colliders involved in the joint.
 */
-void physJointPairDelete(physicsJointPair *pair){
+/*void physJointPairDelete(physicsJointPair *pair){
 	physicsJointPair *nextPair = pair->nextA;
 	physicsJointPair *prevPair = pair->prevA;
 	// The next pair in collider A's list
@@ -344,4 +350,4 @@ void physJointPairDelete(physicsJointPair *pair){
 	}else{
 		pair->cB->joints = nextPair;
 	}
-}
+}*/

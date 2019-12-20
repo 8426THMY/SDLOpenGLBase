@@ -275,10 +275,10 @@ static void updateConstraintData(physicsJointPrismatic *joint, const physicsRigi
 	float axisSeparation;
 
 	// Transform the anchor points using the bodies' new scales and rotations.
-	vec3MultiplyVec3Out(&bodyA->transform.scale, &joint->anchorA, &rA);
-	quatRotateVec3Fast(&bodyA->transform.rot, &rA, &rA);
-	vec3MultiplyVec3Out(&bodyB->transform.scale, &joint->anchorB, &rB);
-	quatRotateVec3Fast(&bodyB->transform.rot, &rB, &rB);
+	vec3MultiplyVec3Out(&bodyA->state.scale, &joint->anchorA, &rA);
+	quatRotateVec3Fast(&bodyA->state.rot, &rA, &rA);
+	vec3MultiplyVec3Out(&bodyB->state.scale, &joint->anchorB, &rB);
+	quatRotateVec3Fast(&bodyB->state.rot, &rB, &rB);
 
 	// Find the relative position of the two bodies.
 	// d = (pB - pA)
@@ -292,18 +292,18 @@ static void updateConstraintData(physicsJointPrismatic *joint, const physicsRigi
 	// Transform the constraint axis and its tangents to body A's
 	// space, then cross them by the transformed anchor points.
 	// a
-	vec3MultiplyVec3Out(&bodyA->transform.scale, &joint->axisLocal, &joint->axisGlobal);
-	quatRotateVec3Fast(&bodyA->transform.rot, &joint->axisGlobal, &joint->axisGlobal);
+	vec3MultiplyVec3Out(&bodyA->state.scale, &joint->axisLocal, &joint->axisGlobal);
+	quatRotateVec3Fast(&bodyA->state.rot, &joint->axisGlobal, &joint->axisGlobal);
 	vec3CrossVec3Out(&d, &joint->axisGlobal, &joint->rAa);
 	vec3CrossVec3Out(&rB, &joint->axisGlobal, &joint->rBa);
 	// u1
-	vec3MultiplyVec3Out(&bodyA->transform.scale, &joint->tangentsLocal[0], &joint->tangentsGlobal[0]);
-	quatRotateVec3Fast(&bodyA->transform.rot, &joint->tangentsGlobal[0], &joint->tangentsGlobal[0]);
+	vec3MultiplyVec3Out(&bodyA->state.scale, &joint->tangentsLocal[0], &joint->tangentsGlobal[0]);
+	quatRotateVec3Fast(&bodyA->state.rot, &joint->tangentsGlobal[0], &joint->tangentsGlobal[0]);
 	vec3CrossVec3Out(&d, &joint->tangentsGlobal[0], &joint->rAu1);
 	vec3CrossVec3Out(&rB, &joint->tangentsGlobal[0], &joint->rBu1);
 	// u2
-	vec3MultiplyVec3Out(&bodyA->transform.scale, &joint->tangentsLocal[1], &joint->tangentsGlobal[1]);
-	quatRotateVec3Fast(&bodyA->transform.rot, &joint->tangentsGlobal[1], &joint->tangentsGlobal[1]);
+	vec3MultiplyVec3Out(&bodyA->state.scale, &joint->tangentsLocal[1], &joint->tangentsGlobal[1]);
+	quatRotateVec3Fast(&bodyA->state.rot, &joint->tangentsGlobal[1], &joint->tangentsGlobal[1]);
 	vec3CrossVec3Out(&d, &joint->tangentsGlobal[1], &joint->rAu2);
 	vec3CrossVec3Out(&rB, &joint->tangentsGlobal[1], &joint->rBu2);
 

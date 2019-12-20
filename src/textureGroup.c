@@ -80,6 +80,8 @@ void texGroupInit(textureGroup *texGroup){
 
 void texGroupStateInit(textureGroupState *texGroupState, const textureGroup *texGroup){
 	texGroupState->texGroup = texGroup;
+
+	texGroupState->currentAnim = 0;
 	animationInit(&texGroupState->texGroupAnim);
 }
 
@@ -372,7 +374,6 @@ return_t texGroupLoad(textureGroup *texGroup, const char *texGroupPath){
 					GLuint tempTexHeight;
 
 					texture **startTex = &textures[tempStartTex];
-					texture **endTex = &textures[tempStartTex];
 					texture **lastTex = &textures[texturesSize];
 					// Loop through all the textures that we need to use!
 					for(; tempStartTex <= tempEndTex; ++tempStartTex, ++startTex){
@@ -559,7 +560,7 @@ return_t texGroupLoad(textureGroup *texGroup, const char *texGroupPath){
 
 // Continue animating a texture!
 void texGroupStateUpdate(textureGroupState *texGroupState, const float time){
-	animationUpdate(&texGroupState->texGroupAnim, &(texGroupState->texGroup->texAnims[texGroupState->texGroupAnim.currentAnim].frameData), time);
+	animationUpdate(&texGroupState->texGroupAnim, &(texGroupState->texGroup->texAnims[texGroupState->currentAnim].frameData), time);
 }
 
 // Get the current frame of a texture group instance!
@@ -568,8 +569,8 @@ textureGroupFrame *texGroupStateGetFrame(const textureGroupState *texGroupState)
 	const textureGroupAnim *animData = &texGroupState->texGroupAnim;
 
 	// If the animation and frame are valid, get the texture's ID and set the UV offsets!
-	if(animData->currentAnim < texGroup->numAnims){
-		textureGroupAnimDef *tempAnim = &(texGroup->texAnims[animData->currentAnim]);
+	if(texGroupState->currentAnim < texGroup->numAnims){
+		textureGroupAnimDef *tempAnim = &(texGroup->texAnims[texGroupState->currentAnim]);
 		if(animData->currentFrame < tempAnim->frameData.numFrames){
 			return(&(tempAnim->animFrames[animData->currentFrame]));
 		}

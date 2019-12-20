@@ -10,6 +10,7 @@
 #include "transform.h"
 
 #include "physicsCollider.h"
+#include "physicsJoint.h"
 
 
 // If we're using non-linear Gauss-Seidel stabilisation
@@ -37,6 +38,9 @@ typedef struct physicsRigidBodyDef {
 	mat3 invInertia;
 } physicsRigidBodyDef;
 
+#warning "Add some flags!"
+#warning "Maybe store the regular local intertia tensor for more efficient scaling?"
+#warning "Linear and angular damping would also be nice."
 // Rigid body instance.
 typedef struct physicsRigidBody {
 	// Singly linked list of colliders used by this rigid body.
@@ -55,13 +59,18 @@ typedef struct physicsRigidBody {
 	// Defines the body's spacial configuration.
 	// The position stored here should not be
 	// confused with the rigid body's centroid!
-	transformState transform;
+	transformState state;
 
 	// Defines the body's physical configuration.
 	vec3 linearVelocity;
 	vec3 angularVelocity;
 	vec3 netForce;
 	vec3 netTorque;
+
+	// They also store a quad-list of joints
+	// that they are a part of. These behave
+	// similarly to the previous linked lists.
+	physicsJoint *joints;
 } physicsRigidBody;
 
 
