@@ -1,10 +1,13 @@
 #include "mesh.h"
 
 
+#define MESH_INVALID_BUFFER_ID 0
+
+
 void meshInit(mesh *meshData){
-	meshData->vertexArrayID = 0;
-	meshData->vertexBufferID = 0;
-	meshData->indexBufferID = 0;
+	meshData->vertexArrayID = MESH_INVALID_BUFFER_ID;
+	meshData->vertexBufferID = MESH_INVALID_BUFFER_ID;
+	meshData->indexBufferID = MESH_INVALID_BUFFER_ID;
 	meshData->numIndices = 0;
 }
 
@@ -48,14 +51,20 @@ void meshGenerateBuffers(mesh *meshData, const vertex *vertices, const size_t nu
 }
 
 
+// Return whether or not two meshes are different.
+return_t meshDifferent(const mesh *m1, const mesh *m2){
+	return(m1->vertexArrayID != m2->vertexArrayID);
+}
+
+
 void meshDelete(mesh *meshData){
-	if(meshData->vertexBufferID != 0){
+	if(meshData->vertexBufferID != MESH_INVALID_BUFFER_ID){
 		glDeleteBuffers(1, &meshData->vertexBufferID);
 	}
-	if(meshData->indexBufferID != 0){
+	if(meshData->indexBufferID != MESH_INVALID_BUFFER_ID){
 		glDeleteBuffers(1, &meshData->indexBufferID);
 	}
-	if(meshData->vertexArrayID != 0){
+	if(meshData->vertexArrayID != MESH_INVALID_BUFFER_ID){
 		glDeleteVertexArrays(1, &meshData->vertexArrayID);
 	}
 }

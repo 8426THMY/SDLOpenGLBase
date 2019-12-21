@@ -11,6 +11,7 @@
 #include "utilTypes.h"
 
 
+// Collection of properties that describes a group of particles.
 typedef struct particleDef {
 	mesh meshData;
 	textureGroup *texGroup;
@@ -23,15 +24,26 @@ typedef struct particle {
 	// The particle definition stores the actual
 	// texture group that the particle uses.
 	size_t currentAnim;
+	#warning "We need a way of ensuring that the animation only uses one texture."
 	textureGroupAnim texAnim;
 
+	// How much longer the particle can be alive for.
 	float lifetime;
+	// This is used for sorting particles with transparency.
+	// We normally store the squared magnitude, not that it matters.
+	float camDistance;
 } particle;
 
 
 void particleDefInit(particleDef *partDef);
+void particleInit(particle *part);
 
-return_t particleUpdate(particle *part, const float time);
+void particleUpdate(particle *part, const float time);
+
+return_t particleAlive(particle *part, const float time);
+
+void particleDelete(particle *part);
+void particleDefDelete(particleDef *partDef);
 
 
 

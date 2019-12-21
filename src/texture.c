@@ -59,7 +59,7 @@ void textureInit(texture *tex){
 }
 
 
-// Load a texture specified by "texPath".
+// Load the texture specified by "texPath".
 return_t textureLoad(texture *tex, const char *texPath){
 	FILE *texFile;
 	char texFullPath[FILE_MAX_LINE_LENGTH];

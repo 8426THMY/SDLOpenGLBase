@@ -8,6 +8,7 @@
 #include <string.h>
 
 #include "vertex.h"
+#include "utilTypes.h"
 
 
 typedef struct mesh {
@@ -21,6 +22,8 @@ typedef struct mesh {
 void meshInit(mesh *meshData);
 
 void meshGenerateBuffers(mesh *meshData, const vertex *vertices, const size_t numVertices, const size_t *indices, const size_t numIndices);
+
+return_t meshDifferent(const mesh *m1, const mesh *m2);
 
 void meshDelete(mesh *meshData);
 

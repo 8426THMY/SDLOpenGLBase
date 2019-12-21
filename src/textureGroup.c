@@ -86,7 +86,7 @@ void texGroupStateInit(textureGroupState *texGroupState, const textureGroup *tex
 }
 
 
-// Load a textureGroup using the file specified by "texGroupPath".
+// Load the textureGroup specified by "texGroupPath".
 return_t texGroupLoad(textureGroup *texGroup, const char *texGroupPath){
 	FILE *texGroupFile;
 	char texGroupFullPath[FILE_MAX_LINE_LENGTH];

@@ -56,6 +56,11 @@ return_t programInit(program *prg){
 
 
 	if(initLibs(prg) && setupModules() == MODULE_SETUP_SUCCESS){
+		// Load, compile and attach our OpenGL shaders!
+		#warning "This is temporary until we've finished the shader module. Then we can move it into initResources (or somehwere else)."
+		if(!shaderLoadProgram(&prg->shaderPrg, ".\\resource\\shaders\\vertexShader.gls", ".\\resource\\shaders\\fragmentShader.gls")){
+			return(0);
+		}
 		initResources(prg);
 
 		return(1);
@@ -343,12 +348,6 @@ static return_t initLibs(program *prg){
 	glEnable(GL_CULL_FACE);
 
 
-	// Load, compile and attach our OpenGL shaders!
-	if(!shaderLoad(&prg->shaderPrg, ".\\resource\\shaders\\vertexShader.gls", ".\\resource\\shaders\\fragmentShader.gls")){
-		return(0);
-	}
-
-
 	return(1);
 }
 
@@ -451,6 +450,11 @@ static return_t setupModules(){
 	puts("Beginning setup...\n");
 	memoryManagerGlobalInit(MEMORY_HEAPSIZE);
 
+	#ifdef MODULE_SHADER
+	if(!moduleShaderSetup()){
+		return(MODULE_SHADER_SETUP_FAIL);
+	}
+	#endif
 	#ifdef MODULE_TEXTURE
 	if(!moduleTextureSetup()){
 		return(MODULE_TEXTURE_SETUP_FAIL);
@@ -526,6 +530,9 @@ static void cleanupModules(){
 	#endif
 	#ifdef MODULE_TEXTURE
 	moduleTextureCleanup();
+	#endif
+	#ifdef MODULE_SHADER
+	moduleShaderCleanup();
 	#endif
 
 	memTreePrintAllSizes(&memManager);

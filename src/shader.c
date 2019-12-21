@@ -1,194 +1,174 @@
 #include "shader.h"
 
 
+#define SHADER_INVALID_ID 0
+
+
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "memoryManager.h"
+
 
 void shaderInit(shader *shaderPrg){
-	shaderPrg->shaderID = 0;
+	shaderPrg->programID = SHADER_INVALID_ID;
 
-	shaderPrg->mvpMatrixID = 0;
-	shaderPrg->uvOffsetsID = 0;
-	shaderPrg->boneStatesID = 0;
+	shaderPrg->mvpMatrixID  = SHADER_INVALID_ID;
+	shaderPrg->uvOffsetsID  = SHADER_INVALID_ID;
+	shaderPrg->boneStatesID = SHADER_INVALID_ID;
 }
 
-#warning "We still use some mallocs here because this is called before we initialise the memory managers."
-#warning "This is bad, because we may need to call this after we've set them up."
-return_t shaderLoad(shader *shaderPrg, const char *vertexPath, const char *fragmentPath){
+
+// Load the shader of type "shaderType" specified by "shaderPath" and return its ID!
+GLuint shaderLoad(const char *shaderPath, const GLenum shaderType){
 	FILE *shaderFile;
 
-	GLint compiled = GL_FALSE;
-	GLint infoLogLength = 0;
+	// Load the shader file!
+	if((shaderFile = fopen(shaderPath, "rb")) != NULL){
+		GLuint shaderID = glCreateShader(shaderType);
+		// Make sure we were able to create the new shader.
+		if(shaderID != SHADER_INVALID_ID){
+			// Store the code!
+			fseek(shaderFile, 0, SEEK_END);
+			const long shaderFileSize = ftell(shaderFile);
+			rewind(shaderFile);
+
+			char *shaderSource = memoryManagerGlobalAlloc(shaderFileSize + 1);
+			// If we were able to allocate memory
+			// for the shader's code, compile it!
+			if(shaderSource != NULL){
+				GLint compiled;
+				GLint infoLogLength;
 
 
-	GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
-
-	// Load the vertex shader file!
-	if((shaderFile = fopen(vertexPath, "rb")) != NULL){
-		// Store the code!
-		fseek(shaderFile, 0, SEEK_END);
-		const long vertexFileSize = ftell(shaderFile);
-		rewind(shaderFile);
-
-		char *vertexSource = malloc(vertexFileSize + 1);
-		if(vertexSource == NULL){
-			printf("Failed to allocate memory for vertex shader file!\n"
-			       "Path: %s\n", vertexPath);
-			fclose(shaderFile);
-
-			return(0);
-		}
-		fread(vertexSource, 1, vertexFileSize, shaderFile);
-		vertexSource[vertexFileSize] = '\0';
-		fclose(shaderFile);
+				fread(shaderSource, 1, shaderFileSize, shaderFile);
+				shaderSource[shaderFileSize] = '\0';
+				fclose(shaderFile);
 
 
-		// Compile the vertex shader!
-		const char *vertexSourcePointer = vertexSource;
-		glShaderSource(vertexShader, 1, &vertexSourcePointer, NULL);
-		glCompileShader(vertexShader);
+				// Compile the shader!
+				glShaderSource(shaderID, 1, (const GLchar *const *)(&shaderSource), NULL);
+				glCompileShader(shaderID);
 
-		// We don't want any memory leaking shenanigans!
-		free(vertexSource);
+				memoryManagerGlobalFree(shaderSource);
 
 
-		glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &compiled);
-		if(!compiled){
-			printf("Vertex shader could not be compiled!\n");
+				glGetShaderiv(shaderID, GL_COMPILE_STATUS, &compiled);
+				// If we were able to compile the shader, return its ID!
+				if(compiled){
+					return(shaderID);
+				}
 
-			// If the compilation was unsuccessful, try to print the error message!
-			glGetShaderiv(vertexShader, GL_INFO_LOG_LENGTH, &infoLogLength);
-			// According to the documentation, the length should be 0 if there is no error despite normally counting the null terminator.
-			// When using Intel integrated graphics, however, I've found that the size is 1 when there is no error.
-			if(infoLogLength > 1){
-				GLchar vertexError[infoLogLength + 1];
-				glGetShaderInfoLog(vertexShader, infoLogLength, NULL, vertexError);
 
-				printf("%s\n", vertexError);
+				printf("Shader could not be compiled!\n");
+
+				// If the compilation was unsuccessful, try to print the error message!
+				glGetShaderiv(shaderID, GL_INFO_LOG_LENGTH, &infoLogLength);
+				// According to the documentation, the length should be 0
+				// if there is no error despite normally counting the null
+				// terminator. When using Intel integrated graphics, however,
+				// I've found that the size is 1 when there is no error.
+				if(infoLogLength > 1){
+					GLchar shaderError[infoLogLength + 1];
+					glGetShaderInfoLog(shaderID, infoLogLength, NULL, shaderError);
+
+					printf("%s\n", shaderError);
+				}
+			}else{
+				printf("Failed to allocate memory for shader file!\n"
+					   "Path: %s\n", shaderPath);
+				fclose(shaderFile);
 			}
 
-
-			return(0);
+			// Delete the shader if it couldn't be loaded.
+			glDeleteShader(shaderID);
+		}else{
+			printf("Failed to create shader!\n"
+			       "Path: %s\n", shaderPath);
 		}
 	}else{
-		printf("Unable to load vertex shader file!\n"
-		       "Path: %s\n", vertexPath);
+		printf("Unable to load shader file!\n"
+		       "Path: %s\n", shaderPath);
 		fclose(shaderFile);
+	}
 
 
+	return(SHADER_INVALID_ID);
+}
+
+return_t shaderLoadProgram(shader *shaderPrg, const char *vertexPath, const char *fragmentPath){
+	GLuint vertexShaderID;
+	GLuint fragmentShaderID;
+	GLint compiled;
+
+
+	// Load the program's shaders!
+	if((vertexShaderID = shaderLoad(vertexPath, GL_VERTEX_SHADER)) == SHADER_INVALID_ID){
+		return(0);
+	}
+	if((fragmentShaderID = shaderLoad(fragmentPath, GL_FRAGMENT_SHADER)) == SHADER_INVALID_ID){
 		return(0);
 	}
 
 
-	GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+	// Create the new shader program and attach our component shaders!
+	shaderPrg->programID = glCreateProgram();
+	glAttachShader(shaderPrg->programID, vertexShaderID);
+	glAttachShader(shaderPrg->programID, fragmentShaderID);
+	glLinkProgram(shaderPrg->programID);
 
-	// Load the fragment shader file!
-	if((shaderFile = fopen(fragmentPath, "rb")) != NULL){
-		// Store the code!
-		fseek(shaderFile, 0, SEEK_END);
-		const long fragmentFileSize = ftell(shaderFile);
-		rewind(shaderFile);
-
-		char *fragmentSource = malloc(fragmentFileSize + 1);
-		if(fragmentSource == NULL){
-			printf("Failed to allocate memory for fragment shader file!\n"
-			       "Path: %s\n", fragmentPath);
-			fclose(shaderFile);
-
-			return(0);
-		}
-		fread(fragmentSource, 1, fragmentFileSize, shaderFile);
-		fragmentSource[fragmentFileSize] = '\0';
-		fclose(shaderFile);
-
-
-		// Compile the fragment shader!
-		const char *fragmentSourcePointer = fragmentSource;
-		glShaderSource(fragmentShader, 1, &fragmentSourcePointer, NULL);
-		glCompileShader(fragmentShader);
-
-		// We don't want any memory leaking shenanigans!
-		free(fragmentSource);
-
-
-		glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &compiled);
-		if(!compiled){
-			printf("Fragment shader could not be compiled!\n");
-
-			// If the compilation was unsuccessful, try to print the error message!
-			glGetShaderiv(fragmentShader, GL_INFO_LOG_LENGTH, &infoLogLength);
-			// According to the documentation, the length should be 0 if there is no error despite normally counting the null terminator.
-			// When using Intel integrated graphics, however, I've found that the size is 1 when there is no error.
-			if(infoLogLength > 1){
-				GLchar fragmentError[infoLogLength + 1];
-				glGetShaderInfoLog(fragmentShader, infoLogLength, NULL, fragmentError);
-
-				printf("%s\n", fragmentError);
-			}
-
-
-			return(0);
-		}
-	}else{
-		printf("Unable to load fragment shader file!\n"
-		       "Path: %s\n", fragmentPath);
-		fclose(shaderFile);
-
-
-		return(0);
-	}
-
-
-	shaderPrg->shaderID = glCreateProgram();
-	glAttachShader(shaderPrg->shaderID, vertexShader);
-	glAttachShader(shaderPrg->shaderID, fragmentShader);
-	glLinkProgram(shaderPrg->shaderID);
-
-	glGetProgramiv(shaderPrg->shaderID, GL_LINK_STATUS, &compiled);
+	glGetProgramiv(shaderPrg->programID, GL_LINK_STATUS, &compiled);
 	if(!compiled){
+		GLint infoLogLength;
+
+
 		printf("Shader program could not be compiled!\n");
 
 		// If the compilation was unsuccessful, try to print the error message!
-		glGetProgramiv(shaderPrg->shaderID, GL_INFO_LOG_LENGTH, &infoLogLength);
-		// According to the documentation, the length should be 0 if there is no error despite normally counting the null terminator.
-		// When using Intel integrated graphics, however, I've found that the size is 1 when there is no error.
+		glGetProgramiv(shaderPrg->programID, GL_INFO_LOG_LENGTH, &infoLogLength);
+		// According to the documentation, the length should be 0
+		// if there is no error despite normally counting the null
+		// terminator. When using Intel integrated graphics, however,
+		// I've found that the size is 1 when there is no error.
 		if(infoLogLength > 1){
 			char programError[infoLogLength + 1];
-			glGetShaderInfoLog(shaderPrg->shaderID, infoLogLength, NULL, programError);
+			glGetShaderInfoLog(shaderPrg->programID, infoLogLength, NULL, programError);
 
 			printf("%s\n", programError);
 		}
 
-		shaderPrg->shaderID = 0;
+		shaderPrg->programID = SHADER_INVALID_ID;
 
 
 		return(0);
 	}
 
 
-	glDetachShader(shaderPrg->shaderID, vertexShader);
-	glDeleteShader(vertexShader);
-	glDetachShader(shaderPrg->shaderID, fragmentShader);
-	glDeleteShader(fragmentShader);
+	// We can delete the shaders now that
+	// they've been linked to the program.
+	glDetachShader(shaderPrg->programID, vertexShaderID);
+	glDetachShader(shaderPrg->programID, fragmentShaderID);
+	glDeleteShader(vertexShaderID);
+	glDeleteShader(fragmentShaderID);
 
 
 	// Enable the shader we just loaded!
-	glUseProgram(shaderPrg->shaderID);
+	glUseProgram(shaderPrg->programID);
 
 	// Find the positions of our shader's uniform variables (pretty sure they're positioned in alphabetical order)!
-	shaderPrg->mvpMatrixID = glGetUniformLocation(shaderPrg->shaderID, "mvpMatrix");
-	shaderPrg->uvOffsetsID = glGetUniformLocation(shaderPrg->shaderID, "uvOffsets");
-	shaderPrg->boneStatesID = glGetUniformLocation(shaderPrg->shaderID, "boneStates");
+	shaderPrg->mvpMatrixID  = glGetUniformLocation(shaderPrg->programID, "mvpMatrix");
+	shaderPrg->uvOffsetsID  = glGetUniformLocation(shaderPrg->programID, "uvOffsets");
+	shaderPrg->boneStatesID = glGetUniformLocation(shaderPrg->programID, "boneStates");
 
 	// Bind uniform variable "baseTex0" to the first texture mapping unit (GL_TEXTURE0)!
-	glUniform1i(glGetUniformLocation(shaderPrg->shaderID, "baseTex0"), 0);
+	glUniform1i(glGetUniformLocation(shaderPrg->programID, "baseTex0"), 0);
 
 
 	return(1);
 }
 
+
 void shaderDelete(shader *shaderPrg){
-	glUseProgram(0);
-	glDeleteProgram(shaderPrg->shaderID);
+	glUseProgram(SHADER_INVALID_ID);
+	glDeleteProgram(shaderPrg->programID);
 }

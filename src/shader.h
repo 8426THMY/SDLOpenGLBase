@@ -9,7 +9,7 @@
 
 
 typedef struct shader {
-	GLuint shaderID;
+	GLuint programID;
 
 	GLuint mvpMatrixID;
 	GLuint uvOffsetsID;
@@ -18,7 +18,10 @@ typedef struct shader {
 
 
 void shaderInit(shader *shaderPrg);
-return_t shaderLoad(shader *shaderPrg, const char *vertexPath, const char *fragmentPath);
+
+GLuint shaderLoadVertex(const char *shaderPath, const GLenum shaderType);
+return_t shaderLoadProgram(shader *shaderPrg, const char *vertexPath, const char *fragmentPath);
+
 void shaderDelete(shader *shaderPrg);
 
 
