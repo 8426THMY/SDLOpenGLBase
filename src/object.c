@@ -72,24 +72,13 @@ void objectUpdate(object *obj, const float time){
 #warning "A lot of this stuff should be moved outside, especially the OpenGL code and skeleton stuff."
 void objectDraw(const object *obj, mat4 viewProjectionMatrix, const shader *shaderPrg, const float time){
 	const renderable *curRenderable;
-	mat4 *animStates;
-	mat4 *curState;
-	const boneState *curBone;
-	const boneState *lastBone;
-
-
-	// Send the new model view projection matrix to the shader!
-	glUniformMatrix4fv(shaderPrg->mvpMatrixID, 1, GL_FALSE, (GLfloat *)&viewProjectionMatrix);
 
 	#warning "Could we store these in the skeleton object and allocate them in the same call as the bone states?"
-	animStates = memoryManagerGlobalAlloc(sizeof(*animStates) * obj->skeleData.skele->numBones);
-	if(animStates == NULL){
-		/** MALLOC FAILED **/
-	}
+	mat4 animStates[SKELETON_MAX_BONES];
+	mat4 *curState = animStates;
+	const boneState *curBone = obj->skeleData.bones;
+	const boneState *lastBone = &curBone[obj->skeleData.skele->numBones];
 
-	curState = animStates;
-	curBone = obj->skeleData.bones;
-	lastBone = &curBone[obj->skeleData.skele->numBones];
 	// Convert every bone transformation to a matrix!
 	do {
 		transformStateToMat4(curBone, curState);
@@ -98,16 +87,16 @@ void objectDraw(const object *obj, mat4 viewProjectionMatrix, const shader *shad
 	} while(curBone != lastBone);
 
 
+	// Send the new model view projection matrix to the shader!
+	glUniformMatrix4fv(shaderPrg->mvpMatrixID, 1, GL_FALSE, (GLfloat *)&viewProjectionMatrix);
+
+
 	curRenderable = obj->renderables;
 	// Draw each of the renderables.
 	while(curRenderable != NULL){
 		renderableDraw(curRenderable, obj->skeleData.skele, animStates, shaderPrg);
 		curRenderable = memSingleListNext(curRenderable);
 	}
-
-
-	// Now we can free the bone states.
-	memoryManagerGlobalFree(animStates);
 }
 
 

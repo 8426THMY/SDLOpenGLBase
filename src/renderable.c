@@ -53,21 +53,15 @@ void renderableDraw(const renderable *render, const skeleton *objSkele, const ma
 // Check which bones are used by the model and send their matrices to the shader.
 static void updateShaderBones(const skeleton *mdlSkele, const skeleton *objSkele, const mat4 *animStates, const GLuint boneStatesID){
 	const size_t numBones = mdlSkele->numBones;
-	const bone *curBone;
-	const bone *lastBone;
 
-	mat4 *curBoneState;
+	mat4 boneStates[SKELETON_MAX_BONES];
+	mat4 *curBoneState = boneStates;
+	const bone *curBone = mdlSkele->bones;
+	const bone *lastBone = &curBone[numBones];
+
+
 	// Before sending our bones to the shader, we
 	// convert them all to a matrix representation.
-	#warning "It'd be nice if we could avoid this. Maybe use a fixed sized array?"
-	mat4 *boneStates = memoryManagerGlobalAlloc(sizeof(*boneStates) * numBones);
-	if(boneStates == NULL){
-		/** MALLOC FAILED **/
-	}
-	curBoneState = boneStates;
-
-	curBone = mdlSkele->bones;
-	lastBone = &curBone[numBones];
 	for(; curBone < lastBone; ++curBone, ++curBoneState){
 		const size_t boneID = skeleFindBone(objSkele, curBone->name);
 		// If this bone appeared in an animation, convert the
@@ -81,9 +75,7 @@ static void updateShaderBones(const skeleton *mdlSkele, const skeleton *objSkele
 		}
 	}
 
+
 	// Send them to the shader!
 	glUniformMatrix4fv(boneStatesID, numBones, GL_FALSE, (GLfloat *)boneStates);
-
-	// Now we can free the bone states.
-	memoryManagerGlobalFree(boneStates);
 }

@@ -14,7 +14,7 @@
 #include "state.h"
 
 
-#define MAX_BONES_NUM 128
+#define SKELETON_MAX_BONES 128
 
 
 /** Ideally, models and animations should have their own skeletons. **/
