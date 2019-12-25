@@ -70,7 +70,7 @@ void objectUpdate(object *obj, const float time){
 }
 
 #warning "A lot of this stuff should be moved outside, especially the OpenGL code and skeleton stuff."
-void objectDraw(const object *obj, const vec3 *camPos, mat4 mvpMatrix, const shader *shaderPrg, const float time){
+void objectDraw(const object *obj, mat4 viewProjectionMatrix, const shader *shaderPrg, const float time){
 	const renderable *curRenderable;
 	mat4 *animStates;
 	mat4 *curState;
@@ -79,7 +79,7 @@ void objectDraw(const object *obj, const vec3 *camPos, mat4 mvpMatrix, const sha
 
 
 	// Send the new model view projection matrix to the shader!
-	glUniformMatrix4fv(shaderPrg->mvpMatrixID, 1, GL_FALSE, (GLfloat *)&mvpMatrix);
+	glUniformMatrix4fv(shaderPrg->mvpMatrixID, 1, GL_FALSE, (GLfloat *)&viewProjectionMatrix);
 
 	#warning "Could we store these in the skeleton object and allocate them in the same call as the bone states?"
 	animStates = memoryManagerGlobalAlloc(sizeof(*animStates) * obj->skeleData.skele->numBones);

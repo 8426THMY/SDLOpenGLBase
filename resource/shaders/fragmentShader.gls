@@ -8,5 +8,6 @@ out vec4 colour;
 
 
 void main(){
-	colour = texture(baseTex0, uv).rgba;
+	vec4 fragColour = texture(baseTex0, uv).rgba;
+	colour = fragColour;
 }

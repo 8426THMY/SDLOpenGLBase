@@ -4,8 +4,8 @@
 
 #include <stddef.h>
 
-#include "vec3.h"
-#include "quat.h"
+#include "mat4.h"
+#include "transform.h"
 
 #include "particle.h"
 #include "particleInitializer.h"
@@ -13,10 +13,9 @@
 #include "particleOperator.h"
 #include "particleConstraint.h"
 
+#include "shader.h"
 
-// A particle system cannot spawn any more than this number
-// of particles, excluding those spawned by its children.
-#define PARTICLESYSTEM_MAX_PARTICLES 1024
+#include "settingsSprites.h"
 
 
 /*
@@ -46,11 +45,13 @@ typedef struct particleSystemDef {
 	particleDef properties;
 	// Number of particles to begin with.
 	size_t initialParticles;
-	// The maximum number of particles that the system can spawn, excluding those spawned
-	// by its children. This can be no greater than "PARTICLESYSTEM_MAX_PARTICLES".
+	// The maximum number of particles that the system can spawn, excluding those
+	// spawned by its children. This can be no greater than "SPRITE_MAX_INSTANCES".
 	size_t maxParticles;
 
 	// These properties control the behaviour of the particles.
+	// Note that the "last" pointers actually point to the
+	// position after the last object.
 	particleInitializer *initializers;
 	particleInitializer *lastInitializer;
 	particleEmitterDef *emitters;
@@ -72,12 +73,12 @@ typedef struct particleSystemDef {
 #warning "It'd be good if we had a way of choosing whether or not to sort particles. Of course, we'd still need to move dead particles to the end of the array."
 typedef struct particleSystem particleSystem;
 typedef struct particleSystem {
-	particleSystemDef *partSysDef;
+	const particleSystemDef *partSysDef;
 	particleEmitter *emitters;
 
-	vec3 pos;
-	quat rot;
+	transformState state;
 	// How much longer the system should live for.
+	#warning "Currently unused(ish)."
 	float lifetime;
 
 	// This array is always exactly big enough to store
@@ -91,11 +92,12 @@ typedef struct particleSystem {
 
 
 void particleSysDefInit(particleSystemDef *partSysDef);
-void particleSysInit(particleSystem *partSys, particleSystemDef *partSysDef);
+void particleSysInit(particleSystem *partSys, const particleSystemDef *partSysDef);
+
+void particleSysUpdate(particleSystem *partSys, const float time);
+void particleSysDraw(const particleSystem *partSys, mat4 viewProjectionMatrix, const shader *shaderPrg, const float time);
 
 return_t particleSysAlive(particleSystem *partSys, const float time);
-void particleSysUpdate(particleSystem *partSys, const float time);
-void particleSysDraw(const particleSystem *partSys, const float time);
 
 void particleSysDelete(particleSystem *partSys);
 void particleSysDefDelete(particleSystemDef *partSysDef);

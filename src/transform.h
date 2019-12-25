@@ -24,7 +24,8 @@ void transformStateInterpAdd(const transformState *trans1, const transformState 
 void transformStateInvert(const transformState *trans, transformState *out);
 void transformStateToMat4(const transformState *trans, mat4 *out);
 
-void transformStateTransformVec3(const transformState *trans, const vec3 *v, vec3 *out);
+void transformStateTransformPosition(const transformState *trans, const vec3 *v, vec3 *out);
+void transformStateTransformVelocity(const transformState *trans, const vec3 *v, vec3 *out);
 
 
 extern transformState identityTransform;

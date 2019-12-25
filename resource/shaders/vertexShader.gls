@@ -34,7 +34,7 @@ out vec2 uv;
 	//vec3 tempVec = q.w * v;
 	//qvCross += tempVec;
 	//qvCross = cross(q.xyz, qvCross);
-	//tempVec = 2.0 * qvCross;
+	//tempVec = 2.f * qvCross;
 	//outVec += tempVec;
 }
 
@@ -53,21 +53,21 @@ void vertexTransform(out vec3 outPos, uint boneID, float boneWeight){
 
 
 void main(){
-	//vec4 transformPos = vec4(vertexPos, 1.0);
-	vec4 vertexPos4 = vec4(vertexPos, 1.0);
-	vec4 transformPos = vec4(0.0, 0.0, 0.0, 1.0);
+	//vec4 transformPos = vec4(vertexPos, 1.f);
+	vec4 vertexPos4 = vec4(vertexPos, 1.f);
+	vec4 transformPos = vec4(0.f, 0.f, 0.f, 1.f);
 	
 	uint i;
 	for(i = uint(0); i < uint(MAX_VERTEX_WEIGHTS); ++i){
 		uint id = vertexBoneIDs[i];
 		float weight = vertexBoneWeights[i];
-		if(id != uint(-1) && weight != 0.0){
+		if(id != uint(-1) && weight != 0.f){
 			transformPos += boneStates[id] * vertexPos4 * weight;
 		}else{
 			break;
 		}
 	}
-	gl_Position = mvpMatrix * vec4(transformPos.xyz, 1.0);
+	gl_Position = mvpMatrix * vec4(transformPos.xyz, 1.f);
 	
 	// Only use the area of the texture specified in the uvOffsets array!
 	uv.x = (vertexUV.x * uvOffsets[2]) + uvOffsets[0];

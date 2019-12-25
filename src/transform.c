@@ -81,8 +81,14 @@ void transformStateToMat4(const transformState *trans, mat4 *out){
 
 
 // Transform a vec3 by scaling it, rotating it and finally translating it.
-void transformStateTransformVec3(const transformState *trans, const vec3 *v, vec3 *out){
+void transformStateTransformPosition(const transformState *trans, const vec3 *v, vec3 *out){
 	vec3MultiplyVec3Out(&trans->scale, v, out);
 	quatRotateVec3Fast(&trans->rot, out, out);
 	vec3AddVec3(out, &trans->pos);
+}
+
+// Transform a vec3 by scaling it and rotating it, but not translating it.
+void transformStateTransformVelocity(const transformState *trans, const vec3 *v, vec3 *out){
+	vec3MultiplyVec3Out(&trans->scale, v, out);
+	quatRotateVec3Fast(&trans->rot, out, out);
 }

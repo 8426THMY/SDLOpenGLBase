@@ -13,8 +13,11 @@ typedef struct particleInitializer {
 	} data;
 
 	// This function is executed on each particle.
-	void (*func)(const void *partInitializer, particle *part);
+	void (*func)(const void *initializer, particle *part);
 } particleInitializer;
+
+
+void particleInitializerRandomPosSphere(const void *initializer, particle *part);
 
 
 #endif

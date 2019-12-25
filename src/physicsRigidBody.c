@@ -442,13 +442,13 @@ void physRigidBodyDefGenerateProperties(physicsRigidBodyDef *bodyDef, const floa
 
 
 /*
-** Calculate the body's increase in
-** velocity for the current timestep.
+** Calculate the body's increase in velocity for
+** the current timestep using symplectic Euler.
 **
 ** v^(t + 1) = v^n + F * m^-1 * dt
 ** w^(t + 1) = w^n + T * I^-1 * dt
 */
-void physRigidBodyIntegrateVelocitySymplecticEuler(physicsRigidBody *body, const float dt){
+void physRigidBodyIntegrateVelocity(physicsRigidBody *body, const float dt){
 	vec3 linearAcceleration;
 	vec3 angularAcceleration;
 
@@ -465,14 +465,14 @@ void physRigidBodyIntegrateVelocitySymplecticEuler(physicsRigidBody *body, const
 }
 
 /*
-** Calculate the body's change in
-** position for the current timestep.
+** Calculate the body's change in position for
+** the current timestep using symplectic Euler.
 **
 ** x^(t + 1) = x^t + v^(t + 1) * dt
 ** dq/dt = 0.5 * w * q
 ** q^(t + 1) = q^t + dq/dt * dt
 */
-void physRigidBodyIntegratePositionSymplecticEuler(physicsRigidBody *body, const float dt){
+void physRigidBodyIntegratePosition(physicsRigidBody *body, const float dt){
 	vec3 linearVelocityDelta;
 
 	vec3MultiplySOut(&body->linearVelocity, dt, &linearVelocityDelta);
@@ -638,7 +638,7 @@ void physRigidBodyUpdate(physicsRigidBody *body, const float dt){
 	*/
 
 	// Update the body's velocity.
-	physRigidBodyIntegrateVelocitySymplecticEuler(body, dt);
+	physRigidBodyIntegrateVelocity(body, dt);
 
 
 	curCollider = body->colliders;

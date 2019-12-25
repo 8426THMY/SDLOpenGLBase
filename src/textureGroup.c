@@ -499,8 +499,17 @@ return_t texGroupLoad(textureGroup *texGroup, const char *texGroupPath){
 			if(texAnimsSize == 0){
 				// Allocate memory for a single default animation.
 				texAnims = memoryManagerGlobalRealloc(texAnims, sizeof(*texAnims));
+				if(texAnims == NULL){
+					/** REALLOC FAILED **/
+				}
 				texAnims->name = memoryManagerGlobalAlloc(sizeof("default"));
+				if(texAnims->name == NULL){
+					/** MALLOC FAILED **/
+				}
 				texAnims->animFrames = memoryManagerGlobalAlloc(sizeof(*texAnims->animFrames));
+				if(texAnims->animFrames == NULL){
+					/** MALLOC FAILED **/
+				}
 
 				memcpy(texAnims->name, "default", sizeof("default"));
 				// Initialise its frame data!

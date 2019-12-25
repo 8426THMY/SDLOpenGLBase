@@ -239,12 +239,21 @@ static void updateObjects(program *prg){
 	}*/
 }
 
+/** TEMPORARY PARTICLE STUFF! **/
+#include "particleSystem.h"
+particleSystemDef partSysDef;
+particleSystem partSys;
+shader shader2;
 static void update(program *prg){
 	updateCameras(prg);
 	updateObjects(prg);
 
 
-	/** TEMPORARY GUI MOVING STUFF! **/
+	/** TEMPORARY PARTICLE UPDATE STUFF! **/
+	particleSysUpdate(&partSys, prg->step.updateDelta);
+
+
+	/** TEMPORARY GUI UPDATE STUFF! **/
 	/*if(prg->keyStates[SDL_SCANCODE_LEFT]){
 		gui.root.pos.x -= 100.f * prg->step.updateDelta;
 	}
@@ -281,10 +290,18 @@ static void render(program *prg){
 
 	cameraUpdateViewProjectionMatrix(&prg->cam, prg->windowWidth, prg->windowHeight);
 
+	glUseProgram(prg->shaderPrg.programID);
 	MEMSINGLELIST_LOOP_BEGIN(objectManager, curObj, object *)
-		objectDraw(curObj, NULL, prg->cam.viewProjectionMatrix, &prg->shaderPrg, prg->step.renderDelta);
+		#warning "We'll need the camera in this function for billboards."
+		objectDraw(curObj, prg->cam.viewProjectionMatrix, &prg->shaderPrg, prg->step.renderDelta);
 	MEMSINGLELIST_LOOP_END(objectManager, curObj, object *, NULL)
 
+	/** TEMPORARY PARTICLE RENDER STUFF! **/
+	glUseProgram(shader2.programID);
+	particleSysDraw(&partSys, prg->cam.viewProjectionMatrix, &shader2, prg->step.renderDelta);
+
+	/** TEMPORARY GUI RENDER STUFF! **/
+	//glUseProgram(prg->shaderPrg.programID);
 	/** Do we need this? **/
 	//glClear(GL_DEPTH_BUFFER_BIT);
 	//guiElementDraw(&gui, prg->windowWidth, prg->windowHeight, &prg->shaderPrg);
@@ -383,6 +400,27 @@ static void initResources(){
 	skeleAnimLoadSMD(animDef, "soldier_animations_anims_old\\stand_MELEE.smd");
 	obj->skeleData.anims = moduleSkeleAnimPrepend(&obj->skeleData.anims);
 	skeleAnimInit(obj->skeleData.anims, animDef, 0.5f);
+
+
+	/** EVEN MORE TEMPORARY PARTICLE STUFF **/
+	if(!shaderLoadProgram(&shader2, ".\\resource\\shaders\\spriteVertexShader.gls", ".\\resource\\shaders\\fragmentShader.gls")){
+		exit(0);
+	}
+	spriteSetupDefault();
+
+	particleSysDefInit(&partSysDef);
+	partSysDef.maxParticles = SPRITE_MAX_INSTANCES;
+	partSysDef.initializers = partSysDef.lastInitializer = memoryManagerGlobalAlloc(sizeof(*partSysDef.initializers));
+	partSysDef.initializers->func = &particleInitializerRandomPosSphere;
+	++partSysDef.lastInitializer;
+	partSysDef.emitters = memoryManagerGlobalAlloc(sizeof(*partSysDef.emitters));
+	partSysDef.emitters->func = &particleEmitterContinuous;
+	partSysDef.numEmitters = 1;
+	partSysDef.operators = partSysDef.lastOperator = memoryManagerGlobalAlloc(sizeof(*partSysDef.operators));
+	partSysDef.operators->func = &particleOperatorAddGravity;
+	++partSysDef.lastOperator;
+
+	particleSysInit(&partSys, &partSysDef);
 
 
 	/** EVEN MORE TEMPORARY GUI STUFF **/
@@ -507,6 +545,9 @@ static void cleanupModules(){
 	puts("Beginning cleanup...\n");
 	//memTreePrintAllSizes(&memManager);
 
+	/** YET MORE TEMPORARY PARTICLE STUFF **/
+	particleSysDelete(&partSys);
+	particleSysDefDelete(&partSysDef);
 	#ifdef MODULE_PARTICLE
 	moduleParticleCleanup();
 	#endif

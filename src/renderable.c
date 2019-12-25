@@ -33,19 +33,20 @@ void renderableDraw(const renderable *render, const skeleton *objSkele, const ma
 
 	updateShaderBones(render->mdl->skele, objSkele, animStates, shaderPrg->boneStatesID);
 
+	// Bind the mesh we're using!
+	glBindVertexArray(render->mdl->meshData.vertexArrayID);
+
 	glActiveTexture(GL_TEXTURE0);
 	// Bind the texture we're using!
 	glBindTexture(GL_TEXTURE_2D, texFrame->diffuse->id);
 	glUniform1fv(shaderPrg->uvOffsetsID, 4, (GLfloat *)&texFrame->bounds);
-	// Bind the vertex array object for the model!
-	glBindVertexArray(render->mdl->meshData.vertexArrayID);
 
 	// Draw the renderable!
-	glDrawElements(GL_TRIANGLES, render->mdl->meshData.numIndices, GL_UNSIGNED_INT, 0);
+	glDrawElements(GL_TRIANGLES, render->mdl->meshData.numIndices, GL_UNSIGNED_INT, NULL);
 
 
-	glBindVertexArray(0);
 	glBindTexture(GL_TEXTURE_2D, 0);
+	glBindVertexArray(0);
 }
 
 

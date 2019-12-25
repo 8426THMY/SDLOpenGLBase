@@ -163,6 +163,9 @@ return_t shaderLoadProgram(shader *shaderPrg, const char *vertexPath, const char
 	// Bind uniform variable "baseTex0" to the first texture mapping unit (GL_TEXTURE0)!
 	glUniform1i(glGetUniformLocation(shaderPrg->programID, "baseTex0"), 0);
 
+	// Unbind the shader!
+	//glUseProgram(0);
+
 
 	return(1);
 }

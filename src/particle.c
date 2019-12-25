@@ -4,23 +4,31 @@
 #include <math.h>
 
 
-#include "sprite.h"
-
-
 void particleDefInit(particleDef *partDef){
-	partDef->meshData = spriteMeshDefault;
+	partDef->spriteData = spriteDefault;
 	partDef->texGroup = &texGroupDefault;
 }
 
-#warning "We should need only one of these."
 void particleInit(particle *part){
-	part->lifetime = 0.f;
+	transformStateInit(&part->state);
+	vec3InitZero(&part->velocity);
+
+	part->currentAnim = 0;
+	animationInit(&part->texAnim);
+
+	part->lifetime = INFINITY;
 	part->camDistance = -INFINITY;
 }
 
 
 void particleUpdate(particle *part, const float time){
-	//
+	vec3 velocityDelta;
+
+	// Integrate the particle's position using symplectic Euler.
+	vec3MultiplySOut(&part->velocity, time, &velocityDelta);
+	vec3AddVec3(&part->state.pos, &velocityDelta);
+
+	// Update the texture group animation, among other things.
 }
 
 
@@ -37,13 +45,14 @@ return_t particleAlive(particle *part, const float time){
 ** moved to the end of the array during sorting.
 */
 void particleDelete(particle *part){
+	part->lifetime = 0.f;
 	part->camDistance = -INFINITY;
 }
 
 void particleDefDelete(particleDef *partDef){
 	// Only delete the system's mesh if
-	// it's not the default sprite mesh.
-	if(meshDifferent(&partDef->meshData, &spriteMeshDefault)){
-		meshDelete(&partDef->meshData);
+	// it's not the default sprite.
+	if(spriteDifferent(&partDef->spriteData, &spriteDefault)){
+		spriteDelete(&partDef->spriteData);
 	}
 }

@@ -157,13 +157,21 @@ void *memTreeInit(memoryTree *tree, void *memory, const size_t memorySize){
 
 
 void *memTreeAlloc(memoryTree *tree, const size_t blockSize){
-	// Make sure the new block's size is neither too small nor misaligned.
-	const size_t fullSize = memTreeGetBlockSize(blockSize) + MEMTREE_BLOCK_HEADER_SIZE;
-
-	memTreeNode *newNode = NULL;
+	size_t fullSize;
+	memTreeNode *newNode;
+	memTreeNode *currentNode;
 	size_t newBlockSize;
 
-	memTreeNode *currentNode = tree->root;
+	// Check for 0 byte allocations.
+	if(blockSize == 0){
+		return(NULL);
+	}
+
+	// Make sure the new block's size is neither too small nor misaligned.
+	fullSize = memTreeGetBlockSize(blockSize) + MEMTREE_BLOCK_HEADER_SIZE;
+	newNode = NULL;
+
+	currentNode = tree->root;
 	// Search our free tree for the best fitting free block.
 	for(;;){
 		const size_t currentBlockSize = treeNodeGetSize(currentNode);

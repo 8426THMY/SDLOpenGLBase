@@ -84,8 +84,8 @@ void physRigidBodyDefSumInertia(physicsRigidBodyDef *bodyDef, const mat3 *inerti
 void physRigidBodyDefAddCollider(physicsRigidBodyDef *bodyDef, const float mass, const vec3 *centroid, const mat3 *inertia);
 void physRigidBodyDefGenerateProperties(physicsRigidBodyDef *bodyDef, const float **massArrays);
 
-void physRigidBodyIntegrateVelocitySymplecticEuler(physicsRigidBody *body, const float time);
-void physRigidBodyIntegratePositionSymplecticEuler(physicsRigidBody *body, const float time);
+void physRigidBodyIntegrateVelocity(physicsRigidBody *body, const float time);
+void physRigidBodyIntegratePosition(physicsRigidBody *body, const float time);
 
 void physRigidBodyApplyLinearImpulse(physicsRigidBody *body, vec3 J);
 void physRigidBodyApplyLinearImpulseInverse(physicsRigidBody *body, vec3 J);

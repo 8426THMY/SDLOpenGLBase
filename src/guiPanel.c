@@ -58,11 +58,11 @@ void guiPanelDraw(const guiPanel *gui, const transformState *root, const shader 
 	float bodyUVs[4] = {bodyFrame->bounds.x, bodyFrame->bounds.y, bodyFrame->bounds.w, bodyFrame->bounds.h};
 
 
-	glActiveTexture(GL_TEXTURE0);
-	// Bind the vertex array object for the panel!
+	// Bind the mesh we're using!
 	glBindVertexArray(guiPanelMdlDefault.meshData.vertexArrayID);
 
 
+	glActiveTexture(GL_TEXTURE0);
 	// Bind the border's texture!
 	glBindTexture(GL_TEXTURE_2D, borderFrame->diffuse->id);
 
@@ -313,8 +313,8 @@ void guiPanelDraw(const guiPanel *gui, const transformState *root, const shader 
 	glDrawElements(GL_TRIANGLES, guiPanelMdlDefault.meshData.numIndices, GL_UNSIGNED_INT, 0);
 
 
-	glBindVertexArray(0);
 	glBindTexture(GL_TEXTURE_2D, 0);
+	glBindVertexArray(0);
 }
 
 

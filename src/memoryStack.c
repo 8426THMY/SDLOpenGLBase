@@ -27,8 +27,14 @@ void *memStackInit(memoryStack *stack, void *memory, const size_t stackSize){
 // Allocate a new block at the top of the stack!
 void *memStackAlloc(memoryStack *stack, const size_t blockSize){
 	void *newBlock = stack->top;
+	size_t actualBlockSize;
 
-	const size_t actualBlockSize = blockSize + MEMSTACK_BLOCK_FOOTER_SIZE;
+	// Check for 0 byte allocations.
+	if(blockSize == 0){
+		return(NULL);
+	}
+
+	actualBlockSize = blockSize + MEMSTACK_BLOCK_FOOTER_SIZE;
 	if(stack->size >= actualBlockSize){
 		// Store this block's size in its footer.
 		*memStackBlockGetNextBlockFooter(newBlock, blockSize) = blockSize;

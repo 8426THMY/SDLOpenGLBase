@@ -5,7 +5,7 @@
 #include "vec3.h"
 #include "transform.h"
 
-#include "mesh.h"
+#include "sprite.h"
 #include "textureGroup.h"
 
 #include "utilTypes.h"
@@ -13,7 +13,7 @@
 
 // Collection of properties that describes a group of particles.
 typedef struct particleDef {
-	mesh meshData;
+	sprite spriteData;
 	textureGroup *texGroup;
 } particleDef;
 
@@ -25,6 +25,8 @@ typedef struct particle {
 	// texture group that the particle uses.
 	size_t currentAnim;
 	#warning "We need a way of ensuring that the animation only uses one texture."
+	#warning "It'd also be nice if we could store a bit less for animated textures."
+	#warning "We could limit it so particles in a system can only play one animation. It's not like we'd have a good way of changing animations anyway."
 	textureGroupAnim texAnim;
 
 	// How much longer the particle can be alive for.

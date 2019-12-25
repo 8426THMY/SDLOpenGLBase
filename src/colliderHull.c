@@ -205,12 +205,27 @@ return_t colliderHullLoad(void *hull, FILE *hullFile, vec3 *centroid, mat3 *iner
 
 	// Set up the collider's data arrays!
 	#ifdef COLLIDER_HULL_USE_VERTEX_WEIGHT
-	vertexWeights     = memoryManagerGlobalAlloc(BASE_VERTEX_CAPACITY * sizeof(*vertexWeights));
+	vertexWeights = memoryManagerGlobalAlloc(BASE_VERTEX_CAPACITY * sizeof(*vertexWeights));
+	if(vertexWeights == NULL){
+		/** MALLOC FAILED **/
+	}
 	#endif
 	tempHull.vertices = memoryManagerGlobalAlloc(BASE_VERTEX_CAPACITY * sizeof(*tempHull.vertices));
-	tempHull.normals  = memoryManagerGlobalAlloc(BASE_FACE_CAPACITY * sizeof(*tempHull.normals));
-	tempHull.faces    = memoryManagerGlobalAlloc(BASE_FACE_CAPACITY * sizeof(*tempHull.faces));
-	tempHull.edges    = memoryManagerGlobalAlloc(BASE_EDGE_CAPACITY * sizeof(*tempHull.edges));
+	if(tempHull.vertices == NULL){
+		/** MALLOC FAILED **/
+	}
+	tempHull.normals = memoryManagerGlobalAlloc(BASE_FACE_CAPACITY * sizeof(*tempHull.normals));
+	if(tempHull.normals == NULL){
+		/** MALLOC FAILED **/
+	}
+	tempHull.faces = memoryManagerGlobalAlloc(BASE_FACE_CAPACITY * sizeof(*tempHull.faces));
+	if(tempHull.faces == NULL){
+		/** MALLOC FAILED **/
+	}
+	tempHull.edges = memoryManagerGlobalAlloc(BASE_EDGE_CAPACITY * sizeof(*tempHull.edges));
+	if(tempHull.edges == NULL){
+		/** MALLOC FAILED **/
+	}
 
 
 	while((line = fileReadLine(hullFile, &lineBuffer[0], &lineLength)) != NULL){
@@ -638,7 +653,7 @@ void colliderHullUpdate(void *hull, const void *base, const transformState *tran
 	const vec3 *lastFeature = &curFeature[((colliderHull *)hull)->numVertices];
 
 	// Find the collider's new centroid!
-	transformStateTransformVec3(trans, &(((colliderHull *)base)->centroid), &(((colliderHull *)hull)->centroid));
+	transformStateTransformPosition(trans, &(((colliderHull *)base)->centroid), &(((colliderHull *)hull)->centroid));
 
 	// We can only update the hull's
 	// vertices if it actually has any.
@@ -646,12 +661,12 @@ void colliderHullUpdate(void *hull, const void *base, const transformState *tran
 		colliderAABB tempAABB;
 
 		// Transform the first vertex and use it for the bounding box.
-		transformStateTransformVec3(trans, baseFeature, curFeature);
+		transformStateTransformPosition(trans, baseFeature, curFeature);
 		tempAABB.min = tempAABB.max = *curFeature;
 
 		// Transform the remaining vertices!
 		for(; curFeature < lastFeature;){
-			transformStateTransformVec3(trans, ++baseFeature, ++curFeature);
+			transformStateTransformPosition(trans, ++baseFeature, ++curFeature);
 
 			// If this vertex exceeds the bounds of
 			// our current bounding box, we should

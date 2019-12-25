@@ -17,7 +17,7 @@ return_t moduleModelSetup(){
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_MODEL_MANAGER_SIZE)),
 			MODULE_MODEL_MANAGER_SIZE, MODULE_MODEL_ELEMENT_SIZE
 		) != NULL &&
-		modelSetupDefault()
+		meshSetupDefault() && modelSetupDefault()
 	);
 }
 

@@ -1,20 +1,21 @@
 #version 330 core
 
 
-uniform mat4 vpMatrix;
+uniform mat4 mvpMatrix;
 
 layout(location = 0) in vec3 vertexPos;
-layout(location = 1) in vec2 vertexUV;
-layout(location = 2) in mat4 mMatrix;
-layout(location = 3) in float uvOffsets[4];
+// Note that this attribute actually uses locations 1, 2, 3 and 4.
+layout(location = 1) in mat4 state;
+layout(location = 5) in vec4 uvOffsets;
 
 out vec2 uv;
 
 
 void main(){
-	gl_Position = mMatrix * vpMatrix * vec4(vertexPos, 1.0);
+	gl_Position = mvpMatrix * state * vec4(vertexPos, 1.f);
 	
 	// Only use the area of the texture specified in the uvOffsets array!
-	uv.x = (vertexUV.x * uvOffsets[2]) + uvOffsets[0];
-	uv.y = (vertexUV.y * uvOffsets[3]) + uvOffsets[1] + uvOffsets[3];
+	// Note that this only works if we're using the default sprite.
+	uv.x = ((vertexPos.x + 0.5f) * uvOffsets[2]) + uvOffsets[0];
+	uv.y = ((vertexPos.y + 0.5f) * uvOffsets[3]) + uvOffsets[1] + uvOffsets[3];
 }
