@@ -12,7 +12,6 @@ void spriteInit(sprite *spriteData){
 	spriteData->vertexBufferID = SPRITE_INVALID_BUFFER_ID;
 
 	spriteData->stateBufferID  = SPRITE_INVALID_BUFFER_ID;
-	spriteData->uvBufferID     = SPRITE_INVALID_BUFFER_ID;
 
 	spriteData->indexBufferID  = SPRITE_INVALID_BUFFER_ID;
 	spriteData->numIndices = 0;
@@ -39,37 +38,29 @@ void spriteGenerateBuffers(sprite *spriteData, const vec3 *vertices, const size_
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (GLvoid *)0);
 
 
+		#warning "Should this be a global buffer that's part of the program?"
 		// Generate a buffer object for our particle's states and bind it!
 		glGenBuffers(1, &spriteData->stateBufferID);
 		glBindBuffer(GL_ARRAY_BUFFER, spriteData->stateBufferID);
 		// We write to this buffer dynamically when drawing sprites.
-		glBufferData(GL_ARRAY_BUFFER, 16 * sizeof(float) * SPRITE_MAX_INSTANCES, NULL, GL_STREAM_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(spriteState) * SPRITE_MAX_INSTANCES, NULL, GL_DYNAMIC_DRAW);
 
-		// Set up the state buffer's attribute! Because we're using a
-		// 4x4 matrix, we need to use four vertex attribute locations.
+		// Set up the state buffer's attribute! Because we're using a 4x4 matrix
+		// for the transformation state, we need to use four vertex attributes.
 		glEnableVertexAttribArray(1);
 		glEnableVertexAttribArray(2);
 		glEnableVertexAttribArray(3);
 		glEnableVertexAttribArray(4);
-		glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 16 * sizeof(float), (GLvoid *)0);
-		glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, 16 * sizeof(float), (GLvoid *)(4 * sizeof(float)));
-		glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, 16 * sizeof(float), (GLvoid *)(8 * sizeof(float)));
-		glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, 16 * sizeof(float), (GLvoid *)(12 * sizeof(float)));
+		glEnableVertexAttribArray(5);
+		glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(spriteState), (GLvoid *)offsetof(spriteState, state.m[0]));
+		glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(spriteState), (GLvoid *)offsetof(spriteState, state.m[1]));
+		glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(spriteState), (GLvoid *)offsetof(spriteState, state.m[2]));
+		glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(spriteState), (GLvoid *)offsetof(spriteState, state.m[3]));
+		glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(spriteState), (GLvoid *)offsetof(spriteState, uvOffsets));
 		glVertexAttribDivisor(1, 1);
 		glVertexAttribDivisor(2, 1);
 		glVertexAttribDivisor(3, 1);
 		glVertexAttribDivisor(4, 1);
-
-
-		// Generate a buffer object for our particle's UV offsets and bind it!
-		glGenBuffers(1, &spriteData->uvBufferID);
-		glBindBuffer(GL_ARRAY_BUFFER, spriteData->uvBufferID);
-		// We write to this buffer dynamically when drawing sprites.
-		glBufferData(GL_ARRAY_BUFFER, 4 * sizeof(float) * SPRITE_MAX_INSTANCES, NULL, GL_STREAM_DRAW);
-
-		// Set up the state buffer's attribute!
-		glEnableVertexAttribArray(5);
-		glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (GLvoid *)0);
 		glVertexAttribDivisor(5, 1);
 
 
@@ -78,9 +69,6 @@ void spriteGenerateBuffers(sprite *spriteData, const vec3 *vertices, const size_
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, spriteData->indexBufferID);
 		// Now add all our data to it!
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(*indices) * numIndices, indices, GL_STATIC_DRAW);
-
-
-		//glEnableVertexAttribArray(0);glVertexAttribPointer(0, 3,  GL_FLOAT, GL_FALSE, 0, (GLvoid *)0);
 	// Unbind the array object!
 	glBindVertexArray(0);
 
@@ -116,6 +104,6 @@ return_t spriteSetupDefault(){
 void spriteDelete(sprite *spriteData){
 	// This works because the buffer IDs are in consecutive memory,
 	// though it does require our sprite structure to have no padding.
-	glDeleteBuffers(4, &spriteData->vertexBufferID);
+	glDeleteBuffers(3, &spriteData->vertexBufferID);
 	glDeleteVertexArrays(1, &spriteData->vertexArrayID);
 }

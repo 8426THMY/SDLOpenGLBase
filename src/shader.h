@@ -11,7 +11,7 @@
 typedef struct shader {
 	GLuint programID;
 
-	GLuint mvpMatrixID;
+	GLuint vpMatrixID;
 	GLuint uvOffsetsID;
 	GLuint boneStatesID;
 } shader;

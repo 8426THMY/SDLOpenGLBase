@@ -2,6 +2,9 @@
 #define particleSystem_h
 
 
+#define GLEW_STATIC
+#include <GL/glew.h>
+
 #include <stddef.h>
 
 #include "mat4.h"

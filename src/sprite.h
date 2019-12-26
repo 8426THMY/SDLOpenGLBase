@@ -5,7 +5,9 @@
 #define GLEW_STATIC
 #include <GL/glew.h>
 
+#include "rectangle.h"
 #include "vec3.h"
+#include "mat4.h"
 
 #include "utilTypes.h"
 
@@ -16,11 +18,17 @@ typedef struct sprite {
 	GLuint vertexArrayID;
 	GLuint vertexBufferID;
 	GLuint stateBufferID;
-	GLuint uvBufferID;
 
 	GLuint indexBufferID;
 	size_t numIndices;
 } sprite;
+
+// This represents the data we must send to
+// the shader for each instance of a sprite.
+typedef struct spriteState {
+	mat4 state;
+	rectangle uvOffsets;
+} spriteState;
 
 
 void spriteInit(sprite *spriteData);

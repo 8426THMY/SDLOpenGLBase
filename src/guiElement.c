@@ -21,12 +21,12 @@ void guiElementUpdate(guiElement *gui, const float time){
 }
 
 void guiElementDraw(guiElement *gui, const float windowWidth, const float windowHeight, const shader *shaderPrg){
-	mat4 viewProjection;
+	mat4 viewProjectionMatrix;
 
 	// We use a scale matrix as the view-projection matrix
 	// so our interface's size can be specified in pixels.
-	mat4InitScale(&viewProjection, 2.f/windowWidth, 2.f/windowHeight, 1.f);
-	glUniformMatrix4fv(shaderPrg->mvpMatrixID, 1, GL_FALSE, (GLfloat *)&viewProjection);
+	mat4InitScale(&viewProjectionMatrix, 2.f/windowWidth, 2.f/windowHeight, 1.f);
+	glUniformMatrix4fv(shaderPrg->vpMatrixID, 1, GL_FALSE, (GLfloat *)&viewProjectionMatrix);
 
 	guiPanelDraw(&gui->data.panel, &gui->root, shaderPrg);
 }

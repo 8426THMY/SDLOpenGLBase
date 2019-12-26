@@ -2,25 +2,29 @@
 
 
 void particleEmitterInit(particleEmitter *emitter){
-	emitter->lifetime = 0.f;
-	emitter->emissionTime = 0.032f;
+	emitter->elapsedTime = 0.f;
+	emitter->period = 0.032f;
 }
 
 
 // Return the number of particles the emitter is allowed to spawn.
 size_t particleEmitterUpdate(particleEmitter *emitter, const particleEmitterDef *emitterDef, const float time){
-	emitter->lifetime += time;
+	emitter->elapsedTime += time;
 
 	return((*emitterDef->func)(emitter));
 }
 
 
 size_t particleEmitterContinuous(particleEmitter *emitter){
-	// Determine the number of particles to emit.
-	const size_t spawnCount = emitter->lifetime / emitter->emissionTime;
-	// Reduce the emitter's lifetime so we don't
-	// spawn these particles again next time.
-	emitter->lifetime -= ((float)spawnCount) * emitter->emissionTime;
+	if(emitter->elapsedTime >= emitter->period){
+		// Determine the number of particles to emit.
+		const size_t spawnCount = emitter->elapsedTime / emitter->period;
+		// Reduce the emitter's timer so we don't
+		// spawn these particles again next time.
+		emitter->elapsedTime -= ((float)spawnCount) * emitter->period;
 
-	return(spawnCount);
+		return(spawnCount);
+	}
+
+	return(0);
 }

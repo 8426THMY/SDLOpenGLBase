@@ -13,7 +13,7 @@
 void shaderInit(shader *shaderPrg){
 	shaderPrg->programID = SHADER_INVALID_ID;
 
-	shaderPrg->mvpMatrixID  = SHADER_INVALID_ID;
+	shaderPrg->vpMatrixID   = SHADER_INVALID_ID;
 	shaderPrg->uvOffsetsID  = SHADER_INVALID_ID;
 	shaderPrg->boneStatesID = SHADER_INVALID_ID;
 }
@@ -156,7 +156,7 @@ return_t shaderLoadProgram(shader *shaderPrg, const char *vertexPath, const char
 	glUseProgram(shaderPrg->programID);
 
 	// Find the positions of our shader's uniform variables (pretty sure they're positioned in alphabetical order)!
-	shaderPrg->mvpMatrixID  = glGetUniformLocation(shaderPrg->programID, "mvpMatrix");
+	shaderPrg->vpMatrixID   = glGetUniformLocation(shaderPrg->programID, "vpMatrix");
 	shaderPrg->uvOffsetsID  = glGetUniformLocation(shaderPrg->programID, "uvOffsets");
 	shaderPrg->boneStatesID = glGetUniformLocation(shaderPrg->programID, "boneStates");
 

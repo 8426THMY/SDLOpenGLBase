@@ -74,6 +74,7 @@ void objectDraw(const object *obj, mat4 viewProjectionMatrix, const shader *shad
 	const renderable *curRenderable;
 
 	#warning "Could we store these in the skeleton object and allocate them in the same call as the bone states?"
+	#warning "We could possibly use a global bone states array."
 	mat4 animStates[SKELETON_MAX_BONES];
 	mat4 *curState = animStates;
 	const boneState *curBone = obj->skeleData.bones;
@@ -88,7 +89,7 @@ void objectDraw(const object *obj, mat4 viewProjectionMatrix, const shader *shad
 
 
 	// Send the new model view projection matrix to the shader!
-	glUniformMatrix4fv(shaderPrg->mvpMatrixID, 1, GL_FALSE, (GLfloat *)&viewProjectionMatrix);
+	glUniformMatrix4fv(shaderPrg->vpMatrixID, 1, GL_FALSE, (GLfloat *)&viewProjectionMatrix);
 
 
 	curRenderable = obj->renderables;

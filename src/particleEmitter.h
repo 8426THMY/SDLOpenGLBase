@@ -8,8 +8,10 @@
 
 
 typedef struct particleEmitter {
-	float lifetime;
-	float emissionTime;
+	// Time elapsed since the last "spawn wave".
+	float elapsedTime;
+	// Number of particles to emit per millisecond.
+	float period;
 } particleEmitter;
 
 typedef struct particleEmitterDef {

@@ -43,10 +43,6 @@ void renderableDraw(const renderable *render, const skeleton *objSkele, const ma
 
 	// Draw the renderable!
 	glDrawElements(GL_TRIANGLES, render->mdl->meshData.numIndices, GL_UNSIGNED_INT, NULL);
-
-
-	glBindTexture(GL_TEXTURE_2D, 0);
-	glBindVertexArray(0);
 }
 
 
@@ -54,6 +50,7 @@ void renderableDraw(const renderable *render, const skeleton *objSkele, const ma
 static void updateShaderBones(const skeleton *mdlSkele, const skeleton *objSkele, const mat4 *animStates, const GLuint boneStatesID){
 	const size_t numBones = mdlSkele->numBones;
 
+	#warning "We could possibly use a global bone states array."
 	mat4 boneStates[SKELETON_MAX_BONES];
 	mat4 *curBoneState = boneStates;
 	const bone *curBone = mdlSkele->bones;

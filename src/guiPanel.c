@@ -311,10 +311,6 @@ void guiPanelDraw(const guiPanel *gui, const transformState *root, const shader 
 	glUniformMatrix4fv(shaderPrg->boneStatesID, 1, GL_FALSE, (GLfloat *)&curState);
 	glUniform1fv(shaderPrg->uvOffsetsID, 4, (GLfloat *)&bodyUVs[0]);
 	glDrawElements(GL_TRIANGLES, guiPanelMdlDefault.meshData.numIndices, GL_UNSIGNED_INT, 0);
-
-
-	glBindTexture(GL_TEXTURE_2D, 0);
-	glBindVertexArray(0);
 }
 
 

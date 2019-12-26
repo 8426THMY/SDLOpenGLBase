@@ -3,14 +3,13 @@
 
 #include <math.h>
 
-#include "rectangle.h"
 #include "sprite.h"
 
 #include "memoryManager.h"
 
 
 // Forward-declare any helper functions!
-static void initializeParticle(const particleSystem *partSys, particle *part);
+static void initializeParticle(const particleSystemDef *partSysDef, particle *part);
 static void operateParticle(const particleSystemDef *partSysDef, particle *part, const float time);
 static void constrainParticle(const particleSystemDef *partSysDef, particle *part, const float time);
 static void spawnParticles(particleSystem *partSys, const size_t numParticles);
@@ -86,7 +85,7 @@ void particleSysInit(particleSystem *partSys, const particleSystemDef *partSysDe
 
 			// Set up any initially active particles using the system's initializers.
 			if(partSys->numParticles < partSysDef->initialParticles){
-				initializeParticle(partSys, curParticle);
+				initializeParticle(partSysDef, curParticle);
 				++partSys->numParticles;
 			}
 		}
@@ -97,7 +96,7 @@ void particleSysInit(particleSystem *partSys, const particleSystemDef *partSysDe
 	if(partSysDef->numChildren != 0){
 		particleSystem *curChild;
 		const particleSystem *lastChild;
-		particleSystemDef *curChildDef;
+		const particleSystemDef *curChildDef;
 
 		partSys->children = memoryManagerGlobalAlloc(sizeof(*partSys->children) * partSysDef->numChildren);
 		if(partSys->children == NULL){
@@ -134,20 +133,20 @@ void particleSysUpdate(particleSystem *partSys, const float time){
 }
 
 void particleSysDraw(const particleSystem *partSys, mat4 viewProjectionMatrix, const shader *shaderPrg, const float time){
-	const sprite *particleSprite = &partSys->partSysDef->properties.spriteData;
+	const particleSystemDef *partSysDef = partSys->partSysDef;
+	const sprite *particleSprite = &partSysDef->properties.spriteData;
 
 	particle *curParticle = partSys->particles;
 	const particle *lastParticle = &curParticle[partSys->numParticles];
 
-	mat4 particleStates[SPRITE_MAX_INSTANCES];
-	mat4 *curState = particleStates;
-	rectangle particleUVs[SPRITE_MAX_INSTANCES];
-	rectangle *curUV = particleUVs;
+	#warning "If we use a global sprite buffer, should we make this global too?"
+	spriteState particleStates[SPRITE_MAX_INSTANCES];
+	spriteState *curState = particleStates;
 
 
 	// Send the view projection matrix to the shader!
 	#warning "Maybe do this outside since it applies to all particle systems?"
-	glUniformMatrix4fv(shaderPrg->mvpMatrixID, 1, GL_FALSE, (GLfloat *)&viewProjectionMatrix);
+	glUniformMatrix4fv(shaderPrg->vpMatrixID, 1, GL_FALSE, (GLfloat *)&viewProjectionMatrix);
 
 	// Bind the sprite we're using!
 	glBindVertexArray(particleSprite->vertexArrayID);
@@ -157,39 +156,29 @@ void particleSysDraw(const particleSystem *partSys, mat4 viewProjectionMatrix, c
 	glBindTexture(GL_TEXTURE_2D, texDefault.id);
 
 
-	// Store our particle data in the array.
+	// Store our particle data in the arrays.
 	#warning "This is pretty bad, specifically creating the textureGroupState."
-	for(; curParticle < lastParticle; ++curParticle, ++curState, ++curUV){
-		const textureGroupFrame *texFrame;
+	for(; curParticle < lastParticle; ++curParticle, ++curState){
 		const textureGroupState texState = {
-			.texGroup = partSys->partSysDef->properties.texGroup,
+			.texGroup = partSysDef->properties.texGroup,
 			.currentAnim = curParticle->currentAnim,
 			.texGroupAnim = curParticle->texAnim
 		};
+		const textureGroupFrame *texFrame = texGroupStateGetFrame(&texState);
 
 		// Convert the particle's state to a matrix!
-		transformStateToMat4(&curParticle->state, curState);
-
+		transformStateToMat4(&curParticle->state, &curState->state);
 		// Get the particle's UV coordinates!
-		texFrame = texGroupStateGetFrame(&texState);
-		*curUV = texFrame->bounds;
+		curState->uvOffsets = texFrame->bounds;
 	}
 
 	#warning "This may be a problem, especially if other systems are using the same sprite."
 	// Upload the particles' states to the shader.
-	glBindBuffer(GL_ARRAY_BUFFER, particleSprite->stateBufferID);
 	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(particleStates[0]) * partSys->numParticles, &particleStates[0]);
-	// Upload the particles' UV offsets to the shader.
-	glBindBuffer(GL_ARRAY_BUFFER, particleSprite->uvBufferID);
-	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(particleUVs[0]) * partSys->numParticles, particleUVs);
 
 
 	// Draw each instance of the particle!
 	glDrawElementsInstanced(GL_TRIANGLES, particleSprite->numIndices, GL_UNSIGNED_INT, NULL, partSys->numParticles);
-
-
-	glBindTexture(GL_TEXTURE_2D, 0);
-	glBindVertexArray(0);
 }
 
 
@@ -201,9 +190,6 @@ return_t particleSysAlive(particleSystem *partSys, const float time){
 
 
 void particleSysDelete(particleSystem *partSys){
-	particleSystem *curChild;
-	const particleSystem *lastChild;
-
 	if(partSys->emitters != NULL){
 		memoryManagerGlobalFree(partSys->emitters);
 	}
@@ -213,8 +199,8 @@ void particleSysDelete(particleSystem *partSys){
 	}
 
 	if(partSys->children != NULL){
-		curChild = partSys->children;
-		lastChild = &curChild[partSys->partSysDef->numChildren];
+		particleSystem *curChild = partSys->children;
+		const particleSystem *lastChild = &curChild[partSys->partSysDef->numChildren];
 		// Delete the system's children.
 		for(; curChild < lastChild; ++curChild){
 			particleSysDelete(curChild);
@@ -252,13 +238,11 @@ void particleSysDefDelete(particleSystemDef *partSysDef){
 
 
 // Execute each of the system's initializers on a particle.
-static void initializeParticle(const particleSystem *partSys, particle *part){
-	const particleSystemDef *partSysDef = partSys->partSysDef;
-
-	particleInitializer *curInitializer = partSysDef->initializers;
+static void initializeParticle(const particleSystemDef *partSysDef, particle *part){
+	const particleInitializer *curInitializer = partSysDef->initializers;
 	for(; curInitializer < partSysDef->lastInitializer; ++curInitializer){
 		particleInit(part);
-		(*curInitializer->func)((void *)(&curInitializer->data), part);
+		(*curInitializer->func)((const void *)(&curInitializer->data), part);
 	}
 
 	#warning "If we do this, we'll need to scale the result of operators."
@@ -269,17 +253,17 @@ static void initializeParticle(const particleSystem *partSys, particle *part){
 
 // Execute each of the system's operators on a particle.
 static void operateParticle(const particleSystemDef *partSysDef, particle *part, const float time){
-	particleOperator *curOperator = partSysDef->operators;
+	const particleOperator *curOperator = partSysDef->operators;
 	for(; curOperator < partSysDef->lastOperator; ++curOperator){
-		(*curOperator->func)((void *)(&curOperator->data), part, time);
+		(*curOperator->func)((const void *)(&curOperator->data), part, time);
 	}
 }
 
 // Execute each of the system's constraints on a particle.
 static void constrainParticle(const particleSystemDef *partSysDef, particle *part, const float time){
-	particleConstraint *curConstraint = partSysDef->constraints;
+	const particleConstraint *curConstraint = partSysDef->constraints;
 	for(; curConstraint < partSysDef->lastConstraint; ++curConstraint){
-		(*curConstraint->func)((void *)(&curConstraint->data), part, time);
+		(*curConstraint->func)((const void *)(&curConstraint->data), part, time);
 	}
 }
 
@@ -291,7 +275,7 @@ static void spawnParticles(particleSystem *partSys, const size_t numParticles){
 	particle *curParticle = &partSys->particles[partSys->numParticles];
 	const particle *lastParticle = &curParticle[numParticles];
 	for(; curParticle < lastParticle; ++curParticle){
-		initializeParticle(partSys, curParticle);
+		initializeParticle(partSys->partSysDef, curParticle);
 	}
 	partSys->numParticles += numParticles;
 }
