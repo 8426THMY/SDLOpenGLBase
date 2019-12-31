@@ -6,9 +6,7 @@
 #include <SDL2/SDL_opengl.h>
 #include <SDL2/SDL_image.h>
 
-#include "vector.h"
 #include "settingsProgram.h"
-
 
 #include "moduleTexture.h"
 #include "moduleTextureGroup.h"
@@ -30,9 +28,9 @@ static void update(program *prg);
 static void render(program *prg);
 
 static return_t initLibs(program *prg);
+static return_t initResources(program *prg);
 static return_t setupModules();
 static void cleanupModules();
-static void initResources();
 
 
 #warning "This is just used for testing previous states."
@@ -55,18 +53,7 @@ return_t programInit(program *prg){
 	timestepInit(&prg->step, UPDATE_RATE, FRAME_RATE);
 
 
-	if(initLibs(prg) && setupModules() == MODULE_SETUP_SUCCESS){
-		// Load, compile and attach our OpenGL shaders!
-		#warning "This is temporary until we've finished the shader module. Then we can move it into initResources (or somehwere else)."
-		if(!shaderLoadProgram(&prg->shaderPrg, ".\\resource\\shaders\\vertexShader.gls", ".\\resource\\shaders\\fragmentShader.gls")){
-			return(0);
-		}
-		initResources(prg);
-
-		return(1);
-	}
-
-	return(0);
+	return(initLibs(prg) && setupModules() == MODULE_SETUP_SUCCESS && initResources(prg));
 }
 
 void programLoop(program *prg){
@@ -198,6 +185,8 @@ static void input(program *prg){
 	}else{
 		renderState = 0;
 	}
+
+	#warning "Selecting text in the console also causes crashes."
 }
 
 static void updateCameras(program *prg){
@@ -243,7 +232,6 @@ static void updateObjects(program *prg){
 #include "particleSystem.h"
 particleSystemDef partSysDef;
 particleSystem partSys;
-shader shader2;
 static void update(program *prg){
 	updateCameras(prg);
 	updateObjects(prg);
@@ -290,21 +278,21 @@ static void render(program *prg){
 
 	cameraUpdateViewProjectionMatrix(&prg->cam, prg->windowWidth, prg->windowHeight);
 
-	glUseProgram(prg->shaderPrg.programID);
+	glUseProgram(prg->objectShader.programID);
 	MEMSINGLELIST_LOOP_BEGIN(objectManager, curObj, object *)
-		#warning "We'll need the camera in this function for billboards."
-		objectDraw(curObj, prg->cam.viewProjectionMatrix, &prg->shaderPrg, prg->step.renderDelta);
+		#warning "We'll need the camera in this function for billboards. Just pass it instead of the matrix."
+		objectDraw(curObj, &prg->cam, &prg->objectShader, prg->step.renderDelta);
 	MEMSINGLELIST_LOOP_END(objectManager, curObj, object *, NULL)
 
 	/** TEMPORARY PARTICLE RENDER STUFF! **/
-	glUseProgram(shader2.programID);
-	particleSysDraw(&partSys, prg->cam.viewProjectionMatrix, &shader2, prg->step.renderDelta);
+	glUseProgram(prg->spriteShader.programID);
+	particleSysDraw(&partSys, &prg->cam, &prg->spriteShader, prg->step.renderDelta);
 
 	/** TEMPORARY GUI RENDER STUFF! **/
-	//glUseProgram(prg->shaderPrg.programID);
+	//glUseProgram(prg->objectShader.programID);
 	/** Do we need this? **/
 	//glClear(GL_DEPTH_BUFFER_BIT);
-	//guiElementDraw(&gui, prg->windowWidth, prg->windowHeight, &prg->shaderPrg);
+	//guiElementDraw(&gui, prg->windowWidth, prg->windowHeight, &prg->objectShader);
 
 
 	SDL_GL_SwapWindow(prg->window);
@@ -368,7 +356,22 @@ static return_t initLibs(program *prg){
 	return(1);
 }
 
-static void initResources(){
+static return_t initResources(program *prg){
+	const GLuint objVertexShaderID    = shaderLoad(".\\resource\\shaders\\vertexShader.gls",       GL_VERTEX_SHADER);
+	const GLuint spriteVertexShaderID = shaderLoad(".\\resource\\shaders\\spriteVertexShader.gls", GL_VERTEX_SHADER);
+	const GLuint fragmentShaderID     = shaderLoad(".\\resource\\shaders\\fragmentShader.gls",     GL_FRAGMENT_SHADER);
+	// Load, compile and attach our OpenGL shader programs!
+	if(
+		!shaderObjectInit(&prg->objectShader, shaderLoadProgram(objVertexShaderID, fragmentShaderID)) ||
+		!shaderSpriteInit(&prg->spriteShader, shaderLoadProgram(spriteVertexShaderID, fragmentShaderID))
+	){
+		exit(0);
+	}
+	shaderDelete(fragmentShaderID);
+	shaderDelete(spriteVertexShaderID);
+	shaderDelete(objVertexShaderID);
+
+
 	/** TEMPORARY OBJECT STUFF **/
 	model *mdl = moduleModelAlloc();
 	renderableDef *renderDef = moduleRenderableDefAlloc();
@@ -403,22 +406,17 @@ static void initResources(){
 
 
 	/** EVEN MORE TEMPORARY PARTICLE STUFF **/
-	if(!shaderLoadProgram(&shader2, ".\\resource\\shaders\\spriteVertexShader.gls", ".\\resource\\shaders\\fragmentShader.gls")){
-		exit(0);
-	}
 	spriteSetupDefault();
 
 	particleSysDefInit(&partSysDef);
 	partSysDef.maxParticles = SPRITE_MAX_INSTANCES;
 	partSysDef.initializers = partSysDef.lastInitializer = memoryManagerGlobalAlloc(sizeof(*partSysDef.initializers));
 	partSysDef.initializers->func = &particleInitializerRandomPosSphere;
-	++partSysDef.lastInitializer;
 	partSysDef.emitters = memoryManagerGlobalAlloc(sizeof(*partSysDef.emitters));
 	partSysDef.emitters->func = &particleEmitterContinuous;
 	partSysDef.numEmitters = 1;
 	partSysDef.operators = partSysDef.lastOperator = memoryManagerGlobalAlloc(sizeof(*partSysDef.operators));
 	partSysDef.operators->func = &particleOperatorAddGravity;
-	++partSysDef.lastOperator;
 
 	particleSysInit(&partSys, &partSysDef);
 
@@ -480,6 +478,9 @@ static void initResources(){
 	gui.data.panel.uvCoords[7].h = 0.2f;
 
 	gui.data.panel.flags |= GUIPANEL_TILE_BODY;*/
+
+
+	return(1);
 }
 
 // Set up the allocators for our modules.

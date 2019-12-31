@@ -32,7 +32,7 @@ void renderableDefInit(renderableDef *renderDef, model *mdl);
 void renderableInit(renderable *render, const renderableDef *renderDef);
 
 void renderableUpdate(renderable *render, const float time);
-void renderableDraw(const renderable *render, const skeleton *objSkele, const mat4 *animStates, const shader *shaderPrg);
+void renderableDraw(const renderable *render, const skeleton *objSkele, const mat4 *animStates, const shaderObject *shader);
 
 void renderableGenerateBillboardMatrix(
 	const renderable *render, const camera *cam,

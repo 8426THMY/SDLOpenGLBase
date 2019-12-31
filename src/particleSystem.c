@@ -9,13 +9,15 @@
 
 
 // Forward-declare any helper functions!
-static void initializeParticle(const particleSystemDef *partSysDef, particle *part);
+static void initializeParticle(const particleSystem *partSys, particle *part);
 static void operateParticle(const particleSystemDef *partSysDef, particle *part, const float time);
 static void constrainParticle(const particleSystemDef *partSysDef, particle *part, const float time);
 static void spawnParticles(particleSystem *partSys, const size_t numParticles);
 
 static void updateEmitters(particleSystem *partSys, const float time);
 static void updateParticles(particleSystem *partSys, const float time);
+
+static void drawParticles(const particleSystem *partSys, const camera *cam, const shaderSprite *shader, const float time);
 
 
 void particleSysDefInit(particleSystemDef *partSysDef){
@@ -63,7 +65,8 @@ void particleSysInit(particleSystem *partSys, const particleSystemDef *partSysDe
 	}
 
 
-	transformStateInit(&partSys->state);
+	vec3InitZero(&partSys->pos);
+	quatInitIdentity(&partSys->rot);
 	partSys->lifetime = partSysDef->lifetime;
 
 
@@ -81,12 +84,14 @@ void particleSysInit(particleSystem *partSys, const particleSystemDef *partSysDe
 		lastParticle = &curParticle[partSysDef->maxParticles];
 		// Initialize the system's particles.
 		for(; curParticle < lastParticle; ++curParticle){
-			particleInit(curParticle);
-
 			// Set up any initially active particles using the system's initializers.
 			if(partSys->numParticles < partSysDef->initialParticles){
-				initializeParticle(partSysDef, curParticle);
+				initializeParticle(partSys, curParticle);
 				++partSys->numParticles;
+
+			// Otherwise, just initialize it to the dead state.
+			}else{
+				particleDelete(curParticle);
 			}
 		}
 	}
@@ -125,60 +130,30 @@ void particleSysUpdate(particleSystem *partSys, const float time){
 	/** SORT PARTICLES HERE **/
 
 	curChild = partSys->children;
-	lastChild = &partSys->children[partSys->partSysDef->numChildren];
+	lastChild = &curChild[partSys->partSysDef->numChildren];
 	// Update the system's children!
 	for(; curChild < lastChild; ++curChild){
 		particleSysUpdate(curChild, time);
 	}
 }
 
-void particleSysDraw(const particleSystem *partSys, mat4 viewProjectionMatrix, const shader *shaderPrg, const float time){
-	const particleSystemDef *partSysDef = partSys->partSysDef;
-	const sprite *particleSprite = &partSysDef->properties.spriteData;
-
-	particle *curParticle = partSys->particles;
-	const particle *lastParticle = &curParticle[partSys->numParticles];
-
-	#warning "If we use a global sprite buffer, should we make this global too?"
-	spriteState particleStates[SPRITE_MAX_INSTANCES];
-	spriteState *curState = particleStates;
-
-
-	// Send the view projection matrix to the shader!
-	#warning "Maybe do this outside since it applies to all particle systems?"
-	glUniformMatrix4fv(shaderPrg->vpMatrixID, 1, GL_FALSE, (GLfloat *)&viewProjectionMatrix);
-
-	// Bind the sprite we're using!
-	glBindVertexArray(particleSprite->vertexArrayID);
-
-	glActiveTexture(GL_TEXTURE0);
-	// Bind the texture that this system uses!
-	glBindTexture(GL_TEXTURE_2D, texDefault.id);
-
-
-	// Store our particle data in the arrays.
-	#warning "This is pretty bad, specifically creating the textureGroupState."
-	for(; curParticle < lastParticle; ++curParticle, ++curState){
-		const textureGroupState texState = {
-			.texGroup = partSysDef->properties.texGroup,
-			.currentAnim = curParticle->currentAnim,
-			.texGroupAnim = curParticle->texAnim
-		};
-		const textureGroupFrame *texFrame = texGroupStateGetFrame(&texState);
-
-		// Convert the particle's state to a matrix!
-		transformStateToMat4(&curParticle->state, &curState->state);
-		// Get the particle's UV coordinates!
-		curState->uvOffsets = texFrame->bounds;
+/*
+** Draw a particle system and all of its children. The deepest
+** child is drawn first and the highest parent is drawn last.
+*/
+void particleSysDraw(const particleSystem *partSys, const camera *cam, const shaderSprite *shader, const float time){
+	const particleSystem *firstChild = partSys->children;
+	if(firstChild != NULL){
+		// Draw all of the particle system's children, starting from the last!
+		const particleSystem *curChild = &firstChild[partSys->partSysDef->numChildren];
+		do {
+			--curChild;
+			particleSysDraw(curChild, cam, shader, time);
+		} while(curChild > firstChild);
 	}
 
-	#warning "This may be a problem, especially if other systems are using the same sprite."
-	// Upload the particles' states to the shader.
-	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(particleStates[0]) * partSys->numParticles, &particleStates[0]);
-
-
-	// Draw each instance of the particle!
-	glDrawElementsInstanced(GL_TRIANGLES, particleSprite->numIndices, GL_UNSIGNED_INT, NULL, partSys->numParticles);
+	// Now draw the system itself!
+	drawParticles(partSys, cam, shader, time);
 }
 
 
@@ -238,14 +213,25 @@ void particleSysDefDelete(particleSystemDef *partSysDef){
 
 
 // Execute each of the system's initializers on a particle.
-static void initializeParticle(const particleSystemDef *partSysDef, particle *part){
+static void initializeParticle(const particleSystem *partSys, particle *part){
+	const particleSystemDef *partSysDef = partSys->partSysDef;
 	const particleInitializer *curInitializer = partSysDef->initializers;
-	for(; curInitializer < partSysDef->lastInitializer; ++curInitializer){
-		particleInit(part);
-		(*curInitializer->func)((const void *)(&curInitializer->data), part);
+
+	particleInit(part);
+
+	if(curInitializer != NULL){
+		do {
+			(*curInitializer->func)((const void *)(&curInitializer->data), part);
+			++curInitializer;
+		} while(curInitializer <= partSysDef->lastInitializer);
 	}
 
+	// Prepend the particle system's state.
+	vec3AddVec3(&part->state.pos, &partSys->pos);
+	quatMultiplyQuatBy(&part->state.rot, &partSys->rot);
+
 	#warning "If we do this, we'll need to scale the result of operators."
+	#warning "Is this correct, though?"
 	// 1. Initialize using the system's initializers.
 	// 2. Transform position, scale and velocity using the system's scale (post-scale).
 	// 3. Pre-translate and pre-rotate based on system's state.
@@ -254,16 +240,22 @@ static void initializeParticle(const particleSystemDef *partSysDef, particle *pa
 // Execute each of the system's operators on a particle.
 static void operateParticle(const particleSystemDef *partSysDef, particle *part, const float time){
 	const particleOperator *curOperator = partSysDef->operators;
-	for(; curOperator < partSysDef->lastOperator; ++curOperator){
-		(*curOperator->func)((const void *)(&curOperator->data), part, time);
+	if(curOperator != NULL){
+		do {
+			(*curOperator->func)((const void *)(&curOperator->data), part, time);
+			++curOperator;
+		} while(curOperator <= partSysDef->lastOperator);
 	}
 }
 
 // Execute each of the system's constraints on a particle.
 static void constrainParticle(const particleSystemDef *partSysDef, particle *part, const float time){
 	const particleConstraint *curConstraint = partSysDef->constraints;
-	for(; curConstraint < partSysDef->lastConstraint; ++curConstraint){
-		(*curConstraint->func)((const void *)(&curConstraint->data), part, time);
+	if(curConstraint != NULL){
+		do {
+			(*curConstraint->func)((const void *)(&curConstraint->data), part, time);
+			++curConstraint;
+		} while(curConstraint <= partSysDef->lastConstraint);
 	}
 }
 
@@ -275,7 +267,7 @@ static void spawnParticles(particleSystem *partSys, const size_t numParticles){
 	particle *curParticle = &partSys->particles[partSys->numParticles];
 	const particle *lastParticle = &curParticle[numParticles];
 	for(; curParticle < lastParticle; ++curParticle){
-		initializeParticle(partSys->partSysDef, curParticle);
+		initializeParticle(partSys, curParticle);
 	}
 	partSys->numParticles += numParticles;
 }
@@ -327,7 +319,63 @@ static void updateParticles(particleSystem *partSys, const float time){
 
 		// Otherwise, we should kill the particle.
 		}else{
-			particleInit(curParticle);
+			particleDelete(curParticle);
 		}
 	}
+}
+
+
+// Draw a particle system using all of its renderers!
+#warning "This is temporary, as renderers have not been implemented yet."
+#warning "Ideally, they should handle most of the draw code. Each renderer should redraw every particle."
+#warning "We should, however, get the state matrix and UV offsets once in this function."
+#warning "If we get the state matrix once though, what about billboarding?"
+static void drawParticles(const particleSystem *partSys, const camera *cam, const shaderSprite *shader, const float time){
+	const particleSystemDef *partSysDef = partSys->partSysDef;
+	const sprite *particleSprite = &partSysDef->properties.spriteData;
+
+	particle *curParticle = partSys->particles;
+	const particle *lastParticle = &curParticle[partSys->numParticles];
+
+	#warning "If we use a global sprite buffer, should we make this global too?"
+	spriteState particleStates[SPRITE_MAX_INSTANCES];
+	spriteState *curState = particleStates;
+
+
+	// Send the view-projection matrix to the shader!
+	glUniformMatrix4fv(shader->vpMatrixID, 1, GL_FALSE, (GLfloat *)&cam->viewProjectionMatrix);
+
+	// Bind the sprite we're using!
+	glBindVertexArray(particleSprite->vertexArrayID);
+
+	glActiveTexture(GL_TEXTURE0);
+	// Bind the texture that this system uses!
+	glBindTexture(GL_TEXTURE_2D, texDefault.id);
+
+
+	// Store our particle data in the arrays.
+	#warning "This is pretty bad, specifically creating the textureGroupState."
+	for(; curParticle < lastParticle; ++curParticle, ++curState){
+		const textureGroupState texState = {
+			.texGroup = partSysDef->properties.texGroup,
+			.currentAnim = curParticle->currentAnim,
+			.texGroupAnim = curParticle->texAnim
+		};
+		const textureGroupFrame *texFrame = texGroupStateGetFrame(&texState);
+
+		// Convert the particle's state to a matrix!
+		transformStateToMat4(&curParticle->state, &curState->state);
+		// Get the particle's UV coordinates!
+		curState->uvOffsets = texFrame->bounds;
+	}
+
+	#warning "This may be a problem, especially if we're multithreading and other systems are using the same sprite."
+	#warning "Since multithreading isn't an option, maybe use a global particle state buffer for all systems?"
+	// Upload the particles' states to the shader.
+	glBindBuffer(GL_ARRAY_BUFFER, particleSprite->stateBufferID);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(particleStates[0]) * partSys->numParticles, &particleStates[0]);
+
+
+	// Draw each instance of the particle!
+	glDrawElementsInstanced(GL_TRIANGLES, particleSprite->numIndices, GL_UNSIGNED_INT, NULL, partSys->numParticles);
 }

@@ -10,13 +10,23 @@
 #define DEG_TO_RAD (M_PI / 180.f)
 #define RAD_TO_DEG (180.f / M_PI)
 
-#define lerpNum(x, y, t) (x + t * (y - x))
-#define lerpNumFast(x, y, t) (x + t * y)
+// Note that these are prone to double evaluation,
+// so the equivalent functions should be used in such cases.
+#define minNumFast(x, y) (((x) < (y)) ? (x) : (y))
+#define maxNumFast(x, y) (((x) > (y)) ? (x) : (y))
 
-// Note: These are prone to double evaluation!
-#define minNumFast(x, y) (((x) <= (y)) ? (x) : (y))
-#define maxNumFast(x, y) (((x) >= (y)) ? (x) : (y))
-#define clampNumFast(min, x, max) (((min) >= (x)) ? (min) : (((x) >= (max)) ? (max) : (x)))
+// According to Mark Harris in his 2015 blog GPU Pro Tip: Lerp Faster in C++,
+// we can achieve better performance and accuracy by using two fmas here.
+//
+// Note that these are prone to double evaluation,
+// so the equivalent functions should be used in such cases.
+#ifdef FP_FAST_FMAF
+	#define lerpNumFast(x, y, t) fmaf(t, y, fmaf(-t, x, x))
+	#define lerpDiffFast(x, y, t) fmaf(t, y, x)
+#else
+	#define lerpNumFast(x, y, t) ((x) + (t)*((y) - (x)))
+	#define lerpDiffFast(x, y, t) ((x) + (t)*(y))
+#endif
 
 // This should only be used on ancient hardware!
 #ifdef MATH_USE_FAST_INV_SQRT
@@ -31,6 +41,12 @@
 float minNum(const float x, const float y);
 float maxNum(const float x, const float y);
 float clampNum(const float min, const float x, const float max);
+
+float lerpNum(const float x, const float y, const float t);
+float lerpDiff(const float x, const float y, const float t);
+
+float copySign(const float x, const float y);
+float copySignZero(const float x, const float y);
 
 float fastInvSqrt(const float x);
 float fastInvSqrtAccurate(const float x);

@@ -135,6 +135,10 @@ mat4 mat4RotateToFaceR(const vec3 eye, const vec3 target, const vec3 worldUp);
 void mat4LookAt(mat4 *m, const vec3 *eye, const vec3 *target, const vec3 *worldUp);
 mat4 mat4LookAtR(const vec3 eye, const vec3 target, const vec3 worldUp);
 
+void mat4ToQuat(const mat4 *m, quat *out);
+quat mat4ToQuatR(const mat4 m);
+void mat4ToQuatAlt(const mat4 *m, quat *out);
+quat mat4ToQuatAltR(const mat4 m);
 void quatToMat4(const quat *q, mat4 *out);
 mat4 quatToMat4R(const quat q);
 

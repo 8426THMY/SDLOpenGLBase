@@ -1,8 +1,7 @@
 #include "guiPanel.h"
 
 
-#include "vertex.h"
-
+#include "mesh.h"
 #include "texture.h"
 #include "textureGroup.h"
 
@@ -49,7 +48,7 @@ void guiPanelUpdate(guiPanel *gui, const float time){
 }
 
 #warning "This is all very temporary. It'd be nice if we could fix the texture bleeding, though..."
-void guiPanelDraw(const guiPanel *gui, const transformState *root, const shader *shaderPrg){
+void guiPanelDraw(const guiPanel *gui, const transformState *root, const shaderObject *shader){
 	mat4 curState;
 	const textureGroupFrame *borderFrame = texGroupStateGetFrame(&gui->borderTexState);
 	const textureGroupFrame *bodyFrame = texGroupStateGetFrame(&gui->bodyTexState);
@@ -91,8 +90,8 @@ void guiPanelDraw(const guiPanel *gui, const transformState *root, const shader 
 	curState.m[3][2] = 0.f;
 	curState.m[3][3] = 1.f;
 
-	glUniformMatrix4fv(shaderPrg->boneStatesID, 1, GL_FALSE, (GLfloat *)&curState);
-	glUniform1fv(shaderPrg->uvOffsetsID, 4, (GLfloat *)&gui->uvCoords[0]);
+	glUniformMatrix4fv(shader->boneStatesID, 1, GL_FALSE, (GLfloat *)&curState);
+	glUniform1fv(shader->uvOffsetsID, 4, (GLfloat *)&gui->uvCoords[0]);
 	glDrawElements(GL_TRIANGLES, guiPanelMdlDefault.meshData.numIndices, GL_UNSIGNED_INT, 0);
 
 
@@ -120,8 +119,8 @@ void guiPanelDraw(const guiPanel *gui, const transformState *root, const shader 
 	curState.m[3][2] = 0.f;
 	curState.m[3][3] = 1.f;
 
-	glUniformMatrix4fv(shaderPrg->boneStatesID, 1, GL_FALSE, (GLfloat *)&curState);
-	glUniform1fv(shaderPrg->uvOffsetsID, 4, (GLfloat *)&gui->uvCoords[1]);
+	glUniformMatrix4fv(shader->boneStatesID, 1, GL_FALSE, (GLfloat *)&curState);
+	glUniform1fv(shader->uvOffsetsID, 4, (GLfloat *)&gui->uvCoords[1]);
 	glDrawElements(GL_TRIANGLES, guiPanelMdlDefault.meshData.numIndices, GL_UNSIGNED_INT, 0);
 
 
@@ -149,8 +148,8 @@ void guiPanelDraw(const guiPanel *gui, const transformState *root, const shader 
 	curState.m[3][2] = 0.f;
 	curState.m[3][3] = 1.f;
 
-	glUniformMatrix4fv(shaderPrg->boneStatesID, 1, GL_FALSE, (GLfloat *)&curState);
-	glUniform1fv(shaderPrg->uvOffsetsID, 4, (GLfloat *)&gui->uvCoords[2]);
+	glUniformMatrix4fv(shader->boneStatesID, 1, GL_FALSE, (GLfloat *)&curState);
+	glUniform1fv(shader->uvOffsetsID, 4, (GLfloat *)&gui->uvCoords[2]);
 	glDrawElements(GL_TRIANGLES, guiPanelMdlDefault.meshData.numIndices, GL_UNSIGNED_INT, 0);
 
 
@@ -178,8 +177,8 @@ void guiPanelDraw(const guiPanel *gui, const transformState *root, const shader 
 	curState.m[3][2] = 0.f;
 	curState.m[3][3] = 1.f;
 
-	glUniformMatrix4fv(shaderPrg->boneStatesID, 1, GL_FALSE, (GLfloat *)&curState);
-	glUniform1fv(shaderPrg->uvOffsetsID, 4, (GLfloat *)&gui->uvCoords[3]);
+	glUniformMatrix4fv(shader->boneStatesID, 1, GL_FALSE, (GLfloat *)&curState);
+	glUniform1fv(shader->uvOffsetsID, 4, (GLfloat *)&gui->uvCoords[3]);
 	glDrawElements(GL_TRIANGLES, guiPanelMdlDefault.meshData.numIndices, GL_UNSIGNED_INT, 0);
 
 
@@ -206,8 +205,8 @@ void guiPanelDraw(const guiPanel *gui, const transformState *root, const shader 
 	curState.m[3][2] = 0.f;
 	curState.m[3][3] = 1.f;
 
-	glUniformMatrix4fv(shaderPrg->boneStatesID, 1, GL_FALSE, (GLfloat *)&curState);
-	glUniform1fv(shaderPrg->uvOffsetsID, 4, (GLfloat *)&gui->uvCoords[4]);
+	glUniformMatrix4fv(shader->boneStatesID, 1, GL_FALSE, (GLfloat *)&curState);
+	glUniform1fv(shader->uvOffsetsID, 4, (GLfloat *)&gui->uvCoords[4]);
 	glDrawElements(GL_TRIANGLES, guiPanelMdlDefault.meshData.numIndices, GL_UNSIGNED_INT, 0);
 
 
@@ -234,8 +233,8 @@ void guiPanelDraw(const guiPanel *gui, const transformState *root, const shader 
 	curState.m[3][2] = 0.f;
 	curState.m[3][3] = 1.f;
 
-	glUniformMatrix4fv(shaderPrg->boneStatesID, 1, GL_FALSE, (GLfloat *)&curState);
-	glUniform1fv(shaderPrg->uvOffsetsID, 4, (GLfloat *)&gui->uvCoords[5]);
+	glUniformMatrix4fv(shader->boneStatesID, 1, GL_FALSE, (GLfloat *)&curState);
+	glUniform1fv(shader->uvOffsetsID, 4, (GLfloat *)&gui->uvCoords[5]);
 	glDrawElements(GL_TRIANGLES, guiPanelMdlDefault.meshData.numIndices, GL_UNSIGNED_INT, 0);
 
 
@@ -262,8 +261,8 @@ void guiPanelDraw(const guiPanel *gui, const transformState *root, const shader 
 	curState.m[3][2] = 0.f;
 	curState.m[3][3] = 1.f;
 
-	glUniformMatrix4fv(shaderPrg->boneStatesID, 1, GL_FALSE, (GLfloat *)&curState);
-	glUniform1fv(shaderPrg->uvOffsetsID, 4, (GLfloat *)&gui->uvCoords[6]);
+	glUniformMatrix4fv(shader->boneStatesID, 1, GL_FALSE, (GLfloat *)&curState);
+	glUniform1fv(shader->uvOffsetsID, 4, (GLfloat *)&gui->uvCoords[6]);
 	glDrawElements(GL_TRIANGLES, guiPanelMdlDefault.meshData.numIndices, GL_UNSIGNED_INT, 0);
 
 
@@ -290,8 +289,8 @@ void guiPanelDraw(const guiPanel *gui, const transformState *root, const shader 
 	curState.m[3][2] = 0.f;
 	curState.m[3][3] = 1.f;
 
-	glUniformMatrix4fv(shaderPrg->boneStatesID, 1, GL_FALSE, (GLfloat *)&curState);
-	glUniform1fv(shaderPrg->uvOffsetsID, 4, (GLfloat *)&gui->uvCoords[7]);
+	glUniformMatrix4fv(shader->boneStatesID, 1, GL_FALSE, (GLfloat *)&curState);
+	glUniform1fv(shader->uvOffsetsID, 4, (GLfloat *)&gui->uvCoords[7]);
 	glDrawElements(GL_TRIANGLES, guiPanelMdlDefault.meshData.numIndices, GL_UNSIGNED_INT, 0);
 
 
@@ -308,8 +307,8 @@ void guiPanelDraw(const guiPanel *gui, const transformState *root, const shader 
 		bodyUVs[3] = root->scale.y / bodyFrame->diffuse->height;
 	}
 
-	glUniformMatrix4fv(shaderPrg->boneStatesID, 1, GL_FALSE, (GLfloat *)&curState);
-	glUniform1fv(shaderPrg->uvOffsetsID, 4, (GLfloat *)&bodyUVs[0]);
+	glUniformMatrix4fv(shader->boneStatesID, 1, GL_FALSE, (GLfloat *)&curState);
+	glUniform1fv(shader->uvOffsetsID, 4, (GLfloat *)&bodyUVs[0]);
 	glDrawElements(GL_TRIANGLES, guiPanelMdlDefault.meshData.numIndices, GL_UNSIGNED_INT, 0);
 }
 

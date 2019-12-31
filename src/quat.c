@@ -1151,10 +1151,10 @@ quat quatRotateByVec3DegR(const quat q, const vec3 v){
 
 // Perform linear interpolation between two quaternions!
 void quatLerp(quat *q1, const quat *q2, const float time){
-	q1->x = lerpNum(q1->x, q2->x, time);
-	q1->y = lerpNum(q1->y, q2->y, time);
-	q1->z = lerpNum(q1->z, q2->z, time);
-	q1->w = lerpNum(q1->w, q2->w, time);
+	q1->x = lerpNumFast(q1->x, q2->x, time);
+	q1->y = lerpNumFast(q1->y, q2->y, time);
+	q1->z = lerpNumFast(q1->z, q2->z, time);
+	q1->w = lerpNumFast(q1->w, q2->w, time);
 
 	// It's nice to be safe... but it isn't very fast.
 	quatNormalizeQuat(q1);
@@ -1162,10 +1162,10 @@ void quatLerp(quat *q1, const quat *q2, const float time){
 
 // Perform linear interpolation between two quaternions and store the result in "out"!
 void quatLerpOut(const quat *q1, const quat *q2, const float time, quat *out){
-	out->x = lerpNum(q1->x, q2->x, time);
-	out->y = lerpNum(q1->y, q2->y, time);
-	out->z = lerpNum(q1->z, q2->z, time);
-	out->w = lerpNum(q1->w, q2->w, time);
+	out->x = lerpNumFast(q1->x, q2->x, time);
+	out->y = lerpNumFast(q1->y, q2->y, time);
+	out->z = lerpNumFast(q1->z, q2->z, time);
+	out->w = lerpNumFast(q1->w, q2->w, time);
 
 	// It's nice to be safe... but it isn't very fast.
 	quatNormalizeQuat(out);
@@ -1173,10 +1173,10 @@ void quatLerpOut(const quat *q1, const quat *q2, const float time, quat *out){
 
 // Perform linear interpolation between two quaternions!
 quat quatLerpR(quat q1, const quat q2, const float time){
-	q1.x = lerpNum(q1.x, q2.x, time);
-	q1.y = lerpNum(q1.y, q2.y, time);
-	q1.z = lerpNum(q1.z, q2.z, time);
-	q1.w = lerpNum(q1.w, q2.w, time);
+	q1.x = lerpNumFast(q1.x, q2.x, time);
+	q1.y = lerpNumFast(q1.y, q2.y, time);
+	q1.z = lerpNumFast(q1.z, q2.z, time);
+	q1.w = lerpNumFast(q1.w, q2.w, time);
 
 	// It's nice to be safe... but it isn't very fast.
 	return(quatNormalizeQuatR(q1));
@@ -1188,10 +1188,10 @@ quat quatLerpR(quat q1, const quat q2, const float time){
 ** the starting orientation and the difference between it and the ending orientation.
 */
 void quatLerpFast(quat *q, const quat *offset, const float time){
-	q->x = lerpNumFast(q->x, offset->x, time);
-	q->y = lerpNumFast(q->y, offset->y, time);
-	q->z = lerpNumFast(q->z, offset->z, time);
-	q->w = lerpNumFast(q->w, offset->w, time);
+	q->x = lerpDiffFast(q->x, offset->x, time);
+	q->y = lerpDiffFast(q->y, offset->y, time);
+	q->z = lerpDiffFast(q->z, offset->z, time);
+	q->w = lerpDiffFast(q->w, offset->w, time);
 
 	// It's nice to be safe... but it isn't very fast.
 	quatNormalizeQuat(q);
@@ -1203,10 +1203,10 @@ void quatLerpFast(quat *q, const quat *offset, const float time){
 ** the starting orientation and the difference between it and the ending orientation.
 */
 void quatLerpFastOut(const quat *q, const quat *offset, const float time, quat *out){
-	out->x = lerpNumFast(q->x, offset->x, time);
-	out->y = lerpNumFast(q->y, offset->y, time);
-	out->z = lerpNumFast(q->z, offset->z, time);
-	out->w = lerpNumFast(q->w, offset->w, time);
+	out->x = lerpDiffFast(q->x, offset->x, time);
+	out->y = lerpDiffFast(q->y, offset->y, time);
+	out->z = lerpDiffFast(q->z, offset->z, time);
+	out->w = lerpDiffFast(q->w, offset->w, time);
 
 	// It's nice to be safe... but it isn't very fast.
 	quatNormalizeQuat(out);
@@ -1218,10 +1218,10 @@ void quatLerpFastOut(const quat *q, const quat *offset, const float time, quat *
 ** the starting orientation and the difference between it and the ending orientation.
 */
 quat quatLerpFastR(quat q, const quat offset, const float time){
-	q.x = lerpNumFast(q.x, offset.x, time);
-	q.y = lerpNumFast(q.y, offset.y, time);
-	q.z = lerpNumFast(q.z, offset.z, time);
-	q.w = lerpNumFast(q.w, offset.w, time);
+	q.x = lerpDiffFast(q.x, offset.x, time);
+	q.y = lerpDiffFast(q.y, offset.y, time);
+	q.z = lerpDiffFast(q.z, offset.z, time);
+	q.w = lerpDiffFast(q.w, offset.w, time);
 
 	// It's nice to be safe... but it isn't very fast.
 	return(quatNormalizeQuatR(q));

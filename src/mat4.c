@@ -4,8 +4,9 @@
 #include <string.h>
 #include <math.h>
 
-#include "utilMath.h"
 #include "mat3.h"
+
+#include "utilMath.h"
 
 
 mat4 identityMat4 = {
@@ -828,67 +829,72 @@ mat4 mat4TranslateVec4R(const mat4 m, const vec4 v){
 // Rotate a matrix!
 // The order of rotations is ZYX.
 void mat4RotateRad(mat4 *m, const float x, const float y, const float z){
-	const float a = cosf(x);
-	const float b = sinf(x);
-	const float c = cosf(y);
-	const float d = sinf(y);
-	const float e = cosf(z);
-	const float f = sinf(z);
-	const float db = d * b;
-	const float da = d * a;
+	const float cx = cosf(x);
+	const float sx = sinf(x);
+	const float cy = cosf(y);
+	const float sy = sinf(y);
+	const float cz = cosf(z);
+	const float sz = sinf(z);
+	const float sysx = sy * sx;
+	const float sycx = sy * cx;
 	float temp[3];
 	const mat4 tempMatrix = *m;
 
-	temp[0] = e * c; temp[1] = -(f * a) + (e * db); temp[2] = (f * b) + (e * da);
-	m->m[0][0] = temp[0] * tempMatrix.m[0][0] + temp[1] * tempMatrix.m[1][0] + temp[2] * tempMatrix.m[2][0];
-	m->m[1][0] = temp[0] * tempMatrix.m[0][1] + temp[1] * tempMatrix.m[1][1] + temp[2] * tempMatrix.m[2][1];
-	m->m[2][0] = temp[0] * tempMatrix.m[0][2] + temp[1] * tempMatrix.m[1][2] + temp[2] * tempMatrix.m[2][2];
-	m->m[3][0] = temp[0] * tempMatrix.m[0][3] + temp[1] * tempMatrix.m[1][3] + temp[2] * tempMatrix.m[2][3];
+	temp[0] = cz * cy; temp[1] = -(sz * cx) + (cz * sysx); temp[2] = (sz * sx) + (cz * sycx);
+	m->m[0][0] = tempMatrix.m[0][0] * temp[0] + tempMatrix.m[1][0] * temp[1] + tempMatrix.m[2][0] * temp[2];
+	m->m[0][1] = tempMatrix.m[0][1] * temp[0] + tempMatrix.m[1][1] * temp[1] + tempMatrix.m[2][1] * temp[2];
+	m->m[0][2] = tempMatrix.m[0][2] * temp[0] + tempMatrix.m[1][2] * temp[1] + tempMatrix.m[2][2] * temp[2];
+	m->m[0][3] = tempMatrix.m[0][3] * temp[0] + tempMatrix.m[1][3] * temp[1] + tempMatrix.m[2][3] * temp[2];
 
-	temp[0] = f * c; temp[1] = (e * a) + (f * db); temp[2] = -(e * b) + (f * da);
-	m->m[0][1] = temp[0] * tempMatrix.m[0][0] + temp[1] * tempMatrix.m[1][0] + temp[2] * tempMatrix.m[2][0];
-	m->m[1][1] = temp[0] * tempMatrix.m[0][1] + temp[1] * tempMatrix.m[1][1] + temp[2] * tempMatrix.m[2][1];
-	m->m[2][1] = temp[0] * tempMatrix.m[0][2] + temp[1] * tempMatrix.m[1][2] + temp[2] * tempMatrix.m[2][2];
-	m->m[3][1] = temp[0] * tempMatrix.m[0][3] + temp[1] * tempMatrix.m[1][3] + temp[2] * tempMatrix.m[2][3];
+	temp[0] = sz * cy; temp[1] = (cz * cx) + (sz * sysx); temp[2] = -(cz * sx) + (sz * sycx);
+	m->m[1][0] = tempMatrix.m[0][0] * temp[0] + tempMatrix.m[1][0] * temp[1] + tempMatrix.m[2][0] * temp[2];
+	m->m[1][1] = tempMatrix.m[0][1] * temp[0] + tempMatrix.m[1][1] * temp[1] + tempMatrix.m[2][1] * temp[2];
+	m->m[1][2] = tempMatrix.m[0][2] * temp[0] + tempMatrix.m[1][2] * temp[1] + tempMatrix.m[2][2] * temp[2];
+	m->m[1][3] = tempMatrix.m[0][3] * temp[0] + tempMatrix.m[1][3] * temp[1] + tempMatrix.m[2][3] * temp[2];
 
-	temp[0] = -d; temp[1] = c * b; temp[2] = c * a;
-	m->m[0][2] = temp[0] * tempMatrix.m[0][0] + temp[1] * tempMatrix.m[1][0] + temp[2] * tempMatrix.m[2][0];
-	m->m[1][2] = temp[0] * tempMatrix.m[0][1] + temp[1] * tempMatrix.m[1][1] + temp[2] * tempMatrix.m[2][1];
-	m->m[2][2] = temp[0] * tempMatrix.m[0][2] + temp[1] * tempMatrix.m[1][2] + temp[2] * tempMatrix.m[2][2];
-	m->m[3][2] = temp[0] * tempMatrix.m[0][3] + temp[1] * tempMatrix.m[1][3] + temp[2] * tempMatrix.m[2][3];
+	temp[0] = -sy; temp[1] = cy * sx; temp[2] = cy * cx;
+	m->m[2][0] = tempMatrix.m[0][0] * temp[0] + tempMatrix.m[1][0] * temp[1] + tempMatrix.m[2][0] * temp[2];
+	m->m[2][1] = tempMatrix.m[0][1] * temp[0] + tempMatrix.m[1][1] * temp[1] + tempMatrix.m[2][1] * temp[2];
+	m->m[2][2] = tempMatrix.m[0][2] * temp[0] + tempMatrix.m[1][2] * temp[1] + tempMatrix.m[2][2] * temp[2];
+	m->m[2][3] = tempMatrix.m[0][3] * temp[0] + tempMatrix.m[1][3] * temp[1] + tempMatrix.m[2][3] * temp[2];
 }
 
 // Rotate a matrix!
 // The order of rotations is ZYX.
 mat4 mat4RotateRadR(const mat4 m, const float x, const float y, const float z){
-	const float a = cosf(x);
-	const float b = sinf(x);
-	const float c = cosf(y);
-	const float d = sinf(y);
-	const float e = cosf(z);
-	const float f = sinf(z);
-	const float db = d * b;
-	const float da = d * a;
+	const float cx = cosf(x);
+	const float sx = sinf(x);
+	const float cy = cosf(y);
+	const float sy = sinf(y);
+	const float cz = cosf(z);
+	const float sz = sinf(z);
+	const float sysx = sy * sx;
+	const float sycx = sy * cx;
 	float temp[3];
 	mat4 out;
 
-	temp[0] = e * c; temp[1] = -(f * a) + (e * db); temp[2] = (f * b) + (e * da);
-	out.m[0][0] = temp[0] * m.m[0][0] + temp[1] * m.m[1][0] + temp[2] * m.m[2][0];
-	out.m[1][0] = temp[0] * m.m[0][1] + temp[1] * m.m[1][1] + temp[2] * m.m[2][1];
-	out.m[2][0] = temp[0] * m.m[0][2] + temp[1] * m.m[1][2] + temp[2] * m.m[2][2];
-	out.m[3][0] = temp[0] * m.m[0][3] + temp[1] * m.m[1][3] + temp[2] * m.m[2][3];
+	temp[0] = cz * cy; temp[1] = -(sz * cx) + (cz * sysx); temp[2] = (sz * sx) + (cz * sycx);
+	out.m[0][0] = m.m[0][0] * temp[0] + m.m[1][0] * temp[1] + m.m[2][0] * temp[2];
+	out.m[0][1] = m.m[0][1] * temp[0] + m.m[1][1] * temp[1] + m.m[2][1] * temp[2];
+	out.m[0][2] = m.m[0][2] * temp[0] + m.m[1][2] * temp[1] + m.m[2][2] * temp[2];
+	out.m[0][3] = m.m[0][3] * temp[0] + m.m[1][3] * temp[1] + m.m[2][3] * temp[2];
 
-	temp[0] = f * c; temp[1] = (e * a) + (f * db); temp[2] = -(e * b) + (f * da);
-	out.m[0][1] = temp[0] * m.m[0][0] + temp[1] * m.m[1][0] + temp[2] * m.m[2][0];
-	out.m[1][1] = temp[0] * m.m[0][1] + temp[1] * m.m[1][1] + temp[2] * m.m[2][1];
-	out.m[2][1] = temp[0] * m.m[0][2] + temp[1] * m.m[1][2] + temp[2] * m.m[2][2];
-	out.m[3][1] = temp[0] * m.m[0][3] + temp[1] * m.m[1][3] + temp[2] * m.m[2][3];
+	temp[0] = sz * cy; temp[1] = (cz * cx) + (sz * sysx); temp[2] = -(cz * sx) + (sz * sycx);
+	out.m[1][0] = m.m[0][0] * temp[0] + m.m[1][0] * temp[1] + m.m[2][0] * temp[2];
+	out.m[1][1] = m.m[0][1] * temp[0] + m.m[1][1] * temp[1] + m.m[2][1] * temp[2];
+	out.m[1][2] = m.m[0][2] * temp[0] + m.m[1][2] * temp[1] + m.m[2][2] * temp[2];
+	out.m[1][3] = m.m[0][3] * temp[0] + m.m[1][3] * temp[1] + m.m[2][3] * temp[2];
 
-	temp[0] = -d; temp[1] = c * b; temp[2] = c * a;
-	out.m[0][2] = temp[0] * m.m[0][0] + temp[1] * m.m[1][0] + temp[2] * m.m[2][0];
-	out.m[1][2] = temp[0] * m.m[0][1] + temp[1] * m.m[1][1] + temp[2] * m.m[2][1];
-	out.m[2][2] = temp[0] * m.m[0][2] + temp[1] * m.m[1][2] + temp[2] * m.m[2][2];
-	out.m[3][2] = temp[0] * m.m[0][3] + temp[1] * m.m[1][3] + temp[2] * m.m[2][3];
+	temp[0] = -sy; temp[1] = cy * sx; temp[2] = cy * cx;
+	out.m[2][0] = m.m[0][0] * temp[0] + m.m[1][0] * temp[1] + m.m[2][0] * temp[2];
+	out.m[2][1] = m.m[0][1] * temp[0] + m.m[1][1] * temp[1] + m.m[2][1] * temp[2];
+	out.m[2][2] = m.m[0][2] * temp[0] + m.m[1][2] * temp[1] + m.m[2][2] * temp[2];
+	out.m[2][3] = m.m[0][3] * temp[0] + m.m[1][3] * temp[1] + m.m[2][3] * temp[2];
+
+	out.m[3][0] = m.m[3][0];
+	out.m[3][1] = m.m[3][1];
+	out.m[3][2] = m.m[3][2];
+	out.m[3][3] = m.m[3][3];
 
 	return(out);
 }
@@ -1018,18 +1024,22 @@ mat4 mat4RotateAxisAngleR(const mat4 m, const vec4 v){
 		.m[0][0] = rotMatrix.m[0][0] * m.m[0][0] + rotMatrix.m[0][1] * m.m[1][0] + rotMatrix.m[0][2] * m.m[2][0],
 		.m[0][1] = rotMatrix.m[1][0] * m.m[0][0] + rotMatrix.m[1][1] * m.m[1][0] + rotMatrix.m[1][2] * m.m[2][0],
 		.m[0][2] = rotMatrix.m[2][0] * m.m[0][0] + rotMatrix.m[2][1] * m.m[1][0] + rotMatrix.m[2][2] * m.m[2][0],
+		.m[0][3] = m.m[0][3],
 
 		.m[1][0] = rotMatrix.m[0][0] * m.m[0][1] + rotMatrix.m[0][1] * m.m[1][1] + rotMatrix.m[0][2] * m.m[2][1],
 		.m[1][1] = rotMatrix.m[1][0] * m.m[0][1] + rotMatrix.m[1][1] * m.m[1][1] + rotMatrix.m[1][2] * m.m[2][1],
 		.m[1][2] = rotMatrix.m[2][0] * m.m[0][1] + rotMatrix.m[2][1] * m.m[1][1] + rotMatrix.m[2][2] * m.m[2][1],
+		.m[1][3] = m.m[1][3],
 
 		.m[2][0] = rotMatrix.m[0][0] * m.m[0][2] + rotMatrix.m[0][1] * m.m[1][2] + rotMatrix.m[0][2] * m.m[2][2],
 		.m[2][1] = rotMatrix.m[1][0] * m.m[0][2] + rotMatrix.m[1][1] * m.m[1][2] + rotMatrix.m[1][2] * m.m[2][2],
 		.m[2][2] = rotMatrix.m[2][0] * m.m[0][2] + rotMatrix.m[2][1] * m.m[1][2] + rotMatrix.m[2][2] * m.m[2][2],
+		.m[2][3] = m.m[2][3],
 
 		.m[3][0] = rotMatrix.m[0][0] * m.m[0][3] + rotMatrix.m[0][1] * m.m[1][3] + rotMatrix.m[0][2] * m.m[2][3],
 		.m[3][1] = rotMatrix.m[1][0] * m.m[0][3] + rotMatrix.m[1][1] * m.m[1][3] + rotMatrix.m[1][2] * m.m[2][3],
-		.m[3][2] = rotMatrix.m[2][0] * m.m[0][3] + rotMatrix.m[2][1] * m.m[1][3] + rotMatrix.m[2][2] * m.m[2][3]
+		.m[3][2] = rotMatrix.m[2][0] * m.m[0][3] + rotMatrix.m[2][1] * m.m[1][3] + rotMatrix.m[2][2] * m.m[2][3],
+		.m[3][3] = m.m[3][3]
 	};
 
 
@@ -1123,7 +1133,12 @@ mat4 mat4RotateQuatR(const mat4 m, const quat q){
 		.m[2][0] = rotMatrix.m[2][0] * m.m[0][0] + rotMatrix.m[2][1] * m.m[1][0] + rotMatrix.m[2][2] * m.m[2][0],
 		.m[2][1] = rotMatrix.m[2][0] * m.m[0][1] + rotMatrix.m[2][1] * m.m[1][1] + rotMatrix.m[2][2] * m.m[2][1],
 		.m[2][2] = rotMatrix.m[2][0] * m.m[0][2] + rotMatrix.m[2][1] * m.m[1][2] + rotMatrix.m[2][2] * m.m[2][2],
-		.m[2][3] = rotMatrix.m[2][0] * m.m[0][3] + rotMatrix.m[2][1] * m.m[1][3] + rotMatrix.m[2][2] * m.m[2][3]
+		.m[2][3] = rotMatrix.m[2][0] * m.m[0][3] + rotMatrix.m[2][1] * m.m[1][3] + rotMatrix.m[2][2] * m.m[2][3],
+
+		.m[3][0] = m.m[3][0],
+		.m[3][1] = m.m[3][1],
+		.m[3][2] = m.m[3][2],
+		.m[3][3] = m.m[3][3]
 	};
 
 
@@ -1153,6 +1168,11 @@ mat4 mat4RotateXRadR(const mat4 m, const float x){
 	const float b = sinf(x);
 
 	const mat4 out = {
+		.m[0][0] = m.m[0][0],
+		.m[0][1] = m.m[0][1],
+		.m[0][2] = m.m[0][2],
+		.m[0][3] = m.m[0][3],
+
 		.m[1][0] = a * m.m[1][0] + b * m.m[2][0],
 		.m[1][1] = a * m.m[1][1] + b * m.m[2][1],
 		.m[1][2] = a * m.m[1][2] + b * m.m[2][2],
@@ -1161,7 +1181,12 @@ mat4 mat4RotateXRadR(const mat4 m, const float x){
 		.m[2][0] = a * m.m[2][0] - b * m.m[1][0],
 		.m[2][1] = a * m.m[2][1] - b * m.m[1][1],
 		.m[2][2] = a * m.m[2][2] - b * m.m[1][2],
-		.m[2][3] = a * m.m[2][3] - b * m.m[1][3]
+		.m[2][3] = a * m.m[2][3] - b * m.m[1][3],
+
+		.m[3][0] = m.m[3][0],
+		.m[3][1] = m.m[3][1],
+		.m[3][2] = m.m[3][2],
+		.m[3][3] = m.m[3][3],
 	};
 
 	return(out);
@@ -1205,10 +1230,20 @@ mat4 mat4RotateYRadR(const mat4 m, const float y){
 		.m[0][2] = c * m.m[0][2] - d * m.m[2][2],
 		.m[0][3] = c * m.m[0][3] - d * m.m[2][3],
 
+		.m[1][0] = m.m[1][0],
+		.m[1][1] = m.m[1][1],
+		.m[1][2] = m.m[1][2],
+		.m[1][3] = m.m[1][3],
+
 		.m[2][0] = d * m.m[0][0] + c * m.m[2][0],
 		.m[2][1] = d * m.m[0][1] + c * m.m[2][1],
 		.m[2][2] = d * m.m[0][2] + c * m.m[2][2],
-		.m[2][3] = d * m.m[0][3] + c * m.m[2][3]
+		.m[2][3] = d * m.m[0][3] + c * m.m[2][3],
+
+		.m[3][0] = m.m[3][0],
+		.m[3][1] = m.m[3][1],
+		.m[3][2] = m.m[3][2],
+		.m[3][3] = m.m[3][3]
 	};
 
 	return(out);
@@ -1255,7 +1290,17 @@ mat4 mat4RotateZRadR(const mat4 m, const float z){
 		.m[1][0] = e * m.m[1][0] - f * m.m[0][0],
 		.m[1][1] = e * m.m[1][1] - f * m.m[0][1],
 		.m[1][2] = e * m.m[1][2] - f * m.m[0][2],
-		.m[1][3] = e * m.m[1][3] - f * m.m[0][3]
+		.m[1][3] = e * m.m[1][3] - f * m.m[0][3],
+
+		.m[2][0] = m.m[2][0],
+		.m[2][1] = m.m[2][1],
+		.m[2][2] = m.m[2][2],
+		.m[2][3] = m.m[2][3],
+
+		.m[3][0] = m.m[3][0],
+		.m[3][1] = m.m[3][1],
+		.m[3][2] = m.m[3][2],
+		.m[3][3] = m.m[3][3]
 	};
 
 	return(out);
@@ -2058,26 +2103,28 @@ mat4 mat4PerspectiveOldR(const float fov, const float aspectRatio, const float n
 void mat4RotateToFace(mat4 *m, const vec3 *eye, const vec3 *target, const vec3 *worldUp){
 	vec3 right, up, forward;
 	// Get the forward vector!
-	vec3NormalizeFast(eye->x - target->x, eye->y - target->y, eye->z - target->z, &forward);
+	vec3SubtractVec3FromOut(target, eye, &forward);
+	vec3NormalizeVec3Fast(&forward);
 	// Get the right vector!
 	vec3CrossVec3Out(worldUp, &forward, &right);
 	vec3NormalizeVec3Fast(&right);
 	// Get the up vector!
 	vec3CrossVec3Out(&forward, &right, &up);
+	vec3NormalizeVec3Fast(&up);
 
 	// Rotate the matrix to look at "target"!
 	m->m[0][0] = right.x;
-	m->m[0][1] = up.x;
-	m->m[0][2] = forward.x;
+	m->m[0][1] = right.y;
+	m->m[0][2] = right.z;
 	m->m[0][3] = 0.f;
 
-	m->m[1][0] = right.y;
+	m->m[1][0] = up.x;
 	m->m[1][1] = up.y;
-	m->m[1][2] = forward.y;
+	m->m[1][2] = up.z;
 	m->m[1][3] = 0.f;
 
-	m->m[2][0] = right.z;
-	m->m[2][1] = up.z;
+	m->m[2][0] = forward.x;
+	m->m[2][1] = forward.y;
 	m->m[2][2] = forward.z;
 	m->m[2][3] = 0.f;
 
@@ -2089,15 +2136,15 @@ void mat4RotateToFace(mat4 *m, const vec3 *eye, const vec3 *target, const vec3 *
 
 // Generate a rotation matrix that faces a target!
 mat4 mat4RotateToFaceR(const vec3 eye, const vec3 target, const vec3 worldUp){
-	const vec3 forward = vec3NormalizeVec3FastR(vec3SubtractVec3FromR(eye, target));
-	const vec3 right = vec3NormalizeVec3FastR(vec3CrossVec3R(worldUp, forward));
-	const vec3 up = vec3CrossVec3R(forward, right);
+	const vec3 forward = vec3NormalizeVec3FastR(vec3SubtractVec3FromR(target, eye));
+	const vec3 right   = vec3NormalizeVec3FastR(vec3CrossVec3R(worldUp, forward));
+	const vec3 up      = vec3NormalizeVec3FastR(vec3CrossVec3R(forward, right));
 	// Rotate the matrix to look at "target"!
 	const mat4 m = {
-		.m[0][0] = right.x, .m[0][1] = up.x, .m[0][2] = forward.x, .m[0][3] = 0.f,
-		.m[1][0] = right.y, .m[1][1] = up.y, .m[1][2] = forward.y, .m[1][3] = 0.f,
-		.m[2][0] = right.z, .m[2][1] = up.z, .m[2][2] = forward.z, .m[2][3] = 0.f,
-		.m[3][0] = 0.f,     .m[3][1] = 0.f,  .m[3][2] = 0.f,       .m[3][3] = 1.f
+		.m[0][0] = right.x,   .m[0][1] = right.y,   .m[0][2] = right.z,   .m[0][3] = 0.f,
+		.m[1][0] = up.x,      .m[1][1] = up.y,      .m[1][2] = up.z,      .m[1][3] = 0.f,
+		.m[2][0] = forward.x, .m[2][1] = forward.y, .m[2][2] = forward.z, .m[2][3] = 0.f,
+		.m[3][0] = 0.f,       .m[3][1] = 0.f,       .m[3][2] = 0.f,       .m[3][3] = 1.f
 	};
 
 	return(m);
@@ -2107,12 +2154,14 @@ mat4 mat4RotateToFaceR(const vec3 eye, const vec3 target, const vec3 worldUp){
 void mat4LookAt(mat4 *m, const vec3 *eye, const vec3 *target, const vec3 *worldUp){
 	vec3 right, up, forward;
 	// Get the forward vector!
-	vec3NormalizeFast(eye->x - target->x, eye->y - target->y, eye->z - target->z, &forward);
+	vec3SubtractVec3FromOut(eye, target, &forward);
+	vec3NormalizeVec3Fast(&forward);
 	// Get the right vector!
 	vec3CrossVec3Out(worldUp, &forward, &right);
 	vec3NormalizeVec3Fast(&right);
 	// Get the up vector!
 	vec3CrossVec3Out(&forward, &right, &up);
+	vec3NormalizeVec3Fast(&up);
 
 	// Translate the matrix to "eye" and make it look at "target"!
 	m->m[0][0] = right.x;
@@ -2139,8 +2188,8 @@ void mat4LookAt(mat4 *m, const vec3 *eye, const vec3 *target, const vec3 *worldU
 // Generate a look-at matrix!
 mat4 mat4LookAtR(const vec3 eye, const vec3 target, const vec3 worldUp){
 	const vec3 forward = vec3NormalizeVec3FastR(vec3SubtractVec3FromR(eye, target));
-	const vec3 right = vec3NormalizeVec3FastR(vec3CrossVec3R(worldUp, forward));
-	const vec3 up = vec3CrossVec3R(forward, right);
+	const vec3 right   = vec3NormalizeVec3FastR(vec3CrossVec3R(worldUp, forward));
+	const vec3 up      = vec3NormalizeVec3FastR(vec3CrossVec3R(forward, right));
 	// Translate the matrix to "eye" and make it look at "target"!
 	const mat4 m = {
 		.m[0][0] = right.x,                   .m[0][1] = up.x,                   .m[0][2] = forward.x,                   .m[0][3] = 0.f,
@@ -2152,6 +2201,112 @@ mat4 mat4LookAtR(const vec3 eye, const vec3 target, const vec3 worldUp){
 	return(m);
 }
 
+
+/*
+** Convert a 4x4 matrix to a quaternion and store the result in "out"!
+** For this to work, we assume that "m" is a special orthogonal matrix.
+*/
+void mat4ToQuat(const mat4 *m, quat *out){
+	const float trace = m->m[0][0] + m->m[1][1] + m->m[2][2];
+
+	if(trace > 0){
+		const float S = 0.5f * invSqrtFast(trace + 1.f);
+		quatInitSet(out,
+			(m->m[1][2] - m->m[2][1]) * S,
+			(m->m[2][0] - m->m[0][2]) * S,
+			(m->m[0][1] - m->m[1][0]) * S,
+			0.25f / S
+		);
+	}else if(m->m[0][0] > m->m[1][1] && m->m[0][0] > m->m[2][2]){
+		const float S = 0.5f * invSqrtFast(m->m[0][0] - m->m[1][1] - m->m[2][2] + 1.f);
+		quatInitSet(out,
+			0.25f / S,
+			(m->m[0][1] + m->m[1][0]) * S,
+			(m->m[2][0] + m->m[0][2]) * S,
+			(m->m[1][2] - m->m[2][1]) * S
+		);
+	}else if(m->m[1][1] > m->m[2][2]){
+		const float S = 0.5f * invSqrtFast(-m->m[0][0] + m->m[1][1] - m->m[2][2] + 1.f);
+		quatInitSet(out,
+			(m->m[0][1] + m->m[1][0]) * S,
+			0.25f / S,
+			(m->m[1][2] - m->m[2][1]) * S,
+			(m->m[2][0] + m->m[0][2]) * S
+		);
+	}else{
+		const float S = 0.5f * invSqrtFast(-m->m[0][0] - m->m[1][1] + m->m[2][2] + 1.f);
+		quatInitSet(out,
+			(m->m[2][0] + m->m[0][2]) * S,
+			(m->m[1][2] - m->m[2][1]) * S,
+			0.25f / S,
+			(m->m[0][1] + m->m[1][0]) * S
+		);
+	}
+}
+
+// Convert a 4x4 matrix to a quaternion!
+quat mat4ToQuatR(const mat4 m){
+	const float trace = m.m[0][0] + m.m[1][1] + m.m[2][2];
+
+	if(trace > 0){
+		const float S = 0.5f * invSqrtFast(trace + 1.f);
+		const quat q = {
+			.x = (m.m[1][2] - m.m[2][1]) * S,
+			.y = (m.m[2][0] - m.m[0][2]) * S,
+			.z = (m.m[0][1] - m.m[1][0]) * S,
+			.w = 0.25f / S
+		};
+		return(q);
+	}else if(m.m[0][0] > m.m[1][1] && m.m[0][0] > m.m[2][2]){
+		const float S = 0.5f * invSqrtFast(m.m[0][0] - m.m[1][1] - m.m[2][2] + 1.f);
+		const quat q = {
+			.x = 0.25f / S,
+			.y = (m.m[0][1] + m.m[1][0]) * S,
+			.z = (m.m[2][0] + m.m[0][2]) * S,
+			.w = (m.m[1][2] - m.m[2][1]) * S
+		};
+		return(q);
+	}else if(m.m[1][1] > m.m[2][2]){
+		const float S = 0.5f * invSqrtFast(-m.m[0][0] + m.m[1][1] - m.m[2][2] + 1.f);
+		const quat q = {
+			.x = (m.m[0][1] + m.m[1][0]) * S,
+			.y = 0.25f / S,
+			.z = (m.m[1][2] - m.m[2][1]) * S,
+			.w = (m.m[2][0] + m.m[0][2]) * S
+		};
+		return(q);
+	}else{
+		const float S = 0.5f * invSqrtFast(-m.m[0][0] - m.m[1][1] + m.m[2][2] + 1.f);
+		const quat q = {
+			.x = (m.m[2][0] + m.m[0][2]) * S,
+			.y = (m.m[1][2] - m.m[2][1]) * S,
+			.z = 0.25f / S,
+			.w = (m.m[0][1] + m.m[1][0]) * S
+		};
+		return(q);
+	}
+}
+
+/*
+** An alternative implementation that forgoes
+** branching at the cost of more square roots.
+*/
+void mat4ToQuatAlt(const mat4 *m, quat *out){
+	out->x = copySignZero(0.5f * sqrtf( m->m[0][0] - m->m[1][1] - m->m[2][2] + 1.f), m->m[1][2] - m->m[2][1]);
+	out->y = copySignZero(0.5f * sqrtf(-m->m[0][0] + m->m[1][1] - m->m[2][2] + 1.f), m->m[2][0] - m->m[0][2]);
+	out->z = copySignZero(0.5f * sqrtf(-m->m[0][0] - m->m[1][1] + m->m[2][2] + 1.f), m->m[0][1] - m->m[1][0]);
+	out->w = 0.5f * sqrtf(m->m[0][0] + m->m[1][1] + m->m[2][2] + 1.f);
+}
+
+quat mat4ToQuatAltR(const mat4 m){
+	const quat q = {
+		.x = copySignZero(0.5f * sqrtf( m.m[0][0] - m.m[1][1] - m.m[2][2] + 1.f), m.m[1][2] - m.m[2][1]),
+		.y = copySignZero(0.5f * sqrtf(-m.m[0][0] + m.m[1][1] - m.m[2][2] + 1.f), m.m[2][0] - m.m[0][2]),
+		.z = copySignZero(0.5f * sqrtf(-m.m[0][0] - m.m[1][1] + m.m[2][2] + 1.f), m.m[0][1] - m.m[1][0]),
+		.w = 0.5f * sqrtf(m.m[0][0] + m.m[1][1] + m.m[2][2] + 1.f)
+	};
+	return(q);
+}
 
 // Convert a quaternion to a 4x4 matrix and store the result in "out"!
 void quatToMat4(const quat *q, mat4 *out){

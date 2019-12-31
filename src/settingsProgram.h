@@ -12,7 +12,7 @@
 #define FOV_DEFAULT 60.f
 
 #define UPDATE_RATE 125.f
-#define FRAME_RATE 120.f
+#define FRAME_RATE  125.f
 
 // We'll probably get undefined results if this is less than or equal to 0.
 #define NUM_LOOKBACK_STATES ((size_t)UPDATE_RATE)

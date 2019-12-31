@@ -7,14 +7,11 @@
 
 #include <SDL2/SDL.h>
 
-#include "utilTypes.h"
-
-#include "vec3.h"
-#include "mat4.h"
-
 #include "shader.h"
-#include "timestep.h"
 #include "camera.h"
+#include "timestep.h"
+
+#include "utilTypes.h"
 
 
 typedef struct program {
@@ -22,13 +19,14 @@ typedef struct program {
 	int windowWidth;
 	int windowHeight;
 
-	shader shaderPrg;
-
-	return_t running;
-
 	int mouseX;
 	int mouseY;
 	const Uint8 *keyStates;
+
+	return_t running;
+
+	shaderObject objectShader;
+	shaderSprite spriteShader;
 
 	camera cam;
 

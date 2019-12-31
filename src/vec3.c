@@ -750,16 +750,16 @@ void vec3RadToDeg(vec3 *v){
 
 // Perform linear interpolation between two vec3s and store the result in "out"!
 void vec3Lerp(const vec3 *v1, const vec3 *v2, const float time, vec3 *out){
-	out->x = lerpNum(v1->x, v2->x, time);
-	out->y = lerpNum(v1->y, v2->y, time);
-	out->z = lerpNum(v1->z, v2->z, time);
+	out->x = lerpNumFast(v1->x, v2->x, time);
+	out->y = lerpNumFast(v1->y, v2->y, time);
+	out->z = lerpNumFast(v1->z, v2->z, time);
 }
 
 // Perform linear interpolation between two vec3s!
 vec3 vec3LerpR(vec3 v1, const vec3 v2, const float time){
-	v1.x = lerpNum(v1.x, v2.x, time);
-	v1.y = lerpNum(v1.y, v2.y, time);
-	v1.z = lerpNum(v1.z, v2.z, time);
+	v1.x = lerpNumFast(v1.x, v2.x, time);
+	v1.y = lerpNumFast(v1.y, v2.y, time);
+	v1.z = lerpNumFast(v1.z, v2.z, time);
 
 	return(v1);
 }
@@ -770,9 +770,9 @@ vec3 vec3LerpR(vec3 v1, const vec3 v2, const float time){
 ** accepts the starting point and the difference between it and the ending point.
 */
 void vec3LerpFast(const vec3 *v, const vec3 *offset, const float time, vec3 *out){
-	out->x = lerpNumFast(v->x, offset->x, time);
-	out->y = lerpNumFast(v->y, offset->y, time);
-	out->z = lerpNumFast(v->z, offset->z, time);
+	out->x = lerpDiffFast(v->x, offset->x, time);
+	out->y = lerpDiffFast(v->y, offset->y, time);
+	out->z = lerpDiffFast(v->z, offset->z, time);
 }
 
 /*
@@ -781,9 +781,9 @@ void vec3LerpFast(const vec3 *v, const vec3 *offset, const float time, vec3 *out
 ** accepts the starting point and the difference between it and the ending point.
 */
 vec3 vec3LerpFastR(vec3 v, const vec3 offset, const float time){
-	v.x = lerpNumFast(v.x, offset.x, time);
-	v.y = lerpNumFast(v.y, offset.y, time);
-	v.z = lerpNumFast(v.z, offset.z, time);
+	v.x = lerpDiffFast(v.x, offset.x, time);
+	v.y = lerpDiffFast(v.y, offset.y, time);
+	v.z = lerpDiffFast(v.z, offset.z, time);
 
 	return(v);
 }

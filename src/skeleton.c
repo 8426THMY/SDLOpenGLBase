@@ -18,8 +18,7 @@
 #define SKELE_ANIM_FRAME_TIME (1000.f / SKELE_ANIM_FRAME_RATE)
 
 
-#warning "Store the skeleObject normally. You need to find a way to indicate that two animations are blending that works when you copy to the next state!"
-#warning "We still need to do animation blending and create bone lookups in case the animation's bones don't match the model's skeleton's (such as with the Scout)."
+#warning "What if we aren't using the global memory manager?"
 
 
 // When a model doesn't have a skeleton, it needs to have a single root bone. Rather
@@ -43,9 +42,6 @@ skeleton skeleDefault = {
 	.bones = &defaultBone,
 	.numBones = 1
 };
-
-
-#warning "What if we aren't using the global memory manager?"
 
 
 void boneInit(bone *bone, char *name, const size_t parent, const boneState *state){
@@ -109,7 +105,7 @@ void skeleAnimDefInit(skeletonAnimDef *animDef){
 void skeleAnimInit(skeletonAnim *anim, skeletonAnimDef *animDef, const float intensity){
 	anim->animDef = animDef;
 
-	animationInit(&anim->animData);
+	animationInit(&anim->animData, ANIMATION_LOOP_INDEFINITELY);
 	anim->interpTime = 0.f;
 	anim->intensity = intensity;
 }
@@ -452,13 +448,15 @@ void skeleObjGenerateBoneState(const skeletonObject *skeleData, const size_t bon
 		const size_t animBoneID = skeleAnimFindBone(curAnim, boneName);
 		// Make sure this bone exists in the animation!
 		if(!valueIsInvalid(animBoneID)){
+			const size_t currentFrame = curAnim->animData.currentFrame;
+			const size_t nextFrame = animationGetNextFrame(currentFrame, curAnim->animDef->frameData.numFrames);
 			boneState animState;
 
 			// Interpolate between the current
 			// and next frames of the animation.
 			transformStateInterpSet(
-				&curAnim->animDef->frames[curAnim->animData.currentFrame][animBoneID],
-				&curAnim->animDef->frames[curAnim->animData.nextFrame][animBoneID],
+				&curAnim->animDef->frames[currentFrame][animBoneID],
+				&curAnim->animDef->frames[nextFrame][animBoneID],
 				curAnim->interpTime,
 				&animState
 			);

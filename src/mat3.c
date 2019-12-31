@@ -531,6 +531,112 @@ return_t mat3CanInvertOut(const mat3 m, mat3 *out){
 }
 
 
+/*
+** Convert a 3x3 matrix to a quaternion and store the result in "out"!
+** For this to work, we assume that "m" is a special orthogonal matrix.
+*/
+void mat3ToQuat(const mat3 *m, quat *out){
+	const float trace = m->m[0][0] + m->m[1][1] + m->m[2][2];
+
+	if(trace > 0){
+		const float S = 0.5f * invSqrtFast(trace + 1.f);
+		quatInitSet(out,
+			(m->m[1][2] - m->m[2][1]) * S,
+			(m->m[2][0] - m->m[0][2]) * S,
+			(m->m[0][1] - m->m[1][0]) * S,
+			0.25f / S
+		);
+	}else if(m->m[0][0] > m->m[1][1] && m->m[0][0] > m->m[2][2]){
+		const float S = 0.5f * invSqrtFast(m->m[0][0] - m->m[1][1] - m->m[2][2] + 1.f);
+		quatInitSet(out,
+			0.25f / S,
+			(m->m[0][1] + m->m[1][0]) * S,
+			(m->m[2][0] + m->m[0][2]) * S,
+			(m->m[1][2] - m->m[2][1]) * S
+		);
+	}else if(m->m[1][1] > m->m[2][2]){
+		const float S = 0.5f * invSqrtFast(-m->m[0][0] + m->m[1][1] - m->m[2][2] + 1.f);
+		quatInitSet(out,
+			(m->m[0][1] + m->m[1][0]) * S,
+			0.25f / S,
+			(m->m[1][2] - m->m[2][1]) * S,
+			(m->m[2][0] + m->m[0][2]) * S
+		);
+	}else{
+		const float S = 0.5f * invSqrtFast(-m->m[0][0] - m->m[1][1] + m->m[2][2] + 1.f);
+		quatInitSet(out,
+			(m->m[2][0] + m->m[0][2]) * S,
+			(m->m[1][2] - m->m[2][1]) * S,
+			0.25f / S,
+			(m->m[0][1] + m->m[1][0]) * S
+		);
+	}
+}
+
+// Convert a 3x3 matrix to a quaternion!
+quat mat3ToQuatR(const mat3 m){
+	const float trace = m.m[0][0] + m.m[1][1] + m.m[2][2];
+
+	if(trace > 0){
+		const float S = 0.5f * invSqrtFast(trace + 1.f);
+		const quat q = {
+			.x = (m.m[1][2] - m.m[2][1]) * S,
+			.y = (m.m[2][0] - m.m[0][2]) * S,
+			.z = (m.m[0][1] - m.m[1][0]) * S,
+			.w = 0.25f / S
+		};
+		return(q);
+	}else if(m.m[0][0] > m.m[1][1] && m.m[0][0] > m.m[2][2]){
+		const float S = 0.5f * invSqrtFast(m.m[0][0] - m.m[1][1] - m.m[2][2] + 1.f);
+		const quat q = {
+			.x = 0.25f / S,
+			.y = (m.m[0][1] + m.m[1][0]) * S,
+			.z = (m.m[2][0] + m.m[0][2]) * S,
+			.w = (m.m[1][2] - m.m[2][1]) * S
+		};
+		return(q);
+	}else if(m.m[1][1] > m.m[2][2]){
+		const float S = 0.5f * invSqrtFast(-m.m[0][0] + m.m[1][1] - m.m[2][2] + 1.f);
+		const quat q = {
+			.x = (m.m[0][1] + m.m[1][0]) * S,
+			.y = 0.25f / S,
+			.z = (m.m[1][2] - m.m[2][1]) * S,
+			.w = (m.m[2][0] + m.m[0][2]) * S
+		};
+		return(q);
+	}else{
+		const float S = 0.5f * invSqrtFast(-m.m[0][0] - m.m[1][1] + m.m[2][2] + 1.f);
+		const quat q = {
+			.x = (m.m[2][0] + m.m[0][2]) * S,
+			.y = (m.m[1][2] - m.m[2][1]) * S,
+			.z = 0.25f / S,
+			.w = (m.m[0][1] + m.m[1][0]) * S
+		};
+		return(q);
+	}
+}
+
+/*
+** An alternative implementation that forgoes
+** branching at the cost of more square roots.
+*/
+void mat3ToQuatAlt(const mat3 *m, quat *out){
+	out->x = copySignZero(0.5f * sqrtf( m->m[0][0] - m->m[1][1] - m->m[2][2] + 1.f), m->m[1][2] - m->m[2][1]);
+	out->y = copySignZero(0.5f * sqrtf(-m->m[0][0] + m->m[1][1] - m->m[2][2] + 1.f), m->m[2][0] - m->m[0][2]);
+	out->z = copySignZero(0.5f * sqrtf(-m->m[0][0] - m->m[1][1] + m->m[2][2] + 1.f), m->m[0][1] - m->m[1][0]);
+	out->w = 0.5f * sqrtf(m->m[0][0] + m->m[1][1] + m->m[2][2] + 1.f);
+}
+
+quat mat3ToQuatAltR(const mat3 m){
+	const quat q = {
+		.x = copySignZero(0.5f * sqrtf( m.m[0][0] - m.m[1][1] - m.m[2][2] + 1.f), m.m[1][2] - m.m[2][1]),
+		.y = copySignZero(0.5f * sqrtf(-m.m[0][0] + m.m[1][1] - m.m[2][2] + 1.f), m.m[2][0] - m.m[0][2]),
+		.z = copySignZero(0.5f * sqrtf(-m.m[0][0] - m.m[1][1] + m.m[2][2] + 1.f), m.m[0][1] - m.m[1][0]),
+		.w = 0.5f * sqrtf(m.m[0][0] + m.m[1][1] + m.m[2][2] + 1.f)
+	};
+	return(q);
+}
+
 // Convert a quaternion to a 3x3 matrix and store the result in "out"!
 void quatToMat3(const quat *q, mat3 *out){
 	const float xx = q->x*q->x;

@@ -7,8 +7,10 @@
 
 #include <stddef.h>
 
-#include "mat4.h"
-#include "transform.h"
+#include "vec3.h"
+#include "quat.h"
+
+#include "camera.h"
 
 #include "particle.h"
 #include "particleInitializer.h"
@@ -19,6 +21,8 @@
 #include "shader.h"
 
 #include "settingsSprites.h"
+
+#include "utilTypes.h"
 
 
 /*
@@ -41,6 +45,7 @@ typedef struct particleSystemChildDef {
 ** have any number of child systems that need not use the same texture.
 */
 #warning "It'd also be nice if we had a way of deciding how many times a system should loop after all the particles have died."
+#warning "Maybe add support for multiple renderers? Let billboarding be optional for the default one."
 typedef struct particleSystemDef {
 	char *name;
 
@@ -53,8 +58,6 @@ typedef struct particleSystemDef {
 	size_t maxParticles;
 
 	// These properties control the behaviour of the particles.
-	// Note that the "last" pointers actually point to the
-	// position after the last object.
 	particleInitializer *initializers;
 	particleInitializer *lastInitializer;
 	particleEmitterDef *emitters;
@@ -79,7 +82,8 @@ typedef struct particleSystem {
 	const particleSystemDef *partSysDef;
 	particleEmitter *emitters;
 
-	transformState state;
+	vec3 pos;
+	quat rot;
 	// How much longer the system should live for.
 	#warning "Currently unused(ish)."
 	float lifetime;
@@ -98,7 +102,7 @@ void particleSysDefInit(particleSystemDef *partSysDef);
 void particleSysInit(particleSystem *partSys, const particleSystemDef *partSysDef);
 
 void particleSysUpdate(particleSystem *partSys, const float time);
-void particleSysDraw(const particleSystem *partSys, mat4 viewProjectionMatrix, const shader *shaderPrg, const float time);
+void particleSysDraw(const particleSystem *partSys, const camera *cam, const shaderSprite *shader, const float time);
 
 return_t particleSysAlive(particleSystem *partSys, const float time);
 

@@ -8,21 +8,31 @@
 #include "utilTypes.h"
 
 
-typedef struct shader {
+// These shaders are used for drawing most things, such as objects.
+typedef struct shaderObject {
 	GLuint programID;
 
 	GLuint vpMatrixID;
 	GLuint uvOffsetsID;
 	GLuint boneStatesID;
-} shader;
+} shaderObject;
+
+// We use these shaders for drawing particles and other sprites.
+typedef struct spriteShader {
+	GLuint programID;
+
+	GLuint vpMatrixID;
+} shaderSprite;
 
 
-void shaderInit(shader *shaderPrg);
+return_t shaderObjectInit(shaderObject *shader, const GLuint programID);
+return_t shaderSpriteInit(shaderSprite *shader, const GLuint programID);
 
-GLuint shaderLoadVertex(const char *shaderPath, const GLenum shaderType);
-return_t shaderLoadProgram(shader *shaderPrg, const char *vertexPath, const char *fragmentPath);
+GLuint shaderLoad(const char *shaderPath, const GLenum shaderType);
+GLuint shaderLoadProgram(const GLuint vertexShaderID, const GLuint fragmentShaderID);
 
-void shaderDelete(shader *shaderPrg);
+void shaderDelete(const GLuint shaderID);
+void shaderDeleteProgram(const GLuint programID);
 
 
 #endif

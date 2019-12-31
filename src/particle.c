@@ -14,7 +14,7 @@ void particleInit(particle *part){
 	vec3InitZero(&part->velocity);
 
 	part->currentAnim = 0;
-	animationInit(&part->texAnim);
+	animationInit(&part->texAnim, ANIMATION_LOOP_INDEFINITELY);
 
 	part->lifetime = INFINITY;
 	part->camDistance = -INFINITY;

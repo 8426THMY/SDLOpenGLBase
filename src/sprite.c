@@ -33,7 +33,8 @@ void spriteGenerateBuffers(sprite *spriteData, const vec3 *vertices, const size_
 		// Now add all our data to it!
 		glBufferData(GL_ARRAY_BUFFER, sizeof(*vertices) * numVertices, vertices, GL_STATIC_DRAW);
 
-		// Set up the vertex buffer's attribute!
+		// Set up the vertex array object attributes that require this buffer!
+		#warning "We should have vertex UVs for sprites."
 		glEnableVertexAttribArray(0);
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (GLvoid *)0);
 
@@ -43,29 +44,35 @@ void spriteGenerateBuffers(sprite *spriteData, const vec3 *vertices, const size_
 		glGenBuffers(1, &spriteData->stateBufferID);
 		glBindBuffer(GL_ARRAY_BUFFER, spriteData->stateBufferID);
 		// We write to this buffer dynamically when drawing sprites.
-		glBufferData(GL_ARRAY_BUFFER, sizeof(spriteState) * SPRITE_MAX_INSTANCES, NULL, GL_DYNAMIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(spriteState) * SPRITE_MAX_INSTANCES, NULL, GL_STREAM_DRAW);
 
-		// Set up the state buffer's attribute! Because we're using a 4x4 matrix
-		// for the transformation state, we need to use four vertex attributes.
+		// Set up the vertex array object attributes that require this buffer!
+		// Because the transformation state is a 4x4 matrix, it needs four vertex attributes.
+		// Transformation state first row.
 		glEnableVertexAttribArray(1);
-		glEnableVertexAttribArray(2);
-		glEnableVertexAttribArray(3);
-		glEnableVertexAttribArray(4);
-		glEnableVertexAttribArray(5);
 		glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(spriteState), (GLvoid *)offsetof(spriteState, state.m[0]));
-		glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(spriteState), (GLvoid *)offsetof(spriteState, state.m[1]));
-		glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(spriteState), (GLvoid *)offsetof(spriteState, state.m[2]));
-		glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(spriteState), (GLvoid *)offsetof(spriteState, state.m[3]));
-		glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(spriteState), (GLvoid *)offsetof(spriteState, uvOffsets));
 		glVertexAttribDivisor(1, 1);
+		// Transformation state second row.
+		glEnableVertexAttribArray(2);
+		glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(spriteState), (GLvoid *)offsetof(spriteState, state.m[1]));
 		glVertexAttribDivisor(2, 1);
+		// Transformation state third row.
+		glEnableVertexAttribArray(3);
+		glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(spriteState), (GLvoid *)offsetof(spriteState, state.m[2]));
 		glVertexAttribDivisor(3, 1);
+		// Transformation state fourth row.
+		glEnableVertexAttribArray(4);
+		glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(spriteState), (GLvoid *)offsetof(spriteState, state.m[3]));
 		glVertexAttribDivisor(4, 1);
+		// UV offsets.
+		glEnableVertexAttribArray(5);
+		glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(spriteState), (GLvoid *)offsetof(spriteState, uvOffsets));
 		glVertexAttribDivisor(5, 1);
 
 
 		// Generate a buffer object for our indices and bind it!
 		glGenBuffers(1, &spriteData->indexBufferID);
+		// Bind the buffer to the vertex array object.
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, spriteData->indexBufferID);
 		// Now add all our data to it!
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(*indices) * numIndices, indices, GL_STATIC_DRAW);

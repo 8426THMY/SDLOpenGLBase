@@ -27,11 +27,11 @@ void renderableUpdate(renderable *render, const float time){
 }
 
 #warning "We probably shouldn't have the OpenGL drawing stuff split up so much."
-void renderableDraw(const renderable *render, const skeleton *objSkele, const mat4 *animStates, const shader *shaderPrg){
+void renderableDraw(const renderable *render, const skeleton *objSkele, const mat4 *animStates, const shaderObject *shader){
 	const textureGroupFrame *texFrame = texGroupStateGetFrame(&render->texState);
 
 
-	updateShaderBones(render->mdl->skele, objSkele, animStates, shaderPrg->boneStatesID);
+	updateShaderBones(render->mdl->skele, objSkele, animStates, shader->boneStatesID);
 
 	// Bind the mesh we're using!
 	glBindVertexArray(render->mdl->meshData.vertexArrayID);
@@ -39,7 +39,7 @@ void renderableDraw(const renderable *render, const skeleton *objSkele, const ma
 	glActiveTexture(GL_TEXTURE0);
 	// Bind the texture we're using!
 	glBindTexture(GL_TEXTURE_2D, texFrame->diffuse->id);
-	glUniform1fv(shaderPrg->uvOffsetsID, 4, (GLfloat *)&texFrame->bounds);
+	glUniform1fv(shader->uvOffsetsID, 4, (GLfloat *)&texFrame->bounds);
 
 	// Draw the renderable!
 	glDrawElements(GL_TRIANGLES, render->mdl->meshData.numIndices, GL_UNSIGNED_INT, NULL);

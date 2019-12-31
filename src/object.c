@@ -70,7 +70,8 @@ void objectUpdate(object *obj, const float time){
 }
 
 #warning "A lot of this stuff should be moved outside, especially the OpenGL code and skeleton stuff."
-void objectDraw(const object *obj, mat4 viewProjectionMatrix, const shader *shaderPrg, const float time){
+#include "billboard.h"
+void objectDraw(const object *obj, const camera *cam, const shaderObject *shader, const float time){
 	const renderable *curRenderable;
 
 	#warning "Could we store these in the skeleton object and allocate them in the same call as the bone states?"
@@ -88,14 +89,43 @@ void objectDraw(const object *obj, mat4 viewProjectionMatrix, const shader *shad
 	} while(curBone != lastBone);
 
 
-	// Send the new model view projection matrix to the shader!
-	glUniformMatrix4fv(shaderPrg->vpMatrixID, 1, GL_FALSE, (GLfloat *)&viewProjectionMatrix);
+	// Send the new model-view-projection matrix to the shader!
+	#warning "Maybe do this outside since it applies to all objects?"
+	/*const mat4 test = mat4RotateRadR(mat4InitTranslateR(2.f, 1.f, -1.f), 2.f, 1.f, -1.f);
+	const vec3 axis = {.x = 0.f, .y = 1.f, .z = 0.f};
+	const billboard bData = {
+		.axis = &axis,
+		.target = &cam->pos,
+		.scale = 1.f,
+		.flags = BILLBOARD_LOCK_XYZ
+	};
+	const mat4 rot = {
+		cam->viewMatrix.m[0][0], cam->viewMatrix.m[1][0], cam->viewMatrix.m[2][0], 0.f,
+		cam->viewMatrix.m[0][1], cam->viewMatrix.m[1][1], cam->viewMatrix.m[2][1], 0.f,
+		cam->viewMatrix.m[0][2], cam->viewMatrix.m[1][2], cam->viewMatrix.m[2][2], 0.f,
+		                    0.f,                     0.f,                     0.f, 1.f
+	};
+	mat4 test2 = mat4MultiplyByMat4R(rot, test);
+	printf("Pre:\n[%f, %f, %f, %f]\n[%f, %f, %f, %f]\n[%f, %f, %f, %f]\n[%f, %f, %f, %f]\n",
+	test.m[0][0], test.m[0][1], test.m[0][2], test.m[0][3],
+	test.m[1][0], test.m[1][1], test.m[1][2], test.m[1][3],
+	test.m[2][0], test.m[2][1], test.m[2][2], test.m[2][3],
+	test.m[3][0], test.m[3][1], test.m[3][2], test.m[3][3]);
+	billboardState(&bData, cam, vec3InitSetR(2.f, 1.f, -1.f), test, &test2);
+	printf("Post:\n[%f, %f, %f, %f]\n[%f, %f, %f, %f]\n[%f, %f, %f, %f]\n[%f, %f, %f, %f]\n\n",
+	test2.m[0][0], test2.m[0][1], test2.m[0][2], test2.m[0][3],
+	test2.m[1][0], test2.m[1][1], test2.m[1][2], test2.m[1][3],
+	test2.m[2][0], test2.m[2][1], test2.m[2][2], test2.m[2][3],
+	test2.m[3][0], test2.m[3][1], test2.m[3][2], test2.m[3][3]);
+	const mat4 mvp = mat4MultiplyByMat4R(cam->viewProjectionMatrix, test2);
+	glUniformMatrix4fv(shader->vpMatrixID, 1, GL_FALSE, (GLfloat *)&mvp);*/
+	glUniformMatrix4fv(shader->vpMatrixID, 1, GL_FALSE, (GLfloat *)&cam->viewProjectionMatrix);
 
 
 	curRenderable = obj->renderables;
 	// Draw each of the renderables.
 	while(curRenderable != NULL){
-		renderableDraw(curRenderable, obj->skeleData.skele, animStates, shaderPrg);
+		renderableDraw(curRenderable, obj->skeleData.skele, animStates, shader);
 		curRenderable = memSingleListNext(curRenderable);
 	}
 }

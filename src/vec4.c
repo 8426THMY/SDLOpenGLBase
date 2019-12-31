@@ -741,18 +741,18 @@ void vec4RadToDeg(vec4 *v){
 
 // Perform linear interpolation between two vec4s and store the result in "out"!
 void vec4Lerp(const vec4 *v1, const vec4 *v2, const float time, vec4 *out){
-	out->x = lerpNum(v1->x, v2->x, time);
-	out->y = lerpNum(v1->y, v2->y, time);
-	out->z = lerpNum(v1->z, v2->z, time);
-	out->w = lerpNum(v1->w, v2->w, time);
+	out->x = lerpNumFast(v1->x, v2->x, time);
+	out->y = lerpNumFast(v1->y, v2->y, time);
+	out->z = lerpNumFast(v1->z, v2->z, time);
+	out->w = lerpNumFast(v1->w, v2->w, time);
 }
 
 // Perform linear interpolation between two vec4s!
 vec4 vec4LerpR(vec4 v1, const vec4 v2, const float time){
-	v1.x = lerpNum(v1.x, v2.x, time);
-	v1.y = lerpNum(v1.y, v2.y, time);
-	v1.z = lerpNum(v1.z, v2.z, time);
-	v1.w = lerpNum(v1.w, v2.w, time);
+	v1.x = lerpNumFast(v1.x, v2.x, time);
+	v1.y = lerpNumFast(v1.y, v2.y, time);
+	v1.z = lerpNumFast(v1.z, v2.z, time);
+	v1.w = lerpNumFast(v1.w, v2.w, time);
 
 	return(v1);
 }
@@ -763,10 +763,10 @@ vec4 vec4LerpR(vec4 v1, const vec4 v2, const float time){
 ** accepts the starting point and the difference between it and the ending point.
 */
 void vec4LerpFast(const vec4 *v, const vec4 *offset, const float time, vec4 *out){
-	out->x = lerpNumFast(v->x, offset->x, time);
-	out->y = lerpNumFast(v->y, offset->y, time);
-	out->z = lerpNumFast(v->z, offset->z, time);
-	out->w = lerpNumFast(v->w, offset->w, time);
+	out->x = lerpDiffFast(v->x, offset->x, time);
+	out->y = lerpDiffFast(v->y, offset->y, time);
+	out->z = lerpDiffFast(v->z, offset->z, time);
+	out->w = lerpDiffFast(v->w, offset->w, time);
 }
 
 /*
@@ -775,10 +775,10 @@ void vec4LerpFast(const vec4 *v, const vec4 *offset, const float time, vec4 *out
 ** accepts the starting point and the difference between it and the ending point.
 */
 vec4 vec4LerpFastR(vec4 v, const vec4 offset, const float time){
-	v.x = lerpNumFast(v.x, offset.x, time);
-	v.y = lerpNumFast(v.y, offset.y, time);
-	v.z = lerpNumFast(v.z, offset.z, time);
-	v.w = lerpNumFast(v.w, offset.w, time);
+	v.x = lerpDiffFast(v.x, offset.x, time);
+	v.y = lerpDiffFast(v.y, offset.y, time);
+	v.z = lerpDiffFast(v.z, offset.z, time);
+	v.w = lerpDiffFast(v.w, offset.w, time);
 
 	return(v);
 }

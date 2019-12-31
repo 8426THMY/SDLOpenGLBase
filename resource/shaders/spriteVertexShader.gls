@@ -1,7 +1,7 @@
 #version 330 core
 
 
-uniform mat4 mvpMatrix;
+uniform mat4 vpMatrix;
 
 layout(location = 0) in vec3 vertexPos;
 // Note that this attribute actually uses locations 1, 2, 3 and 4.
@@ -12,7 +12,7 @@ out vec2 uv;
 
 
 void main(){
-	gl_Position = mvpMatrix * state * vec4(vertexPos, 1.f);
+	gl_Position = vpMatrix * state * vec4(vertexPos, 1.f);
 	
 	// Only use the area of the texture specified in the uvOffsets array!
 	// Note that this only works if we're using the default sprite.

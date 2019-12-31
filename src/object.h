@@ -51,7 +51,7 @@ void objectInit(object *obj, const objectDef *objDef);
 return_t objectDefLoad(objectDef *objDef, const char *objFile);
 
 void objectUpdate(object *obj, const float time);
-void objectDraw(const object *obj, mat4 viewProjectionMatrix, const shader *shaderPrg, const float time);
+void objectDraw(const object *obj, const camera *cam, const shaderObject *shader, const float time);
 
 void objectDelete(object *obj);
 void objectDefDelete(objectDef *objDef);

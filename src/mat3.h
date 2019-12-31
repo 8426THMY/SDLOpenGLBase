@@ -47,6 +47,10 @@ mat3 mat3InvertR(const mat3 m);
 return_t mat3CanInvert(mat3 *m);
 return_t mat3CanInvertOut(const mat3 m, mat3 *out);
 
+void mat3ToQuat(const mat3 *m, quat *out);
+quat mat3ToQuatR(const mat3 m);
+void mat3ToQuatAlt(const mat3 *m, quat *out);
+quat mat3ToQuatAltR(const mat3 m);
 void quatToMat3(const quat *q, mat3 *out);
 mat3 quatToMat3R(const quat q);
 

@@ -7,23 +7,62 @@
 #define SQRT_ONE_THIRD 0.57735026f
 
 
+// This union is used for performing bitwise operations on floats.
+typedef union bitFloat {
+	float f;
+	uint32_t l;
+} bitFloat;
+
+
 float minNum(const float x, const float y){
-	return(x <= y ? x : y);
+	return(x < y ? x : y);
 }
 
 float maxNum(const float x, const float y){
-	return(x >= y ? x : y);
+	return(x > y ? x : y);
 }
 
-float clampNum(const float min, const float x, const float max){
-	if(min >= x){
-		return(min);
-	}
-	if(x >= max){
-		return(max);
-	}
+float clampNum(const float x, const float min, const float max){
+	const float t = x < min ? min : x;
+	return(t > max ? max : t);
+}
 
-	return(x);
+
+float lerpNum(const float x, const float y, const float t){
+	#ifdef FP_FAST_FMAF
+		return(fmaf(t, y, fmaf(-t, x, x)));
+	#else
+		return(x + t*(y - x));
+	#endif
+}
+
+float lerpDiff(const float x, const float y, const float t){
+	#ifdef FP_FAST_FMAF
+		return(fmaf(t, y, x));
+	#else
+		return(x + t*y);
+	#endif
+}
+
+
+// Return a number that uses the magnitude of x and the sign of y.
+float copySign(const float x, const float y){
+	const bitFloat i = {.f = x}, j = {.f = y};
+	bitFloat k = {.l = (i.l & 0x7FFFFFFF) | (j.l & 0x80000000)};
+	return(k.f);
+}
+
+/*
+** Return a number that uses the magnitude of x
+** and the sign of y. If y is 0, then we return 0.
+*/
+float copySignZero(const float x, const float y){
+	if(y != 0.f){
+		const bitFloat i = {.f = x}, j = {.f = y};
+		bitFloat k = {.l = (i.l & 0x7FFFFFFF) | (j.l & 0x80000000)};
+		return(k.f);
+	}
+	return(0.f);
 }
 
 
@@ -37,11 +76,7 @@ float fastInvSqrt(const float x){
 	const float x2 = x * 0.5f;
 	// By using a union here, we can avoid the
 	// compiler warnings that the original had.
-	union {
-		float f;
-		uint32_t l;
-	} i;
-	i.f = x;
+	bitFloat i = {.f = x};
 	// The original magic number, "0x5F3759DF", is supposedly an
 	// approximation of the square root of 2 to the power of 127.
 	// I have found that the magic number "0x5F3504F3", being a
@@ -61,11 +96,7 @@ float fastInvSqrtAccurate(const float x){
 	const float x2 = x * 0.5f;
 	// By using a union here, we can avoid the
 	// compiler warnings that the original had.
-	union {
-		float f;
-		uint32_t l;
-	} i;
-	i.f = x;
+	bitFloat i = {.f = x};
 	// The original magic number, "0x5F3759DF", is supposedly an
 	// approximation of the square root of 2 to the power of 127.
 	// I have found that the magic number "0x5F3504F3", being a

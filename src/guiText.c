@@ -18,6 +18,6 @@ void guiTextUpdate(guiText *gui){
 	//
 }
 
-void guiTextDraw(const guiText *gui, const mat4 *root, const shader *shaderPrg){
+void guiTextDraw(const guiText *gui, const mat4 *root, const shaderObject *shader){
 	//
 }

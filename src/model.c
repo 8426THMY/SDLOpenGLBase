@@ -8,7 +8,6 @@
 #include "vec3.h"
 #include "quat.h"
 #include "transform.h"
-#include "vertex.h"
 
 #include "memoryManager.h"
 #include "moduleSkeleton.h"
