@@ -124,7 +124,7 @@ typedef struct guiElement {
 void guiElementInit(guiElement *gui, const guiType_t type);
 
 void guiElementUpdate(guiElement *gui, const float time);
-void guiElementDraw(guiElement *gui, const float windowWidth, const float windowHeight, const shaderObject *shader);
+void guiElementDraw(guiElement *gui, const float windowWidth, const float windowHeight, const shaderSprite *shader);
 
 void guiElementDelete(guiElement *gui);
 

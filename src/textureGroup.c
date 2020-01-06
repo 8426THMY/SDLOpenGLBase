@@ -392,9 +392,9 @@ return_t texGroupLoad(textureGroup *texGroup, const char *texGroupPath){
 						}
 
 
-						size_t b;
+						size_t i;
 						// Loops through all the frames that we need to make!
-						for(b = 0; b < tempFramesPerTex; ++b){
+						for(i = 0; i < tempFramesPerTex; ++i){
 							frameTime += tempTime;
 
 							tempFrame.bounds.x = tempX / tempTexWidth + tempWidth / tempTexWidth * currentLineX;
@@ -523,8 +523,6 @@ return_t texGroupLoad(textureGroup *texGroup, const char *texGroupPath){
 				texGroup->texAnims = texAnims;
 				texGroup->numAnims = 1;
 
-				memoryManagerGlobalFree(textures);
-
 			// If there are animations, resize the
 			// array so we aren't wasting memory!
 			}else{
@@ -533,6 +531,8 @@ return_t texGroupLoad(textureGroup *texGroup, const char *texGroupPath){
 					/** REALLOC FAILED **/
 				}
 			}
+
+			memoryManagerGlobalFree(textures);
 
 			// If we could set up the textureGroup successfully, set its name!
 			++texGroupPathLength;

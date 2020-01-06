@@ -71,5 +71,5 @@ void main(){
 	
 	// Only use the area of the texture specified in the uvOffsets array!
 	uv.x = (vertexUV.x * uvOffsets[2]) + uvOffsets[0];
-	uv.y = (vertexUV.y * uvOffsets[3]) + uvOffsets[1] + uvOffsets[3];
+	uv.y = (vertexUV.y * uvOffsets[3]) + uvOffsets[1];
 }

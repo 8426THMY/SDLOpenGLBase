@@ -593,14 +593,14 @@ void vec2RadToDeg(vec2 *v){
 
 // Perform linear interpolation between two vec2s and store the result in "out"!
 void vec2Lerp(const vec2 *v1, const vec2 *v2, const float time, vec2 *out){
-	out->x = lerpNumFast(v1->x, v2->x, time);
-	out->y = lerpNumFast(v1->y, v2->y, time);
+	out->x = lerpFloatFast(v1->x, v2->x, time);
+	out->y = lerpFloatFast(v1->y, v2->y, time);
 }
 
 // Perform linear interpolation between two vec2s!
 vec2 vec2LerpR(vec2 v1, const vec2 v2, const float time){
-	v1.x = lerpNumFast(v1.x, v2.x, time);
-	v1.y = lerpNumFast(v1.y, v2.y, time);
+	v1.x = lerpFloatFast(v1.x, v2.x, time);
+	v1.y = lerpFloatFast(v1.y, v2.y, time);
 
 	return(v1);
 }
@@ -633,8 +633,8 @@ vec2 vec2LerpFastR(vec2 v, const vec2 offset, const float time){
 ** and return a vec2 composed of these minima in "out".
 */
 void vec2Min(const vec2 *v1, const vec2 *v2, vec2 *out){
-	out->x = minNumFast(v1->x, v2->x);
-	out->y = minNumFast(v1->y, v2->y);
+	out->x = minFloatFast(v1->x, v2->x);
+	out->y = minFloatFast(v1->y, v2->y);
 }
 
 /*
@@ -642,8 +642,8 @@ void vec2Min(const vec2 *v1, const vec2 *v2, vec2 *out){
 ** axis and return a vec2 composed of these minima.
 */
 vec2 vec2MinR(vec2 v1, const vec2 v2){
-	v1.x = minNumFast(v1.x, v2.x);
-	v1.y = minNumFast(v1.y, v2.y);
+	v1.x = minFloatFast(v1.x, v2.x);
+	v1.y = minFloatFast(v1.y, v2.y);
 
 	return(v1);
 }
@@ -653,8 +653,8 @@ vec2 vec2MinR(vec2 v1, const vec2 v2){
 ** and return a vec2 composed of these maxima in "out".
 */
 void vec2Max(const vec2 *v1, const vec2 *v2, vec2 *out){
-	out->x = maxNumFast(v1->x, v2->x);
-	out->y = maxNumFast(v1->y, v2->y);
+	out->x = maxFloatFast(v1->x, v2->x);
+	out->y = maxFloatFast(v1->y, v2->y);
 }
 
 /*
@@ -662,8 +662,8 @@ void vec2Max(const vec2 *v1, const vec2 *v2, vec2 *out){
 ** axis and return a vec2 composed of these maxima.
 */
 vec2 vec2MaxR(vec2 v1, const vec2 v2){
-	v1.x = maxNumFast(v1.x, v2.x);
-	v1.y = maxNumFast(v1.y, v2.y);
+	v1.x = maxFloatFast(v1.x, v2.x);
+	v1.y = maxFloatFast(v1.y, v2.y);
 
 	return(v1);
 }

@@ -20,7 +20,7 @@ void guiElementUpdate(guiElement *gui, const float time){
 	guiPanelUpdate(&gui->data.panel, time);
 }
 
-void guiElementDraw(guiElement *gui, const float windowWidth, const float windowHeight, const shaderObject *shader){
+void guiElementDraw(guiElement *gui, const float windowWidth, const float windowHeight, const shaderSprite *shader){
 	mat4 viewProjectionMatrix;
 
 	// We use a scale matrix as the view-projection matrix

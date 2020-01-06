@@ -37,6 +37,7 @@ void cameraUpdateProjectionMatrix(camera *cam, const float windowWidth, const fl
 void cameraUpdateViewProjectionMatrix(camera *cam, const float windowWidth, const float windowHeight);
 
 float cameraDistance(const camera *cam, const vec3 *target);
+float cameraDistanceSquared(const camera *cam, const vec3 *target);
 
 
 #endif

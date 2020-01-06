@@ -1,16 +1,9 @@
 #include "guiPanel.h"
 
 
-#include "mesh.h"
+#include "sprite.h"
 #include "texture.h"
 #include "textureGroup.h"
-
-
-model guiPanelMdlDefault = {
-	.name     = "panel",
-	.skele    = &skeleDefault,
-	.texGroup = &texGroupDefault
-};
 
 
 void guiPanelInit(guiPanel *gui){
@@ -43,22 +36,21 @@ void guiPanelInit(guiPanel *gui){
 
 
 void guiPanelUpdate(guiPanel *gui, const float time){
-	//texGroupStateUpdate(&gui->borderTexState, time);
+	texGroupStateUpdate(&gui->borderTexState, time);
 	texGroupStateUpdate(&gui->bodyTexState, time);
 }
 
 #warning "This is all very temporary. It'd be nice if we could fix the texture bleeding, though..."
-void guiPanelDraw(const guiPanel *gui, const transformState *root, const shaderObject *shader){
-	mat4 curState;
+void guiPanelDraw(const guiPanel *gui, const transformState *root, const shaderSprite *shader){
+	spriteState panelStates[8];
 	const textureGroupFrame *borderFrame = texGroupStateGetFrame(&gui->borderTexState);
 	const textureGroupFrame *bodyFrame = texGroupStateGetFrame(&gui->bodyTexState);
 	float curWidth;
 	float curHeight;
-	float bodyUVs[4] = {bodyFrame->bounds.x, bodyFrame->bounds.y, bodyFrame->bounds.w, bodyFrame->bounds.h};
 
 
 	// Bind the mesh we're using!
-	glBindVertexArray(guiPanelMdlDefault.meshData.vertexArrayID);
+	glBindVertexArray(spriteDefault.vertexArrayID);
 
 
 	glActiveTexture(GL_TEXTURE0);
@@ -66,289 +58,245 @@ void guiPanelDraw(const guiPanel *gui, const transformState *root, const shaderO
 	glBindTexture(GL_TEXTURE_2D, borderFrame->diffuse->id);
 
 
-	// Draw the bottom-right corner of the border.
+	// Set up the bottom-right corner's state.
 	curWidth = gui->uvCoords[0].w * borderFrame->diffuse->width;
 	curHeight = gui->uvCoords[0].h * borderFrame->diffuse->height;
 
-	curState.m[0][0] = curWidth;
-	curState.m[0][1] = 0.f;
-	curState.m[0][2] = 0.f;
-	curState.m[0][3] = 0.f;
+	panelStates[0].state.m[0][0] = curWidth;
+	panelStates[0].state.m[0][1] = 0.f;
+	panelStates[0].state.m[0][2] = 0.f;
+	panelStates[0].state.m[0][3] = 0.f;
 
-	curState.m[1][0] = 0.f;
-	curState.m[1][1] = curHeight;
-	curState.m[1][2] = 0.f;
-	curState.m[1][3] = 0.f;
+	panelStates[0].state.m[1][0] = 0.f;
+	panelStates[0].state.m[1][1] = curHeight;
+	panelStates[0].state.m[1][2] = 0.f;
+	panelStates[0].state.m[1][3] = 0.f;
 
-	curState.m[2][0] = 0.f;
-	curState.m[2][1] = 0.f;
-	curState.m[2][2] = 1.f;
-	curState.m[2][3] = 0.f;
+	panelStates[0].state.m[2][0] = 0.f;
+	panelStates[0].state.m[2][1] = 0.f;
+	panelStates[0].state.m[2][2] = 1.f;
+	panelStates[0].state.m[2][3] = 0.f;
 
-	curState.m[3][0] = root->pos.x + (root->scale.x + curWidth) * 0.5f;
-	curState.m[3][1] = root->pos.y - (root->scale.y + curHeight) * 0.5f;
-	curState.m[3][2] = 0.f;
-	curState.m[3][3] = 1.f;
+	panelStates[0].state.m[3][0] = root->pos.x + (root->scale.x + curWidth) * 0.5f;
+	panelStates[0].state.m[3][1] = root->pos.y - (root->scale.y + curHeight) * 0.5f;
+	panelStates[0].state.m[3][2] = 0.f;
+	panelStates[0].state.m[3][3] = 1.f;
 
-	glUniformMatrix4fv(shader->boneStatesID, 1, GL_FALSE, (GLfloat *)&curState);
-	glUniform1fv(shader->uvOffsetsID, 4, (GLfloat *)&gui->uvCoords[0]);
-	glDrawElements(GL_TRIANGLES, guiPanelMdlDefault.meshData.numIndices, GL_UNSIGNED_INT, 0);
+	panelStates[0].uvOffsets = gui->uvCoords[0];
 
 
-	// Draw the top-right corner of the border.
+	// Set up the top-right corner's state.
 	curWidth = gui->uvCoords[1].w * borderFrame->diffuse->width;
 	curHeight = gui->uvCoords[1].h * borderFrame->diffuse->height;
 
-	curState.m[0][0] = curWidth;
-	curState.m[0][1] = 0.f;
-	curState.m[0][2] = 0.f;
-	curState.m[0][3] = 0.f;
+	panelStates[1].state.m[0][0] = curWidth;
+	panelStates[1].state.m[0][1] = 0.f;
+	panelStates[1].state.m[0][2] = 0.f;
+	panelStates[1].state.m[0][3] = 0.f;
 
-	curState.m[1][0] = 0.f;
-	curState.m[1][1] = curHeight;
-	curState.m[1][2] = 0.f;
-	curState.m[1][3] = 0.f;
+	panelStates[1].state.m[1][0] = 0.f;
+	panelStates[1].state.m[1][1] = curHeight;
+	panelStates[1].state.m[1][2] = 0.f;
+	panelStates[1].state.m[1][3] = 0.f;
 
-	curState.m[2][0] = 0.f;
-	curState.m[2][1] = 0.f;
-	curState.m[2][2] = 1.f;
-	curState.m[2][3] = 0.f;
+	panelStates[1].state.m[2][0] = 0.f;
+	panelStates[1].state.m[2][1] = 0.f;
+	panelStates[1].state.m[2][2] = 1.f;
+	panelStates[1].state.m[2][3] = 0.f;
 
-	curState.m[3][0] = root->pos.x + (root->scale.x + curWidth) * 0.5f;
-	curState.m[3][1] = root->pos.y + (root->scale.y + curHeight) * 0.5f;
-	curState.m[3][2] = 0.f;
-	curState.m[3][3] = 1.f;
+	panelStates[1].state.m[3][0] = root->pos.x + (root->scale.x + curWidth) * 0.5f;
+	panelStates[1].state.m[3][1] = root->pos.y + (root->scale.y + curHeight) * 0.5f;
+	panelStates[1].state.m[3][2] = 0.f;
+	panelStates[1].state.m[3][3] = 1.f;
 
-	glUniformMatrix4fv(shader->boneStatesID, 1, GL_FALSE, (GLfloat *)&curState);
-	glUniform1fv(shader->uvOffsetsID, 4, (GLfloat *)&gui->uvCoords[1]);
-	glDrawElements(GL_TRIANGLES, guiPanelMdlDefault.meshData.numIndices, GL_UNSIGNED_INT, 0);
+	panelStates[1].uvOffsets = gui->uvCoords[1];
 
 
-	// Draw the top-left corner of the border.
+	// Set up the top-left corner's state.
 	curWidth = gui->uvCoords[2].w * borderFrame->diffuse->width;
 	curHeight = gui->uvCoords[2].h * borderFrame->diffuse->height;
 
-	curState.m[0][0] = curWidth;
-	curState.m[0][1] = 0.f;
-	curState.m[0][2] = 0.f;
-	curState.m[0][3] = 0.f;
+	panelStates[2].state.m[0][0] = curWidth;
+	panelStates[2].state.m[0][1] = 0.f;
+	panelStates[2].state.m[0][2] = 0.f;
+	panelStates[2].state.m[0][3] = 0.f;
 
-	curState.m[1][0] = 0.f;
-	curState.m[1][1] = curHeight;
-	curState.m[1][2] = 0.f;
-	curState.m[1][3] = 0.f;
+	panelStates[2].state.m[1][0] = 0.f;
+	panelStates[2].state.m[1][1] = curHeight;
+	panelStates[2].state.m[1][2] = 0.f;
+	panelStates[2].state.m[1][3] = 0.f;
 
-	curState.m[2][0] = 0.f;
-	curState.m[2][1] = 0.f;
-	curState.m[2][2] = 1.f;
-	curState.m[2][3] = 0.f;
+	panelStates[2].state.m[2][0] = 0.f;
+	panelStates[2].state.m[2][1] = 0.f;
+	panelStates[2].state.m[2][2] = 1.f;
+	panelStates[2].state.m[2][3] = 0.f;
 
-	curState.m[3][0] = root->pos.x - (root->scale.x + curWidth) * 0.5f;
-	curState.m[3][1] = root->pos.y + (root->scale.y + curHeight) * 0.5f;
-	curState.m[3][2] = 0.f;
-	curState.m[3][3] = 1.f;
+	panelStates[2].state.m[3][0] = root->pos.x - (root->scale.x + curWidth) * 0.5f;
+	panelStates[2].state.m[3][1] = root->pos.y + (root->scale.y + curHeight) * 0.5f;
+	panelStates[2].state.m[3][2] = 0.f;
+	panelStates[2].state.m[3][3] = 1.f;
 
-	glUniformMatrix4fv(shader->boneStatesID, 1, GL_FALSE, (GLfloat *)&curState);
-	glUniform1fv(shader->uvOffsetsID, 4, (GLfloat *)&gui->uvCoords[2]);
-	glDrawElements(GL_TRIANGLES, guiPanelMdlDefault.meshData.numIndices, GL_UNSIGNED_INT, 0);
+	panelStates[2].uvOffsets = gui->uvCoords[2];
 
 
-	// Draw the bottom-left corner of the border.
+	// Set up the bottom-left corner's state.
 	curWidth = gui->uvCoords[3].w * borderFrame->diffuse->width;
 	curHeight = gui->uvCoords[3].h * borderFrame->diffuse->height;
 
-	curState.m[0][0] = curWidth;
-	curState.m[0][1] = 0.f;
-	curState.m[0][2] = 0.f;
-	curState.m[0][3] = 0.f;
+	panelStates[3].state.m[0][0] = curWidth;
+	panelStates[3].state.m[0][1] = 0.f;
+	panelStates[3].state.m[0][2] = 0.f;
+	panelStates[3].state.m[0][3] = 0.f;
 
-	curState.m[1][0] = 0.f;
-	curState.m[1][1] = curHeight;
-	curState.m[1][2] = 0.f;
-	curState.m[1][3] = 0.f;
+	panelStates[3].state.m[1][0] = 0.f;
+	panelStates[3].state.m[1][1] = curHeight;
+	panelStates[3].state.m[1][2] = 0.f;
+	panelStates[3].state.m[1][3] = 0.f;
 
-	curState.m[2][0] = 0.f;
-	curState.m[2][1] = 0.f;
-	curState.m[2][2] = 1.f;
-	curState.m[2][3] = 0.f;
+	panelStates[3].state.m[2][0] = 0.f;
+	panelStates[3].state.m[2][1] = 0.f;
+	panelStates[3].state.m[2][2] = 1.f;
+	panelStates[3].state.m[2][3] = 0.f;
 
-	curState.m[3][0] = root->pos.x - (root->scale.x + curWidth) * 0.5f;
-	curState.m[3][1] = root->pos.y - (root->scale.y + curHeight) * 0.5f;
-	curState.m[3][2] = 0.f;
-	curState.m[3][3] = 1.f;
+	panelStates[3].state.m[3][0] = root->pos.x - (root->scale.x + curWidth) * 0.5f;
+	panelStates[3].state.m[3][1] = root->pos.y - (root->scale.y + curHeight) * 0.5f;
+	panelStates[3].state.m[3][2] = 0.f;
+	panelStates[3].state.m[3][3] = 1.f;
 
-	glUniformMatrix4fv(shader->boneStatesID, 1, GL_FALSE, (GLfloat *)&curState);
-	glUniform1fv(shader->uvOffsetsID, 4, (GLfloat *)&gui->uvCoords[3]);
-	glDrawElements(GL_TRIANGLES, guiPanelMdlDefault.meshData.numIndices, GL_UNSIGNED_INT, 0);
+	panelStates[3].uvOffsets = gui->uvCoords[3];
 
 
-	// Draw the right edge of the border.
+	// Set up the right edge's state.
 	curHeight = gui->uvCoords[4].h * borderFrame->diffuse->height;
 
-	curState.m[0][0] = 0.f;
-	curState.m[0][1] = -root->scale.y;
-	curState.m[0][2] = 0.f;
-	curState.m[0][3] = 0.f;
+	panelStates[4].state.m[0][0] = 0.f;
+	panelStates[4].state.m[0][1] = -root->scale.y;
+	panelStates[4].state.m[0][2] = 0.f;
+	panelStates[4].state.m[0][3] = 0.f;
 
-	curState.m[1][0] = curHeight;
-	curState.m[1][1] = 0.f;
-	curState.m[1][2] = 0.f;
-	curState.m[1][3] = 0.f;
+	panelStates[4].state.m[1][0] = curHeight;
+	panelStates[4].state.m[1][1] = 0.f;
+	panelStates[4].state.m[1][2] = 0.f;
+	panelStates[4].state.m[1][3] = 0.f;
 
-	curState.m[2][0] = 0.f;
-	curState.m[2][1] = 0.f;
-	curState.m[2][2] = 1.f;
-	curState.m[2][3] = 0.f;
+	panelStates[4].state.m[2][0] = 0.f;
+	panelStates[4].state.m[2][1] = 0.f;
+	panelStates[4].state.m[2][2] = 1.f;
+	panelStates[4].state.m[2][3] = 0.f;
 
-	curState.m[3][0] = root->pos.x + (root->scale.x + curHeight) * 0.5f;
-	curState.m[3][1] = root->pos.y;
-	curState.m[3][2] = 0.f;
-	curState.m[3][3] = 1.f;
+	panelStates[4].state.m[3][0] = root->pos.x + (root->scale.x + curHeight) * 0.5f;
+	panelStates[4].state.m[3][1] = root->pos.y;
+	panelStates[4].state.m[3][2] = 0.f;
+	panelStates[4].state.m[3][3] = 1.f;
 
-	glUniformMatrix4fv(shader->boneStatesID, 1, GL_FALSE, (GLfloat *)&curState);
-	glUniform1fv(shader->uvOffsetsID, 4, (GLfloat *)&gui->uvCoords[4]);
-	glDrawElements(GL_TRIANGLES, guiPanelMdlDefault.meshData.numIndices, GL_UNSIGNED_INT, 0);
+	panelStates[4].uvOffsets = gui->uvCoords[4];
 
 
-	// Draw the top edge of the border.
+	// Set up the top edge's state.
 	curHeight = gui->uvCoords[5].h * borderFrame->diffuse->height;
 
-	curState.m[0][0] = root->scale.x;
-	curState.m[0][1] = 0.f;
-	curState.m[0][2] = 0.f;
-	curState.m[0][3] = 0.f;
+	panelStates[5].state.m[0][0] = root->scale.x;
+	panelStates[5].state.m[0][1] = 0.f;
+	panelStates[5].state.m[0][2] = 0.f;
+	panelStates[5].state.m[0][3] = 0.f;
 
-	curState.m[1][0] = 0.f;
-	curState.m[1][1] = curHeight;
-	curState.m[1][2] = 0.f;
-	curState.m[1][3] = 0.f;
+	panelStates[5].state.m[1][0] = 0.f;
+	panelStates[5].state.m[1][1] = curHeight;
+	panelStates[5].state.m[1][2] = 0.f;
+	panelStates[5].state.m[1][3] = 0.f;
 
-	curState.m[2][0] = 0.f;
-	curState.m[2][1] = 0.f;
-	curState.m[2][2] = 1.f;
-	curState.m[2][3] = 0.f;
+	panelStates[5].state.m[2][0] = 0.f;
+	panelStates[5].state.m[2][1] = 0.f;
+	panelStates[5].state.m[2][2] = 1.f;
+	panelStates[5].state.m[2][3] = 0.f;
 
-	curState.m[3][0] = root->pos.x;
-	curState.m[3][1] = root->pos.y + (root->scale.y + curHeight) * 0.5f;
-	curState.m[3][2] = 0.f;
-	curState.m[3][3] = 1.f;
+	panelStates[5].state.m[3][0] = root->pos.x;
+	panelStates[5].state.m[3][1] = root->pos.y + (root->scale.y + curHeight) * 0.5f;
+	panelStates[5].state.m[3][2] = 0.f;
+	panelStates[5].state.m[3][3] = 1.f;
 
-	glUniformMatrix4fv(shader->boneStatesID, 1, GL_FALSE, (GLfloat *)&curState);
-	glUniform1fv(shader->uvOffsetsID, 4, (GLfloat *)&gui->uvCoords[5]);
-	glDrawElements(GL_TRIANGLES, guiPanelMdlDefault.meshData.numIndices, GL_UNSIGNED_INT, 0);
+	panelStates[5].uvOffsets = gui->uvCoords[5];
 
 
-	// Draw the left edge of the border.
+	// Set up the left edge's state.
 	curHeight = gui->uvCoords[6].h * borderFrame->diffuse->height;
 
-	curState.m[0][0] = 0.f;
-	curState.m[0][1] = root->scale.y;
-	curState.m[0][2] = 0.f;
-	curState.m[0][3] = 0.f;
+	panelStates[6].state.m[0][0] = 0.f;
+	panelStates[6].state.m[0][1] = root->scale.y;
+	panelStates[6].state.m[0][2] = 0.f;
+	panelStates[6].state.m[0][3] = 0.f;
 
-	curState.m[1][0] = -curHeight;
-	curState.m[1][1] = 0.f;
-	curState.m[1][2] = 0.f;
-	curState.m[1][3] = 0.f;
+	panelStates[6].state.m[1][0] = -curHeight;
+	panelStates[6].state.m[1][1] = 0.f;
+	panelStates[6].state.m[1][2] = 0.f;
+	panelStates[6].state.m[1][3] = 0.f;
 
-	curState.m[2][0] = 0.f;
-	curState.m[2][1] = 0.f;
-	curState.m[2][2] = 1.f;
-	curState.m[2][3] = 0.f;
+	panelStates[6].state.m[2][0] = 0.f;
+	panelStates[6].state.m[2][1] = 0.f;
+	panelStates[6].state.m[2][2] = 1.f;
+	panelStates[6].state.m[2][3] = 0.f;
 
-	curState.m[3][0] = root->pos.x - (root->scale.x + curHeight) * 0.5f;
-	curState.m[3][1] = root->pos.y;
-	curState.m[3][2] = 0.f;
-	curState.m[3][3] = 1.f;
+	panelStates[6].state.m[3][0] = root->pos.x - (root->scale.x + curHeight) * 0.5f;
+	panelStates[6].state.m[3][1] = root->pos.y;
+	panelStates[6].state.m[3][2] = 0.f;
+	panelStates[6].state.m[3][3] = 1.f;
 
-	glUniformMatrix4fv(shader->boneStatesID, 1, GL_FALSE, (GLfloat *)&curState);
-	glUniform1fv(shader->uvOffsetsID, 4, (GLfloat *)&gui->uvCoords[6]);
-	glDrawElements(GL_TRIANGLES, guiPanelMdlDefault.meshData.numIndices, GL_UNSIGNED_INT, 0);
+	panelStates[6].uvOffsets = gui->uvCoords[6];
 
 
-	// Draw the bottom edge of the border.
+	// Set up the bottom edge's state.
 	curHeight = gui->uvCoords[7].h * borderFrame->diffuse->height;
 
-	curState.m[0][0] = -root->scale.x;
-	curState.m[0][1] = 0.f;
-	curState.m[0][2] = 0.f;
-	curState.m[0][3] = 0.f;
+	panelStates[7].state.m[0][0] = -root->scale.x;
+	panelStates[7].state.m[0][1] = 0.f;
+	panelStates[7].state.m[0][2] = 0.f;
+	panelStates[7].state.m[0][3] = 0.f;
 
-	curState.m[1][0] = 0.f;
-	curState.m[1][1] = -curHeight;
-	curState.m[1][2] = 0.f;
-	curState.m[1][3] = 0.f;
+	panelStates[7].state.m[1][0] = 0.f;
+	panelStates[7].state.m[1][1] = -curHeight;
+	panelStates[7].state.m[1][2] = 0.f;
+	panelStates[7].state.m[1][3] = 0.f;
 
-	curState.m[2][0] = 0.f;
-	curState.m[2][1] = 0.f;
-	curState.m[2][2] = 1.f;
-	curState.m[2][3] = 0.f;
+	panelStates[7].state.m[2][0] = 0.f;
+	panelStates[7].state.m[2][1] = 0.f;
+	panelStates[7].state.m[2][2] = 1.f;
+	panelStates[7].state.m[2][3] = 0.f;
 
-	curState.m[3][0] = root->pos.x;
-	curState.m[3][1] = root->pos.y - (root->scale.y + curHeight) * 0.5f;
-	curState.m[3][2] = 0.f;
-	curState.m[3][3] = 1.f;
+	panelStates[7].state.m[3][0] = root->pos.x;
+	panelStates[7].state.m[3][1] = root->pos.y - (root->scale.y + curHeight) * 0.5f;
+	panelStates[7].state.m[3][2] = 0.f;
+	panelStates[7].state.m[3][3] = 1.f;
 
-	glUniformMatrix4fv(shader->boneStatesID, 1, GL_FALSE, (GLfloat *)&curState);
-	glUniform1fv(shader->uvOffsetsID, 4, (GLfloat *)&gui->uvCoords[7]);
-	glDrawElements(GL_TRIANGLES, guiPanelMdlDefault.meshData.numIndices, GL_UNSIGNED_INT, 0);
+	panelStates[7].uvOffsets = gui->uvCoords[7];
+
+
+	// Upload the border elements' states to the shader.
+	glBindBuffer(GL_ARRAY_BUFFER, spriteDefault.stateBufferID);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(panelStates), &panelStates[0]);
+	// Draw each instance of the particle!
+	glDrawElementsInstanced(GL_TRIANGLES, spriteDefault.numIndices, GL_UNSIGNED_INT, NULL, 8);
 
 
 	// Bind the body's texture!
 	glBindTexture(GL_TEXTURE_2D, bodyFrame->diffuse->id);
 
 	// Draw the main region of the panel.
-	transformStateToMat4(root, &curState);
+	transformStateToMat4(root, &panelStates[0].state);
 
+	panelStates[0].uvOffsets.x = bodyFrame->bounds.x;
+	panelStates[0].uvOffsets.y = bodyFrame->bounds.y;
 	// Scroll the body image if tiling is enabled.
 	// Otherwise, we stretch it to fit the panel.
 	if(flagsAreSet(gui->flags, GUIPANEL_TILE_BODY)){
-		bodyUVs[2] = root->scale.x / bodyFrame->diffuse->width;
-		bodyUVs[3] = root->scale.y / bodyFrame->diffuse->height;
+		panelStates[0].uvOffsets.w = root->scale.x / bodyFrame->diffuse->width;
+		panelStates[0].uvOffsets.h = root->scale.y / bodyFrame->diffuse->height;
+	}else{
+		panelStates[0].uvOffsets.w = bodyFrame->bounds.w;
+		panelStates[0].uvOffsets.h = bodyFrame->bounds.h;
 	}
 
-	glUniformMatrix4fv(shader->boneStatesID, 1, GL_FALSE, (GLfloat *)&curState);
-	glUniform1fv(shader->uvOffsetsID, 4, (GLfloat *)&bodyUVs[0]);
-	glDrawElements(GL_TRIANGLES, guiPanelMdlDefault.meshData.numIndices, GL_UNSIGNED_INT, 0);
-}
-
-
-/** TEMPORARY, USE SPRITES! **/
-return_t guiPanelSetupDefault(){
-	const vertex vertices[4] = {
-		{
-			.pos.x = -0.5f, .pos.y = 0.5f, .pos.z = 0.f,
-			.uv.x = 0.f, .uv.y = -1.f,
-			.normal.x = 0.f, .normal.y = 0.f, .normal.z = 1.f,
-			.boneIDs = {0, -1, -1, -1}, .boneWeights = {1.f, 0.f, 0.f, 0.f}
-		},
-		{
-			.pos.x = -0.5f, .pos.y = -0.5f, .pos.z = 0.f,
-			.uv.x = 0.f, .uv.y = 0.f,
-			.normal.x = 0.f, .normal.y = 0.f, .normal.z = 1.f,
-			.boneIDs = {0, -1, -1, -1}, .boneWeights = {1.f, 0.f, 0.f, 0.f}
-		},
-		{
-			.pos.x = 0.5f, .pos.y = -0.5f, .pos.z = 0.f,
-			.uv.x = 1.f, .uv.y = 0.f,
-			.normal.x = 0.f, .normal.y = 0.f, .normal.z = 1.f,
-			.boneIDs = {0, -1, -1, -1}, .boneWeights = {1.f, 0.f, 0.f, 0.f}
-		},
-		{
-			.pos.x = 0.5f, .pos.y = 0.5f, .pos.z = 0.f,
-			.uv.x = 1.f, .uv.y = -1.f,
-			.normal.x = 0.f, .normal.y = 0.f, .normal.z = 1.f,
-			.boneIDs = {0, -1, -1, -1}, .boneWeights = {1.f, 0.f, 0.f, 0.f}
-		}
-	};
-
-	const size_t indices[6] = {
-		0, 1, 2,
-		2, 3, 0
-	};
-
-	meshGenerateBuffers(&guiPanelMdlDefault.meshData, vertices, sizeof(vertices)/sizeof(*vertices), indices, sizeof(indices)/sizeof(*indices));
-
-
-	return(1);
+	// Upload the body's state to the shader.
+	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(panelStates), &panelStates[0]);
+	// Draw the panel's body!
+	glDrawElements(GL_TRIANGLES, spriteDefault.numIndices, GL_UNSIGNED_INT, 0);
 }

@@ -36,8 +36,11 @@ How can we do this?
 #warning "Add 'const restrict' keywords to pointers where applicable? That's a lot of work though."
 #warning "Should we use our 'R' math functions? It would also be a good idea to stop passing so many things by pointer."
 
-#warning "With UV coordinates, we can add offsets[3] to offsets[1] to help when rendering."
 #warning "Texture group animation needs a rewrite. It's messy and we can't do diagonal scrolling effects."
+#warning "Model loading also needs a rewrite, but it's not really important since we won't need it when we have a binary format."
+
+#warning "Should resource arrays be sorted? Then we could use a binary search to find particular items by name."
+#warning "What if we just load everything in alphabetical order? Is that possible?"
 
 
 int main(int argc, char **argv){

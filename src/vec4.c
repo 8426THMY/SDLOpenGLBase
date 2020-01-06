@@ -741,18 +741,18 @@ void vec4RadToDeg(vec4 *v){
 
 // Perform linear interpolation between two vec4s and store the result in "out"!
 void vec4Lerp(const vec4 *v1, const vec4 *v2, const float time, vec4 *out){
-	out->x = lerpNumFast(v1->x, v2->x, time);
-	out->y = lerpNumFast(v1->y, v2->y, time);
-	out->z = lerpNumFast(v1->z, v2->z, time);
-	out->w = lerpNumFast(v1->w, v2->w, time);
+	out->x = lerpFloatFast(v1->x, v2->x, time);
+	out->y = lerpFloatFast(v1->y, v2->y, time);
+	out->z = lerpFloatFast(v1->z, v2->z, time);
+	out->w = lerpFloatFast(v1->w, v2->w, time);
 }
 
 // Perform linear interpolation between two vec4s!
 vec4 vec4LerpR(vec4 v1, const vec4 v2, const float time){
-	v1.x = lerpNumFast(v1.x, v2.x, time);
-	v1.y = lerpNumFast(v1.y, v2.y, time);
-	v1.z = lerpNumFast(v1.z, v2.z, time);
-	v1.w = lerpNumFast(v1.w, v2.w, time);
+	v1.x = lerpFloatFast(v1.x, v2.x, time);
+	v1.y = lerpFloatFast(v1.y, v2.y, time);
+	v1.z = lerpFloatFast(v1.z, v2.z, time);
+	v1.w = lerpFloatFast(v1.w, v2.w, time);
 
 	return(v1);
 }
@@ -789,10 +789,10 @@ vec4 vec4LerpFastR(vec4 v, const vec4 offset, const float time){
 ** and return a vec4 composed of these minima in "out".
 */
 void vec4Min(const vec4 *v1, const vec4 *v2, vec4 *out){
-	out->x = minNumFast(v1->x, v2->x);
-	out->y = minNumFast(v1->y, v2->y);
-	out->z = minNumFast(v1->z, v2->z);
-	out->w = minNumFast(v1->w, v2->w);
+	out->x = minFloatFast(v1->x, v2->x);
+	out->y = minFloatFast(v1->y, v2->y);
+	out->z = minFloatFast(v1->z, v2->z);
+	out->w = minFloatFast(v1->w, v2->w);
 }
 
 /*
@@ -800,10 +800,10 @@ void vec4Min(const vec4 *v1, const vec4 *v2, vec4 *out){
 ** axis and return a vec4 composed of these minima.
 */
 vec4 vec4MinR(vec4 v1, const vec4 v2){
-	v1.x = minNumFast(v1.x, v2.x);
-	v1.y = minNumFast(v1.y, v2.y);
-	v1.z = minNumFast(v1.z, v2.z);
-	v1.w = minNumFast(v1.w, v2.w);
+	v1.x = minFloatFast(v1.x, v2.x);
+	v1.y = minFloatFast(v1.y, v2.y);
+	v1.z = minFloatFast(v1.z, v2.z);
+	v1.w = minFloatFast(v1.w, v2.w);
 
 	return(v1);
 }
@@ -813,10 +813,10 @@ vec4 vec4MinR(vec4 v1, const vec4 v2){
 ** and return a vec4 composed of these maxima in "out".
 */
 void vec4Max(const vec4 *v1, const vec4 *v2, vec4 *out){
-	out->x = maxNumFast(v1->x, v2->x);
-	out->y = maxNumFast(v1->y, v2->y);
-	out->z = maxNumFast(v1->z, v2->z);
-	out->w = maxNumFast(v1->w, v2->w);
+	out->x = maxFloatFast(v1->x, v2->x);
+	out->y = maxFloatFast(v1->y, v2->y);
+	out->z = maxFloatFast(v1->z, v2->z);
+	out->w = maxFloatFast(v1->w, v2->w);
 }
 
 /*
@@ -824,10 +824,10 @@ void vec4Max(const vec4 *v1, const vec4 *v2, vec4 *out){
 ** axis and return a vec4 composed of these maxima.
 */
 vec4 vec4MaxR(vec4 v1, const vec4 v2){
-	v1.x = maxNumFast(v1.x, v2.x);
-	v1.y = maxNumFast(v1.y, v2.y);
-	v1.z = maxNumFast(v1.z, v2.z);
-	v1.w = maxNumFast(v1.w, v2.w);
+	v1.x = maxFloatFast(v1.x, v2.x);
+	v1.y = maxFloatFast(v1.y, v2.y);
+	v1.z = maxFloatFast(v1.z, v2.z);
+	v1.w = maxFloatFast(v1.w, v2.w);
 
 	return(v1);
 }

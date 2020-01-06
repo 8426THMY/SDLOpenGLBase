@@ -11,20 +11,22 @@
 #define RAD_TO_DEG (180.f / M_PI)
 
 // Note that these are prone to double evaluation,
-// so the equivalent functions should be used in such cases.
-#define minNumFast(x, y) (((x) < (y)) ? (x) : (y))
-#define maxNumFast(x, y) (((x) > (y)) ? (x) : (y))
+// so the equivalent functions should be used to prevent this.
+#define minFloatFast(x, y) (((x) < (y)) ? (x) : (y))
+#define maxFloatFast(x, y) (((x) > (y)) ? (x) : (y))
+#define minUintFast(x, y) (((x) < (y)) ? (x) : (y))
+#define maxUintFast(x, y) (((x) > (y)) ? (x) : (y))
 
 // According to Mark Harris in his 2015 blog GPU Pro Tip: Lerp Faster in C++,
 // we can achieve better performance and accuracy by using two fmas here.
 //
 // Note that these are prone to double evaluation,
-// so the equivalent functions should be used in such cases.
+// so the equivalent functions should be used to prevent this.
 #ifdef FP_FAST_FMAF
-	#define lerpNumFast(x, y, t) fmaf(t, y, fmaf(-t, x, x))
+	#define lerpFloatFast(x, y, t) fmaf(t, y, fmaf(-t, x, x))
 	#define lerpDiffFast(x, y, t) fmaf(t, y, x)
 #else
-	#define lerpNumFast(x, y, t) ((x) + (t)*((y) - (x)))
+	#define lerpFloatFast(x, y, t) ((x) + (t)*((y) - (x)))
 	#define lerpDiffFast(x, y, t) ((x) + (t)*(y))
 #endif
 
@@ -38,11 +40,14 @@
 #endif
 
 
-float minNum(const float x, const float y);
-float maxNum(const float x, const float y);
-float clampNum(const float min, const float x, const float max);
+float minFloat(const float x, const float y);
+float maxFloat(const float x, const float y);
+float clampFloat(const float x, const float min, const float max);
+unsigned int minUint(const unsigned int x, const unsigned int y);
+unsigned int maxUint(const unsigned int x, const unsigned int y);
+unsigned int clampUint(const unsigned int x, const unsigned int min, const unsigned int max);
 
-float lerpNum(const float x, const float y, const float t);
+float lerpFloat(const float x, const float y, const float t);
 float lerpDiff(const float x, const float y, const float t);
 
 float copySign(const float x, const float y);

@@ -750,16 +750,16 @@ void vec3RadToDeg(vec3 *v){
 
 // Perform linear interpolation between two vec3s and store the result in "out"!
 void vec3Lerp(const vec3 *v1, const vec3 *v2, const float time, vec3 *out){
-	out->x = lerpNumFast(v1->x, v2->x, time);
-	out->y = lerpNumFast(v1->y, v2->y, time);
-	out->z = lerpNumFast(v1->z, v2->z, time);
+	out->x = lerpFloatFast(v1->x, v2->x, time);
+	out->y = lerpFloatFast(v1->y, v2->y, time);
+	out->z = lerpFloatFast(v1->z, v2->z, time);
 }
 
 // Perform linear interpolation between two vec3s!
 vec3 vec3LerpR(vec3 v1, const vec3 v2, const float time){
-	v1.x = lerpNumFast(v1.x, v2.x, time);
-	v1.y = lerpNumFast(v1.y, v2.y, time);
-	v1.z = lerpNumFast(v1.z, v2.z, time);
+	v1.x = lerpFloatFast(v1.x, v2.x, time);
+	v1.y = lerpFloatFast(v1.y, v2.y, time);
+	v1.z = lerpFloatFast(v1.z, v2.z, time);
 
 	return(v1);
 }
@@ -794,9 +794,9 @@ vec3 vec3LerpFastR(vec3 v, const vec3 offset, const float time){
 ** and return a vec3 composed of these minima in "out".
 */
 void vec3Min(const vec3 *v1, const vec3 *v2, vec3 *out){
-	out->x = minNumFast(v1->x, v2->x);
-	out->y = minNumFast(v1->y, v2->y);
-	out->z = minNumFast(v1->z, v2->z);
+	out->x = minFloatFast(v1->x, v2->x);
+	out->y = minFloatFast(v1->y, v2->y);
+	out->z = minFloatFast(v1->z, v2->z);
 }
 
 /*
@@ -804,9 +804,9 @@ void vec3Min(const vec3 *v1, const vec3 *v2, vec3 *out){
 ** axis and return a vec3 composed of these minima.
 */
 vec3 vec3MinR(vec3 v1, const vec3 v2){
-	v1.x = minNumFast(v1.x, v2.x);
-	v1.y = minNumFast(v1.y, v2.y);
-	v1.z = minNumFast(v1.z, v2.z);
+	v1.x = minFloatFast(v1.x, v2.x);
+	v1.y = minFloatFast(v1.y, v2.y);
+	v1.z = minFloatFast(v1.z, v2.z);
 
 	return(v1);
 }
@@ -816,9 +816,9 @@ vec3 vec3MinR(vec3 v1, const vec3 v2){
 ** and return a vec3 composed of these maxima in "out".
 */
 void vec3Max(const vec3 *v1, const vec3 *v2, vec3 *out){
-	out->x = maxNumFast(v1->x, v2->x);
-	out->y = maxNumFast(v1->y, v2->y);
-	out->z = maxNumFast(v1->z, v2->z);
+	out->x = maxFloatFast(v1->x, v2->x);
+	out->y = maxFloatFast(v1->y, v2->y);
+	out->z = maxFloatFast(v1->z, v2->z);
 }
 
 /*
@@ -826,9 +826,9 @@ void vec3Max(const vec3 *v1, const vec3 *v2, vec3 *out){
 ** axis and return a vec3 composed of these maxima.
 */
 vec3 vec3MaxR(vec3 v1, const vec3 v2){
-	v1.x = maxNumFast(v1.x, v2.x);
-	v1.y = maxNumFast(v1.y, v2.y);
-	v1.z = maxNumFast(v1.z, v2.z);
+	v1.x = maxFloatFast(v1.x, v2.x);
+	v1.y = maxFloatFast(v1.y, v2.y);
+	v1.z = maxFloatFast(v1.z, v2.z);
 
 	return(v1);
 }

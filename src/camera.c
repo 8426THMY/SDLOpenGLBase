@@ -67,3 +67,8 @@ void cameraUpdateViewProjectionMatrix(camera *cam, const float windowWidth, cons
 float cameraDistance(const camera *cam, const vec3 *target){
 	return(sqrtf(vec3DistanceSquaredVec3(&cam->pos, target)));
 }
+
+// Compute the square of a target's distance from a camera! This is useful for depth sorting.
+float cameraDistanceSquared(const camera *cam, const vec3 *target){
+	return(vec3DistanceSquaredVec3(&cam->pos, target));
+}

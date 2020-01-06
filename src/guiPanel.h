@@ -44,13 +44,7 @@ typedef struct guiPanel {
 void guiPanelInit(guiPanel *gui);
 
 void guiPanelUpdate(guiPanel *gui, const float time);
-void guiPanelDraw(const guiPanel *gui, const transformState *root, const shaderObject *shader);
-
-/** TEMPORARY, USE SPRITES! **/
-return_t guiPanelSetupDefault();
-
-
-extern model guiPanelMdlDefault;
+void guiPanelDraw(const guiPanel *gui, const transformState *root, const shaderSprite *shader);
 
 
 #endif

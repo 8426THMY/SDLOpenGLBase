@@ -13,9 +13,10 @@ static void initializeParticle(const particleSystem *partSys, particle *part);
 static void operateParticle(const particleSystemDef *partSysDef, particle *part, const float time);
 static void constrainParticle(const particleSystemDef *partSysDef, particle *part, const float time);
 static void spawnParticles(particleSystem *partSys, const size_t numParticles);
+static void updateParticle(const particleSystemDef *partSysDef, particle *part, const float time);
 
-static void updateEmitters(particleSystem *partSys, const float time);
-static void updateParticles(particleSystem *partSys, const float time);
+static void updateSysEmitters(particleSystem *partSys, const float time);
+static void updateSysParticles(particleSystem *partSys, const float time);
 
 static void drawParticles(const particleSystem *partSys, const camera *cam, const shaderSprite *shader, const float time);
 
@@ -123,11 +124,8 @@ void particleSysUpdate(particleSystem *partSys, const float time){
 	particleSystem *curChild;
 	const particleSystem *lastChild;
 
-	updateEmitters(partSys, time);
-	updateParticles(partSys, time);
-	// If we keep track of the number of paricles that have died, we
-	// can avoid sorting the dead particles at the end of the array.
-	/** SORT PARTICLES HERE **/
+	updateSysEmitters(partSys, time);
+	updateSysParticles(partSys, time);
 
 	curChild = partSys->children;
 	lastChild = &curChild[partSys->partSysDef->numChildren];
@@ -272,12 +270,21 @@ static void spawnParticles(particleSystem *partSys, const size_t numParticles){
 	partSys->numParticles += numParticles;
 }
 
+// Update a particular particle.
+static void updateParticle(const particleSystemDef *partSysDef, particle *part, const float time){
+	#warning "Can the particle die while we're updating it?"
+	#warning "If so, I guess we can wait a tick to delete it."
+	operateParticle(partSysDef, part, time);
+	constrainParticle(partSysDef, part, time);
+	particleUpdate(part, time);
+}
+
 
 /*
 ** Update the emitters in a particle system. This may spawn
 ** new particles, but it will never destroy old ones.
 */
-static void updateEmitters(particleSystem *partSys, const float time){
+static void updateSysEmitters(particleSystem *partSys, const float time){
 	size_t remainingParticles = partSys->partSysDef->maxParticles - partSys->numParticles;
 
 	particleEmitter *curEmitter = partSys->emitters;
@@ -302,24 +309,31 @@ static void updateEmitters(particleSystem *partSys, const float time){
 }
 
 // Update a system's particles. This includes executing the operators and constraints.
-static void updateParticles(particleSystem *partSys, const float time){
+static void updateSysParticles(particleSystem *partSys, const float time){
 	const particleSystemDef *partSysDef = partSys->partSysDef;
 
 	particle *curParticle = partSys->particles;
+	particle *freePos = curParticle;
 	const particle *lastParticle = &curParticle[partSys->numParticles];
 	// Update every living particle using the system's operators and constraints.
-	// Note that because emitters cannot destroy particles, they're all alive.
+	//
+	// Every living particle should be copied back to the first free
+	// position in the array to ensure that it doesn't have any gaps.
 	for(; curParticle < lastParticle; ++curParticle){
 		// If the particle hasn't died, update it!
 		if(particleAlive(curParticle, time)){
-			// Note that the particle may die while we're updating it.
-			operateParticle(partSysDef, curParticle, time);
-			constrainParticle(partSysDef, curParticle, time);
-			particleUpdate(curParticle, time);
+			updateParticle(partSysDef, curParticle, time);
 
-		// Otherwise, we should kill the particle.
+			// Shift the particle over to the
+			// first free position in the array.
+			if(freePos != curParticle){
+				*freePos = *curParticle;
+			}
+			++freePos;
+
+		// Otherwise, just decrease the particle count.
 		}else{
-			particleDelete(curParticle);
+			--partSys->numParticles;
 		}
 	}
 }
@@ -367,15 +381,24 @@ static void drawParticles(const particleSystem *partSys, const camera *cam, cons
 		transformStateToMat4(&curParticle->state, &curState->state);
 		// Get the particle's UV coordinates!
 		curState->uvOffsets = texFrame->bounds;
+
+		curParticle->camDistance = cameraDistanceSquared(cam, &curParticle->state.pos);
 	}
+
+	#warning "This should be a property of renderers."
+	#warning "We need to sort the particles before we generate the render states."
+	#warning "Since we need to update camDistance, this means looping through the particles twice. Yuck."
+	/** SORT PARTICLES HERE(?) **/
+	if(partSys->numParticles > 0){
+		timsort(partSys->particles, partSys->numParticles, sizeof(*partSys->particles), &particleCompare);
+	}
+
 
 	#warning "This may be a problem, especially if we're multithreading and other systems are using the same sprite."
 	#warning "Since multithreading isn't an option, maybe use a global particle state buffer for all systems?"
 	// Upload the particles' states to the shader.
 	glBindBuffer(GL_ARRAY_BUFFER, particleSprite->stateBufferID);
 	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(particleStates[0]) * partSys->numParticles, &particleStates[0]);
-
-
 	// Draw each instance of the particle!
 	glDrawElementsInstanced(GL_TRIANGLES, particleSprite->numIndices, GL_UNSIGNED_INT, NULL, partSys->numParticles);
 }

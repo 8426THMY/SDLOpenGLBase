@@ -23,7 +23,7 @@ void spriteInit(sprite *spriteData){
 ** the state and UV buffers are not filled at this stage.
 ** We only fill them when we actually draw our sprite.
 */
-void spriteGenerateBuffers(sprite *spriteData, const vec3 *vertices, const size_t numVertices, const size_t *indices, const size_t numIndices){
+void spriteGenerateBuffers(sprite *spriteData, const spriteVertex *vertices, const size_t numVertices, const size_t *indices, const size_t numIndices){
 	// Generate a vertex array object for our sprite and bind it!
 	glGenVertexArrays(1, &spriteData->vertexArrayID);
 	glBindVertexArray(spriteData->vertexArrayID);
@@ -34,9 +34,12 @@ void spriteGenerateBuffers(sprite *spriteData, const vec3 *vertices, const size_
 		glBufferData(GL_ARRAY_BUFFER, sizeof(*vertices) * numVertices, vertices, GL_STATIC_DRAW);
 
 		// Set up the vertex array object attributes that require this buffer!
-		#warning "We should have vertex UVs for sprites."
+		// Vertex positions.
 		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (GLvoid *)0);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(spriteVertex), (GLvoid *)offsetof(spriteVertex, pos));
+		// Vertex UVs.
+		glEnableVertexAttribArray(1);
+		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(spriteVertex), (GLvoid *)offsetof(spriteVertex, uv));
 
 
 		#warning "Should this be a global buffer that's part of the program?"
@@ -49,25 +52,25 @@ void spriteGenerateBuffers(sprite *spriteData, const vec3 *vertices, const size_
 		// Set up the vertex array object attributes that require this buffer!
 		// Because the transformation state is a 4x4 matrix, it needs four vertex attributes.
 		// Transformation state first row.
-		glEnableVertexAttribArray(1);
-		glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(spriteState), (GLvoid *)offsetof(spriteState, state.m[0]));
-		glVertexAttribDivisor(1, 1);
-		// Transformation state second row.
 		glEnableVertexAttribArray(2);
-		glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(spriteState), (GLvoid *)offsetof(spriteState, state.m[1]));
+		glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(spriteState), (GLvoid *)offsetof(spriteState, state.m[0]));
 		glVertexAttribDivisor(2, 1);
-		// Transformation state third row.
+		// Transformation state second row.
 		glEnableVertexAttribArray(3);
-		glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(spriteState), (GLvoid *)offsetof(spriteState, state.m[2]));
+		glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(spriteState), (GLvoid *)offsetof(spriteState, state.m[1]));
 		glVertexAttribDivisor(3, 1);
-		// Transformation state fourth row.
+		// Transformation state third row.
 		glEnableVertexAttribArray(4);
-		glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(spriteState), (GLvoid *)offsetof(spriteState, state.m[3]));
+		glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(spriteState), (GLvoid *)offsetof(spriteState, state.m[2]));
 		glVertexAttribDivisor(4, 1);
-		// UV offsets.
+		// Transformation state fourth row.
 		glEnableVertexAttribArray(5);
-		glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(spriteState), (GLvoid *)offsetof(spriteState, uvOffsets));
+		glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(spriteState), (GLvoid *)offsetof(spriteState, state.m[3]));
 		glVertexAttribDivisor(5, 1);
+		// UV offsets.
+		glEnableVertexAttribArray(6);
+		glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(spriteState), (GLvoid *)offsetof(spriteState, uvOffsets));
+		glVertexAttribDivisor(6, 1);
 
 
 		// Generate a buffer object for our indices and bind it!
@@ -82,6 +85,15 @@ void spriteGenerateBuffers(sprite *spriteData, const vec3 *vertices, const size_
 	spriteData->numIndices = numIndices;
 }
 
+
+/*
+** Return whether or not two vertices are different.
+** This works so long as our vertices have no padding.
+*/
+return_t spriteVertexDifferent(const spriteVertex *v1, const spriteVertex *v2){
+	return(memcmp(v1, v2, sizeof(*v2)) != 0);
+}
+
 // Return whether or not two sprites are different.
 return_t spriteDifferent(const sprite *s1, const sprite *s2){
 	return(s1->vertexArrayID != s2->vertexArrayID);
@@ -89,11 +101,23 @@ return_t spriteDifferent(const sprite *s1, const sprite *s2){
 
 
 return_t spriteSetupDefault(){
-	const vec3 vertices[4] = {
-		{.x = -0.5f, .y =  0.5f, .z = 0.f},
-		{.x = -0.5f, .y = -0.5f, .z = 0.f},
-		{.x =  0.5f, .y = -0.5f, .z = 0.f},
-		{.x =  0.5f, .y =  0.5f, .z = 0.f}
+	const spriteVertex vertices[4] = {
+		{
+			.pos.x = -0.5f, .pos.y =  0.5f, .pos.z = 0.f,
+			.uv.x = 0.f, 0.f
+		},
+		{
+			.pos.x = -0.5f, .pos.y = -0.5f, .pos.z = 0.f,
+			.uv.x = 0.f, 1.f
+		},
+		{
+			.pos.x =  0.5f, .pos.y = -0.5f, .pos.z = 0.f,
+			.uv.x = 1.f, 1.f
+		},
+		{
+			.pos.x =  0.5f, .pos.y =  0.5f, .pos.z = 0.f,
+			.uv.x = 1.f, 0.f
+		}
 	};
 
 	const size_t indices[6] = {

@@ -871,7 +871,7 @@ static return_t edgeSeparation(const colliderHull *hullA, const colliderHull *hu
 ** to create the contact manifold.
 */
 static void clipManifoldSHC(const colliderHull *hullA, const colliderHull *hullB, const collisionData *cd, contactManifold *cm){
-	const float bestFaceSeparation = maxNumFast(cd->faceA.separation, cd->faceB.separation);
+	const float bestFaceSeparation = maxFloatFast(cd->faceA.separation, cd->faceB.separation);
 
 	// If the greatest separation occurs on an edge normal, clip using
 	// the edges. These bias terms will ensure that face contacts are

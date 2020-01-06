@@ -7,12 +7,18 @@
 
 #include "rectangle.h"
 #include "vec3.h"
+#include "vec2.h"
 #include "mat4.h"
 
 #include "utilTypes.h"
 
 #include "settingsSprites.h"
 
+
+typedef struct spriteVertex {
+	vec3 pos;
+	vec2 uv;
+} spriteVertex;
 
 typedef struct sprite {
 	GLuint vertexArrayID;
@@ -33,7 +39,9 @@ typedef struct spriteState {
 
 void spriteInit(sprite *spriteData);
 
-void spriteGenerateBuffers(sprite *spriteData, const vec3 *vertices, const size_t numVertices, const size_t *indices, const size_t numIndices);
+void spriteGenerateBuffers(sprite *spriteData, const spriteVertex *vertices, const size_t numVertices, const size_t *indices, const size_t numIndices);
+
+return_t spriteVertexDifferent(const spriteVertex *v1, const spriteVertex *v2);
 return_t spriteDifferent(const sprite *s1, const sprite *s2);
 
 return_t spriteSetupDefault();

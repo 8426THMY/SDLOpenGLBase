@@ -14,21 +14,34 @@ typedef union bitFloat {
 } bitFloat;
 
 
-float minNum(const float x, const float y){
+float minFloat(const float x, const float y){
 	return(x < y ? x : y);
 }
 
-float maxNum(const float x, const float y){
+float maxFloat(const float x, const float y){
 	return(x > y ? x : y);
 }
 
-float clampNum(const float x, const float min, const float max){
+float clampFloat(const float x, const float min, const float max){
 	const float t = x < min ? min : x;
 	return(t > max ? max : t);
 }
 
+unsigned int minUint(const unsigned int x, const unsigned int y){
+	return(x < y ? x : y);
+}
 
-float lerpNum(const float x, const float y, const float t){
+unsigned int maxUint(const unsigned int x, const unsigned int y){
+	return(x > y ? x : y);
+}
+
+unsigned int clampUint(const unsigned int x, const unsigned int min, const unsigned int max){
+	const unsigned int t = x < min ? min : x;
+	return(t > max ? max : t);
+}
+
+
+float lerpFloat(const float x, const float y, const float t){
 	#ifdef FP_FAST_FMAF
 		return(fmaf(t, y, fmaf(-t, x, x)));
 	#else

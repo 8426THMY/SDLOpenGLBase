@@ -18,6 +18,11 @@ typedef struct particleDef {
 } particleDef;
 
 typedef struct particle {
+	// This is used for sorting particles with transparency.
+	// We normally store the squared magnitude, not that it matters.
+	#warning "Can we store this somewhere else? Perhaps in a particle equivalent of spriteState?"
+	float camDistance;
+
 	transformState state;
 	vec3 velocity;
 
@@ -31,9 +36,6 @@ typedef struct particle {
 
 	// How much longer the particle can be alive for.
 	float lifetime;
-	// This is used for sorting particles with transparency.
-	// We normally store the squared magnitude, not that it matters.
-	float camDistance;
 } particle;
 
 
@@ -43,6 +45,7 @@ void particleInit(particle *part);
 void particleUpdate(particle *part, const float time);
 
 return_t particleAlive(particle *part, const float time);
+return_t particleCompare(const void *p1, const void *p2);
 
 void particleDelete(particle *part);
 void particleDefDelete(particleDef *partDef);

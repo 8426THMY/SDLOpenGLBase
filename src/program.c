@@ -228,10 +228,12 @@ static void updateObjects(program *prg){
 	}*/
 }
 
-/** TEMPORARY PARTICLE STUFF! **/
+/** TEMPORARY STUFF! **/
 #include "particleSystem.h"
+#include "guiElement.h"
 particleSystemDef partSysDef;
 particleSystem partSys;
+guiElement gui;
 static void update(program *prg){
 	updateCameras(prg);
 	updateObjects(prg);
@@ -242,7 +244,7 @@ static void update(program *prg){
 
 
 	/** TEMPORARY GUI UPDATE STUFF! **/
-	/*if(prg->keyStates[SDL_SCANCODE_LEFT]){
+	if(prg->keyStates[SDL_SCANCODE_LEFT]){
 		gui.root.pos.x -= 100.f * prg->step.updateDelta;
 	}
 	if(prg->keyStates[SDL_SCANCODE_RIGHT]){
@@ -268,7 +270,7 @@ static void update(program *prg){
 		gui.root.scale.y -= 100.f * prg->step.updateDelta;
 	}
 
-	guiElementUpdate(&gui, prg->step.updateTime);*/
+	guiElementUpdate(&gui, prg->step.updateTime);
 }
 
 static void render(program *prg){
@@ -289,10 +291,10 @@ static void render(program *prg){
 	particleSysDraw(&partSys, &prg->cam, &prg->spriteShader, prg->step.renderDelta);
 
 	/** TEMPORARY GUI RENDER STUFF! **/
-	//glUseProgram(prg->objectShader.programID);
+	glUseProgram(prg->spriteShader.programID);
 	/** Do we need this? **/
-	//glClear(GL_DEPTH_BUFFER_BIT);
-	//guiElementDraw(&gui, prg->windowWidth, prg->windowHeight, &prg->objectShader);
+	glClear(GL_DEPTH_BUFFER_BIT);
+	guiElementDraw(&gui, prg->windowWidth, prg->windowHeight, &prg->spriteShader);
 
 
 	SDL_GL_SwapWindow(prg->window);
@@ -347,6 +349,7 @@ static return_t initLibs(program *prg){
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
 
+	#warning "Don't enable this unless the object is translucent."
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -393,7 +396,7 @@ static return_t initResources(program *prg){
 	//skeleObjInit(&obj->skeleData, mdl->skele);
 
 	// Temporary animation stuff.
-	/** Playing "soldier_animations_anims_old\\a_runN_LOSER.smd" on the Scout makes his left arm flip. **/
+	#warning "Playing 'soldier_animations_anims_old\\a_runN_LOSER.smd' on the Scout makes his left arm flip."
 	animDef = moduleSkeleAnimDefAlloc();
 	skeleAnimLoadSMD(animDef, "soldier_animations_anims_old\\a_runN_MELEE.smd");
 	obj->skeleData.anims = moduleSkeleAnimPrepend(&obj->skeleData.anims);
@@ -422,9 +425,8 @@ static return_t initResources(program *prg){
 
 
 	/** EVEN MORE TEMPORARY GUI STUFF **/
-	/*textureGroup *texGroup;
+	textureGroup *texGroup;
 
-	guiPanelSetupDefault();
 	guiElementInit(&gui, GUI_TYPE_PANEL);
 
 	texGroup = moduleTexGroupAlloc();
@@ -477,7 +479,7 @@ static return_t initResources(program *prg){
 	gui.data.panel.uvCoords[7].w = 1.f;
 	gui.data.panel.uvCoords[7].h = 0.2f;
 
-	gui.data.panel.flags |= GUIPANEL_TILE_BODY;*/
+	gui.data.panel.flags |= GUIPANEL_TILE_BODY;
 
 
 	return(1);

@@ -1151,10 +1151,10 @@ quat quatRotateByVec3DegR(const quat q, const vec3 v){
 
 // Perform linear interpolation between two quaternions!
 void quatLerp(quat *q1, const quat *q2, const float time){
-	q1->x = lerpNumFast(q1->x, q2->x, time);
-	q1->y = lerpNumFast(q1->y, q2->y, time);
-	q1->z = lerpNumFast(q1->z, q2->z, time);
-	q1->w = lerpNumFast(q1->w, q2->w, time);
+	q1->x = lerpFloatFast(q1->x, q2->x, time);
+	q1->y = lerpFloatFast(q1->y, q2->y, time);
+	q1->z = lerpFloatFast(q1->z, q2->z, time);
+	q1->w = lerpFloatFast(q1->w, q2->w, time);
 
 	// It's nice to be safe... but it isn't very fast.
 	quatNormalizeQuat(q1);
@@ -1162,10 +1162,10 @@ void quatLerp(quat *q1, const quat *q2, const float time){
 
 // Perform linear interpolation between two quaternions and store the result in "out"!
 void quatLerpOut(const quat *q1, const quat *q2, const float time, quat *out){
-	out->x = lerpNumFast(q1->x, q2->x, time);
-	out->y = lerpNumFast(q1->y, q2->y, time);
-	out->z = lerpNumFast(q1->z, q2->z, time);
-	out->w = lerpNumFast(q1->w, q2->w, time);
+	out->x = lerpFloatFast(q1->x, q2->x, time);
+	out->y = lerpFloatFast(q1->y, q2->y, time);
+	out->z = lerpFloatFast(q1->z, q2->z, time);
+	out->w = lerpFloatFast(q1->w, q2->w, time);
 
 	// It's nice to be safe... but it isn't very fast.
 	quatNormalizeQuat(out);
@@ -1173,10 +1173,10 @@ void quatLerpOut(const quat *q1, const quat *q2, const float time, quat *out){
 
 // Perform linear interpolation between two quaternions!
 quat quatLerpR(quat q1, const quat q2, const float time){
-	q1.x = lerpNumFast(q1.x, q2.x, time);
-	q1.y = lerpNumFast(q1.y, q2.y, time);
-	q1.z = lerpNumFast(q1.z, q2.z, time);
-	q1.w = lerpNumFast(q1.w, q2.w, time);
+	q1.x = lerpFloatFast(q1.x, q2.x, time);
+	q1.y = lerpFloatFast(q1.y, q2.y, time);
+	q1.z = lerpFloatFast(q1.z, q2.z, time);
+	q1.w = lerpFloatFast(q1.w, q2.w, time);
 
 	// It's nice to be safe... but it isn't very fast.
 	return(quatNormalizeQuatR(q1));

@@ -161,7 +161,7 @@ return_t modelLoadOBJ(model *mdl, const char *mdlPath){
 
 				// Read the vertex UVs from the line!
 				newUV.x = strtod(&line[3], &tokPos);
-				newUV.y = -strtod(tokPos, NULL);
+				newUV.y = 1.f - strtod(tokPos, NULL);
 
 				tempUVs[tempUVsSize] = newUV;
 				++tempUVsSize;
@@ -202,7 +202,7 @@ return_t modelLoadOBJ(model *mdl, const char *mdlPath){
 
 			// Faces.
 			}else if(memcmp(line, "f ", 2) == 0){
-				size_t a;
+				size_t i;
 				char *tokEnd;
 
 				tokPos = &line[2];
@@ -214,8 +214,8 @@ return_t modelLoadOBJ(model *mdl, const char *mdlPath){
 
 				// If the vertex we want to add already exists, create an index to it!
 				// Otherwise, add it to the vector!
-				for(a = 0; a < 3 || tokPos != NULL; ++a){
-					size_t b;
+				for(i = 0; i < 3 || tokPos != NULL; ++i){
+					size_t j;
 
 					vertex tempVertex;
 					size_t posIndex, uvIndex, normalIndex;
@@ -251,7 +251,7 @@ return_t modelLoadOBJ(model *mdl, const char *mdlPath){
 
 
 					// Check if this vertex already exists!
-					for(b = 0; b < tempVerticesSize; ++b){
+					for(j = 0; j < tempVerticesSize; ++j){
 						// Looks like it does, so we don't need to store it again!
 						if(!vertexDifferent(checkVertex, &tempVertex)){
 							break;
@@ -260,7 +260,7 @@ return_t modelLoadOBJ(model *mdl, const char *mdlPath){
 						++checkVertex;
 					}
 					// The vertex does not exist, so add it to the vector!
-					if(b == tempVerticesSize){
+					if(j == tempVerticesSize){
 						// If we're out of space, allocate some more!
 						if(tempVerticesSize >= tempVerticesCapacity){
 							tempVerticesCapacity = tempVerticesSize * 2;
@@ -274,7 +274,7 @@ return_t modelLoadOBJ(model *mdl, const char *mdlPath){
 					}
 					// If this face has more than three vertices, it needs to be split up!
 					// We'll need to store two additional indices for every extra face.
-					if(a >= 3){
+					if(i >= 3){
 						tempIndicesSize += 2;
 						if(tempIndicesSize >= tempIndicesCapacity){
 							tempIndicesCapacity = tempIndicesSize * 2;
@@ -284,7 +284,7 @@ return_t modelLoadOBJ(model *mdl, const char *mdlPath){
 							}
 						}
 						// Get the index of the first vertex that this face used.
-						tempIndices[tempIndicesSize - 2] = tempIndices[tempIndicesSize - 2 - a];
+						tempIndices[tempIndicesSize - 2] = tempIndices[tempIndicesSize - 2 - i];
 						// Now get the index of the last vertex that this face used.
 						tempIndices[tempIndicesSize - 1] = tempIndices[tempIndicesSize - 3];
 
@@ -298,7 +298,7 @@ return_t modelLoadOBJ(model *mdl, const char *mdlPath){
 							}
 						}
 					}
-					tempIndices[tempIndicesSize] = b;
+					tempIndices[tempIndicesSize] = j;
 					++tempIndicesSize;
 
 
@@ -619,7 +619,7 @@ return_t modelLoadSMD(model *mdl, const char *mdlPath){
 								tempVertex.normal.y = strtod(tokPos, &tokPos);
 								tempVertex.normal.z = strtod(tokPos, &tokPos);
 								tempVertex.uv.x = strtod(tokPos, &tokPos);
-								tempVertex.uv.y = -strtod(tokPos, &tokPos);
+								tempVertex.uv.y = 1.f - strtod(tokPos, &tokPos);
 								size_t numLinks = strtoul(tokPos, &tokPos, 10);
 								// Make sure some links were specified.
 								if(numLinks > 0){
