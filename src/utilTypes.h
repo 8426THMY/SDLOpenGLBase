@@ -6,8 +6,10 @@
 
 
 typedef uint_least8_t byte_t;
-typedef int return_t;
+typedef uint_least8_t type_t;
 typedef uint_least8_t flags_t;
+
+typedef int return_t;
 
 
 #define invalidValue(x)   ((typeof(x))-1)

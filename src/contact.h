@@ -18,8 +18,8 @@
 
 
 typedef size_t separationFeature_t;
-typedef uint_least8_t separationType_t;
-typedef uint_least8_t contactPointIndex_t;
+typedef type_t separationType_t;
+typedef type_t contactPointIndex_t;
 
 
 // Stores either the two faces or the two edges

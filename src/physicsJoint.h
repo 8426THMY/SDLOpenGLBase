@@ -24,7 +24,7 @@
 #endif
 
 
-typedef uint_least8_t physJointType_t;
+typedef type_t physJointType_t;
 
 
 #warning "We might be able to remove this."

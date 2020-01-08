@@ -5,6 +5,8 @@
 #define GLEW_STATIC
 #include <GL/glew.h>
 
+#include <string.h>
+
 #include "rectangle.h"
 #include "vec3.h"
 #include "vec2.h"

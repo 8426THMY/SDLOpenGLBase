@@ -25,7 +25,7 @@
 
 typedef struct physicsCollider physicsCollider;
 
-typedef uint_least8_t physPairTimestamp_t;
+typedef type_t physPairTimestamp_t;
 
 #warning "Use quad-lists for these. It's literally what they were made."
 #warning "The timestamps are also unused at the moment."

@@ -4,6 +4,7 @@
 #include <math.h>
 
 #include "sprite.h"
+#include "sort.h"
 
 #include "memoryManager.h"
 

@@ -97,7 +97,7 @@ Methods:
 **/
 
 
-typedef uint_least8_t guiType_t;
+typedef type_t guiType_t;
 
 typedef struct guiElement guiElement;
 typedef struct guiElement {

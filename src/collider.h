@@ -18,7 +18,7 @@
 #define COLLIDER_NUM_TYPES 1
 
 
-typedef uint_least8_t colliderType_t;
+typedef type_t colliderType_t;
 
 
 typedef struct collider {
