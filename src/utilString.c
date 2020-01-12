@@ -1,7 +1,6 @@
 #include "utilString.h"
 
 
-#include <stdlib.h>
 #include <ctype.h>
 
 

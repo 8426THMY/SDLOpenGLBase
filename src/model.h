@@ -2,8 +2,6 @@
 #define model_h
 
 
-#include <stdio.h>
-
 #include "utilTypes.h"
 
 #include "mesh.h"

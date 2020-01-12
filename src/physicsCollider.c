@@ -311,7 +311,9 @@ void physColliderCollisionCallback(void *colliderA, void *colliderB){
 
 			// If this is a new contact, allocate a new pair.
 			}else{
-				sharedPair = modulePhysicsContactPairAlloc();
+				if(!(sharedPair = modulePhysicsContactPairAlloc())){
+					/** MALLOC FAILED **/
+				}
 
 				// Set up the new contact pair. This involves building
 				// a physics manifold from our contact manifold and
@@ -332,7 +334,9 @@ void physColliderCollisionCallback(void *colliderA, void *colliderB){
 
 			// Otherwise, we'll have to create one.
 			}else{
-				sharedPair = modulePhysicsSeparationPairAlloc();
+				if(!(sharedPair = modulePhysicsSeparationPairAlloc())){
+					/** MALLOC FAILED **/
+				}
 
 				// Set up the new separation pair, including its lists.
 				physSeparationPairInit(

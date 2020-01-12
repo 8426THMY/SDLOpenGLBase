@@ -2,7 +2,7 @@
 #define animation_h
 
 
-#include <stdio.h>
+#include <stddef.h>
 
 #include "utilTypes.h"
 

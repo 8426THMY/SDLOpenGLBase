@@ -2,7 +2,7 @@
 #define text_h
 
 
-#include "characterMap.h"
+#include "cmap.h"
 
 
 #endif

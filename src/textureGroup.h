@@ -2,7 +2,7 @@
 #define textureGroup_h
 
 
-#include <stdio.h>
+#include <stddef.h>
 
 #define GLEW_STATIC
 #include <GL/glew.h>

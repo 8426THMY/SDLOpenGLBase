@@ -42,6 +42,10 @@ How can we do this?
 #warning "Should resource arrays be sorted? Then we could use a binary search to find particular items by name."
 #warning "What if we just load everything in alphabetical order? Is that possible?"
 
+#warning "When we implement intrinsics, use '_MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON)' to better handle subnormal numbers."
+#warning "Apparently '-ffast-math' should do this anyway. Maybe test it?"
+/* https://stackoverflow.com/questions/9314534/why-does-changing-0-1f-to-0-slow-down-performance-by-10x */
+
 
 int main(int argc, char **argv){
 	program prg;

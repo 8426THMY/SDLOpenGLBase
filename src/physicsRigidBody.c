@@ -160,7 +160,7 @@ return_t physRigidBodyDefLoad(physicsRigidBodyDef *bodyDef, const char *bodyPath
 								"Error loading rigid body!\n"
 								"Path: %s\n"
 								"Line: %s\n"
-								"Error: Ignoring invalid collider of type '%u'.\n",
+								"Error: Ignoring invalid collider of type '%i'.\n",
 								bodyFullPath, line, currentType
 							);
 						}

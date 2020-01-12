@@ -2,7 +2,7 @@
 #define texture_h
 
 
-#include <stdio.h>
+#include <stdint.h>
 
 #define GLEW_STATIC
 #include <GL/glew.h>

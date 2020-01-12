@@ -1,8 +1,6 @@
 #include "animation.h"
 
 
-#include <stdlib.h>
-
 #include "memoryManager.h"
 
 

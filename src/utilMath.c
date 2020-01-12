@@ -7,11 +7,17 @@
 #define SQRT_ONE_THIRD 0.57735026f
 
 
-// This union is used for performing bitwise operations on floats.
+// These unions are used for performing
+// bitwise operations on floats and doubles.
 typedef union bitFloat {
 	float f;
 	uint32_t l;
 } bitFloat;
+
+typedef union bitDouble {
+	double d;
+	uint64_t l;
+} bitDouble;
 
 
 float minFloat(const float x, const float y){

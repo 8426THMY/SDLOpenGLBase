@@ -1,7 +1,7 @@
 #include "textureGroup.h"
 
 
-#include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 
 #include "utilString.h"

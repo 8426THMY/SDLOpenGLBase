@@ -230,6 +230,7 @@ static void updateObjects(program *prg){
 
 /** TEMPORARY STUFF! **/
 #include "particleSystem.h"
+#include "cmap.h"
 #include "guiElement.h"
 particleSystemDef partSysDef;
 particleSystem partSys;
@@ -422,6 +423,19 @@ static return_t initResources(program *prg){
 	partSysDef.operators->func = &particleOperatorAddGravity;
 
 	particleSysInit(&partSys, &partSysDef);
+
+
+	/** TEMPORARY FONT STUFF **/
+	const cmapHeader *cmap = charMapLoadTTF(".\\PxPlus_IBM_BIOS.ttf");
+	uint16_t i, j = 0;
+	for(i = 0; i < 0xFFFF; ++i){
+		const uint32_t index = charMapIndex(cmap, (charCodeUnit_t){._32 = i});
+		if(index != 0){
+			++j;
+			printf("%u - %u\n", i, index);
+		}
+	}
+	printf("Total mapped: %u\n", j);
 
 
 	/** EVEN MORE TEMPORARY GUI STUFF **/

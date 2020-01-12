@@ -1,7 +1,7 @@
 #include "model.h"
 
 
-#include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 
 #include "vec2.h"
@@ -793,7 +793,9 @@ return_t modelLoadSMD(model *mdl, const char *mdlPath){
 			tempBones = memoryManagerGlobalResize(tempBones, sizeof(*tempBones) * tempBonesSize);
 			// Initialise the model's skeleton!
 			if(tempBones != NULL && tempBonesSize > 0){
-				mdl->skele = moduleSkeletonAlloc();
+				if(!(mdl->skele = moduleSkeletonAlloc())){
+					/** MALLOC FAILED **/
+				}
 				skeleInitSet(mdl->skele, mdl->name, mdlPathLength, tempBones, tempBonesSize);
 			}
 
