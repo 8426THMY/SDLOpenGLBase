@@ -24,12 +24,10 @@ typedef struct texture {
 
 void textureInit(texture *tex);
 
-return_t textureLoad(texture *tex, const char *texPath);
+texture *textureLoad(const char *texPath);
 return_t textureSetupDefault();
 
-void textureSetFiltering(texture *tex, GLint filtering, const uint_least8_t mips);
-
-size_t textureFindNameIndex(const char *name);
+void textureSetFiltering(const GLuint id, GLint filtering, const uint_least8_t mips);
 
 void textureDelete(texture *tex);
 

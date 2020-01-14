@@ -70,16 +70,13 @@ void texGroupAnimDefInit(textureGroupAnimDef *texGroupAnimDef);
 void texGroupInit(textureGroup *texGroup);
 void texGroupStateInit(textureGroupState *texGroupState, const textureGroup *texGroup);
 
-return_t texGroupLoad(textureGroup *texGroup, const char *texGroupPath);
+textureGroup *texGroupLoad(const char *texGroupPath);
 
 void texGroupStateUpdate(textureGroupState *texGroupState, const float time);
 textureGroupFrame *texGroupStateGetFrame(const textureGroupState *texGroupState);
 
 void texGroupAnimDefDelete(textureGroupAnimDef *texGroupAnimDef);
 void texGroupDelete(textureGroup *texGroup);
-
-size_t texGroupFindAnimNameIndex(const textureGroup *texGroup, const char *name);
-size_t texGroupFindNameIndex(const char *name);
 
 
 extern textureGroup texGroupDefault;

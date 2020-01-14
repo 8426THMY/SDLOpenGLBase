@@ -11,10 +11,10 @@ return_t fontLoad(font *f, const char *texPath, const char *cmapPath){
 		/** MALLOC FAILED **/
 	}
 	// Load the font's graphics.
-	textureLoad(f->tex, texPath);
+	f->tex = textureLoad(texPath);
 
 	// Load the font's glyph information.
-	//
+	//f->glyphs = glyphLoadArray(
 
 	// Allocate memory for the font's character map and load it.
 	f->cmap = charMapLoadTTF(cmapPath);

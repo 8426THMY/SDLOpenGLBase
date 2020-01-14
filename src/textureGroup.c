@@ -8,7 +8,7 @@
 #include "utilFile.h"
 
 #include "memoryManager.h"
-#include "moduleTexture.h"
+#include "moduleTextureGroup.h"
 
 
 #define TEXTUREGROUP_PATH_PREFIX        ".\\resource\\texgroups\\"
@@ -54,6 +54,10 @@ textureGroup texGroupDefault = {
 };
 
 
+// Forward-declare any helper functions!
+static size_t texGroupAnimFindNameIndex(const textureGroupAnimDef *texAnims, const size_t numAnims, const char *name);
+
+
 void texGroupFrameInit(textureGroupFrame *texGroupFrame){
 	texGroupFrame->diffuse = &texDefault;
 
@@ -86,21 +90,35 @@ void texGroupStateInit(textureGroupState *texGroupState, const textureGroup *tex
 }
 
 
-// Load the textureGroup specified by "texGroupPath".
-return_t texGroupLoad(textureGroup *texGroup, const char *texGroupPath){
+/*
+** Load the texture group specified by "texGroupPath" and return a pointer to it.
+** If the texture group could not be loaded, return a pointer to the default texture group.
+*/
+textureGroup *texGroupLoad(const char *texGroupPath){
+	textureGroup *texGroup;
+
 	FILE *texGroupFile;
 	char texGroupFullPath[FILE_MAX_LINE_LENGTH];
-	size_t texGroupPathLength = strlen(texGroupPath);
+	size_t texGroupPathLength;
 
+
+	#ifdef TEMP_MODULE_FIND
+	// If the texture group has already been loaded, return a pointer to it!
+	if((texGroup = moduleTextureGroupFind(texGroupPath)) != &texGroupDefault){
+		return(texGroup);
+	}
+	#else
+	texGroup = &texGroupDefault;
+	#endif
+
+
+	texGroupPathLength = strlen(texGroupPath);
 	// Find the full path for the textureGroup!
 	fileGenerateFullPath(
 		texGroupPath, texGroupPathLength,
 		TEXTUREGROUP_PATH_PREFIX, TEXTUREGROUP_PATH_PREFIX_LENGTH,
 		texGroupFullPath
 	);
-
-
-	texGroupInit(texGroup);
 
 
 	// Load the textureGroup!
@@ -196,6 +214,9 @@ return_t texGroupLoad(textureGroup *texGroup, const char *texGroupPath){
 					size_t i;
 					// Loop through all the texture frames we're loading!
 					for(i = frameStart; i <= frameEnd; ++i){
+						texture *tex;
+
+
 						// Add the value in 'a' to the end of the texture's
 						// file name if there are multiple frames to add!
 						if(frameEnd > 0){
@@ -220,23 +241,9 @@ return_t texGroupLoad(textureGroup *texGroup, const char *texGroupPath){
 						}
 
 
-						// Check if we've already loaded a texture with this name!
-						texture *tex = moduleTextureFind(namePointer);
-						// If we couldn't find the texture, load it!
-						if(tex == NULL){
-							// Make sure we can allocate
-							// enough memory for the texture.
-							if(!(tex = moduleTextureAlloc())){
-								/** MALLOC FAILED **/
-							}
-							// If we can't load it, just
-							// use the error texture.
-							if(!textureLoad(tex, namePointer)){
-								moduleTextureFree(tex);
-								tex = &texDefault;
-							}
-						}
-
+						// Load the texture if it hasn't already been loaded and
+						// keep a pointer to it in our array of referenced textures.
+						tex = textureLoad(namePointer);
 						// If we're out of space, allocate some more!
 						if(texturesSize >= texturesCapacity){
 							texturesCapacity = texturesSize * 2;
@@ -312,7 +319,7 @@ return_t texGroupLoad(textureGroup *texGroup, const char *texGroupPath){
 
 
 					// If an animation with this name already exists, delete the new one!
-					if(texGroupFindAnimNameIndex(texGroup, tempAnim->name) != currentAnim){
+					if(texGroupAnimFindNameIndex(texAnims, texAnimsSize, tempAnim->name) != currentAnim){
 						texGroupAnimDefDelete(tempAnim);
 						--texAnimsSize;
 
@@ -476,10 +483,6 @@ return_t texGroupLoad(textureGroup *texGroup, const char *texGroupPath){
 
 						// Set the animation's frame count!
 						tempAnimFrameData->numFrames = animFramesSize;
-						// Set the textureGroup's animation count!
-						// We need to do this for when we
-						// check for duplicate animations.
-						texGroup->numAnims = texAnimsSize;
 					}
 
 					animFramesSize = 0;
@@ -493,7 +496,23 @@ return_t texGroupLoad(textureGroup *texGroup, const char *texGroupPath){
 		fclose(texGroupFile);
 
 
+		// We consider a texture group to have been loaded
+		// successfully if it references at least one texture.
 		if(texturesSize > 0){
+			texGroup = moduleTexGroupAlloc();
+			if(texGroup == NULL){
+				/** MALLOC FAILED **/
+			}
+
+
+			++texGroupPathLength;
+			// Set the texture group's name!
+			texGroup->name = memoryManagerGlobalAlloc(texGroupPathLength);
+			if(texGroup->name == NULL){
+				/** MALLOC FAILED **/
+			}
+			memcpy(texGroup->name, texGroupPath, texGroupPathLength);
+
 			// If the textureGroup has no
 			// animations, use the default one.
 			if(texAnimsSize == 0){
@@ -530,30 +549,14 @@ return_t texGroupLoad(textureGroup *texGroup, const char *texGroupPath){
 				if(texGroup->texAnims == NULL){
 					/** REALLOC FAILED **/
 				}
+				texGroup->numAnims = texAnimsSize;
 			}
-
-			memoryManagerGlobalFree(textures);
-
-			// If we could set up the textureGroup successfully, set its name!
-			++texGroupPathLength;
-			texGroup->name = memoryManagerGlobalAlloc(texGroupPathLength);
-			if(texGroup->name == NULL){
-				/** MALLOC FAILED **/
-			}
-			memcpy(texGroup->name, texGroupPath, texGroupPathLength);
-
-
-			return(1);
 		}
 
 
 		// We don't need to check if this is NULL,
 		// as we do that when we're using it.
 		memoryManagerGlobalFree(textures);
-		// If the textureGroup referenced
-		// no textures, just delete it.
-		texGroupDelete(texGroup);
-
 	}else{
 		printf(
 			"Unable to open textureGroup!\n"
@@ -563,7 +566,7 @@ return_t texGroupLoad(textureGroup *texGroup, const char *texGroupPath){
 	}
 
 
-	return(0);
+	return(texGroup);
 }
 
 
@@ -620,28 +623,14 @@ void texGroupDelete(textureGroup *texGroup){
 }
 
 
-// Loop through all of a textureGroup's animations until we find the one we need!
-size_t texGroupFindAnimNameIndex(const textureGroup *texGroup, const char *name){
-	/*size_t i;
-	for(i = 0; i < texGroup->numAnims; ++i){
-		if(strcmp(name, texGroup->texAnims[i].name) == 0){
+// Check whether the animation with the name specified has already been loaded.
+static size_t texGroupAnimFindNameIndex(const textureGroupAnimDef *texAnims, const size_t numAnims, const char *name){
+	size_t i;
+	for(i = 0; i < numAnims; ++i){
+		if(strcmp(name, texAnims[i].name) == 0){
 			break;
 		}
 	}
 
-	return(i);*/
-	return(0);
-}
-
-// Loop through all the textureGroups we've loaded until we find the one we need!
-size_t texGroupFindNameIndex(const char *name){
-	/*size_t i;
-	for(i = 0; i < loadedTextureGroups.size; ++i){
-		if(strcmp(name, ((textureGroup *)vectorGet(&loadedTextureGroups, i))->name) == 0){
-			break;
-		}
-	}
-
-	return(i);*/
-	return(0);
+	return(i);
 }

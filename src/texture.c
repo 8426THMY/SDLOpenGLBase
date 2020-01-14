@@ -9,6 +9,7 @@
 #include "utilFile.h"
 
 #include "memoryManager.h"
+#include "moduleTexture.h"
 
 #define TEXTURE_PATH_PREFIX        ".\\resource\\textures\\"
 #define TEXTURE_PATH_PREFIX_LENGTH (sizeof(TEXTURE_PATH_PREFIX) - 1)
@@ -59,14 +60,29 @@ void textureInit(texture *tex){
 }
 
 
-// Load the texture specified by "texPath".
-return_t textureLoad(texture *tex, const char *texPath){
+/*
+** Load the texture specified by "texPath" and return a pointer to it.
+** If the texture could not be loaded, return a pointer to the default texture.
+*/
+texture *textureLoad(const char *texPath){
+	texture *tex;
+
 	FILE *texFile;
 	char texFullPath[FILE_MAX_LINE_LENGTH];
-	size_t texPathLength = strlen(texPath);
+	size_t texPathLength;
 
-	SDL_Surface *image = NULL;
 
+	#ifdef TEMP_MODULE_FIND
+	// If the texture has already been loaded, return a pointer to it!
+	if((tex = moduleTextureFind(texGroupPath)) != &texDefault){
+		return(tex);
+	}
+	#else
+	tex = &texDefault;
+	#endif
+
+
+	texPathLength = strlen(texPath);
 	// Find the full path for the texture!
 	fileGenerateFullPath(
 		texPath, texPathLength,
@@ -75,12 +91,10 @@ return_t textureLoad(texture *tex, const char *texPath){
 	);
 
 
-	textureInit(tex);
-
-
 	// Load the texture!
 	texFile = fopen(texFullPath, "r");
 	if(texFile != NULL){
+		SDL_Surface *image = NULL;
 		GLint format;
 		GLint filtering;
 		GLenum openGLError;
@@ -123,73 +137,74 @@ return_t textureLoad(texture *tex, const char *texPath){
 		fclose(texFile);
 
 
-		if(image == NULL){
+		if(image != NULL){
+			GLuint texID;
+
+
+			// This determines the format that the image data is in
+			// by checking how many bytes are used for each pixel.
+			switch(image->format->BytesPerPixel){
+				case 4:
+					format = GL_RGBA;
+				break;
+
+				default:
+					format = GL_RGB;
+				break;
+			}
+
+			// Create an OpenGL texture from our SDL2 surface.
+			glGenTextures(1, &texID);
+			glBindTexture(GL_TEXTURE_2D, texID);
+
+			glTexImage2D(GL_TEXTURE_2D, 0, format, image->w, image->h, 0, format, GL_UNSIGNED_BYTE, image->pixels);
+			textureSetFiltering(texID, filtering, 0);
+
+			// Unbind the texture now that we've set its parameters.
+			glBindTexture(GL_TEXTURE_2D, 0);
+			// Free the SDL2 surface, as we no longer need it.
+			SDL_FreeSurface(image);
+
+
+			openGLError = glGetError();
+			// If we could set up the texture successfully, allocate memory for it and set it up!
+			if(openGLError == GL_NO_ERROR){
+				tex = moduleTextureAlloc();
+				if(tex == NULL){
+					/** MALLOC FAILED **/
+				}
+
+
+				++texPathLength;
+				// Set the texture's name!
+				tex->name = memoryManagerGlobalAlloc(texPathLength);
+				if(tex->name == NULL){
+					/** MALLOC FAILED **/
+				}
+				memcpy(tex->name, texPath, texPathLength);
+
+				tex->id = texID;
+				tex->width = image->w;
+				tex->height = image->h;
+
+				tex->format = format;
+			}else{
+				printf(
+					"Unable to create OpenGL texture!\n"
+					"Path: %s\n"
+					"Texture ID: %u\n"
+					"Error: %i\n",
+					texPath, texID, openGLError
+				);
+			}
+		}else{
 			printf(
 				"Error loading texture!\n"
 				"Path: %s\n"
 				"Error: No image was specified!.\n",
 				texFullPath
 			);
-
-			return(0);
 		}
-
-		// This determines the format that the image data is in
-		// by checking how many bytes are used for each pixel.
-		switch(image->format->BytesPerPixel){
-			case 4:
-				format = GL_RGBA;
-				tex->format = GL_RGBA;
-			break;
-
-			default:
-				format = GL_RGB;
-				tex->format = GL_RGB;
-			break;
-		}
-
-		tex->width = image->w;
-		tex->height = image->h;
-
-
-		// Create an OpenGL texture from our SDL2 surface.
-		glGenTextures(1, &tex->id);
-		glBindTexture(GL_TEXTURE_2D, tex->id);
-
-		glTexImage2D(GL_TEXTURE_2D, 0, format, image->w, image->h, 0, format, GL_UNSIGNED_BYTE, image->pixels);
-		textureSetFiltering(tex, filtering, 0);
-
-		// Unbind the texture now that we've set its parameters.
-		glBindTexture(GL_TEXTURE_2D, 0);
-		// Free the SDL2 surface, as we no longer need it.
-		SDL_FreeSurface(image);
-
-
-		openGLError = glGetError();
-		// If we could set up the texture
-		// successfully, set its properties!
-		if(openGLError == GL_NO_ERROR){
-			++texPathLength;
-			tex->name = memoryManagerGlobalAlloc(texPathLength);
-			if(tex->name == NULL){
-				/** MALLOC FAILED **/
-			}
-			memcpy(tex->name, texPath, texPathLength);
-
-			return(1);
-		}
-
-		// Otherwise, print out what went
-		// wrong and delete the texture.
-		printf(
-			"Unable to create OpenGL texture!\n"
-			"Path: %s\n"
-			"Texture ID: %u\n"
-			"Error: %i\n",
-			texPath, tex->id, openGLError
-		);
-
-		textureDelete(tex);
 	}else{
 		printf(
 			"Unable to open texture!\n"
@@ -199,7 +214,7 @@ return_t textureLoad(texture *tex, const char *texPath){
 	}
 
 
-	return(0);
+	return(tex);
 }
 
 // Set up the error texture!
@@ -265,7 +280,7 @@ return_t textureSetupDefault(){
 
 
 // Update the filtering mode for a texture!
-void textureSetFiltering(texture *tex, GLint filtering, const uint_least8_t mips){
+void textureSetFiltering(const GLuint id, GLint filtering, const uint_least8_t mips){
 	GLint filteringMin, filteringMag;
 
 	if(filtering == TEXTURE_FILTER_ANY){
@@ -302,20 +317,6 @@ void textureSetFiltering(texture *tex, GLint filtering, const uint_least8_t mips
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-}
-
-
-// Loop through all the textures we've loaded until we find the one we need!
-size_t textureFindNameIndex(const char *name){
-	/*size_t i;
-	for(i = 0; i < loadedTextures.size; ++i){
-		if(strcmp(name, ((texture *)vectorGet(&loadedTextures, i))->name) == 0){
-			break;
-		}
-	}
-
-	return(i);*/
-	return(0);
 }
 
 

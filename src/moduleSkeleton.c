@@ -74,7 +74,7 @@ skeletonAnimDef *moduleSkeleAnimDefAlloc(){
 }
 
 // Free a skeleton animation base that has been allocated.
-void moduleSkeletonAnimDefFree(skeletonAnimDef *animDef){
+void moduleSkeleAnimDefFree(skeletonAnimDef *animDef){
 	skeleAnimDefDelete(animDef);
 	memPoolFree(&skeleAnimDefManager, animDef);
 }
@@ -82,7 +82,7 @@ void moduleSkeletonAnimDefFree(skeletonAnimDef *animDef){
 // Delete every skeleton animation base in the manager.
 void moduleSkeleAnimDefClear(){
 	MEMPOOL_LOOP_BEGIN(skeleAnimDefManager, i, skeletonAnimDef *)
-		moduleSkeletonAnimDefFree(i);
+		moduleSkeleAnimDefFree(i);
 	MEMPOOL_LOOP_END(skeleAnimDefManager, i, skeletonAnimDef *, return)
 }
 

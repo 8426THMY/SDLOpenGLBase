@@ -10,8 +10,8 @@
 #include "transform.h"
 
 #include "memoryManager.h"
+#include "moduleModel.h"
 #include "moduleSkeleton.h"
-#include "moduleTextureGroup.h"
 
 #include "utilString.h"
 #include "utilFile.h"
@@ -50,21 +50,35 @@ void modelInit(model *mdl){
 }
 
 
-// Load an OBJ using the model specified by "mdlPath".
-return_t modelLoadOBJ(model *mdl, const char *mdlPath){
+/*
+** Load an OBJ using the model specified by "mdlPath" and return a pointer to it.
+** If the model could not be loaded, return a pointer to the default model.
+*/
+model *modelOBJLoad(const char *mdlPath){
+	model *mdl;
+
 	FILE *mdlFile;
 	char mdlFullPath[FILE_MAX_LINE_LENGTH];
-	size_t mdlPathLength = strlen(mdlPath);
+	size_t mdlPathLength;
 
+
+	#ifdef TEMP_MODULE_FIND
+	// If the model has already been loaded, return a pointer to it!
+	if((mdl = moduleModelFind(mdlPath)) != &mdlDefault){
+		return(mdl);
+	}
+	#else
+	mdl = &mdlDefault;
+	#endif
+
+
+	mdlPathLength = strlen(mdlPath);
 	// Find the full path for the model!
 	fileGenerateFullPath(
 		mdlPath, mdlPathLength,
 		MODEL_PATH_PREFIX, MODEL_PATH_PREFIX_LENGTH,
 		mdlFullPath
 	);
-
-
-	modelInit(mdl);
 
 
 	// Load the model!
@@ -329,42 +343,31 @@ return_t modelLoadOBJ(model *mdl, const char *mdlPath){
 		fclose(mdlFile);
 
 
-		// If there wasn't an error, add the model to the vector!
+		// If there weren't any errors, allocate memory for the model and set it up!
 		if(success){
-			meshGenerateBuffers(&mdl->meshData, tempVertices, tempVerticesSize, tempIndices, tempIndicesSize);
+			mdl = moduleModelAlloc();
+			if(mdl == NULL){
+				/** MALLOC FAILED **/
+			}
 
 
-			// Set the model's name!
 			++mdlPathLength;
+			// Set the model's name!
 			mdl->name = memoryManagerGlobalAlloc(mdlPathLength);
 			if(mdl->name == NULL){
 				/** MALLOC FAILED **/
 			}
 			memcpy(mdl->name, mdlPath, mdlPathLength);
 
-			// Now that we can be sure everything was
-			// successful, find the textureGroup.
-			if(tempTexGroupName != NULL){
-				mdl->texGroup = moduleTexGroupFind(tempTexGroupName);
-				// If we couldn't find the textureGroup, load it!
-				if(mdl->texGroup == NULL){
-					// Make sure we can allocate
-					// enough memory for the texture.
-					if(!(mdl->texGroup = moduleTexGroupAlloc())){
-						/** MALLOC FAILED **/
-					}
-					// If we can't load it, just
-					// use the error texture.
-					if(!texGroupLoad(mdl->texGroup, tempTexGroupName)){
-						moduleTexGroupFree(mdl->texGroup);
-						mdl->texGroup = &texGroupDefault;
-					}
-				}
-			}
+			meshGenerateBuffers(&mdl->meshData, tempVertices, tempVerticesSize, tempIndices, tempIndicesSize);
 
-		// Otherwise, delete the model.
-		}else{
-			modelDelete(mdl);
+			mdl->skele = &skeleDefault;
+
+			// Now that we can be sure everything was
+			// successful, find the texture group.
+			if(tempTexGroupName != NULL){
+				mdl->texGroup = texGroupLoad(tempTexGroupName);
+			}
 		}
 
 
@@ -379,9 +382,6 @@ return_t modelLoadOBJ(model *mdl, const char *mdlPath){
 		if(tempTexGroupName != NULL){
 			memoryManagerGlobalFree(tempTexGroupName);
 		}
-
-
-		return(success);
 	}else{
 		printf(
 			"Unable to open model file!\n"
@@ -391,27 +391,41 @@ return_t modelLoadOBJ(model *mdl, const char *mdlPath){
 	}
 
 
-	return(0);
+	return(mdl);
 }
 
 /** When loading bone states, they need to be done in order.     **/
 /** Additionally, we should ensure bone states are specified     **/
 /** after "time". If we skip some frames, we should interpolate. **/
-// Load an SMD using the model specified by "imgName".
-return_t modelLoadSMD(model *mdl, const char *mdlPath){
+/*
+** Load an SMD using the model specified by "mdlPath" and return a pointer to it.
+** If the model could not be loaded, return a pointer to the default model.
+*/
+model *modelSMDLoad(const char *mdlPath){
+	model *mdl;
+
 	FILE *mdlFile;
 	char mdlFullPath[FILE_MAX_LINE_LENGTH];
-	size_t mdlPathLength = strlen(mdlPath);
+	size_t mdlPathLength;
 
+
+	#ifdef TEMP_MODULE_FIND
+	// If the model has already been loaded, return a pointer to it!
+	if((mdl = moduleModelFind(mdlPath)) != &mdlDefault){
+		return(mdl);
+	}
+	#else
+	mdl = &mdlDefault;
+	#endif
+
+
+	mdlPathLength = strlen(mdlPath);
 	// Find the full path for the model!
 	fileGenerateFullPath(
 		mdlPath, mdlPathLength,
 		MODEL_PATH_PREFIX, MODEL_PATH_PREFIX_LENGTH,
 		mdlFullPath
 	);
-
-
-	modelInit(mdl);
 
 
 	// Load the model!
@@ -777,18 +791,23 @@ return_t modelLoadSMD(model *mdl, const char *mdlPath){
 		fclose(mdlFile);
 
 
-		// If there wasn't an error, add the model to the vector!
+		// If there weren't any errors, allocate memory for the model and set it up!
 		if(success){
-			meshGenerateBuffers(&mdl->meshData, tempVertices, tempVerticesSize, tempIndices, tempIndicesSize);
+			mdl = moduleModelAlloc();
+			if(mdl == NULL){
+				/** MALLOC FAILED **/
+			}
 
 
-			// Set the model's name!
 			++mdlPathLength;
+			// Set the model's name!
 			mdl->name = memoryManagerGlobalAlloc(mdlPathLength);
 			if(mdl->name == NULL){
 				/** MALLOC FAILED **/
 			}
 			memcpy(mdl->name, mdlPath, mdlPathLength);
+
+			meshGenerateBuffers(&mdl->meshData, tempVertices, tempVerticesSize, tempIndices, tempIndicesSize);
 
 			tempBones = memoryManagerGlobalResize(tempBones, sizeof(*tempBones) * tempBonesSize);
 			// Initialise the model's skeleton!
@@ -801,28 +820,10 @@ return_t modelLoadSMD(model *mdl, const char *mdlPath){
 
 			#warning "This is obviously incomplete."
 			// Now that we can be sure everything was
-			// successful, find the textureGroup.
+			// successful, find the texture group.
 			// if(tempTexGroupName != NULL){
-			mdl->texGroup = moduleTexGroupFind("misc\\soldier.tdg");
-			// If we couldn't find the textureGroup, load it!
-			if(mdl->texGroup == NULL){
-				// Make sure we can allocate
-				// enough memory for the texture.
-				if(!(mdl->texGroup = moduleTexGroupAlloc())){
-					/** MALLOC FAILED **/
-				}
-				// If we can't load it, just
-				// use the error texture.
-				if(!texGroupLoad(mdl->texGroup, "misc\\soldier.tdg")){
-					moduleTexGroupFree(mdl->texGroup);
-					mdl->texGroup = &texGroupDefault;
-				}
-			}
+			mdl->texGroup = texGroupLoad("misc\\soldier.tdg");
 			// }
-
-		// Otherwise, delete the model.
-		}else{
-			modelDelete(mdl);
 		}
 
 
@@ -835,9 +836,6 @@ return_t modelLoadSMD(model *mdl, const char *mdlPath){
 		/*if(tempTexGroupName != NULL){
 			memoryManagerGlobalFree(tempTexGroupName);
 		}*/
-
-
-		return(success);
 	}else{
 		printf(
 			"Unable to open model file!\n"
@@ -847,7 +845,7 @@ return_t modelLoadSMD(model *mdl, const char *mdlPath){
 	}
 
 
-	return(0);
+	return(mdl);
 }
 
 return_t modelSetupDefault(){

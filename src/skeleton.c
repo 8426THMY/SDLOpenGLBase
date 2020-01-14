@@ -11,8 +11,9 @@
 #define SKELETON_PATH_PREFIX        ".\\resource\\models\\"
 #define SKELETON_PATH_PREFIX_LENGTH (sizeof(SKELETON_PATH_PREFIX) - 1)
 
-// This must be at least 1!
-#define BASE_BONE_CAPACITY 1
+// These must be at least 1!
+#define BASE_BONE_CAPACITY  1
+#define BASE_FRAME_CAPACITY 1
 
 #define SKELE_ANIM_FRAME_RATE 24.f
 #define SKELE_ANIM_FRAME_TIME (1000.f / SKELE_ANIM_FRAME_RATE)
@@ -126,13 +127,30 @@ void skeleObjInit(skeletonObject *skeleObj, skeleton *skele){
 /** after "time". If we skip some frames, we should interpolate. **/
 /** At the moment, if any bones have some unspecified animation  **/
 /** frames, their states will be undefined. This is very bad!    **/
-// Load an SMD animation! This is temporary and should
-// be merged with the function in "model.c" or removed.
-return_t skeleAnimLoadSMD(skeletonAnimDef *animDef, const char *skeleAnimPath){
+/*
+** Load the SMD animation specified by "skeleAnimPath" and return a pointer to it.
+** If the animation could not be loaded, return a NULL pointer.
+*/
+/** This is temporary and should be merged with the function in "model.c" or removed. **/
+skeletonAnimDef *skeleAnimSMDLoad(const char *skeleAnimPath){
+	skeletonAnimDef *animDef;
+
 	FILE *skeleAnimFile;
 	char skeleAnimFullPath[FILE_MAX_LINE_LENGTH];
-	size_t skeleAnimPathLength = strlen(skeleAnimPath);
+	size_t skeleAnimPathLength;
 
+
+	#ifdef TEMP_MODULE_FIND
+	// If the animation has already been loaded, return a pointer to it!
+	if((animDef = moduleSkeleAnimDefFind(mdlPath)) != NULL){
+		return(animDef);
+	}
+	#else
+	animDef = NULL;
+	#endif
+
+
+	skeleAnimPathLength = strlen(skeleAnimPath);
 	// Find the full path for the skeleton!
 	fileGenerateFullPath(
 		skeleAnimPath, skeleAnimPathLength,
@@ -141,16 +159,17 @@ return_t skeleAnimLoadSMD(skeletonAnimDef *animDef, const char *skeleAnimPath){
 	);
 
 
-	skeleAnimDefInit(animDef);
-
-
 	// Load the skeleton!
 	skeleAnimFile = fopen(skeleAnimFullPath, "r");
 	if(skeleAnimFile != NULL){
 		return_t success = 1;
 
 
+		// We use this capacity for all of our arrays, since we only use one at a time.
 		size_t tempCapacity = BASE_BONE_CAPACITY;
+		// This represents the current size of both the time and frame arrays.
+		size_t numFrames = 0;
+
 		// Temporarily stores bones.
 		size_t tempBonesSize = 0;
 		bone *tempBones = memoryManagerGlobalAlloc(BASE_BONE_CAPACITY * sizeof(*tempBones));
@@ -158,13 +177,15 @@ return_t skeleAnimLoadSMD(skeletonAnimDef *animDef, const char *skeleAnimPath){
 			/** MALLOC FAILED **/
 		}
 
-		#warning "Ideally, we shouldn't have to do this."
-		animDef->frames = memoryManagerGlobalAlloc(sizeof(*animDef->frames));
-		if(animDef->frames == NULL){
+		// Temporarily stores frame times.
+		float *tempTimes = memoryManagerGlobalAlloc(BASE_FRAME_CAPACITY * sizeof(*tempTimes));
+		if(tempTimes == NULL){
 			/** MALLOC FAILED **/
 		}
-		animDef->frameData.time = memoryManagerGlobalAlloc(sizeof(*animDef->frameData.time));
-		if(animDef->frameData.time == NULL){
+
+		// Temporarily stores frame states.
+		boneState **tempFrames = memoryManagerGlobalAlloc(BASE_FRAME_CAPACITY * sizeof(*tempFrames));
+		if(tempFrames == NULL){
 			/** MALLOC FAILED **/
 		}
 
@@ -209,46 +230,19 @@ return_t skeleAnimLoadSMD(skeletonAnimDef *animDef, const char *skeleAnimPath){
 				if(strcmp(line, "end") == 0){
 					// Finished loading bone names.
 					if(dataType == 1){
-						bone *curBone;
-						char **curName;
-						const bone *lastBone;
-
-						// If we've finished identifying the skeleton's
-						// bones, copy the data into our animation object!
-						#warning "Do we even need to do this?"
-						tempBones = memoryManagerGlobalRealloc(tempBones, tempBonesSize * sizeof(*tempBones));
-						if(tempBones == NULL){
-							/** REALLOC FAILED **/
-						}
-						animDef->boneNames = memoryManagerGlobalAlloc(tempBonesSize * sizeof(*animDef->boneNames));
-						if(animDef->boneNames == NULL){
-							/** MALLOC FAILED **/
-						}
-						animDef->numBones = tempBonesSize;
-
-						curBone = tempBones;
-						curName = animDef->boneNames;
-						lastBone = &tempBones[tempBonesSize];
-						// Fill the array of bone names!
-						for(; curBone < lastBone; ++curBone, ++curName){
-							*curName = curBone->name;
-						}
-
-						tempCapacity = 1;
+						tempCapacity = BASE_FRAME_CAPACITY;
 
 					// Finished loading keyframes.
 					}else if(dataType == 2){
-						// If we've finished loading the animation, shrink the vectors!
-						animDef->frameData.time = memoryManagerGlobalResize(animDef->frameData.time, animDef->frameData.numFrames * sizeof(*animDef->frameData.time));
-						if(animDef->frameData.time == NULL){
+						// If we've finished loading the animation, shrink the arrays!
+						tempTimes = memoryManagerGlobalResize(tempTimes, numFrames * sizeof(*tempTimes));
+						if(tempTimes == NULL){
 							/** REALLOC FAILED **/
 						}
-						animDef->frames = memoryManagerGlobalResize(animDef->frames, animDef->frameData.numFrames * sizeof(*animDef->frames));
-						if(animDef->frames == NULL){
+						tempFrames = memoryManagerGlobalResize(tempFrames, numFrames * sizeof(*tempFrames));
+						if(tempFrames == NULL){
 							/** REALLOC FAILED **/
 						}
-
-						animDef->frameData.playNum = invalidValue(animDef->frameData.playNum);
 					}
 
 					dataType = 0;
@@ -259,7 +253,7 @@ return_t skeleAnimLoadSMD(skeletonAnimDef *animDef, const char *skeleAnimPath){
 						bone tempBone;
 
 						// Get this bone's ID.
-						size_t boneID = strtoul(line, &tokPos, 10);
+						const size_t boneID = strtoul(line, &tokPos, 10);
 						// Make sure a bone with this ID actually exists.
 						if(boneID == tempBonesSize){
 							size_t boneNameLength;
@@ -303,34 +297,34 @@ return_t skeleAnimLoadSMD(skeletonAnimDef *animDef, const char *skeleAnimPath){
 					}else if(dataType == 2){
 						// If the line begins with time, get the frame's timestamp!
 						if(memcmp(line, "time ", 5) == 0){
-							unsigned int newTime = strtoul(&line[5], NULL, 10);
+							const unsigned int newTime = strtoul(&line[5], NULL, 10);
 							if(newTime >= data){
 								data = newTime;
 
 								// Allocate memory for the new frame if we have to!
-								if(animDef->frameData.numFrames >= tempCapacity){
-									tempCapacity = animDef->frameData.numFrames * 2;
+								if(numFrames >= tempCapacity){
+									tempCapacity = numFrames * 2;
 									// Resize the time array!
-									animDef->frameData.time = memoryManagerGlobalRealloc(animDef->frameData.time, tempCapacity * sizeof(*animDef->frameData.time));
-									if(animDef->frameData.time == NULL){
+									tempTimes = memoryManagerGlobalRealloc(tempTimes, tempCapacity * sizeof(*tempTimes));
+									if(tempTimes == NULL){
 										/** REALLOC FAILED **/
 									}
 									// Resize the frames array!
-									animDef->frames = memoryManagerGlobalRealloc(animDef->frames, tempCapacity * sizeof(*animDef->frames));
-									if(animDef->frames == NULL){
+									tempFrames = memoryManagerGlobalRealloc(tempFrames, tempCapacity * sizeof(*tempFrames));
+									if(tempFrames == NULL){
 										/** REALLOC FAILED **/
 									}
 								}
 
 								// Allocate memory for each bone state in this frame!
-								currentFrame = memoryManagerGlobalAlloc(animDef->numBones * sizeof(**animDef->frames));
+								currentFrame = memoryManagerGlobalAlloc(tempBonesSize * sizeof(**tempFrames));
 								if(currentFrame == NULL){
 									/** MALLOC FAILED **/
 								}
-								animDef->frames[animDef->frameData.numFrames] = currentFrame;
+								tempFrames[numFrames] = currentFrame;
 
-								animDef->frameData.time[animDef->frameData.numFrames] = (data + 1) * SKELE_ANIM_FRAME_TIME;
-								++animDef->frameData.numFrames;
+								tempTimes[numFrames] = (data + 1) * SKELE_ANIM_FRAME_TIME;
+								++numFrames;
 							}else{
 								printf(
 									"Error loading skeletal animtion!\n"
@@ -346,7 +340,7 @@ return_t skeleAnimLoadSMD(skeletonAnimDef *animDef, const char *skeleAnimPath){
 						// Otherwise, we're setting the bone's state!
 						}else{
 							// Get this bone's ID.
-							size_t boneID = strtoul(line, &tokPos, 10);
+							const size_t boneID = strtoul(line, &tokPos, 10);
 							if(boneID < tempBonesSize){
 								boneState *currentState = &currentFrame[boneID];
 
@@ -394,26 +388,55 @@ return_t skeleAnimLoadSMD(skeletonAnimDef *animDef, const char *skeleAnimPath){
 		fclose(skeleAnimFile);
 
 
-		// We don't delete them properly because
-		// we store the bones' names elsewhere.
-		memoryManagerGlobalFree(tempBones);
-
-
-		// If there wasn't an error, add it to the vector!
+		// If there weren't any errors, allocate memory for the animation and set it up!
 		if(success){
+			const bone *curBone;
+			char **curName;
+			const bone *lastBone;
+
+
+			animDef = moduleSkeleAnimDefAlloc();
+
+
 			++skeleAnimPathLength;
+			// Set the animation's name!
 			animDef->name = memoryManagerGlobalAlloc(skeleAnimPathLength);
 			if(animDef->name == NULL){
 				/** MALLOC FAILED **/
 			}
 			memcpy(animDef->name, skeleAnimPath, skeleAnimPathLength);
 
-			return(1);
+
+			animDef->frameData.time = tempTimes;
+			animDef->frameData.numFrames = numFrames;
+			animDef->frameData.playNum = invalidValue(animDef->frameData.playNum);
+
+			// Allocate memory for the array of bone names!
+			animDef->boneNames = memoryManagerGlobalAlloc(tempBonesSize * sizeof(*animDef->boneNames));
+			if(animDef->boneNames == NULL){
+				/** MALLOC FAILED **/
+			}
+
+			curBone = tempBones;
+			curName = animDef->boneNames;
+			lastBone = &tempBones[tempBonesSize];
+			// Fill the array of bone names!
+			for(; curBone < lastBone; ++curBone, ++curName){
+				*curName = curBone->name;
+			}
+
+			animDef->frames = tempFrames;
+			animDef->numBones = tempBonesSize;
+		}else{
+			// We don't need to check if these are NULL,
+			// as we do that when we're using them.
+			memoryManagerGlobalFree(tempTimes);
+			memoryManagerGlobalFree(tempFrames);
 		}
 
-		// Otherwise, delete the animation.
-		skeleAnimDefDelete(animDef);
 
+		// We don't free the bones' names as the animation uses them.
+		memoryManagerGlobalFree(tempBones);
 	}else{
 		printf(
 			"Unable to open skeletal animation file!\n"
@@ -422,10 +445,8 @@ return_t skeleAnimLoadSMD(skeletonAnimDef *animDef, const char *skeleAnimPath){
 		);
 	}
 
-	memoryManagerGlobalFree(skeleAnimFullPath);
 
-
-	return(0);
+	return(animDef);
 }
 
 

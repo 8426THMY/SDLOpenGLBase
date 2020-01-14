@@ -6,7 +6,7 @@
 
 #include "mesh.h"
 #include "skeleton.h"
-#include "moduleTextureGroup.h"
+#include "textureGroup.h"
 
 
 typedef struct model {
@@ -20,8 +20,8 @@ typedef struct model {
 
 void modelInit(model *mdl);
 
-return_t modelLoadOBJ(model *mdl, const char *mdlPath);
-return_t modelLoadSMD(model *mdl, const char *mdlPath);
+model *modelOBJLoad(const char *mdlPath);
+model *modelSMDLoad(const char *mdlPath);
 return_t modelSetupDefault();
 
 void modelDelete(model *mdl);

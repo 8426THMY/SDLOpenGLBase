@@ -377,14 +377,14 @@ static return_t initResources(program *prg){
 
 
 	/** TEMPORARY OBJECT STUFF **/
-	model *mdl = moduleModelAlloc();
+	model *mdl;
 	renderableDef *renderDef = moduleRenderableDefAlloc();
 	objectDef *objDef = moduleObjectDefAlloc();
 	object *obj = moduleObjectAlloc();
 	skeletonAnimDef *animDef;
 
 
-	modelLoadSMD(mdl, "soldier_reference.smd");
+	mdl = modelSMDLoad("soldier_reference.smd");
 	renderableDefInit(renderDef, mdl);
 	objectDefInit(objDef);
 	objDef->skele = mdl->skele;
@@ -392,21 +392,22 @@ static return_t initResources(program *prg){
 
 	objectInit(obj, objDef);
 	// Temporary object stuff.
-	//mdl = moduleModelAlloc();
-	//modelLoadSMD(mdl, "scout_reference.smd");
+	//mdl = modelSMDLoad(mdl, "scout_reference.smd");
 	//skeleObjInit(&obj->skeleData, mdl->skele);
 
 	// Temporary animation stuff.
 	#warning "Playing 'soldier_animations_anims_old\\a_runN_LOSER.smd' on the Scout makes his left arm flip."
-	animDef = moduleSkeleAnimDefAlloc();
-	skeleAnimLoadSMD(animDef, "soldier_animations_anims_old\\a_runN_MELEE.smd");
-	obj->skeleData.anims = moduleSkeleAnimPrepend(&obj->skeleData.anims);
-	skeleAnimInit(obj->skeleData.anims, animDef, 0.5f);
+	animDef = skeleAnimSMDLoad("soldier_animations_anims_old\\a_runN_MELEE.smd");
+	if(animDef != NULL){
+		obj->skeleData.anims = moduleSkeleAnimPrepend(&obj->skeleData.anims);
+		skeleAnimInit(obj->skeleData.anims, animDef, 0.5f);
+	}
 
-	animDef = moduleSkeleAnimDefAlloc();
-	skeleAnimLoadSMD(animDef, "soldier_animations_anims_old\\stand_MELEE.smd");
-	obj->skeleData.anims = moduleSkeleAnimPrepend(&obj->skeleData.anims);
-	skeleAnimInit(obj->skeleData.anims, animDef, 0.5f);
+	animDef = skeleAnimSMDLoad("soldier_animations_anims_old\\stand_MELEE.smd");
+	if(animDef != NULL){
+		obj->skeleData.anims = moduleSkeleAnimPrepend(&obj->skeleData.anims);
+		skeleAnimInit(obj->skeleData.anims, animDef, 0.5f);
+	}
 
 
 	/** EVEN MORE TEMPORARY PARTICLE STUFF **/
@@ -426,7 +427,7 @@ static return_t initResources(program *prg){
 
 
 	/** TEMPORARY FONT STUFF **/
-	const cmapHeader *cmap = charMapLoadTTF(".\\PxPlus_IBM_BIOS.ttf");
+	const cmapHeader *cmap = charMapLoadTTF("PxPlus_IBM_BIOS.ttf");
 	uint16_t i, j = 0;
 	for(i = 0; i < 0xFFFF; ++i){
 		const uint32_t index = charMapIndex(cmap, (charCodeUnit_t){._32 = i});
@@ -439,17 +440,10 @@ static return_t initResources(program *prg){
 
 
 	/** EVEN MORE TEMPORARY GUI STUFF **/
-	textureGroup *texGroup;
-
 	guiElementInit(&gui, GUI_TYPE_PANEL);
 
-	texGroup = moduleTexGroupAlloc();
-	texGroupLoad(texGroup, "gui\\border.tdg");
-	gui.data.panel.borderTexState.texGroup = texGroup;
-
-	texGroup = moduleTexGroupAlloc();
-	texGroupLoad(texGroup, "gui\\body.tdg");
-	gui.data.panel.bodyTexState.texGroup = texGroup;
+	gui.data.panel.borderTexState.texGroup = texGroupLoad("gui\\border.tdg");
+	gui.data.panel.bodyTexState.texGroup = texGroupLoad("gui\\body.tdg");
 
 	// Bottom-right corner.
 	gui.data.panel.uvCoords[0].x = 0.75f;
