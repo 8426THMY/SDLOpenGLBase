@@ -40,7 +40,7 @@ void *memStackAlloc(memoryStack *stack, const size_t blockSize){
 		*memStackBlockGetNextBlockFooter(newBlock, blockSize) = blockSize;
 
 		// Advance the stack's top pointer and update its size.
-		stack->top = newBlock + actualBlockSize;
+		stack->top = memoryAddPointer(newBlock, actualBlockSize);
 		stack->size -= actualBlockSize;
 
 

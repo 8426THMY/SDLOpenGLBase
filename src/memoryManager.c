@@ -2,7 +2,7 @@
 
 
 #ifdef MEMORY_USE_GLOBAL_MANAGER
-memoryManager memManager;
+memoryManager g_memManager;
 
 
 // Allocate memory for the global memory manager.
@@ -10,36 +10,36 @@ memoryManager memManager;
 return_t memoryManagerGlobalInit(const size_t heapSize){
 	const size_t regionSize = memTreeMemoryForSize(heapSize);
 
-	return(memTreeInit(&memManager, memoryAlloc(regionSize), regionSize) != NULL);
+	return(memTreeInit(&g_memManager, memoryAlloc(regionSize), regionSize) != NULL);
 }
 
 
 void *memoryManagerGlobalAlloc(const size_t blockSize){
-	return(memTreeAlloc(&memManager, blockSize));
+	return(memTreeAlloc(&g_memManager, blockSize));
 }
 
 void *memoryManagerGlobalResize(void *block, const size_t blockSize){
-	return(memTreeResize(&memManager, block, blockSize));
+	return(memTreeResize(&g_memManager, block, blockSize));
 }
 
 void *memoryManagerGlobalRealloc(void *block, const size_t blockSize){
-	return(memTreeRealloc(&memManager, block, blockSize));
+	return(memTreeRealloc(&g_memManager, block, blockSize));
 }
 
 void *memoryManagerGlobalExtend(const size_t heapSize){
 	const size_t regionSize = memTreeMemoryForSize(heapSize);
 
-	return(memTreeExtend(&memManager, memoryAlloc(regionSize), regionSize));
+	return(memTreeExtend(&g_memManager, memoryAlloc(regionSize), regionSize));
 }
 
 void memoryManagerGlobalFree(void *block){
-	memTreeFree(&memManager, block);
+	memTreeFree(&g_memManager, block);
 }
 
 
 // Free memory used by the global memory manager.
 void memoryManagerGlobalDelete(){
-    memTreeDelete(&memManager);
+    memTreeDelete(&g_memManager);
 }
 #endif
 

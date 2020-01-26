@@ -143,7 +143,7 @@ void quatToMat4(const quat *q, mat4 *out);
 mat4 quatToMat4R(const quat q);
 
 
-extern mat4 identityMat4;
+extern mat4 g_mat4Identity;
 
 
 #endif

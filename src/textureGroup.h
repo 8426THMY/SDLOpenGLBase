@@ -79,7 +79,7 @@ void texGroupAnimDefDelete(textureGroupAnimDef *texGroupAnimDef);
 void texGroupDelete(textureGroup *texGroup);
 
 
-extern textureGroup texGroupDefault;
+extern textureGroup g_texGroupDefault;
 
 
 #endif

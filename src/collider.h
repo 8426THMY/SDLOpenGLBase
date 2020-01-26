@@ -18,9 +18,6 @@
 #define COLLIDER_NUM_TYPES 1
 
 
-typedef type_t colliderType_t;
-
-
 typedef struct collider {
 	// This should be large enough
 	// to store any type of collider.
@@ -29,11 +26,11 @@ typedef struct collider {
 	} data;
 	// Stores which type of
 	// collider this object is.
-	colliderType_t type;
+	type_t type;
 } collider;
 
 
-void colliderInit(collider *c, const colliderType_t type);
+void colliderInit(collider *c, const type_t type);
 void colliderInstantiate(collider *c, const collider *cBase);
 
 return_t colliderLoad(collider *c, FILE *cFile, vec3 *centroid, mat3 *inertia);

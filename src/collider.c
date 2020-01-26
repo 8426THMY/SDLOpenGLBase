@@ -21,7 +21,7 @@ void (*colliderDeleteTable[COLLIDER_NUM_TYPES])(void *c) = {
 
 
 // Ordinary colliders are used as a base for instances.
-void colliderInit(collider *c, const colliderType_t type){
+void colliderInit(collider *c, const type_t type){
 	c->type = type;
 }
 

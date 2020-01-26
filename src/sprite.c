@@ -4,7 +4,7 @@
 #define SPRITE_INVALID_BUFFER_ID 0
 
 
-sprite spriteDefault;
+sprite g_spriteDefault;
 
 
 void spriteInit(sprite *spriteData){
@@ -125,7 +125,7 @@ return_t spriteSetupDefault(){
 		2, 3, 0
 	};
 
-	spriteGenerateBuffers(&spriteDefault, vertices, sizeof(vertices)/sizeof(*vertices), indices, sizeof(indices)/sizeof(*indices));
+	spriteGenerateBuffers(&g_spriteDefault, vertices, sizeof(vertices)/sizeof(*vertices), indices, sizeof(indices)/sizeof(*indices));
 
 
 	return(1);

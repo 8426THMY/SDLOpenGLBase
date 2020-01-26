@@ -100,7 +100,7 @@ void skeleAnimDefDelete(skeletonAnimDef *animDef);
 void skeleObjDelete(skeletonObject *skeleObj);
 
 
-extern skeleton skeleDefault;
+extern skeleton g_skeleDefault;
 
 
 /*

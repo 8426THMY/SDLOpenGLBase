@@ -9,7 +9,7 @@
 
 // This is used by "error" objects
 // which require animation data.
-float animTimeDefault = 0.f;
+float g_animTimeDefault = 0.f;
 
 
 // Forward-declare any helper functions!
@@ -71,7 +71,7 @@ size_t animationGetNextFrame(const size_t currentFrame, const size_t numFrames){
 
 
 void animFrameDataClear(animationFrameData *frameData){
-	if(frameData->time != &animTimeDefault && frameData->time != NULL){
+	if(frameData->time != &g_animTimeDefault && frameData->time != NULL){
 		memoryManagerGlobalFree(frameData->time);
 	}
 }

@@ -55,7 +55,7 @@ typedef struct physicsCollider {
 
 typedef struct physicsIsland physicsIsland;
 
-void physColliderInit(physicsCollider *pc, const colliderType_t type, void *owner);
+void physColliderInit(physicsCollider *pc, const type_t type, void *owner);
 void physColliderInstantiate(physicsCollider *pc, physicsCollider *base, void *owner);
 
 void physColliderGenerateCentroid(physicsCollider *collider, vec3 *centroid);

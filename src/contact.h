@@ -18,8 +18,7 @@
 
 
 typedef size_t separationFeature_t;
-typedef type_t separationType_t;
-typedef type_t contactPointIndex_t;
+typedef uint_least8_t contactPointIndex_t;
 
 
 // Stores either the two faces or the two edges
@@ -27,7 +26,7 @@ typedef type_t contactPointIndex_t;
 typedef struct contactSeparation {
 	separationFeature_t featureA;
 	separationFeature_t featureB;
-	separationType_t type;
+	type_t type;
 } contactSeparation;
 
 

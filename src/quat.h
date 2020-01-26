@@ -165,7 +165,7 @@ void quatIntegrateOut(const quat *q, const vec3 *w, float dt, quat *out);
 quat quatIntegrateR(const quat q, const vec3 w, float dt);
 
 
-extern quat identityQuat;
+extern quat g_quatIdentity;
 
 
 #endif

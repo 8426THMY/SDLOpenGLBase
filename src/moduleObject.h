@@ -49,8 +49,8 @@ void moduleObjectFreeArray(object **start);
 void moduleObjectClear();
 
 
-extern memorySingleList objectDefManager;
-extern memorySingleList objectManager;
+extern memorySingleList g_objectDefManager;
+extern memorySingleList g_objectManager;
 
 
 #endif

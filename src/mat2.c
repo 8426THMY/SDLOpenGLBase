@@ -6,7 +6,7 @@
 #include "utilMath.h"
 
 
-mat2 identityMat2 = {
+mat2 g_mat2Identity = {
 	.m[0][0] = 1.f, .m[0][1] = 0.f,
 	.m[1][0] = 0.f, .m[1][1] = 1.f
 };
@@ -27,12 +27,12 @@ mat2 mat2InitZeroR(){
 
 // Initialize the matrix to an identity matrix!
 void mat2InitIdentity(mat2 *m){
-	*m = identityMat2;
+	*m = g_mat2Identity;
 }
 
 // Initialize the matrix to an identity matrix!
 mat2 mat2InitIdentityR(){
-	return(identityMat2);
+	return(g_mat2Identity);
 }
 
 

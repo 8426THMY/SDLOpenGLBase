@@ -51,7 +51,7 @@ return_t spriteSetupDefault();
 void spriteDelete(sprite *spriteData);
 
 
-extern sprite spriteDefault;
+extern sprite g_spriteDefault;
 
 
 #endif

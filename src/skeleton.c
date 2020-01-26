@@ -38,7 +38,7 @@ static bone defaultBone = {
 	.parent = invalidValue(defaultBone.parent)
 };
 
-skeleton skeleDefault = {
+skeleton g_skeleDefault = {
 	.name = "default",
 	.bones = &defaultBone,
 	.numBones = 1
@@ -488,7 +488,7 @@ void skeleObjGenerateBoneState(const skeletonObject *skeleData, const size_t bon
 				transformStateAppend(&invLocalBind, &animState, &animState);
 			}
 			// Set the animation's intensity by blending from the identity state.
-			transformStateInterpSet(&identityTransform, &animState, curAnim->intensity, &animState);
+			transformStateInterpSet(&g_transformIdentity, &animState, curAnim->intensity, &animState);
 			transformStateAppend(&skeleData->bones[boneID], &animState, &skeleData->bones[boneID]);
 		}
 

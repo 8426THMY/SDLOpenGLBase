@@ -1,11 +1,11 @@
-#ifndef glyph_h
-#define glyph_h
+#ifndef fontGlyph_h
+#define fontGlyph_h
 
 
 #include "rectangle.h"
 
 
-typedef struct glyph {
+typedef struct fontGlyph {
 	// This tells us where the character appears in the font image.
 	rectangle uvOffsets;
 
@@ -14,7 +14,10 @@ typedef struct glyph {
 	float kerningY;
 	// How far to move the cursor after entering the glyph.
 	float advanceX;
-} glyph;
+} fontGlyph;
+
+
+fontGlyph *fontGlyphArrayLoad(const char *glyphPath);
 
 
 #endif

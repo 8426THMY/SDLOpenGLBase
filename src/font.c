@@ -1,29 +1,25 @@
 #include "font.h"
 
 
-#include "utilFile.h"
-
-#include "moduleTexture.h"
+#include "memoryManager.h"
 
 
-return_t fontLoad(font *f, const char *texPath, const char *cmapPath){
-	if(!(f->tex = moduleTextureAlloc())){
-		/** MALLOC FAILED **/
-	}
+return_t fontLoad(font *f, const type_t type, const char *texPath, const char *glyphPath, const char *cmapPath){
 	// Load the font's graphics.
 	f->tex = textureLoad(texPath);
+	f->type = type;
 
-	// Load the font's glyph information.
-	//f->glyphs = glyphLoadArray(
-
+	// Load the font's glyph offset information.
+	f->glyphs = fontGlyphArrayLoad(glyphPath);
 	// Allocate memory for the font's character map and load it.
-	f->cmap = charMapLoadTTF(cmapPath);
+	f->cmap = fontCmapLoadTTF(cmapPath);
 
 
-	return(0);
+	return(1);
 }
 
 
 void fontDelete(font *f){
-	charMapDelete(f->cmap);
+	memoryManagerGlobalDelete(f->glyphs);
+	fontCmapDelete(f->cmap);
 }

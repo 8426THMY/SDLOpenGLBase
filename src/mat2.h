@@ -43,7 +43,7 @@ return_t mat2CanInvert(mat2 *m);
 return_t mat2CanInvertOut(const mat2 m, mat2 *out);
 
 
-extern mat2 identityMat2;
+extern mat2 g_g_mat2Identity;
 
 
 #endif

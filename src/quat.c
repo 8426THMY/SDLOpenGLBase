@@ -12,7 +12,7 @@
 #define QUAT_LERP_THRESHOLD cos(1.f*DEG_TO_RAD)
 
 
-quat identityQuat = {
+quat g_quatIdentity = {
 	.x = 0.f,
 	.y = 0.f,
 	.z = 0.f,
@@ -35,12 +35,12 @@ quat quatInitZeroR(){
 
 // Initialize the quaternion to an identity quaternion!
 void quatInitIdentity(quat *q){
-	*q = identityQuat;
+	*q = g_quatIdentity;
 }
 
 // Initialize the quaternion to an identity quaternion!
 quat quatInitIdentityR(){
-	return(identityQuat);
+	return(g_quatIdentity);
 }
 
 // Initialize the quaternion's values to the ones specified!

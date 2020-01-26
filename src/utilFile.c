@@ -28,7 +28,7 @@ char *fileReadLine(FILE *file, char *line, size_t *lineLength){
 		*lineLength = strlen(line);
 
 		// Remove comments.
-		char *tempPos = strstr(line, "// ");
+		char *tempPos = strstr(line, "//");
 		if(tempPos != NULL){
 			*lineLength -= *lineLength - (tempPos - line);
 		}

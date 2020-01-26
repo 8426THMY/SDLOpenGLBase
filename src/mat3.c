@@ -6,7 +6,7 @@
 #include "utilMath.h"
 
 
-mat3 identityMat3 = {
+mat3 g_mat3Identity = {
 	.m[0][0] = 1.f, .m[0][1] = 0.f, .m[0][2] = 0.f,
 	.m[1][0] = 0.f, .m[1][1] = 1.f, .m[1][2] = 0.f,
 	.m[2][0] = 0.f, .m[2][1] = 0.f, .m[2][2] = 1.f
@@ -28,12 +28,12 @@ mat3 mat3InitZeroR(){
 
 // Initialize the matrix to an identity matrix!
 void mat3InitIdentity(mat3 *m){
-	*m = identityMat3;
+	*m = g_mat3Identity;
 }
 
 // Initialize the matrix to an identity matrix!
 mat3 mat3InitIdentityR(){
-	return(identityMat3);
+	return(g_mat3Identity);
 }
 
 // Initialize the matrix to a uniform scale matrix!

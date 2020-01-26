@@ -38,7 +38,7 @@ size_t animationGetNextFrame(const size_t currentFrame, const size_t numFrames);
 void animFrameDataClear(animationFrameData *frameData);
 
 
-extern float animTimeDefault;
+extern float g_animTimeDefault;
 
 
 #endif

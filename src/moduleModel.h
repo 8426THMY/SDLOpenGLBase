@@ -30,7 +30,7 @@ void moduleModelFree(model *mdl);
 void moduleModelClear();
 
 
-extern memoryPool modelManager;
+extern memoryPool g_modelManager;
 
 
 #endif

@@ -28,7 +28,7 @@ static return_t permitCollision(physicsCollider *colliderA, physicsCollider *col
 ** Initialise a physics collider base
 ** object using the type of its collider.
 */
-void physColliderInit(physicsCollider *pc, const colliderType_t type, void *owner){
+void physColliderInit(physicsCollider *pc, const type_t type, void *owner){
 	colliderInit(&pc->global, type);
 	pc->local = NULL;
 

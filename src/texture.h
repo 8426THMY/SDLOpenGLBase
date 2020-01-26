@@ -32,7 +32,7 @@ void textureSetFiltering(const GLuint id, GLint filtering, const uint_least8_t m
 void textureDelete(texture *tex);
 
 
-extern texture texDefault;
+extern texture g_texDefault;
 
 
 #endif

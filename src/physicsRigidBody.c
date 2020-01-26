@@ -36,6 +36,7 @@ void physRigidBodyInit(physicsRigidBody *body, const physicsRigidBodyDef *bodyDe
 
 
 // Load a rigid body, including any of its colliders.
+#warning "Maybe update this like the other loading functions?"
 return_t physRigidBodyDefLoad(physicsRigidBodyDef *bodyDef, const char *bodyPath){
 	FILE *bodyFile;
 	char bodyFullPath[FILE_MAX_LINE_LENGTH];
@@ -136,7 +137,7 @@ return_t physRigidBodyDefLoad(physicsRigidBodyDef *bodyDef, const char *bodyPath
 
 				// New physics collider.
 				}else if(memcmp(line, "p ", 2) == 0 && line[lineLength - 1] == '{'){
-					colliderType_t currentType = strtoul(&line[2], &tokPos, 10);
+					type_t currentType = strtoul(&line[2], &tokPos, 10);
 
 					// Make sure a valid number was entered.
 					if(tokPos != &line[2]){

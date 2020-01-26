@@ -9,7 +9,7 @@
 #include "utilMath.h"
 
 
-mat4 identityMat4 = {
+mat4 g_mat4Identity = {
 	.m[0][0] = 1.f, .m[0][1] = 0.f, .m[0][2] = 0.f, .m[0][3] = 0.f,
 	.m[1][0] = 0.f, .m[1][1] = 1.f, .m[1][2] = 0.f, .m[1][3] = 0.f,
 	.m[2][0] = 0.f, .m[2][1] = 0.f, .m[2][2] = 1.f, .m[2][3] = 0.f,
@@ -32,12 +32,12 @@ mat4 mat4InitZeroR(){
 
 // Initialize the matrix to an identity matrix!
 void mat4InitIdentity(mat4 *m){
-	*m = identityMat4;
+	*m = g_mat4Identity;
 }
 
 // Initialize the matrix to an identity matrix!
 mat4 mat4InitIdentityR(){
-	return(identityMat4);
+	return(g_mat4Identity);
 }
 
 // Initialise a matrix to a translation matrix!

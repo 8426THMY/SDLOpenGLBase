@@ -122,7 +122,7 @@ static float edgeDistSquared(
 
 static return_t noSeparatingFace(
 	const colliderHull *hullA, const colliderHull *hullB, hullFaceData *faceData,
-	contactSeparation *separation, const separationType_t separationType
+	contactSeparation *separation, const type_t separationType
 );
 static return_t noSeparatingEdge(
 	const colliderHull *hullA, const colliderHull *hullB,
@@ -1023,7 +1023,7 @@ static float edgeDistSquared(
 */
 static return_t noSeparatingFace(
 	const colliderHull *hullA, const colliderHull *hullB, hullFaceData *faceData,
-	contactSeparation *separation, const separationType_t separationType
+	contactSeparation *separation, const type_t separationType
 ){
 
 	const colliderHullFace *curFace = hullA->faces;

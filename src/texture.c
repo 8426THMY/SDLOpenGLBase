@@ -34,7 +34,7 @@
 // This defines a texture to use when we
 // cannot load the correct one. We can't
 // set up its image data here, however.
-texture texDefault = {
+texture g_texDefault = {
 	.name = "error",
 
 	.width = TEXTURE_ERROR_WIDTH,
@@ -74,11 +74,11 @@ texture *textureLoad(const char *texPath){
 
 	#ifdef TEMP_MODULE_FIND
 	// If the texture has already been loaded, return a pointer to it!
-	if((tex = moduleTextureFind(texGroupPath)) != &texDefault){
+	if((tex = moduleTextureFind(texGroupPath)) != &g_texDefault){
 		return(tex);
 	}
 	#else
-	tex = &texDefault;
+	tex = &g_texDefault;
 	#endif
 
 
@@ -144,13 +144,24 @@ texture *textureLoad(const char *texPath){
 			// This determines the format that the image data is in
 			// by checking how many bytes are used for each pixel.
 			switch(image->format->BytesPerPixel){
+				case 1:
+					format = GL_RED;
+				break;
+
+				case 2:
+					format = GL_RG;
+				break;
+
+				case 3:
+					format = GL_RGB;
+				break;
+
 				case 4:
 					format = GL_RGBA;
 				break;
 
 				default:
 					format = GL_RGB;
-				break;
 			}
 
 			// Create an OpenGL texture from our SDL2 surface.
@@ -244,8 +255,8 @@ return_t textureSetupDefault(){
 
 
 	// Create an OpenGL texture using our pixel data.
-	glGenTextures(1, &texDefault.id);
-	glBindTexture(GL_TEXTURE_2D, texDefault.id);
+	glGenTextures(1, &g_texDefault.id);
+	glBindTexture(GL_TEXTURE_2D, g_texDefault.id);
 
 	glTexImage2D(GL_TEXTURE_2D, 0, TEXTURE_ERROR_FORMAT, TEXTURE_ERROR_WIDTH, TEXTURE_ERROR_HEIGHT, 0, TEXTURE_ERROR_FORMAT, GL_UNSIGNED_BYTE, pixels);
 
@@ -264,10 +275,10 @@ return_t textureSetupDefault(){
 			"Path: error\n"
 			"Texture ID: %u\n"
 			"Error: %i\n",
-			texDefault.id, openGLError
+			g_texDefault.id, openGLError
 		);
 
-		textureDelete(&texDefault);
+		textureDelete(&g_texDefault);
 
 
 		return(0);
@@ -323,7 +334,7 @@ void textureSetFiltering(const GLuint id, GLint filtering, const uint_least8_t m
 void textureDelete(texture *tex){
 	// Only free the name if it's in use
 	// and it's not the error texture.
-	if(tex->name != NULL && tex != &texDefault){
+	if(tex->name != NULL && tex != &g_texDefault){
 		memoryManagerGlobalFree(tex->name);
 	}
 

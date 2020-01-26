@@ -213,9 +213,9 @@ static void updateCameras(program *prg){
 }
 
 static void updateObjects(program *prg){
-	MEMSINGLELIST_LOOP_BEGIN(objectManager, curObj, object *)
+	MEMSINGLELIST_LOOP_BEGIN(g_objectManager, curObj, object *)
 		objectUpdate(curObj, prg->step.updateTime);
-	MEMSINGLELIST_LOOP_END(objectManager, curObj, object *, return)
+	MEMSINGLELIST_LOOP_END(g_objectManager, curObj, object *, return)
 
 	// Update the models' positions and rotations!
 	/** Temporary if statement for temporary code. Don't want the program to crash, do we? **/
@@ -230,7 +230,7 @@ static void updateObjects(program *prg){
 
 /** TEMPORARY STUFF! **/
 #include "particleSystem.h"
-#include "cmap.h"
+#include "font.h"
 #include "guiElement.h"
 particleSystemDef partSysDef;
 particleSystem partSys;
@@ -282,10 +282,10 @@ static void render(program *prg){
 	cameraUpdateViewProjectionMatrix(&prg->cam, prg->windowWidth, prg->windowHeight);
 
 	glUseProgram(prg->objectShader.programID);
-	MEMSINGLELIST_LOOP_BEGIN(objectManager, curObj, object *)
+	MEMSINGLELIST_LOOP_BEGIN(g_objectManager, curObj, object *)
 		#warning "We'll need the camera in this function for billboards. Just pass it instead of the matrix."
 		objectDraw(curObj, &prg->cam, &prg->objectShader, prg->step.renderDelta);
-	MEMSINGLELIST_LOOP_END(objectManager, curObj, object *, NULL)
+	MEMSINGLELIST_LOOP_END(g_objectManager, curObj, object *, NULL)
 
 	/** TEMPORARY PARTICLE RENDER STUFF! **/
 	glUseProgram(prg->spriteShader.programID);
@@ -427,16 +427,12 @@ static return_t initResources(program *prg){
 
 
 	/** TEMPORARY FONT STUFF **/
-	const cmapHeader *cmap = charMapLoadTTF("PxPlus_IBM_BIOS.ttf");
-	uint16_t i, j = 0;
-	for(i = 0; i < 0xFFFF; ++i){
-		const uint32_t index = charMapIndex(cmap, (charCodeUnit_t){._32 = i});
-		if(index != 0){
-			++j;
-			printf("%u - %u\n", i, index);
-		}
-	}
-	printf("Total mapped: %u\n", j);
+	/*font blah;
+	fontLoad(&blah, FONT_IMAGE_TYPE_NORMAL, "gui\\PxPlus_IBM_BIOS.tdt", "D:\\Programming\\C\\NewSDLOpenGLBaseC\\resource\\fonts\\PxPlus_IBM_BIOS-msdf.csv", "D:\\Programming\\C\\NewSDLOpenGLBaseC\\resource\\fonts\\PxPlus_IBM_BIOS.ttf");
+	const fontGlyph *glyph_a = &blah.glyphs[fontCmapIndex(blah.cmap, (fontCmapCodeUnit_t){._32 = 931})];
+	printf("(%f, %f, %f, %f), (%f, %f, %f)\n", glyph_a->uvOffsets.x, glyph_a->uvOffsets.y, glyph_a->uvOffsets.w, glyph_a->uvOffsets.h, glyph_a->kerningX, glyph_a->kerningY, glyph_a->advanceX);
+	//fontCmapOutputCodePoints(blah.cmap, "D:\\Programming\\C\\NewSDLOpenGLBaseC\\resource\\fonts\\charset.txt", ' ');
+	exit(0);*/
 
 
 	/** EVEN MORE TEMPORARY GUI STUFF **/
@@ -545,7 +541,7 @@ static return_t setupModules(){
 	}
 	#endif
 
-	memTreePrintAllSizes(&memManager);
+	memTreePrintAllSizes(&g_memManager);
 	puts("Setup complete!\n");
 
 
@@ -554,7 +550,7 @@ static return_t setupModules(){
 
 static void cleanupModules(){
 	puts("Beginning cleanup...\n");
-	//memTreePrintAllSizes(&memManager);
+	//memTreePrintAllSizes(&g_memManager);
 
 	/** YET MORE TEMPORARY PARTICLE STUFF **/
 	particleSysDelete(&partSys);
@@ -587,7 +583,7 @@ static void cleanupModules(){
 	moduleShaderCleanup();
 	#endif
 
-	memTreePrintAllSizes(&memManager);
+	memTreePrintAllSizes(&g_memManager);
 	memoryManagerGlobalDelete();
 	puts("Cleanup complete!\n");
 }

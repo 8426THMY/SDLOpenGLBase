@@ -55,7 +55,7 @@ void quatToMat3(const quat *q, mat3 *out);
 mat3 quatToMat3R(const quat q);
 
 
-extern mat3 identityMat3;
+extern mat3 g_mat3Identity;
 
 
 #endif

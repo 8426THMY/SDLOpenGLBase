@@ -97,8 +97,6 @@ Methods:
 **/
 
 
-typedef type_t guiType_t;
-
 typedef struct guiElement guiElement;
 typedef struct guiElement {
 	// This should be large enough to
@@ -111,7 +109,7 @@ typedef struct guiElement {
 	} data;
 	// This specifies which
 	// type of element it is.
-	guiType_t type;
+	type_t type;
 
 	// Stores the spatial configuration of the element.
 	transformState root;
@@ -121,7 +119,7 @@ typedef struct guiElement {
 } guiElement;
 
 
-void guiElementInit(guiElement *gui, const guiType_t type);
+void guiElementInit(guiElement *gui, const type_t type);
 
 void guiElementUpdate(guiElement *gui, const float time);
 void guiElementDraw(guiElement *gui, const float windowWidth, const float windowHeight, const shaderSprite *shader);

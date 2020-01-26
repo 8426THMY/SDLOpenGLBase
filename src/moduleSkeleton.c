@@ -1,9 +1,9 @@
 #include "moduleSkeleton.h"
 
 
-memoryPool skeletonManager;
-memoryPool skeleAnimDefManager;
-memorySingleList skeleAnimManager;
+memoryPool g_skeletonManager;
+memoryPool g_skeleAnimDefManager;
+memorySingleList g_skeleAnimManager;
 
 
 #warning "How are we going to store animations? How about bones?"
@@ -17,19 +17,19 @@ return_t moduleSkeletonSetup(){
 	return(
 		// skeleton
 		memPoolInit(
-			&skeletonManager,
+			&g_skeletonManager,
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_SKELETON_MANAGER_SIZE)),
 			MODULE_SKELETON_MANAGER_SIZE, MODULE_SKELETON_ELEMENT_SIZE
 		) != NULL &&
 		// skeletonAnimDef
 		memPoolInit(
-			&skeleAnimDefManager,
+			&g_skeleAnimDefManager,
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_SKELEANIMDEF_MANAGER_SIZE)),
 			MODULE_SKELEANIMDEF_MANAGER_SIZE, MODULE_SKELEANIMDEF_ELEMENT_SIZE
 		) != NULL &&
 		// skeletonAnim
 		memSingleListInit(
-			&skeleAnimManager,
+			&g_skeleAnimManager,
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_SKELEANIM_MANAGER_SIZE)),
 			MODULE_SKELEANIM_MANAGER_SIZE, MODULE_SKELEANIM_ELEMENT_SIZE
 		) != NULL
@@ -39,82 +39,82 @@ return_t moduleSkeletonSetup(){
 void moduleSkeletonCleanup(){
 	// skeletonAnim
 	moduleSkeleAnimClear();
-	memoryManagerGlobalFree(memSingleListRegionStart(skeleAnimManager.region));
+	memoryManagerGlobalFree(memSingleListRegionStart(g_skeleAnimManager.region));
 	// skeletonAnimDef
 	moduleSkeleAnimDefClear();
-	memoryManagerGlobalFree(memPoolRegionStart(skeleAnimDefManager.region));
+	memoryManagerGlobalFree(memPoolRegionStart(g_skeleAnimDefManager.region));
 	// skeleton
 	moduleSkeletonClear();
-	memoryManagerGlobalFree(memPoolRegionStart(skeletonManager.region));
+	memoryManagerGlobalFree(memPoolRegionStart(g_skeletonManager.region));
 }
 
 
 // Allocate memory for a skeleton and return a handle to it.
 skeleton *moduleSkeletonAlloc(){
-	return(memPoolAlloc(&skeletonManager));
+	return(memPoolAlloc(&g_skeletonManager));
 }
 
 // Free a skeleton that has been allocated.
 void moduleSkeletonFree(skeleton *skele){
 	skeleDelete(skele);
-	memPoolFree(&skeletonManager, skele);
+	memPoolFree(&g_skeletonManager, skele);
 }
 
 // Delete every skeleton in the manager.
 void moduleSkeletonClear(){
-	MEMPOOL_LOOP_BEGIN(skeletonManager, i, skeleton *)
+	MEMPOOL_LOOP_BEGIN(g_skeletonManager, i, skeleton *)
 		moduleSkeletonFree(i);
-	MEMPOOL_LOOP_END(skeletonManager, i, skeleton *, return)
+	MEMPOOL_LOOP_END(g_skeletonManager, i, skeleton *, return)
 }
 
 
 // Allocate memory for a skeleton animation base and return a handle to it.
 skeletonAnimDef *moduleSkeleAnimDefAlloc(){
-	return(memPoolAlloc(&skeleAnimDefManager));
+	return(memPoolAlloc(&g_skeleAnimDefManager));
 }
 
 // Free a skeleton animation base that has been allocated.
 void moduleSkeleAnimDefFree(skeletonAnimDef *animDef){
 	skeleAnimDefDelete(animDef);
-	memPoolFree(&skeleAnimDefManager, animDef);
+	memPoolFree(&g_skeleAnimDefManager, animDef);
 }
 
 // Delete every skeleton animation base in the manager.
 void moduleSkeleAnimDefClear(){
-	MEMPOOL_LOOP_BEGIN(skeleAnimDefManager, i, skeletonAnimDef *)
+	MEMPOOL_LOOP_BEGIN(g_skeleAnimDefManager, i, skeletonAnimDef *)
 		moduleSkeleAnimDefFree(i);
-	MEMPOOL_LOOP_END(skeleAnimDefManager, i, skeletonAnimDef *, return)
+	MEMPOOL_LOOP_END(g_skeleAnimDefManager, i, skeletonAnimDef *, return)
 }
 
 
 // Allocate a new skeleton animation state array.
 skeletonAnim *moduleSkeleAnimAlloc(){
-	return(memSingleListAlloc(&skeleAnimManager));
+	return(memSingleListAlloc(&g_skeleAnimManager));
 }
 
 // Insert a skeleton animation state at the beginning of an array.
 skeletonAnim *moduleSkeleAnimPrepend(skeletonAnim **start){
-	return(memSingleListPrepend(&skeleAnimManager, (void **)start));
+	return(memSingleListPrepend(&g_skeleAnimManager, (void **)start));
 }
 
 // Insert a skeleton animation state at the end of an array.
 skeletonAnim *moduleSkeleAnimAppend(skeletonAnim **start){
-	return(memSingleListAppend(&skeleAnimManager, (void **)start));
+	return(memSingleListAppend(&g_skeleAnimManager, (void **)start));
 }
 
 // Insert a skeleton animation state after the element "prevData".
 skeletonAnim *moduleSkeleAnimInsertBefore(skeletonAnim **start, skeletonAnim *prevData){
-	return(memSingleListInsertBefore(&skeleAnimManager, (void **)start, (void *)prevData));
+	return(memSingleListInsertBefore(&g_skeleAnimManager, (void **)start, (void *)prevData));
 }
 
 // Insert a skeleton animation state after the element "data".
 skeletonAnim *moduleSkeleAnimInsertAfter(skeletonAnim **start, skeletonAnim *data){
-	return(memSingleListInsertAfter(&skeleAnimManager, (void **)start, (void *)data));
+	return(memSingleListInsertAfter(&g_skeleAnimManager, (void **)start, (void *)data));
 }
 
 // Free a skeleton animation state that has been allocated.
 void moduleSkeleAnimFree(skeletonAnim **start, skeletonAnim *anim, skeletonAnim *prevData){
-	memSingleListFree(&skeleAnimManager, (void **)start, (void *)anim, (void *)prevData);
+	memSingleListFree(&g_skeleAnimManager, (void **)start, (void *)anim, (void *)prevData);
 }
 
 // Free an entire skeleton animation state array.
@@ -128,7 +128,7 @@ void moduleSkeleAnimFreeArray(skeletonAnim **start){
 
 // Delete every skeleton animation state in the manager.
 void moduleSkeleAnimClear(){
-	MEMSINGLELIST_LOOP_BEGIN(skeleAnimManager, i, skeletonAnim *)
+	MEMSINGLELIST_LOOP_BEGIN(g_skeleAnimManager, i, skeletonAnim *)
 		moduleSkeleAnimFree(NULL, i, NULL);
-	MEMSINGLELIST_LOOP_END(skeleAnimManager, i, skeletonAnim *, return)
+	MEMSINGLELIST_LOOP_END(g_skeleAnimManager, i, skeletonAnim *, return)
 }

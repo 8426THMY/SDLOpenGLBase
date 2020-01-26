@@ -37,12 +37,12 @@
 
 
 // Forward-declare any helper functions!
-static charCodeUnit_t readCharUTF8();
+static fontCmapCodeUnit_t readCharUTF8();
 
 
 // Read and return a single encoded UTF-8 character from the specified stream.
-static charCodeUnit_t readCharUTF8(){
-	charCodeUnit_t character = {._32 = 0};
+static fontCmapCodeUnit_t readCharUTF8(){
+	fontCmapCodeUnit_t character = {._32 = 0};
 
 	character.byte._1 = 0/*readByte()*/;
 	// The character uses one byte.
@@ -67,5 +67,6 @@ static charCodeUnit_t readCharUTF8(){
 
 	// None of the conditions were met, so the character is invalid.
 	character._32 = 0;
+
 	return(character);
 }

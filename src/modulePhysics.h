@@ -96,12 +96,12 @@ void modulePhysicsBodyFreeArray(physicsRigidBody **start);
 void modulePhysicsBodyClear();
 
 
-extern memoryPool aabbNodeManager;
-extern memoryPool physContactPairManager;
-extern memoryPool physSeparationPairManager;
-extern memorySingleList physColliderManager;
-extern memorySingleList physRigidBodyDefManager;
-extern memorySingleList physRigidBodyManager;
+extern memoryPool g_aabbNodeManager;
+extern memoryPool g_physContactPairManager;
+extern memoryPool g_physSeparationPairManager;
+extern memorySingleList g_physColliderManager;
+extern memorySingleList g_physRigidBodyDefManager;
+extern memorySingleList g_physRigidBodyManager;
 
 
 #endif

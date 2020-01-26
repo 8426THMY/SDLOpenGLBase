@@ -24,9 +24,6 @@
 #endif
 
 
-typedef type_t physJointType_t;
-
-
 #warning "We might be able to remove this."
 typedef struct physicsJointDef {
 	// This array should be large enough
@@ -40,7 +37,7 @@ typedef struct physicsJointDef {
 	} data;
 	// Stores which type of
 	// joint this object is.
-	physJointType_t type;
+	type_t type;
 } physicsJointDef;
 
 typedef struct physicsJoint {
@@ -55,7 +52,7 @@ typedef struct physicsJoint {
 	} data;
 	// Stores which type of
 	// joint this object is.
-	physJointType_t type;
+	type_t type;
 
 	// Rigid body A's address in memory is always
 	// guaranteed to be greater than rigid body B's.

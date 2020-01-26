@@ -23,7 +23,7 @@
 
 
 static textureGroupFrame texGroupFrameDefault = {
-	.diffuse = &texDefault,
+	.diffuse = &g_texDefault,
 	.bounds.x = 0.f,
 	.bounds.y = 0.f,
 	.bounds.w = 1.f,
@@ -39,14 +39,14 @@ static textureGroupAnimDef texGroupAnimDefault = {
 	.frameData = {
 		.playNum = 0,
 
-		.time = &animTimeDefault,
+		.time = &g_animTimeDefault,
 		.numFrames = 1
 	}
 };
 
 // This texture group is used when the
 // real one cannot be found for some reason.
-textureGroup texGroupDefault = {
+textureGroup g_texGroupDefault = {
 	.name = "error",
 
 	.texAnims = &texGroupAnimDefault,
@@ -59,7 +59,7 @@ static size_t texGroupAnimFindNameIndex(const textureGroupAnimDef *texAnims, con
 
 
 void texGroupFrameInit(textureGroupFrame *texGroupFrame){
-	texGroupFrame->diffuse = &texDefault;
+	texGroupFrame->diffuse = &g_texDefault;
 
 	texGroupFrame->bounds.x = 0.f;
 	texGroupFrame->bounds.y = 0.f;
@@ -104,11 +104,11 @@ textureGroup *texGroupLoad(const char *texGroupPath){
 
 	#ifdef TEMP_MODULE_FIND
 	// If the texture group has already been loaded, return a pointer to it!
-	if((texGroup = moduleTextureGroupFind(texGroupPath)) != &texGroupDefault){
+	if((texGroup = moduleTextureGroupFind(texGroupPath)) != &g_texGroupDefault){
 		return(texGroup);
 	}
 	#else
-	texGroup = &texGroupDefault;
+	texGroup = &g_texGroupDefault;
 	#endif
 
 
@@ -393,9 +393,9 @@ textureGroup *texGroupLoad(const char *texGroupPath){
 
 						// Otherwise, get the error texture's!
 						}else{
-							tempFrame.diffuse = &texDefault;
-							tempTexWidth      = texDefault.width;
-							tempTexHeight     = texDefault.height;
+							tempFrame.diffuse = &g_texDefault;
+							tempTexWidth      = g_texDefault.width;
+							tempTexHeight     = g_texDefault.height;
 						}
 
 
@@ -533,7 +533,7 @@ textureGroup *texGroupLoad(const char *texGroupPath){
 				memcpy(texAnims->name, "default", sizeof("default"));
 				// Initialise its frame data!
 				texAnims->frameData.playNum = 0;
-				texAnims->frameData.time = &animTimeDefault;
+				texAnims->frameData.time = &g_animTimeDefault;
 				texAnims->frameData.numFrames = 1;
 				texGroupFrameInit(texAnims->animFrames);
 				// The animation should use the first texture we loaded.
@@ -605,7 +605,7 @@ void texGroupAnimDefDelete(textureGroupAnimDef *texGroupAnimDef){
 void texGroupDelete(textureGroup *texGroup){
 	// We can only free this stuff if we
 	// are not freeing the error textureGroup.
-	if(texGroup != &texGroupDefault){
+	if(texGroup != &g_texGroupDefault){
 		if(texGroup->name != NULL){
 			memoryManagerGlobalFree(texGroup->name);
 		}

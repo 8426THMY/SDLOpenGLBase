@@ -46,7 +46,7 @@ return_t meshSetupDefault();
 void meshDelete(mesh *meshData);
 
 
-extern mesh meshDefault;
+extern mesh g_meshDefault;
 
 
 #endif

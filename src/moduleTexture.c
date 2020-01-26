@@ -1,7 +1,7 @@
 #include "moduleTexture.h"
 
 
-memoryPool textureManager;
+memoryPool g_textureManager;
 
 
 #warning "What if we aren't using the global memory manager?"
@@ -13,7 +13,7 @@ return_t moduleTextureSetup(){
 	// and the error object can be setup correctly.
 	return(
 		memPoolInit(
-			&textureManager,
+			&g_textureManager,
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_TEXTURE_MANAGER_SIZE)),
 			MODULE_TEXTURE_MANAGER_SIZE, MODULE_TEXTURE_ELEMENT_SIZE
 		) != NULL &&
@@ -23,36 +23,36 @@ return_t moduleTextureSetup(){
 
 void moduleTextureCleanup(){
 	moduleTextureClear();
-	memoryManagerGlobalFree(memPoolRegionStart(textureManager.region));
+	memoryManagerGlobalFree(memPoolRegionStart(g_textureManager.region));
 }
 
 
 // Allocate memory for a texture and return a handle to it.
 texture *moduleTextureAlloc(){
-	return(memPoolAlloc(&textureManager));
+	return(memPoolAlloc(&g_textureManager));
 }
 
 // Free a texture that has been allocated.
 void moduleTextureFree(texture *tex){
 	textureDelete(tex);
-	memPoolFree(&textureManager, tex);
+	memPoolFree(&g_textureManager, tex);
 }
 
 // Delete every texture in the manager.
 void moduleTextureClear(){
-	MEMPOOL_LOOP_BEGIN(textureManager, i, texture *)
+	MEMPOOL_LOOP_BEGIN(g_textureManager, i, texture *)
 		moduleTextureFree(i);
-	MEMPOOL_LOOP_END(textureManager, i, texture *, return)
+	MEMPOOL_LOOP_END(g_textureManager, i, texture *, return)
 }
 
 
 // Find a texture whose name matches "name"!
 texture *moduleTextureFind(const char *name){
-	MEMPOOL_LOOP_BEGIN(textureManager, i, texture *)
+	MEMPOOL_LOOP_BEGIN(g_textureManager, i, texture *)
 		if(strcmp(name, i->name) == 0){
 			return(i);
 		}
-	MEMPOOL_LOOP_END(textureManager, i, texture *, return(NULL))
+	MEMPOOL_LOOP_END(g_textureManager, i, texture *, return(NULL))
 
 	return(NULL);
 }

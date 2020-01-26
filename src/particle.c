@@ -7,8 +7,8 @@
 
 
 void particleDefInit(particleDef *partDef){
-	partDef->spriteData = spriteDefault;
-	partDef->texGroup = &texGroupDefault;
+	partDef->spriteData = g_spriteDefault;
+	partDef->texGroup = &g_texGroupDefault;
 }
 
 void particleInit(particle *part){
@@ -68,7 +68,7 @@ void particleDelete(particle *part){
 void particleDefDelete(particleDef *partDef){
 	// Only delete the system's mesh if
 	// it's not the default sprite.
-	if(spriteDifferent(&partDef->spriteData, &spriteDefault)){
+	if(spriteDifferent(&partDef->spriteData, &g_spriteDefault)){
 		spriteDelete(&partDef->spriteData);
 	}
 }

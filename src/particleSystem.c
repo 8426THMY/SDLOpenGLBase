@@ -365,7 +365,7 @@ static void drawParticles(const particleSystem *partSys, const camera *cam, cons
 
 	glActiveTexture(GL_TEXTURE0);
 	// Bind the texture that this system uses!
-	glBindTexture(GL_TEXTURE_2D, texDefault.id);
+	glBindTexture(GL_TEXTURE_2D, g_texDefault.id);
 
 
 	// Store our particle data in the arrays.

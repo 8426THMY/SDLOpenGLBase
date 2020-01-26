@@ -16,7 +16,7 @@ static void updateBones(object *obj, const float time);
 void objectDefInit(objectDef *objDef){
 	objDef->name = NULL;
 
-	objDef->skele = &skeleDefault;
+	objDef->skele = &g_skeleDefault;
 
 	objDef->colliders = NULL;
 	objDef->physBodies = NULL;

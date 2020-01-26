@@ -7,8 +7,8 @@
 
 
 void guiPanelInit(guiPanel *gui){
-	texGroupStateInit(&gui->borderTexState, &texGroupDefault);
-	texGroupStateInit(&gui->bodyTexState, &texGroupDefault);
+	texGroupStateInit(&gui->borderTexState, &g_texGroupDefault);
+	texGroupStateInit(&gui->bodyTexState, &g_texGroupDefault);
 
 	// Bottom-right corner.
 	gui->uvCoords[0].x = 0.f;
@@ -50,7 +50,7 @@ void guiPanelDraw(const guiPanel *gui, const transformState *root, const shaderS
 
 
 	// Bind the mesh we're using!
-	glBindVertexArray(spriteDefault.vertexArrayID);
+	glBindVertexArray(g_spriteDefault.vertexArrayID);
 
 
 	glActiveTexture(GL_TEXTURE0);
@@ -271,10 +271,10 @@ void guiPanelDraw(const guiPanel *gui, const transformState *root, const shaderS
 
 
 	// Upload the border elements' states to the shader.
-	glBindBuffer(GL_ARRAY_BUFFER, spriteDefault.stateBufferID);
+	glBindBuffer(GL_ARRAY_BUFFER, g_spriteDefault.stateBufferID);
 	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(panelStates), &panelStates[0]);
 	// Draw each instance of the particle!
-	glDrawElementsInstanced(GL_TRIANGLES, spriteDefault.numIndices, GL_UNSIGNED_INT, NULL, 8);
+	glDrawElementsInstanced(GL_TRIANGLES, g_spriteDefault.numIndices, GL_UNSIGNED_INT, NULL, 8);
 
 
 	// Bind the body's texture!
@@ -298,5 +298,5 @@ void guiPanelDraw(const guiPanel *gui, const transformState *root, const shaderS
 	// Upload the body's state to the shader.
 	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(panelStates), &panelStates[0]);
 	// Draw the panel's body!
-	glDrawElements(GL_TRIANGLES, spriteDefault.numIndices, GL_UNSIGNED_INT, 0);
+	glDrawElements(GL_TRIANGLES, g_spriteDefault.numIndices, GL_UNSIGNED_INT, 0);
 }

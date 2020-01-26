@@ -27,7 +27,7 @@ return_t modelSetupDefault();
 void modelDelete(model *mdl);
 
 
-extern model mdlDefault;
+extern model g_mdlDefault;
 
 
 #endif

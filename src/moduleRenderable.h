@@ -49,8 +49,8 @@ void moduleRenderableFreeArray(renderable **start);
 void moduleRenderableClear();
 
 
-extern memorySingleList renderableDefManager;
-extern memorySingleList renderableManager;
+extern memorySingleList g_renderableDefManager;
+extern memorySingleList g_renderableManager;
 
 
 #endif

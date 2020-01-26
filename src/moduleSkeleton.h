@@ -54,9 +54,9 @@ void moduleSkeleAnimFreeArray(skeletonAnim **start);
 void moduleSkeleAnimClear();
 
 
-extern memoryPool skeletonManager;
-extern memoryPool skeleAnimDefManager;
-extern memorySingleList skeleAnimManager;
+extern memoryPool g_skeletonManager;
+extern memoryPool g_skeleAnimDefManager;
+extern memorySingleList g_skeleAnimManager;
 
 
 #endif

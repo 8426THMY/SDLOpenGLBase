@@ -4,7 +4,7 @@
 #include "memoryManager.h"
 
 
-void guiElementInit(guiElement *gui, const guiType_t type){
+void guiElementInit(guiElement *gui, const type_t type){
 	guiPanelInit(&gui->data.panel);
 	gui->type = type;
 

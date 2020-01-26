@@ -4,7 +4,7 @@
 #define MESH_INVALID_BUFFER_ID 0
 
 
-mesh meshDefault;
+mesh g_meshDefault;
 
 
 void meshInit(mesh *meshData){
@@ -210,7 +210,7 @@ return_t meshSetupDefault(){
 		14,  5,  9
 	};
 
-	meshGenerateBuffers(&meshDefault, vertices, sizeof(vertices)/sizeof(*vertices), indices, sizeof(indices)/sizeof(*indices));
+	meshGenerateBuffers(&g_meshDefault, vertices, sizeof(vertices)/sizeof(*vertices), indices, sizeof(indices)/sizeof(*indices));
 
 
 	return(1);

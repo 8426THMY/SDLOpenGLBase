@@ -28,7 +28,7 @@ void transformStateTransformPosition(const transformState *trans, const vec3 *v,
 void transformStateTransformVelocity(const transformState *trans, const vec3 *v, vec3 *out);
 
 
-extern transformState identityTransform;
+extern transformState g_transformIdentity;
 
 
 #endif

@@ -31,10 +31,10 @@
 
 // By default, the error model only has a name.
 // We need to set up the other data the hard way.
-model mdlDefault = {
+model g_mdlDefault = {
 	.name     = "error",
-	.skele    = &skeleDefault,
-	.texGroup = &texGroupDefault
+	.skele    = &g_skeleDefault,
+	.texGroup = &g_texGroupDefault
 };
 
 
@@ -45,8 +45,8 @@ void modelInit(model *mdl){
 	mdl->name = NULL;
 
 	meshInit(&mdl->meshData);
-	mdl->skele = &skeleDefault;
-	mdl->texGroup = &texGroupDefault;
+	mdl->skele = &g_skeleDefault;
+	mdl->texGroup = &g_texGroupDefault;
 }
 
 
@@ -64,11 +64,11 @@ model *modelOBJLoad(const char *mdlPath){
 
 	#ifdef TEMP_MODULE_FIND
 	// If the model has already been loaded, return a pointer to it!
-	if((mdl = moduleModelFind(mdlPath)) != &mdlDefault){
+	if((mdl = moduleModelFind(mdlPath)) != &g_mdlDefault){
 		return(mdl);
 	}
 	#else
-	mdl = &mdlDefault;
+	mdl = &g_mdlDefault;
 	#endif
 
 
@@ -361,7 +361,7 @@ model *modelOBJLoad(const char *mdlPath){
 
 			meshGenerateBuffers(&mdl->meshData, tempVertices, tempVerticesSize, tempIndices, tempIndicesSize);
 
-			mdl->skele = &skeleDefault;
+			mdl->skele = &g_skeleDefault;
 
 			// Now that we can be sure everything was
 			// successful, find the texture group.
@@ -411,11 +411,11 @@ model *modelSMDLoad(const char *mdlPath){
 
 	#ifdef TEMP_MODULE_FIND
 	// If the model has already been loaded, return a pointer to it!
-	if((mdl = moduleModelFind(mdlPath)) != &mdlDefault){
+	if((mdl = moduleModelFind(mdlPath)) != &g_mdlDefault){
 		return(mdl);
 	}
 	#else
-	mdl = &mdlDefault;
+	mdl = &g_mdlDefault;
 	#endif
 
 
@@ -849,7 +849,7 @@ model *modelSMDLoad(const char *mdlPath){
 }
 
 return_t modelSetupDefault(){
-	mdlDefault.meshData = meshDefault;
+	g_mdlDefault.meshData = g_meshDefault;
 	return(1);
 }
 
@@ -857,7 +857,7 @@ return_t modelSetupDefault(){
 void modelDelete(model *mdl){
 	// Only free the name if it's in
 	// use and it's not the error model.
-	if(mdl->name != NULL && mdl != &mdlDefault){
+	if(mdl->name != NULL && mdl != &g_mdlDefault){
 		memoryManagerGlobalFree(mdl->name);
 	}
 	meshDelete(&mdl->meshData);

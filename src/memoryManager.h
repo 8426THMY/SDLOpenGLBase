@@ -32,7 +32,7 @@ void memoryManagerGlobalFree(void *block);
 void memoryManagerGlobalDelete();
 
 
-extern memoryManager memManager;
+extern memoryManager g_memManager;
 #endif
 
 // This will define memory manager functions

@@ -1,4 +1,4 @@
-#include "cmap.h"
+#include "fontCmap.h"
 
 
 #include <stddef.h>
@@ -11,15 +11,15 @@
 
 // Different formats are designed to only
 // work for different ranges of code units.
-#define CMAP_FORMAT_0_CODEUNIT_LIMIT 0xFF
-#define CMAP_FORMAT_2_CODEUNIT_LIMIT 0xFFFF
-#define CMAP_FORMAT_4_CODEUNIT_LIMIT 0xFFFF
+#define FONT_CMAP_FORMAT_0_CODEUNIT_LIMIT 0xFF
+#define FONT_CMAP_FORMAT_2_CODEUNIT_LIMIT 0xFFFF
+#define FONT_CMAP_FORMAT_4_CODEUNIT_LIMIT 0xFFFF
 
-#define CMAP_INVALID_CODEUNIT_ID 0xFFFFFFFF
-#define CMAP_MISSING_GLYPH_ID    0x00000000
+#define FONT_CMAP_INVALID_CODEUNIT_ID 0xFFFFFFFF
+#define FONT_CMAP_MISSING_GLYPH_ID    0x00000000
 
-#define CMAP_FORMAT_UNSUPPORTED 0
-#define CMAP_FORMAT_SUPPORTED   1
+#define FONT_CMAP_FORMAT_UNSUPPORTED 0
+#define FONT_CMAP_FORMAT_SUPPORTED   1
 
 #define TTF_HEAD_CHECKSUMADJUSTMENT_OFFSET (2*sizeof(uint16_t) + sizeof(uint32_t))
 
@@ -38,75 +38,75 @@
 #define TTF_CMAP_ENCODINGID_FULL     6
 
 // Take the remainder of x modulo 65,536.
-#define cmapMod16(x) ((x) & 0x0000FFFF)
+#define fontCmapMod16(x) ((x) & 0x0000FFFF)
 
 // Find a particular subheader using the high byte of a code unit.
-#define cmapFormat2GetSubHeader(cmap, high) (const f2SubHeader *)((const byte_t *)(&((const subtableFormat2 *)(cmap))->data) + ((const subtableFormat2 *)(cmap))->subHeaderKeys[high]);
+#define fontCmapFormat2GetSubHeader(cmap, high) (const fontCmapSubHeader2 *)((const byte_t *)(&((const fontCmapFormat2 *)(cmap))->data) + ((const fontCmapFormat2 *)(cmap))->subHeaderKeys[high]);
 // Find the glyph index for a format 2 subtable.
-#define cmapFormat2GetGlyphIndex(header, i) ((const uint16_t *)((const byte_t *)&((header)->idRangeOffset) + sizeof((header)->idRangeOffset) + (header)->idRangeOffset))[i];
+#define fontCmapFormat2GetGlyphIndex(header, i) ((const uint16_t *)((const byte_t *)&((header)[1]) + (header)->idRangeOffset))[i];
 
 // Get an element in the character map's end code array.
-#define cmapFormat4GetEndCodes(cmap)   ((const uint16_t *)(&((const subtableFormat4 *)(cmap))->data))
-#define cmapFormat4GetEndCode(cmap, i) (const uint16_t *)((const byte_t *)cmapFormat4GetEndCodes(cmap) + i)
+#define fontCmapFormat4GetEndCodes(cmap)   ((const uint16_t *)(&((const fontCmapFormat4 *)(cmap))->data))
+#define fontCmapFormat4GetEndCode(cmap, i) (const uint16_t *)((const byte_t *)fontCmapFormat4GetEndCodes(cmap) + i)
 // Get an element in the character map's start code array.
-#define cmapFormat4GetStartCodes(cmap)   ((const uint16_t *)((const byte_t *)&((const subtableFormat4 *)(cmap))->data + ((const subtableFormat4 *)(cmap))->segCountX2 + sizeof(uint16_t)))
-#define cmapFormat4GetStartCode(cmap, i) (const uint16_t *)((const byte_t *)cmapFormat4GetStartCodes(cmap) + i)
+#define fontCmapFormat4GetStartCodes(cmap)   ((const uint16_t *)((const byte_t *)&((const fontCmapFormat4 *)(cmap))->data + ((const fontCmapFormat4 *)(cmap))->segCountX2 + sizeof(uint16_t)))
+#define fontCmapFormat4GetStartCode(cmap, i) (const uint16_t *)((const byte_t *)fontCmapFormat4GetStartCodes(cmap) + i)
 // Get an element in the character map's delta array.
-#define cmapFormat4GetDeltas(cmap)   ((const int16_t *)((const byte_t *)&((const subtableFormat4 *)(cmap))->data + 2*((const subtableFormat4 *)(cmap))->segCountX2 + sizeof(uint16_t)))
-#define cmapFormat4GetDelta(cmap, i) (const int16_t *)((const byte_t *)cmapFormat4GetDeltas(cmap) + i)
+#define fontCmapFormat4GetDeltas(cmap)   ((const int16_t *)((const byte_t *)&((const fontCmapFormat4 *)(cmap))->data + 2*((const fontCmapFormat4 *)(cmap))->segCountX2 + sizeof(uint16_t)))
+#define fontCmapFormat4GetDelta(cmap, i) (const int16_t *)((const byte_t *)fontCmapFormat4GetDeltas(cmap) + i)
 // Get an element in the character map's offset array.
-#define cmapFormat4GetOffsets(cmap)   ((const uint16_t *)((const byte_t *)&((const subtableFormat4 *)(cmap))->data + 3*((const subtableFormat4 *)(cmap))->segCountX2 + sizeof(uint16_t)))
-#define cmapFormat4GetOffset(cmap, i) (const uint16_t *)((const byte_t *)cmapFormat4GetOffsets(cmap) + i)
+#define fontCmapFormat4GetOffsets(cmap)   ((const uint16_t *)((const byte_t *)&((const fontCmapFormat4 *)(cmap))->data + 3*((const fontCmapFormat4 *)(cmap))->segCountX2 + sizeof(uint16_t)))
+#define fontCmapFormat4GetOffset(cmap, i) (const uint16_t *)((const byte_t *)fontCmapFormat4GetOffsets(cmap) + i)
 // Find the glyph index for a format 4 subtable.
-#define cmapFormat4GetGlyphIndex(start, offset, code) *(((*(offset)) >> 1) + ((code) - (start)) + (offset))
+#define fontCmapFormat4GetGlyphIndex(start, offset, code) *(((*(offset)) >> 1) + ((code) - (start)) + (offset))
 
 
 // Forward-declare any helper functions!
-static cmapHeader *charMapLoadInvalid(FILE *file);
-static cmapHeader *charMapLoadFormat0(FILE *file);
-static cmapHeader *charMapLoadFormat2(FILE *file);
-static cmapHeader *charMapLoadFormat4(FILE *file);
+static fontCmapHeader *loadInvalid(FILE *file);
+static fontCmapHeader *loadFormat0(FILE *file);
+static fontCmapHeader *loadFormat2(FILE *file);
+static fontCmapHeader *loadFormat4(FILE *file);
 
 static uint32_t calculateTableChecksum(FILE *file, const uint32_t tableOffset, const uint32_t tableLength);
-static cmapHeader *readCharMapTable(FILE *file);
+static fontCmapHeader *readCmapTable(FILE *file);
 
-static uint32_t charMapIndexInvalid(const cmapHeader *cmap, const charCodeUnit_t code);
-static uint32_t charMapIndexFormat0(const cmapHeader *cmap, const charCodeUnit_t code);
-static uint32_t charMapIndexFormat2(const cmapHeader *cmap, const charCodeUnit_t code);
-static uint32_t charMapIndexFormat4(const cmapHeader *cmap, const charCodeUnit_t code);
+static uint32_t indexInvalid(const fontCmapHeader *cmap, const fontCmapCodeUnit_t code);
+static uint32_t indexFormat0(const fontCmapHeader *cmap, const fontCmapCodeUnit_t code);
+static uint32_t indexFormat2(const fontCmapHeader *cmap, const fontCmapCodeUnit_t code);
+static uint32_t indexFormat4(const fontCmapHeader *cmap, const fontCmapCodeUnit_t code);
 
 
-static return_t charMapFormatSupported[CMAP_NUM_FORMATS] = {
-	CMAP_FORMAT_SUPPORTED,
-	CMAP_FORMAT_UNSUPPORTED,
-	CMAP_FORMAT_SUPPORTED,
-	CMAP_FORMAT_UNSUPPORTED,
-	CMAP_FORMAT_SUPPORTED,
-	CMAP_FORMAT_UNSUPPORTED,
-	CMAP_FORMAT_UNSUPPORTED,
-	CMAP_FORMAT_UNSUPPORTED,
-	CMAP_FORMAT_UNSUPPORTED,
-	CMAP_FORMAT_UNSUPPORTED,
-	CMAP_FORMAT_UNSUPPORTED,
-	CMAP_FORMAT_UNSUPPORTED,
-	CMAP_FORMAT_UNSUPPORTED,
-	CMAP_FORMAT_UNSUPPORTED
+static return_t fontCmapFormatSupported[FONT_CMAP_NUM_FORMATS] = {
+	FONT_CMAP_FORMAT_SUPPORTED,
+	FONT_CMAP_FORMAT_UNSUPPORTED,
+	FONT_CMAP_FORMAT_SUPPORTED,
+	FONT_CMAP_FORMAT_UNSUPPORTED,
+	FONT_CMAP_FORMAT_SUPPORTED,
+	FONT_CMAP_FORMAT_UNSUPPORTED,
+	FONT_CMAP_FORMAT_UNSUPPORTED,
+	FONT_CMAP_FORMAT_UNSUPPORTED,
+	FONT_CMAP_FORMAT_UNSUPPORTED,
+	FONT_CMAP_FORMAT_UNSUPPORTED,
+	FONT_CMAP_FORMAT_UNSUPPORTED,
+	FONT_CMAP_FORMAT_UNSUPPORTED,
+	FONT_CMAP_FORMAT_UNSUPPORTED,
+	FONT_CMAP_FORMAT_UNSUPPORTED
 };
 
-static cmapHeader *(*charMapLoadJumpTable[CMAP_NUM_SUPPORTED_FORMATS])(FILE *file) = {
-	charMapLoadFormat0,
-	charMapLoadInvalid,
-	charMapLoadFormat2,
-	charMapLoadInvalid,
-	charMapLoadFormat4
+static fontCmapHeader *(*fontCmapLoadJumpTable[FONT_CMAP_NUM_SUPPORTED_FORMATS])(FILE *file) = {
+	loadFormat0,
+	loadInvalid,
+	loadFormat2,
+	loadInvalid,
+	loadFormat4
 };
 
-uint32_t (*charMapIndexJumpTable[CMAP_NUM_SUPPORTED_FORMATS])(const cmapHeader *cmap, const charCodeUnit_t code) = {
-	charMapIndexFormat0,
-	charMapIndexInvalid,
-	charMapIndexFormat2,
-	charMapIndexInvalid,
-	charMapIndexFormat4
+uint32_t (*fontCmapIndexJumpTable[FONT_CMAP_NUM_SUPPORTED_FORMATS])(const fontCmapHeader *cmap, const fontCmapCodeUnit_t code) = {
+	indexFormat0,
+	indexInvalid,
+	indexFormat2,
+	indexInvalid,
+	indexFormat4
 };
 
 
@@ -116,14 +116,14 @@ uint32_t (*charMapIndexJumpTable[CMAP_NUM_SUPPORTED_FORMATS])(const cmapHeader *
 */
 #warning "At the moment, this assumes that 'cmapPath' is the path to a TrueType font."
 #warning "TrueType fonts are little-endian."
-cmapHeader *charMapLoadTTF(const char *ttfPath){
+fontCmapHeader *fontCmapLoadTTF(const char *ttfPath){
 	FILE *ttfFile;
 
 	ttfFile = fopen(ttfPath, "rb");
 	if(ttfFile != NULL){
 		uint16_t numTables;
 		uint32_t cmapOffset = 0;
-		cmapHeader *cmap = NULL;
+		fontCmapHeader *cmap = NULL;
 
 		// Load the font's offset table information.
 		// We only really need the number of tables.
@@ -174,7 +174,7 @@ cmapHeader *charMapLoadTTF(const char *ttfPath){
 		// If we found a character map table, load its data!
 		if(cmapOffset != 0){
 			fseek(ttfFile, cmapOffset, SEEK_SET);
-			cmap = readCharMapTable(ttfFile);
+			cmap = readCmapTable(ttfFile);
 			if(cmap == NULL){
 				printf(
 					"Font file does not contain a supported character map format!\n"
@@ -207,24 +207,50 @@ cmapHeader *charMapLoadTTF(const char *ttfPath){
 }
 
 // Given a code unit, return the index of the glyph associated with it.
-uint32_t charMapIndex(const cmapHeader *cmap, const charCodeUnit_t code){
-	return(charMapIndexJumpTable[*cmap](cmap, code));
+uint32_t fontCmapIndex(const fontCmapHeader *cmap, const fontCmapCodeUnit_t code){
+	return(fontCmapIndexJumpTable[*cmap](cmap, code));
 }
 
-void charMapDelete(cmapHeader *cmap){
+void fontCmapDelete(fontCmapHeader *cmap){
 	memoryManagerGlobalFree(cmap);
 }
 
 
+// Output the code point of every supported character in a map to a text file!
+#warning "This is temporary and should be removed."
+void fontCmapOutputCodePoints(const fontCmapHeader *cmap, const char *filePath, const char delim){
+	FILE *outFile = fopen(filePath, "w");
+	if(outFile != NULL){
+		uint16_t i, j = 0;
+		for(i = 0; i < 0xFFFF; ++i){
+			const uint32_t index = fontCmapIndex(cmap, (fontCmapCodeUnit_t){._32 = i});
+			if(index != 0){
+				fprintf(outFile, "%u%c", i, delim);
+				++j;
+			}
+		}
+		fclose(outFile);
+
+		printf("Total mapped: %u\n", j);
+	}else{
+		printf(
+			"Unable to open code point output file for reading!\n"
+			"Path: %s\n",
+			filePath
+		);
+	}
+}
+
+
 // This function is used if we try to load a character map with an unsupported format.
-static cmapHeader *charMapLoadInvalid(FILE *file){
+static fontCmapHeader *loadInvalid(FILE *file){
 	return(NULL);
 }
 
-static cmapHeader *charMapLoadFormat0(FILE *file){
+static fontCmapHeader *loadFormat0(FILE *file){
 	const uint16_t length = readUint16LE(file);
 
-	subtableFormat0 *cmap = memoryManagerGlobalAlloc(length);
+	fontCmapFormat0 *cmap = memoryManagerGlobalAlloc(length);
 	if(cmap == NULL){
 		/** MALLOC FAILED **/
 	}
@@ -238,15 +264,15 @@ static cmapHeader *charMapLoadFormat0(FILE *file){
 	fread(cmap->glyphIndices, sizeof(*cmap->glyphIndices), 256, file);
 
 
-	return((cmapHeader *)cmap);
+	return((fontCmapHeader *)cmap);
 }
 
-static cmapHeader *charMapLoadFormat2(FILE *file){
+static fontCmapHeader *loadFormat2(FILE *file){
 	const uint16_t length = readUint16LE(file);
 	uint16_t *curInt;
 	const uint16_t *lastInt;
 
-	subtableFormat2 *cmap = memoryManagerGlobalAlloc(length);
+	fontCmapFormat2 *cmap = memoryManagerGlobalAlloc(length);
 	if(cmap == NULL){
 		/** MALLOC FAILED **/
 	}
@@ -263,15 +289,15 @@ static cmapHeader *charMapLoadFormat2(FILE *file){
 	}
 
 
-	return((cmapHeader *)cmap);
+	return((fontCmapHeader *)cmap);
 }
 
-static cmapHeader *charMapLoadFormat4(FILE *file){
+static fontCmapHeader *loadFormat4(FILE *file){
 	const uint16_t length = readUint16LE(file);
 	uint16_t *curInt;
 	uint16_t *lastInt;
 
-	subtableFormat4 *cmap = memoryManagerGlobalAlloc(length);
+	fontCmapFormat4 *cmap = memoryManagerGlobalAlloc(length);
 	if(cmap == NULL){
 		/** MALLOC FAILED **/
 	}
@@ -288,7 +314,7 @@ static cmapHeader *charMapLoadFormat4(FILE *file){
 	}
 
 
-	return((cmapHeader *)cmap);
+	return((fontCmapHeader *)cmap);
 }
 
 
@@ -317,7 +343,7 @@ static uint32_t calculateTableChecksum(FILE *file, const uint32_t tableOffset, c
 ** Read through a font's character map table and
 ** load the first supported subtable we find!
 */
-static cmapHeader *readCharMapTable(FILE *file){
+static fontCmapHeader *readCmapTable(FILE *file){
 	const long tableStart = ftell(file);
 	uint16_t numTables;
 
@@ -337,8 +363,8 @@ static cmapHeader *readCharMapTable(FILE *file){
 			const long oldPos = ftell(file);
 			const uint16_t format = (fseek(file, tableStart + offset, SEEK_SET), readUint16LE(file));
 			// If the subtable has a supported format, we can load the map!
-			if(charMapFormatSupported[format]){
-				cmapHeader *cmap = charMapLoadJumpTable[format](file);
+			if(fontCmapFormatSupported[format]){
+				fontCmapHeader *cmap = fontCmapLoadJumpTable[format](file);
 				// Return the map if it was loaded successfully!
 				if(cmap != NULL){
 					return(cmap);
@@ -353,66 +379,66 @@ static cmapHeader *readCharMapTable(FILE *file){
 
 
 // This function is used if we try to index a character map with an unsupported format.
-static uint32_t charMapIndexInvalid(const cmapHeader *cmap, const charCodeUnit_t code){
-	return(CMAP_MISSING_GLYPH_ID);
+static uint32_t indexInvalid(const fontCmapHeader *cmap, const fontCmapCodeUnit_t code){
+	return(FONT_CMAP_MISSING_GLYPH_ID);
 }
 
-static uint32_t charMapIndexFormat0(const cmapHeader *cmap, const charCodeUnit_t code){
+static uint32_t indexFormat0(const fontCmapHeader *cmap, const fontCmapCodeUnit_t code){
 	// Format 0 requires that characters be at most 1 byte.
-	if(code._32 > CMAP_FORMAT_0_CODEUNIT_LIMIT){
-		return(CMAP_MISSING_GLYPH_ID);
+	if(code._32 > FONT_CMAP_FORMAT_0_CODEUNIT_LIMIT){
+		return(FONT_CMAP_MISSING_GLYPH_ID);
 	}
-	return(((subtableFormat0 *)cmap)->glyphIndices[code._32]);
+	return(((fontCmapFormat0 *)cmap)->glyphIndices[code._32]);
 }
 
-static uint32_t charMapIndexFormat2(const cmapHeader *cmap, const charCodeUnit_t code){
+static uint32_t indexFormat2(const fontCmapHeader *cmap, const fontCmapCodeUnit_t code){
 	// Format 2 requires that characters be at most 2 bytes.
-	if(code._32 <= CMAP_FORMAT_2_CODEUNIT_LIMIT){
-		const f2SubHeader *subHeader = cmapFormat2GetSubHeader(cmap, code.byte._2);
+	if(code._32 <= FONT_CMAP_FORMAT_2_CODEUNIT_LIMIT){
+		const fontCmapSubHeader2 *subHeader = fontCmapFormat2GetSubHeader(cmap, code.byte._2);
 		const uint8_t subArrayIndex = code.byte._1 - subHeader->firstCode;
 
 		// If the index is inside the subheader's range,
 		// get the glyph associated with the character.
 		if(subArrayIndex < subHeader->entryCount){
-			const uint16_t glyphIndex = cmapFormat2GetGlyphIndex(subHeader, subArrayIndex);
-			if(glyphIndex != CMAP_MISSING_GLYPH_ID){
-				return(cmapMod16(glyphIndex + subHeader->idDelta));
+			const uint16_t glyphIndex = fontCmapFormat2GetGlyphIndex(subHeader, subArrayIndex);
+			if(glyphIndex != FONT_CMAP_MISSING_GLYPH_ID){
+				return(fontCmapMod16(glyphIndex + subHeader->idDelta));
 			}
 		}
 	}
 
-	return(CMAP_MISSING_GLYPH_ID);
+	return(FONT_CMAP_MISSING_GLYPH_ID);
 }
 
-static uint32_t charMapIndexFormat4(const cmapHeader *cmap, const charCodeUnit_t code){
+static uint32_t indexFormat4(const fontCmapHeader *cmap, const fontCmapCodeUnit_t code){
 	// Format 4 requires that characters be at most 2 bytes.
-	if(code._32 <= CMAP_FORMAT_4_CODEUNIT_LIMIT){
-		const uint16_t *end = cmapFormat4GetEndCodes(cmap);
+	if(code._32 <= FONT_CMAP_FORMAT_4_CODEUNIT_LIMIT){
+		const uint16_t *end = fontCmapFormat4GetEndCodes(cmap);
 		uint16_t start;
 
 		uint16_t i;
 		// Find the segment that maps our character.
 		for(i = 0; *end < code._16; ++end, i += 2);
-		start = *cmapFormat4GetStartCode(cmap, i);
+		start = *fontCmapFormat4GetStartCode(cmap, i);
 
 		// If the index is inside the subheader's range,
 		// get the glyph associated with the character.
 		if(code._16 >= start){
-			const int16_t delta = *cmapFormat4GetDelta(cmap, i);
-			const uint16_t *offset = cmapFormat4GetOffset(cmap, i);
+			const int16_t delta = *fontCmapFormat4GetDelta(cmap, i);
+			const uint16_t *offset = fontCmapFormat4GetOffset(cmap, i);
 			// If the offset is 0, we should just add the delta to the code unit.
 			if(*offset == 0){
-				return(cmapMod16(code._16 + delta));
+				return(fontCmapMod16(code._16 + delta));
 
 			// Otherwise, we need to do a bit more work.
 			}else{
-				const uint16_t glyphIndex = cmapFormat4GetGlyphIndex(start, offset, code._16);
-				if(glyphIndex != CMAP_MISSING_GLYPH_ID){
-					return(cmapMod16(glyphIndex + delta));
+				const uint16_t glyphIndex = fontCmapFormat4GetGlyphIndex(start, offset, code._16);
+				if(glyphIndex != FONT_CMAP_MISSING_GLYPH_ID){
+					return(fontCmapMod16(glyphIndex + delta));
 				}
 			}
 		}
 	}
 
-	return(CMAP_MISSING_GLYPH_ID);
+	return(FONT_CMAP_MISSING_GLYPH_ID);
 }
