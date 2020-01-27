@@ -33,7 +33,7 @@ void transformStateAppend(const transformState *trans1, const transformState *tr
 // Interpolate between two states and store the result in "out"!
 void transformStateInterpSet(const transformState *trans1, const transformState *trans2, const float time, transformState *out){
 	vec3Lerp(&trans1->pos, &trans2->pos, time, &out->pos);
-	quatSlerpFastOut(&trans1->rot, &trans2->rot, time, &out->rot);
+	quatSlerpFasterOut(&trans1->rot, &trans2->rot, time, &out->rot);
 	vec3Lerp(&trans1->scale, &trans2->scale, time, &out->scale);
 }
 
@@ -50,7 +50,7 @@ void transformStateInterpAdd(const transformState *trans1, const transformState 
 	vec3Lerp(&trans1->pos, &trans2->pos, time, &interp.pos);
 	vec3AddVec3(&out->pos, &interp.pos);
 
-	quatSlerpFastOut(&trans1->rot, &trans2->rot, time, &interp.rot);
+	quatSlerpFasterOut(&trans1->rot, &trans2->rot, time, &interp.rot);
 	quatMultiplyByQuat(&out->rot, &interp.rot);
 	quatNormalizeQuat(&out->rot);
 

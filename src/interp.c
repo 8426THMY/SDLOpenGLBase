@@ -50,7 +50,7 @@ void interpVec3GenRenderState(const interpVec3 *iVec3, const float time, vec3 *o
 
 // Interpolate between the interpQuat's two values!
 void interpQuatGenRenderState(const interpQuat *iQuat, const float time, quat *out){
-	quatSlerpFastOut(&iQuat->last, &iQuat->next, time, out);
+	quatSlerpFasterOut(&iQuat->last, &iQuat->next, time, out);
 }
 
 // Interpolate between the three components of an interpTransform!
@@ -130,17 +130,17 @@ void interpTransSetNextPosZ(interpTransform *iTrans, const float z){
 void interpTransAddRotEulerRad(interpTransform *iTrans, const float x, const float y, const float z, const float time){
 	quat q = iTrans->rot.next;
 	quatRotateByRad(&q, x, y, z);
-	quatSlerpFast(&iTrans->rot.next, &q, time);
+	quatSlerpFaster(&iTrans->rot.next, &q, time);
 }
 
 void interpTransAddRotEulerDeg(interpTransform *iTrans, const float x, const float y, const float z, const float time){
 	quat q = iTrans->rot.next;
 	quatRotateByDeg(&q, x, y, z);
-	quatSlerpFast(&iTrans->rot.next, &q, time);
+	quatSlerpFaster(&iTrans->rot.next, &q, time);
 }
 
 void interpTransAddRotQuat(interpTransform *iTrans, const quat *q, const float time){
-	quatSlerpFast(&iTrans->rot.next, q, time);
+	quatSlerpFaster(&iTrans->rot.next, q, time);
 }
 
 void interpTransSetRotEulerRad(interpTransform *iTrans, const float x, const float y, const float z){

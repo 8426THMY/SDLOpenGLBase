@@ -288,14 +288,14 @@ static void render(program *prg){
 	MEMSINGLELIST_LOOP_END(g_objectManager, curObj, object *, NULL)
 
 	/** TEMPORARY PARTICLE RENDER STUFF! **/
-	glUseProgram(prg->spriteShader.programID);
-	particleSysDraw(&partSys, &prg->cam, &prg->spriteShader, prg->step.renderDelta);
+	//glUseProgram(prg->spriteShader.programID);
+	//particleSysDraw(&partSys, &prg->cam, &prg->spriteShader, prg->step.renderDelta);
 
 	/** TEMPORARY GUI RENDER STUFF! **/
-	glUseProgram(prg->spriteShader.programID);
+	//glUseProgram(prg->spriteShader.programID);
 	/** Do we need this? **/
-	glClear(GL_DEPTH_BUFFER_BIT);
-	guiElementDraw(&gui, prg->windowWidth, prg->windowHeight, &prg->spriteShader);
+	//glClear(GL_DEPTH_BUFFER_BIT);
+	//guiElementDraw(&gui, prg->windowWidth, prg->windowHeight, &prg->spriteShader);
 
 
 	SDL_GL_SwapWindow(prg->window);
@@ -364,16 +364,19 @@ static return_t initResources(program *prg){
 	const GLuint objVertexShaderID    = shaderLoad(".\\resource\\shaders\\vertexShader.gls",       GL_VERTEX_SHADER);
 	const GLuint spriteVertexShaderID = shaderLoad(".\\resource\\shaders\\spriteVertexShader.gls", GL_VERTEX_SHADER);
 	const GLuint fragmentShaderID     = shaderLoad(".\\resource\\shaders\\fragmentShader.gls",     GL_FRAGMENT_SHADER);
-	// Load, compile and attach our OpenGL shader programs!
-	if(
-		!shaderObjectInit(&prg->objectShader, shaderLoadProgram(objVertexShaderID, fragmentShaderID)) ||
-		!shaderSpriteInit(&prg->spriteShader, shaderLoadProgram(spriteVertexShaderID, fragmentShaderID))
-	){
-		exit(0);
-	}
+	const GLuint objectProgramID      = shaderLoadProgram(objVertexShaderID, fragmentShaderID);
+	const GLuint spriteProgramID      = shaderLoadProgram(spriteVertexShaderID, fragmentShaderID);
+
 	shaderDelete(fragmentShaderID);
 	shaderDelete(spriteVertexShaderID);
 	shaderDelete(objVertexShaderID);
+
+	// Load, compile and attach our OpenGL shader programs!
+	if(!shaderObjectInit(&prg->objectShader, objectProgramID) || !shaderSpriteInit(&prg->spriteShader, spriteProgramID)){
+		shaderDeleteProgram(spriteProgramID);
+		shaderDeleteProgram(objectProgramID);
+		//return(0);
+	}
 
 
 	/** TEMPORARY OBJECT STUFF **/
@@ -428,9 +431,10 @@ static return_t initResources(program *prg){
 
 	/** TEMPORARY FONT STUFF **/
 	/*font blah;
-	fontLoad(&blah, FONT_IMAGE_TYPE_NORMAL, "gui\\PxPlus_IBM_BIOS.tdt", "D:\\Programming\\C\\NewSDLOpenGLBaseC\\resource\\fonts\\PxPlus_IBM_BIOS-msdf.csv", "D:\\Programming\\C\\NewSDLOpenGLBaseC\\resource\\fonts\\PxPlus_IBM_BIOS.ttf");
-	const fontGlyph *glyph_a = &blah.glyphs[fontCmapIndex(blah.cmap, (fontCmapCodeUnit_t){._32 = 931})];
-	printf("(%f, %f, %f, %f), (%f, %f, %f)\n", glyph_a->uvOffsets.x, glyph_a->uvOffsets.y, glyph_a->uvOffsets.w, glyph_a->uvOffsets.h, glyph_a->kerningX, glyph_a->kerningY, glyph_a->advanceX);
+	fontLoad(&blah, FONT_IMAGE_TYPE_NORMAL, "gui\\PxPlusIBMBIOS.0.tdt", "D:\\Programming\\C\\NewSDLOpenGLBaseC\\resource\\fonts\\PxPlus_IBM_BIOS-msdf-temp.csv", "D:\\Programming\\C\\NewSDLOpenGLBaseC\\resource\\fonts\\PxPlus_IBM_BIOS.ttf");
+	const uint32_t glyphIndex_a = fontCmapIndex(blah.cmap, (fontCmapCodeUnit_t){._32 = 931});
+	const fontGlyph *glyph_a = &blah.glyphs[glyphIndex_a];
+	printf("%u - (%f, %f, %f, %f), (%f, %f, %f)\n", glyphIndex_a, glyph_a->uvOffsets.x, glyph_a->uvOffsets.y, glyph_a->uvOffsets.w, glyph_a->uvOffsets.h, glyph_a->kerningX, glyph_a->kerningY, glyph_a->advanceX);
 	//fontCmapOutputCodePoints(blah.cmap, "D:\\Programming\\C\\NewSDLOpenGLBaseC\\resource\\fonts\\charset.txt", ' ');
 	exit(0);*/
 

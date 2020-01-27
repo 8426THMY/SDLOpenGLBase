@@ -30,23 +30,10 @@ fontGlyph *fontGlyphArrayLoad(const char *glyphPath){
 				// If we didn't read a number, return numGlyphs to the invalid value.
 				if(endPos == line){
 					numGlyphs = invalidValue(numGlyphs);
-				}else{
-					const fontGlyph controlGlyph = {
-						.uvOffsets.x = 0.f,
-						.uvOffsets.y = 0.f,
-						.uvOffsets.w = 0.f,
-						.uvOffsets.h = 0.f,
 
-						.kerningX = 0.f,
-						.kerningY = 0.f,
-						.advanceX = 0.f
-					};
-					glyphs = memoryManagerGlobalAlloc(sizeof(*glyphs) * (numGlyphs + 33));
-					// The first 33 elements are set aside for control characters.
-					glyphs[0]  = glyphs[1]  = glyphs[2]  = glyphs[3]  = glyphs[4]  = glyphs[5]  = glyphs[6]  = glyphs[7]  = glyphs[8]  = glyphs[9]  = glyphs[10] =
-					glyphs[11] = glyphs[12] = glyphs[13] = glyphs[14] = glyphs[15] = glyphs[16] = glyphs[17] = glyphs[18] = glyphs[19] = glyphs[20] = glyphs[21] =
-					glyphs[22] = glyphs[23] = glyphs[24] = glyphs[25] = glyphs[26] = glyphs[27] = glyphs[28] = glyphs[29] = glyphs[30] = glyphs[31] = glyphs[32] =
-					controlGlyph;
+				// Otherwise, allocate memory for our glyphs!
+				}else{
+					glyphs = memoryManagerGlobalAlloc(sizeof(*glyphs) * numGlyphs);
 				}
 			}else if(line[0] != '\0'){
 				size_t tokenLength;

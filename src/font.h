@@ -17,8 +17,8 @@
 
 typedef struct font {
 	// We generally use simple bitmaps or signed distance fields
-	// for our fonts, so we store the graphics in a texture.
-	texture *tex;
+	// for our fonts, so we store the graphics in a texture atlas.
+	texture *atlas;
 	type_t type;
 
 	// Array of glyphs associated with the font.

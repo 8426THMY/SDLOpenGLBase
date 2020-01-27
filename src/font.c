@@ -6,7 +6,7 @@
 
 return_t fontLoad(font *f, const type_t type, const char *texPath, const char *glyphPath, const char *cmapPath){
 	// Load the font's graphics.
-	f->tex = textureLoad(texPath);
+	f->atlas = textureLoad(texPath);
 	f->type = type;
 
 	// Load the font's glyph offset information.
