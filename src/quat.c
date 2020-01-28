@@ -20,8 +20,8 @@ quat g_quatIdentity = {
 };
 
 
-// These constants are used by the David Eberly's slerp functions.
-const float u[8] = {
+// These constants are used by David Eberly's slerp functions.
+static const float u[8] = {
 	1.f/(1.f * 3.f),
 	1.f/(2.f * 5.f),
 	1.f/(3.f * 7.f),
@@ -31,7 +31,7 @@ const float u[8] = {
 	1.f/(7.f * 15.f),
 	1.90110745351730037f/(8.f * 17.f)
 };
-const float v[8] = {
+static const float v[8] = {
 	1.f/3.f,
 	2.f/5.f,
 	3.f/7.f,
