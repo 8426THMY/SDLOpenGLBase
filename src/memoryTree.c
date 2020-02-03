@@ -585,7 +585,7 @@ void memTreePrintAllSizes(memoryTree *tree){
 	do {
 		// Print some details about the region.
 		printf(
-			"Region Number: %u, Address: %u, Start: %u, Next: %u\n"
+			"Region Number: "PRINTF_SIZE_T", Address: "PRINTF_SIZE_T", Start: "PRINTF_SIZE_T", Next: "PRINTF_SIZE_T"\n"
 			"-------------------------\n",
 			regionNum, (uintptr_t)region, (uintptr_t)(region->start), (uintptr_t)(region->next)
 		);
@@ -599,15 +599,15 @@ void memTreePrintAllSizes(memoryTree *tree){
 			// If the node is active, we just print its size and flags.
 			if(listNodeIsActive(node->prevSize)){
 				printf(
-					"Used Address: %u, Size: %u, Flags: %u\n\n",
+					"Used Address: "PRINTF_SIZE_T", Size: "PRINTF_SIZE_T", Flags: "PRINTF_SIZE_T"\n\n",
 					(uintptr_t)(nodeTree), node->size - MEMTREE_BLOCK_HEADER_SIZE, listNodeGetFlags(node->prevSize)
 				);
 
 			// Otherwise, we can print its tree data too!
 			}else{
 				printf(
-					"Free Address: %u, Size: %u, Flags: %u,\n"
-					"Left: %u, Right: %u, Parent: %u, Colour: %u\n\n",
+					"Free Address: "PRINTF_SIZE_T", Size: "PRINTF_SIZE_T", Flags: "PRINTF_SIZE_T",\n"
+					"Left: "PRINTF_SIZE_T", Right: "PRINTF_SIZE_T", Parent: "PRINTF_SIZE_T", Colour: "PRINTF_SIZE_T"\n\n",
 					(uintptr_t)(nodeTree), node->size - MEMTREE_BLOCK_HEADER_SIZE, listNodeGetFlags(node->prevSize),
 					(uintptr_t)(nodeTree->left), (uintptr_t)(nodeTree->right), (uintptr_t)(treeNodeGetParent(nodeTree)), treeNodeGetColour(nodeTree)
 				);
@@ -642,8 +642,8 @@ void memTreePrintFreeSizes(memoryTree *tree){
 		while(node != NULL){
 			// Sizes include the block's header, so
 			// we need to remove that when we print it.
-			printf("Free Address: %u, Size: %u, Flags: %u,\n"
-				   "Left: %u, Right: %u, Parent: %u, Colour: %u\n\n",
+			printf("Free Address: "PRINTF_SIZE_T", Size: "PRINTF_SIZE_T", Flags: "PRINTF_SIZE_T",\n"
+				   "Left: "PRINTF_SIZE_T", Right: "PRINTF_SIZE_T", Parent: "PRINTF_SIZE_T", Colour: "PRINTF_SIZE_T"\n\n",
 				   (uintptr_t)treeNodeGetList(node), treeNodeGetSize(node) - MEMTREE_BLOCK_HEADER_SIZE, treeNodeGetFlags(node),
 				   (uintptr_t)(node->left), (uintptr_t)(node->right), (uintptr_t)(treeNodeGetParent(node)), treeNodeGetColour(node));
 

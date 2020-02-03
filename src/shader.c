@@ -119,11 +119,11 @@ GLuint shaderLoad(const char *shaderPath, const GLenum shaderType){
 		}else{
 			printf("Failed to create shader!\n"
 			       "Path: %s\n", shaderPath);
+			fclose(shaderFile);
 		}
 	}else{
 		printf("Unable to load shader file!\n"
 		       "Path: %s\n", shaderPath);
-		fclose(shaderFile);
 	}
 
 

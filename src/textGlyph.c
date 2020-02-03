@@ -1,4 +1,4 @@
-#include "fontGlyph.h"
+#include "textGlyph.h"
 
 
 #include <stdlib.h>
@@ -9,15 +9,17 @@
 #include "memoryManager.h"
 
 
-fontGlyph *fontGlyphArrayLoad(const char *glyphPath){
-	fontGlyph *glyphs = NULL;
+textGlyph *textGlyphArrayLoad(const char *glyphPath, const texture *atlas){
+	textGlyph *glyphs = NULL;
 
 	// Load the glyph offsets!
 	FILE *glyphFile = fopen(glyphPath, "r");
 	if(glyphFile != NULL){
+		const float invAtlasSize[2] = {1.f/atlas->width, 1.f/atlas->height};
+
 		char *endPos = NULL;
 
-		size_t numGlyphs = invalidValue(numGlyphs);
+		size_t lastIndex = invalidValue(lastIndex);
 
 		char lineBuffer[FILE_MAX_LINE_LENGTH];
 		char *line;
@@ -25,15 +27,15 @@ fontGlyph *fontGlyphArrayLoad(const char *glyphPath){
 
 		while((line = fileReadLine(glyphFile, &lineBuffer[0], &lineLength)) != NULL){
 			// If we haven't read the character count, try and read it!
-			if(valueIsInvalid(numGlyphs)){
-				numGlyphs = strtoul(line, &endPos, 10);
+			if(valueIsInvalid(lastIndex)){
+				lastIndex = strtoul(line, &endPos, 10);
 				// If we didn't read a number, return numGlyphs to the invalid value.
 				if(endPos == line){
-					numGlyphs = invalidValue(numGlyphs);
+					lastIndex = invalidValue(lastIndex);
 
 				// Otherwise, allocate memory for our glyphs!
 				}else{
-					glyphs = memoryManagerGlobalAlloc(sizeof(*glyphs) * numGlyphs);
+					glyphs = memoryManagerGlobalAlloc(sizeof(*glyphs) * (lastIndex + 1));
 				}
 			}else if(line[0] != '\0'){
 				size_t tokenLength;
@@ -54,11 +56,11 @@ fontGlyph *fontGlyphArrayLoad(const char *glyphPath){
 				const byte_t char_page = (token += tokenLength + 1, token = getDelimitedString(token, lineLength, '"', &tokenLength), token[tokenLength] = '\0', strtoul(token, NULL, 10));
 				const uint32_t info_charset = (token += tokenLength + 1, token = getDelimitedString(token, lineLength, '"', &tokenLength), token[tokenLength] = '\0', 1234);
 
-				const fontGlyph newGlyph = {
-					.uvOffsets.x = char_x,
-					.uvOffsets.y = char_y,
-					.uvOffsets.w = char_width,
-					.uvOffsets.h = char_height,
+				const textGlyph newGlyph = {
+					.uvOffsets.x = char_x * invAtlasSize[0],
+					.uvOffsets.y = char_y * invAtlasSize[1],
+					.uvOffsets.w = char_width * invAtlasSize[0],
+					.uvOffsets.h = char_height * invAtlasSize[1],
 
 					.kerningX = char_xoffset,
 					.kerningY = char_yoffset,
@@ -81,7 +83,7 @@ fontGlyph *fontGlyphArrayLoad(const char *glyphPath){
 
 	return(glyphs);
 	#if 0
-	fontGlyph *glyphs = NULL;
+	textGlyph *glyphs = NULL;
 
 	// Load the glyph offsets!
 	FILE *glyphFile = fopen(glyphPath, "r");
@@ -108,7 +110,7 @@ fontGlyph *fontGlyphArrayLoad(const char *glyphPath){
 				// we can try and load the rest of the glyph.
 				// Otherwise, the line was probably empty.
 				if(endPos != line){
-					const fontGlyph curGlyph = {
+					const textGlyph curGlyph = {
 						.uvOffsets = {
 							.x = strtof(endPos + 1, &endPos),
 							.y = strtof(endPos + 1, &endPos),
@@ -121,7 +123,7 @@ fontGlyph *fontGlyphArrayLoad(const char *glyphPath){
 						.advanceX = strtof(endPos + 1, NULL)
 					};
 					printf(
-						"%u: (%f, %f, %f, %f), (%f, %f), %f\n",
+						PRINTF_SIZE_T": (%f, %f, %f, %f), (%f, %f), %f\n",
 						curID,
 						curGlyph.uvOffsets.x, curGlyph.uvOffsets.y,
 						curGlyph.uvOffsets.w, curGlyph.uvOffsets.h,

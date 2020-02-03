@@ -1,5 +1,5 @@
-#ifndef fontCmap_h
-#define fontCmap_h
+#ifndef textCmap_h
+#define textCmap_h
 
 
 #include <stdint.h>
@@ -7,14 +7,14 @@
 
 // Since we only really use the basic multilingual plane
 // at the moment, we only support formats 0, 2 and 4.
-#define FONT_CMAP_NUM_SUPPORTED_FORMATS 5
+#define TEXT_CMAP_NUM_SUPPORTED_FORMATS 5
 // This is the total number of formats.
-#define FONT_CMAP_NUM_FORMATS 15
+#define TEXT_CMAP_NUM_FORMATS 15
 
 
 // This structure is handy for reading
 // and operating on encoded code points.
-typedef union fontCmapCodeUnit_t {
+typedef union textCmapCodeUnit_t {
 	uint8_t _8;
 	uint16_t _16;
 	uint32_t _32;
@@ -24,30 +24,30 @@ typedef union fontCmapCodeUnit_t {
 		uint8_t _3;
 		uint8_t _4;
 	} byte;
-} fontCmapCodeUnit_t;
+} textCmapCodeUnit_t;
 
 
 // All character maps share this header, so we can use it
 // to represent the map until we know the subtable format.
-typedef uint16_t fontCmapHeader;
+typedef uint16_t textCmapHeader;
 
 
 // Format 0 should be used for fonts
 // that only use single-byte code units.
-typedef struct fontCmapFormat0 {
-	fontCmapHeader format;
+typedef struct textCmapFormat0 {
+	textCmapHeader format;
 	uint16_t length;
 	uint16_t language;
 
 	// This array maps from a code unit between
 	// 0-255 to the index of its associated glyph.
 	uint8_t glyphIndices[256];
-} fontCmapFormat0;
+} textCmapFormat0;
 
 
 // Subheaders map the second byte of code
 // units to a particular glyph index subarray.
-typedef struct fontCmapSubHeader2 {
+typedef struct textCmapSubHeader2 {
 	// These two values specify a range of values that we can
 	// map to glyph subarrays. If the value of the second byte
 	// of the code unit is within this range, then we use its
@@ -63,7 +63,7 @@ typedef struct fontCmapSubHeader2 {
 	// its own location in memory to the location of
 	// the glyph subarray associated with this subheader.
 	uint16_t idRangeOffset;
-} fontCmapSubHeader2;
+} textCmapSubHeader2;
 
 /*
 ** Format 2 should be used for fonts that use a
@@ -80,8 +80,8 @@ typedef struct fontCmapSubHeader2 {
 ** // The first subarray should map the single-byte characters.
 ** uint16_t **glyphIndices;
 */
-typedef struct fontCmapFormat2 {
-	fontCmapHeader format;
+typedef struct textCmapFormat2 {
+	textCmapHeader format;
 	uint16_t length;
 	uint16_t language;
 
@@ -95,7 +95,7 @@ typedef struct fontCmapFormat2 {
 	// This is a uint16_t so we can begin loading from language.
 	// Otherwise, if we use a void pointer, we get padding.
 	uint16_t data;
-} fontCmapFormat2;
+} textCmapFormat2;
 
 
 /*
@@ -131,8 +131,8 @@ typedef struct fontCmapFormat2 {
 */
 #warning "Can we remove the useless stuff and use an array of structures instead of a structure of arrays?"
 #warning "We'd need to change the value of idRangeOffset for the latter, though..."
-typedef struct fontCmapFormat4 {
-	fontCmapHeader format;
+typedef struct textCmapFormat4 {
+	textCmapHeader format;
 	uint16_t length;
 	uint16_t language;
 
@@ -148,20 +148,20 @@ typedef struct fontCmapFormat4 {
 	// This is a uint16_t so we can begin loading from language.
 	// Otherwise, if we use a void pointer, we get padding.
 	uint16_t data;
-} fontCmapFormat4;
+} textCmapFormat4;
 
 
-fontCmapHeader *fontCmapLoadTTF(const char *cmapPath);
-uint32_t fontCmapIndex(const fontCmapHeader *cmap, const fontCmapCodeUnit_t code);
-void fontCmapDelete(fontCmapHeader *cmap);
+textCmapHeader *textCmapLoadTTF(const char *cmapPath);
+uint32_t textCmapIndex(const textCmapHeader *cmap, const textCmapCodeUnit_t code);
+void textCmapDelete(textCmapHeader *cmap);
 
 #warning "This is temporary and should be removed."
-void fontCmapOutputCodePoints(const fontCmapHeader *cmap, const char *filePath, const char delim);
+void textCmapOutputCodePoints(const textCmapHeader *cmap, const char *filePath, const char delim);
 
 
-extern uint32_t (*fontCmapIndexJumpTable[FONT_CMAP_NUM_SUPPORTED_FORMATS])(
-	const fontCmapHeader *cmap,
-	const fontCmapCodeUnit_t code
+extern uint32_t (*textCmapIndexJumpTable[TEXT_CMAP_NUM_SUPPORTED_FORMATS])(
+	const textCmapHeader *cmap,
+	const textCmapCodeUnit_t code
 );
 
 

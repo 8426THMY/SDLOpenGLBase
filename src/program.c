@@ -230,7 +230,7 @@ static void updateObjects(program *prg){
 
 /** TEMPORARY STUFF! **/
 #include "particleSystem.h"
-#include "font.h"
+#include "textFont.h"
 #include "guiElement.h"
 particleSystemDef partSysDef;
 particleSystem partSys;
@@ -284,7 +284,7 @@ static void render(program *prg){
 	glUseProgram(prg->objectShader.programID);
 	MEMSINGLELIST_LOOP_BEGIN(g_objectManager, curObj, object *)
 		#warning "We'll need the camera in this function for billboards. Just pass it instead of the matrix."
-		objectDraw(curObj, &prg->cam, &prg->objectShader, prg->step.renderDelta);
+		//objectDraw(curObj, &prg->cam, &prg->objectShader, prg->step.renderDelta);
 	MEMSINGLELIST_LOOP_END(g_objectManager, curObj, object *, NULL)
 
 	/** TEMPORARY PARTICLE RENDER STUFF! **/
@@ -292,10 +292,10 @@ static void render(program *prg){
 	//particleSysDraw(&partSys, &prg->cam, &prg->spriteShader, prg->step.renderDelta);
 
 	/** TEMPORARY GUI RENDER STUFF! **/
-	//glUseProgram(prg->spriteShader.programID);
+	glUseProgram(prg->spriteShader.programID);
 	/** Do we need this? **/
-	//glClear(GL_DEPTH_BUFFER_BIT);
-	//guiElementDraw(&gui, prg->windowWidth, prg->windowHeight, &prg->spriteShader);
+	glClear(GL_DEPTH_BUFFER_BIT);
+	guiElementDraw(&gui, prg->windowWidth, prg->windowHeight, &prg->spriteShader);
 
 
 	SDL_GL_SwapWindow(prg->window);
@@ -375,7 +375,7 @@ static return_t initResources(program *prg){
 	if(!shaderObjectInit(&prg->objectShader, objectProgramID) || !shaderSpriteInit(&prg->spriteShader, spriteProgramID)){
 		shaderDeleteProgram(spriteProgramID);
 		shaderDeleteProgram(objectProgramID);
-		//return(0);
+		return(0);
 	}
 
 
@@ -430,17 +430,26 @@ static return_t initResources(program *prg){
 
 
 	/** TEMPORARY FONT STUFF **/
-	/*font blah;
-	fontLoad(&blah, FONT_IMAGE_TYPE_NORMAL, "gui\\PxPlusIBMBIOS.0.tdt", "D:\\Programming\\C\\NewSDLOpenGLBaseC\\resource\\fonts\\PxPlus_IBM_BIOS-msdf-temp.csv", "D:\\Programming\\C\\NewSDLOpenGLBaseC\\resource\\fonts\\PxPlus_IBM_BIOS.ttf");
-	const uint32_t glyphIndex_a = fontCmapIndex(blah.cmap, (fontCmapCodeUnit_t){._32 = 931});
-	const fontGlyph *glyph_a = &blah.glyphs[glyphIndex_a];
-	printf("%u - (%f, %f, %f, %f), (%f, %f, %f)\n", glyphIndex_a, glyph_a->uvOffsets.x, glyph_a->uvOffsets.y, glyph_a->uvOffsets.w, glyph_a->uvOffsets.h, glyph_a->kerningX, glyph_a->kerningY, glyph_a->advanceX);
-	//fontCmapOutputCodePoints(blah.cmap, "D:\\Programming\\C\\NewSDLOpenGLBaseC\\resource\\fonts\\charset.txt", ' ');
-	exit(0);*/
+	textFont *fontIBM = memoryManagerGlobalAlloc(sizeof(*fontIBM));
+	textFontLoad(fontIBM, TEXT_FONT_IMAGE_TYPE_NORMAL, "gui\\PxPlusIBMBIOS.0.tdt", "D:\\Programming\\C\\NewSDLOpenGLBaseC\\resource\\fonts\\PxPlus_IBM_BIOS-msdf-temp.csv", "D:\\Programming\\C\\NewSDLOpenGLBaseC\\resource\\fonts\\PxPlus_IBM_BIOS.ttf");
+	//const uint32_t glyphIndex_a = textCmapIndex(fontIBM.cmap, (textCmapCodeUnit_t){._32 = 931});
+	//const textGlyph *glyph_a = &fontIBM.glyphs[glyphIndex_a];
+	//printf("%u - (%f, %f, %f, %f), (%f, %f, %f)\n", glyphIndex_a, glyph_a->uvOffsets.x, glyph_a->uvOffsets.y, glyph_a->uvOffsets.w, glyph_a->uvOffsets.h, glyph_a->kerningX, glyph_a->kerningY, glyph_a->advanceX);
+	//textCmapOutputCodePoints(fontIBM.cmap, "D:\\Programming\\C\\NewSDLOpenGLBaseC\\resource\\fonts\\charset.txt", ' ');
 
 
 	/** EVEN MORE TEMPORARY GUI STUFF **/
-	guiElementInit(&gui, GUI_TYPE_PANEL);
+	guiElementInit(&gui, GUI_ELEMENT_TYPE_TEXT);
+	guiTextInit(&gui.data.text, fontIBM, sizeof("THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG!"));
+	textBufferWrite(&gui.data.text.text, "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG!", sizeof("THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG!"));
+
+	gui.data.text.bounds.x = -320.f;
+	gui.data.text.bounds.y = 240.f;
+	gui.data.text.bounds.w = 320.f;
+	gui.data.text.bounds.h = 240.f;
+
+	/*guiElementInit(&gui, GUI_TYPE_PANEL);
+	guiPanelInit(&gui.data.panel);
 
 	gui.data.panel.borderTexState.texGroup = texGroupLoad("gui\\border.tdg");
 	gui.data.panel.bodyTexState.texGroup = texGroupLoad("gui\\body.tdg");
@@ -487,7 +496,7 @@ static return_t initResources(program *prg){
 	gui.data.panel.uvCoords[7].w = 1.f;
 	gui.data.panel.uvCoords[7].h = 0.2f;
 
-	gui.data.panel.flags |= GUIPANEL_TILE_BODY;
+	gui.data.panel.flags |= GUIPANEL_TILE_BODY;*/
 
 
 	return(1);
@@ -559,6 +568,10 @@ static void cleanupModules(){
 	/** YET MORE TEMPORARY PARTICLE STUFF **/
 	particleSysDelete(&partSys);
 	particleSysDefDelete(&partSysDef);
+	/** YET MORE TEMPORARY GUI STUFF **/
+	textFontDelete(gui.data.text.font);
+	memoryManagerGlobalFree(gui.data.text.font);
+	guiElementDelete(&gui);
 	#ifdef MODULE_PARTICLE
 	moduleParticleCleanup();
 	#endif

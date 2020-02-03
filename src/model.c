@@ -542,7 +542,7 @@ model *modelSMDLoad(const char *mdlPath){
 								"Error loading model!\n"
 								"Path: %s\n"
 								"Line: %s\n"
-								"Error: Found node %u when expecting node %u!\n",
+								"Error: Found node "PRINTF_SIZE_T" when expecting node "PRINTF_SIZE_T"!\n",
 								mdlFullPath, line, boneID, tempBonesSize
 							);
 
@@ -608,7 +608,7 @@ model *modelSMDLoad(const char *mdlPath){
 									"Error loading model!\n"
 									"Path: %s\n"
 									"Line: %s\n"
-									"Error: Found skeletal data for bone %u, which doesn't exist!\n",
+									"Error: Found skeletal data for bone "PRINTF_SIZE_T", which doesn't exist!\n",
 									mdlFullPath, line, boneID
 								);
 

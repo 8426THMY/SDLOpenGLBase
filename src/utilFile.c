@@ -4,6 +4,8 @@
 #include <ctype.h>
 #include <string.h>
 
+#include "utilMath.h"
+
 
 // Prepend a resource's prefix to its path!
 void fileGenerateFullPath(
@@ -160,26 +162,26 @@ float readFloat(FILE *file){
 
 float readFloatLE(FILE *file){
 	byte_t bytes[4];
-	float val;
+	bitFloat val;
 	fread((void *)bytes, sizeof(bytes), 1, file);
-	*((uint32_t *)&val) =
+	val.l =
 		((uint32_t)bytes[0] << 24) |
 		((uint32_t)bytes[1] << 16) |
 		((uint32_t)bytes[2] << 8)  |
 		(uint32_t)bytes[3];
-	return(val);
+	return(val.f);
 }
 
 float readFloatBE(FILE *file){
 	byte_t bytes[4];
-	float val;
+	bitFloat val;
 	fread((void *)bytes, sizeof(bytes), 1, file);
-	*((uint32_t *)&val) =
+	val.l =
 		(uint32_t)bytes[0]         |
 		((uint32_t)bytes[1] << 8)  |
 		((uint32_t)bytes[2] << 16) |
 		((uint32_t)bytes[3] << 24);
-	return(val);
+	return(val.f);
 }
 
 double readDouble(FILE *file){
@@ -189,10 +191,10 @@ double readDouble(FILE *file){
 }
 
 double readDoubleLE(FILE *file){
-	byte_t bytes[4];
-	double val;
+	byte_t bytes[8];
+	bitDouble val;
 	fread((void *)bytes, sizeof(bytes), 1, file);
-	*((uint64_t *)&val) =
+	val.l =
 		((uint64_t)bytes[0] << 56) |
 		((uint64_t)bytes[1] << 48) |
 		((uint64_t)bytes[2] << 40) |
@@ -201,14 +203,14 @@ double readDoubleLE(FILE *file){
 		((uint64_t)bytes[5] << 16) |
 		((uint64_t)bytes[6] << 8)  |
 		(uint64_t)bytes[7];
-	return(val);
+	return(val.d);
 }
 
 double readDoubleBE(FILE *file){
 	byte_t bytes[8];
-	double val;
+	bitDouble val;
 	fread((void *)bytes, sizeof(bytes), 1, file);
-	*((uint64_t *)&val) =
+	val.l =
 		(uint64_t)bytes[0]         |
 		((uint64_t)bytes[1] << 8)  |
 		((uint64_t)bytes[2] << 16) |
@@ -217,5 +219,5 @@ double readDoubleBE(FILE *file){
 		((uint64_t)bytes[5] << 40) |
 		((uint64_t)bytes[6] << 48) |
 		((uint64_t)bytes[7] << 56);
-	return(val);
+	return(val.d);
 }

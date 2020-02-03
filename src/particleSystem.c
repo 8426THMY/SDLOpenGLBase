@@ -122,18 +122,19 @@ void particleSysInit(particleSystem *partSys, const particleSystemDef *partSysDe
 
 
 void particleSysUpdate(particleSystem *partSys, const float time){
-	particleSystem *curChild;
-	const particleSystem *lastChild;
+	particleSystem *firstChild = partSys->children;
+	if(firstChild != NULL){
+		particleSystem *curChild = &firstChild[partSys->partSysDef->numChildren];
+		// Update all of the particle system's children, starting from the last!
+		do {
+			--curChild;
+			particleSysUpdate(curChild, time);
+		} while(curChild > firstChild);
+	}
 
+	// Now update the system itself!
 	updateSysEmitters(partSys, time);
 	updateSysParticles(partSys, time);
-
-	curChild = partSys->children;
-	lastChild = &curChild[partSys->partSysDef->numChildren];
-	// Update the system's children!
-	for(; curChild < lastChild; ++curChild){
-		particleSysUpdate(curChild, time);
-	}
 }
 
 /*

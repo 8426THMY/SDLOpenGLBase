@@ -2,6 +2,19 @@
 #define settingsMemory_h
 
 
+// Included for "UINTPTR_MAX", "UINT32_MAX" and "UINT64_MAX".
+#include <stdint.h>
+
+
+// Define a macro for printing memory addresses as unsigned integers.
+// This lets us avoid warnings about printf format specifiers.
+#if UINTPTR_MAX == UINT32_MAX
+	#define PRINTF_SIZE_T "%u"
+#else
+	#define PRINTF_SIZE_T "%lu"
+#endif
+
+
 #define MEMORY_KIBIBYTE 1024
 #define MEMORY_MEBIBYTE (1024 * MEMORY_KIBIBYTE)
 

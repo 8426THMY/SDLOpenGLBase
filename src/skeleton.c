@@ -286,7 +286,7 @@ skeletonAnimDef *skeleAnimSMDLoad(const char *skeleAnimPath){
 								"Error loading skeletal animtion!\n"
 								"Path: %s\n"
 								"Line: %s\n"
-								"Error: Found node %u when expecting node %u!\n",
+								"Error: Found node "PRINTF_SIZE_T" when expecting node "PRINTF_SIZE_T"!\n",
 								skeleAnimFullPath, line, boneID, tempBonesSize
 							);
 
@@ -373,7 +373,7 @@ skeletonAnimDef *skeleAnimSMDLoad(const char *skeleAnimPath){
 									"Error loading skeletal animtion!\n"
 									"Path: %s\n"
 									"Line: %s\n"
-									"Error: Found skeletal data for bone %u, which doesn't exist!\n",
+									"Error: Found skeletal data for bone "PRINTF_SIZE_T", which doesn't exist!\n",
 									skeleAnimFullPath, line, boneID
 								);
 
