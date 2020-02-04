@@ -28,7 +28,7 @@ typedef struct textBuffer {
 
 void textBufferInit(textBuffer *text, const size_t size);
 
-void textBufferWrite(textBuffer *text, byte_t *str, size_t strSize);
+void textBufferWrite(textBuffer *text, char *str, size_t strSize);
 uint32_t textBufferRead(const textBuffer *text, const byte_t **cursor);
 
 void textBufferDelete(textBuffer *text);

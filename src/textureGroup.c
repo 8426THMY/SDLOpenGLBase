@@ -11,7 +11,7 @@
 #include "moduleTextureGroup.h"
 
 
-#define TEXTUREGROUP_PATH_PREFIX        ".\\resource\\texgroups\\"
+#define TEXTUREGROUP_PATH_PREFIX        "./resource/texgroups/"
 #define TEXTUREGROUP_PATH_PREFIX_LENGTH (sizeof(TEXTUREGROUP_PATH_PREFIX) - 1)
 
 // These must be at least 1!
@@ -98,7 +98,7 @@ textureGroup *texGroupLoad(const char *texGroupPath){
 	textureGroup *texGroup;
 
 	FILE *texGroupFile;
-	char texGroupFullPath[FILE_MAX_LINE_LENGTH];
+	char texGroupFullPath[FILE_MAX_PATH_LENGTH];
 	size_t texGroupPathLength;
 
 
@@ -113,10 +113,10 @@ textureGroup *texGroupLoad(const char *texGroupPath){
 
 
 	texGroupPathLength = strlen(texGroupPath);
-	// Find the full path for the textureGroup!
-	fileGenerateFullPath(
-		texGroupPath, texGroupPathLength,
+	// Generate the full path for the textureGroup!
+	fileGenerateFullResourcePath(
 		TEXTUREGROUP_PATH_PREFIX, TEXTUREGROUP_PATH_PREFIX_LENGTH,
+		texGroupPath, texGroupPathLength,
 		texGroupFullPath
 	);
 
@@ -160,90 +160,68 @@ textureGroup *texGroupLoad(const char *texGroupPath){
 			if(valueIsInvalid(currentAnim)){
 				// Texture path.
 				if(memcmp(line, "t ", 2) == 0){
-					char *tempName;
-					size_t nameLength;
-					// Get the file name!
-					tempName = getMultiDelimitedString(&line[2], lineLength - 2, "\" ", &nameLength);
+					char texPath[FILE_MAX_PATH_LENGTH];
+					char *texPathEnd;
+					const size_t texPathLength = fileParseResourcePath(texPath, &line[2], lineLength - 2, &texPathEnd);
+					char *texExt;
+					// Note that this includes the null terminator.
+					size_t texExtLength;
 
+
+					size_t curFrame;
 					size_t frameStart = 0;
 					size_t frameEnd = 0;
-					char *tempEnd = tempName + nameLength;
+
+
 					// Skip past any quotation marks or spaces!
-					while(*tempEnd != '\0' && (*tempEnd == '\"' || *tempEnd == ' ')){
-						++tempEnd;
+					while(*texPathEnd != '\0' && (*texPathEnd == '\"' || *texPathEnd == ' ')){
+						++texPathEnd;
 					}
 
-					// If we haven't reached the end of the
-					// line, multiple frames may be specified.
-					if(tempEnd != &line[lineLength]){
-						// Get the number of the first frame!
-						frameStart = strtoul(tempEnd, &tempEnd, 10);
-
-						// If it was successful and we haven't reached the end
-						// of the line, try and get the number of the last frame!
-						if(tempEnd != &line[lineLength]){
-							frameEnd = strtoul(tempEnd, NULL, 10);
+					// Get the number of the first frame!
+					frameStart = strtoul(texPathEnd, &texPathEnd, 10);
+					frameEnd = strtoul(texPathEnd, NULL, 10);
+					// If we're loading more than one frame, we'll
+					// need to know where the file extension starts.
+					if(frameEnd > frameStart){
+						texExt = strrchr(texPath, '.');
+						if(texExt == NULL){
+							texExt = &texPath[texPathLength - 1];
+							texExtLength = 1;
+						}else{
+							texExtLength = texPathLength - (size_t)(texExt - texPath) + 1;
 						}
-						if(frameStart < 0){
-							frameStart = 0;
-						}
-						if(frameEnd < frameStart){
-							frameEnd = frameStart;
-						}
+					}else{
+						frameEnd = frameStart;
 					}
 
 
-					// We add the frame number before the
-					// file extension, so find the period!
-					int nameDotPos = strchr(tempName, '.') - tempName;
-					if(nameDotPos < 0){
-						nameDotPos = nameLength;
-					}
-
-					// This array stores the current frame number as a string!
-					char frameNum[ULONG_MAX_CHARS + 1];
-					size_t frameNumLength;
-
-
-					// This variable stores the name of
-					// the image used by the current frame!
-					char *frameName = NULL;
-					// Store a pointer to the frame name!
-					char *namePointer;
-
-					size_t i;
 					// Loop through all the texture frames we're loading!
-					for(i = frameStart; i <= frameEnd; ++i){
+					for(curFrame = frameStart; curFrame <= frameEnd; ++curFrame){
 						texture *tex;
 
-
-						// Add the value in 'a' to the end of the texture's
-						// file name if there are multiple frames to add!
-						if(frameEnd > 0){
+						// If we're loading multiple frames, we need to add the
+						// current frame number to the end of the texture's name!
+						if(frameStart < frameEnd){
+							char frameNum[ULONG_MAX_CHARS + 1];
 							// Convert the frame number to a string.
-							frameNumLength = ultostr(i, frameNum);
+							const size_t frameNumLength = ultostr(curFrame, frameNum);
 
-							frameName = memoryManagerGlobalRealloc(frameName, nameLength + frameNumLength + 1);
-							if(frameName == NULL){
-								/** REALLOC FAILED **/
-							}
-							// Now copy tempName into frameName!
-							memcpy(frameName, tempName, nameDotPos * sizeof(*frameName));
-							// Copy the frame number into frameName!
-							strcpy(frameName + nameDotPos, frameNum);
-							// Don't forget to add the file extension and the null terminator!
-							memcpy(frameName + nameDotPos + frameNumLength, tempName + nameDotPos, nameLength - nameDotPos);
-							frameName[nameLength + frameNumLength] = '\0';
-
-							namePointer = frameName;
+							// Move the file extension over to create room for the frame number.
+							memmove(&texExt[frameNumLength], texExt, texExtLength);
+							// Copy the frame number between the texture path and the file extension.
+							memcpy(texExt, frameNum, frameNumLength);
+							// Load the texture if it hasn't already been loaded and
+							// keep a pointer to it in our array of referenced textures.
+							tex = textureLoad(texPath);
+							// Move the file extension back to where it was originally.
+							memmove(texExt, &texExt[frameNumLength], texExtLength);
 						}else{
-							namePointer = tempName;
+							// Load the texture if it hasn't already been loaded and
+							// keep a pointer to it in our array of referenced textures.
+							tex = textureLoad(texPath);
 						}
 
-
-						// Load the texture if it hasn't already been loaded and
-						// keep a pointer to it in our array of referenced textures.
-						tex = textureLoad(namePointer);
 						// If we're out of space, allocate some more!
 						if(texturesSize >= texturesCapacity){
 							texturesCapacity = texturesSize * 2;
@@ -254,10 +232,6 @@ textureGroup *texGroupLoad(const char *texGroupPath){
 						}
 						textures[texturesSize] = tex;
 						++texturesSize;
-					}
-
-					if(frameName != NULL){
-						memoryManagerGlobalFree(frameName);
 					}
 
 				// Animation start.

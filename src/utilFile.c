@@ -7,10 +7,47 @@
 #include "utilMath.h"
 
 
+/*
+** Copy a resource's path from "line" into "resPath", converting any folder
+** delimiters. If the path is between quotations marks, they will be removed too.
+*/
+size_t fileParseResourcePath(char *resPath, char *line, const size_t lineLength, char **endPtr){
+	const char *pathStart = strchr(line, '"');
+	char *pathEnd         = NULL;
+	const char *delimiter;
+
+	// Find the beginning and end of the resource path string.
+	if(pathStart != NULL){
+		++pathStart;
+		pathEnd = strrchr(line, '"');
+	}
+	if(pathStart == pathEnd){
+		pathStart = line;
+		pathEnd   = &line[lineLength];
+	}
+
+	// Copy the path and convert any invalid folder delimiters.
+	for(delimiter = pathStart; delimiter != pathEnd; ++resPath, ++delimiter){
+		if(*delimiter == FILE_PATH_DELIMITER_UNUSED){
+			*resPath = FILE_PATH_DELIMITER;
+		}else{
+			*resPath = *delimiter;
+		}
+	}
+
+	*resPath = '\0';
+	if(endPtr != NULL){
+		*endPtr = pathEnd;
+	}
+
+
+	return((size_t)(pathEnd - pathStart));
+}
+
 // Prepend a resource's prefix to its path!
-void fileGenerateFullPath(
-	const char *filePath, const size_t filePathLength,
+void fileGenerateFullResourcePath(
 	const char *prefix, const size_t prefixLength,
+	const char *filePath, const size_t filePathLength,
 	char *fullPath
 ){
 

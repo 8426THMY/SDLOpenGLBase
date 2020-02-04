@@ -8,7 +8,7 @@
 #include "moduleSkeleton.h"
 
 
-#define SKELETON_PATH_PREFIX        ".\\resource\\models\\"
+#define SKELETON_PATH_PREFIX        "./resource/models/"
 #define SKELETON_PATH_PREFIX_LENGTH (sizeof(SKELETON_PATH_PREFIX) - 1)
 
 // These must be at least 1!
@@ -136,7 +136,7 @@ skeletonAnimDef *skeleAnimSMDLoad(const char *skeleAnimPath){
 	skeletonAnimDef *animDef;
 
 	FILE *skeleAnimFile;
-	char skeleAnimFullPath[FILE_MAX_LINE_LENGTH];
+	char skeleAnimFullPath[FILE_MAX_PATH_LENGTH];
 	size_t skeleAnimPathLength;
 
 
@@ -151,10 +151,10 @@ skeletonAnimDef *skeleAnimSMDLoad(const char *skeleAnimPath){
 
 
 	skeleAnimPathLength = strlen(skeleAnimPath);
-	// Find the full path for the skeleton!
-	fileGenerateFullPath(
-		skeleAnimPath, skeleAnimPathLength,
+	// Generate the full path for the skeleton!
+	fileGenerateFullResourcePath(
 		SKELETON_PATH_PREFIX, SKELETON_PATH_PREFIX_LENGTH,
+		skeleAnimPath, skeleAnimPathLength,
 		skeleAnimFullPath
 	);
 
@@ -357,7 +357,7 @@ skeletonAnimDef *skeleAnimSMDLoad(const char *skeleAnimPath){
 								quatInitEulerRad(&currentState->rot, x, y, z);
 
 								//The Source Engine uses Z as its up axis, so we need to fix that with the root bone.
-								if(boneID == 0 && strcmp(skeleAnimPath, "soldier_animations_anims_new\\a_flinch01.smd") != 0){
+								if(boneID == 0 && strcmp(skeleAnimPath, "soldier_animations_anims_new/a_flinch01.smd") != 0){
 									transformState rotateUp = {
 										.pos.x = 0.f, .pos.y = 0.f, .pos.z = 0.f,
 										.rot.x = -0.70710678118654752440084436210485f, .rot.y = 0.f, .rot.z = 0.f, .rot.w = 0.70710678118654752440084436210485f,
@@ -482,7 +482,7 @@ void skeleObjGenerateBoneState(const skeletonObject *skeleData, const size_t bon
 				&animState
 			);
 			// Remove the bind pose's "contribution" to the animation.
-			if(strcmp(curAnim->animDef->name, "soldier_animations_anims_new\\a_flinch01.smd") != 0){
+			if(strcmp(curAnim->animDef->name, "soldier_animations_anims_new/a_flinch01.smd") != 0){
 				boneState invLocalBind;
 				transformStateInvert(&skeleData->skele->bones[boneID].localBind, &invLocalBind);
 				transformStateAppend(&invLocalBind, &animState, &animState);

@@ -11,9 +11,9 @@
 #include "memoryManager.h"
 #include "moduleTexture.h"
 
-#define TEXTURE_PATH_PREFIX        ".\\resource\\textures\\"
+#define TEXTURE_PATH_PREFIX        "./resource/textures/"
 #define TEXTURE_PATH_PREFIX_LENGTH (sizeof(TEXTURE_PATH_PREFIX) - 1)
-#define IMAGE_PATH_PREFIX          ".\\resource\\images\\"
+#define IMAGE_PATH_PREFIX          "./resource/images/"
 #define IMAGE_PATH_PREFIX_LENGTH   (sizeof(IMAGE_PATH_PREFIX) - 1)
 
 
@@ -68,7 +68,7 @@ texture *textureLoad(const char *texPath){
 	texture *tex;
 
 	FILE *texFile;
-	char texFullPath[FILE_MAX_LINE_LENGTH];
+	char texFullPath[FILE_MAX_PATH_LENGTH];
 	size_t texPathLength;
 
 
@@ -83,10 +83,10 @@ texture *textureLoad(const char *texPath){
 
 
 	texPathLength = strlen(texPath);
-	// Find the full path for the texture!
-	fileGenerateFullPath(
-		texPath, texPathLength,
+	// Generate the full path for the texture!
+	fileGenerateFullResourcePath(
 		TEXTURE_PATH_PREFIX, TEXTURE_PATH_PREFIX_LENGTH,
+		texPath, texPathLength,
 		texFullPath
 	);
 
@@ -108,13 +108,11 @@ texture *textureLoad(const char *texPath){
 			// Image path.
 			if(memcmp(line, "i ", 2) == 0){
 				if(image == NULL){
-					char imgFullPath[FILE_MAX_LINE_LENGTH];
-					// Find the full path for the image!
-					fileGenerateFullPath(
-						&lineBuffer[2], lineLength - 2,
-						IMAGE_PATH_PREFIX, IMAGE_PATH_PREFIX_LENGTH,
-						imgFullPath
-					);
+					char imgFullPath[FILE_MAX_PATH_LENGTH];
+
+					// Generate the full path for the image!
+					memcpy(imgFullPath, IMAGE_PATH_PREFIX, IMAGE_PATH_PREFIX_LENGTH);
+					fileParseResourcePath(&imgFullPath[IMAGE_PATH_PREFIX_LENGTH], &lineBuffer[2], lineLength - 2, NULL);
 
 					// Now load the pixel data!
 					image = IMG_Load(imgFullPath);

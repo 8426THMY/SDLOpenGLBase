@@ -361,9 +361,9 @@ static return_t initLibs(program *prg){
 }
 
 static return_t initResources(program *prg){
-	const GLuint objVertexShaderID    = shaderLoad(".\\resource\\shaders\\vertexShader.gls",       GL_VERTEX_SHADER);
-	const GLuint spriteVertexShaderID = shaderLoad(".\\resource\\shaders\\spriteVertexShader.gls", GL_VERTEX_SHADER);
-	const GLuint fragmentShaderID     = shaderLoad(".\\resource\\shaders\\fragmentShader.gls",     GL_FRAGMENT_SHADER);
+	const GLuint objVertexShaderID    = shaderLoad("./resource/shaders/vertexShader.gls",       GL_VERTEX_SHADER);
+	const GLuint spriteVertexShaderID = shaderLoad("./resource/shaders/spriteVertexShader.gls", GL_VERTEX_SHADER);
+	const GLuint fragmentShaderID     = shaderLoad("./resource/shaders/fragmentShader.gls",     GL_FRAGMENT_SHADER);
 	const GLuint objectProgramID      = shaderLoadProgram(objVertexShaderID, fragmentShaderID);
 	const GLuint spriteProgramID      = shaderLoadProgram(spriteVertexShaderID, fragmentShaderID);
 
@@ -399,14 +399,14 @@ static return_t initResources(program *prg){
 	//skeleObjInit(&obj->skeleData, mdl->skele);
 
 	// Temporary animation stuff.
-	#warning "Playing 'soldier_animations_anims_old\\a_runN_LOSER.smd' on the Scout makes his left arm flip."
-	animDef = skeleAnimSMDLoad("soldier_animations_anims_old\\a_runN_MELEE.smd");
+	#warning "Playing 'soldier_animations_anims_old/a_runN_LOSER.smd' on the Scout makes his left arm flip."
+	animDef = skeleAnimSMDLoad("soldier_animations_anims_old/a_runN_MELEE.smd");
 	if(animDef != NULL){
 		obj->skeleData.anims = moduleSkeleAnimPrepend(&obj->skeleData.anims);
 		skeleAnimInit(obj->skeleData.anims, animDef, 0.5f);
 	}
 
-	animDef = skeleAnimSMDLoad("soldier_animations_anims_old\\stand_MELEE.smd");
+	animDef = skeleAnimSMDLoad("soldier_animations_anims_old/stand_MELEE.smd");
 	if(animDef != NULL){
 		obj->skeleData.anims = moduleSkeleAnimPrepend(&obj->skeleData.anims);
 		skeleAnimInit(obj->skeleData.anims, animDef, 0.5f);
@@ -431,11 +431,12 @@ static return_t initResources(program *prg){
 
 	/** TEMPORARY FONT STUFF **/
 	textFont *fontIBM = memoryManagerGlobalAlloc(sizeof(*fontIBM));
-	textFontLoad(fontIBM, TEXT_FONT_IMAGE_TYPE_NORMAL, "gui\\PxPlusIBMBIOS.0.tdt", "D:\\Programming\\C\\NewSDLOpenGLBaseC\\resource\\fonts\\PxPlus_IBM_BIOS-msdf-temp.csv", "D:\\Programming\\C\\NewSDLOpenGLBaseC\\resource\\fonts\\PxPlus_IBM_BIOS.ttf");
+	//textFontLoad(fontIBM, "D:/Programming/C/NewSDLOpenGLBaseC/resource/fonts/PxPlus_IBM_BIOS.tdf");
+	textFontLoad(fontIBM, TEXT_FONT_IMAGE_TYPE_NORMAL, "gui/PxPlusIBMBIOS.0.tdt", "D:/Programming/C/NewSDLOpenGLBaseC/resource/fonts/PxPlus_IBM_BIOS-msdf-temp.csv", "D:/Programming/C/NewSDLOpenGLBaseC/resource/fonts/PxPlus_IBM_BIOS.ttf");
 	//const uint32_t glyphIndex_a = textCmapIndex(fontIBM.cmap, (textCmapCodeUnit_t){._32 = 931});
 	//const textGlyph *glyph_a = &fontIBM.glyphs[glyphIndex_a];
 	//printf("%u - (%f, %f, %f, %f), (%f, %f, %f)\n", glyphIndex_a, glyph_a->uvOffsets.x, glyph_a->uvOffsets.y, glyph_a->uvOffsets.w, glyph_a->uvOffsets.h, glyph_a->kerningX, glyph_a->kerningY, glyph_a->advanceX);
-	//textCmapOutputCodePoints(fontIBM.cmap, "D:\\Programming\\C\\NewSDLOpenGLBaseC\\resource\\fonts\\charset.txt", ' ');
+	//textCmapOutputCodePoints(fontIBM.cmap, "D:/Programming/C/NewSDLOpenGLBaseC/resource/fonts/charset.txt", ' ');
 
 
 	/** EVEN MORE TEMPORARY GUI STUFF **/
@@ -451,8 +452,8 @@ static return_t initResources(program *prg){
 	/*guiElementInit(&gui, GUI_TYPE_PANEL);
 	guiPanelInit(&gui.data.panel);
 
-	gui.data.panel.borderTexState.texGroup = texGroupLoad("gui\\border.tdg");
-	gui.data.panel.bodyTexState.texGroup = texGroupLoad("gui\\body.tdg");
+	gui.data.panel.borderTexState.texGroup = texGroupLoad("gui/border.tdg");
+	gui.data.panel.bodyTexState.texGroup = texGroupLoad("gui/body.tdg");
 
 	// Bottom-right corner.
 	gui.data.panel.uvCoords[0].x = 0.75f;

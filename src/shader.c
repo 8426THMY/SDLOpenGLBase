@@ -87,7 +87,7 @@ GLuint shaderLoad(const char *shaderPath, const GLenum shaderType){
 
 
 				// Read the shader's source from the file!
-				fread(shaderSource, 1, shaderFileSize, shaderFile);
+				fread(shaderSource, sizeof(char), shaderFileSize, shaderFile);
 				shaderSource[shaderFileSize] = '\0';
 				fclose(shaderFile);
 

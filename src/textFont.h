@@ -21,11 +21,11 @@ typedef struct textFont {
 	texture *atlas;
 	type_t type;
 
-	// Array of glyphs associated with the font.
-	textGlyph *glyphs;
 	// This actually points to a complete character map, but we
 	// treat it as a pointer to the header to keep things generic.
 	textCmapHeader *cmap;
+	// Array of glyphs associated with the font.
+	textGlyph *glyphs;
 } textFont;
 
 

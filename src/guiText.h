@@ -3,7 +3,7 @@
 
 
 #include "rectangle.h"
-#include "mat4.h"
+#include "transform.h"
 
 #include "textFont.h"
 #include "text.h"
@@ -15,7 +15,7 @@
 
 
 typedef struct guiText {
-	textFont *font;
+	const textFont *font;
 	textBuffer text;
 	rectangle bounds;
 } guiText;
@@ -24,7 +24,7 @@ typedef struct guiText {
 void guiTextInit(guiText *gui, const textFont *font, const size_t bufferSize);
 
 void guiTextUpdate(void *gui, const float time);
-void guiTextDraw(const void *gui, const mat4 *root, const shaderObject *shader);
+void guiTextDraw(const void *gui, const transformState *root, const shaderObject *shader);
 
 void guiTextDelete(void *gui);
 

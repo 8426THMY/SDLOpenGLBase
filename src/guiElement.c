@@ -36,7 +36,6 @@ void guiElementUpdate(guiElement *gui, const float time){
 
 void guiElementDraw(guiElement *gui, const float windowWidth, const float windowHeight, const shaderSprite *shader){
 	mat4 viewProjectionMatrix;
-	const guiElement *curChild = gui->children;
 
 	// We use a scale matrix as the view-projection matrix
 	// so our interface's size can be specified in pixels.

@@ -6,7 +6,7 @@
 #include <stdint.h>
 
 #include "settingsMemory.h"
-#include "memoryShared.h"
+#include "utilMemory.h"
 
 
 #ifndef MEMFREELIST_MEMORY_LEAN

@@ -6,7 +6,7 @@
 #include <stdint.h>
 
 #include "settingsMemory.h"
-#include "memoryShared.h"
+#include "utilMemory.h"
 
 
 #define MEMSINGLELIST_BLOCK_FREE_FLAG_SIZE MEMSINGLELIST_BLOCK_HEADER_SIZE

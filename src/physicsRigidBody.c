@@ -9,7 +9,7 @@
 #include "modulePhysics.h"
 
 
-#define PHYSRIGIDBODYDEF_PATH_PREFIX        ".\\resource\\physics\\"
+#define PHYSRIGIDBODYDEF_PATH_PREFIX        "./resource/physics/"
 #define PHYSRIGIDBODYDEF_PATH_PREFIX_LENGTH (sizeof(PHYSRIGIDBODYDEF_PATH_PREFIX) - 1)
 
 
@@ -39,13 +39,13 @@ void physRigidBodyInit(physicsRigidBody *body, const physicsRigidBodyDef *bodyDe
 #warning "Maybe update this like the other loading functions?"
 return_t physRigidBodyDefLoad(physicsRigidBodyDef *bodyDef, const char *bodyPath){
 	FILE *bodyFile;
-	char bodyFullPath[FILE_MAX_LINE_LENGTH];
+	char bodyFullPath[FILE_MAX_PATH_LENGTH];
 	const size_t bodyPathLength = strlen(bodyPath);
 
-	// Find the full path for the rigid body!
-	fileGenerateFullPath(
-		bodyPath, bodyPathLength,
+	// Generate the full path for the rigid body!
+	fileGenerateFullResourcePath(
 		PHYSRIGIDBODYDEF_PATH_PREFIX, PHYSRIGIDBODYDEF_PATH_PREFIX_LENGTH,
+		bodyPath, bodyPathLength,
 		bodyFullPath
 	);
 

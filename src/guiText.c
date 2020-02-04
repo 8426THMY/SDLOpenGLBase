@@ -26,7 +26,7 @@ void guiTextUpdate(void *gui, const float time){
 }
 
 #warning "To correctly handle size changes mid-text, we need to know the largest font size of the following line."
-void guiTextDraw(const void *gui, const mat4 *root, const shaderObject *shader){
+void guiTextDraw(const void *gui, const transformState *root, const shaderObject *shader){
 	#warning "If we use a global sprite buffer, should we make this global too?"
 	spriteState charStates[SPRITE_MAX_INSTANCES];
 	spriteState *curState = charStates;

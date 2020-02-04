@@ -1,11 +1,20 @@
-#ifndef memoryShared_h
-#define memoryShared_h
+#ifndef utilMemory_h
+#define utilMemory_h
 
 
 #include <stdlib.h>
 #include <stdint.h>
 
 #include "utilTypes.h"
+
+
+// This lets us print memory addresses as unsigned integers without having to
+// worry about changing format specifiers between 32-bit and 64-bit systems.
+#if UINTPTR_MAX == UINT32_MAX
+	#define PRINTF_SIZE_T "%u"
+#else
+	#define PRINTF_SIZE_T "%lu"
+#endif
 
 
 // Add "num" to the address "pointer". We need to cast the pointer
@@ -36,22 +45,24 @@
 // The main reason for using these flags
 // are for when we want to enable or
 // disable concurrent heap allocations.
-#define MEMORY_WIN32_HEAP_FLAG_SAFE   0x00
-#define MEMORY_WIN32_HEAP_FLAG_UNSAFE 0x01
-#define MEMORY_WIN32_HEAP_FLAGS MEMORY_WIN32_HEAP_FLAG_UNSAFE
+#ifdef _WIN32
+	#define MEMORY_WIN32_HEAP_FLAG_SAFE   0x00
+	#define MEMORY_WIN32_HEAP_FLAG_UNSAFE 0x01
+	#define MEMORY_WIN32_HEAP_FLAGS       MEMORY_WIN32_HEAP_FLAG_UNSAFE
+#endif
 
 #ifndef MEMORY_LOW_LEVEL
-#define memoryAlloc(size)          malloc(size)
-#define memoryRealloc(block, size) realloc(block, size)
-#define memoryFree(block)          free(block)
+	#define memoryAlloc(size)          malloc(size)
+	#define memoryRealloc(block, size) realloc(block, size)
+	#define memoryFree(block)          free(block)
 #else
-void *memoryLowLevelAlloc(const size_t memorySize);
-void *memoryLowLevelRealloc(void *block, const size_t memorySize);
-return_t memoryLowLevelFree(void *block);
+	void *memoryLowLevelAlloc(const size_t memorySize);
+	void *memoryLowLevelRealloc(void *block, const size_t memorySize);
+	return_t memoryLowLevelFree(void *block);
 
-#define memoryAlloc(size)          memoryLowLevelAlloc(size)
-#define memoryRealloc(block, size) memoryLowLevelRealloc(block, size)
-#define memoryFree(block)          memoryLowLevelFree(block)
+	#define memoryAlloc(size)          memoryLowLevelAlloc(size)
+	#define memoryRealloc(block, size) memoryLowLevelRealloc(block, size)
+	#define memoryFree(block)          memoryLowLevelFree(block)
 #endif
 
 

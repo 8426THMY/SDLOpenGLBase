@@ -5,7 +5,7 @@
 #include <string.h>
 
 #include "settingsMemory.h"
-#include "memoryShared.h"
+#include "utilMemory.h"
 
 
 #define MEMTREE_BLOCK_HEADER_SIZE sizeof(memTreeListNode)

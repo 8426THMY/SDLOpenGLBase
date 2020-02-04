@@ -8,12 +8,29 @@
 #include "utilTypes.h"
 
 
+// Windows supports Linux path delimiters, so
+// we could really just always use Linux paths.
+#ifdef _WIN32
+	#define FILE_PATH_DELIMITER        '\\'
+	#define FILE_PATH_DELIMITER_UNUSED '/'
+#else
+	#define FILE_PATH_DELIMITER        '/'
+	#define FILE_PATH_DELIMITER_UNUSED '\\'
+#endif
+
 #define FILE_MAX_LINE_LENGTH 1024
+#ifdef _WIN32
+	#define FILE_MAX_PATH_LENGTH MAX_PATH
+#else
+	#include <limits.h>
+	#define FILE_MAX_PATH_LENGTH PATH_MAX
+#endif
 
 
-void fileGenerateFullPath(
-	const char *filePath, const size_t filePathLength,
+size_t fileParseResourcePath(char *resPath, char *line, const size_t lineLength, char **endPtr);
+void fileGenerateFullResourcePath(
 	const char *prefix, const size_t prefixLength,
+	const char *filePath, const size_t filePathLength,
 	char *fullPath
 );
 char *fileReadLine(FILE *file, char *line, size_t *lineLength);

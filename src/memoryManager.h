@@ -2,7 +2,7 @@
 #define memorymanager_h
 
 
-#include "memoryShared.h"
+#include "utilMemory.h"
 #include "settingsMemory.h"
 
 #include "memoryTree.h"

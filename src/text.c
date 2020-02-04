@@ -53,7 +53,7 @@ void textBufferInit(textBuffer *text, const size_t size){
 
 // Write a string to a text buffer!
 #warning "This is temporary, I'm not sure how to do it properly in a nice way."
-void textBufferWrite(textBuffer *text, byte_t *str, size_t strSize){
+void textBufferWrite(textBuffer *text, char *str, size_t strSize){
 	size_t curSize;
 
 	// If the new string will overflow the buffer, write to the

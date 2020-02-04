@@ -8,7 +8,7 @@
 #include "utilTypes.h"
 
 #include "settingsMemory.h"
-#include "memoryShared.h"
+#include "utilMemory.h"
 
 
 #define MEMQUADLIST_BLOCK_FREE_FLAG_SIZE  MEMQUADLIST_BLOCK_HEADER_SIZE

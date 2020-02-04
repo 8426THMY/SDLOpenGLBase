@@ -17,7 +17,7 @@
 #include "utilFile.h"
 
 
-#define MODEL_PATH_PREFIX        ".\\resource\\models\\"
+#define MODEL_PATH_PREFIX        "./resource/models/"
 #define MODEL_PATH_PREFIX_LENGTH (sizeof(MODEL_PATH_PREFIX) - 1)
 
 // These must be at least 1!
@@ -58,7 +58,7 @@ model *modelOBJLoad(const char *mdlPath){
 	model *mdl;
 
 	FILE *mdlFile;
-	char mdlFullPath[FILE_MAX_LINE_LENGTH];
+	char mdlFullPath[FILE_MAX_PATH_LENGTH];
 	size_t mdlPathLength;
 
 
@@ -73,10 +73,10 @@ model *modelOBJLoad(const char *mdlPath){
 
 
 	mdlPathLength = strlen(mdlPath);
-	// Find the full path for the model!
-	fileGenerateFullPath(
-		mdlPath, mdlPathLength,
+	// Generate the full path for the model!
+	fileGenerateFullResourcePath(
 		MODEL_PATH_PREFIX, MODEL_PATH_PREFIX_LENGTH,
+		mdlPath, mdlPathLength,
 		mdlFullPath
 	);
 
@@ -203,16 +203,14 @@ model *modelOBJLoad(const char *mdlPath){
 
 			// TextureGroup path.
 			}else if(memcmp(line, "usemtl ", 7) == 0){
-				// We don't want to be keeping textureGroups that aren't used, so
+				// We don't want to keep texture groups that aren't used, so
 				// we'll load this once we can be sure everything else was successful.
 				// Note that we use realloc, so we only really store one texture.
 				tempTexGroupName = memoryManagerGlobalRealloc(tempTexGroupName, (lineLength - 6) * sizeof(*tempTexGroupName));
 				if(tempTexGroupName == NULL){
 					/** REALLOC FAILED **/
 				}
-				// Our line reading function replaces the line break
-				// with a null terminator, so we need to store it too.
-				memcpy(tempTexGroupName, line + 7, (lineLength - 6) * sizeof(*tempTexGroupName));
+				fileParseResourcePath(tempTexGroupName, &line[7], lineLength - 7, NULL);
 
 			// Faces.
 			}else if(memcmp(line, "f ", 2) == 0){
@@ -405,7 +403,7 @@ model *modelSMDLoad(const char *mdlPath){
 	model *mdl;
 
 	FILE *mdlFile;
-	char mdlFullPath[FILE_MAX_LINE_LENGTH];
+	char mdlFullPath[FILE_MAX_PATH_LENGTH];
 	size_t mdlPathLength;
 
 
@@ -420,10 +418,10 @@ model *modelSMDLoad(const char *mdlPath){
 
 
 	mdlPathLength = strlen(mdlPath);
-	// Find the full path for the model!
-	fileGenerateFullPath(
-		mdlPath, mdlPathLength,
+	// Generate the full path for the model!
+	fileGenerateFullResourcePath(
 		MODEL_PATH_PREFIX, MODEL_PATH_PREFIX_LENGTH,
+		mdlPath, mdlPathLength,
 		mdlFullPath
 	);
 
@@ -822,7 +820,7 @@ model *modelSMDLoad(const char *mdlPath){
 			// Now that we can be sure everything was
 			// successful, find the texture group.
 			// if(tempTexGroupName != NULL){
-			mdl->texGroup = texGroupLoad("misc\\soldier.tdg");
+			mdl->texGroup = texGroupLoad("misc/soldier.tdg");
 			// }
 		}
 
