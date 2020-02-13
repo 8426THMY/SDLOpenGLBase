@@ -6,7 +6,7 @@
 #include "textureGroup.h"
 
 
-void guiPanelInit(guiPanel *gui){
+void guiPanelInit(guiPanel *const restrict gui){
 	texGroupStateInit(&gui->borderTexState, &g_texGroupDefault);
 	texGroupStateInit(&gui->bodyTexState, &g_texGroupDefault);
 
@@ -35,16 +35,19 @@ void guiPanelInit(guiPanel *gui){
 }
 
 
-void guiPanelUpdate(void *gui, const float time){
+void guiPanelUpdate(void *const restrict gui, const float time){
 	texGroupStateUpdate(&(((guiPanel *)gui)->borderTexState), time);
 	texGroupStateUpdate(&(((guiPanel *)gui)->bodyTexState), time);
 }
 
 #warning "This is all very temporary. It'd be nice if we could fix the texture bleeding, though..."
-void guiPanelDraw(const void *gui, const transformState *root, const shaderSprite *shader){
+void guiPanelDraw(
+	const void *const restrict gui, const transformState *const restrict root, const shaderSprite *const restrict shader
+){
+
 	spriteState panelStates[8];
-	const textureGroupFrame *borderFrame = texGroupStateGetFrame(&(((const guiPanel *)gui)->borderTexState));
-	const textureGroupFrame *bodyFrame = texGroupStateGetFrame(&(((const guiPanel *)gui)->bodyTexState));
+	const textureGroupFrame *const borderFrame = texGroupStateGetFrame(&(((const guiPanel *)gui)->borderTexState));
+	const textureGroupFrame *const bodyFrame = texGroupStateGetFrame(&(((const guiPanel *)gui)->bodyTexState));
 	float curWidth;
 	float curHeight;
 
@@ -304,6 +307,6 @@ void guiPanelDraw(const void *gui, const transformState *root, const shaderSprit
 }
 
 
-void guiPanelDelete(void *gui){
+void guiPanelDelete(void *const restrict gui){
 	return;
 }

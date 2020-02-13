@@ -55,44 +55,44 @@ return_t modulePhysicsSetup();
 void modulePhysicsCleanup();
 
 aabbNode *modulePhysicsAABBNodeAlloc();
-void modulePhysicsAABBNodeFree(aabbNode *node);
+void modulePhysicsAABBNodeFree(aabbNode *const restrict node);
 void modulePhysicsAABBNodeClear();
 
 physicsContactPair *modulePhysicsContactPairAlloc();
-void modulePhysicsContactPairFree(physicsContactPair *cPair);
+void modulePhysicsContactPairFree(physicsContactPair *const restrict cPair);
 void modulePhysicsContactPairClear();
 
 physicsSeparationPair *modulePhysicsSeparationPairAlloc();
-void modulePhysicsSeparationPairFree(physicsSeparationPair *sPair);
+void modulePhysicsSeparationPairFree(physicsSeparationPair *const restrict sPair);
 void modulePhysicsSeparationPairClear();
 
 physicsCollider *modulePhysicsColliderAlloc();
-physicsCollider *modulePhysicsColliderPrepend(physicsCollider **start);
-physicsCollider *modulePhysicsColliderAppend(physicsCollider **start);
-physicsCollider *modulePhysicsColliderInsertBefore(physicsCollider **start, physicsCollider *prevData);
-physicsCollider *modulePhysicsColliderInsertAfter(physicsCollider **start, physicsCollider *data);
-void modulePhysicsColliderFreeInstance(physicsCollider **start, physicsCollider *collider, physicsCollider *prevData);
-void modulePhysicsColliderFree(physicsCollider **start, physicsCollider *collider, physicsCollider *prevData);
-void modulePhysicsColliderFreeInstanceArray(physicsCollider **start);
-void modulePhysicsColliderFreeArray(physicsCollider **start);
+physicsCollider *modulePhysicsColliderPrepend(physicsCollider **const restrict start);
+physicsCollider *modulePhysicsColliderAppend(physicsCollider **const restrict start);
+physicsCollider *modulePhysicsColliderInsertBefore(physicsCollider **const restrict start, physicsCollider *const restrict prevData);
+physicsCollider *modulePhysicsColliderInsertAfter(physicsCollider **const restrict start, physicsCollider *const restrict data);
+void modulePhysicsColliderFreeInstance(physicsCollider **const restrict start, physicsCollider *const restrict collider, physicsCollider *const restrict prevData);
+void modulePhysicsColliderFree(physicsCollider **const restrict start, physicsCollider *const restrict collider, physicsCollider *const restrict prevData);
+void modulePhysicsColliderFreeInstanceArray(physicsCollider **const restrict start);
+void modulePhysicsColliderFreeArray(physicsCollider **const restrict start);
 void modulePhysicsColliderClear();
 
 physicsRigidBodyDef *modulePhysicsBodyDefAlloc();
-physicsRigidBodyDef *modulePhysicsBodyDefPrepend(physicsRigidBodyDef **start);
-physicsRigidBodyDef *modulePhysicsBodyDefAppend(physicsRigidBodyDef **start);
-physicsRigidBodyDef *modulePhysicsBodyDefInsertBefore(physicsRigidBodyDef **start, physicsRigidBodyDef *prevData);
-physicsRigidBodyDef *modulePhysicsBodyDefInsertAfter(physicsRigidBodyDef **start, physicsRigidBodyDef *data);
-void modulePhysicsBodyDefFree(physicsRigidBodyDef **start, physicsRigidBodyDef *bodyDef, physicsRigidBodyDef *prevData);
-void modulePhysicsBodyDefFreeArray(physicsRigidBodyDef **start);
+physicsRigidBodyDef *modulePhysicsBodyDefPrepend(physicsRigidBodyDef **const restrict start);
+physicsRigidBodyDef *modulePhysicsBodyDefAppend(physicsRigidBodyDef **const restrict start);
+physicsRigidBodyDef *modulePhysicsBodyDefInsertBefore(physicsRigidBodyDef **const restrict start, physicsRigidBodyDef *const restrict prevData);
+physicsRigidBodyDef *modulePhysicsBodyDefInsertAfter(physicsRigidBodyDef **const restrict start, physicsRigidBodyDef *const restrict data);
+void modulePhysicsBodyDefFree(physicsRigidBodyDef **const restrict start, physicsRigidBodyDef *const restrict bodyDef, physicsRigidBodyDef *const restrict prevData);
+void modulePhysicsBodyDefFreeArray(physicsRigidBodyDef **const restrict start);
 void modulePhysicsBodyDefClear();
 
 physicsRigidBody *modulePhysicsBodyAlloc();
-physicsRigidBody *modulePhysicsBodyPrepend(physicsRigidBody **start);
-physicsRigidBody *modulePhysicsBodyAppend(physicsRigidBody **start);
-physicsRigidBody *modulePhysicsBodyInsertBefore(physicsRigidBody **start, physicsRigidBody *prevData);
-physicsRigidBody *modulePhysicsBodyInsertAfter(physicsRigidBody **start, physicsRigidBody *data);
-void modulePhysicsBodyFree(physicsRigidBody **start, physicsRigidBody *body, physicsRigidBody *prevData);
-void modulePhysicsBodyFreeArray(physicsRigidBody **start);
+physicsRigidBody *modulePhysicsBodyPrepend(physicsRigidBody **const restrict start);
+physicsRigidBody *modulePhysicsBodyAppend(physicsRigidBody **const restrict start);
+physicsRigidBody *modulePhysicsBodyInsertBefore(physicsRigidBody **const restrict start, physicsRigidBody *const restrict prevData);
+physicsRigidBody *modulePhysicsBodyInsertAfter(physicsRigidBody **const restrict start, physicsRigidBody *const restrict data);
+void modulePhysicsBodyFree(physicsRigidBody **const restrict start, physicsRigidBody *const restrict body, physicsRigidBody *const restrict prevData);
+void modulePhysicsBodyFreeArray(physicsRigidBody **const restrict start);
 void modulePhysicsBodyClear();
 
 

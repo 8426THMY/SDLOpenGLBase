@@ -73,13 +73,15 @@ typedef struct physicsJointPrismatic {
 
 typedef struct physicsRigidBody physicsRigidBody;
 
-void physJointPrismaticInit(physicsJointPrismatic *joint);
+void physJointPrismaticInit(physicsJointPrismatic *const restrict joint);
 
-void physJointPrismaticWarmStart(physicsJointPrismatic *joint, physicsRigidBody *bodyA, physicsRigidBody *bodyB);
-void physJointPrismaticPresolve(void *joint, physicsRigidBody *bodyA, physicsRigidBody *bodyB, const float dt);
-void physJointPrismaticSolveVelocity(void *joint, physicsRigidBody *bodyA, physicsRigidBody *bodyB);
+void physJointPrismaticWarmStart(physicsJointPrismatic *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB);
+void physJointPrismaticPresolve(
+	void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB, const float dt
+);
+void physJointPrismaticSolveVelocity(void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB);
 #ifdef PHYSJOINTDISTANCE_STABILISER_GAUSS_SEIDEL
-float physJointPrismaticSolvePosition(void *joint, physicsRigidBody *bodyA, physicsRigidBody *bodyB);
+float physJointPrismaticSolvePosition(void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB);
 #endif
 
 

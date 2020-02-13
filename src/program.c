@@ -16,19 +16,21 @@
 #include "moduleRenderable.h"
 #include "moduleObject.h"
 
+#include "utilFile.h"
+
 
 #define MODULE_SETUP_SUCCESS 0
 
 
 // Forward-declare any helper functions!
-static void input(program *prg);
-static void updateCameras(program *prg);
-static void updateObjects(program *prg);
-static void update(program *prg);
-static void render(program *prg);
+static void input(program *const restrict prg);
+static void updateCameras(program *const restrict prg);
+static void updateObjects(program *const restrict prg);
+static void update(program *const restrict prg);
+static void render(program *const restrict prg);
 
-static return_t initLibs(program *prg);
-static return_t initResources(program *prg);
+static return_t initLibs(program *const restrict prg);
+static return_t initResources(program *const restrict prg);
 static return_t setupModules();
 static void cleanupModules();
 
@@ -37,7 +39,7 @@ static void cleanupModules();
 static size_t renderState = 0;
 
 
-return_t programInit(program *prg){
+return_t programInit(program *const restrict prg, char *const restrict prgDir){
 	prg->windowWidth = 640;
 	prg->windowHeight = 480;
 
@@ -52,11 +54,15 @@ return_t programInit(program *prg){
 
 	timestepInit(&prg->step, UPDATE_RATE, FRAME_RATE);
 
+	// Set the current working directory. This ensures that
+	// we're looking for resources in the correct directory.
+	fileSetWorkingDirectory(prgDir, NULL);
+
 
 	return(initLibs(prg) && setupModules() == MODULE_SETUP_SUCCESS && initResources(prg));
 }
 
-void programLoop(program *prg){
+void programLoop(program *const restrict prg){
 	// FPS-independent logic.
 	unsigned int updates = 0;
 	unsigned int renders = 0;
@@ -113,7 +119,7 @@ void programLoop(program *prg){
 	}
 }
 
-void programClose(program *prg){
+void programClose(program *const restrict prg){
 	cleanupModules();
 
 	SDL_DestroyWindow(prg->window);
@@ -122,7 +128,7 @@ void programClose(program *prg){
 
 
 /** Note: Some of this stuff should be inside the update function! **/
-static void input(program *prg){
+static void input(program *const restrict prg){
 	// If the aspect ratio doesn't match the window size you get
 	// weird results, especially if you haven't resized the window.
 	// Additionally, you may need to recalculate the perspective matrix
@@ -189,7 +195,7 @@ static void input(program *prg){
 	#warning "Selecting text in the console also causes crashes."
 }
 
-static void updateCameras(program *prg){
+static void updateCameras(program *const restrict prg){
 	if(prg->keyStates[SDL_SCANCODE_LEFT]){
 		prg->cam.pos.x -= 10.f * prg->step.updateDelta;
 	}
@@ -212,7 +218,7 @@ static void updateCameras(program *prg){
 	}
 }
 
-static void updateObjects(program *prg){
+static void updateObjects(program *const restrict prg){
 	MEMSINGLELIST_LOOP_BEGIN(g_objectManager, curObj, object *)
 		objectUpdate(curObj, prg->step.updateTime);
 	MEMSINGLELIST_LOOP_END(g_objectManager, curObj, object *, return)
@@ -235,7 +241,7 @@ static void updateObjects(program *prg){
 particleSystemDef partSysDef;
 particleSystem partSys;
 guiElement gui;
-static void update(program *prg){
+static void update(program *const restrict prg){
 	updateCameras(prg);
 	updateObjects(prg);
 
@@ -274,7 +280,7 @@ static void update(program *prg){
 	guiElementUpdate(&gui, prg->step.updateTime);
 }
 
-static void render(program *prg){
+static void render(program *const restrict prg){
 	#warning "We should stop clearing the colour buffer eventually."
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -284,12 +290,12 @@ static void render(program *prg){
 	glUseProgram(prg->objectShader.programID);
 	MEMSINGLELIST_LOOP_BEGIN(g_objectManager, curObj, object *)
 		#warning "We'll need the camera in this function for billboards. Just pass it instead of the matrix."
-		//objectDraw(curObj, &prg->cam, &prg->objectShader, prg->step.renderDelta);
+		objectDraw(curObj, &prg->cam, &prg->objectShader, prg->step.renderDelta);
 	MEMSINGLELIST_LOOP_END(g_objectManager, curObj, object *, NULL)
 
 	/** TEMPORARY PARTICLE RENDER STUFF! **/
-	//glUseProgram(prg->spriteShader.programID);
-	//particleSysDraw(&partSys, &prg->cam, &prg->spriteShader, prg->step.renderDelta);
+	glUseProgram(prg->spriteShader.programID);
+	particleSysDraw(&partSys, &prg->cam, &prg->spriteShader, prg->step.renderDelta);
 
 	/** TEMPORARY GUI RENDER STUFF! **/
 	glUseProgram(prg->spriteShader.programID);
@@ -302,7 +308,7 @@ static void render(program *prg){
 }
 
 
-static return_t initLibs(program *prg){
+static return_t initLibs(program *const restrict prg){
 	// Initialize the SDL2 video subsystem!
 	if(SDL_Init(SDL_INIT_VIDEO) != 0){
 		printf("Unable to initialize SDL2 video subsystem!\n"
@@ -360,7 +366,7 @@ static return_t initLibs(program *prg){
 	return(1);
 }
 
-static return_t initResources(program *prg){
+static return_t initResources(program *const restrict prg){
 	const GLuint objVertexShaderID    = shaderLoad("./resource/shaders/vertexShader.gls",       GL_VERTEX_SHADER);
 	const GLuint spriteVertexShaderID = shaderLoad("./resource/shaders/spriteVertexShader.gls", GL_VERTEX_SHADER);
 	const GLuint fragmentShaderID     = shaderLoad("./resource/shaders/fragmentShader.gls",     GL_FRAGMENT_SHADER);
@@ -387,7 +393,7 @@ static return_t initResources(program *prg){
 	skeletonAnimDef *animDef;
 
 
-	mdl = modelSMDLoad("soldier_reference.smd");
+	mdl = modelSMDLoad("soldier_reference.smd", sizeof("soldier_reference.smd"));
 	renderableDefInit(renderDef, mdl);
 	objectDefInit(objDef);
 	objDef->skele = mdl->skele;
@@ -400,13 +406,13 @@ static return_t initResources(program *prg){
 
 	// Temporary animation stuff.
 	#warning "Playing 'soldier_animations_anims_old/a_runN_LOSER.smd' on the Scout makes his left arm flip."
-	animDef = skeleAnimSMDLoad("soldier_animations_anims_old/a_runN_MELEE.smd");
+	animDef = skeleAnimSMDLoad("soldier_animations_anims_old/a_runN_MELEE.smd", sizeof("soldier_animations_anims_old/a_runN_MELEE.smd"));
 	if(animDef != NULL){
 		obj->skeleData.anims = moduleSkeleAnimPrepend(&obj->skeleData.anims);
 		skeleAnimInit(obj->skeleData.anims, animDef, 0.5f);
 	}
 
-	animDef = skeleAnimSMDLoad("soldier_animations_anims_old/stand_MELEE.smd");
+	animDef = skeleAnimSMDLoad("soldier_animations_anims_old/stand_MELEE.smd", sizeof("soldier_animations_anims_old/stand_MELEE.smd"));
 	if(animDef != NULL){
 		obj->skeleData.anims = moduleSkeleAnimPrepend(&obj->skeleData.anims);
 		skeleAnimInit(obj->skeleData.anims, animDef, 0.5f);
@@ -431,12 +437,12 @@ static return_t initResources(program *prg){
 
 	/** TEMPORARY FONT STUFF **/
 	textFont *fontIBM = memoryManagerGlobalAlloc(sizeof(*fontIBM));
-	//textFontLoad(fontIBM, "D:/Programming/C/NewSDLOpenGLBaseC/resource/fonts/PxPlus_IBM_BIOS.tdf");
-	textFontLoad(fontIBM, TEXT_FONT_IMAGE_TYPE_NORMAL, "gui/PxPlusIBMBIOS.0.tdt", "D:/Programming/C/NewSDLOpenGLBaseC/resource/fonts/PxPlus_IBM_BIOS-msdf-temp.csv", "D:/Programming/C/NewSDLOpenGLBaseC/resource/fonts/PxPlus_IBM_BIOS.ttf");
-	//const uint32_t glyphIndex_a = textCmapIndex(fontIBM.cmap, (textCmapCodeUnit_t){._32 = 931});
+	//textFontLoad(fontIBM, "./resource/fonts/PxPlus_IBM_BIOS.tdf");
+	textFontLoad(fontIBM, TEXT_FONT_IMAGE_TYPE_NORMAL, "gui/PxPlusIBMBIOS.0.tdt", "./resource/fonts/PxPlus_IBM_BIOS-msdf-temp.csv", "./resource/fonts/PxPlus_IBM_BIOS.ttf");
+	//const uint32_t glyphIndex_a = textCMapIndex(fontIBM.cmap, (textCMapCodeUnit_t){._32 = 931});
 	//const textGlyph *glyph_a = &fontIBM.glyphs[glyphIndex_a];
 	//printf("%u - (%f, %f, %f, %f), (%f, %f, %f)\n", glyphIndex_a, glyph_a->uvOffsets.x, glyph_a->uvOffsets.y, glyph_a->uvOffsets.w, glyph_a->uvOffsets.h, glyph_a->kerningX, glyph_a->kerningY, glyph_a->advanceX);
-	//textCmapOutputCodePoints(fontIBM.cmap, "D:/Programming/C/NewSDLOpenGLBaseC/resource/fonts/charset.txt", ' ');
+	//textCMapOutputCodePoints(fontIBM.cmap, "./resource/fonts/charset.txt", ' ');
 
 
 	/** EVEN MORE TEMPORARY GUI STUFF **/
@@ -497,7 +503,7 @@ static return_t initResources(program *prg){
 	gui.data.panel.uvCoords[7].w = 1.f;
 	gui.data.panel.uvCoords[7].h = 0.2f;
 
-	gui.data.panel.flags |= GUIPANEL_TILE_BODY;*/
+	flagsSet(gui.data.panel.flags, GUIPANEL_TILE_BODY);*/
 
 
 	return(1);

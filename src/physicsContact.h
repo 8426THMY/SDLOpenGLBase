@@ -131,13 +131,21 @@ typedef struct physicsManifold {
 typedef struct physicsRigidBody physicsRigidBody;
 typedef struct physicsCollider physicsCollider;
 
-void physManifoldInit(physicsManifold *pm, const contactManifold *cm, const physicsCollider *cA, const physicsCollider *cB);
-void physManifoldPersist(physicsManifold *pm, const contactManifold *cm, const physicsCollider *cA, const physicsCollider *cB);
+void physManifoldInit(
+	physicsManifold *const restrict pm, const contactManifold *const restrict cm,
+	const physicsCollider *const restrict cA, const physicsCollider *const restrict cB
+);
+void physManifoldPersist(
+	physicsManifold *const restrict pm, const contactManifold *const restrict cm,
+	const physicsCollider *const restrict cA, const physicsCollider *const restrict cB
+);
 
-void physManifoldPresolve(physicsManifold *pm, const physicsRigidBody *bodyA, const physicsRigidBody *bodyB, const float dt);
-void physManifoldSolveVelocity(physicsManifold *pm, physicsRigidBody *bodyA, physicsRigidBody *bodyB);
+void physManifoldPresolve(
+	physicsManifold *const restrict pm,const physicsRigidBody *const restrict bodyA, const physicsRigidBody *const restrict bodyB, const float dt
+);
+void physManifoldSolveVelocity(physicsManifold *const restrict pm, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB);
 #ifdef PHYSCONTACT_STABILISER_GAUSS_SEIDEL
-float physManifoldSolvePosition(const physicsManifold *pm, physicsRigidBody *bodyA, physicsRigidBody *bodyB);
+void physManifoldSolvePosition(const physicsManifold *const restrict pm, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB);
 #endif
 
 

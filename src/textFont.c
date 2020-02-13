@@ -4,13 +4,17 @@
 #include "memoryManager.h"
 
 
-return_t textFontLoad(textFont *font, const type_t type, const char *texPath, const char *glyphPath, const char *cmapPath){
+return_t textFontLoad(
+	textFont *const restrict font, const textFontType_t type,
+	const char *const restrict texPath, const char *const restrict glyphPath, const char *const restrict cmapPath
+){
+
 	// Load the font's graphics.
-	font->atlas = textureLoad(texPath);
+	font->atlas = textureLoad(texPath, strlen(texPath));
 	font->type = type;
 
 	// Allocate memory for the font's character map and load it.
-	font->cmap = textCmapLoadTTF(cmapPath);
+	font->cmap = textCMapLoadTTF(cmapPath);
 	// Load the font's glyph offset information.
 	font->glyphs = textGlyphArrayLoad(glyphPath, font->atlas);
 
@@ -18,11 +22,11 @@ return_t textFontLoad(textFont *font, const type_t type, const char *texPath, co
 	return(1);
 }
 
-const textGlyph *textFontGetGlyph(const textFont *font, const textCmapCodeUnit_t code){
-	return(&font->glyphs[textCmapIndex(font->cmap, code)]);
+const textGlyph *textFontGetGlyph(const textFont *const restrict font, const textCMapCodeUnit_t code){
+	return(&font->glyphs[textCMapIndex(font->cmap, code)]);
 }
 
-void textFontDelete(textFont *font){
-	textCmapDelete(font->cmap);
+void textFontDelete(textFont *const restrict font){
+	textCMapDelete(font->cmap);
 	memoryManagerGlobalFree(font->glyphs);
 }

@@ -25,10 +25,10 @@ typedef struct spriteShader {
 } shaderSprite;
 
 
-return_t shaderObjectInit(shaderObject *shader, const GLuint programID);
-return_t shaderSpriteInit(shaderSprite *shader, const GLuint programID);
+return_t shaderObjectInit(shaderObject *const restrict shader, const GLuint programID);
+return_t shaderSpriteInit(shaderSprite *const restrict shader, const GLuint programID);
 
-GLuint shaderLoad(const char *shaderPath, const GLenum shaderType);
+GLuint shaderLoad(const char *const restrict shaderPath, const GLenum shaderType);
 GLuint shaderLoadProgram(const GLuint vertexShaderID, const GLuint fragmentShaderID);
 
 void shaderDelete(const GLuint shaderID);

@@ -45,16 +45,19 @@ typedef struct object {
 } object;
 
 
-void objectDefInit(objectDef *objDef);
-void objectInit(object *obj, const objectDef *objDef);
+void objectDefInit(objectDef *const restrict objDef);
+void objectInit(object *const restrict obj, const objectDef *const restrict objDef);
 
-return_t objectDefLoad(objectDef *objDef, const char *objFile);
+return_t objectDefLoad(objectDef *const restrict objDef, const char *const restrict objFile);
 
-void objectUpdate(object *obj, const float time);
-void objectDraw(const object *obj, const camera *cam, const shaderObject *shader, const float time);
+void objectUpdate(object *const restrict obj, const float time);
+void objectDraw(
+	const object *const restrict obj, const camera *const restrict cam,
+	const shaderObject *const restrict shader, const float time
+);
 
-void objectDelete(object *obj);
-void objectDefDelete(objectDef *objDef);
+void objectDelete(object *const restrict obj);
+void objectDefDelete(objectDef *const restrict objDef);
 
 
 /**

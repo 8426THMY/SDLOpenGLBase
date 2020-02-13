@@ -70,16 +70,23 @@ float copySignZero(const float x, const float y);
 float fastInvSqrt(const float x);
 float fastInvSqrtAccurate(const float x);
 
-void pointBarycentric(const vec3 *a, const vec3 *b, const vec3 *c, const vec3 *p, vec3 *out);
+void pointBarycentric(
+	const vec3 *const restrict a, const vec3 *const restrict b,
+	const vec3 *const restrict c, const vec3 *const restrict p,
+	vec3 *const restrict out
+);
 
-void normalBasis(const vec3 *a, vec3 *b, vec3 *c);
-void normalBasisFast(const vec3 *a, vec3 *b, vec3 *c);
-void segmentClosestPoints(const vec3 *s1, const vec3 *e1, const vec3 *s2, const vec3 *e2, vec3 *p1, vec3 *p2);
+void normalBasis(const vec3 *const restrict a, vec3 *const restrict b, vec3 *const restrict c);
+void normalBasisFast(const vec3 *const restrict a, vec3 *const restrict b, vec3 *const restrict c);
+void segmentClosestPoints(
+	const vec3 *const restrict s1, const vec3 *const restrict e1, const vec3 *const restrict s2,
+	const vec3 *const restrict e2, vec3 *const restrict p1, vec3 *const restrict p2
+);
 
-void triangleNormal(const vec3 *a, const vec3 *b, const vec3 *c, vec3 *out);
+void triangleNormal(const vec3 *const restrict a, const vec3 *const restrict b, const vec3 *const restrict c, vec3 *const restrict out);
 
-float pointPlaneDist(const vec3 *point, const vec3 *vertex, const vec3 *normal);
-void pointPlaneProject(const vec3 *point, const vec3 *vertex, const vec3 *normal, vec3 *out);
+float pointPlaneDist(const vec3 *const restrict point, const vec3 *const restrict vertex, const vec3 *const restrict normal);
+void pointPlaneProject(const vec3 *const restrict point, const vec3 *const restrict vertex, const vec3 *const restrict normal, vec3 *const restrict out);
 
 
 #endif

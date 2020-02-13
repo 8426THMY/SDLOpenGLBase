@@ -8,7 +8,7 @@
 #warning "We should go back to using the total memory size as input for init and extend, too."
 
 
-void *memFreeListInit(memoryFreeList *freeList, void *memory, const size_t memorySize, const size_t blockSize){
+void *memFreeListInit(memoryFreeList *const restrict freeList, void *const restrict memory, const size_t memorySize, const size_t blockSize){
 	// Make sure the user isn't being difficult.
 	if(memory != NULL){
 		memoryRegion *region;
@@ -28,8 +28,8 @@ void *memFreeListInit(memoryFreeList *freeList, void *memory, const size_t memor
 }
 
 
-void *memFreeListAlloc(memoryFreeList *freeList){
-	void *newBlock = freeList->nextFreeBlock;
+void *memFreeListAlloc(memoryFreeList *const restrict freeList){
+	void *const newBlock = freeList->nextFreeBlock;
 
 	// If a free block exists, change
 	// the list's free block pointer!
@@ -41,7 +41,7 @@ void *memFreeListAlloc(memoryFreeList *freeList){
 }
 
 
-void memFreeListFree(memoryFreeList *freeList, void *data){
+void memFreeListFree(memoryFreeList *const restrict freeList, void *const restrict data){
 	// Make the block pointer to the next free
 	// block in the list then add it to the front!
 	memFreeListBlockFreeGetNext(data) = freeList->nextFreeBlock;
@@ -53,7 +53,7 @@ void memFreeListFree(memoryFreeList *freeList, void *data){
 ** Initialise every block in a region, setting
 ** the last block's next pointer to "next".
 */
-void memFreeListClearRegion(memoryFreeList *freeList, memoryRegion *region, void *next){
+void memFreeListClearRegion(memoryFreeList *freeList, memoryRegion *const restrict region, void *const restrict next){
 	const size_t blockSize = freeList->blockSize;
 	void *currentBlock = region->start;
 	void *nextBlock = memFreeListBlockGetNextBlock(currentBlock, blockSize);
@@ -74,7 +74,7 @@ void memFreeListClearRegion(memoryFreeList *freeList, memoryRegion *region, void
 ** Initialise every block in a region, setting the
 ** flag to invalid and the next pointer to NULL.
 */
-void memFreeListClearLastRegion(memoryFreeList *freeList, memoryRegion *region){
+void memFreeListClearLastRegion(memoryFreeList *const restrict freeList, memoryRegion *const restrict region){
 	const size_t blockSize = freeList->blockSize;
 	void *currentBlock = region->start;
 	void *nextBlock = memFreeListBlockGetNextBlock(currentBlock, blockSize);
@@ -91,7 +91,7 @@ void memFreeListClearLastRegion(memoryFreeList *freeList, memoryRegion *region){
 	memFreeListBlockFreeGetNext(currentBlock) = NULL;
 }
 
-void memFreeListClear(memoryFreeList *freeList){
+void memFreeListClear(memoryFreeList *const restrict freeList){
 	memoryRegion *region = freeList->region;
 	freeList->nextFreeBlock = region->start;
 
@@ -115,7 +115,7 @@ void memFreeListClear(memoryFreeList *freeList){
 }
 
 
-void *memFreeListExtend(memoryFreeList *freeList, void *memory, const size_t memorySize){
+void *memFreeListExtend(memoryFreeList *const restrict freeList, void *const restrict memory, const size_t memorySize){
 	if(memory != NULL){
 		memoryRegion *newRegion = memoryGetRegionFromSize(memory, memorySize);
 		// Add the new region to the end of the list!
@@ -130,6 +130,6 @@ void *memFreeListExtend(memoryFreeList *freeList, void *memory, const size_t mem
 }
 
 
-void memFreeListDelete(memoryFreeList *freeList){
+void memFreeListDelete(memoryFreeList *const restrict freeList){
 	memoryAllocatorDelete(freeList->region);
 }

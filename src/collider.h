@@ -2,8 +2,8 @@
 #define collider_h
 
 
+#include <stdint.h>
 #include <stdio.h>
-
 
 #include "vec3.h"
 #include "mat3.h"
@@ -18,6 +18,8 @@
 #define COLLIDER_NUM_TYPES 1
 
 
+typedef uint_least8_t colliderType_t;
+
 typedef struct collider {
 	// This should be large enough
 	// to store any type of collider.
@@ -26,43 +28,43 @@ typedef struct collider {
 	} data;
 	// Stores which type of
 	// collider this object is.
-	type_t type;
+	colliderType_t type;
 } collider;
 
 
-void colliderInit(collider *c, const type_t type);
-void colliderInstantiate(collider *c, const collider *cBase);
+void colliderInit(collider *const restrict c, const colliderType_t type);
+void colliderInstantiate(collider *const restrict c, const collider *const restrict cBase);
 
-return_t colliderLoad(collider *c, FILE *cFile, vec3 *centroid, mat3 *inertia);
-void colliderUpdate(collider *c, const collider *cBase, const transformState *trans, colliderAABB *aabb);
+return_t colliderLoad(
+	collider *const restrict c, FILE *const restrict cFile, vec3 *const restrict centroid, mat3 *const restrict inertia
+);
+void colliderUpdate(
+	collider *const restrict c, const collider *const restrict cBase,
+	const transformState *const restrict trans, colliderAABB *const restrict aabb
+);
 
-void colliderDeleteInstance(collider *c);
-void colliderDelete(collider *c);
+void colliderDeleteInstance(collider *const restrict c);
+void colliderDelete(collider *const restrict c);
 
 
 extern void (*colliderInstantiateTable[COLLIDER_NUM_TYPES])(
-	void *c,
-	const void *cBase
+	void *const restrict c, const void *const restrict cBase
 );
 
 extern return_t (*colliderLoadTable[COLLIDER_NUM_TYPES])(
-	void *c,
-	FILE *cFile,
-	vec3 *centroid,
-	mat3 *inertia
+	void *const restrict c, FILE *const restrict cFile,
+	vec3 *const restrict centroid, mat3 *const restrict inertia
 );
 extern void (*colliderUpdateTable[COLLIDER_NUM_TYPES])(
-	void *c,
-	const void *cBase,
-	const transformState *trans,
-	colliderAABB *aabb
+	void *const restrict c, const void *const restrict cBase,
+	const transformState *const restrict trans, colliderAABB *const restrict aabb
 );
 
 extern void (*colliderDeleteInstanceTable[COLLIDER_NUM_TYPES])(
-	void *c
+	void *const restrict c
 );
 extern void (*colliderDeleteTable[COLLIDER_NUM_TYPES])(
-	void *c
+	void *const restrict c
 );
 
 

@@ -33,7 +33,7 @@ texture *moduleTextureAlloc(){
 }
 
 // Free a texture that has been allocated.
-void moduleTextureFree(texture *tex){
+void moduleTextureFree(texture *const restrict tex){
 	textureDelete(tex);
 	memPoolFree(&g_textureManager, tex);
 }
@@ -47,7 +47,7 @@ void moduleTextureClear(){
 
 
 // Find a texture whose name matches "name"!
-texture *moduleTextureFind(const char *name){
+texture *moduleTextureFind(const char *const restrict name){
 	MEMPOOL_LOOP_BEGIN(g_textureManager, i, texture *)
 		if(strcmp(name, i->name) == 0){
 			return(i);

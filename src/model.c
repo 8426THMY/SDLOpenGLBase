@@ -17,7 +17,7 @@
 #include "utilFile.h"
 
 
-#define MODEL_PATH_PREFIX        "./resource/models/"
+#define MODEL_PATH_PREFIX        "."FILE_PATH_DELIMITER_STR"resource"FILE_PATH_DELIMITER_STR"models"FILE_PATH_DELIMITER_STR
 #define MODEL_PATH_PREFIX_LENGTH (sizeof(MODEL_PATH_PREFIX) - 1)
 
 // These must be at least 1!
@@ -54,12 +54,11 @@ void modelInit(model *mdl){
 ** Load an OBJ using the model specified by "mdlPath" and return a pointer to it.
 ** If the model could not be loaded, return a pointer to the default model.
 */
-model *modelOBJLoad(const char *mdlPath){
+model *modelOBJLoad(const char *const restrict mdlPath, const size_t mdlPathLength){
 	model *mdl;
 
 	FILE *mdlFile;
 	char mdlFullPath[FILE_MAX_PATH_LENGTH];
-	size_t mdlPathLength;
 
 
 	#ifdef TEMP_MODULE_FIND
@@ -72,7 +71,6 @@ model *modelOBJLoad(const char *mdlPath){
 	#endif
 
 
-	mdlPathLength = strlen(mdlPath);
 	// Generate the full path for the model!
 	fileGenerateFullResourcePath(
 		MODEL_PATH_PREFIX, MODEL_PATH_PREFIX_LENGTH,
@@ -129,6 +127,7 @@ model *modelOBJLoad(const char *mdlPath){
 
 		// Stores the name of the textureGroup that the model uses.
 		char *tempTexGroupName = NULL;
+		size_t tempTexGroupNameLength;
 
 		// Used when reading vertex data.
 		char *tokPos;
@@ -210,7 +209,7 @@ model *modelOBJLoad(const char *mdlPath){
 				if(tempTexGroupName == NULL){
 					/** REALLOC FAILED **/
 				}
-				fileParseResourcePath(tempTexGroupName, &line[7], lineLength - 7, NULL);
+				tempTexGroupNameLength = fileParseResourcePath(tempTexGroupName, &line[7], lineLength - 7, NULL);
 
 			// Faces.
 			}else if(memcmp(line, "f ", 2) == 0){
@@ -218,7 +217,7 @@ model *modelOBJLoad(const char *mdlPath){
 				char *tokEnd;
 
 				tokPos = &line[2];
-				tokEnd = getToken(tokPos, ' ');
+				tokEnd = strchr(tokPos, ' ');
 				if(tokEnd != NULL){
 					*tokEnd = '\0';
 					++tokEnd;
@@ -317,7 +316,7 @@ model *modelOBJLoad(const char *mdlPath){
 					tokPos = tokEnd;
 					// Get the beginning of the next vertex's data!
 					if(tokEnd != NULL){
-						tokEnd = getToken(tokEnd, ' ');
+						tokEnd = strchr(tokEnd, ' ');
 						if(tokEnd != NULL){
 							*tokEnd = '\0';
 							++tokEnd;
@@ -349,13 +348,12 @@ model *modelOBJLoad(const char *mdlPath){
 			}
 
 
-			++mdlPathLength;
 			// Set the model's name!
-			mdl->name = memoryManagerGlobalAlloc(mdlPathLength);
+			mdl->name = memoryManagerGlobalAlloc(mdlPathLength + 1);
 			if(mdl->name == NULL){
 				/** MALLOC FAILED **/
 			}
-			memcpy(mdl->name, mdlPath, mdlPathLength);
+			memcpy(mdl->name, mdlPath, mdlPathLength + 1);
 
 			meshGenerateBuffers(&mdl->meshData, tempVertices, tempVerticesSize, tempIndices, tempIndicesSize);
 
@@ -364,7 +362,7 @@ model *modelOBJLoad(const char *mdlPath){
 			// Now that we can be sure everything was
 			// successful, find the texture group.
 			if(tempTexGroupName != NULL){
-				mdl->texGroup = texGroupLoad(tempTexGroupName);
+				mdl->texGroup = texGroupLoad(tempTexGroupName, tempTexGroupNameLength);
 			}
 		}
 
@@ -399,12 +397,11 @@ model *modelOBJLoad(const char *mdlPath){
 ** Load an SMD using the model specified by "mdlPath" and return a pointer to it.
 ** If the model could not be loaded, return a pointer to the default model.
 */
-model *modelSMDLoad(const char *mdlPath){
+model *modelSMDLoad(const char *const restrict mdlPath, const size_t mdlPathLength){
 	model *mdl;
 
 	FILE *mdlFile;
 	char mdlFullPath[FILE_MAX_PATH_LENGTH];
-	size_t mdlPathLength;
 
 
 	#ifdef TEMP_MODULE_FIND
@@ -417,7 +414,6 @@ model *modelSMDLoad(const char *mdlPath){
 	#endif
 
 
-	mdlPathLength = strlen(mdlPath);
 	// Generate the full path for the model!
 	fileGenerateFullResourcePath(
 		MODEL_PATH_PREFIX, MODEL_PATH_PREFIX_LENGTH,
@@ -512,7 +508,7 @@ model *modelSMDLoad(const char *mdlPath){
 						if(boneID == tempBonesSize){
 							// Get the bone's name.
 							size_t boneNameLength;
-							tokPos = getMultiDelimitedString(tokPos, line + lineLength - tokPos, "\" ", &boneNameLength);
+							tokPos = stringMultiDelimited(tokPos, line + lineLength - tokPos, "\" ", &boneNameLength);
 							tempBone.name = memoryManagerGlobalAlloc(boneNameLength + 1);
 							if(tempBone.name == NULL){
 								/** MALLOC FAILED **/
@@ -797,13 +793,12 @@ model *modelSMDLoad(const char *mdlPath){
 			}
 
 
-			++mdlPathLength;
 			// Set the model's name!
-			mdl->name = memoryManagerGlobalAlloc(mdlPathLength);
+			mdl->name = memoryManagerGlobalAlloc(mdlPathLength + 1);
 			if(mdl->name == NULL){
 				/** MALLOC FAILED **/
 			}
-			memcpy(mdl->name, mdlPath, mdlPathLength);
+			memcpy(mdl->name, mdlPath, mdlPathLength + 1);
 
 			meshGenerateBuffers(&mdl->meshData, tempVertices, tempVerticesSize, tempIndices, tempIndicesSize);
 
@@ -820,7 +815,7 @@ model *modelSMDLoad(const char *mdlPath){
 			// Now that we can be sure everything was
 			// successful, find the texture group.
 			// if(tempTexGroupName != NULL){
-			mdl->texGroup = texGroupLoad("misc/soldier.tdg");
+			mdl->texGroup = texGroupLoad("misc/soldier.tdg", sizeof("misc/soldier.tdg"));
 			// }
 		}
 
@@ -852,7 +847,7 @@ return_t modelSetupDefault(){
 }
 
 
-void modelDelete(model *mdl){
+void modelDelete(model *const restrict mdl){
 	// Only free the name if it's in
 	// use and it's not the error model.
 	if(mdl->name != NULL && mdl != &g_mdlDefault){

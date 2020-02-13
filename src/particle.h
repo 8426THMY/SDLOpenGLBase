@@ -39,16 +39,16 @@ typedef struct particle {
 } particle;
 
 
-void particleDefInit(particleDef *partDef);
-void particleInit(particle *part);
+void particleDefInit(particleDef *const restrict partDef);
+void particleInit(particle *const restrict part);
 
-void particleUpdate(particle *part, const float time);
+void particleUpdate(particle *const restrict part, const float time);
 
-return_t particleAlive(particle *part, const float time);
-return_t particleCompare(const void *p1, const void *p2);
+return_t particleAlive(particle *const restrict part, const float time);
+return_t particleCompare(const void *const restrict p1, const void *const restrict p2);
 
-void particleDelete(particle *part);
-void particleDefDelete(particleDef *partDef);
+void particleDelete(particle *const restrict part);
+void particleDefDelete(particleDef *const restrict partDef);
 
 
 

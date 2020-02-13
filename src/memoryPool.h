@@ -131,19 +131,19 @@ typedef struct memoryPool {
 } memoryPool;
 
 
-void *memPoolInit(memoryPool *pool, void *memory, const size_t memorySize, const size_t blockSize);
+void *memPoolInit(memoryPool *const restrict pool, void *const restrict memory, const size_t memorySize, const size_t blockSize);
 
-void *memPoolAlloc(memoryPool *pool);
+void *memPoolAlloc(memoryPool *const restrict pool);
 
-void memPoolFree(memoryPool *pool, void *data);
+void memPoolFree(memoryPool *const restrict pool, void *const restrict data);
 
-void memPoolClearRegion(memoryPool *pool, memoryRegion *region, const byte_t flag, void *next);
-void memPoolClearLastRegion(memoryPool *pool, memoryRegion *region);
-void memPoolClear(memoryPool *pool);
+void memPoolClearRegion(memoryPool *const restrict pool, memoryRegion *const restrict region, const byte_t flag, void *const restrict next);
+void memPoolClearLastRegion(memoryPool *const restrict pool, memoryRegion *const restrict region);
+void memPoolClear(memoryPool *const restrict pool);
 
-void *memPoolExtend(memoryPool *pool, void *memory, const size_t memorySize);
+void *memPoolExtend(memoryPool *const restrict pool, void *const restrict memory, const size_t memorySize);
 
-void memPoolDelete(memoryPool *pool);
+void memPoolDelete(memoryPool *const restrict pool);
 
 
 #endif

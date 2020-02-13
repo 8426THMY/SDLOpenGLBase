@@ -38,32 +38,32 @@ renderableDef *moduleRenderableDefAlloc(){
 }
 
 // Insert an renderable base at the beginning of an array.
-renderableDef *moduleRenderableDefPrepend(renderableDef **start){
+renderableDef *moduleRenderableDefPrepend(renderableDef **const restrict start){
 	return(memSingleListPrepend(&g_renderableDefManager, (void **)start));
 }
 
 // Insert an renderable base at the end of an array.
-renderableDef *moduleRenderableDefAppend(renderableDef **start){
+renderableDef *moduleRenderableDefAppend(renderableDef **const restrict start){
 	return(memSingleListAppend(&g_renderableDefManager, (void **)start));
 }
 
 // Insert an renderable base after the element "prevData".
-renderableDef *moduleRenderableDefInsertBefore(renderableDef **start, renderableDef *prevData){
+renderableDef *moduleRenderableDefInsertBefore(renderableDef **const restrict start, renderableDef *const restrict prevData){
 	return(memSingleListInsertBefore(&g_renderableDefManager, (void **)start, (void *)prevData));
 }
 
 // Insert an renderable base after the element "data".
-renderableDef *moduleRenderableDefInsertAfter(renderableDef **start, renderableDef *data){
+renderableDef *moduleRenderableDefInsertAfter(renderableDef **const restrict start, renderableDef *const restrict data){
 	return(memSingleListInsertAfter(&g_renderableDefManager, (void **)start, (void *)data));
 }
 
 // Free an renderable base that has been allocated.
-void moduleRenderableDefFree(renderableDef **start, renderableDef *renderDef, renderableDef *prevData){
+void moduleRenderableDefFree(renderableDef **const restrict start, renderableDef *const restrict renderDef, renderableDef *const restrict prevData){
 	memSingleListFree(&g_renderableDefManager, (void **)start, (void *)renderDef, (void *)prevData);
 }
 
 // Free an entire renderable base array.
-void moduleRenderableDefFreeArray(renderableDef **start){
+void moduleRenderableDefFreeArray(renderableDef **const restrict start){
 	renderableDef *renderDef = *start;
 	while(renderDef != NULL){
 		moduleRenderableDefFree(start, renderDef, NULL);
@@ -85,32 +85,32 @@ renderable *moduleRenderableAlloc(){
 }
 
 // Insert an renderable at the beginning of an array.
-renderable *moduleRenderablePrepend(renderable **start){
+renderable *moduleRenderablePrepend(renderable **const restrict start){
 	return(memSingleListPrepend(&g_renderableManager, (void **)start));
 }
 
 // Insert an renderable at the end of an array.
-renderable *moduleRenderableAppend(renderable **start){
+renderable *moduleRenderableAppend(renderable **const restrict start){
 	return(memSingleListAppend(&g_renderableManager, (void **)start));
 }
 
 // Insert an renderable after the element "prevData".
-renderable *moduleRenderableInsertBefore(renderable **start, renderable *prevData){
+renderable *moduleRenderableInsertBefore(renderable **const restrict start, renderable *const restrict prevData){
 	return(memSingleListInsertBefore(&g_renderableManager, (void **)start, (void *)prevData));
 }
 
 // Insert an renderable after the element "data".
-renderable *moduleRenderableInsertAfter(renderable **start, renderable *data){
+renderable *moduleRenderableInsertAfter(renderable **const restrict start, renderable *const restrict data){
 	return(memSingleListInsertAfter(&g_renderableManager, (void **)start, (void *)data));
 }
 
 // Free an renderable that has been allocated.
-void moduleRenderableFree(renderable **start, renderable *render, renderable *prevData){
+void moduleRenderableFree(renderable **const restrict start, renderable *const restrict render, renderable *const restrict prevData){
 	memSingleListFree(&g_renderableManager, (void **)start, (void *)render, (void *)prevData);
 }
 
 // Free an entire renderable array.
-void moduleRenderableFreeArray(renderable **start){
+void moduleRenderableFreeArray(renderable **const restrict start){
 	renderable *render = *start;
 	while(render != NULL){
 		moduleRenderableFree(start, render, NULL);

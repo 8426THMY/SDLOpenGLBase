@@ -7,7 +7,7 @@
 mesh g_meshDefault;
 
 
-void meshInit(mesh *meshData){
+void meshInit(mesh *const restrict meshData){
 	meshData->vertexArrayID  = MESH_INVALID_BUFFER_ID;
 	meshData->vertexBufferID = MESH_INVALID_BUFFER_ID;
 
@@ -17,7 +17,11 @@ void meshInit(mesh *meshData){
 
 
 // Generate vertex and index buffers to hold our mesh data!
-void meshGenerateBuffers(mesh *meshData, const vertex *vertices, const size_t numVertices, const size_t *indices, const size_t numIndices){
+void meshGenerateBuffers(
+	mesh *const restrict meshData, const vertex *const restrict vertices, const size_t numVertices,
+	const size_t *const restrict indices, const size_t numIndices
+){
+
 	// Generate a vertex array object for our mesh and bind it!
 	glGenVertexArrays(1, &meshData->vertexArrayID);
 	glBindVertexArray(meshData->vertexArrayID);
@@ -61,12 +65,12 @@ void meshGenerateBuffers(mesh *meshData, const vertex *vertices, const size_t nu
 ** Return whether or not two vertices are different.
 ** This works so long as our vertices have no padding.
 */
-return_t vertexDifferent(const vertex *v1, const vertex *v2){
+return_t vertexDifferent(const vertex *const restrict v1, const vertex *const restrict v2){
 	return(memcmp(v1, v2, sizeof(*v2)) != 0);
 }
 
 // Return whether or not two meshes are different.
-return_t meshDifferent(const mesh *m1, const mesh *m2){
+return_t meshDifferent(const mesh *const restrict m1, const mesh *const restrict m2){
 	return(m1->vertexArrayID != m2->vertexArrayID);
 }
 
@@ -217,7 +221,7 @@ return_t meshSetupDefault(){
 }
 
 
-void meshDelete(mesh *meshData){
+void meshDelete(mesh *const restrict meshData){
 	// This works because the buffer IDs are in consecutive memory,
 	// though it does require our mesh structure to have no padding.
 	glDeleteBuffers(2, &meshData->vertexBufferID);

@@ -181,11 +181,17 @@
 
 
 // Forward-declare any helper functions!
-static void updateConstraintData(physicsJointPrismatic *joint, const physicsRigidBody *bodyA, const physicsRigidBody *bodyB);
-static void calculateEffectiveMass(physicsJointPrismatic *joint, const physicsRigidBody *bodyA, const physicsRigidBody *bodyB);
+static void updateConstraintData(
+	physicsJointPrismatic *const restrict joint,
+	const physicsRigidBody *const restrict bodyA, const physicsRigidBody *const restrict bodyB
+);
+static void calculateEffectiveMass(
+	physicsJointPrismatic *const restrict joint,
+	const physicsRigidBody *const restrict bodyA, const physicsRigidBody *const restrict bodyB
+);
 
 
-void physJointPrismaticInit(physicsJointPrismatic *joint){
+void physJointPrismaticInit(physicsJointPrismatic *const restrict joint){
 	//
 }
 
@@ -195,7 +201,7 @@ void physJointPrismaticInit(physicsJointPrismatic *joint){
 ** we can make the constraint converge more quickly.
 ** Joints are always active so we always warm start.
 */
-void physJointPrismaticWarmStart(physicsJointPrismatic *joint, physicsRigidBody *bodyA, physicsRigidBody *bodyB){
+void physJointPrismaticWarmStart(physicsJointPrismatic *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB){
 	vec3 linearImpulse;
 	vec3 angularImpulseA;
 	vec3 angularImpulseB;
@@ -235,7 +241,10 @@ void physJointPrismaticWarmStart(physicsJointPrismatic *joint, physicsRigidBody 
 ** that are not expected to change between iterations.
 ** Such values include the effective mass and the bias.
 */
-void physJointPrismaticPresolve(void *joint, physicsRigidBody *bodyA, physicsRigidBody *bodyB, const float dt){
+void physJointPrismaticPresolve(
+	void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB, const float dt
+){
+
 	updateConstraintData((physicsJointPrismatic *)joint, bodyA, bodyB);
 	calculateEffectiveMass((physicsJointPrismatic *)joint, bodyA, bodyB);
 	physJointPrismaticWarmStart((physicsJointPrismatic *)joint, bodyA, bodyB);
@@ -246,7 +255,7 @@ void physJointPrismaticPresolve(void *joint, physicsRigidBody *bodyA, physicsRig
 ** they are within the constraints imposed by the joint.
 ** This may be called multiple times with sequential impulse.
 */
-void physJointPrismaticSolveVelocity(void *joint, physicsRigidBody *bodyA, physicsRigidBody *bodyB){
+void physJointPrismaticSolveVelocity(void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB){
 	/** We should calculate and add the bias here if we're using Baumgarte. **/
 	/** Most of these need d though, so should we calculate it elsewhere?   **/
 }
@@ -258,7 +267,7 @@ void physJointPrismaticSolveVelocity(void *joint, physicsRigidBody *bodyA, physi
 ** the amount of error we'll know when to stop.
 */
 #ifdef PHYSJOINTDISTANCE_STABILISER_GAUSS_SEIDEL
-float physJointPrismaticSolvePosition(void *joint, physicsRigidBody *bodyA, physicsRigidBody *bodyB){
+float physJointPrismaticSolvePosition(void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB){
 	return(0.f);
 }
 #endif
@@ -268,7 +277,11 @@ float physJointPrismaticSolvePosition(void *joint, physicsRigidBody *bodyA, phys
 ** Transform some of the joint's variables
 ** based on the new states of the rigid bodies.
 */
-static void updateConstraintData(physicsJointPrismatic *joint, const physicsRigidBody *bodyA, const physicsRigidBody *bodyB){
+static void updateConstraintData(
+	physicsJointPrismatic *const restrict joint,
+	const physicsRigidBody *const restrict bodyA, const physicsRigidBody *const restrict bodyB
+){
+
 	vec3 rA;
 	vec3 rB;
 	vec3 d;
@@ -320,10 +333,14 @@ static void updateConstraintData(physicsJointPrismatic *joint, const physicsRigi
 ** change between velocity iterations. We can just do it once
 ** per update. Note that we take its inverse elsewhere.
 */
-static void calculateEffectiveMass(physicsJointPrismatic *joint, const physicsRigidBody *bodyA, const physicsRigidBody *bodyB){
+static void calculateEffectiveMass(
+	physicsJointPrismatic *const restrict joint,
+	const physicsRigidBody *const restrict bodyA, const physicsRigidBody *const restrict bodyB
+){
+
 	const float invMass = bodyA->invMass + bodyB->invMass;
-	const mat3 *invInertiaA = &bodyA->invInertiaGlobal;
-	const mat3 *invInertiaB = &bodyB->invInertiaGlobal;
+	const mat3 *const invInertiaA = &bodyA->invInertiaGlobal;
+	const mat3 *const invInertiaB = &bodyB->invInertiaGlobal;
 
 	vec3 *rAa  = &joint->rAa;
 	vec3 *rBa  = &joint->rBa;

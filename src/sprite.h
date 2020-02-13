@@ -39,16 +39,19 @@ typedef struct spriteState {
 } spriteState;
 
 
-void spriteInit(sprite *spriteData);
+void spriteInit(sprite *const restrict spriteData);
 
-void spriteGenerateBuffers(sprite *spriteData, const spriteVertex *vertices, const size_t numVertices, const size_t *indices, const size_t numIndices);
+void spriteGenerateBuffers(
+	sprite *const restrict spriteData, const spriteVertex *const restrict vertices, const size_t numVertices,
+	const size_t *const restrict indices, const size_t numIndices
+);
 
-return_t spriteVertexDifferent(const spriteVertex *v1, const spriteVertex *v2);
-return_t spriteDifferent(const sprite *s1, const sprite *s2);
+return_t spriteVertexDifferent(const spriteVertex *const restrict v1, const spriteVertex *const restrict v2);
+return_t spriteDifferent(const sprite *const restrict s1, const sprite *const restrict s2);
 
 return_t spriteSetupDefault();
 
-void spriteDelete(sprite *spriteData);
+void spriteDelete(sprite *const restrict spriteData);
 
 
 extern sprite g_spriteDefault;

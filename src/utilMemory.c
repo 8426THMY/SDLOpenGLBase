@@ -7,9 +7,11 @@
 // are the only ones operating on memory.
 #ifdef MEMORY_LOW_LEVEL
 #ifdef _WIN32
-#include <windows.h>
+	#define WIN32_LEAN_AND_MEAN
+	#define VC_EXTRALEAN
+	#include <windows.h>
 #else
-#include <unistd.h>
+	#include <unistd.h>
 #endif
 
 

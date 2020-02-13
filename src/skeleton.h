@@ -79,25 +79,28 @@ typedef struct skeletonObject {
 } skeletonObject;
 
 
-void boneInit(bone *bone, char *name, const size_t parent, const boneState *state);
-void skeleInit(skeleton *skele);
-void skeleInitSet(skeleton *skele, const char *name, const size_t nameLength, bone *bones, const size_t numBones);
+void boneInit(bone *const restrict bone, char *const restrict name, const size_t parent, const boneState *const restrict state);
+void skeleInit(skeleton *const restrict skele);
+void skeleInitSet(
+	skeleton *const restrict skele, const char *const restrict name,
+	const size_t nameLength, bone *const restrict bones, const size_t numBones
+);
 void skeleAnimDefInit(skeletonAnimDef *animDef);
-void skeleAnimInit(skeletonAnim *anim, skeletonAnimDef *animDef, const float intensity);
-void skeleObjInit(skeletonObject *skeleObj, skeleton *skele);
+void skeleAnimInit(skeletonAnim *const restrict anim, skeletonAnimDef *const restrict animDef, const float intensity);
+void skeleObjInit(skeletonObject *const restrict skeleObj, skeleton *const restrict skele);
 
-skeletonAnimDef *skeleAnimSMDLoad(const char *skeleAnimPath);
+skeletonAnimDef *skeleAnimSMDLoad(const char *const restrict skeleAnimPath, const size_t skeleAnimPathLength);
 
-void skeleAnimUpdate(skeletonAnim *anim, const float time);
-void skeleObjGenerateBoneState(const skeletonObject *skeleData, const size_t boneID, const char *boneName);
+void skeleAnimUpdate(skeletonAnim *const restrict anim, const float time);
+void skeleObjGenerateBoneState(const skeletonObject *const restrict skeleData, const size_t boneID, const char *const restrict boneName);
 
-size_t skeleFindBone(const skeleton *skele, const char *name);
-size_t skeleAnimFindBone(const skeletonAnim *skeleAnim, const char *name);
+size_t skeleFindBone(const skeleton *const restrict skele, const char *const restrict name);
+size_t skeleAnimFindBone(const skeletonAnim *const restrict skeleAnim, const char *name);
 
-void boneDelete(bone *bone);
-void skeleDelete(skeleton *skele);
-void skeleAnimDefDelete(skeletonAnimDef *animDef);
-void skeleObjDelete(skeletonObject *skeleObj);
+void boneDelete(bone *const restrict bone);
+void skeleDelete(skeleton *const restrict skele);
+void skeleAnimDefDelete(skeletonAnimDef *const restrict animDef);
+void skeleObjDelete(skeletonObject *const restrict skeleObj);
 
 
 extern skeleton g_skeleDefault;

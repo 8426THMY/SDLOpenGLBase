@@ -9,7 +9,7 @@
 #include "sprite.h"
 
 
-void guiTextInit(guiText *gui, const textFont *font, const size_t bufferSize){
+void guiTextInit(guiText *const restrict gui, const textFont *const restrict font, const size_t bufferSize){
 	gui->font = font;
 
 	textBufferInit(&gui->text, bufferSize);
@@ -21,12 +21,15 @@ void guiTextInit(guiText *gui, const textFont *font, const size_t bufferSize){
 }
 
 
-void guiTextUpdate(void *gui, const float time){
+void guiTextUpdate(void *const restrict gui, const float time){
 	//
 }
 
 #warning "To correctly handle size changes mid-text, we need to know the largest font size of the following line."
-void guiTextDraw(const void *gui, const transformState *root, const shaderObject *shader){
+void guiTextDraw(
+	const void *const restrict gui, const transformState *const restrict root, const shaderSprite *const restrict shader
+){
+
 	#warning "If we use a global sprite buffer, should we make this global too?"
 	spriteState charStates[SPRITE_MAX_INSTANCES];
 	spriteState *curState = charStates;
@@ -48,7 +51,7 @@ void guiTextDraw(const void *gui, const transformState *root, const shaderObject
 
 	// Store our text data in the arrays.
 	do {
-		const textCmapCodeUnit_t code = {._32 = textBufferRead(&(((const guiText *)gui)->text), &curChar)};
+		const textCMapCodeUnit_t code = {._32 = textBufferRead(&(((const guiText *)gui)->text), &curChar)};
 		// End of stream.
 		if(code._32 == 0){
 			break;
@@ -68,14 +71,16 @@ void guiTextDraw(const void *gui, const transformState *root, const shaderObject
 
 			#warning "The top-left corner of the sprite should be at the cursor."
 			#warning "We can translate it to that position like so, but what if we used a special sprite?"
+			// "curGlyph.uvOffsets.w * 512.f" and "curGlyph.uvOffsets.h * 512.f" get half the glyph's width and height in pixels.
 			mat4InitTranslate(&curState->state, cursor[0] + curGlyph.uvOffsets.w * 512.f + curGlyph.kerningX, cursor[1] - curGlyph.uvOffsets.h * 512.f - curGlyph.kerningY, 0.f);
 			mat4Scale(&curState->state, curGlyph.uvOffsets.w * 1024.f, curGlyph.uvOffsets.h * 1024.f, 1.f);
 			curState->uvOffsets = curGlyph.uvOffsets;
 
+			++numChars;
 			// Render everything if we've filled the state buffer.
 			#warning "This may be a problem, especially if we're multithreading and other systems are using the same sprite."
 			#warning "Since multithreading isn't an option, maybe use a global particle state buffer for all systems?"
-			if(++numChars >= SPRITE_MAX_INSTANCES){
+			if(numChars >= SPRITE_MAX_INSTANCES){
 				// Upload the characters' states to the shader.
 				glBindBuffer(GL_ARRAY_BUFFER, g_spriteDefault.stateBufferID);
 				glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(charStates) * numChars, &charStates[0]);
@@ -112,6 +117,6 @@ void guiTextDraw(const void *gui, const transformState *root, const shaderObject
 }
 
 
-void guiTextDelete(void *gui){
+void guiTextDelete(void *const restrict gui){
 	textBufferDelete(&(((guiText *)gui)->text));
 }

@@ -110,30 +110,54 @@
 
 
 // Forward-declare any helper functions!
-static void warmStartContactPoint(const physicsManifold *pm, physicsContactPoint *contact, physicsRigidBody *bodyA, physicsRigidBody *bodyB);
-static void calculateEffectiveMass(const physicsManifold *pm, physicsContactPoint *contact, const physicsRigidBody *bodyA, const physicsRigidBody *bodyB);
-static void calculateBias(const physicsManifold *pm, physicsContactPoint *contact, const physicsRigidBody *bodyA, const physicsRigidBody *bodyB, const float dt);
+static void warmStartContactPoint(
+	const physicsManifold *const restrict pm, physicsContactPoint *const restrict contact,
+	physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB
+);
+static void calculateEffectiveMass(
+	const physicsManifold *const restrict pm, physicsContactPoint *const restrict contact,
+	const physicsRigidBody *const restrict bodyA, const physicsRigidBody *const restrict bodyB
+);
+static void calculateBias(
+	const physicsManifold *const restrict pm, physicsContactPoint *const restrict contact,
+	const physicsRigidBody *const restrict bodyA, const physicsRigidBody *const restrict bodyB,
+	const float dt
+);
 
 #ifndef PHYSCONTACT_USE_FRICTION_JOINT
-static void solveTangents(const physicsManifold *pm, physicsContactPoint *contact, physicsRigidBody *bodyA, physicsRigidBody *bodyB);
+static void solveTangents(
+	const physicsManifold *const restrict pm, physicsContactPoint *const restrict contact,
+	physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB
+);
 #endif
-static void solveNormal(const physicsManifold *pm, physicsContactPoint *contact, physicsRigidBody *bodyA, physicsRigidBody *bodyB);
+static void solveNormal(
+	const physicsManifold *const restrict pm, physicsContactPoint *const restrict contact,
+	physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB
+);
+
 #ifdef PHYSCONTACT_STABILISER_GAUSS_SEIDEL
-void solvePosition(const physicsManifold *pm, const physicsContactPoint *contact, physicsRigidBody *bodyA, physicsRigidBody *bodyB);
+float solvePosition(
+	const physicsManifold *const restrict pm, const physicsContactPoint *const restrict contact,
+	physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB
+);
 #endif
 
 
 // Build a physics manifold by expanding a contact manifold.
-void physManifoldInit(physicsManifold *pm, const contactManifold *cm, const physicsCollider *cA, const physicsCollider *cB){
+void physManifoldInit(
+	physicsManifold *const restrict pm, const contactManifold *const restrict cm,
+	const physicsCollider *const restrict cA, const physicsCollider *const restrict cB
+){
+
 	physicsContactPoint *pmContact = pm->contacts;
 	const contactPoint *cmContact = cm->contacts;
-	const contactPoint *lastContact = &cmContact[cm->numContacts];
+	const contactPoint *const lastContact = &cmContact[cm->numContacts];
 
-	const vec3 *bodyACentroid = &cA->owner->centroidGlobal;
-	const vec3 *bodyBCentroid = &cB->owner->centroidGlobal;
+	const vec3 *const bodyACentroid = &cA->owner->centroidGlobal;
+	const vec3 *const bodyBCentroid = &cB->owner->centroidGlobal;
 	#ifdef PHYSCONTACT_STABILISER_GAUSS_SEIDEL
-	const quat *bodyARot      = &cA->owner->transform.rot;
-	const quat *bodyBRot      = &cB->owner->transform.rot;
+	const quat *const bodyARot      = &cA->owner->transform.rot;
+	const quat *const bodyBRot      = &cB->owner->transform.rot;
 	#endif
 
 	vec3 normal;
@@ -206,18 +230,22 @@ void physManifoldInit(physicsManifold *pm, const contactManifold *cm, const phys
 }
 
 // Update any contact points that have persisted.
-void physManifoldPersist(physicsManifold *pm, const contactManifold *cm, const physicsCollider *cA, const physicsCollider *cB){
+void physManifoldPersist(
+	physicsManifold *const restrict pm, const contactManifold *const restrict cm,
+	const physicsCollider *const restrict cA, const physicsCollider *const restrict cB
+){
+
 	const contactPoint *cmContact = cm->contacts;
-	const contactPoint *lastContact = &cmContact[cm->numContacts];
+	const contactPoint *const lastContact = &cmContact[cm->numContacts];
 	physicsContactPoint *pmContact = pm->contacts;
 	physicsContactPoint *pmSwap = pmContact;
-	const physicsContactPoint *lastPhysContact = &pmContact[pm->numContacts];
+	const physicsContactPoint *const lastPhysContact = &pmContact[pm->numContacts];
 
-	const vec3 *bodyACentroid = &cA->owner->centroidGlobal;
-	const vec3 *bodyBCentroid = &cB->owner->centroidGlobal;
+	const vec3 *const bodyACentroid = &cA->owner->centroidGlobal;
+	const vec3 *const bodyBCentroid = &cB->owner->centroidGlobal;
 	#ifdef PHYSCONTACT_STABILISER_GAUSS_SEIDEL
-	const quat *bodyARot      = &cA->owner->transform.rot;
-	const quat *bodyBRot      = &cB->owner->transform.rot;
+	const quat *const bodyARot      = &cA->owner->transform.rot;
+	const quat *const bodyBRot      = &cB->owner->transform.rot;
 	#endif
 
 	vec3 normal;
@@ -357,9 +385,12 @@ void physManifoldPersist(physicsManifold *pm, const contactManifold *cm, const p
 ** that are not expected to change between iterations.
 ** Such values include the effective mass and the bias.
 */
-void physManifoldPresolve(physicsManifold *pm, const physicsRigidBody *bodyA, const physicsRigidBody *bodyB, const float dt){
+void physManifoldPresolve(
+	physicsManifold *const restrict pm,const physicsRigidBody *const restrict bodyA, const physicsRigidBody *const restrict bodyB, const float dt
+){
+
 	physicsContactPoint *curContact = pm->contacts;
-	const physicsContactPoint *lastContact = &curContact[pm->numContacts];
+	const physicsContactPoint *const lastContact = &curContact[pm->numContacts];
 
 	for(; curContact < lastContact; ++curContact){
 		calculateEffectiveMass(pm, curContact, bodyA, bodyB);
@@ -372,9 +403,9 @@ void physManifoldPresolve(physicsManifold *pm, const physicsRigidBody *bodyA, co
 ** that they separate from each other on the next frame.
 ** This may be called multiple times with sequential impulse.
 */
-void physManifoldSolveVelocity(physicsManifold *pm, physicsRigidBody *bodyA, physicsRigidBody *bodyB){
+void physManifoldSolveVelocity(physicsManifold *const restrict pm, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB){
 	physicsContactPoint *curContact = pm->contacts;
-	const physicsContactPoint *lastContact = &curContact[pm->numContacts];
+	const physicsContactPoint *const lastContact = &curContact[pm->numContacts];
 	#ifdef PHYSCONTACT_USE_FRICTION_JOINT
 	float maxForce = 0.f;
 	#endif
@@ -404,9 +435,9 @@ void physManifoldSolveVelocity(physicsManifold *pm, physicsRigidBody *bodyA, phy
 ** This may also be called multiple times.
 */
 #ifdef PHYSCONTACT_STABILISER_GAUSS_SEIDEL
-void physManifoldSolvePosition(const physicsManifold *pm, physicsRigidBody *bodyA, physicsRigidBody *bodyB){
+void physManifoldSolvePosition(const physicsManifold *const restrict pm, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB){
 	const physicsContactPoint *curContact = pm->contacts;
-	const physicsContactPoint *lastContact = &curContact[pm->numContacts];
+	const physicsContactPoint *const lastContact = &curContact[pm->numContacts];
 
 	for(; curContact < lastContact; ++curContact){
 		solvePosition(pm, curContact, bodyA, bodyB);
@@ -420,7 +451,11 @@ void physManifoldSolvePosition(const physicsManifold *pm, physicsRigidBody *body
 ** we are able to warm start it. This will allow it to more
 ** quickly converge to its correct state when we're solving.
 */
-static void warmStartContactPoint(const physicsManifold *pm, physicsContactPoint *contact, physicsRigidBody *bodyA, physicsRigidBody *bodyB){
+static void warmStartContactPoint(
+	const physicsManifold *const restrict pm, physicsContactPoint *const restrict contact,
+	physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB
+){
+
 	vec3 impulse;
 	#ifndef PHYSCONTACT_USE_FRICTION_JOINT
 	vec3 accumulator;
@@ -447,15 +482,19 @@ static void warmStartContactPoint(const physicsManifold *pm, physicsContactPoint
 ** won't change between velocity iterations. We can just do it once
 ** per update.
 */
-static void calculateEffectiveMass(const physicsManifold *pm, physicsContactPoint *contact, const physicsRigidBody *bodyA, const physicsRigidBody *bodyB){
+static void calculateEffectiveMass(
+	const physicsManifold *const restrict pm, physicsContactPoint *const restrict contact,
+	const physicsRigidBody *const restrict bodyA, const physicsRigidBody *const restrict bodyB
+){
+
 	vec3 rnA;
 	vec3 rnIA;
 	vec3 rnB;
 	vec3 rnIB;
 
 	const float invMass = bodyA->invMass + bodyB->invMass;
-	const mat3 *invInertiaA = &bodyA->invInertiaGlobal;
-	const mat3 *invInertiaB = &bodyB->invInertiaGlobal;
+	const mat3 *const invInertiaA = &bodyA->invInertiaGlobal;
+	const mat3 *const invInertiaB = &bodyB->invInertiaGlobal;
 
 	// (JM^-1)J^T = mA^-1 + mB^-1 + (((rA X n) * IA^-1) . (rA X n)) + (((rB X n) * IB^-1) . (rB X n))
 	vec3CrossVec3Out(&contact->rA, &physContactNormal(pm), &rnA);
@@ -497,7 +536,12 @@ static void calculateEffectiveMass(const physicsManifold *pm, physicsContactPoin
 }
 
 // Calculate the contact's bias term.
-static void calculateBias(const physicsManifold *pm, physicsContactPoint *contact, const physicsRigidBody *bodyA, const physicsRigidBody *bodyB, const float dt){
+static void calculateBias(
+	const physicsManifold *const restrict pm, physicsContactPoint *const restrict contact,
+	const physicsRigidBody *const restrict bodyA, const physicsRigidBody *const restrict bodyB,
+	const float dt
+){
+
 	float tempBias;
 	vec3 tempVelocity;
 	vec3 contactVelocity;
@@ -556,7 +600,11 @@ static void calculateBias(const physicsManifold *pm, physicsContactPoint *contac
 
 // Calculate the frictional impulse to apply.
 #ifndef PHYSCONTACT_USE_FRICTION_JOINT
-static void solveTangents(const physicsManifold *pm, physicsContactPoint *contact, physicsRigidBody *bodyA, physicsRigidBody *bodyB){
+static void solveTangents(
+	const physicsManifold *const restrict pm, physicsContactPoint *const restrict contact,
+	physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB
+){
+
 	float lambda;
 	const float maxFriction = pm->friction * contact->normalImpulse;
 	float oldImpulse;
@@ -630,7 +678,11 @@ static void solveTangents(const physicsManifold *pm, physicsContactPoint *contac
 #endif
 
 // Calculate the correctional normal impulse to apply.
-static void solveNormal(const physicsManifold *pm, physicsContactPoint *contact, physicsRigidBody *bodyA, physicsRigidBody *bodyB){
+static void solveNormal(
+	const physicsManifold *const restrict pm, physicsContactPoint *const restrict contact,
+	physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB
+){
+
 	float lambda;
 	float oldImpulse;
 	float newImpulse;
@@ -683,7 +735,11 @@ static void solveNormal(const physicsManifold *pm, physicsContactPoint *contact,
 ** but by returning the amount of error we'll know when to stop.
 */
 #ifdef PHYSCONTACT_STABILISER_GAUSS_SEIDEL
-float solvePosition(const physicsManifold *pm, const physicsContactPoint *contact, physicsRigidBody *bodyA, physicsRigidBody *bodyB){
+float solvePosition(
+	const physicsManifold *const restrict pm, const physicsContactPoint *const restrict contact,
+	physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB
+){
+
 	vec3 rA;
 	vec3 rB;
 	vec3 normal;

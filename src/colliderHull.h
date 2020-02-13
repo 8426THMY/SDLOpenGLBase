@@ -88,24 +88,39 @@ typedef struct colliderAABB colliderAABB;
 
 
 void colliderHullInit(colliderHull *hull);
-void colliderHullInstantiate(void *hull, const void *base);
+void colliderHullInstantiate(void *const restrict hull, const void *const restrict base);
 
-return_t colliderHullLoad(void *hull, FILE *hullFile, vec3 *centroid, mat3 *inertia);
+return_t colliderHullLoad(
+	void *const restrict hull, FILE *const restrict hullFile,
+	vec3 *const restrict centroid, mat3 *const restrict inertia
+);
 
-void colliderHullGenerateCentroid(const colliderHull *hull, vec3 *centroid);
-void colliderHullGenerateCentroidWeighted(const colliderHull *hull, const float *vertexWeights, vec3 *centroid);
-void colliderHullGenerateInertia(const colliderHull *hull, mat3 *inertia);
-void colliderHullGenerateInertiaWeighted(const colliderHull *hull, const float *vertexMasses, mat3 *inertia);
+void colliderHullGenerateCentroid(const colliderHull *const restrict hull, vec3 *const restrict centroid);
+void colliderHullGenerateCentroidWeighted(
+	const colliderHull *const restrict hull, const float *restrict vertexWeights, vec3 *const restrict centroid
+);
+void colliderHullGenerateInertia(const colliderHull *const restrict hull, mat3 *const restrict inertia);
+void colliderHullGenerateInertiaWeighted(
+	const colliderHull *const restrict hull, const float *restrict vertexWeights, mat3 *const restrict inertia
+);
 
-void colliderHullUpdate(void *hull, const void *base, const transformState *trans, colliderAABB *aabb);
+void colliderHullUpdate(
+	void *const restrict hull, const void *const restrict base,
+	const transformState *const restrict trans, colliderAABB *const restrict aabb
+);
 
-const vec3 *colliderHullSupport(const colliderHull *hull, const vec3 *dir);
+const vec3 *colliderHullSupport(const colliderHull *const restrict hull, const vec3 *const restrict dir);
 
-return_t colliderHullSeparated(const void *hullA, const void *hullB, contactSeparation *cs);
-return_t colliderHullCollidingSAT(const void *hullA, const void *hullB, contactSeparation *cs, contactManifold *cm);
+return_t colliderHullSeparated(
+	const void *const restrict hullA, const void *const restrict hullB, contactSeparation *const restrict cs
+);
+return_t colliderHullCollidingSAT(
+	const void *const restrict hullA, const void *const restrict hullB,
+	contactSeparation *const restrict separation, contactManifold *const restrict cm
+);
 
-void colliderHullDeleteInstance(void *hull);
-void colliderHullDelete(void *hull);
+void colliderHullDeleteInstance(void *const restrict hull);
+void colliderHullDelete(void *const restrict hull);
 
 
 #endif

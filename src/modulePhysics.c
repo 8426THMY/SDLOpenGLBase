@@ -83,7 +83,7 @@ aabbNode *modulePhysicsAABBNodeAlloc(){
 }
 
 // Free an AABB tree node that has been allocated.
-void modulePhysicsAABBNodeFree(aabbNode *node){
+void modulePhysicsAABBNodeFree(aabbNode *const restrict node){
 	memPoolFree(&g_aabbNodeManager, node);
 }
 
@@ -102,7 +102,7 @@ physicsContactPair *modulePhysicsContactPairAlloc(){
 }
 
 // Free a contact pair that has been allocated.
-void modulePhysicsContactPairFree(physicsContactPair *cPair){
+void modulePhysicsContactPairFree(physicsContactPair *const restrict cPair){
 	physContactPairDelete(cPair);
 	memPoolFree(&g_physContactPairManager, cPair);
 }
@@ -121,7 +121,7 @@ physicsSeparationPair *modulePhysicsSeparationPairAlloc(){
 }
 
 // Free a separation pair that has been allocated.
-void modulePhysicsSeparationPairFree(physicsSeparationPair *sPair){
+void modulePhysicsSeparationPairFree(physicsSeparationPair *const restrict sPair){
 	physSeparationPairDelete(sPair);
 	memPoolFree(&g_physSeparationPairManager, sPair);
 }
@@ -140,39 +140,39 @@ physicsCollider *modulePhysicsColliderAlloc(){
 }
 
 // Insert a collider at the beginning of an array.
-physicsCollider *modulePhysicsColliderPrepend(physicsCollider **start){
+physicsCollider *modulePhysicsColliderPrepend(physicsCollider **const restrict start){
 	return(memSingleListPrepend(&g_physColliderManager, (void **)start));
 }
 
 // Insert a collider at the end of an array.
-physicsCollider *modulePhysicsColliderAppend(physicsCollider **start){
+physicsCollider *modulePhysicsColliderAppend(physicsCollider **const restrict start){
 	return(memSingleListAppend(&g_physColliderManager, (void **)start));
 }
 
 // Insert a collider after the element "prevData".
-physicsCollider *modulePhysicsColliderInsertBefore(physicsCollider **start, physicsCollider *prevData){
+physicsCollider *modulePhysicsColliderInsertBefore(physicsCollider **const restrict start, physicsCollider *const restrict prevData){
 	return(memSingleListInsertBefore(&g_physColliderManager, (void **)start, (void *)prevData));
 }
 
 // Insert a collider after the element "data".
-physicsCollider *modulePhysicsColliderInsertAfter(physicsCollider **start, physicsCollider *data){
+physicsCollider *modulePhysicsColliderInsertAfter(physicsCollider **const restrict start, physicsCollider *const restrict data){
 	return(memSingleListInsertAfter(&g_physColliderManager, (void **)start, (void *)data));
 }
 
 // Free a collider instance that has been allocated.
-void modulePhysicsColliderFreeInstance(physicsCollider **start, physicsCollider *collider, physicsCollider *prevData){
+void modulePhysicsColliderFreeInstance(physicsCollider **const restrict start, physicsCollider *const restrict collider, physicsCollider *const restrict prevData){
 	physColliderDeleteInstance(collider);
 	memSingleListFree(&g_physColliderManager, (void **)start, (void *)collider, (void *)prevData);
 }
 
 // Free a collider that has been allocated.
-void modulePhysicsColliderFree(physicsCollider **start, physicsCollider *collider, physicsCollider *prevData){
+void modulePhysicsColliderFree(physicsCollider **const restrict start, physicsCollider *const restrict collider, physicsCollider *const restrict prevData){
 	physColliderDelete(collider);
 	memSingleListFree(&g_physColliderManager, (void **)start, (void *)collider, (void *)prevData);
 }
 
 // Free an entire collider instance array.
-void modulePhysicsColliderFreeInstanceArray(physicsCollider **start){
+void modulePhysicsColliderFreeInstanceArray(physicsCollider **const restrict start){
 	physicsCollider *collider = *start;
 	while(collider != NULL){
 		modulePhysicsColliderFreeInstance(start, collider, NULL);
@@ -181,7 +181,7 @@ void modulePhysicsColliderFreeInstanceArray(physicsCollider **start){
 }
 
 // Free an entire collider array.
-void modulePhysicsColliderFreeArray(physicsCollider **start){
+void modulePhysicsColliderFreeArray(physicsCollider **const restrict start){
 	physicsCollider *collider = *start;
 	while(collider != NULL){
 		modulePhysicsColliderFree(start, collider, NULL);
@@ -203,33 +203,33 @@ physicsRigidBodyDef *modulePhysicsBodyDefAlloc(){
 }
 
 // Insert a rigid body base at the beginning of an array.
-physicsRigidBodyDef *modulePhysicsBodyDefPrepend(physicsRigidBodyDef **start){
+physicsRigidBodyDef *modulePhysicsBodyDefPrepend(physicsRigidBodyDef **const restrict start){
 	return(memSingleListPrepend(&g_physRigidBodyDefManager, (void **)start));
 }
 
 // Insert a rigid body base at the end of an array.
-physicsRigidBodyDef *modulePhysicsBodyDefAppend(physicsRigidBodyDef **start){
+physicsRigidBodyDef *modulePhysicsBodyDefAppend(physicsRigidBodyDef **const restrict start){
 	return(memSingleListAppend(&g_physRigidBodyDefManager, (void **)start));
 }
 
 // Insert a rigid body base after the element "prevData".
-physicsRigidBodyDef *modulePhysicsBodyDefInsertBefore(physicsRigidBodyDef **start, physicsRigidBodyDef *prevData){
+physicsRigidBodyDef *modulePhysicsBodyDefInsertBefore(physicsRigidBodyDef **const restrict start, physicsRigidBodyDef *const restrict prevData){
 	return(memSingleListInsertBefore(&g_physRigidBodyDefManager, (void **)start, (void *)prevData));
 }
 
 // Insert a rigid body base after the element "data".
-physicsRigidBodyDef *modulePhysicsBodyDefInsertAfter(physicsRigidBodyDef **start, physicsRigidBodyDef *data){
+physicsRigidBodyDef *modulePhysicsBodyDefInsertAfter(physicsRigidBodyDef **const restrict start, physicsRigidBodyDef *const restrict data){
 	return(memSingleListInsertAfter(&g_physRigidBodyDefManager, (void **)start, (void *)data));
 }
 
 // Free a rigid body base that has been allocated.
-void modulePhysicsBodyDefFree(physicsRigidBodyDef **start, physicsRigidBodyDef *bodyDef, physicsRigidBodyDef *prevData){
+void modulePhysicsBodyDefFree(physicsRigidBodyDef **const restrict start, physicsRigidBodyDef *const restrict bodyDef, physicsRigidBodyDef *const restrict prevData){
 	physRigidBodyDefDelete(bodyDef);
 	memSingleListFree(&g_physRigidBodyDefManager, (void **)start, (void *)bodyDef, (void *)prevData);
 }
 
 // Free an entire rigid body base array.
-void modulePhysicsBodyDefFreeArray(physicsRigidBodyDef **start){
+void modulePhysicsBodyDefFreeArray(physicsRigidBodyDef **const restrict start){
 	physicsRigidBodyDef *bodyDef = *start;
 	while(bodyDef != NULL){
 		modulePhysicsBodyDefFree(start, bodyDef, NULL);
@@ -251,33 +251,33 @@ physicsRigidBody *modulePhysicsBodyAlloc(){
 }
 
 // Insert a rigid body at the beginning of an array.
-physicsRigidBody *modulePhysicsBodyPrepend(physicsRigidBody **start){
+physicsRigidBody *modulePhysicsBodyPrepend(physicsRigidBody **const restrict start){
 	return(memSingleListPrepend(&g_physRigidBodyManager, (void **)start));
 }
 
 // Insert a rigid body at the end of an array.
-physicsRigidBody *modulePhysicsBodyAppend(physicsRigidBody **start){
+physicsRigidBody *modulePhysicsBodyAppend(physicsRigidBody **const restrict start){
 	return(memSingleListAppend(&g_physRigidBodyManager, (void **)start));
 }
 
 // Insert a rigid body after the element "prevData".
-physicsRigidBody *modulePhysicsBodyInsertBefore(physicsRigidBody **start, physicsRigidBody *prevData){
+physicsRigidBody *modulePhysicsBodyInsertBefore(physicsRigidBody **const restrict start, physicsRigidBody *const restrict prevData){
 	return(memSingleListInsertBefore(&g_physRigidBodyManager, (void **)start, (void *)prevData));
 }
 
 // Insert a rigid body after the element "data".
-physicsRigidBody *modulePhysicsBodyInsertAfter(physicsRigidBody **start, physicsRigidBody *data){
+physicsRigidBody *modulePhysicsBodyInsertAfter(physicsRigidBody **const restrict start, physicsRigidBody *const restrict data){
 	return(memSingleListInsertAfter(&g_physRigidBodyManager, (void **)start, (void *)data));
 }
 
 // Free a rigid body that has been allocated.
-void modulePhysicsBodyFree(physicsRigidBody **start, physicsRigidBody *body, physicsRigidBody *prevData){
+void modulePhysicsBodyFree(physicsRigidBody **const restrict start, physicsRigidBody *const restrict body, physicsRigidBody *const restrict prevData){
 	physRigidBodyDelete(body);
 	memSingleListFree(&g_physRigidBodyManager, (void **)start, (void *)body, (void *)prevData);
 }
 
 // Free an entire rigid body array.
-void modulePhysicsBodyFreeArray(physicsRigidBody **start){
+void modulePhysicsBodyFreeArray(physicsRigidBody **const restrict start){
 	physicsRigidBody *body = *start;
 	while(body != NULL){
 		modulePhysicsBodyFree(start, body, NULL);

@@ -86,19 +86,19 @@ typedef struct memoryFreeList {
 } memoryFreeList;
 
 
-void *memFreeListInit(memoryFreeList *freeList, void *memory, const size_t memorySize, const size_t blockSize);
+void *memFreeListInit(memoryFreeList *const restrict freeList, void *const restrict memory, const size_t memorySize, const size_t blockSize);
 
-void *memFreeListAlloc(memoryFreeList *freeList);
+void *memFreeListAlloc(memoryFreeList *const restrict freeList);
 
-void memFreeListFree(memoryFreeList *freeList, void *data);
+void memFreeListFree(memoryFreeList *const restrict freeList, void *const restrict data);
 
-void memFreeListClearRegion(memoryFreeList *freeList, memoryRegion *region, void *next);
-void memFreeListClearLastRegion(memoryFreeList *freeList, memoryRegion *region);
-void memFreeListClear(memoryFreeList *freeList);
+void memFreeListClearRegion(memoryFreeList *const restrict freeList, memoryRegion *const restrict region, void *const restrict next);
+void memFreeListClearLastRegion(memoryFreeList *const restrict freeList, memoryRegion *const restrict region);
+void memFreeListClear(memoryFreeList *const restrict freeList);
 
-void *memFreeListExtend(memoryFreeList *freeList, void *memory, const size_t memorySize);
+void *memFreeListExtend(memoryFreeList *const restrict freeList, void *memory, const size_t memorySize);
 
-void memFreeListDelete(memoryFreeList *freeList);
+void memFreeListDelete(memoryFreeList *const restrict freeList);
 
 
 #endif

@@ -74,34 +74,37 @@ typedef struct physicsRigidBody {
 } physicsRigidBody;
 
 
-void physRigidBodyDefInit(physicsRigidBodyDef *bodyDef);
-void physRigidBodyInit(physicsRigidBody *body, const physicsRigidBodyDef *bodyDef);
+void physRigidBodyDefInit(physicsRigidBodyDef *const restrict bodyDef);
+void physRigidBodyInit(physicsRigidBody *const restrict body, const physicsRigidBodyDef *const restrict bodyDef);
 
-return_t physRigidBodyDefLoad(physicsRigidBodyDef *bodyDef, const char *bodyPath);
+return_t physRigidBodyDefLoad(physicsRigidBodyDef *const restrict bodyDef, const char *const restrict bodyPath, const size_t bodyPathLength);
 
-void physRigidBodyDefSumCentroids(physicsRigidBodyDef *bodyDef, const vec3 *centroidArray, const size_t numBodies);
-void physRigidBodyDefSumInertia(physicsRigidBodyDef *bodyDef, const mat3 *inertiaArray, const size_t numBodies);
-void physRigidBodyDefAddCollider(physicsRigidBodyDef *bodyDef, const float mass, const vec3 *centroid, const mat3 *inertia);
-void physRigidBodyDefGenerateProperties(physicsRigidBodyDef *bodyDef, const float **massArrays);
+void physRigidBodyDefSumCentroids(physicsRigidBodyDef *const restrict bodyDef, const vec3 *centroidArray, const size_t numBodies);
+void physRigidBodyDefSumInertia(physicsRigidBodyDef *const restrict bodyDef, const mat3 *inertiaArray, const size_t numBodies);
+void physRigidBodyDefAddCollider(
+	physicsRigidBodyDef *const restrict bodyDef, const float mass,
+	const vec3 *const restrict centroid, const mat3 *const restrict inertia
+);
+void physRigidBodyDefGenerateProperties(physicsRigidBodyDef *const restrict bodyDef, const float **const restrict massArrays);
 
-void physRigidBodyIntegrateVelocity(physicsRigidBody *body, const float time);
-void physRigidBodyIntegratePosition(physicsRigidBody *body, const float time);
+void physRigidBodyIntegrateVelocity(physicsRigidBody *const restrict body, const float time);
+void physRigidBodyIntegratePosition(physicsRigidBody *const restrict body, const float time);
 
-void physRigidBodyApplyLinearImpulse(physicsRigidBody *body, vec3 J);
-void physRigidBodyApplyLinearImpulseInverse(physicsRigidBody *body, vec3 J);
-void physRigidBodyApplyAngularImpulse(physicsRigidBody *body, vec3 J);
-void physRigidBodyApplyAngularImpulseInverse(physicsRigidBody *body, vec3 J);
-void physRigidBodyApplyImpulse(physicsRigidBody *body, const vec3 *r, const vec3 *J);
-void physRigidBodyApplyImpulseInverse(physicsRigidBody *body, const vec3 *r, const vec3 *J);
+void physRigidBodyApplyLinearImpulse(physicsRigidBody *const restrict body, vec3 J);
+void physRigidBodyApplyLinearImpulseInverse(physicsRigidBody *const restrict body, vec3 J);
+void physRigidBodyApplyAngularImpulse(physicsRigidBody *const restrict body, vec3 J);
+void physRigidBodyApplyAngularImpulseInverse(physicsRigidBody *const restrict body, vec3 J);
+void physRigidBodyApplyImpulse(physicsRigidBody *const restrict body, const vec3 *const restrict r, const vec3 *const restrict J);
+void physRigidBodyApplyImpulseInverse(physicsRigidBody *const restrict body, const vec3 *const restrict r, const vec3 *const restrict J);
 #ifdef PHYSCOLLIDER_USE_POSITIONAL_CORRECTION
-void physRigidBodyApplyImpulsePosition(physicsRigidBody *body, const vec3 *r, const vec3 *J);
-void physRigidBodyApplyImpulsePositionInverse(physicsRigidBody *body, const vec3 *r, const vec3 *J);
+void physRigidBodyApplyImpulsePosition(physicsRigidBody *const restrict body, const vec3 *const restrict r, const vec3 *const restrict J);
+void physRigidBodyApplyImpulsePositionInverse(physicsRigidBody *const restrict body, const vec3 *const restrict r, const vec3 *const restrict J);
 #endif
 
-void physRigidBodyUpdate(physicsRigidBody *body, const float dt);
+void physRigidBodyUpdate(physicsRigidBody *const restrict body, const float dt);
 
-void physRigidBodyDefDelete(physicsRigidBodyDef *bodyDef);
-void physRigidBodyDelete(physicsRigidBody *body);
+void physRigidBodyDefDelete(physicsRigidBodyDef *const restrict bodyDef);
+void physRigidBodyDelete(physicsRigidBody *const restrict body);
 
 
 /**

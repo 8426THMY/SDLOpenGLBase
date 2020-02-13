@@ -42,9 +42,9 @@ typedef struct billboard {
 } billboard;
 
 
-void billboardInit(billboard *bbData);
+void billboardInit(billboard *const restrict bbData);
 
-void billboardState(const billboard *bbData, const camera *cam, const vec3 centroid, mat4 rootState, mat4 *out);
+void billboardState(const billboard *const restrict bbData, const camera *const restrict cam, const vec3 centroid, mat4 rootState, mat4 *const restrict out);
 
 
 #endif

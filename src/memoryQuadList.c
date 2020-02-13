@@ -27,7 +27,7 @@
 #warning "We should go back to using the total memory size as input for init and extend, too."
 
 
-void *memQuadListInit(memoryQuadList *quadList, void *memory, const size_t memorySize, const size_t blockSize){
+void *memQuadListInit(memoryQuadList *const restrict quadList, void *const restrict memory, const size_t memorySize, const size_t blockSize){
 	// Make sure the user isn't being difficult.
 	if(memory != NULL){
 		memoryRegion *region;
@@ -48,8 +48,8 @@ void *memQuadListInit(memoryQuadList *quadList, void *memory, const size_t memor
 
 
 // Used to create a new array list.
-void *memQuadListAlloc(memoryQuadList *quadList){
-	void *newBlock = quadList->nextFreeBlock;
+void *memQuadListAlloc(memoryQuadList *const restrict quadList){
+	void *const newBlock = quadList->nextFreeBlock;
 
 	if(newBlock != NULL){
 		// Move the free pointer to the next free block.
@@ -69,8 +69,13 @@ void *memQuadListAlloc(memoryQuadList *quadList){
 ** Insert a new block into a sorted array list. In sorted lists,
 ** owner A is only guaranteed to be the same for previous elements.
 */
-void *memQuadListInsertSorted(memoryQuadList *quadList, void **startA, void **startB, void *nextA, void *prevA, const unsigned int swapA, void *nextB, void *prevB, const unsigned int swapB){
-	void *newBlock = quadList->nextFreeBlock;
+void *memQuadListInsertSorted(
+	memoryQuadList *const restrict quadList, void **const restrict startA, void **const restrict startB,
+	void *const restrict nextA, void *const restrict prevA, const unsigned int swapA,
+	void *const restrict nextB, void *const restrict prevB, const unsigned int swapB
+){
+
+	void *const newBlock = quadList->nextFreeBlock;
 
 	if(newBlock != NULL){
 		// Move the free pointer to the next free block.
@@ -123,20 +128,20 @@ void *memQuadListInsertSorted(memoryQuadList *quadList, void **startA, void **st
 }
 
 
-void memQuadListFree(memoryQuadList *quadList, void **start, void *data){
+void memQuadListFree(memoryQuadList *const restrict quadList, void **const restrict start, void *const restrict data){
 	*memQuadListBlockFreeNextGetFlag(data) = MEMQUADLIST_FLAG_INACTIVE;
 	memQuadListBlockFreeGetNext(data) = quadList->nextFreeBlock;
 	quadList->nextFreeBlock = data;
 }
 
 // Free a block and fix up the pointers for any previous and next blocks.
-void memQuadListFreeSorted(memoryQuadList *quadList, void **startA, void **startB, void *data){
-	void *block = memQuadListBlockUsedDataGetNextA(data);
+void memQuadListFreeSorted(memoryQuadList *const restrict quadList, void **const restrict startA, void **const restrict startB, void *const restrict data){
+	void *const block = memQuadListBlockUsedDataGetNextA(data);
 
-	void *nextA = memQuadListBlockUsedGetNextA(data);
-	void *prevA = *memQuadListBlockUsedDataGetPrevA(data);
-	void *nextB = *memQuadListBlockUsedDataGetNextA(data);
-	void *prevB = *memQuadListBlockUsedDataGetPrevA(data);
+	void *const nextA = memQuadListBlockUsedGetNextA(data);
+	void *const prevA = *memQuadListBlockUsedDataGetPrevA(data);
+	void *const nextB = *memQuadListBlockUsedDataGetNextA(data);
+	void *const prevB = *memQuadListBlockUsedDataGetPrevA(data);
 	void *temp;
 	// Fix up the previous blocks' pointers.
 	if(prevA != NULL){
@@ -175,11 +180,11 @@ void memQuadListFreeSorted(memoryQuadList *quadList, void **startA, void **start
 }
 
 // Free every block in a single array.
-void memQuadListFreeArray(memoryQuadList *quadList, void *start){
+void memQuadListFreeArray(memoryQuadList *const restrict quadList, void *const restrict start){
 	if(start != NULL){
 		void *block = start;
 		do {
-			void *blockNext = memQuadListBlockFreeGetNext(block);
+			void *const blockNext = memQuadListBlockFreeGetNext(block);
 
 			memQuadListBlockFreeGetFlag(memQuadListBlockFreeNextGetFlag(block)) = MEMQUADLIST_FLAG_INACTIVE;
 			memQuadListBlockFreeGetNext(block) = NULL;
@@ -194,7 +199,7 @@ void memQuadListFreeArray(memoryQuadList *quadList, void *start){
 ** Initialise every block in a region, setting the flag
 ** to "flag" and the last block's next pointer to "next".
 */
-void memQuadListClearRegion(memoryQuadList *quadList, memoryRegion *region, const byte_t flag, void *next){
+void memQuadListClearRegion(memoryQuadList *const restrict quadList, memoryRegion *const restrict region, const byte_t flag, void *const restrict next){
 	const size_t blockSize = quadList->blockSize;
 	void *currentBlock = region->start;
 	void *nextBlock = memQuadListBlockGetNextBlock(currentBlock, blockSize);
@@ -217,7 +222,7 @@ void memQuadListClearRegion(memoryQuadList *quadList, memoryRegion *region, cons
 ** Initialise every block in a region, setting the flag
 ** to invalid and the last block's next pointer to NULL.
 */
-void memQuadListClearLastRegion(memoryQuadList *quadList, memoryRegion *region){
+void memQuadListClearLastRegion(memoryQuadList *const restrict quadList, memoryRegion *const restrict region){
 	const size_t blockSize = quadList->blockSize;
 	void *currentBlock = region->start;
 	void *nextBlock = memQuadListBlockGetNextBlock(currentBlock, blockSize);
@@ -240,13 +245,13 @@ void memQuadListClearLastRegion(memoryQuadList *quadList, memoryRegion *region){
 ** Clear every memory region in the allocator.
 ** This assumes that there is at least one region.
 */
-void memQuadListClear(memoryQuadList *quadList){
+void memQuadListClear(memoryQuadList *const restrict quadList){
 	memoryRegion *region = quadList->region;
 	quadList->nextFreeBlock = region->start;
 
 	// Loop through every region in the allocator.
 	for(;;){
-		memoryRegion *nextRegion = region->next;
+		memoryRegion *const nextRegion = region->next;
 
 		// If this is not the last region, make this region's
 		// last block point to the first in the next region.
@@ -265,9 +270,9 @@ void memQuadListClear(memoryQuadList *quadList){
 
 
 // Append a new memory region to the end of our allocator's region list!
-void *memQuadListExtend(memoryQuadList *quadList, void *memory, const size_t memorySize){
+void *memQuadListExtend(memoryQuadList *const restrict quadList, void *const restrict memory, const size_t memorySize){
 	if(memory != NULL){
-		memoryRegion *newRegion = memoryGetRegionFromSize(memory, memorySize);
+		memoryRegion *const newRegion = memoryGetRegionFromSize(memory, memorySize);
 		// Add the new region to the end of the list!
 		memoryRegionAppend(&quadList->region, newRegion, memory);
 		// Set up its memory!
@@ -280,11 +285,11 @@ void *memQuadListExtend(memoryQuadList *quadList, void *memory, const size_t mem
 }
 
 
-void memQuadListDelete(memoryQuadList *quadList){
+void memQuadListDelete(memoryQuadList *const restrict quadList){
 	memoryRegion *region = quadList->region;
 	// Free every memory region in the allocator.
 	while(region != NULL){
-		memoryRegion *next = region->next;
+		memoryRegion *const next = region->next;
 
 		memoryFree(memQuadListRegionStart(region));
 		region = next;

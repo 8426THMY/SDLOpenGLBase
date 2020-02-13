@@ -13,7 +13,7 @@ mat2 g_mat2Identity = {
 
 
 // Initialize the matrix's values to 0!
-void mat2InitZero(mat2 *m){
+void mat2InitZero(mat2 *const restrict m){
 	memset(m, 0.f, sizeof(*m));
 }
 
@@ -26,7 +26,7 @@ mat2 mat2InitZeroR(){
 }
 
 // Initialize the matrix to an identity matrix!
-void mat2InitIdentity(mat2 *m){
+void mat2InitIdentity(mat2 *const restrict m){
 	*m = g_mat2Identity;
 }
 
@@ -37,7 +37,7 @@ mat2 mat2InitIdentityR(){
 
 
 // Add the matrix "m2" to "m1"!
-void mat2AddMat2(mat2 *m1, const mat2 *m2){
+void mat2AddMat2(mat2 *const restrict m1, const mat2 *const restrict m2){
 	m1->m[0][0] += m2->m[0][0];
 	m1->m[0][1] += m2->m[0][1];
 
@@ -46,7 +46,7 @@ void mat2AddMat2(mat2 *m1, const mat2 *m2){
 }
 
 // Add the matrix "m2" to "m1" and store the result in "out"!
-void mat2AddMat2Out(const mat2 *m1, const mat2 *m2, mat2 *out){
+void mat2AddMat2Out(const mat2 *const restrict m1, const mat2 *const restrict m2, mat2 *const restrict out){
 	out->m[0][0] = m1->m[0][0] + m2->m[0][0];
 	out->m[0][1] = m1->m[0][1] + m2->m[0][1];
 
@@ -69,7 +69,7 @@ mat2 mat2AddMat2R(const mat2 m1, const mat2 m2){
 
 
 // Multiply a matrix by a vec2!
-void mat2MultiplyByVec2(const mat2 *m, vec2 *v){
+void mat2MultiplyByVec2(const mat2 *const restrict m, vec2 *const restrict v){
 	vec2 temp = *v;
 
 	v->x = m->m[0][0] * temp.x + m->m[1][0] * temp.y;
@@ -77,7 +77,7 @@ void mat2MultiplyByVec2(const mat2 *m, vec2 *v){
 }
 
 // Multiply a matrix by a vec2 and store the result in "out"! This assumes that "out" isn't "v".
-void mat2MultiplyByVec2Out(const mat2 *m, const vec2 *v, vec2 *out){
+void mat2MultiplyByVec2Out(const mat2 *const restrict m, const vec2 *const restrict v, vec2 *const restrict out){
 	out->x = m->m[0][0] * v->x + m->m[1][0] * v->y;
 	out->y = m->m[0][1] * v->x + m->m[1][1] * v->y;
 }
@@ -93,7 +93,7 @@ vec2 mat2MultiplyByVec2R(const mat2 m, const vec2 v){
 }
 
 // Multiply a vec2 by a matrix!
-void mat2MultiplyVec2By(mat2 *m, const vec2 *v){
+void mat2MultiplyVec2By(mat2 *const restrict m, const vec2 *const restrict v){
 	const mat2 tempMatrix = *m;
 
 	m->m[0][0] =
@@ -104,7 +104,7 @@ void mat2MultiplyVec2By(mat2 *m, const vec2 *v){
 }
 
 // Multiply a vec2 by a matrix and store the result in "out"!
-void mat2MultiplyVec2ByOut(const mat2 m, const vec2 *v, mat2 *out){
+void mat2MultiplyVec2ByOut(const mat2 m, const vec2 *const restrict v, mat2 *const restrict out){
 	out->m[0][0] =
 	out->m[0][1] = m.m[0][0] * v->x + m.m[0][1] * v->y;
 
@@ -126,31 +126,29 @@ mat2 mat2MultiplyVec2ByR(const mat2 m, const vec2 v){
 }
 
 // Multiply "m1" by "m2"!
-void mat2MultiplyByMat2(mat2 *m1, const mat2 *m2){
-	const mat2 tempMatrix1 = *m1;
-	const mat2 tempMatrix2 = *m2;
+void mat2MultiplyByMat2(mat2 *const restrict m1, const mat2 m2){
+	const mat2 tempMatrix = *m1;
 
-	m1->m[0][0] = tempMatrix1.m[0][0] * tempMatrix2.m[0][0] + tempMatrix1.m[1][0] * tempMatrix2.m[0][1];
-	m1->m[0][1] = tempMatrix1.m[0][1] * tempMatrix2.m[0][0] + tempMatrix1.m[1][1] * tempMatrix2.m[0][1];
+	m1->m[0][0] = tempMatrix.m[0][0] * m2.m[0][0] + tempMatrix.m[1][0] * m2.m[0][1];
+	m1->m[0][1] = tempMatrix.m[0][1] * m2.m[0][0] + tempMatrix.m[1][1] * m2.m[0][1];
 
-	m1->m[1][0] = tempMatrix1.m[0][0] * tempMatrix2.m[1][0] + tempMatrix1.m[1][0] * tempMatrix2.m[1][1];
-	m1->m[1][1] = tempMatrix1.m[0][1] * tempMatrix2.m[1][0] + tempMatrix1.m[1][1] * tempMatrix2.m[1][1];
+	m1->m[1][0] = tempMatrix.m[0][0] * m2.m[1][0] + tempMatrix.m[1][0] * m2.m[1][1];
+	m1->m[1][1] = tempMatrix.m[0][1] * m2.m[1][0] + tempMatrix.m[1][1] * m2.m[1][1];
 }
 
 // Multiply "m2" by "m1"!
-void mat2MultiplyMat2By(mat2 *m1, const mat2 *m2){
-	const mat2 tempMatrix1 = *m1;
-	const mat2 tempMatrix2 = *m2;
+void mat2MultiplyMat2By(mat2 *const restrict m1, const mat2 m2){
+	const mat2 tempMatrix = *m1;
 
-	m1->m[0][0] = tempMatrix2.m[0][0] * tempMatrix1.m[0][0] + tempMatrix2.m[1][0] * tempMatrix1.m[0][1];
-	m1->m[0][1] = tempMatrix2.m[0][1] * tempMatrix1.m[0][0] + tempMatrix2.m[1][1] * tempMatrix1.m[0][1];
+	m1->m[0][0] = m2.m[0][0] * tempMatrix.m[0][0] + m2.m[1][0] * tempMatrix.m[0][1];
+	m1->m[0][1] = m2.m[0][1] * tempMatrix.m[0][0] + m2.m[1][1] * tempMatrix.m[0][1];
 
-	m1->m[1][0] = tempMatrix2.m[0][0] * tempMatrix1.m[1][0] + tempMatrix2.m[1][0] * tempMatrix1.m[1][1];
-	m1->m[1][1] = tempMatrix2.m[0][1] * tempMatrix1.m[1][0] + tempMatrix2.m[1][1] * tempMatrix1.m[1][1];
+	m1->m[1][0] = m2.m[0][0] * tempMatrix.m[1][0] + m2.m[1][0] * tempMatrix.m[1][1];
+	m1->m[1][1] = m2.m[0][1] * tempMatrix.m[1][0] + m2.m[1][1] * tempMatrix.m[1][1];
 }
 
 // Multiply "m1" by "m2" and store the result in "out"!
-void mat2MultiplyByMat2Out(const mat2 m1, const mat2 m2, mat2 *out){
+void mat2MultiplyByMat2Out(const mat2 m1, const mat2 m2, mat2 *const restrict out){
 	out->m[0][0] = m1.m[0][0] * m2.m[0][0] + m1.m[1][0] * m2.m[0][1];
 	out->m[0][1] = m1.m[0][1] * m2.m[0][0] + m1.m[1][1] * m2.m[0][1];
 
@@ -176,7 +174,7 @@ mat2 mat2MultiplyByMat2R(const mat2 m1, const mat2 m2){
 ** Find the transpose of a matrix! For column-major matrices, this effectively
 ** translates it to a row-major matrix. The reverse is true for row-major matrices.
 */
-void mat2Transpose(mat2 *m){
+void mat2Transpose(mat2 *const restrict m){
 	const mat2 tempMatrix = *m;
 
 	m->m[0][0] = tempMatrix.m[0][0];
@@ -190,7 +188,7 @@ void mat2Transpose(mat2 *m){
 ** Find the transpose of a matrix! For column-major matrices, this effectively
 ** translates it to a row-major matrix. The reverse is true for row-major matrices.
 */
-void mat2TransposeOut(const mat2 m, mat2 *out){
+void mat2TransposeOut(const mat2 m, mat2 *const restrict out){
 	out->m[0][0] = m.m[0][0];
 	out->m[0][1] = m.m[1][0];
 
@@ -215,7 +213,7 @@ mat2 mat2TransposeR(const mat2 m){
 }
 
 // Invert a matrix!
-void mat2Invert(mat2 *m){
+void mat2Invert(mat2 *const restrict m){
 	const mat2 tempMatrix = *m;
 
 	// Find the determinant of the matrix!
@@ -233,7 +231,7 @@ void mat2Invert(mat2 *m){
 }
 
 // Invert a matrix and store the result in "out"!
-void mat2InvertOut(const mat2 m, mat2 *out){
+void mat2InvertOut(const mat2 m, mat2 *const restrict out){
 	// Find the determinant of the matrix!
 	float invDet = m.m[0][0] * m.m[1][1] - m.m[1][0] * m.m[0][1];
 
@@ -272,7 +270,7 @@ mat2 mat2InvertR(const mat2 m){
 }
 
 // Invert a matrix and return whether or not we were successful!
-return_t mat2CanInvert(mat2 *m){
+return_t mat2CanInvert(mat2 *const restrict m){
 	const mat2 tempMatrix = *m;
 
 	// Find the determinant of the matrix!
@@ -299,7 +297,7 @@ return_t mat2CanInvert(mat2 *m){
 ** Invert a matrix, storing the result in "out"
 ** and returning whether or not we were successful!
 */
-return_t mat2CanInvertOut(const mat2 m, mat2 *out){
+return_t mat2CanInvertOut(const mat2 m, mat2 *const restrict out){
 	// Find the determinant of the matrix!
 	float invDet = m.m[0][0] * m.m[1][1] - m.m[1][0] * m.m[0][1];
 

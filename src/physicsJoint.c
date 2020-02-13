@@ -1,7 +1,13 @@
 #include "physicsJoint.h"
 
 
-void (*physJointPresolveTable[PHYSJOINT_NUM_TYPES])(void *joint, physicsRigidBody *bodyA, physicsRigidBody *bodyB, const float dt) = {
+void (*physJointPresolveTable[PHYSJOINT_NUM_TYPES])(
+	void *const restrict joint,
+	physicsRigidBody *const restrict bodyA,
+	physicsRigidBody *const restrict bodyB,
+	const float dt
+) = {
+
 	physJointDistancePresolve,
 	physJointFixedPresolve,
 	physJointRevolutePresolve,
@@ -9,7 +15,12 @@ void (*physJointPresolveTable[PHYSJOINT_NUM_TYPES])(void *joint, physicsRigidBod
 	physJointSpherePresolve
 };
 
-void (*physJointSolveVelocityTable[PHYSJOINT_NUM_TYPES])(void *joint, physicsRigidBody *bodyA, physicsRigidBody *bodyB) = {
+void (*physJointSolveVelocityTable[PHYSJOINT_NUM_TYPES])(
+	void *const restrict joint,
+	physicsRigidBody *const restrict bodyA,
+	physicsRigidBody *const restrict bodyB
+) = {
+
 	physJointDistanceSolveVelocity,
 	physJointFixedSolveVelocity,
 	physJointRevoluteSolveVelocity,
@@ -17,7 +28,12 @@ void (*physJointSolveVelocityTable[PHYSJOINT_NUM_TYPES])(void *joint, physicsRig
 	physJointSphereSolveVelocity
 };
 
-float (*physJointSolvePositionTable[PHYSJOINT_NUM_TYPES])(void *joint, physicsRigidBody *bodyA, physicsRigidBody *bodyB) = {
+float (*physJointSolvePositionTable[PHYSJOINT_NUM_TYPES])(
+	void *const restrict joint,
+	physicsRigidBody *const restrict bodyA,
+	physicsRigidBody *const restrict bodyB
+) = {
+
 	physJointDistanceSolvePosition,
 	physJointFixedSolvePosition,
 	physJointRevoluteSolvePosition,
@@ -27,14 +43,17 @@ float (*physJointSolvePositionTable[PHYSJOINT_NUM_TYPES])(void *joint, physicsRi
 
 
 #warning "We probably shouldn't just take in dt here, as we need 1/dt too."
-void physJointPresolve(physicsJoint *joint, physicsRigidBody *bodyA, physicsRigidBody *bodyB, const float dt){
+void physJointPresolve(
+	physicsJoint *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB, const float dt
+){
+
 	physJointPresolveTable[joint->type]((void *)(&joint->data), bodyA, bodyB, dt);
 }
 
-void physJointSolveVelocity(physicsJoint *joint, physicsRigidBody *bodyA, physicsRigidBody *bodyB){
+void physJointSolveVelocity(physicsJoint *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB){
 	physJointSolveVelocityTable[joint->type]((void *)(&joint->data), bodyA, bodyB);
 }
 
-void physJointSolvePosition(physicsJoint *joint, physicsRigidBody *bodyA, physicsRigidBody *bodyB){
+void physJointSolvePosition(physicsJoint *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB){
 	physJointSolvePositionTable[joint->type]((void *)(&joint->data), bodyA, bodyB);
 }

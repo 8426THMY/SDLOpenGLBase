@@ -22,12 +22,12 @@ typedef struct memoryStack {
 } memoryStack;
 
 
-void *memStackInit(memoryStack *stack, void *memory, const size_t stackSize);
+void *memStackInit(memoryStack *const restrict stack, void *const restrict memory, const size_t stackSize);
 
-void *memStackAlloc(memoryStack *stack, const size_t blockSize);
-void memStackFreeLast(memoryStack *stack);
+void *memStackAlloc(memoryStack *const restrict stack, const size_t blockSize);
+void memStackFreeLast(memoryStack *const restrict stack);
 
-void memStackDelete(memoryStack *stack);
+void memStackDelete(memoryStack *const restrict stack);
 
 
 #endif

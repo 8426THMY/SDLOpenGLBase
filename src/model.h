@@ -18,13 +18,13 @@ typedef struct model {
 } model;
 
 
-void modelInit(model *mdl);
+void modelInit(model *const restrict mdl);
 
-model *modelOBJLoad(const char *mdlPath);
-model *modelSMDLoad(const char *mdlPath);
+model *modelOBJLoad(const char *const restrict mdlPath, const size_t mdlPathLength);
+model *modelSMDLoad(const char *const restrict mdlPath, const size_t mdlPathLength);
 return_t modelSetupDefault();
 
-void modelDelete(model *mdl);
+void modelDelete(model *const restrict mdl);
 
 
 extern model g_mdlDefault;

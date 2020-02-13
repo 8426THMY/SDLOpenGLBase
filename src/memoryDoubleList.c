@@ -25,7 +25,7 @@
 #warning "We should go back to using the total memory size as input for init and extend, too."
 
 
-void *memDoubleListInit(memoryDoubleList *doubleList, void *memory, const size_t memorySize, const size_t blockSize){
+void *memDoubleListInit(memoryDoubleList *const restrict doubleList, void *const memory, const size_t memorySize, const size_t blockSize){
 	// Make sure the user isn't being difficult.
 	if(memory != NULL){
 		memoryRegion *region;
@@ -46,8 +46,8 @@ void *memDoubleListInit(memoryDoubleList *doubleList, void *memory, const size_t
 
 
 // Used to create a new array list.
-void *memDoubleListAlloc(memoryDoubleList *doubleList){
-	void *newBlock = doubleList->nextFreeBlock;
+void *memDoubleListAlloc(memoryDoubleList *const restrict doubleList){
+	void *const newBlock = doubleList->nextFreeBlock;
 
 	if(newBlock != NULL){
 		// Move the free pointer to the next free block.
@@ -62,8 +62,8 @@ void *memDoubleListAlloc(memoryDoubleList *doubleList){
 }
 
 // Prepend a new block at the start of an array list.
-void *memDoubleListPrepend(memoryDoubleList *doubleList, void **start){
-	void *newBlock = doubleList->nextFreeBlock;
+void *memDoubleListPrepend(memoryDoubleList *const restrict doubleList, void **const restrict start){
+	void *const newBlock = doubleList->nextFreeBlock;
 
 	if(newBlock != NULL){
 		// Move the free pointer to the next free block.
@@ -85,8 +85,8 @@ void *memDoubleListPrepend(memoryDoubleList *doubleList, void **start){
 }
 
 // Append a new block after another in an array list.
-void *memDoubleListAppend(memoryDoubleList *doubleList, void **start){
-	void *newBlock = doubleList->nextFreeBlock;
+void *memDoubleListAppend(memoryDoubleList *const restrict doubleList, void **const restrict start){
+	void *const newBlock = doubleList->nextFreeBlock;
 
 	if(newBlock != NULL){
 		void *lastBlock = NULL;
@@ -110,8 +110,8 @@ void *memDoubleListAppend(memoryDoubleList *doubleList, void **start){
 }
 
 // Prepend a new block before another in an array list.
-void *memoryDoubleListInsertBefore(memoryDoubleList *doubleList, void **start, void *prevData){
-	void *newBlock = doubleList->nextFreeBlock;
+void *memoryDoubleListInsertBefore(memoryDoubleList *const restrict doubleList, void **const restrict start, void *prevData){
+	void *const newBlock = doubleList->nextFreeBlock;
 
 	if(newBlock != NULL){
 		// Move the free pointer to the next free block.
@@ -140,7 +140,7 @@ void *memoryDoubleListInsertBefore(memoryDoubleList *doubleList, void **start, v
 
 		// Otherwise, the new block should be at the beginning of the list.
 		}else{
-			void *startBlock = *start;
+			void *const startBlock = *start;
 
 			*memDoubleListBlockUsedDataGetNext(newBlock) = startBlock;
 
@@ -158,8 +158,8 @@ void *memoryDoubleListInsertBefore(memoryDoubleList *doubleList, void **start, v
 }
 
 // Append a new block after another in an array list.
-void *memoryDoubleListInsertAfter(memoryDoubleList *doubleList, void **start, void *data){
-	void *newBlock = doubleList->nextFreeBlock;
+void *memoryDoubleListInsertAfter(memoryDoubleList *const restrict doubleList, void **const restrict start, void *data){
+	void *const newBlock = doubleList->nextFreeBlock;
 
 	if(newBlock != NULL){
 		// Move the free pointer to the next free block.
@@ -209,11 +209,11 @@ void *memoryDoubleListInsertAfter(memoryDoubleList *doubleList, void **start, vo
 }
 
 
-void memDoubleListFree(memoryDoubleList *doubleList, void **start, void *data){
-	void *block = memDoubleListBlockUsedDataGetNext(data);
+void memDoubleListFree(memoryDoubleList *const restrict doubleList, void **const restrict start, void *const restrict data){
+	void *const block = memDoubleListBlockUsedDataGetNext(data);
 
-	void *nextBlock = memDoubleListBlockUsedGetNext(block);
-	void *prevBlock = *memDoubleListBlockUsedNextGetPrev(block);
+	void *const nextBlock = memDoubleListBlockUsedGetNext(block);
+	void *const prevBlock = *memDoubleListBlockUsedNextGetPrev(block);
 	// We'll need to fix the pointers for
 	// any preceding or succeeding nodes.
 	if(prevBlock != NULL){
@@ -234,7 +234,7 @@ void memDoubleListFree(memoryDoubleList *doubleList, void **start, void *data){
 }
 
 // Free every block in a single array.
-void memDoubleListFreeArray(memoryDoubleList *doubleList, void *start){
+void memDoubleListFreeArray(memoryDoubleList *const restrict doubleList, void *const restrict start){
 	if(start != NULL){
 		void *block = start;
 		do {
@@ -253,7 +253,7 @@ void memDoubleListFreeArray(memoryDoubleList *doubleList, void *start){
 ** Initialise every block in a region, setting the flag
 ** to "flag" and the last block's next pointer to "next".
 */
-void memDoubleListClearRegion(memoryDoubleList *doubleList, memoryRegion *region, const byte_t flag, void *next){
+void memDoubleListClearRegion(memoryDoubleList *const restrict doubleList, memoryRegion *const restrict region, const byte_t flag, void *const next){
 	const size_t blockSize = doubleList->blockSize;
 	void *currentBlock = region->start;
 	void *nextBlock = memDoubleListBlockGetNextBlock(currentBlock, blockSize);
@@ -276,7 +276,7 @@ void memDoubleListClearRegion(memoryDoubleList *doubleList, memoryRegion *region
 ** Initialise every block in a region, setting the flag
 ** to invalid and the last block's next pointer to NULL.
 */
-void memDoubleListClearLastRegion(memoryDoubleList *doubleList, memoryRegion *region){
+void memDoubleListClearLastRegion(memoryDoubleList *const restrict doubleList, memoryRegion *const restrict region){
 	const size_t blockSize = doubleList->blockSize;
 	void *currentBlock = region->start;
 	void *nextBlock = memDoubleListBlockGetNextBlock(currentBlock, blockSize);
@@ -299,7 +299,7 @@ void memDoubleListClearLastRegion(memoryDoubleList *doubleList, memoryRegion *re
 ** Clear every memory region in the allocator.
 ** This assumes that there is at least one region.
 */
-void memDoubleListClear(memoryDoubleList *doubleList){
+void memDoubleListClear(memoryDoubleList *const restrict doubleList){
 	memoryRegion *region = doubleList->region;
 	doubleList->nextFreeBlock = region->start;
 
@@ -324,7 +324,7 @@ void memDoubleListClear(memoryDoubleList *doubleList){
 
 
 // Append a new memory region to the end of our allocator's region list!
-void *memDoubleListExtend(memoryDoubleList *doubleList, void *memory, const size_t memorySize){
+void *memDoubleListExtend(memoryDoubleList *const restrict doubleList, void *const restrict memory, const size_t memorySize){
 	if(memory != NULL){
 		memoryRegion *newRegion = memoryGetRegionFromSize(memory, memorySize);
 		// Add the new region to the end of the list!
@@ -339,7 +339,7 @@ void *memDoubleListExtend(memoryDoubleList *doubleList, void *memory, const size
 }
 
 
-void memDoubleListDelete(memoryDoubleList *doubleList){
+void memDoubleListDelete(memoryDoubleList *const restrict doubleList){
 	memoryRegion *region = doubleList->region;
 	// Free every memory region in the allocator.
 	while(region != NULL){

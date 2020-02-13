@@ -26,7 +26,7 @@ return_t moduleModelSetup();
 void moduleModelCleanup();
 
 model *moduleModelAlloc();
-void moduleModelFree(model *mdl);
+void moduleModelFree(model *const restrict mdl);
 void moduleModelClear();
 
 

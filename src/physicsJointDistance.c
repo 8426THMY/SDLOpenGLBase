@@ -91,9 +91,19 @@
 
 
 // Forward-declare any helper functions!
-static void updateConstraintData(physicsJointDistance *joint, const physicsRigidBody *bodyA, const physicsRigidBody *bodyB);
-static void calculateEffectiveMass(physicsJointDistance *joint, const physicsRigidBody *bodyA, const physicsRigidBody *bodyB);
-static void calculateBias(physicsJointDistance *joint, const physicsRigidBody *bodyA, const physicsRigidBody *bodyB, const float dt);
+static void updateConstraintData(
+	physicsJointDistance *const restrict joint,
+	const physicsRigidBody *const restrict bodyA, const physicsRigidBody *const restrict bodyB
+);
+static void calculateEffectiveMass(
+	physicsJointDistance *const restrict joint,
+	const physicsRigidBody *const restrict bodyA, const physicsRigidBody *const restrict bodyB
+);
+static void calculateBias(
+	physicsJointDistance *const restrict joint,
+	const physicsRigidBody *const restrict bodyA, const physicsRigidBody *const restrict bodyB,
+	const float dt
+);
 
 
 /*
@@ -106,7 +116,7 @@ static void calculateBias(physicsJointDistance *joint, const physicsRigidBody *b
 ** 0 = no damping
 ** 1 = no oscillations
 */
-void physJointDistanceInit(physicsJointDistance *joint, const float frequency, const float dampingRatio){
+void physJointDistanceInit(physicsJointDistance *const restrict joint, const float frequency, const float dampingRatio){
 	// w = 2pi * f
 	joint->angularFrequency = 2.f * M_PI * frequency;
 	// damp = 2w * zeta
@@ -119,7 +129,7 @@ void physJointDistanceInit(physicsJointDistance *joint, const float frequency, c
 ** we can make the constraint converge more quickly.
 ** Joints are always active so we always warm start.
 */
-void physJointDistanceWarmStart(physicsJointDistance *joint, physicsRigidBody *bodyA, physicsRigidBody *bodyB){
+void physJointDistanceWarmStart(physicsJointDistance *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB){
 	vec3 impulse;
 
 	vec3MultiplySOut(&joint->rAB, joint->impulse, &impulse);
@@ -135,7 +145,10 @@ void physJointDistanceWarmStart(physicsJointDistance *joint, physicsRigidBody *b
 ** update the joint's members to reflect the movement of
 ** the bodies that it is affecting.
 */
-void physJointDistancePresolve(void *joint, physicsRigidBody *bodyA, physicsRigidBody *bodyB, const float dt){
+void physJointDistancePresolve(
+	void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB, const float dt
+){
+
 	updateConstraintData((physicsJointDistance *)joint, bodyA, bodyB);
 	calculateEffectiveMass((physicsJointDistance *)joint, bodyA, bodyB);
 	calculateBias((physicsJointDistance *)joint, bodyA, bodyB, dt);
@@ -147,7 +160,7 @@ void physJointDistancePresolve(void *joint, physicsRigidBody *bodyA, physicsRigi
 ** they are within the constraints imposed by the joint.
 ** This may be called multiple times with sequential impulse.
 */
-void physJointDistanceSolveVelocity(void *joint, physicsRigidBody *bodyA, physicsRigidBody *bodyB){
+void physJointDistanceSolveVelocity(void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB){
 	float lambda;
 	vec3 impulse;
 	vec3 relativeVelocity;
@@ -186,7 +199,7 @@ void physJointDistanceSolveVelocity(void *joint, physicsRigidBody *bodyA, physic
 ** the amount of error we'll know when to stop.
 */
 #ifdef PHYSJOINTDISTANCE_STABILISER_GAUSS_SEIDEL
-float physJointDistanceSolvePosition(void *joint, physicsRigidBody *bodyA, physicsRigidBody *bodyB){
+float physJointDistanceSolvePosition(void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB){
 	// If we're not using soft constraints, we can perform positional correction.
 	if(((physicsJointDistance *)joint)->angularFrequency <= 0.f){
 		vec3 rA;
@@ -239,7 +252,11 @@ float physJointDistanceSolvePosition(void *joint, physicsRigidBody *bodyA, physi
 ** Update the global positions of the anchor points
 ** and some of the other variables that depend on them.
 */
-static void updateConstraintData(physicsJointDistance *joint, const physicsRigidBody *bodyA, const physicsRigidBody *bodyB){
+static void updateConstraintData(
+	physicsJointDistance *const restrict joint,
+	const physicsRigidBody *const restrict bodyA, const physicsRigidBody *const restrict bodyB
+){
+
 	float distance;
 
 	// Transform the anchor points using the bodies' new scales and rotations.
@@ -276,7 +293,11 @@ static void updateConstraintData(physicsJointDistance *joint, const physicsRigid
 ** change between velocity iterations. We can just do it once
 ** per update. Note that we take its inverse elsewhere.
 */
-static void calculateEffectiveMass(physicsJointDistance *joint, const physicsRigidBody *bodyA, const physicsRigidBody *bodyB){
+static void calculateEffectiveMass(
+	physicsJointDistance *const restrict joint,
+	const physicsRigidBody *const restrict bodyA, const physicsRigidBody *const restrict bodyB
+){
+
 	vec3 rpA;
 	vec3 rpIA;
 	vec3 rpB;
@@ -296,7 +317,12 @@ static void calculateEffectiveMass(physicsJointDistance *joint, const physicsRig
 ** Calculate the joint's bias term. This will help
 ** to soften the constraint and make it springy.
 */
-static void calculateBias(physicsJointDistance *joint, const physicsRigidBody *bodyA, const physicsRigidBody *bodyB, const float dt){
+static void calculateBias(
+	physicsJointDistance *const restrict joint,
+	const physicsRigidBody *const restrict bodyA, const physicsRigidBody *const restrict bodyB,
+	const float dt
+){
+
 	// Only use soft constraints if the frequency is greater than 0.
 	if(joint->angularFrequency > 0.f){
 		const float invEffectiveMass = 1.f / joint->effectiveMass;

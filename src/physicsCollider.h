@@ -55,42 +55,42 @@ typedef struct physicsCollider {
 
 typedef struct physicsIsland physicsIsland;
 
-void physColliderInit(physicsCollider *pc, const type_t type, void *owner);
-void physColliderInstantiate(physicsCollider *pc, physicsCollider *base, void *owner);
+void physColliderInit(physicsCollider *const restrict pc, const colliderType_t type, void *const restrict owner);
+void physColliderInstantiate(physicsCollider *const restrict pc, physicsCollider *const restrict base, void *const restrict owner);
 
-void physColliderGenerateCentroid(physicsCollider *collider, vec3 *centroid);
-void physColliderGenerateInertia(physicsCollider *collider, const vec3 *centroid, mat3 *inertia);
+void physColliderGenerateCentroid(physicsCollider *const restrict collider, vec3 *const restrict centroid);
+void physColliderGenerateInertia(physicsCollider *const restrict collider, const vec3 *const restrict centroid, mat3 *const restrict inertia);
 
-void physColliderUpdate(physicsCollider *collider, physicsIsland *island);
-void physColliderQueryCollisions(physicsCollider *collider);
+void physColliderUpdate(physicsCollider *const restrict collider, physicsIsland *const restrict island);
+void physColliderQueryCollisions(physicsCollider *const restrict collider);
 
 physicsSeparationPair *physColliderFindSeparation(
-	const physicsCollider *colliderA, const physicsCollider *colliderB,
-	physicsSeparationPair **prev, physicsSeparationPair **next
+	const physicsCollider *const restrict colliderA, const physicsCollider *const restrict colliderB,
+	physicsSeparationPair **const restrict prev, physicsSeparationPair **const restrict next
 );
 physicsContactPair *physColliderFindContact(
-	const physicsCollider *colliderA, const physicsCollider *colliderB,
-	physicsContactPair **prev, physicsContactPair **next
+	const physicsCollider *const restrict colliderA, const physicsCollider *const restrict colliderB,
+	physicsContactPair **const restrict prev, physicsContactPair **const restrict next
 );
-void physColliderUpdateSeparations(physicsCollider *collider);
-void physColliderUpdateContacts(physicsCollider *collider, const float dt);
-void physColliderClearPairs(physicsCollider *collider);
+void physColliderUpdateSeparations(physicsCollider *const restrict collider);
+void physColliderUpdateContacts(physicsCollider *const restrict collider, const float dt);
+void physColliderClearPairs(physicsCollider *const restrict collider);
 
-void physColliderDeleteInstance(physicsCollider *collider);
-void physColliderDelete(physicsCollider *collider);
+void physColliderDeleteInstance(physicsCollider *const restrict collider);
+void physColliderDelete(physicsCollider *const restrict collider);
 
-void physColliderCollisionCallback(void *colliderA, void *colliderB);
+void physColliderCollisionCallback(void *const restrict colliderA, void *const restrict colliderB);
 
 
 extern void (*physColliderGenerateCentroidTable[COLLIDER_NUM_TYPES])(
-	const void *collider,
-	vec3 *centroid
+	const void *const restrict collider,
+	vec3 *const restrict centroid
 );
 
 extern void (*physColliderGenerateInertiaTable[COLLIDER_NUM_TYPES])(
-	const void *collider,
-	const vec3 *centroid,
-	mat3 *inertia
+	const void *const restrict collider,
+	const vec3 *const restrict centroid,
+	mat3 *const restrict inertia
 );
 
 

@@ -129,15 +129,15 @@
 #warning "What if the beginning or end of a memory region is not aligned?"
 
 
-static void splitBlock(memoryTree *tree, memTreeListNode *block, const size_t blockSize, const size_t newSize);
+static void splitBlock(memoryTree *const restrict tree, memTreeListNode *const restrict block, const size_t blockSize, const size_t newSize);
 
-static void treeInsert(memoryTree *tree, memTreeNode *node, const size_t nodeSize);
-static void treeDelete(memoryTree *tree, memTreeNode *node);
-static void treeRotateLeft(memoryTree *tree, memTreeNode *node);
-static void treeRotateRight(memoryTree *tree, memTreeNode *node);
+static void treeInsert(memoryTree *const restrict tree, memTreeNode *node, const size_t nodeSize);
+static void treeDelete(memoryTree *const restrict tree, memTreeNode *const node);
+static void treeRotateLeft(memoryTree *const restrict tree, memTreeNode *const node);
+static void treeRotateRight(memoryTree *const restrict tree, memTreeNode *const node);
 
 
-void *memTreeInit(memoryTree *tree, void *memory, const size_t memorySize){
+void *memTreeInit(memoryTree *const restrict tree, void *const restrict memory, const size_t memorySize){
 	// Make sure the user isn't being difficult.
 	if(memory != NULL){
 		const size_t regionSize = memoryGetRegionSize(memorySize);
@@ -156,7 +156,7 @@ void *memTreeInit(memoryTree *tree, void *memory, const size_t memorySize){
 }
 
 
-void *memTreeAlloc(memoryTree *tree, const size_t blockSize){
+void *memTreeAlloc(memoryTree *const restrict tree, const size_t blockSize){
 	size_t fullSize;
 	memTreeNode *newNode;
 	memTreeNode *currentNode;
@@ -209,7 +209,7 @@ void *memTreeAlloc(memoryTree *tree, const size_t blockSize){
 
 	// Make sure we could actually find a block large enough to store the data.
 	if(newNode != NULL){
-		memTreeListNode *currentBlock = treeNodeGetList(newNode);
+		memTreeListNode *const currentBlock = treeNodeGetList(newNode);
 
 		// Remove this block from the tree.
 		treeDelete(tree, newNode);
@@ -234,7 +234,7 @@ void *memTreeAlloc(memoryTree *tree, const size_t blockSize){
 ** block. It also merges the block with any empty ones to its left
 ** or right before the resize operation.
 */
-void *memTreeResize(memoryTree *tree, void *block, const size_t blockSize){
+void *memTreeResize(memoryTree *const restrict tree, void *const restrict block, const size_t blockSize){
 	memTreeListNode *newBlock = treeNodeGetList(block);
 	size_t newSize;
 	memTreeNode *tempBlock;
@@ -252,7 +252,7 @@ void *memTreeResize(memoryTree *tree, void *block, const size_t blockSize){
 
 	// If this block is not the first, we might be able to merge left.
 	if(!listNodeIsFirst(newBlock->prevSize)){
-		memTreeListNode *leftBlock = listNodeGetPrevList(newBlock, listNodeGetSize(newBlock->prevSize));
+		memTreeListNode *const leftBlock = listNodeGetPrevList(newBlock, listNodeGetSize(newBlock->prevSize));
 		// We can only merge it if the block to its left is free.
 		if(!listNodeIsActive(leftBlock->prevSize)){
 			// Make sure we preserve the free block's "last" flag.
@@ -271,7 +271,7 @@ void *memTreeResize(memoryTree *tree, void *block, const size_t blockSize){
 	}
 	// If this block is not the last, we might be able to merge right.
 	if(!listNodeIsLast(newBlock->prevSize)){
-		memTreeListNode *rightBlock = listNodeGetNextList(newBlock, newSize);
+		memTreeListNode *const rightBlock = listNodeGetNextList(newBlock, newSize);
 		// We can only merge it if the block to its right is free.
 		if(!listNodeIsActive(rightBlock->prevSize)){
 			// We're merging the two blocks, so add their sizes.
@@ -285,7 +285,7 @@ void *memTreeResize(memoryTree *tree, void *block, const size_t blockSize){
 			// If there is a block after this one,
 			// update its previous size property.
 			if(!listNodeIsLast(rightBlock->prevSize)){
-				memTreeListNode *nextBlock = listNodeGetNextList(newBlock, newSize);
+				memTreeListNode *const nextBlock = listNodeGetNextList(newBlock, newSize);
 				nextBlock->prevSize = listNodeSetSize(nextBlock->prevSize, newSize);
 
 			// Otherwise, make sure we preserve
@@ -342,7 +342,7 @@ void *memTreeResize(memoryTree *tree, void *block, const size_t blockSize){
 ** If the block is already large enough, we exit early. If no block
 ** was specified, we allocate a new one.
 */
-void *memTreeRealloc(memoryTree *tree, void *block, const size_t blockSize){
+void *memTreeRealloc(memoryTree *const restrict tree, void *const restrict block, const size_t blockSize){
 	if(block != NULL){
 		memTreeListNode *newBlock = treeNodeGetList(block);
 		size_t newSize;
@@ -361,7 +361,7 @@ void *memTreeRealloc(memoryTree *tree, void *block, const size_t blockSize){
 
 		// If this block is not the first, we might be able to merge left.
 		if(!listNodeIsFirst(newBlock->prevSize)){
-			memTreeListNode *leftBlock = listNodeGetPrevList(newBlock, listNodeGetSize(newBlock->prevSize));
+			memTreeListNode *const leftBlock = listNodeGetPrevList(newBlock, listNodeGetSize(newBlock->prevSize));
 			// We can only merge it if the block to its left is free.
 			if(!listNodeIsActive(leftBlock->prevSize)){
 				// Make sure we preserve the free block's "last" flag.
@@ -380,7 +380,7 @@ void *memTreeRealloc(memoryTree *tree, void *block, const size_t blockSize){
 		}
 		// If this block is not the last, we might be able to merge right.
 		if(!listNodeIsLast(newBlock->prevSize)){
-			memTreeListNode *rightBlock = listNodeGetNextList(newBlock, newSize);
+			memTreeListNode *const rightBlock = listNodeGetNextList(newBlock, newSize);
 			// We can only merge it if the block to its right is free.
 			if(!listNodeIsActive(rightBlock->prevSize)){
 				// We're merging the two blocks, so add their sizes.
@@ -394,7 +394,7 @@ void *memTreeRealloc(memoryTree *tree, void *block, const size_t blockSize){
 				// If there is a block after this one,
 				// update its previous size property.
 				if(!listNodeIsLast(rightBlock->prevSize)){
-					memTreeListNode *nextBlock = listNodeGetNextList(newBlock, newSize);
+					memTreeListNode *const nextBlock = listNodeGetNextList(newBlock, newSize);
 					nextBlock->prevSize = listNodeSetSize(nextBlock->prevSize, newSize);
 
 				// Otherwise, make sure we preserve
@@ -452,13 +452,13 @@ void *memTreeRealloc(memoryTree *tree, void *block, const size_t blockSize){
 }
 
 
-void memTreeFree(memoryTree *tree, void *block){
+void memTreeFree(memoryTree *const restrict tree, void *block){
 	memTreeListNode *newBlock = treeNodeGetList(block);
 	size_t newSize = newBlock->size;
 
 	// If this block is not the first, we might be able to merge left.
 	if(!listNodeIsFirst(newBlock->prevSize)){
-		memTreeListNode *leftBlock = listNodeGetPrevList(newBlock, listNodeGetSize(newBlock->prevSize));
+		memTreeListNode *const leftBlock = listNodeGetPrevList(newBlock, listNodeGetSize(newBlock->prevSize));
 		// We can only merge it if the block to its left is free.
 		if(!listNodeIsActive(leftBlock->prevSize)){
 			// Make sure we preserve the free block's "last" flag.
@@ -478,7 +478,7 @@ void memTreeFree(memoryTree *tree, void *block){
 	}
 	// If this block is not the last, we might be able to merge right.
 	if(!listNodeIsLast(newBlock->prevSize)){
-		memTreeListNode *rightBlock = listNodeGetNextList(newBlock, newSize);
+		memTreeListNode *const rightBlock = listNodeGetNextList(newBlock, newSize);
 		// We can only merge it if the block to its right is free.
 		if(!listNodeIsActive(rightBlock->prevSize)){
 			// We're merging the two blocks, so add their sizes.
@@ -519,23 +519,20 @@ void memTreeFree(memoryTree *tree, void *block){
 
 
 // Create a tree node that takes up all of the memory in the region.
-memTreeNode *memTreeClearRegion(void *memory, const size_t memorySize){
+memTreeNode *memTreeClearRegion(void *const restrict memory, const size_t memorySize){
 	// Set up the starting block's list components.
 	((memTreeListNode *)memory)->prevSize = listNodeSetInfo(0, MEMTREE_FLAG_ONLY);
 	((memTreeListNode *)memory)->size = memorySize;
 
 	// Set up the starting block's tree components.
-	memTreeNode *root = listNodeGetTree((memTreeListNode *)memory);
-
-
-	return(root);
+	return(listNodeGetTree((memTreeListNode *)memory));
 }
 
 /*
 ** Clear every memory region in the allocator.
 ** This assumes that there is at least one region.
 */
-void memTreeClear(memoryTree *tree, void *memory, const size_t memorySize){
+void memTreeClear(memoryTree *const restrict tree, void *const restrict memory, const size_t memorySize){
 	memoryRegion *region = tree->region;
 	// Clear the first region here so we
 	// can set the first node in the tree.
@@ -554,10 +551,10 @@ void memTreeClear(memoryTree *tree, void *memory, const size_t memorySize){
 }
 
 
-void *memTreeExtend(memoryTree *tree, void *memory, const size_t memorySize){
+void *memTreeExtend(memoryTree *const restrict tree, void *const restrict memory, const size_t memorySize){
 	if(memory != NULL){
 		const size_t regionSize = memoryGetRegionSize(memorySize);
-		memoryRegion *newRegion = memoryGetRegionFromSize(memory, regionSize);
+		memoryRegion *const newRegion = memoryGetRegionFromSize(memory, regionSize);
 
 		// Add the new region to the end of the list!
 		memoryRegionAppend(&tree->region, newRegion, memory);
@@ -569,29 +566,31 @@ void *memTreeExtend(memoryTree *tree, void *memory, const size_t memorySize){
 }
 
 
-void memTreeDelete(memoryTree *tree){
+void memTreeDelete(memoryTree *const restrict tree){
 	memoryAllocatorDelete(tree->region);
 }
 
 
 #ifdef MEMTREE_DEBUG
-void memTreePrintAllSizes(memoryTree *tree){
+void memTreePrintAllSizes(memoryTree *const restrict tree){
+	memoryRegion *region = tree->region;
+	size_t regionNum = 0;
+	
 	puts("MEMTREE_DEBUG: All Blocks\n"
 	     "~~~~~~~~~~~~~~~~~~~~~~~~~");
 
-	memoryRegion *region = tree->region;
-	size_t regionNum = 0;
 	// Loop through all of the memory regions that this tree uses.
 	do {
+		memTreeListNode *node = (memTreeListNode *)(region->start);
+		memTreeNode *nodeTree;
+		
 		// Print some details about the region.
 		printf(
 			"Region Number: "PRINTF_SIZE_T", Address: "PRINTF_SIZE_T", Start: "PRINTF_SIZE_T", Next: "PRINTF_SIZE_T"\n"
 			"-------------------------\n",
 			regionNum, (uintptr_t)region, (uintptr_t)(region->start), (uintptr_t)(region->next)
 		);
-
-		memTreeListNode *node = (memTreeListNode *)(region->start);
-		memTreeNode *nodeTree;
+		
 		// Loop through all of the nodes in this region.
 		for(;;){
 			nodeTree = listNodeGetTree(node);
@@ -627,7 +626,7 @@ void memTreePrintAllSizes(memoryTree *tree){
 	} while(region != NULL);
 }
 
-void memTreePrintFreeSizes(memoryTree *tree){
+void memTreePrintFreeSizes(memoryTree *const restrict tree){
 	puts("MEMTREE_DEBUG: Free Blocks\n"
 	     "~~~~~~~~~~~~~~~~~~~~~~~~~~");
 
@@ -640,6 +639,8 @@ void memTreePrintFreeSizes(memoryTree *tree){
 		}
 
 		while(node != NULL){
+			memTreeNode *const nodeRight = node->right;
+			
 			// Sizes include the block's header, so
 			// we need to remove that when we print it.
 			printf("Free Address: "PRINTF_SIZE_T", Size: "PRINTF_SIZE_T", Flags: "PRINTF_SIZE_T",\n"
@@ -650,7 +651,6 @@ void memTreePrintFreeSizes(memoryTree *tree){
 			// If there is a node to the right of
 			// the one the iterator is currently
 			// on, find that node's leftmost one.
-			memTreeNode *nodeRight = node->right;
 			if(nodeRight != NULL){
 				node = nodeRight;
 
@@ -682,13 +682,13 @@ void memTreePrintFreeSizes(memoryTree *tree){
 ** but only needs a size of "newSize", is large enough to
 ** be split into a separate free block, split it up!
 */
-static void splitBlock(memoryTree *tree, memTreeListNode *block, const size_t blockSize, const size_t newSize){
+static void splitBlock(memoryTree *const restrict tree, memTreeListNode *const restrict block, const size_t blockSize, const size_t newSize){
 	size_t sizeDiff = blockSize - newSize;
 
 	// Make sure the difference in the current size and
 	// the ideal size is large enough for a new free block.
 	if(sizeDiff >= MEMTREE_BLOCK_MIN_SIZE){
-		memTreeListNode *freeBlock = listNodeGetNextList(block, newSize);
+		memTreeListNode *const freeBlock = listNodeGetNextList(block, newSize);
 
 		// If the free block is the last, give
 		// it the used block's "last" flag.
@@ -699,7 +699,7 @@ static void splitBlock(memoryTree *tree, memTreeListNode *block, const size_t bl
 		// If this block isn't the last, we will have to
 		// set the previous size element of the next block.
 		}else{
-			memTreeListNode *nextBlock = listNodeGetNextList(freeBlock, sizeDiff);
+			memTreeListNode *const nextBlock = listNodeGetNextList(freeBlock, sizeDiff);
 			nextBlock->prevSize = listNodeSetSize(nextBlock->prevSize, sizeDiff);
 
 			// We don't need to explicitly make the block inactive,
@@ -717,13 +717,15 @@ static void splitBlock(memoryTree *tree, memTreeListNode *block, const size_t bl
 }
 
 
-static void treeInsert(memoryTree *tree, memTreeNode *node, const size_t nodeSize){
+static void treeInsert(memoryTree *const restrict tree, memTreeNode *node, const size_t nodeSize){
 	memTreeNode *parent = tree->root;
 
 	node->left = NULL;
 	node->right = NULL;
 	// Make sure the tree isn't empty before inserting the node.
 	if(parent != NULL){
+		memTreeNode *grandparent;
+		
 		// Search our tree to find where the new node should be inserted.
 		for(;;){
 			// If the new size is smaller than or equal to the
@@ -746,7 +748,7 @@ static void treeInsert(memoryTree *tree, memTreeNode *node, const size_t nodeSiz
 
 		// Now that our node has been inserted, we
 		// must make sure our tree is still compliant.
-		memTreeNode *grandparent = treeNodeGetParent(parent);
+		grandparent = treeNodeGetParent(parent);
 		// Keep recolouring while the current node's parent is red.
 		while(treeNodeIsRed(parent, grandparent)){
 			memTreeNode *uncle = grandparent->left;
@@ -820,7 +822,7 @@ static void treeInsert(memoryTree *tree, memTreeNode *node, const size_t nodeSiz
 	}
 }
 
-static void treeDelete(memoryTree *tree, memTreeNode *node){
+static void treeDelete(memoryTree *const restrict tree, memTreeNode *const node){
 	memTreeNode *nodeLeft = node->left;
 	memTreeNode *nodeRight = node->right;
 
@@ -1006,8 +1008,8 @@ static void treeDelete(memoryTree *tree, memTreeNode *node){
 	}
 }
 
-static void treeRotateLeft(memoryTree *tree, memTreeNode *node){
-	memTreeNode *right = node->right;
+static void treeRotateLeft(memoryTree *const restrict tree, memTreeNode *const node){
+	memTreeNode *const right = node->right;
 	memTreeNode *tempNode = right->left;
 
 	node->right = tempNode;
@@ -1039,8 +1041,8 @@ static void treeRotateLeft(memoryTree *tree, memTreeNode *node){
 	node->parent = treeNodeSetParent(node, right);
 }
 
-static void treeRotateRight(memoryTree *tree, memTreeNode *node){
-	memTreeNode *left = node->left;
+static void treeRotateRight(memoryTree *const restrict tree, memTreeNode *const node){
+	memTreeNode *const left = node->left;
 	memTreeNode *tempNode = left->right;
 
 	node->left = tempNode;

@@ -2,6 +2,8 @@
 #define guiElement_h
 
 
+#include <stdint.h>
+
 #include "rectangle.h"
 #include "mat4.h"
 #include "transform.h"
@@ -20,6 +22,8 @@
 #define GUI_ELEMENT_NUM_TYPES 2
 
 
+typedef uint_least8_t guiElementType_t;
+
 typedef struct guiElement guiElement;
 typedef struct guiElement {
 	// This should be large enough to
@@ -32,7 +36,7 @@ typedef struct guiElement {
 	} data;
 	// This specifies which
 	// type of element it is.
-	type_t type;
+	guiElementType_t type;
 
 	// Stores the spatial configuration of the element.
 	transformState root;
@@ -43,25 +47,27 @@ typedef struct guiElement {
 } guiElement;
 
 
-void guiElementInit(guiElement *gui, const type_t type);
+void guiElementInit(guiElement *const restrict gui, const guiElementType_t type);
 
-void guiElementUpdate(guiElement *gui, const float time);
-void guiElementDraw(guiElement *gui, const float windowWidth, const float windowHeight, const shaderSprite *shader);
+void guiElementUpdate(guiElement *const restrict gui, const float time);
+void guiElementDraw(
+	guiElement *const restrict gui, const float windowWidth, const float windowHeight, const shaderSprite *const restrict shader
+);
 
-void guiElementDelete(guiElement *gui);
+void guiElementDelete(guiElement *const restrict gui);
 
 
 extern void (*guiElementUpdateTable[GUI_ELEMENT_NUM_TYPES])(
-	void *gui,
+	void *const restrict gui,
 	const float time
 );
 extern void (*guiElementDrawTable[GUI_ELEMENT_NUM_TYPES])(
-	const void *gui,
-	const transformState *root,
-	const shaderSprite *shader
+	const void *const restrict gui,
+	const transformState *const restrict root,
+	const shaderSprite *const restrict shader
 );
 extern void (*guiElementDeleteTable[GUI_ELEMENT_NUM_TYPES])(
-	void *gui
+	void *const restrict gui
 );
 
 

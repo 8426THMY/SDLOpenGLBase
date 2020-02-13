@@ -4,22 +4,25 @@
 #include "memoryManager.h"
 
 
-void (*guiElementUpdateTable[GUI_ELEMENT_NUM_TYPES])(void *gui, const float time) = {
+void (*guiElementUpdateTable[GUI_ELEMENT_NUM_TYPES])(void *const restrict gui, const float time) = {
 	guiPanelUpdate,
 	guiTextUpdate
 };
-void (*guiElementDrawTable[GUI_ELEMENT_NUM_TYPES])(const void *gui, const transformState *root, const shaderSprite *shader) = {
+void (*guiElementDrawTable[GUI_ELEMENT_NUM_TYPES])(
+	const void *const restrict gui, const transformState *const restrict root, const shaderSprite *const restrict shader
+) = {
+
 	guiPanelDraw,
 	guiTextDraw
 };
-void (*guiElementDeleteTable[GUI_ELEMENT_NUM_TYPES])(void *gui) = {
+void (*guiElementDeleteTable[GUI_ELEMENT_NUM_TYPES])(void *const restrict gui) = {
 	guiPanelDelete,
 	guiTextDelete
 };
 
 
 // We need to initialise the element's data outside this function.
-void guiElementInit(guiElement *gui, const type_t type){
+void guiElementInit(guiElement *const restrict gui, const guiElementType_t type){
 	gui->type = type;
 
 	transformStateInit(&gui->root);
@@ -30,11 +33,14 @@ void guiElementInit(guiElement *gui, const type_t type){
 }
 
 
-void guiElementUpdate(guiElement *gui, const float time){
+void guiElementUpdate(guiElement *const restrict gui, const float time){
 	guiElementUpdateTable[gui->type]((void *)(&gui->data), time);
 }
 
-void guiElementDraw(guiElement *gui, const float windowWidth, const float windowHeight, const shaderSprite *shader){
+void guiElementDraw(
+	guiElement *const restrict gui, const float windowWidth, const float windowHeight, const shaderSprite *const restrict shader
+){
+
 	mat4 viewProjectionMatrix;
 
 	// We use a scale matrix as the view-projection matrix
@@ -46,6 +52,6 @@ void guiElementDraw(guiElement *gui, const float windowWidth, const float window
 }
 
 
-void guiElementDelete(guiElement *gui){
+void guiElementDelete(guiElement *const restrict gui){
 	guiElementDeleteTable[gui->type]((void *)(&gui->data));
 }

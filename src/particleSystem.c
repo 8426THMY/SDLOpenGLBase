@@ -10,19 +10,22 @@
 
 
 // Forward-declare any helper functions!
-static void initializeParticle(const particleSystem *partSys, particle *part);
-static void operateParticle(const particleSystemDef *partSysDef, particle *part, const float time);
-static void constrainParticle(const particleSystemDef *partSysDef, particle *part, const float time);
-static void spawnParticles(particleSystem *partSys, const size_t numParticles);
-static void updateParticle(const particleSystemDef *partSysDef, particle *part, const float time);
+static void initializeParticle(const particleSystem *const restrict partSys, particle *const restrict part);
+static void operateParticle(const particleSystemDef *const restrict partSysDef, particle *const restrict part, const float time);
+static void constrainParticle(const particleSystemDef *const restrict partSysDef, particle *const restrict part, const float time);
+static void spawnParticles(particleSystem *const restrict partSys, const size_t numParticles);
+static void updateParticle(const particleSystemDef *const restrict partSysDef, particle *const restrict part, const float time);
 
-static void updateSysEmitters(particleSystem *partSys, const float time);
-static void updateSysParticles(particleSystem *partSys, const float time);
+static void updateSysEmitters(particleSystem *const restrict partSys, const float time);
+static void updateSysParticles(particleSystem *const restrict partSys, const float time);
 
-static void drawParticles(const particleSystem *partSys, const camera *cam, const shaderSprite *shader, const float time);
+static void drawParticles(
+	const particleSystem *const restrict partSys, const camera *const restrict cam,
+	const shaderSprite *const restrict shader, const float time
+);
 
 
-void particleSysDefInit(particleSystemDef *partSysDef){
+void particleSysDefInit(particleSystemDef *const restrict partSysDef){
 	partSysDef->name = NULL;
 
 	particleDefInit(&partSysDef->properties);
@@ -45,7 +48,7 @@ void particleSysDefInit(particleSystemDef *partSysDef){
 }
 
 // Instantiate a particle system definition.
-void particleSysInit(particleSystem *partSys, const particleSystemDef *partSysDef){
+void particleSysInit(particleSystem *const restrict partSys, const particleSystemDef *const restrict partSysDef){
 	partSys->partSysDef = partSysDef;
 
 	// Allocate memory for any emitters and set them up.
@@ -121,7 +124,7 @@ void particleSysInit(particleSystem *partSys, const particleSystemDef *partSysDe
 }
 
 
-void particleSysUpdate(particleSystem *partSys, const float time){
+void particleSysUpdate(particleSystem *const restrict partSys, const float time){
 	particleSystem *firstChild = partSys->children;
 	if(firstChild != NULL){
 		particleSystem *curChild = &firstChild[partSys->partSysDef->numChildren];
@@ -141,8 +144,12 @@ void particleSysUpdate(particleSystem *partSys, const float time){
 ** Draw a particle system and all of its children. The deepest
 ** child is drawn first and the highest parent is drawn last.
 */
-void particleSysDraw(const particleSystem *partSys, const camera *cam, const shaderSprite *shader, const float time){
-	const particleSystem *firstChild = partSys->children;
+void particleSysDraw(
+	const particleSystem *const restrict partSys, const camera *const restrict cam,
+	const shaderSprite *const restrict shader, const float time
+){
+
+	const particleSystem *const firstChild = partSys->children;
 	if(firstChild != NULL){
 		// Draw all of the particle system's children, starting from the last!
 		const particleSystem *curChild = &firstChild[partSys->partSysDef->numChildren];
@@ -158,13 +165,13 @@ void particleSysDraw(const particleSystem *partSys, const camera *cam, const sha
 
 
 // Return whether or not a particle system is still alive.
-return_t particleSysAlive(particleSystem *partSys, const float time){
+return_t particleSysAlive(particleSystem *const restrict partSys, const float time){
 	partSys->lifetime -= time;
 	return(partSys->lifetime > 0.f);
 }
 
 
-void particleSysDelete(particleSystem *partSys){
+void particleSysDelete(particleSystem *const restrict partSys){
 	if(partSys->emitters != NULL){
 		memoryManagerGlobalFree(partSys->emitters);
 	}
@@ -175,7 +182,7 @@ void particleSysDelete(particleSystem *partSys){
 
 	if(partSys->children != NULL){
 		particleSystem *curChild = partSys->children;
-		const particleSystem *lastChild = &curChild[partSys->partSysDef->numChildren];
+		const particleSystem *const lastChild = &curChild[partSys->partSysDef->numChildren];
 		// Delete the system's children.
 		for(; curChild < lastChild; ++curChild){
 			particleSysDelete(curChild);
@@ -190,7 +197,7 @@ void particleSysDelete(particleSystem *partSys){
 ** we don't delete its children. There may be other systems
 ** using those children that we don't want to delete.
 */
-void particleSysDefDelete(particleSystemDef *partSysDef){
+void particleSysDefDelete(particleSystemDef *const restrict partSysDef){
 	if(partSysDef->name != NULL){
 		memoryManagerGlobalFree(partSysDef->name);
 	}
@@ -213,8 +220,8 @@ void particleSysDefDelete(particleSystemDef *partSysDef){
 
 
 // Execute each of the system's initializers on a particle.
-static void initializeParticle(const particleSystem *partSys, particle *part){
-	const particleSystemDef *partSysDef = partSys->partSysDef;
+static void initializeParticle(const particleSystem *const restrict partSys, particle *const restrict part){
+	const particleSystemDef *const partSysDef = partSys->partSysDef;
 	const particleInitializer *curInitializer = partSysDef->initializers;
 
 	particleInit(part);
@@ -238,7 +245,7 @@ static void initializeParticle(const particleSystem *partSys, particle *part){
 }
 
 // Execute each of the system's operators on a particle.
-static void operateParticle(const particleSystemDef *partSysDef, particle *part, const float time){
+static void operateParticle(const particleSystemDef *const restrict partSysDef, particle *const restrict part, const float time){
 	const particleOperator *curOperator = partSysDef->operators;
 	if(curOperator != NULL){
 		do {
@@ -249,7 +256,7 @@ static void operateParticle(const particleSystemDef *partSysDef, particle *part,
 }
 
 // Execute each of the system's constraints on a particle.
-static void constrainParticle(const particleSystemDef *partSysDef, particle *part, const float time){
+static void constrainParticle(const particleSystemDef *const restrict partSysDef, particle *const restrict part, const float time){
 	const particleConstraint *curConstraint = partSysDef->constraints;
 	if(curConstraint != NULL){
 		do {
@@ -263,9 +270,9 @@ static void constrainParticle(const particleSystemDef *partSysDef, particle *par
 ** Spawn the number of new particles given by "numParticles".
 ** We assume that the particle system has enough room for them.
 */
-static void spawnParticles(particleSystem *partSys, const size_t numParticles){
+static void spawnParticles(particleSystem *const restrict partSys, const size_t numParticles){
 	particle *curParticle = &partSys->particles[partSys->numParticles];
-	const particle *lastParticle = &curParticle[numParticles];
+	const particle *const lastParticle = &curParticle[numParticles];
 	for(; curParticle < lastParticle; ++curParticle){
 		initializeParticle(partSys, curParticle);
 	}
@@ -273,7 +280,7 @@ static void spawnParticles(particleSystem *partSys, const size_t numParticles){
 }
 
 // Update a particular particle.
-static void updateParticle(const particleSystemDef *partSysDef, particle *part, const float time){
+static void updateParticle(const particleSystemDef *const restrict partSysDef, particle *const restrict part, const float time){
 	#warning "Can the particle die while we're updating it?"
 	#warning "If so, I guess we can wait a tick to delete it."
 	operateParticle(partSysDef, part, time);
@@ -286,11 +293,11 @@ static void updateParticle(const particleSystemDef *partSysDef, particle *part, 
 ** Update the emitters in a particle system. This may spawn
 ** new particles, but it will never destroy old ones.
 */
-static void updateSysEmitters(particleSystem *partSys, const float time){
+static void updateSysEmitters(particleSystem *const restrict partSys, const float time){
 	size_t remainingParticles = partSys->partSysDef->maxParticles - partSys->numParticles;
 
 	particleEmitter *curEmitter = partSys->emitters;
-	const particleEmitter *lastEmitter = &curEmitter[partSys->partSysDef->numEmitters];
+	const particleEmitter *const lastEmitter = &curEmitter[partSys->partSysDef->numEmitters];
 	particleEmitterDef *curEmitterDef = partSys->partSysDef->emitters;
 	// This loop exits when our system reaches its particle limit.
 	for(; curEmitter < lastEmitter; ++curEmitter, ++curEmitterDef){
@@ -311,12 +318,12 @@ static void updateSysEmitters(particleSystem *partSys, const float time){
 }
 
 // Update a system's particles. This includes executing the operators and constraints.
-static void updateSysParticles(particleSystem *partSys, const float time){
-	const particleSystemDef *partSysDef = partSys->partSysDef;
+static void updateSysParticles(particleSystem *const restrict partSys, const float time){
+	const particleSystemDef *const partSysDef = partSys->partSysDef;
 
 	particle *curParticle = partSys->particles;
 	particle *freePos = curParticle;
-	const particle *lastParticle = &curParticle[partSys->numParticles];
+	const particle *const lastParticle = &curParticle[partSys->numParticles];
 	// Update every living particle using the system's operators and constraints.
 	//
 	// Every living particle should be copied back to the first free
@@ -346,12 +353,16 @@ static void updateSysParticles(particleSystem *partSys, const float time){
 #warning "Ideally, they should handle most of the draw code. Each renderer should redraw every particle."
 #warning "We should, however, get the state matrix and UV offsets once in this function."
 #warning "If we get the state matrix once though, what about billboarding?"
-static void drawParticles(const particleSystem *partSys, const camera *cam, const shaderSprite *shader, const float time){
-	const particleSystemDef *partSysDef = partSys->partSysDef;
+static void drawParticles(
+	const particleSystem *const restrict partSys, const camera *const restrict cam,
+	const shaderSprite *const restrict shader, const float time
+){
+
+	const particleSystemDef *const partSysDef = partSys->partSysDef;
 	const sprite *particleSprite = &partSysDef->properties.spriteData;
 
 	particle *curParticle = partSys->particles;
-	const particle *lastParticle = &curParticle[partSys->numParticles];
+	const particle *const lastParticle = &curParticle[partSys->numParticles];
 
 	#warning "If we use a global sprite buffer, should we make this global too?"
 	spriteState particleStates[SPRITE_MAX_INSTANCES];
@@ -377,7 +388,7 @@ static void drawParticles(const particleSystem *partSys, const camera *cam, cons
 			.currentAnim = curParticle->currentAnim,
 			.texGroupAnim = curParticle->texAnim
 		};
-		const textureGroupFrame *texFrame = texGroupStateGetFrame(&texState);
+		const textureGroupFrame *const texFrame = texGroupStateGetFrame(&texState);
 
 		// Convert the particle's state to a matrix!
 		transformStateToMat4(&curParticle->state, &curState->state);

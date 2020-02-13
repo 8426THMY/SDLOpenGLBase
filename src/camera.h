@@ -30,14 +30,14 @@ typedef struct camera {
 } camera;
 
 
-void cameraInit(camera *cam);
+void cameraInit(camera *const restrict cam);
 
-void cameraUpdateViewMatrix(camera *cam);
-void cameraUpdateProjectionMatrix(camera *cam, const float windowWidth, const float windowHeight);
-void cameraUpdateViewProjectionMatrix(camera *cam, const float windowWidth, const float windowHeight);
+void cameraUpdateViewMatrix(camera *const restrict cam);
+void cameraUpdateProjectionMatrix(camera *const restrict cam, const float windowWidth, const float windowHeight);
+void cameraUpdateViewProjectionMatrix(camera *const restrict cam, const float windowWidth, const float windowHeight);
 
-float cameraDistance(const camera *cam, const vec3 *target);
-float cameraDistanceSquared(const camera *cam, const vec3 *target);
+float cameraDistance(const camera *const restrict cam, const vec3 *const restrict target);
+float cameraDistanceSquared(const camera *const restrict cam, const vec3 *const restrict target);
 
 
 #endif

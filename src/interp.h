@@ -29,62 +29,62 @@ typedef struct interpTransform {
 } interpTransform;
 
 
-void interpFloatInitZero(interpFloat *iFloat);
-void interpFloatInitSet(interpFloat *iFloat, const float x);
-void interpVec3InitZero(interpVec3 *iVec3);
-void interpVec3InitSet(interpVec3 *iVec3, const float x, const float y, const float z);
-void interpQuatInitIdentity(interpQuat *iQuat);
-void interpQuatInitSet(interpQuat *iQuat, const float x, const float y, const float z, const float w);
-void interpTransInit(interpTransform *iTrans);
+void interpFloatInitZero(interpFloat *const restrict iFloat);
+void interpFloatInitSet(interpFloat *const restrict iFloat, const float x);
+void interpVec3InitZero(interpVec3 *const restrict iVec3);
+void interpVec3InitSet(interpVec3 *const restrict iVec3, const float x, const float y, const float z);
+void interpQuatInitIdentity(interpQuat *const restrict iQuat);
+void interpQuatInitSet(interpQuat *const restrict iQuat, const float x, const float y, const float z, const float w);
+void interpTransInit(interpTransform *const restrict iTrans);
 
 /*void interpFloatUpdateNextState(interpFloat *iFloat);
 void interpVec3UpdateNextState(interpVec3 *iVec3);
 void interpQuatUpdateNextState(interpQuat *iQuat);*/
 
-void interpFloatGenRenderState(const interpFloat *iFloat, const float time, float *out);
-void interpVec3GenRenderState(const interpVec3 *iVec3, const float time, vec3 *out);
-void interpQuatGenRenderState(const interpQuat *iQuat, const float time, quat *out);
-void interpTransGenRenderState(const interpTransform *iTrans, const float time, transformState *out);
+void interpFloatGenRenderState(const interpFloat *const restrict iFloat, const float time, float *const restrict out);
+void interpVec3GenRenderState(const interpVec3 *const restrict iVec3, const float time, vec3 *const restrict out);
+void interpQuatGenRenderState(const interpQuat *const restrict iQuat, const float time, quat *const restrict out);
+void interpTransGenRenderState(const interpTransform *const restrict iTrans, const float time, transformState *const restrict out);
 
-void interpFloatMoveToNextState(interpFloat *iFloat);
-void interpVec3MoveToNextState(interpVec3 *iVec3);
-void interpQuatMoveToNextState(interpQuat *iQuat);
+void interpFloatMoveToNextState(interpFloat *const restrict iFloat);
+void interpVec3MoveToNextState(interpVec3 *const restrict iVec3);
+void interpQuatMoveToNextState(interpQuat *const restrict iQuat);
 
-void interpTransAddPos(interpTransform *iTrans, const float x, const float y, const float z, const float time);
-void interpTransAddPosX(interpTransform *iTrans, const float x, const float time);
-void interpTransAddPosY(interpTransform *iTrans, const float y, const float time);
-void interpTransAddPosZ(interpTransform *iTrans, const float z, const float time);
-void interpTransSetPos(interpTransform *iTrans, const float x, const float y, const float z);
-void interpTransSetPosX(interpTransform *iTrans, const float x);
-void interpTransSetPosY(interpTransform *iTrans, const float y);
-void interpTransSetPosZ(interpTransform *iTrans, const float z);
-void interpTransSetNextPos(interpTransform *iTrans, const float x, const float y, const float z);
-void interpTransSetNextPosX(interpTransform *iTrans, const float x);
-void interpTransSetNextPosY(interpTransform *iTrans, const float y);
-void interpTransSetNextPosZ(interpTransform *iTrans, const float z);
+void interpTransAddPos(interpTransform *const restrict iTrans, const float x, const float y, const float z, const float time);
+void interpTransAddPosX(interpTransform *const restrict iTrans, const float x, const float time);
+void interpTransAddPosY(interpTransform *const restrict iTrans, const float y, const float time);
+void interpTransAddPosZ(interpTransform *const restrict iTrans, const float z, const float time);
+void interpTransSetPos(interpTransform *const restrict iTrans, const float x, const float y, const float z);
+void interpTransSetPosX(interpTransform *const restrict iTrans, const float x);
+void interpTransSetPosY(interpTransform *const restrict iTrans, const float y);
+void interpTransSetPosZ(interpTransform *const restrict iTrans, const float z);
+void interpTransSetNextPos(interpTransform *const restrict iTrans, const float x, const float y, const float z);
+void interpTransSetNextPosX(interpTransform *const restrict iTrans, const float x);
+void interpTransSetNextPosY(interpTransform *const restrict iTrans, const float y);
+void interpTransSetNextPosZ(interpTransform *const restrict iTrans, const float z);
 
-void interpTransAddRotEulerRad(interpTransform *iTrans, const float x, const float y, const float z, const float time);
-void interpTransAddRotEulerDeg(interpTransform *iTrans, const float x, const float y, const float z, const float time);
-void interpTransAddRotQuat(interpTransform *iTrans, const quat *q, const float time);
-void interpTransSetRotEulerRad(interpTransform *iTrans, const float x, const float y, const float z);
-void interpTransSetRotEulerDeg(interpTransform *iTrans, const float x, const float y, const float z);
-void interpTransSetRotQuat(interpTransform *iTrans, const quat *q);
-void interpTransSetNextRotEulerRad(interpTransform *iTrans, const float x, const float y, const float z);
-void interpTransSetNextRotEulerDeg(interpTransform *iTrans, const float x, const float y, const float z);
-void interpTransSetNextRotQuat(interpTransform *iTrans, const quat *q);
+void interpTransAddRotEulerRad(interpTransform *const restrict iTrans, const float x, const float y, const float z, const float time);
+void interpTransAddRotEulerDeg(interpTransform *const restrict iTrans, const float x, const float y, const float z, const float time);
+void interpTransAddRotQuat(interpTransform *const restrict iTrans, const quat *const restrict q, const float time);
+void interpTransSetRotEulerRad(interpTransform *const restrict iTrans, const float x, const float y, const float z);
+void interpTransSetRotEulerDeg(interpTransform *const restrict iTrans, const float x, const float y, const float z);
+void interpTransSetRotQuat(interpTransform *const restrict iTrans, const quat *const restrict q);
+void interpTransSetNextRotEulerRad(interpTransform *const restrict iTrans, const float x, const float y, const float z);
+void interpTransSetNextRotEulerDeg(interpTransform *const restrict iTrans, const float x, const float y, const float z);
+void interpTransSetNextRotQuat(interpTransform *const restrict iTrans, const quat *const restrict q);
 
-void interpTransAddScale(interpTransform *iTrans, const float x, const float y, const float z, const float time);
-void interpTransAddScaleX(interpTransform *iTrans, const float x, const float time);
-void interpTransAddScaleY(interpTransform *iTrans, const float y, const float time);
-void interpTransAddScaleZ(interpTransform *iTrans, const float z, const float time);
-void interpTransSetScale(interpTransform *iTrans, const float x, const float y, const float z);
-void interpTransSetScaleX(interpTransform *iTrans, const float x);
-void interpTransSetScaleY(interpTransform *iTrans, const float y);
-void interpTransSetScaleZ(interpTransform *iTrans, const float z);
-void interpTransSetNextScale(interpTransform *iTrans, const float x, const float y, const float z);
-void interpTransSetNextScaleX(interpTransform *iTrans, const float x);
-void interpTransSetNextScaleY(interpTransform *iTrans, const float y);
-void interpTransSetNextScaleZ(interpTransform *iTrans, const float z);
+void interpTransAddScale(interpTransform *const restrict iTrans, const float x, const float y, const float z, const float time);
+void interpTransAddScaleX(interpTransform *const restrict iTrans, const float x, const float time);
+void interpTransAddScaleY(interpTransform *const restrict iTrans, const float y, const float time);
+void interpTransAddScaleZ(interpTransform *const restrict iTrans, const float z, const float time);
+void interpTransSetScale(interpTransform *const restrict iTrans, const float x, const float y, const float z);
+void interpTransSetScaleX(interpTransform *const restrict iTrans, const float x);
+void interpTransSetScaleY(interpTransform *const restrict iTrans, const float y);
+void interpTransSetScaleZ(interpTransform *const restrict iTrans, const float z);
+void interpTransSetNextScale(interpTransform *const restrict iTrans, const float x, const float y, const float z);
+void interpTransSetNextScaleX(interpTransform *const restrict iTrans, const float x);
+void interpTransSetNextScaleY(interpTransform *const restrict iTrans, const float y);
+void interpTransSetNextScaleZ(interpTransform *const restrict iTrans, const float z);
 
 
 #endif

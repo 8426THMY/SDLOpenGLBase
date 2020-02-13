@@ -9,15 +9,15 @@
 #include "modulePhysics.h"
 
 
-#define PHYSRIGIDBODYDEF_PATH_PREFIX        "./resource/physics/"
+#define PHYSRIGIDBODYDEF_PATH_PREFIX        "."FILE_PATH_DELIMITER_STR"resource"FILE_PATH_DELIMITER_STR"physics"FILE_PATH_DELIMITER_STR
 #define PHYSRIGIDBODYDEF_PATH_PREFIX_LENGTH (sizeof(PHYSRIGIDBODYDEF_PATH_PREFIX) - 1)
 
 
-void physRigidBodyDefInit(physicsRigidBodyDef *bodyDef){
+void physRigidBodyDefInit(physicsRigidBodyDef *const restrict bodyDef){
 	bodyDef->colliders = NULL;
 }
 
-void physRigidBodyInit(physicsRigidBody *body, const physicsRigidBodyDef *bodyDef){
+void physRigidBodyInit(physicsRigidBody *const restrict body, const physicsRigidBodyDef *const restrict bodyDef){
 	body->colliders = /** ALLOCATE NEW COLLIDER LIST **/NULL;
 
 	body->mass = bodyDef->mass;
@@ -37,10 +37,9 @@ void physRigidBodyInit(physicsRigidBody *body, const physicsRigidBodyDef *bodyDe
 
 // Load a rigid body, including any of its colliders.
 #warning "Maybe update this like the other loading functions?"
-return_t physRigidBodyDefLoad(physicsRigidBodyDef *bodyDef, const char *bodyPath){
+return_t physRigidBodyDefLoad(physicsRigidBodyDef *const restrict bodyDef, const char *const restrict bodyPath, const size_t bodyPathLength){
 	FILE *bodyFile;
 	char bodyFullPath[FILE_MAX_PATH_LENGTH];
-	const size_t bodyPathLength = strlen(bodyPath);
 
 	// Generate the full path for the rigid body!
 	fileGenerateFullResourcePath(
@@ -128,16 +127,15 @@ return_t physRigidBodyDefLoad(physicsRigidBodyDef *bodyDef, const char *bodyPath
 			}else{
 				// Bone name.
 				if(memcmp(line, "b ", 2) == 0){
-					char *boneName;
 					size_t boneNameLength;
 					// Find the name of the bone to attach this rigid body to!
-					boneName = getMultiDelimitedString(&line[2], lineLength - 2, "\" ", &boneNameLength);
+					const char *const boneName = stringMultiDelimited(&line[2], lineLength - 2, "\" ", &boneNameLength);
 
 					/** What do we do with the bone's name? **/
 
 				// New physics collider.
 				}else if(memcmp(line, "p ", 2) == 0 && line[lineLength - 1] == '{'){
-					type_t currentType = strtoul(&line[2], &tokPos, 10);
+					colliderType_t currentType = strtoul(&line[2], &tokPos, 10);
 
 					// Make sure a valid number was entered.
 					if(tokPos != &line[2]){
@@ -211,14 +209,14 @@ return_t physRigidBodyDefLoad(physicsRigidBodyDef *bodyDef, const char *bodyPath
 ** combine them all to get the rigid body's centroid.
 ** We assume that they have already been weighted.
 */
-void physRigidBodyDefSumCentroids(physicsRigidBodyDef *bodyDef, const vec3 *centroidArray, const size_t numBodies){
-	const vec3 *lastCentroid = &centroidArray[numBodies];
+void physRigidBodyDefSumCentroids(physicsRigidBodyDef *const restrict bodyDef, const vec3 *centroidArray, const size_t numBodies){
+	const vec3 *const lastCentroid = &centroidArray[numBodies];
 	vec3 tempCentroid;
 
 	vec3InitZero(&tempCentroid);
 
 	// Store the sum of the weighted centroids in "tempCentroid".
-	while(centroidArray != lastCentroid){
+	while(centroidArray < lastCentroid){
 		vec3AddVec3(&tempCentroid, centroidArray);
 
 		++centroidArray;
@@ -232,14 +230,14 @@ void physRigidBodyDefSumCentroids(physicsRigidBodyDef *bodyDef, const vec3 *cent
 ** combine them all to get the rigid body's moment of inertia tensor.
 ** We assume that they have already been weighted.
 */
-void physRigidBodyDefSumInertia(physicsRigidBodyDef *bodyDef, const mat3 *inertiaArray, const size_t numBodies){
-	const mat3 *lastInertia = &inertiaArray[numBodies];
+void physRigidBodyDefSumInertia(physicsRigidBodyDef *const restrict bodyDef, const mat3 *inertiaArray, const size_t numBodies){
+	const mat3 *const lastInertia = &inertiaArray[numBodies];
 	float tempInertia[6];
 
 	memset(tempInertia, 0.f, sizeof(tempInertia));
 
 	// Store the sum of the weighted centroids in "tempCentroid".
-	while(inertiaArray != lastInertia){
+	while(inertiaArray < lastInertia){
 		tempInertia[0] += inertiaArray->m[0][0];
 		tempInertia[1] += inertiaArray->m[1][1];
 		tempInertia[2] += inertiaArray->m[2][2];
@@ -272,7 +270,11 @@ void physRigidBodyDefSumInertia(physicsRigidBodyDef *bodyDef, const mat3 *inerti
 ** that this assumes that the body's inertia tensor has
 ** note yet been inverted. It will not invert it, either.
 */
-void physRigidBodyDefAddCollider(physicsRigidBodyDef *bodyDef, const float mass, const vec3 *centroid, const mat3 *inertia){
+void physRigidBodyDefAddCollider(
+	physicsRigidBodyDef *const restrict bodyDef, const float mass,
+	const vec3 *const restrict centroid, const mat3 *const restrict inertia
+){
+
 	vec3 tempCentroid;
 	vec3 tempCentroidWeighted;
 	vec3 tempCentroidSquaredWeighted;
@@ -365,7 +367,7 @@ void physRigidBodyDefAddCollider(physicsRigidBodyDef *bodyDef, const float mass,
 ** The array "masses" is an array of float arrays, each of which
 ** contains a collider's mass followed by any vertex weights.
 */
-void physRigidBodyDefGenerateProperties(physicsRigidBodyDef *bodyDef, const float **massArrays){
+void physRigidBodyDefGenerateProperties(physicsRigidBodyDef *const restrict bodyDef, const float **const restrict massArrays){
 	float tempMass = 0.f;
 	vec3 tempCentroid;
 	float tempInertia[6];
@@ -449,7 +451,7 @@ void physRigidBodyDefGenerateProperties(physicsRigidBodyDef *bodyDef, const floa
 ** v^(t + 1) = v^n + F * m^-1 * dt
 ** w^(t + 1) = w^n + T * I^-1 * dt
 */
-void physRigidBodyIntegrateVelocity(physicsRigidBody *body, const float dt){
+void physRigidBodyIntegrateVelocity(physicsRigidBody *const restrict body, const float dt){
 	vec3 linearAcceleration;
 	vec3 angularAcceleration;
 
@@ -473,7 +475,7 @@ void physRigidBodyIntegrateVelocity(physicsRigidBody *body, const float dt){
 ** dq/dt = 0.5 * w * q
 ** q^(t + 1) = q^t + dq/dt * dt
 */
-void physRigidBodyIntegratePosition(physicsRigidBody *body, const float dt){
+void physRigidBodyIntegratePosition(physicsRigidBody *const restrict body, const float dt){
 	vec3 linearVelocityDelta;
 
 	vec3MultiplySOut(&body->linearVelocity, dt, &linearVelocityDelta);
@@ -489,35 +491,35 @@ void physRigidBodyIntegratePosition(physicsRigidBody *body, const float dt){
 
 
 // Add a translational impulse to a rigid body.
-void physRigidBodyApplyLinearImpulse(physicsRigidBody *body, vec3 J){
+void physRigidBodyApplyLinearImpulse(physicsRigidBody *const restrict body, vec3 J){
 	// Linear velocity.
 	vec3MultiplyS(&J, body->mass);
 	vec3AddVec3(&body->linearVelocity, &J);
 }
 
 // Subtract a translational impulse from a rigid body.
-void physRigidBodyApplyLinearImpulseInverse(physicsRigidBody *body, vec3 J){
+void physRigidBodyApplyLinearImpulseInverse(physicsRigidBody *const restrict body, vec3 J){
 	// Linear velocity.
 	vec3MultiplyS(&J, body->mass);
 	vec3SubtractVec3From(&body->linearVelocity, &J);
 }
 
 // Add a rotational impulse to a rigid body.
-void physRigidBodyApplyAngularImpulse(physicsRigidBody *body, vec3 J){
+void physRigidBodyApplyAngularImpulse(physicsRigidBody *const restrict body, vec3 J){
 	// Angular velocity.
 	mat3MultiplyByVec3(&body->invInertiaGlobal, &J);
 	vec3AddVec3(&body->angularVelocity, &J);
 }
 
 // Subtract a rotational impulse from a rigid body.
-void physRigidBodyApplyAngularImpulseInverse(physicsRigidBody *body, vec3 J){
+void physRigidBodyApplyAngularImpulseInverse(physicsRigidBody *const restrict body, vec3 J){
 	// Angular velocity.
 	mat3MultiplyByVec3(&body->invInertiaGlobal, &J);
 	vec3SubtractVec3From(&body->angularVelocity, &J);
 }
 
 // Add a translational and rotational impulse to a rigid body.
-void physRigidBodyApplyImpulse(physicsRigidBody *body, const vec3 *r, const vec3 *J){
+void physRigidBodyApplyImpulse(physicsRigidBody *const restrict body, const vec3 *const restrict r, const vec3 *const restrict J){
 	vec3 impulse;
 
 	// Linear velocity.
@@ -531,7 +533,7 @@ void physRigidBodyApplyImpulse(physicsRigidBody *body, const vec3 *r, const vec3
 }
 
 // Subtract a translational and rotational impulse from a rigid body.
-void physRigidBodyApplyImpulseInverse(physicsRigidBody *body, const vec3 *r, const vec3 *J){
+void physRigidBodyApplyImpulseInverse(physicsRigidBody *const restrict body, const vec3 *const restrict r, const vec3 *const restrict J){
 	vec3 impulse;
 
 	// Linear velocity.
@@ -546,7 +548,7 @@ void physRigidBodyApplyImpulseInverse(physicsRigidBody *body, const vec3 *r, con
 
 #ifdef PHYSCOLLIDER_USE_POSITIONAL_CORRECTION
 // Add a translational and rotational impulse to a rigid body's position.
-void physRigidBodyApplyImpulsePosition(physicsRigidBody *body, const vec3 *r, const vec3 *J){
+void physRigidBodyApplyImpulsePosition(physicsRigidBody *const restrict body, const vec3 *const restrict r, const vec3 *const restrict J){
 	vec3 impulse;
 	quat tempRot;
 
@@ -563,7 +565,7 @@ void physRigidBodyApplyImpulsePosition(physicsRigidBody *body, const vec3 *r, co
 }
 
 // Subtract a translational and rotational impulse from a rigid body's position.
-void physRigidBodyApplyImpulsePositionInverse(physicsRigidBody *body, const vec3 *r, const vec3 *J){
+void physRigidBodyApplyImpulsePositionInverse(physicsRigidBody *const restrict body, const vec3 *const restrict r, const vec3 *const restrict J){
 	vec3 impulse;
 	quat tempRot;
 
@@ -586,7 +588,7 @@ void physRigidBodyApplyImpulsePositionInverse(physicsRigidBody *body, const vec3
 ** rotating its centroid and inertia tensor, updating
 ** its velocity and updating all of its colliders.
 */
-void physRigidBodyUpdate(physicsRigidBody *body, const float dt){
+void physRigidBodyUpdate(physicsRigidBody *const restrict body, const float dt){
 	physicsCollider *curCollider;
 
 
@@ -653,10 +655,10 @@ void physRigidBodyUpdate(physicsRigidBody *body, const float dt){
 }
 
 
-void physRigidBodyDefDelete(physicsRigidBodyDef *bodyDef){
+void physRigidBodyDefDelete(physicsRigidBodyDef *const restrict bodyDef){
 	modulePhysicsColliderFreeArray(&bodyDef->colliders);
 }
 
-void physRigidBodyDelete(physicsRigidBody *body){
+void physRigidBodyDelete(physicsRigidBody *const restrict body){
 	modulePhysicsColliderFreeInstanceArray(&body->colliders);
 }

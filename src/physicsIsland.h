@@ -17,14 +17,14 @@ typedef struct physicsIsland {
 } physicsIsland;
 
 
-void physIslandInit(physicsIsland *island);
+void physIslandInit(physicsIsland *const restrict island);
 
-void physIslandUpdateCollider(physicsIsland *island, physicsCollider *collider);
-void physIslandRemoveCollider(physicsIsland *island, physicsCollider *collider);
+void physIslandUpdateCollider(physicsIsland *const restrict island, physicsCollider *const restrict collider);
+void physIslandRemoveCollider(physicsIsland *const restrict island, physicsCollider *const restrict collider);
 
-void physIslandQueryCollisions(physicsIsland *island, const float dt);
+void physIslandQueryCollisions(physicsIsland *const restrict island, const float dt);
 
-void physIslandDelete(physicsIsland *island);
+void physIslandDelete(physicsIsland *const restrict island);
 
 
 #endif

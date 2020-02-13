@@ -2,9 +2,10 @@
 #define physicsConstraintPair_h
 
 
+#include <stdint.h>
+
 #include "settingsPhysics.h"
 
-#include "utilTypes.h"
 #include "physicsContact.h"
 #include "physicsJoint.h"
 
@@ -25,7 +26,7 @@
 
 typedef struct physicsCollider physicsCollider;
 
-typedef type_t physPairTimestamp_t;
+typedef uint_least8_t physPairTimestamp_t;
 
 #warning "Use quad-lists for these. It's literally what they were made."
 #warning "The timestamps are also unused at the moment."
@@ -85,24 +86,24 @@ typedef struct physicsJointPair {
 
 
 void physSeparationPairInit(
-	physicsSeparationPair *pair, const contactSeparation *separation,
-	physicsCollider *cA, physicsCollider *cB,
+	physicsSeparationPair *const restrict pair, const contactSeparation *const restrict separation,
+	physicsCollider *const restrict cA, physicsCollider *const restrict cB,
 	physicsSeparationPair *prev, physicsSeparationPair *next
 );
 void physContactPairInit(
-	physicsContactPair *pair, const contactManifold *manifold,
-	physicsCollider *cA, physicsCollider *cB,
+	physicsContactPair *const restrict pair, const contactManifold *const restrict manifold,
+	physicsCollider *const restrict cA, physicsCollider *const restrict cB,
 	physicsContactPair *prev, physicsContactPair *next
 );
 /*void physJointPairInit(
-	physicsJointPair *pair,
-	physicsCollider *cA, physicsCollider *cB,
+	physicsJointPair *const restrict pair,
+	physicsCollider *const restrict cA, physicsCollider *const restrict cB,
 	physicsJointPair *prev, physicsJointPair *next
 );*/
 
-void physSeparationPairDelete(physicsSeparationPair *pair);
-void physContactPairDelete(physicsContactPair *pair);
-//void physJointPairDelete(physicsJointPair *pair);
+void physSeparationPairDelete(physicsSeparationPair *const restrict pair);
+void physContactPairDelete(physicsContactPair *const restrict pair);
+//void physJointPairDelete(physicsJointPair *const restrict pair);
 
 
 #endif

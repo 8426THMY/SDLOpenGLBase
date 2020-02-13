@@ -6,7 +6,7 @@
 ** axis-aligned bounding box by "x".
 ** This is mainly used for the AABB tree.
 */
-void colliderAABBExpandFloat(const colliderAABB *aabb, const float x, colliderAABB *out){
+void colliderAABBExpandFloat(const colliderAABB *const aabb, const float x, colliderAABB *const out){
 	vec3SubtractSFromOut(&aabb->min, x, &out->min);
 	vec3AddSOut(&aabb->max, x, &out->max);
 }
@@ -16,7 +16,7 @@ void colliderAABBExpandFloat(const colliderAABB *aabb, const float x, colliderAA
 ** by a vec3, such as one representing linear velocity.
 ** This is mainly used for the AABB tree.
 */
-void colliderAABBExpandVec3(const colliderAABB *aabb, const vec3 *v, colliderAABB *out){
+void colliderAABBExpandVec3(const colliderAABB *const aabb, const vec3 *const restrict v, colliderAABB *const out){
 	if(v->x >= 0.f){
 		out->min.x = aabb->min.x;
 		out->max.x = aabb->max.x + v->x;
@@ -44,14 +44,14 @@ void colliderAABBExpandVec3(const colliderAABB *aabb, const vec3 *v, colliderAAB
 ** Create an axis-aligned bounding box that is
 ** large enough to fit two others inside it exactly.
 */
-void colliderAABBCombine(const colliderAABB *aabbA, const colliderAABB *aabbB, colliderAABB *out){
+void colliderAABBCombine(const colliderAABB *const aabbA, const colliderAABB *const aabbB, colliderAABB *const out){
 	vec3Min(&aabbA->min, &aabbB->min, &out->min);
 	vec3Max(&aabbA->max, &aabbB->max, &out->max);
 }
 
 
 // Return the volume of an axis-aligned bounding box.
-float colliderAABBVolume(const colliderAABB *aabb){
+float colliderAABBVolume(const colliderAABB *const restrict aabb){
 	vec3 v;
 	// The bounding box is axis-aligned, so this
 	// will calculate the lengths of its sides.
@@ -63,7 +63,7 @@ float colliderAABBVolume(const colliderAABB *aabb){
 }
 
 // Return the surface area of an axis-aligned bounding box.
-float colliderAABBSurfaceArea(const colliderAABB *aabb){
+float colliderAABBSurfaceArea(const colliderAABB *const restrict aabb){
 	vec3 v;
 	// The bounding box is axis-aligned, so this
 	// will calculate the lengths of its sides.
@@ -80,7 +80,7 @@ float colliderAABBSurfaceArea(const colliderAABB *aabb){
 ** bounding box. In some cases, such as our AABB tree,
 ** we don't actually need to calculate the full area.
 */
-float colliderAABBSurfaceAreaHalf(const colliderAABB *aabb){
+float colliderAABBSurfaceAreaHalf(const colliderAABB *const restrict aabb){
 	vec3 v;
 	// The bounding box is axis-aligned, so this
 	// will calculate the lengths of its sides.
@@ -97,7 +97,7 @@ float colliderAABBSurfaceAreaHalf(const colliderAABB *aabb){
 ** Return the volume of the axis-aligned bounding box
 ** that is large enough to contain two others completely.
 */
-float colliderAABBCombinedVolume(const colliderAABB *aabbA, const colliderAABB *aabbB){
+float colliderAABBCombinedVolume(const colliderAABB *const restrict aabbA, const colliderAABB *const restrict aabbB){
 	vec3 v1;
 	vec3 v2;
 
@@ -112,7 +112,7 @@ float colliderAABBCombinedVolume(const colliderAABB *aabbA, const colliderAABB *
 ** Return the surface area of the axis-aligned bounding box
 ** that is large enough to contain two others completely.
 */
-float colliderAABBCombinedSurfaceArea(const colliderAABB *aabbA, const colliderAABB *aabbB){
+float colliderAABBCombinedSurfaceArea(const colliderAABB *const restrict aabbA, const colliderAABB *const restrict aabbB){
 	vec3 v1;
 	vec3 v2;
 
@@ -127,7 +127,7 @@ float colliderAABBCombinedSurfaceArea(const colliderAABB *aabbA, const colliderA
 ** Return half the surface area of the axis-aligned bounding
 ** box that is large enough to contain two others completely.
 */
-float colliderAABBCombinedSurfaceAreaHalf(const colliderAABB *aabbA, const colliderAABB *aabbB){
+float colliderAABBCombinedSurfaceAreaHalf(const colliderAABB *const restrict aabbA, const colliderAABB *const restrict aabbB){
 	vec3 v1;
 	vec3 v2;
 
@@ -143,7 +143,7 @@ float colliderAABBCombinedSurfaceAreaHalf(const colliderAABB *aabbA, const colli
 ** Return whether or not one axis-aligned
 ** bounding box completely envelops another.
 */
-return_t colliderAABBEnvelopsAABB(const colliderAABB *aabbA, const colliderAABB *aabbB){
+return_t colliderAABBEnvelopsAABB(const colliderAABB *const restrict aabbA, const colliderAABB *const restrict aabbB){
 	return(
 		aabbA->min.x <= aabbB->min.x &&
 		aabbA->min.y <= aabbB->min.y &&
@@ -159,7 +159,7 @@ return_t colliderAABBEnvelopsAABB(const colliderAABB *aabbA, const colliderAABB 
 ** Return whether or not two axis-aligned
 ** bounding boxes are intersecting each other.
 */
-return_t colliderAABBCollidingAABB(const colliderAABB *aabbA, const colliderAABB *aabbB){
+return_t colliderAABBCollidingAABB(const colliderAABB *const restrict aabbA, const colliderAABB *const restrict aabbB){
 	return(
 		aabbA->min.x <= aabbB->max.x && aabbA->max.x >= aabbB->min.x &&
 		aabbA->min.y <= aabbB->max.y && aabbA->max.y >= aabbB->min.y &&

@@ -16,9 +16,11 @@ typedef struct physicsJointSphere {
 
 typedef struct physicsRigidBody physicsRigidBody;
 
-void physJointSpherePresolve(void *joint, physicsRigidBody *bodyA, physicsRigidBody *bodyB, const float dt);
-void physJointSphereSolveVelocity(void *joint, physicsRigidBody *bodyA, physicsRigidBody *bodyB);
-float physJointSphereSolvePosition(void *joint, physicsRigidBody *bodyA, physicsRigidBody *bodyB);
+void physJointSpherePresolve(
+	void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB, const float dt
+);
+void physJointSphereSolveVelocity(void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB);
+float physJointSphereSolvePosition(void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB);
 
 
 #endif

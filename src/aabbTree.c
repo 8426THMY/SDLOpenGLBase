@@ -13,21 +13,26 @@
 #define AABBNODE_IS_LAST_BRANCH(node) ((node)->height == AABBNODE_HEIGHT_LAST_BRANCH)
 
 
-static aabbNode *balanceNode(aabbTree *tree, aabbNode *node);
-static void balanceHierarchy(aabbTree *tree, aabbNode *node);
-static void insertLeaf(aabbTree *tree, aabbNode *node, aabbNode *parent);
-static void removeLeaf(aabbTree *tree, aabbNode *node);
+// Forward-declare any helper functions!
+static aabbNode *balanceNode(aabbTree *const restrict tree, aabbNode *const restrict node);
+static void balanceHierarchy(aabbTree *const restrict tree, aabbNode *const restrict node);
+static void insertLeaf(aabbTree *const restrict tree, aabbNode *const restrict node, aabbNode *const restrict parent);
+static void removeLeaf(aabbTree *const restrict tree, aabbNode *const restrict node);
 
 
-void aabbTreeInit(aabbTree *tree){
+void aabbTreeInit(aabbTree *const restrict tree){
 	tree->root = NULL;
 	tree->leaves = NULL;
 }
 
 
 // Add the user's data to the tree.
-aabbNode *aabbTreeInsertNode(aabbTree *tree, colliderAABB *aabb, void *userData, aabbNode *(*allocate)()){
-	aabbNode *node = (*allocate)();
+aabbNode *aabbTreeInsertNode(
+	aabbTree *const restrict tree, colliderAABB *const restrict aabb,
+	void *const restrict userData, aabbNode *(*const allocate)()
+){
+
+	aabbNode *const node = (*allocate)();
 	if(node == NULL){
 		/** MALLOC FAILED **/
 	}
@@ -39,7 +44,7 @@ aabbNode *aabbTreeInsertNode(aabbTree *tree, colliderAABB *aabb, void *userData,
 	tree->leaves = node;
 
 	if(tree->root != NULL){
-		aabbNode *parent = (*allocate)();
+		aabbNode *const parent = (*allocate)();
 		if(parent == NULL){
 			/** MALLOC FAILED **/
 		}
@@ -60,7 +65,7 @@ aabbNode *aabbTreeInsertNode(aabbTree *tree, colliderAABB *aabb, void *userData,
 ** enveloped by its old, fattened bounding box, we must reinsert it.
 ** We assume that the node's bounding box has already been updated.
 */
-void aabbTreeUpdateNode(aabbTree *tree, aabbNode *node){
+void aabbTreeUpdateNode(aabbTree *const restrict tree, aabbNode *const restrict node){
 	// We only need to reinsert the node if
 	// it is not the only node in the tree.
 	if(node != tree->root){
@@ -70,7 +75,10 @@ void aabbTreeUpdateNode(aabbTree *tree, aabbNode *node){
 }
 
 // Remove the user's data from the tree.
-void aabbTreeRemoveNode(aabbTree *tree, aabbNode *node, void (*deallocate)(aabbNode *node)){
+void aabbTreeRemoveNode(
+	aabbTree *const restrict tree, aabbNode *const restrict node, void (*const deallocate)(aabbNode *const restrict node)
+){
+
 	// If we are not deleting the root node, we should
 	// replace the node's parent with its sibling.
 	if(node != tree->root){
@@ -92,7 +100,7 @@ void aabbTreeRemoveNode(aabbTree *tree, aabbNode *node, void (*deallocate)(aabbN
 ** Traverse the tree in post-order and run the function "callback"
 ** on every node. This is primarily used for memory deallocation.
 */
-void aabbTreeTraverse(aabbTree *tree, void (*callback)(aabbNode *node)){
+void aabbTreeTraverse(aabbTree *const restrict tree, void (*const callback)(aabbNode *const restrict node)){
 	aabbNode *node = tree->root;
 
 	if(node != NULL){
@@ -147,7 +155,11 @@ void aabbTreeTraverse(aabbTree *tree, void (*callback)(aabbNode *node)){
 ** with the input leaf. If there is a collision, run the function
 ** "callback" with the two potentially colliding leaf nodes.
 */
-void aabbTreeQueryCollisions(aabbTree *tree, const aabbNode *node, void (*callback)(void *d1, void *d2)){
+void aabbTreeQueryCollisions(
+	aabbTree *const restrict tree, aabbNode *const node,
+	void (*const callback)(void *const restrict d1, void *const restrict d2)
+){
+
 	aabbNode *curNode = tree->root;
 
 	// Make sure the tree isn't empty.
@@ -205,7 +217,11 @@ void aabbTreeQueryCollisions(aabbTree *tree, const aabbNode *node, void (*callba
 ** Similar to the function above, but this implementation
 ** utilises a stack to prevent crossing any nodes twice.
 */
-void aabbTreeQueryCollisionsStack(aabbTree *tree, const aabbNode *node, void (*callback)(void *d1, void *d2)){
+void aabbTreeQueryCollisionsStack(
+	aabbTree *const restrict tree, const aabbNode *const node,
+	void (*const callback)(void *const restrict d1, void *const restrict d2)
+){
+
 	aabbNode *stack[AABBTREE_QUERY_STACK_SIZE];
 	size_t i = 1;
 
@@ -229,7 +245,10 @@ void aabbTreeQueryCollisionsStack(aabbTree *tree, const aabbNode *node, void (*c
 ** Traverse the tree in order and return first node
 ** following "prevNode" that may be colliding with "aabb".
 */
-aabbNode *aabbTreeFindNextNode(aabbTree *tree, const colliderAABB *aabb, const aabbNode *prevNode){
+aabbNode *aabbTreeFindNextNode(
+	aabbTree *const restrict tree, const colliderAABB *const restrict aabb, const aabbNode *const restrict prevNode
+){
+
 	aabbNode *curNode = tree->root;
 
 	if(curNode != NULL){
@@ -323,22 +342,20 @@ aabbNode *aabbTreeFindNextNode(aabbTree *tree, const colliderAABB *aabb, const a
 ** Perform a left or right rotate and fix up any invalid
 ** bounding boxes to restore balance to a single node.
 */
-static aabbNode *balanceNode(aabbTree *tree, aabbNode *node){
+static aabbNode *balanceNode(aabbTree *const restrict tree, aabbNode *const restrict node){
 	// We only need to perform a rotation of this node
 	// is not a leaf and it does not parent any leaves.
 	if(node->height > 1){
-		aabbNode *parent = node->parent;
-		aabbNode *left   = node->data.children.left;
-		aabbNode *right  = node->data.children.right;
-		aabbNode *grandLeft;
-		aabbNode *grandRight;
+		aabbNode *const parent = node->parent;
+		aabbNode *const left   = node->data.children.left;
+		aabbNode *const right  = node->data.children.right;
 
 		const int balance = right->height - left->height;
 		// If the node's right branch is significantly deeper
 		// than its left branch, we must rotate the node left.
 		if(balance > 1){
-			grandLeft = right->data.children.left;
-			grandRight = right->data.children.right;
+			aabbNode *const grandLeft = right->data.children.left;
+			aabbNode *const grandRight = right->data.children.right;
 
 			// Replace the node with its right child.
 			if(parent != NULL){
@@ -384,8 +401,8 @@ static aabbNode *balanceNode(aabbTree *tree, aabbNode *node){
 		// Otherwise, if the node's left branch is significantly
 		// deeper than its right branch, we must rotate it right.
 		}else if(balance < -1){
-			grandLeft = left->data.children.left;
-			grandRight = left->data.children.right;
+			aabbNode *const grandLeft = left->data.children.left;
+			aabbNode *const grandRight = left->data.children.right;
 
 			// Replace the node with its left child.
 			if(parent != NULL){
@@ -437,14 +454,10 @@ static aabbNode *balanceNode(aabbTree *tree, aabbNode *node){
 ** Iteratively restore balance to every
 ** node above the one specified by "node".
 */
-static void balanceHierarchy(aabbTree *tree, aabbNode *node){
+static void balanceHierarchy(aabbTree *const restrict tree, aabbNode *node){
 	do {
-		aabbNode *left;
-		aabbNode *right;
-
-		node  = balanceNode(tree, node);
-		left  = node->data.children.left;
-		right = node->data.children.right;
+		aabbNode *const left = (node = balanceNode(tree, node), node->data.children.left);
+		aabbNode *const right = node->data.children.right;
 
 		// Fix up the node's properties to represent its new children.
 		colliderAABBCombine(&left->aabb, &right->aabb, &node->aabb);
@@ -461,27 +474,14 @@ static void balanceHierarchy(aabbTree *tree, aabbNode *node){
 ** "node" and "parent" have been allocated outside this function.
 ** We also assume that the tree is not completely empty.
 */
-static void insertLeaf(aabbTree *tree, aabbNode *node, aabbNode *parent){
+static void insertLeaf(aabbTree *const restrict tree, aabbNode *const restrict node, aabbNode *const restrict parent){
 	aabbNode *sibling = tree->root;
 	aabbNode *siblingParent;
 
 	// Find a leaf node to serve as our new node's sibling.
 	while(!AABBNODE_IS_LEAF(sibling)){
-		/*aabbNode *left = sibling->data.children.left;
-		aabbNode *right = sibling->data.children.right;
-		const float leftCost = colliderAABBCombinedVolume(&node->aabb, &left->aabb) - colliderAABBVolume(&left->aabb);
-		const float rightCost = colliderAABBCombinedVolume(&node->aabb, &right->aabb) - colliderAABBVolume(&right->aabb);
-
-		// Continue on to the child whose bounding box gives
-		// the least increase in volume when combined with ours.
-		if(leftCost <= rightCost){
-			sibling = left;
-		}else{
-			sibling = right;
-		}*/
-
-		aabbNode *left = sibling->data.children.left;
-		aabbNode *right = sibling->data.children.right;
+		aabbNode *const left = sibling->data.children.left;
+		aabbNode *const right = sibling->data.children.right;
 
 		// Calculate the cost of starting a new branch.
 		const float combinedArea  = colliderAABBCombinedSurfaceAreaHalf(&node->aabb, &sibling->aabb);
@@ -562,10 +562,10 @@ static void insertLeaf(aabbTree *tree, aabbNode *node, aabbNode *parent){
 ** "node" and "parent" are deallocated outside of this function.
 ** We also assume that "node" is not the tree's root node.
 */
-static void removeLeaf(aabbTree *tree, aabbNode *node){
-	aabbNode *parent = node->parent;
-	aabbNode *grandparent = parent->parent;
-	aabbNode *sibling = (parent->data.children.left == node) ? parent->data.children.right : parent->data.children.left;
+static void removeLeaf(aabbTree *const restrict tree, aabbNode *const restrict node){
+	const aabbNode *const parent = node->parent;
+	aabbNode *const grandparent = parent->parent;
+	aabbNode *const sibling = (parent->data.children.left == node) ? parent->data.children.right : parent->data.children.left;
 
 	// If the node is not a child of the root node,
 	// we should replace its parent with its sibling.

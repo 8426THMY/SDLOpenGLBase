@@ -145,24 +145,24 @@ typedef struct memorySingleList {
 } memorySingleList;
 
 
-void *memSingleListInit(memorySingleList *singleList, void *memory, const size_t memorySize, const size_t blockSize);
+void *memSingleListInit(memorySingleList *const restrict singleList, void *const restrict memory, const size_t memorySize, const size_t blockSize);
 
-void *memSingleListAlloc(memorySingleList *singleList);
-void *memSingleListPrepend(memorySingleList *singleList, void **start);
-void *memSingleListAppend(memorySingleList *singleList, void **start);
-void *memSingleListInsertBefore(memorySingleList *singleList, void **start, void *prevData);
-void *memSingleListInsertAfter(memorySingleList *singleList, void **start, void *data);
+void *memSingleListAlloc(memorySingleList *const restrict singleList);
+void *memSingleListPrepend(memorySingleList *const restrict singleList, void **const restrict start);
+void *memSingleListAppend(memorySingleList *const restrict singleList, void **const restrict start);
+void *memSingleListInsertBefore(memorySingleList *const restrict singleList, void **const restrict start, void *prevData);
+void *memSingleListInsertAfter(memorySingleList *const restrict singleList, void **const restrict start, void *data);
 
-void memSingleListFree(memorySingleList *singleList, void **start, void *data, void *prevData);
-void memSingleListFreeArray(memorySingleList *singleList, void *start);
+void memSingleListFree(memorySingleList *const restrict singleList, void **const restrict start, void *const restrict data, void *const restrict prevData);
+void memSingleListFreeArray(memorySingleList *const restrict singleList, void *const restrict start);
 
-void memSingleListClearRegion(memorySingleList *singleList, memoryRegion *region, const byte_t flag, void *next);
-void memSingleListClearLastRegion(memorySingleList *singleList, memoryRegion *region);
-void memSingleListClear(memorySingleList *singleList);
+void memSingleListClearRegion(memorySingleList *const restrict singleList, memoryRegion *const restrict region, const byte_t flag, void *const restrict next);
+void memSingleListClearLastRegion(memorySingleList *const restrict singleList, memoryRegion *const restrict region);
+void memSingleListClear(memorySingleList *const restrict singleList);
 
-void *memSingleListExtend(memorySingleList *singleList, void *memory, const size_t memorySize);
+void *memSingleListExtend(memorySingleList *const restrict singleList, void *const restrict memory, const size_t memorySize);
 
-void memSingleListDelete(memorySingleList *singleList);
+void memSingleListDelete(memorySingleList *const restrict singleList);
 
 
 #endif

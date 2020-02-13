@@ -26,10 +26,10 @@ return_t moduleTextureSetup();
 void moduleTextureCleanup();
 
 texture *moduleTextureAlloc();
-void moduleTextureFree(texture *tex);
+void moduleTextureFree(texture *const restrict tex);
 void moduleTextureClear();
 
-texture *moduleTextureFind(const char *name);
+texture *moduleTextureFind(const char *const restrict name);
 
 
 extern memoryPool g_textureManager;

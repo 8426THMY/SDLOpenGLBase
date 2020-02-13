@@ -1,7 +1,7 @@
 #include "particleOperator.h"
 
 
-void particleOperatorAddGravity(const void *operator, particle *part, const float time){
+void particleOperatorAddGravity(const void *const restrict operator, particle *const restrict part, const float time){
 	vec3 force = {.x = 0.f, .y = -9.8f, .z = 0.f};
 	vec3 acceleration;
 

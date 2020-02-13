@@ -12,20 +12,20 @@ typedef struct colliderAABB {
 } colliderAABB;
 
 
-void colliderAABBExpandFloat(const colliderAABB *aabb, const float x, colliderAABB *out);
-void colliderAABBExpandVec3(const colliderAABB *aabb, const vec3 *v, colliderAABB *out);
-void colliderAABBCombine(const colliderAABB *aabbA, const colliderAABB *aabbB, colliderAABB *out);
+void colliderAABBExpandFloat(const colliderAABB *const aabb, const float x, colliderAABB *const out);
+void colliderAABBExpandVec3(const colliderAABB *const aabb, const vec3 *const restrict v, colliderAABB *const out);
+void colliderAABBCombine(const colliderAABB *const aabbA, const colliderAABB *const aabbB, colliderAABB *const out);
 
-float colliderAABBVolume(const colliderAABB *aabb);
-float colliderAABBSurfaceArea(const colliderAABB *aabb);
-float colliderAABBSurfaceAreaHalf(const colliderAABB *aabb);
+float colliderAABBVolume(const colliderAABB *const restrict aabb);
+float colliderAABBSurfaceArea(const colliderAABB *const restrict aabb);
+float colliderAABBSurfaceAreaHalf(const colliderAABB *const restrict aabb);
 
-float colliderAABBCombinedVolume(const colliderAABB *aabbA, const colliderAABB *aabbB);
-float colliderAABBCombinedSurfaceArea(const colliderAABB *aabbA, const colliderAABB *aabbB);
-float colliderAABBCombinedSurfaceAreaHalf(const colliderAABB *aabbA, const colliderAABB *aabbB);
+float colliderAABBCombinedVolume(const colliderAABB *const restrict aabbA, const colliderAABB *const restrict aabbB);
+float colliderAABBCombinedSurfaceArea(const colliderAABB *const restrict aabbA, const colliderAABB *const restrict aabbB);
+float colliderAABBCombinedSurfaceAreaHalf(const colliderAABB *const restrict aabbA, const colliderAABB *const restrict aabbB);
 
-return_t colliderAABBEnvelopsAABB(const colliderAABB *aabbA, const colliderAABB *aabbB);
-return_t colliderAABBCollidingAABB(const colliderAABB *aabbA, const colliderAABB *aabbB);
+return_t colliderAABBEnvelopsAABB(const colliderAABB *const restrict aabbA, const colliderAABB *const restrict aabbB);
+return_t colliderAABBCollidingAABB(const colliderAABB *const restrict aabbA, const colliderAABB *const restrict aabbB);
 
 
 #endif

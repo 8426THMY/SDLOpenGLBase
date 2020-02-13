@@ -34,9 +34,9 @@ typedef struct program {
 } program;
 
 
-return_t programInit(program *prg);
-void programLoop(program *prg);
-void programClose(program *prg);
+return_t programInit(program *const restrict prg, char *const restrict prgDir);
+void programLoop(program *const restrict prg);
+void programClose(program *const restrict prg);
 
 
 #endif

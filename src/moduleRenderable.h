@@ -31,21 +31,21 @@ return_t moduleRenderableSetup();
 void moduleRenderableCleanup();
 
 renderableDef *moduleRenderableDefAlloc();
-renderableDef *moduleRenderableDefPrepend(renderableDef **start);
-renderableDef *moduleRenderableDefAppend(renderableDef **start);
-renderableDef *moduleRenderableDefInsertBefore(renderableDef **start, renderableDef *prevData);
-renderableDef *moduleRenderableDefInsertAfter(renderableDef **start, renderableDef *data);
-void moduleRenderableDefFree(renderableDef **start, renderableDef *renderDef, renderableDef *prevData);
-void moduleRenderableDefFreeArray(renderableDef **start);
+renderableDef *moduleRenderableDefPrepend(renderableDef **const restrict start);
+renderableDef *moduleRenderableDefAppend(renderableDef **const restrict start);
+renderableDef *moduleRenderableDefInsertBefore(renderableDef **const restrict start, renderableDef *const restrict prevData);
+renderableDef *moduleRenderableDefInsertAfter(renderableDef **const restrict start, renderableDef *const restrict data);
+void moduleRenderableDefFree(renderableDef **const restrict start, renderableDef *const restrict renderDef, renderableDef *const restrict prevData);
+void moduleRenderableDefFreeArray(renderableDef **const restrict start);
 void moduleRenderableDefClear();
 
 renderable *moduleRenderableAlloc();
-renderable *moduleRenderablePrepend(renderable **start);
-renderable *moduleRenderableAppend(renderable **start);
-renderable *moduleRenderableInsertBefore(renderable **start, renderable *prevData);
-renderable *moduleRenderableInsertAfter(renderable **start, renderable *data);
-void moduleRenderableFree(renderable **start, renderable *render, renderable *prevData);
-void moduleRenderableFreeArray(renderable **start);
+renderable *moduleRenderablePrepend(renderable **const restrict start);
+renderable *moduleRenderableAppend(renderable **const restrict start);
+renderable *moduleRenderableInsertBefore(renderable **const restrict start, renderable *const restrict prevData);
+renderable *moduleRenderableInsertAfter(renderable **const restrict start, renderable *const restrict data);
+void moduleRenderableFree(renderable **const restrict start, renderable *const restrict render, renderable *const restrict prevData);
+void moduleRenderableFreeArray(renderable **const restrict start);
 void moduleRenderableClear();
 
 

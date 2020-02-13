@@ -12,9 +12,11 @@
 // we could really just always use Linux paths.
 #ifdef _WIN32
 	#define FILE_PATH_DELIMITER        '\\'
+	#define FILE_PATH_DELIMITER_STR    "\\"
 	#define FILE_PATH_DELIMITER_UNUSED '/'
 #else
 	#define FILE_PATH_DELIMITER        '/'
+	#define FILE_PATH_DELIMITER_STR    "/"
 	#define FILE_PATH_DELIMITER_UNUSED '\\'
 #endif
 
@@ -27,13 +29,14 @@
 #endif
 
 
-size_t fileParseResourcePath(char *resPath, char *line, const size_t lineLength, char **endPtr);
+return_t fileSetWorkingDirectory(char *const restrict dir, size_t *const restrict pathLength);
+size_t fileParseResourcePath(char *resPath, char *const restrict line, const size_t lineLength, char **const restrict endPtr);
 void fileGenerateFullResourcePath(
-	const char *prefix, const size_t prefixLength,
-	const char *filePath, const size_t filePathLength,
+	const char *const restrict prefix, const size_t prefixLength,
+	const char *const restrict filePath, const size_t filePathLength,
 	char *fullPath
 );
-char *fileReadLine(FILE *file, char *line, size_t *lineLength);
+char *fileReadLine(FILE *const restrict file, char *line, size_t *const restrict lineLength);
 
 
 uint16_t littleEndianToHost16(const uint16_t val);
@@ -41,19 +44,19 @@ uint16_t bigEndianToHost16(const uint16_t val);
 uint32_t littleEndianToHost32(const uint32_t val);
 uint32_t bigEndianToHost32(const uint32_t val);
 
-byte_t readByte(FILE *file);
-uint16_t readUint16(FILE *file);
-uint16_t readUint16LE(FILE *file);
-uint16_t readUint16BE(FILE *file);
-uint32_t readUint32(FILE *file);
-uint32_t readUint32LE(FILE *file);
-uint32_t readUint32BE(FILE *file);
-float readFloat(FILE *file);
-float readFloatLE(FILE *file);
-float readFloatBE(FILE *file);
-double readDouble(FILE *file);
-double readDoubleLE(FILE *file);
-double readDoubleBE(FILE *file);
+byte_t readByte(FILE *const restrict file);
+uint16_t readUint16(FILE *const restrict file);
+uint16_t readUint16LE(FILE *const restrict file);
+uint16_t readUint16BE(FILE *const restrict file);
+uint32_t readUint32(FILE *const restrict file);
+uint32_t readUint32LE(FILE *const restrict file);
+uint32_t readUint32BE(FILE *const restrict file);
+float readFloat(FILE *const restrict file);
+float readFloatLE(FILE *const restrict file);
+float readFloatBE(FILE *const restrict file);
+double readDouble(FILE *const restrict file);
+double readDoubleLE(FILE *const restrict file);
+double readDoubleBE(FILE *const restrict file);
 
 
 #endif

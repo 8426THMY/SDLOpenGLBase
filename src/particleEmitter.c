@@ -1,21 +1,21 @@
 #include "particleEmitter.h"
 
 
-void particleEmitterInit(particleEmitter *emitter){
+void particleEmitterInit(particleEmitter *const restrict emitter){
 	emitter->elapsedTime = 0.f;
 	emitter->period = 0.032f;
 }
 
 
 // Return the number of particles the emitter is allowed to spawn.
-size_t particleEmitterUpdate(particleEmitter *emitter, const particleEmitterDef *emitterDef, const float time){
+size_t particleEmitterUpdate(particleEmitter *const restrict emitter, const particleEmitterDef *const restrict emitterDef, const float time){
 	emitter->elapsedTime += time;
 
 	return((*emitterDef->func)(emitter));
 }
 
 
-size_t particleEmitterContinuous(particleEmitter *emitter){
+size_t particleEmitterContinuous(particleEmitter *const restrict emitter){
 	if(emitter->elapsedTime >= emitter->period){
 		// Determine the number of particles to emit.
 		const size_t spawnCount = emitter->elapsedTime / emitter->period;

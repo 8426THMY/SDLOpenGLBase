@@ -44,16 +44,29 @@ typedef struct aabbTree {
 } aabbTree;
 
 
-void aabbTreeInit(aabbTree *tree);
+void aabbTreeInit(aabbTree *const restrict tree);
 
-aabbNode *aabbTreeInsertNode(aabbTree *tree, colliderAABB *aabb, void *userData, aabbNode *(*allocate)());
-void aabbTreeUpdateNode(aabbTree *tree, aabbNode *node);
-void aabbTreeRemoveNode(aabbTree *tree, aabbNode *node, void (*deallocate)(aabbNode *node));
+aabbNode *aabbTreeInsertNode(
+	aabbTree *const restrict tree, colliderAABB *const restrict aabb,
+	void *const restrict userData, aabbNode *(*const allocate)()
+);
+void aabbTreeUpdateNode(aabbTree *const restrict tree, aabbNode *const restrict node);
+void aabbTreeRemoveNode(
+	aabbTree *const restrict tree, aabbNode *const restrict node, void (*const deallocate)(aabbNode *const restrict node)
+);
 
-void aabbTreeTraverse(aabbTree *tree, void (*callback)(aabbNode *node));
-void aabbTreeQueryCollisions(aabbTree *tree, const aabbNode *node, void (*callback)(void *d1, void *d2));
-void aabbTreeQueryCollisionsStack(aabbTree *tree, const aabbNode *node, void (*callback)(void *d1, void *d2));
-aabbNode *aabbTreeFindNextNode(aabbTree *tree, const colliderAABB *aabb, const aabbNode *prevNode);
+void aabbTreeTraverse(aabbTree *const restrict tree, void (*const callback)(aabbNode *const restrict node));
+void aabbTreeQueryCollisions(
+	aabbTree *const restrict tree, aabbNode *const restrict node,
+	void (*const callback)(void *const restrict d1, void *const restrict d2)
+);
+void aabbTreeQueryCollisionsStack(
+	aabbTree *const restrict tree, const aabbNode *const restrict node,
+	void (*const callback)(void *const restrict d1, void *const restrict d2)
+);
+aabbNode *aabbTreeFindNextNode(
+	aabbTree *const restrict tree, const colliderAABB *const restrict aabb, const aabbNode *const restrict prevNode
+);
 
 
 #endif

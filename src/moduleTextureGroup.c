@@ -31,7 +31,7 @@ textureGroup *moduleTexGroupAlloc(){
 }
 
 // Free a textureGroup that has been allocated.
-void moduleTexGroupFree(textureGroup *texGroup){
+void moduleTexGroupFree(textureGroup *const restrict texGroup){
 	texGroupDelete(texGroup);
 	memPoolFree(&g_texGroupManager, texGroup);
 }
@@ -45,7 +45,7 @@ void moduleTexGroupClear(){
 
 
 // Find a textureGroup whose name matches "name"!
-textureGroup *moduleTexGroupFind(const char *name){
+textureGroup *moduleTexGroupFind(const char *const restrict name){
 	MEMPOOL_LOOP_BEGIN(g_texGroupManager, i, textureGroup *)
 		if(strcmp(name, i->name) == 0){
 			return(i);

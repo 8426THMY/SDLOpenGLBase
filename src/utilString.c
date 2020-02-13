@@ -9,28 +9,29 @@
 ** to an array with at least (ULONG_MAX_CHARS + 1) characters.
 **/
 size_t ultostr(unsigned long num, char *str){
+	size_t length;
+	char *curPos;
+	
 	// Special case for when num is equal to 0!
 	if(num == 0){
-		*str++ = '0';
+		*str = '0';
+		++str;
 		*str = '\0';
 
 		return(1);
 	}
 
-
-	size_t length = 0;
-	char *curPos = str;
-
 	// Check for a minus sign.
 	if(num < 0){
-		*curPos = '-';
+		*str = '-';
 		num = -num;
 	}else{
-		*curPos = '\0';
+		*str = '\0';
 	}
 
+	length = 0;
+	curPos = str + 10;
 	// Add the digits backwards, starting at the end of the array.
-	curPos += 10;
 	while(num > 0){
 		*curPos-- = '0' + num % 10;
 		num /= 10;
@@ -59,7 +60,7 @@ size_t ultostr(unsigned long num, char *str){
 ** represents a single delimiting character. The length of the substring
 ** is written to "outLength" and a pointer to where it begins is returned.
 */
-char *getDelimitedString(char *str, const size_t strLength, const char delim, size_t *outLength){
+char *stringDelimited(char *const restrict str, const size_t strLength, const char delim, size_t *const restrict outLength){
 	// Find the beginning of the string!
 	char *tokStart = strchr(str, delim);
 
@@ -94,7 +95,7 @@ char *getDelimitedString(char *str, const size_t strLength, const char delim, si
 ** represents an array of possible delimiters. The length of the substring
 ** is written to "outLength" and a pointer to where it begins is returned.
 */
-char *getMultiDelimitedString(char *str, const size_t strLength, const char *delims, size_t *outLength){
+char *stringMultiDelimited(char *const restrict str, const size_t strLength, const char *delims, size_t *const restrict outLength){
 	char *tokStart;
 	// Find the beginning of the token!
 	while(*delims != '\0' && !(tokStart = strchr(str, *delims))){
@@ -131,7 +132,7 @@ char *getMultiDelimitedString(char *str, const size_t strLength, const char *del
 ** Return a pointer to the next occurrence of a specified delimiter,
 ** where "delims" is an array of potential delimiters to look for.
 */
-char *getTokenDelims(const char *str, const char *delims){
+char *stringTokenDelims(const char *const restrict str, const char *delims){
 	char *tokEnd;
 	// Find the end of the token!
 	while(*delims != '\0' && !(tokEnd = strchr(str, *delims))){

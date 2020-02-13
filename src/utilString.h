@@ -12,13 +12,10 @@
 #define ULONG_MAX_CHARS 10
 
 
-#define getToken(str, delim) (strchr(str, delim))
-
-
 size_t ultostr(unsigned long num, char *str);
-char *getDelimitedString(char *str, const size_t strLength, const char delim, size_t *outLength);
-char *getMultiDelimitedString(char *str, const size_t strLength, const char *delims, size_t *outLength);
-char *getTokenDelims(const char *str, const char *delims);
+char *stringDelimited(char *const restrict str, const size_t strLength, const char delim, size_t *const restrict outLength);
+char *stringMultiDelimited(char *const restrict str, const size_t strLength, const char *delims, size_t *const restrict outLength);
+char *stringTokenDelims(const char *const restrict str, const char *delims);
 
 
 #endif

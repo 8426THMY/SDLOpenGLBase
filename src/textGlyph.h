@@ -18,7 +18,7 @@ typedef struct textGlyph {
 } textGlyph;
 
 
-textGlyph *textGlyphArrayLoad(const char *glyphPath, const texture *atlas);
+textGlyph *textGlyphArrayLoad(const char *const restrict glyphPath, const texture *const restrict atlas);
 
 
 #endif

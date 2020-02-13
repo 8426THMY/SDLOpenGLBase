@@ -42,10 +42,10 @@
 
 
 // Forward-declare any helper functions!
-static byte_t readBufferByte(const textBuffer *text, const byte_t **cursor);
+static byte_t readBufferByte(const textBuffer *const restrict text, const byte_t **const restrict cursor);
 
 
-void textBufferInit(textBuffer *text, const size_t size){
+void textBufferInit(textBuffer *const restrict text, const size_t size){
 	text->offset = text->start = text->end = memoryManagerGlobalAlloc(size);
 	text->end += size;
 }
@@ -53,7 +53,7 @@ void textBufferInit(textBuffer *text, const size_t size){
 
 // Write a string to a text buffer!
 #warning "This is temporary, I'm not sure how to do it properly in a nice way."
-void textBufferWrite(textBuffer *text, char *str, size_t strSize){
+void textBufferWrite(textBuffer *const restrict text, char *str, size_t strSize){
 	size_t curSize;
 
 	// If the new string will overflow the buffer, write to the
@@ -71,8 +71,8 @@ void textBufferWrite(textBuffer *text, char *str, size_t strSize){
 }
 
 // Read and return a single encoded UTF-8 character from the specified stream.
-uint32_t textBufferRead(const textBuffer *text, const byte_t **cursor){
-	textCmapCodeUnit_t character = {._32 = 0};
+uint32_t textBufferRead(const textBuffer *const restrict text, const byte_t **const restrict cursor){
+	textCMapCodeUnit_t character = {._32 = 0};
 
 	character.byte._1 = readBufferByte(text, cursor);
 	// The character uses one byte.
@@ -100,14 +100,14 @@ uint32_t textBufferRead(const textBuffer *text, const byte_t **cursor){
 }
 
 
-void textBufferDelete(textBuffer *text){
+void textBufferDelete(textBuffer *const restrict text){
 	memoryManagerGlobalFree(text->start);
 }
 
 
 // Read the next byte in a text buffer and move the cursor.
 #warning "This is temporary, I'm not sure how to do it properly in a nice way."
-static byte_t readBufferByte(const textBuffer *text, const byte_t **cursor){
+static byte_t readBufferByte(const textBuffer *const restrict text, const byte_t **const restrict cursor){
 	/*if(*cursor == text->offset){
 		return(UTF8_INVALID_BYTE);
 	}else if(*cursor == text->end){

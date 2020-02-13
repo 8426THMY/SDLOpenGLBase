@@ -65,18 +65,18 @@ typedef struct textureGroupState {
 } textureGroupState;
 
 
-void texGroupFrameInit(textureGroupFrame *texGroupFrame);
-void texGroupAnimDefInit(textureGroupAnimDef *texGroupAnimDef);
-void texGroupInit(textureGroup *texGroup);
-void texGroupStateInit(textureGroupState *texGroupState, const textureGroup *texGroup);
+void texGroupFrameInit(textureGroupFrame *const restrict texGroupFrame);
+void texGroupAnimDefInit(textureGroupAnimDef *const restrict texGroupAnimDef);
+void texGroupInit(textureGroup *const restrict texGroup);
+void texGroupStateInit(textureGroupState *const restrict texGroupState, const textureGroup *const restrict texGroup);
 
-textureGroup *texGroupLoad(const char *texGroupPath);
+textureGroup *texGroupLoad(const char *const restrict texGroupPath, const size_t texGroupPathLength);
 
-void texGroupStateUpdate(textureGroupState *texGroupState, const float time);
-textureGroupFrame *texGroupStateGetFrame(const textureGroupState *texGroupState);
+void texGroupStateUpdate(textureGroupState *const restrict texGroupState, const float time);
+textureGroupFrame *texGroupStateGetFrame(const textureGroupState *const restrict texGroupState);
 
-void texGroupAnimDefDelete(textureGroupAnimDef *texGroupAnimDef);
-void texGroupDelete(textureGroup *texGroup);
+void texGroupAnimDefDelete(textureGroupAnimDef *const restrict texGroupAnimDef);
+void texGroupDelete(textureGroup *const restrict texGroup);
 
 
 extern textureGroup g_texGroupDefault;

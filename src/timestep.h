@@ -23,7 +23,7 @@ typedef struct timestep {
 } timestep;
 
 
-void timestepInit(timestep *step, const float updateRate, const float renderRate);
+void timestepInit(timestep *const restrict step, const float updateRate, const float renderRate);
 
 
 #endif

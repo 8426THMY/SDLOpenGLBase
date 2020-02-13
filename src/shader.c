@@ -14,7 +14,7 @@ static void printShaderError(const GLuint shaderID);
 static void printProgramError(const GLuint shaderID);
 
 
-return_t shaderObjectInit(shaderObject *shader, const GLuint programID){
+return_t shaderObjectInit(shaderObject *const restrict shader, const GLuint programID){
 	// Make sure the shader program was loaded successfully.
 	if(programID == SHADER_INVALID_ID){
 		return(0);
@@ -40,7 +40,7 @@ return_t shaderObjectInit(shaderObject *shader, const GLuint programID){
 	return(1);
 }
 
-return_t shaderSpriteInit(shaderSprite *shader, const GLuint programID){
+return_t shaderSpriteInit(shaderSprite *const restrict shader, const GLuint programID){
 	// Make sure the shader program was loaded successfully.
 	if(programID == SHADER_INVALID_ID){
 		return(0);
@@ -66,7 +66,7 @@ return_t shaderSpriteInit(shaderSprite *shader, const GLuint programID){
 
 
 // Load the shader of type "shaderType" specified by "shaderPath" and return its ID!
-GLuint shaderLoad(const char *shaderPath, const GLenum shaderType){
+GLuint shaderLoad(const char *const restrict shaderPath, const GLenum shaderType){
 	FILE *shaderFile;
 
 	// Load the shader file!
@@ -79,7 +79,7 @@ GLuint shaderLoad(const char *shaderPath, const GLenum shaderType){
 			const long shaderFileSize = ftell(shaderFile);
 			rewind(shaderFile);
 
-			char *shaderSource = memoryManagerGlobalAlloc(shaderFileSize + 1);
+			char *const shaderSource = memoryManagerGlobalAlloc(shaderFileSize + 1);
 			// If we were able to allocate memory
 			// for the shader's code, compile it!
 			if(shaderSource != NULL){

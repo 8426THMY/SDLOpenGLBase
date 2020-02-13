@@ -45,7 +45,7 @@ int main(int argc, char **argv){
 	program prg;
 
 	// If we're able to initialize the libraries, setup the program and start the loop!
-	if(programInit(&prg)){
+	if(programInit(&prg, argv[0])){
 		programLoop(&prg);
 	}
 

@@ -26,10 +26,10 @@ return_t moduleTexGroupSetup();
 void moduleTexGroupCleanup();
 
 textureGroup *moduleTexGroupAlloc();
-void moduleTexGroupFree(textureGroup *texGroup);
+void moduleTexGroupFree(textureGroup *const restrict texGroup);
 void moduleTexGroupClear();
 
-textureGroup *moduleTexGroupFind(const char *name);
+textureGroup *moduleTexGroupFind(const char *const restrict name);
 
 
 extern memoryPool g_texGroupManager;

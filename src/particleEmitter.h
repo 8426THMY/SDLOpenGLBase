@@ -23,15 +23,15 @@ typedef struct particleEmitterDef {
 
 	// This function is executed when the emitter is updated and
 	// returns how many new particles the emitter should spawn.
-	size_t (*func)(particleEmitter *emitter);
+	size_t (*func)(particleEmitter *const restrict emitter);
 } particleEmitterDef;
 
 
-void particleEmitterInit(particleEmitter *emitter);
+void particleEmitterInit(particleEmitter *const restrict emitter);
 
-size_t particleEmitterUpdate(particleEmitter *emitter, const particleEmitterDef *emitterDef, const float time);
+size_t particleEmitterUpdate(particleEmitter *const restrict emitter, const particleEmitterDef *const restrict emitterDef, const float time);
 
-size_t particleEmitterContinuous(particleEmitter *emitter);
+size_t particleEmitterContinuous(particleEmitter *const restrict emitter);
 
 
 #endif

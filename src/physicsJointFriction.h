@@ -42,9 +42,16 @@ typedef struct physicsJointFriction {
 
 typedef struct physicsRigidBody physicsRigidBody;
 
-void physJointFrictionWarmStart(const physicsJointFriction *joint, physicsRigidBody *bodyA, physicsRigidBody *bodyB);
-void physJointFrictionCalculateEffectiveMass(physicsJointFriction *joint, const physicsRigidBody *bodyA, const physicsRigidBody *bodyB);
-void physJointFrictionSolveVelocity(physicsJointFriction *joint, physicsRigidBody *bodyA, physicsRigidBody *bodyB, const float maxFriction);
+void physJointFrictionWarmStart(const physicsJointFriction *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB);
+void physJointFrictionCalculateEffectiveMass(
+	physicsJointFriction *const restrict joint,
+	const physicsRigidBody *const restrict bodyA, const physicsRigidBody *const restrict bodyB
+);
+void physJointFrictionSolveVelocity(
+	physicsJointFriction *joint,
+	physicsRigidBody *bodyA, physicsRigidBody *bodyB,
+	const float maxFriction
+);
 
 
 #endif

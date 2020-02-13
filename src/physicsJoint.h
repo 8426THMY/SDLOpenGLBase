@@ -4,7 +4,6 @@
 
 #include <stdint.h>
 
-
 #include "settingsPhysics.h"
 
 #include "physicsJointDistance.h"
@@ -24,6 +23,8 @@
 #endif
 
 
+typedef uint_least8_t physJointType_t;
+
 #warning "We might be able to remove this."
 typedef struct physicsJointDef {
 	// This array should be large enough
@@ -37,7 +38,7 @@ typedef struct physicsJointDef {
 	} data;
 	// Stores which type of
 	// joint this object is.
-	type_t type;
+	physJointType_t type;
 } physicsJointDef;
 
 typedef struct physicsJoint {
@@ -52,7 +53,7 @@ typedef struct physicsJoint {
 	} data;
 	// Stores which type of
 	// joint this object is.
-	type_t type;
+	physJointType_t type;
 
 	// Rigid body A's address in memory is always
 	// guaranteed to be greater than rigid body B's.
@@ -63,19 +64,21 @@ typedef struct physicsJoint {
 
 typedef struct physicsRigidBody physicsRigidBody;
 
-void physJointPresolve(physicsJoint *joint, physicsRigidBody *bodyA, physicsRigidBody *bodyB, const float dt);
-void physJointSolveVelocity(physicsJoint *joint, physicsRigidBody *bodyA, physicsRigidBody *bodyB);
-void physJointSolvePosition(physicsJoint *joint, physicsRigidBody *bodyA, physicsRigidBody *bodyB);
+void physJointPresolve(
+	physicsJoint *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB, const float dt
+);
+void physJointSolveVelocity(physicsJoint *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB);
+void physJointSolvePosition(physicsJoint *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB);
 
 
 extern void (*physJointPresolveTable[PHYSJOINT_NUM_TYPES])(
-	void *joint, physicsRigidBody *bodyA, physicsRigidBody *bodyB, const float dt
+	void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB, const float dt
 );
 extern void (*physJointSolveVelocityTable[PHYSJOINT_NUM_TYPES])(
-	void *joint, physicsRigidBody *bodyA, physicsRigidBody *bodyB
+	void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB
 );
 extern float (*physJointSolvePositionTable[PHYSJOINT_NUM_TYPES])(
-	void *joint, physicsRigidBody *bodyA, physicsRigidBody *bodyB
+	void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB
 );
 
 

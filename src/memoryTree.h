@@ -80,24 +80,24 @@ typedef struct memoryTree {
 } memoryTree;
 
 
-void *memTreeInit(memoryTree *tree, void *memory, const size_t memorySize);
+void *memTreeInit(memoryTree *const restrict tree, void *const restrict memory, const size_t memorySize);
 
-void *memTreeAlloc(memoryTree *tree, const size_t blockSize);
-void *memTreeResize(memoryTree *tree, void *block, const size_t blockSize);
-void *memTreeRealloc(memoryTree *tree, void *block, const size_t blockSize);
+void *memTreeAlloc(memoryTree *const restrict tree, const size_t blockSize);
+void *memTreeResize(memoryTree *const restrict tree, void *const restrict block, const size_t blockSize);
+void *memTreeRealloc(memoryTree *const restrict tree, void *const restrict block, const size_t blockSize);
 
-void memTreeFree(memoryTree *tree, void *block);
+void memTreeFree(memoryTree *const restrict tree, void *block);
 
-memTreeNode *memTreeClearRegion(void *memory, const size_t memorySize);
-void memTreeClear(memoryTree *tree, void *memory, const size_t memorySize);
+memTreeNode *memTreeClearRegion(void *const restrict memory, const size_t memorySize);
+void memTreeClear(memoryTree *const restrict tree, void *const restrict memory, const size_t memorySize);
 
-void *memTreeExtend(memoryTree *tree, void *memory, const size_t memorySize);
+void *memTreeExtend(memoryTree *const restrict tree, void *const restrict memory, const size_t memorySize);
 
-void memTreeDelete(memoryTree *tree);
+void memTreeDelete(memoryTree *const restrict tree);
 
 #ifdef MEMTREE_DEBUG
-void memTreePrintAllSizes(memoryTree *tree);
-void memTreePrintFreeSizes(memoryTree *tree);
+void memTreePrintAllSizes(memoryTree *const restrict tree);
+void memTreePrintFreeSizes(memoryTree *const restrict tree);
 #endif
 
 

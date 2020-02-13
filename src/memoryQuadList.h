@@ -206,21 +206,25 @@ typedef struct memoryQuadList {
 } memoryQuadList;
 
 
-void *memQuadListInit(memoryQuadList *quadList, void *memory, const size_t memorySize, const size_t blockSize);
+void *memQuadListInit(memoryQuadList *const restrict quadList, void *const restrict memory, const size_t memorySize, const size_t blockSize);
 
-void *memQuadListAlloc(memoryQuadList *quadList);
-void *memQuadListInsertSorted(memoryQuadList *quadList, void **startA, void **startB, void *nextA, void *prevA, const unsigned int swapA, void *nextB, void *prevB, const unsigned int swapB);
+void *memQuadListAlloc(memoryQuadList *const restrict quadList);
+void *memQuadListInsertSorted(
+	memoryQuadList *const restrict quadList, void **const restrict startA, void **const restrict startB,
+	void *const restrict nextA, void *const restrict prevA, const unsigned int swapA,
+	void *const restrict nextB, void *const restrict prevB, const unsigned int swapB
+);
 
-void memQuadListFree(memoryQuadList *quadList, void **start, void *data);
-void memQuadListFreeArray(memoryQuadList *quadList, void *start);
+void memQuadListFree(memoryQuadList *const restrict quadList, void **const restrict start, void *const restrict data);
+void memQuadListFreeArray(memoryQuadList *const restrict quadList, void *const restrict start);
 
-void memQuadListClearRegion(memoryQuadList *quadList, memoryRegion *region, const byte_t flag, void *next);
-void memQuadListClearLastRegion(memoryQuadList *quadList, memoryRegion *region);
-void memQuadListClear(memoryQuadList *quadList);
+void memQuadListClearRegion(memoryQuadList *const restrict quadList, memoryRegion *const restrict region, const byte_t flag, void *next);
+void memQuadListClearLastRegion(memoryQuadList *const restrict quadList, memoryRegion *const restrict region);
+void memQuadListClear(memoryQuadList *const restrict quadList);
 
-void *memQuadListExtend(memoryQuadList *quadList, void *memory, const size_t memorySize);
+void *memQuadListExtend(memoryQuadList *const restrict quadList, void *const restrict memory, const size_t memorySize);
 
-void memQuadListDelete(memoryQuadList *quadList);
+void memQuadListDelete(memoryQuadList *const restrict quadList);
 
 
 #endif

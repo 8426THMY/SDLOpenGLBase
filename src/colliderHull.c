@@ -101,46 +101,53 @@ typedef struct vertexProject {
 
 
 // Forward-declare any helper functions!
-static void hullFaceDataInit(hullFaceData *faceData);
-static void hullEdgeDataInit(hullEdgeData *edgeData);
-static void collisionDataInit(collisionData *cd);
+static void hullFaceDataInit(hullFaceData *const restrict faceData);
+static void hullEdgeDataInit(hullEdgeData *const restrict edgeData);
+static void collisionDataInit(collisionData *const restrict cd);
 
-static return_t faceSeparation(const colliderHull *hullA, const colliderHull *hullB, contactSeparation *cs);
-static return_t edgeSeparation(const colliderHull *hullA, const colliderHull *hullB, contactSeparation *cs);
+static return_t faceSeparation(
+	const colliderHull *const restrict hullA, const colliderHull *const restrict hullB, contactSeparation *const restrict cs
+);
+static return_t edgeSeparation(
+	const colliderHull *const restrict hullA, const colliderHull *const restrict hullB, contactSeparation *const restrict cs
+);
 
-static void clipManifoldSHC(const colliderHull *hullA, const colliderHull *hullB, const collisionData *cd, contactManifold *cm);
+static void clipManifoldSHC(
+	const colliderHull *const restrict hullA, const colliderHull *const restrict hullB,
+	const collisionData *const restrict cd, contactManifold *const restrict cm
+);
 static return_t isMinkowskiFace(
-	const colliderHull *hullA, const colliderHull *hullB,
-	const colliderHullEdge *eA, const vec3 *invEdgeA,
-	const colliderHullEdge *eB, const vec3 *invEdgeB
+	const colliderHull *const restrict hullA, const colliderHull *const restrict hullB,
+	const colliderHullEdge *const restrict eA, const vec3 *const restrict invEdgeA,
+	const colliderHullEdge *const restrict eB, const vec3 *const restrict invEdgeB
 );
 static float edgeDistSquared(
-	const vec3 *pA, const vec3 *edgeDirA,
-	const vec3 *pB, const vec3 *edgeDirB,
-	const vec3 *centroid
+	const vec3 *const restrict pA, const vec3 *const restrict edgeDirA,
+	const vec3 *const restrict pB, const vec3 *const restrict edgeDirB,
+	const vec3 *const restrict centroid
 );
 
 static return_t noSeparatingFace(
-	const colliderHull *hullA, const colliderHull *hullB, hullFaceData *faceData,
-	contactSeparation *separation, const type_t separationType
+	const colliderHull *const restrict hullA, const colliderHull *const restrict hullB, hullFaceData *const restrict faceData,
+	contactSeparation *const restrict separation, const separationType_t separationType
 );
 static return_t noSeparatingEdge(
-	const colliderHull *hullA, const colliderHull *hullB,
-	hullEdgeData *edgeData, contactSeparation *separation
+	const colliderHull *const restrict hullA, const colliderHull *const restrict hullB,
+	hullEdgeData *const restrict edgeData, contactSeparation *const restrict separation
 );
 
-static colliderFaceIndex_t findIncidentFace(const colliderHull *hull, const vec3 *refNormal);
+static colliderFaceIndex_t findIncidentFace(const colliderHull *const restrict hull, const vec3 *const restrict refNormal);
 static void reduceContacts(
-	const vertexProject *vProj, const vertexProject *vLast, const vertexClip *vClip,
-	const vec3 *refNormal, const unsigned int swapped, contactManifold *cm
+	const vertexProject *const restrict vProj, const vertexProject *const restrict vLast, const vertexClip *const restrict vClip,
+	const vec3 *const restrict refNormal, const unsigned int swapped, contactManifold *const restrict cm
 );
 static void clipFaceContact(
-	const colliderHull *hullA, const colliderHull *hullB, const colliderFaceIndex_t refIndex,
-	const unsigned int swapped, contactManifold *cm
+	const colliderHull *const restrict hullA, const colliderHull *const restrict hullB,
+	const colliderFaceIndex_t refIndex, const unsigned int swapped, contactManifold *const restrict cm
 );
 static void clipEdgeContact(
-	const colliderHull *hullA, const colliderHull *hullB,
-	const hullEdgeData *edgeData, contactManifold *cm
+	const colliderHull *const restrict hullA, const colliderHull *const restrict hullB,
+	const hullEdgeData *const restrict edgeData, contactManifold *const restrict cm
 );
 
 
@@ -152,7 +159,7 @@ void colliderHullInit(colliderHull *hull){
 	memset(hull, 0, sizeof(colliderHull));
 }
 
-void colliderHullInstantiate(void *hull, const void *base){
+void colliderHullInstantiate(void *const restrict hull, const void *const restrict base){
 	// Allocate memory for the instance's arrays.
 	((colliderHull *)hull)->vertices = memoryManagerGlobalAlloc(
 		sizeof(*(((colliderHull *)hull)->vertices)) * ((colliderHull *)base)->numVertices
@@ -179,7 +186,11 @@ void colliderHullInstantiate(void *hull, const void *base){
 ** We also calculate the collider's centre of mass
 ** and its moment of inertia tensor.
 */
-return_t colliderHullLoad(void *hull, FILE *hullFile, vec3 *centroid, mat3 *inertia){
+return_t colliderHullLoad(
+	void *const restrict hull, FILE *const restrict hullFile,
+	vec3 *const restrict centroid, mat3 *const restrict inertia
+){
+
 	#ifdef COLLIDER_HULL_USE_VERTEX_WEIGHT
 	float totalWeighting = 0.f;
 	float *vertexWeights;
@@ -503,13 +514,13 @@ return_t colliderHullLoad(void *hull, FILE *hullFile, vec3 *centroid, mat3 *iner
 ** To do this, we calculate the average of the
 ** hull's vertices.
 */
-void colliderHullGenerateCentroid(const colliderHull *hull, vec3 *centroid){
+void colliderHullGenerateCentroid(const colliderHull *const restrict hull, vec3 *const restrict centroid){
 	const colliderVertexIndex_t numVertices = hull->numVertices;
 
 	// We don't want to divide by zero.
 	if(numVertices > 0){
 		const vec3 *curVertex = hull->vertices;
-		const vec3 *lastVertex = &curVertex[numVertices];
+		const vec3 *const lastVertex = &curVertex[numVertices];
 		vec3 newCentroid;
 		vec3InitZero(&newCentroid);
 
@@ -530,10 +541,13 @@ void colliderHullGenerateCentroid(const colliderHull *hull, vec3 *centroid){
 ** To do this, we calculate the weighted average of the
 ** hull's vertices.
 */
-void colliderHullGenerateCentroidWeighted(const colliderHull *hull, const float *vertexWeights, vec3 *centroid){
+void colliderHullGenerateCentroidWeighted(
+	const colliderHull *const restrict hull, const float *restrict vertexWeights, vec3 *const restrict centroid
+){
+
 	const colliderVertexIndex_t numVertices = hull->numVertices;
 	const vec3 *curVertex = hull->vertices;
-	const vec3 *lastVertex = &curVertex[numVertices];
+	const vec3 *const lastVertex = &curVertex[numVertices];
 	vec3 newCentroid;
 	float totalWeight = 0.f;
 
@@ -558,10 +572,10 @@ void colliderHullGenerateCentroidWeighted(const colliderHull *hull, const float 
 }
 
 // Calculate the collider's inertia tensor.
-void colliderHullGenerateInertia(const colliderHull *hull, mat3 *inertia){
-	const vec3 *centroid = &hull->centroid;
+void colliderHullGenerateInertia(const colliderHull *const restrict hull, mat3 *const restrict inertia){
+	const vec3 *const centroid = &hull->centroid;
 	const vec3 *curVertex = hull->vertices;
-	const vec3 *lastVertex = &curVertex[hull->numVertices];
+	const vec3 *const lastVertex = &curVertex[hull->numVertices];
 	float tempInertia[6];
 
 	memset(tempInertia, 0.f, sizeof(tempInertia));
@@ -602,10 +616,13 @@ void colliderHullGenerateInertia(const colliderHull *hull, mat3 *inertia){
 ** Vertices with a greater weight value will have a
 ** greater contribution to the final tensor.
 */
-void colliderHullGenerateInertiaWeighted(const colliderHull *hull, const float *vertexWeights, mat3 *inertia){
-	const vec3 *centroid = &hull->centroid;
+void colliderHullGenerateInertiaWeighted(
+	const colliderHull *const restrict hull, const float *restrict vertexWeights, mat3 *const restrict inertia
+){
+
+	const vec3 *const centroid = &hull->centroid;
 	const vec3 *curVertex = hull->vertices;
-	const vec3 *lastVertex = &curVertex[hull->numVertices];
+	const vec3 *const lastVertex = &curVertex[hull->numVertices];
 	float tempInertia[6];
 
 	memset(tempInertia, 0.f, sizeof(tempInertia));
@@ -647,7 +664,11 @@ void colliderHullGenerateInertiaWeighted(const colliderHull *hull, const float *
 ** Transform a hull instance's vertices according to the transformation
 ** information supplied and, in doing so, generate a new bounding box.
 */
-void colliderHullUpdate(void *hull, const void *base, const transformState *trans, colliderAABB *aabb){
+void colliderHullUpdate(
+	void *const restrict hull, const void *const restrict base,
+	const transformState *const restrict trans, colliderAABB *const restrict aabb
+){
+
 	vec3 *curFeature = ((colliderHull *)hull)->vertices;
 	const vec3 *baseFeature = ((colliderHull *)base)->vertices;
 	const vec3 *lastFeature = &curFeature[((colliderHull *)hull)->numVertices];
@@ -716,12 +737,12 @@ void colliderHullUpdate(void *hull, const void *base, const transformState *tran
 
 
 // Return a pointer to the vertex farthest from the origin in the direction "dir".
-const vec3 *colliderHullSupport(const colliderHull *hull, const vec3 *dir){
+const vec3 *colliderHullSupport(const colliderHull *const restrict hull, const vec3 *const restrict dir){
 	const vec3 *bestVertex = hull->vertices;
 	float bestDistance = vec3DotVec3(bestVertex, dir);
 
 	const vec3 *curVertex = &bestVertex[1];
-	const vec3 *lastVertex = &bestVertex[hull->numVertices];
+	const vec3 *const lastVertex = &bestVertex[hull->numVertices];
 
 	for(; curVertex < lastVertex; ++curVertex){
 		const float curDistance = vec3DotVec3(curVertex, dir);
@@ -738,7 +759,10 @@ const vec3 *colliderHullSupport(const colliderHull *hull, const vec3 *dir){
 
 
 // Check if a separation still exists between two hulls.
-return_t colliderHullSeparated(const void *hullA, const void *hullB, contactSeparation *cs){
+return_t colliderHullSeparated(
+	const void *const restrict hullA, const void *const restrict hullB, contactSeparation *const restrict cs
+){
+
 	switch(cs->type){
 		case COLLIDER_HULL_SEPARATION_FACE_A:
 			return(faceSeparation(hullA, hullB, cs));
@@ -748,7 +772,6 @@ return_t colliderHullSeparated(const void *hullA, const void *hullB, contactSepa
 		break;
 		default:
 			return(edgeSeparation(hullA, hullB, cs));
-		break;
 	}
 }
 
@@ -758,7 +781,11 @@ return_t colliderHullSeparated(const void *hullA, const void *hullB, contactSepa
 ** Gregorius for his GDC 2013 presentation on utilising
 ** Gauss map and Minkowski space to optimise this!
 */
-return_t colliderHullCollidingSAT(const void *hullA, const void *hullB, contactSeparation *separation, contactManifold *cm){
+return_t colliderHullCollidingSAT(
+	const void *const restrict hullA, const void *const restrict hullB,
+	contactSeparation *const restrict separation, contactManifold *const restrict cm
+){
+
 	collisionData cd;
 	// We technically don't need to initialise
 	// this, but it's always good to be safe.
@@ -780,7 +807,7 @@ return_t colliderHullCollidingSAT(const void *hullA, const void *hullB, contactS
 }
 
 
-void colliderHullDeleteInstance(void *hull){
+void colliderHullDeleteInstance(void *const restrict hull){
 	if(((colliderHull *)hull)->vertices != NULL){
 		memoryManagerGlobalFree(((colliderHull *)hull)->vertices);
 	}
@@ -789,7 +816,7 @@ void colliderHullDeleteInstance(void *hull){
 	}
 }
 
-void colliderHullDelete(void *hull){
+void colliderHullDelete(void *const restrict hull){
 	if(((colliderHull *)hull)->vertices != NULL){
 		memoryManagerGlobalFree(((colliderHull *)hull)->vertices);
 	}
@@ -805,12 +832,12 @@ void colliderHullDelete(void *hull){
 }
 
 
-static void hullFaceDataInit(hullFaceData *faceData){
+static void hullFaceDataInit(hullFaceData *const restrict faceData){
 	faceData->index = COLLIDER_HULL_INVALID_FEATURE;
 	faceData->separation = -INFINITY;
 }
 
-static void hullEdgeDataInit(hullEdgeData *edgeData){
+static void hullEdgeDataInit(hullEdgeData *const restrict edgeData){
 	edgeData->edgeA = COLLIDER_HULL_INVALID_FEATURE;
 	edgeData->edgeB = COLLIDER_HULL_INVALID_FEATURE;
 	edgeData->separation = -INFINITY;
@@ -820,7 +847,7 @@ static void hullEdgeDataInit(hullEdgeData *edgeData){
 ** This is only required if we're trying to check
 ** collision against an object with no vertices.
 */
-static void collisionDataInit(collisionData *cd){
+static void collisionDataInit(collisionData *const restrict cd){
 	hullFaceDataInit(&cd->faceA);
 	hullFaceDataInit(&cd->faceB);
 	hullEdgeDataInit(&cd->edgeData);
@@ -828,8 +855,11 @@ static void collisionDataInit(collisionData *cd){
 
 
 // Return whether a face separation between two convex hulls still exists.
-static return_t faceSeparation(const colliderHull *hullA, const colliderHull *hullB, contactSeparation *cs){
-	const vec3 *normal = &hullA->normals[cs->featureA];
+static return_t faceSeparation(
+	const colliderHull *const restrict hullA, const colliderHull *const restrict hullB, contactSeparation *const restrict cs
+){
+
+	const vec3 *const normal = &hullA->normals[cs->featureA];
 	const vec3 invNormal = {
 		.x = -normal->x,
 		.y = -normal->y,
@@ -846,12 +876,15 @@ static return_t faceSeparation(const colliderHull *hullA, const colliderHull *hu
 }
 
 // Return whether an edge separation between two convex hulls still exists.
-static return_t edgeSeparation(const colliderHull *hullA, const colliderHull *hullB, contactSeparation *cs){
-	const colliderHullEdge *edgeA = &hullA->edges[cs->featureA];
-	const vec3 *startVertexA = &hullA->vertices[edgeA->endVertexIndex];
+static return_t edgeSeparation(
+	const colliderHull *const restrict hullA, const colliderHull *const restrict hullB, contactSeparation *const restrict cs
+){
+
+	const colliderHullEdge *const edgeA = &hullA->edges[cs->featureA];
+	const vec3 *const startVertexA = &hullA->vertices[edgeA->endVertexIndex];
 	vec3 invEdgeA;
-	const colliderHullEdge *edgeB = &hullB->edges[cs->featureB];
-	const vec3 *startVertexB = &hullB->vertices[edgeB->endVertexIndex];
+	const colliderHullEdge *const edgeB = &hullB->edges[cs->featureB];
+	const vec3 *const startVertexB = &hullB->vertices[edgeB->endVertexIndex];
 	vec3 invEdgeB;
 
 	vec3SubtractVec3FromOut(startVertexA, &hullA->vertices[edgeA->endVertexIndex], &invEdgeA);
@@ -870,7 +903,11 @@ static return_t edgeSeparation(const colliderHull *hullA, const colliderHull *hu
 ** using the Sutherland-Hodgman clipping algorithm
 ** to create the contact manifold.
 */
-static void clipManifoldSHC(const colliderHull *hullA, const colliderHull *hullB, const collisionData *cd, contactManifold *cm){
+static void clipManifoldSHC(
+	const colliderHull *const restrict hullA, const colliderHull *const restrict hullB,
+	const collisionData *const restrict cd, contactManifold *const restrict cm
+){
+
 	const float bestFaceSeparation = maxFloatFast(cd->faceA.separation, cd->faceB.separation);
 
 	// If the greatest separation occurs on an edge normal, clip using
@@ -929,7 +966,6 @@ static void clipManifoldSHC(const colliderHull *hullA, const colliderHull *hullB
 	}
 }
 
-
 /*
 ** We know that the face normals of the two shapes'
 ** Minkowski difference are the only separating axes.
@@ -942,9 +978,9 @@ static void clipManifoldSHC(const colliderHull *hullA, const colliderHull *hullB
 ** whether they form a face on the Minkowski difference.
 */
 static return_t isMinkowskiFace(
-	const colliderHull *hullA, const colliderHull *hullB,
-	const colliderHullEdge *eA, const vec3 *invEdgeA,
-	const colliderHullEdge *eB, const vec3 *invEdgeB
+	const colliderHull *const restrict hullA, const colliderHull *const restrict hullB,
+	const colliderHullEdge *const restrict eA, const vec3 *const restrict invEdgeA,
+	const colliderHullEdge *const restrict eB, const vec3 *const restrict invEdgeB
 ){
 
 	// Note that in this function, the following terminology is used:
@@ -976,9 +1012,9 @@ static return_t isMinkowskiFace(
 
 // Return the squared distance between two edges.
 static float edgeDistSquared(
-	const vec3 *pA, const vec3 *edgeDirA,
-	const vec3 *pB, const vec3 *edgeDirB,
-	const vec3 *centroid
+	const vec3 *const restrict pA, const vec3 *const restrict edgeDirA,
+	const vec3 *const restrict pB, const vec3 *const restrict edgeDirB,
+	const vec3 *const restrict centroid
 ){
 
 	vec3 edgeNormal;
@@ -1022,8 +1058,8 @@ static float edgeDistSquared(
 ** the variable "faceData".
 */
 static return_t noSeparatingFace(
-	const colliderHull *hullA, const colliderHull *hullB, hullFaceData *faceData,
-	contactSeparation *separation, const type_t separationType
+	const colliderHull *const restrict hullA, const colliderHull *const restrict hullB, hullFaceData *const restrict faceData,
+	contactSeparation *const restrict separation, const separationType_t separationType
 ){
 
 	const colliderHullFace *curFace = hullA->faces;
@@ -1083,20 +1119,20 @@ static return_t noSeparatingFace(
 ** We store the least separating edge pair in "edgeData".
 */
 static return_t noSeparatingEdge(
-	const colliderHull *hullA, const colliderHull *hullB,
-	hullEdgeData *edgeData, contactSeparation *separation
+	const colliderHull *const restrict hullA, const colliderHull *const restrict hullB,
+	hullEdgeData *const restrict edgeData, contactSeparation *const restrict separation
 ){
 
 	colliderHullEdge *edgeA = hullA->edges;
-	const colliderHullEdge *lastEdgeA = &edgeA[hullA->numEdges];
-	const colliderHullEdge *lastEdgeB = &hullB->edges[hullB->numEdges];
+	const colliderHullEdge *const lastEdgeA = &edgeA[hullA->numEdges];
+	const colliderHullEdge *const lastEdgeB = &hullB->edges[hullB->numEdges];
 	colliderEdgeIndex_t a;
 
 	// We skip every second edge since
 	// it will be the last one's twin.
 	for(a = 0; edgeA < lastEdgeA; ++edgeA, ++a){
 		colliderHullEdge *edgeB = hullB->edges;
-		const vec3 *startVertexA = &hullA->vertices[edgeA->startVertexIndex];
+		const vec3 *const startVertexA = &hullA->vertices[edgeA->startVertexIndex];
 		vec3 invEdgeA;
 		colliderEdgeIndex_t b;
 
@@ -1146,7 +1182,7 @@ static return_t noSeparatingEdge(
 ** is defined as the face farthest in the direction
 ** opposite the reference face's normal.
 */
-static colliderFaceIndex_t findIncidentFace(const colliderHull *hull, const vec3 *refNormal){
+static colliderFaceIndex_t findIncidentFace(const colliderHull *const restrict hull, const vec3 *const restrict refNormal){
 	const vec3 *curNormal = hull->normals;
 	colliderFaceIndex_t bestFace = 0;
 	float bestDistance = vec3DotVec3(curNormal, refNormal);
@@ -1172,8 +1208,8 @@ static colliderFaceIndex_t findIncidentFace(const colliderHull *hull, const vec3
 ** the greatest total area.
 */
 static void reduceContacts(
-	const vertexProject *vProj, const vertexProject *vLast, const vertexClip *vClip,
-	const vec3 *refNormal, const unsigned int swapped, contactManifold *cm
+	const vertexProject *const restrict vProj, const vertexProject *const restrict vLast, const vertexClip *const restrict vClip,
+	const vec3 *const restrict refNormal, const unsigned int swapped, contactManifold *const restrict cm
 ){
 
 	// We start with our best and worst vertices as the
@@ -1241,7 +1277,7 @@ static void reduceContacts(
 
 	// Again, we start with our best and worst vertices as
 	// the first one so we can begin the loop on the second.
-	bestProj  = vProj;
+	bestProj = vProj;
 	bestClip = vClip;
 	bestDist = vec3DotVec3Float(&edgeNormal, firstContact->x - bestProj->v.x, firstContact->y - bestProj->v.y, firstContact->z - bestProj->v.z);
 	worstProj = vProj;
@@ -1289,7 +1325,6 @@ static void reduceContacts(
 		curContact->normal = *refNormal;
 		curContact->separation = worstProj->dist;
 		curContact->key = worstClip->key;
-
 	}else{
 		// Add the points to our manifold.
 		curContact->pA = bestProj->v;
@@ -1333,8 +1368,8 @@ static void reduceContacts(
 ** "hullA" and the incident face is always assumed to be on "hullB".
 */
 static void clipFaceContact(
-	const colliderHull *hullA, const colliderHull *hullB, const colliderFaceIndex_t refIndex,
-	const unsigned int swapped, contactManifold *cm
+	const colliderHull *const restrict hullA, const colliderHull *const restrict hullB,
+	const colliderFaceIndex_t refIndex, const unsigned int swapped, contactManifold *const restrict cm
 ){
 
 	// Meshes store the number of edges that their largest faces have,
@@ -1343,7 +1378,7 @@ static void clipFaceContact(
 	// to store twice the maximum number of edges that a face has, as
 	// each edge can intersect two faces at most. This means that, in
 	// practice, we are really storing four times the number of edges.
-	vertexClip *vertices = memoryManagerGlobalAlloc(hullB->maxFaceEdges * sizeof(*vertices) * 2);
+	vertexClip *const vertices = memoryManagerGlobalAlloc(hullB->maxFaceEdges * sizeof(*vertices) * 2);
 	if(vertices == NULL){
 		/** MALLOC FAILED **/
 	}
@@ -1660,22 +1695,22 @@ static void clipFaceContact(
 ** closest points between the minimising edges.
 */
 static void clipEdgeContact(
-	const colliderHull *hullA, const colliderHull *hullB,
-	const hullEdgeData *edgeData, contactManifold *cm
+	const colliderHull *const restrict hullA, const colliderHull *const restrict hullB,
+	const hullEdgeData *const restrict edgeData, contactManifold *const restrict cm
 ){
 
-	const colliderHullEdge *refEdge = &hullA->edges[edgeData->edgeA];
-	const vec3 *refStart = &hullA->vertices[refEdge->startVertexIndex];
-	const vec3 *refEnd   = &hullA->vertices[refEdge->endVertexIndex];
+	const colliderHullEdge *const refEdge = &hullA->edges[edgeData->edgeA];
+	const vec3 *const refStart = &hullA->vertices[refEdge->startVertexIndex];
+	const vec3 *const refEnd   = &hullA->vertices[refEdge->endVertexIndex];
 	const vec3 ref = {
 		.x = refEnd->x - refStart->x,
 		.y = refEnd->y - refStart->y,
 		.z = refEnd->z - refStart->z
 	};
 
-	const colliderHullEdge *incEdge = &hullB->edges[edgeData->edgeB];
-	const vec3 *incStart = &hullB->vertices[incEdge->startVertexIndex];
-	const vec3 *incEnd   = &hullB->vertices[incEdge->endVertexIndex];
+	const colliderHullEdge *const incEdge = &hullB->edges[edgeData->edgeB];
+	const vec3 *const incStart = &hullB->vertices[incEdge->startVertexIndex];
+	const vec3 *const incEnd   = &hullB->vertices[incEdge->endVertexIndex];
 	const vec3 inc = {
 		.x = incEnd->x - incStart->x,
 		.y = incEnd->y - incStart->y,
@@ -1693,7 +1728,7 @@ static void clipEdgeContact(
 		.z = refStart->z - hullA->centroid.z
 	};
 
-	contactPoint *contact = &cm->contacts[0];
+	contactPoint *const contact = &cm->contacts[0];
 	vec3 normal;
 
 

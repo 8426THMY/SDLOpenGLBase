@@ -22,14 +22,14 @@ typedef struct texture {
 } texture;
 
 
-void textureInit(texture *tex);
+void textureInit(texture *const restrict tex);
 
-texture *textureLoad(const char *texPath);
+texture *textureLoad(const char *const restrict texPath, const size_t texPathLength);
 return_t textureSetupDefault();
 
 void textureSetFiltering(const GLuint id, GLint filtering, const uint_least8_t mips);
 
-void textureDelete(texture *tex);
+void textureDelete(texture *const restrict tex);
 
 
 extern texture g_texDefault;

@@ -121,12 +121,14 @@ typedef struct guiPanel {
 } guiPanel;
 
 
-void guiPanelInit(guiPanel *gui);
+void guiPanelInit(guiPanel *const restrict gui);
 
-void guiPanelUpdate(void *gui, const float time);
-void guiPanelDraw(const void *gui, const transformState *root, const shaderSprite *shader);
+void guiPanelUpdate(void *const restrict gui, const float time);
+void guiPanelDraw(
+	const void *const restrict gui, const transformState *const restrict root, const shaderSprite *const restrict shader
+);
 
-void guiPanelDelete(void *gui);
+void guiPanelDelete(void *const restrict gui);
 
 
 #endif

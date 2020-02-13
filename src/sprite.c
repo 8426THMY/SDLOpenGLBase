@@ -7,7 +7,7 @@
 sprite g_spriteDefault;
 
 
-void spriteInit(sprite *spriteData){
+void spriteInit(sprite *const restrict spriteData){
 	spriteData->vertexArrayID  = SPRITE_INVALID_BUFFER_ID;
 	spriteData->vertexBufferID = SPRITE_INVALID_BUFFER_ID;
 
@@ -23,7 +23,11 @@ void spriteInit(sprite *spriteData){
 ** the state and UV buffers are not filled at this stage.
 ** We only fill them when we actually draw our sprite.
 */
-void spriteGenerateBuffers(sprite *spriteData, const spriteVertex *vertices, const size_t numVertices, const size_t *indices, const size_t numIndices){
+void spriteGenerateBuffers(
+	sprite *const restrict spriteData, const spriteVertex *const restrict vertices, const size_t numVertices,
+	const size_t *const restrict indices, const size_t numIndices
+){
+
 	// Generate a vertex array object for our sprite and bind it!
 	glGenVertexArrays(1, &spriteData->vertexArrayID);
 	glBindVertexArray(spriteData->vertexArrayID);
@@ -90,12 +94,12 @@ void spriteGenerateBuffers(sprite *spriteData, const spriteVertex *vertices, con
 ** Return whether or not two vertices are different.
 ** This works so long as our vertices have no padding.
 */
-return_t spriteVertexDifferent(const spriteVertex *v1, const spriteVertex *v2){
+return_t spriteVertexDifferent(const spriteVertex *const restrict v1, const spriteVertex *const restrict v2){
 	return(memcmp(v1, v2, sizeof(*v2)) != 0);
 }
 
 // Return whether or not two sprites are different.
-return_t spriteDifferent(const sprite *s1, const sprite *s2){
+return_t spriteDifferent(const sprite *const restrict s1, const sprite *const restrict s2){
 	return(s1->vertexArrayID != s2->vertexArrayID);
 }
 
@@ -132,7 +136,7 @@ return_t spriteSetupDefault(){
 }
 
 
-void spriteDelete(sprite *spriteData){
+void spriteDelete(sprite *const restrict spriteData){
 	// This works because the buffer IDs are in consecutive memory,
 	// though it does require our sprite structure to have no padding.
 	glDeleteBuffers(3, &spriteData->vertexBufferID);

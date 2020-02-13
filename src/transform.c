@@ -15,7 +15,7 @@ void transformStateInit(transformState *trans){
 
 // Accumulate two transformation states and store the result in "out"!
 // This effectively multiplies them as if they're matrices.
-void transformStateAppend(const transformState *trans1, const transformState *trans2, transformState *out){
+void transformStateAppend(const transformState *const restrict trans1, const transformState *const restrict trans2, transformState *const restrict out){
 	vec3 pos;
 
 	vec3MultiplyVec3Out(&trans1->scale, &trans2->pos, &pos);
@@ -31,14 +31,14 @@ void transformStateAppend(const transformState *trans1, const transformState *tr
 }
 
 // Interpolate between two states and store the result in "out"!
-void transformStateInterpSet(const transformState *trans1, const transformState *trans2, const float time, transformState *out){
+void transformStateInterpSet(const transformState *const restrict trans1, const transformState *const restrict trans2, const float time, transformState *const restrict out){
 	vec3Lerp(&trans1->pos, &trans2->pos, time, &out->pos);
 	quatSlerpFasterOut(&trans1->rot, &trans2->rot, time, &out->rot);
 	vec3Lerp(&trans1->scale, &trans2->scale, time, &out->scale);
 }
 
 // Interpolate between two states and add the offsets to "out"!
-void transformStateInterpAdd(const transformState *trans1, const transformState *trans2, const float time, transformState *out){
+void transformStateInterpAdd(const transformState *const restrict trans1, const transformState *const restrict trans2, const float time, transformState *const restrict out){
 	union {
 		vec3 pos;
 		quat rot;
@@ -60,7 +60,7 @@ void transformStateInterpAdd(const transformState *trans1, const transformState 
 
 
 // Invert all three components of a transformation state.
-void transformStateInvert(const transformState *trans, transformState *out){
+void transformStateInvert(const transformState *const restrict trans, transformState *const restrict out){
 	// Invert the transform's rotation!
 	quatConjugateOut(&trans->rot, &out->rot);
 
@@ -73,7 +73,7 @@ void transformStateInvert(const transformState *trans, transformState *out){
 }
 
 // Convert a transformation state to a matrix.
-void transformStateToMat4(const transformState *trans, mat4 *out){
+void transformStateToMat4(const transformState *const restrict trans, mat4 *const restrict out){
 	mat4InitTranslateVec3(out, &trans->pos);
 	mat4RotateQuat(out, &trans->rot);
 	mat4ScaleVec3(out, &trans->scale);
@@ -81,14 +81,14 @@ void transformStateToMat4(const transformState *trans, mat4 *out){
 
 
 // Transform a vec3 by scaling it, rotating it and finally translating it.
-void transformStateTransformPosition(const transformState *trans, const vec3 *v, vec3 *out){
+void transformStateTransformPosition(const transformState *const restrict trans, const vec3 *const restrict v, vec3 *const restrict out){
 	vec3MultiplyVec3Out(&trans->scale, v, out);
 	quatRotateVec3Fast(&trans->rot, out, out);
 	vec3AddVec3(out, &trans->pos);
 }
 
 // Transform a vec3 by scaling it and rotating it, but not translating it.
-void transformStateTransformVelocity(const transformState *trans, const vec3 *v, vec3 *out){
+void transformStateTransformVelocity(const transformState *const restrict trans, const vec3 *const restrict v, vec3 *const restrict out){
 	vec3MultiplyVec3Out(&trans->scale, v, out);
 	quatRotateVec3Fast(&trans->rot, out, out);
 }

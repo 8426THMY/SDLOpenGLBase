@@ -24,7 +24,7 @@ void objectDefInit(objectDef *objDef){
 	objDef->renderables = NULL;
 }
 
-void objectInit(object *obj, const objectDef *objDef){
+void objectInit(object *const restrict obj, const objectDef *const restrict objDef){
 	const physicsRigidBodyDef *curBody = objDef->physBodies;
 	const renderableDef *curRenderable = objDef->renderables;
 
@@ -51,7 +51,12 @@ void objectInit(object *obj, const objectDef *objDef){
 }
 
 
-void objectUpdate(object *obj, const float time){
+return_t objectDefLoad(objectDef *const restrict objDef, const char *const restrict objFile){
+	return(0);
+}
+
+
+void objectUpdate(object *const restrict obj, const float time){
 	skeletonAnim *curAnim = obj->skeleData.anims;
 	// Update which frame each animation is currently on!
 	while(curAnim != NULL){
@@ -71,7 +76,11 @@ void objectUpdate(object *obj, const float time){
 
 #warning "A lot of this stuff should be moved outside, especially the OpenGL code and skeleton stuff."
 #include "billboard.h"
-void objectDraw(const object *obj, const camera *cam, const shaderObject *shader, const float time){
+void objectDraw(
+	const object *const restrict obj, const camera *const restrict cam,
+	const shaderObject *const restrict shader, const float time
+){
+
 	const renderable *curRenderable;
 
 	#warning "Could we store these in the skeleton object and allocate them in the same call as the bone states?"
@@ -79,7 +88,7 @@ void objectDraw(const object *obj, const camera *cam, const shaderObject *shader
 	mat4 animStates[SKELETON_MAX_BONES];
 	mat4 *curState = animStates;
 	const boneState *curBone = obj->skeleData.bones;
-	const boneState *lastBone = &curBone[obj->skeleData.skele->numBones];
+	const boneState *const lastBone = &curBone[obj->skeleData.skele->numBones];
 
 	// Convert every bone transformation to a matrix!
 	do {
@@ -132,7 +141,7 @@ void objectDraw(const object *obj, const camera *cam, const shaderObject *shader
 
 
 /** We don't currently have a way of freeing the stuff that's commented out. **/
-void objectDelete(object *obj){
+void objectDelete(object *const restrict obj){
 	skeleObjDelete(&obj->skeleData);
 
 	// obj->colliders = NULL;
@@ -142,7 +151,7 @@ void objectDelete(object *obj){
 }
 
 /** We don't currently have a way of freeing the stuff that's commented out. **/
-void objectDefDelete(objectDef *objDef){
+void objectDefDelete(objectDef *const restrict objDef){
 	if(objDef->name != NULL){
 		memoryManagerGlobalFree(objDef->name);
 	}
@@ -155,16 +164,11 @@ void objectDefDelete(objectDef *objDef){
 
 
 // Update all of an object's bones!
-static void updateBones(object *obj, const float time){
-	boneState *curObjBone;
-	const boneState *lastObjBone;
-	const bone *curSkeleBone;
-	size_t i;
-
-	curObjBone = obj->skeleData.bones;
-	lastObjBone = &curObjBone[obj->skeleData.skele->numBones];
-	curSkeleBone = obj->skeleData.skele->bones;
-	i = 0;
+static void updateBones(object *const restrict obj, const float time){
+	boneState *curObjBone = obj->skeleData.bones;
+	const boneState *const lastObjBone = &curObjBone[obj->skeleData.skele->numBones];
+	const bone *curSkeleBone = obj->skeleData.skele->bones;
+	size_t i = 0;
 	// Apply the effects of each animation one bone at a time!
 	for(; curObjBone < lastObjBone; ++curObjBone, ++curSkeleBone, ++i){
 		const size_t parentID = curSkeleBone->parent;

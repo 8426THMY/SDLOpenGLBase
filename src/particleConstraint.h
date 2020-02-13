@@ -13,7 +13,7 @@ typedef struct particleConstraint {
 	} data;
 
 	// This function is executed on each particle.
-	void (*func)(const void *constraint, particle *part, const float time);
+	void (*func)(const void *const restrict constraint, particle *const restrict part, const float time);
 } particleConstraint;
 
 

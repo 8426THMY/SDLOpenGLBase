@@ -26,17 +26,17 @@
 // These function macros allow us to declare
 // prototypes for custom sorting functions.
 #define insertionSortDeclare(name, type) \
-	void insertionSort##name(type *array, const size_t arraySize);
+	void insertionSort##name(type *const restrict array, const size_t arraySize);
 #define timsortDeclare(name, type)   \
 	insertionSortDeclare(name, type) \
-	void timsort##name(type *array, const size_t arraySize);
+	void timsort##name(type *const restrict array, const size_t arraySize);
 
 // Assuming a function prototype has been created using
 // the macros above, these macros provide the definitions.
 #define insertionSortDefine(name, type, compare)                                             \
-	void insertionSort##name(type *array, const size_t arraySize){                           \
+	void insertionSort##name(type *const restrict array, const size_t arraySize){            \
 		type *sort = array;                                                                  \
-		const type *last = &array[arraySize];                                                \
+		const type *const last = &array[arraySize];                                          \
 		for(; sort < last; ++sort){                                                          \
 			const type temp = *sort;                                                         \
                                                                                              \
@@ -48,8 +48,12 @@
 		}                                                                                    \
 	}
 #define timsortDefine(name, type, compare)                                                                         \
-	static void mergeHalves##name(type *array, type *leftArray, type *rightArray, const type *rightLast){          \
-		const type *leftLast = rightArray;                                                                         \
+	static void mergeHalves##name(                                                                                 \
+		type *array, type *leftArray,                                                                              \
+		type *rightArray, const type *const restrict rightLast                                                     \
+	){                                                                                                             \
+                                                                                                                   \
+		const type *const leftLast = rightArray;                                                                   \
                                                                                                                    \
 		for(;;){                                                                                                   \
 			if(compare(leftArray, rightArray) != SORT_COMPARE_GREATER){                                            \
@@ -86,11 +90,11 @@
                                                                                                                    \
 	insertionSortDefine(name, type, compare)                                                                       \
                                                                                                                    \
-	void timsort##name(type *array, const size_t arraySize){                                                       \
+	void timsort##name(type *const restrict array, const size_t arraySize){                                        \
 		type *subArray = array;                                                                                    \
 		size_t size = TIMSORT_RUN_SIZE;                                                                            \
                                                                                                                    \
-		type *tempArray = memoryManagerGlobalAlloc(arraySize * sizeof(type));                                      \
+		type *const tempArray = memoryManagerGlobalAlloc(arraySize * sizeof(type));                                \
 		if(tempArray == NULL){                                                                                     \
 			/** MALLOC FAILED **/                                                                                  \
 		}                                                                                                          \
@@ -143,8 +147,14 @@
 return_t compareFloat(const float x, const float y);
 
 // Generic sorting functions. If you want something more performant, use the function macros.
-void insertionSort(void *array, const size_t arraySize, const size_t elementSize, void *temp, return_t (*compare)(const void *e1, const void *e2));
-void timsort(void *array, const size_t arraySize, const size_t elementSize, return_t (*compare)(const void *e1, const void *e2));
+void insertionSort(
+	void *const restrict array, const size_t arraySize, const size_t elementSize, void *const restrict temp,
+	return_t (*const compare)(const void *const restrict e1, const void *const restrict e2)
+);
+void timsort(
+	void *const restrict array, const size_t arraySize, const size_t elementSize,
+	return_t (*const compare)(const void *const restrict e1, const void *const restrict e2)
+);
 
 
 #endif

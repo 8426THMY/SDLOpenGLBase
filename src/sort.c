@@ -11,9 +11,9 @@
 
 // Forward-declare any helper functions!
 static void mergeHalves(
-	void *array, const size_t elementSize,
-	void *leftArray, void *rightArray, const void *rightLast,
-	return_t (*compare)(const void *e1, const void *e2)
+	void *const restrict array, const size_t elementSize,
+	void *const restrict leftArray, void *const restrict rightArray, const void *const restrict rightLast,
+	return_t (*const compare)(const void *const restrict e1, const void *const restrict e2)
 );
 
 
@@ -38,9 +38,13 @@ return_t compareFloat(const float x, const float y){
 **
 ** Note that temp must be large enough to contain at least elementSize bytes.
 */
-void insertionSort(void *array, const size_t arraySize, const size_t elementSize, void *temp, return_t (*compare)(const void *e1, const void *e2)){
+void insertionSort(
+	void *const restrict array, const size_t arraySize, const size_t elementSize, void *const restrict temp,
+	return_t (*const compare)(const void *const restrict e1, const void *const restrict e2)
+){
+
 	void *sort = nextElement(array, elementSize);
-	const void *last = getElement(array, arraySize, elementSize);
+	const void *const last = getElement(array, arraySize, elementSize);
 
 	// Sort every element in the array starting from the second.
 	for(; sort < last; sort = nextElement(sort, elementSize)){
@@ -64,12 +68,16 @@ void insertionSort(void *array, const size_t arraySize, const size_t elementSize
 ** as it is stable, adaptive and very performant.
 ** In most cases, you'll want to use this.
 */
-void timsort(void *array, const size_t arraySize, const size_t elementSize, return_t (*compare)(const void *e1, const void *e2)){
+void timsort(
+	void *const restrict array, const size_t arraySize, const size_t elementSize,
+	return_t (*const compare)(const void *const restrict e1, const void *const restrict e2)
+){
+
 	void *subArray = array;
 	size_t size = TIMSORT_RUN_SIZE;
 
 	// Allocate a temporary array to store a copy of our data when merging.
-	void *tempArray = memoryManagerGlobalAlloc(arraySize * elementSize);
+	void *const tempArray = memoryManagerGlobalAlloc(arraySize * elementSize);
 	if(tempArray == NULL){
 		/** MALLOC FAILED **/
 	}
@@ -147,10 +155,10 @@ void timsort(void *array, const size_t arraySize, const size_t elementSize, retu
 */
 static void mergeHalves(
 	void *array, const size_t elementSize,
-	void *leftArray, void *rightArray, const void *rightLast,
-	return_t (*compare)(const void *e1, const void *e2)
+	void *leftArray, void *rightArray, const void *const restrict rightLast,
+	return_t (*const compare)(const void *const restrict e1, const void *const restrict e2)
 ){
-	const void *leftLast = rightArray;
+	const void *const leftLast = rightArray;
 
 	// Merge the two subarrays using a sliding window.
 	for(;;){

@@ -6,7 +6,7 @@
 #include "settingsProgram.h"
 
 
-void cameraInit(camera *cam){
+void cameraInit(camera *const restrict cam){
 	vec3InitZero(&cam->pos);
 	quatInitIdentity(&cam->rot);
 	cam->fov = FOV_DEFAULT;
@@ -22,7 +22,7 @@ void cameraInit(camera *cam){
 }
 
 
-void cameraUpdateViewMatrix(camera *cam){
+void cameraUpdateViewMatrix(camera *const restrict cam){
 	// Make the camera look at its target if it has one.
 	//if(cam->target != NULL){
 		//mat4LookAt(&cam->viewMatrix, &cam->pos, cam->target, &cam->up);
@@ -32,7 +32,7 @@ void cameraUpdateViewMatrix(camera *cam){
 	//}
 }
 
-void cameraUpdateProjectionMatrix(camera *cam, const float windowWidth, const float windowHeight){
+void cameraUpdateProjectionMatrix(camera *const restrict cam, const float windowWidth, const float windowHeight){
 	// If the camera is set in projection mode, create a perspective matrix.
 	if(flagsAreSet(cam->flags, CAMERA_TYPE_FRUSTUM)){
 		mat4Perspective(&cam->projectionMatrix, cam->fov*DEG_TO_RAD, windowWidth/windowHeight, 0.1f/cam->fov, 1000.f);
@@ -45,7 +45,7 @@ void cameraUpdateProjectionMatrix(camera *cam, const float windowWidth, const fl
 }
 
 // Only update the view projection matrix if the others should be changed.
-void cameraUpdateViewProjectionMatrix(camera *cam, const float windowWidth, const float windowHeight){
+void cameraUpdateViewProjectionMatrix(camera *const restrict cam, const float windowWidth, const float windowHeight){
 	const int viewUpdate = 1;
 	const int projectionUpdate = 1;
 
@@ -64,11 +64,11 @@ void cameraUpdateViewProjectionMatrix(camera *cam, const float windowWidth, cons
 
 
 // Compute a target's distance from a camera!
-float cameraDistance(const camera *cam, const vec3 *target){
+float cameraDistance(const camera *const restrict cam, const vec3 *const restrict target){
 	return(sqrtf(vec3DistanceSquaredVec3(&cam->pos, target)));
 }
 
 // Compute the square of a target's distance from a camera! This is useful for depth sorting.
-float cameraDistanceSquared(const camera *cam, const vec3 *target){
+float cameraDistanceSquared(const camera *const restrict cam, const vec3 *const restrict target){
 	return(vec3DistanceSquaredVec3(&cam->pos, target));
 }

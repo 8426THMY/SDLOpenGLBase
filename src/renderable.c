@@ -6,15 +6,18 @@
 
 
 // Forward-declare any helper functions!
-static void updateShaderBones(const skeleton *mdlSkele, const skeleton *objSkele, const mat4 *animStates, const GLuint boneStatesID);
+static void updateShaderBones(
+	const skeleton *const restrict mdlSkele, const skeleton *const restrict objSkele,
+	const mat4 *const restrict animStates, const GLuint boneStatesID
+);
 
 
-void renderableDefInit(renderableDef *renderDef, model *mdl){
+void renderableDefInit(renderableDef *const restrict renderDef, model *const restrict mdl){
 	renderDef->mdl = mdl;
 	renderDef->texGroup = mdl->texGroup;
 }
 
-void renderableInit(renderable *render, const renderableDef *renderDef){
+void renderableInit(renderable *const restrict render, const renderableDef *const restrict renderDef){
 	render->mdl = renderDef->mdl;
 	texGroupStateInit(&render->texState, renderDef->texGroup);
 	billboardInit(&render->billboardData);
@@ -22,13 +25,17 @@ void renderableInit(renderable *render, const renderableDef *renderDef){
 
 
 // Update a renderable's current state.
-void renderableUpdate(renderable *render, const float time){
+void renderableUpdate(renderable *const restrict render, const float time){
 	texGroupStateUpdate(&render->texState, time);
 }
 
 #warning "We probably shouldn't have the OpenGL drawing stuff split up so much."
-void renderableDraw(const renderable *render, const skeleton *objSkele, const mat4 *animStates, const shaderObject *shader){
-	const textureGroupFrame *texFrame = texGroupStateGetFrame(&render->texState);
+void renderableDraw(
+	const renderable *const restrict render, const skeleton *const restrict objSkele,
+	const mat4 *const restrict animStates, const shaderObject *const restrict shader
+){
+
+	const textureGroupFrame *const texFrame = texGroupStateGetFrame(&render->texState);
 
 
 	updateShaderBones(render->mdl->skele, objSkele, animStates, shader->boneStatesID);
@@ -47,14 +54,18 @@ void renderableDraw(const renderable *render, const skeleton *objSkele, const ma
 
 
 // Check which bones are used by the model and send their matrices to the shader.
-static void updateShaderBones(const skeleton *mdlSkele, const skeleton *objSkele, const mat4 *animStates, const GLuint boneStatesID){
+static void updateShaderBones(
+	const skeleton *const restrict mdlSkele, const skeleton *const restrict objSkele,
+	const mat4 *const restrict animStates, const GLuint boneStatesID
+){
+
 	const size_t numBones = mdlSkele->numBones;
 
 	#warning "We could possibly use a global bone states array."
 	mat4 boneStates[SKELETON_MAX_BONES];
 	mat4 *curBoneState = boneStates;
 	const bone *curBone = mdlSkele->bones;
-	const bone *lastBone = &curBone[numBones];
+	const bone *const lastBone = &curBone[numBones];
 
 
 	// Before sending our bones to the shader, we

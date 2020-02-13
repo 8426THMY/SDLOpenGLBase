@@ -37,20 +37,20 @@ return_t moduleSkeletonSetup();
 void moduleSkeletonCleanup();
 
 skeleton *moduleSkeletonAlloc();
-void moduleSkeletonFree(skeleton *skele);
+void moduleSkeletonFree(skeleton *const restrict skele);
 void moduleSkeletonClear();
 
 skeletonAnimDef *moduleSkeleAnimDefAlloc();
-void moduleSkeleAnimDefFree(skeletonAnimDef *animDef);
+void moduleSkeleAnimDefFree(skeletonAnimDef *const restrict animDef);
 void moduleSkeleAnimDefClear();
 
 skeletonAnim *moduleSkeleAnimAlloc();
-skeletonAnim *moduleSkeleAnimPrepend(skeletonAnim **start);
-skeletonAnim *moduleSkeleAnimAppend(skeletonAnim **start);
-skeletonAnim *moduleSkeleAnimInsertBefore(skeletonAnim **start, skeletonAnim *prevData);
-skeletonAnim *moduleSkeleAnimInsertAfter(skeletonAnim **start, skeletonAnim *data);
-void moduleSkeleAnimFree(skeletonAnim **start, skeletonAnim *animInst, skeletonAnim *prevData);
-void moduleSkeleAnimFreeArray(skeletonAnim **start);
+skeletonAnim *moduleSkeleAnimPrepend(skeletonAnim **const restrict start);
+skeletonAnim *moduleSkeleAnimAppend(skeletonAnim **const restrict start);
+skeletonAnim *moduleSkeleAnimInsertBefore(skeletonAnim **const restrict start, skeletonAnim *const restrict prevData);
+skeletonAnim *moduleSkeleAnimInsertAfter(skeletonAnim **const restrict start, skeletonAnim *const restrict data);
+void moduleSkeleAnimFree(skeletonAnim **const restrict start, skeletonAnim *const restrict animInst, skeletonAnim *const restrict prevData);
+void moduleSkeleAnimFreeArray(skeletonAnim **const restrict start);
 void moduleSkeleAnimClear();
 
 

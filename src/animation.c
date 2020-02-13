@@ -13,17 +13,17 @@ float g_animTimeDefault = 0.f;
 
 
 // Forward-declare any helper functions!
-static void getFrameForward(animationData *animData, const animationFrameData *frameData);
-static void getFrameBackward(animationData *animData, const animationFrameData *frameData);
+static void getFrameForward(animationData *const restrict animData, const animationFrameData *const restrict frameData);
+static void getFrameBackward(animationData *const restrict animData, const animationFrameData *const restrict frameData);
 
 
-void animFrameDataInit(animationFrameData *frameData){
+void animFrameDataInit(animationFrameData *const restrict frameData){
 	frameData->time = NULL;
 	frameData->numFrames = 0;
 	frameData->playNum = 0;
 }
 
-void animationInit(animationData *animData, const size_t playNum){
+void animationInit(animationData *const restrict animData, const size_t playNum){
 	animData->animTime = 0.f;
 	animData->currentFrame = 0;
 	animData->currentPlayNum = playNum;
@@ -34,7 +34,7 @@ void animationInit(animationData *animData, const size_t playNum){
 /**       (without completing a loop) then the original direction again, it will just stop. **/
 // Update the animation's current frame!
 #warning "This needs a rewrite to make it simpler. We shouldn't handle rewinding (or maybe even play counts) by default."
-void animationUpdate(animationData *animData, const animationFrameData *frameData, const float time){
+void animationUpdate(animationData *const restrict animData, const animationFrameData *const restrict frameData, const float time){
 	animData->animTime += time;
 
 	// If we're animating forwards and haven't finished looping, continue playback!
@@ -51,7 +51,7 @@ void animationUpdate(animationData *animData, const animationFrameData *frameDat
 ** Return a number between 0 and 1 that tells
 ** us how far through the current frame we are.
 */
-float animationGetFrameProgress(const animationData *animData, const animationFrameData *frameData){
+float animationGetFrameProgress(const animationData *const restrict animData, const animationFrameData *const restrict frameData){
 	// If the animation length is less than or equal to 0, we don't want to divide by 0.
 	if(frameData->time[frameData->numFrames - 1] > 0.f){
 		if(animData->currentFrame != 0){
@@ -70,7 +70,7 @@ size_t animationGetNextFrame(const size_t currentFrame, const size_t numFrames){
 }
 
 
-void animFrameDataClear(animationFrameData *frameData){
+void animFrameDataClear(animationFrameData *const restrict frameData){
 	if(frameData->time != &g_animTimeDefault && frameData->time != NULL){
 		memoryManagerGlobalFree(frameData->time);
 	}
@@ -78,7 +78,7 @@ void animFrameDataClear(animationFrameData *frameData){
 
 
 // Check which frame we should be on!
-static void getFrameForward(animationData *animData, const animationFrameData *frameData){
+static void getFrameForward(animationData *const restrict animData, const animationFrameData *const restrict frameData){
 	const float lastFrameTime = frameData->time[frameData->numFrames - 1];
 	// Make sure the animation takes time to avoid infinite loops.
 	if(lastFrameTime > 0.f){
@@ -120,7 +120,7 @@ static void getFrameForward(animationData *animData, const animationFrameData *f
 }
 
 // Check which frame we should be on if the animation is playing in reverse!
-static void getFrameBackward(animationData *animData, const animationFrameData *frameData){
+static void getFrameBackward(animationData *const restrict animData, const animationFrameData *const restrict frameData){
 	const float lastFrameTime = frameData->time[frameData->numFrames - 1];
 	// Make sure the animation takes time to avoid infinite loops.
 	if(lastFrameTime > 0.f){

@@ -11,24 +11,27 @@
 
 
 #warning "These are temporary (duh)."
-void (*physColliderGenerateCentroidTable[COLLIDER_NUM_TYPES])(const void *collider, vec3 *centroid) = {
+void (*physColliderGenerateCentroidTable[COLLIDER_NUM_TYPES])(const void *const restrict collider, vec3 *const restrict centroid) = {
 	NULL// colliderHullGenerateCentroid
 };
 
-void (*physColliderGenerateInertiaTable[COLLIDER_NUM_TYPES])(const void *collider, const vec3 *centroid, mat3 *inertia) = {
+void (*physColliderGenerateInertiaTable[COLLIDER_NUM_TYPES])(
+	const void *const restrict collider, const vec3 *const restrict centroid, mat3 *const restrict inertia
+) = {
+
 	NULL// colliderHullGenerateInertia
 };
 
 
 // Forward-declare any helper functions!
-static return_t permitCollision(physicsCollider *colliderA, physicsCollider *colliderB);
+static return_t permitCollision(physicsCollider *const restrict colliderA, physicsCollider *const restrict colliderB);
 
 
 /*
 ** Initialise a physics collider base
 ** object using the type of its collider.
 */
-void physColliderInit(physicsCollider *pc, const type_t type, void *owner){
+void physColliderInit(physicsCollider *const restrict pc, const colliderType_t type, void *const restrict owner){
 	colliderInit(&pc->global, type);
 	pc->local = NULL;
 
@@ -47,7 +50,7 @@ void physColliderInit(physicsCollider *pc, const type_t type, void *owner){
 ** Create a new instance of a physics
 ** collider from a base physics collider.
 */
-void physColliderInstantiate(physicsCollider *pc, physicsCollider *local, void *owner){
+void physColliderInstantiate(physicsCollider *const restrict pc, physicsCollider *const restrict local, void *const restrict owner){
 	colliderInstantiate(&pc->global, &local->global);
 	pc->local = &local->global;
 
@@ -64,12 +67,12 @@ void physColliderInstantiate(physicsCollider *pc, physicsCollider *local, void *
 
 
 // Generate a physics collider's centroid.
-void physColliderGenerateCentroid(physicsCollider *collider, vec3 *centroid){
+void physColliderGenerateCentroid(physicsCollider *const restrict collider, vec3 *const restrict centroid){
 	physColliderGenerateCentroidTable[collider->global.type]((void *)(&collider->global.data), centroid);
 }
 
 // Generate a physics collider's moment of inertia tensor.
-void physColliderGenerateInertia(physicsCollider *collider, const vec3 *centroid, mat3 *inertia){
+void physColliderGenerateInertia(physicsCollider *const restrict collider, const vec3 *centroid, mat3 *const restrict inertia){
 	physColliderGenerateInertiaTable[collider->global.type]((void *)(&collider->global.data), centroid, inertia);
 }
 
@@ -80,7 +83,7 @@ void physColliderGenerateInertia(physicsCollider *collider, const vec3 *centroid
 ** may update their vertices), although all colliders will
 ** also update their broadphase nodes in this function.
 */
-void physColliderUpdate(physicsCollider *collider, physicsIsland *island){
+void physColliderUpdate(physicsCollider *const restrict collider, physicsIsland *const restrict island){
 	// Update the collider and generate its new bounding box!
 	colliderUpdate(&collider->global, collider->local, &collider->owner->state, &collider->aabb);
 	// Update its tree node if required.
@@ -92,7 +95,7 @@ void physColliderUpdate(physicsCollider *collider, physicsIsland *island){
 ** other colliders that this one may be colliding
 ** with and check collision with any possible pairs.
 */
-void physColliderQueryCollisions(physicsCollider *collider){
+void physColliderQueryCollisions(physicsCollider *const restrict collider){
 	// Check for narrowphase collision with every collider
 	// whose bounding box collides with this collider's.
 	aabbTreeQueryCollisionsStack(NULL, collider->node, &physColliderCollisionCallback);
@@ -109,8 +112,8 @@ void physColliderQueryCollisions(physicsCollider *collider){
 ** is greater than "colliderB", we can exit early.
 */
 physicsSeparationPair *physColliderFindSeparation(
-	const physicsCollider *colliderA, const physicsCollider *colliderB,
-	physicsSeparationPair **prev, physicsSeparationPair **next
+	const physicsCollider *const restrict colliderA, const physicsCollider *const restrict colliderB,
+	physicsSeparationPair **const restrict prev, physicsSeparationPair **const restrict next
 ){
 
 	physicsSeparationPair *prevPair = NULL;
@@ -145,8 +148,8 @@ physicsSeparationPair *physColliderFindSeparation(
 ** is greater than "colliderB", we can exit early.
 */
 physicsContactPair *physColliderFindContact(
-	const physicsCollider *colliderA, const physicsCollider *colliderB,
-	physicsContactPair **prev, physicsContactPair **next
+	const physicsCollider *const restrict colliderA, const physicsCollider *const restrict colliderB,
+	physicsContactPair **const restrict prev, physicsContactPair **const restrict next
 ){
 
 	physicsContactPair *prevPair = NULL;
@@ -176,7 +179,7 @@ physicsContactPair *physColliderFindContact(
 ** Remove any separations that have been inactive for too long and
 ** update the inactivity flags of separations that are still active.
 */
-void physColliderUpdateSeparations(physicsCollider *collider){
+void physColliderUpdateSeparations(physicsCollider *const restrict collider){
 	physicsSeparationPair *curPair = collider->separations;
 
 	while(curPair != NULL && curPair->cA == collider){
@@ -203,7 +206,7 @@ void physColliderUpdateSeparations(physicsCollider *collider){
 ** update the inactivity flags of contacts that are still active.
 ** This will also update the manifolds of active contact pairs.
 */
-void physColliderUpdateContacts(physicsCollider *collider, const float dt){
+void physColliderUpdateContacts(physicsCollider *const restrict collider, const float dt){
 	physicsContactPair *curPair = collider->contacts;
 
 	while(curPair != NULL && curPair->cA == collider){
@@ -226,7 +229,7 @@ void physColliderUpdateContacts(physicsCollider *collider, const float dt){
 }
 
 // Clear all of a physics collider's contact and separation pairs.
-void physColliderClearPairs(physicsCollider *collider){
+void physColliderClearPairs(physicsCollider *const restrict collider){
 	void *curPair;
 
 	// Delete every separation that this collider is involved in.
@@ -244,13 +247,13 @@ void physColliderClearPairs(physicsCollider *collider){
 ** Delete a physics collider instance and
 ** any of its contact or separation pairs.
 */
-void physColliderDeleteInstance(physicsCollider *collider){
+void physColliderDeleteInstance(physicsCollider *const restrict collider){
 	colliderDeleteInstance(&collider->global);
 	physColliderClearPairs(collider);
 }
 
 // Delete a physics collider base.
-void physColliderDelete(physicsCollider *collider){
+void physColliderDelete(physicsCollider *const restrict collider){
 	colliderDelete(&collider->global);
 }
 
@@ -259,7 +262,7 @@ void physColliderDelete(physicsCollider *collider){
 ** If the bounding boxes of "colliderA" and "colliderB" intersect, check
 ** for collision with the narrowphase and create a collision pair for them.
 */
-void physColliderCollisionCallback(void *colliderA, void *colliderB){
+void physColliderCollisionCallback(void *const restrict colliderA, void *const restrict colliderB){
 	// Make sure these colliders are actually allowed
 	// to collide before executing the narrowphase.
 	if(permitCollision((physicsCollider *)colliderA, (physicsCollider *)colliderB)){
@@ -354,7 +357,7 @@ void physColliderCollisionCallback(void *colliderA, void *colliderB){
 ** Check whether or not two colliders should be
 ** considered for the narrowphase collision check.
 */
-static return_t permitCollision(physicsCollider *colliderA, physicsCollider *colliderB){
+static return_t permitCollision(physicsCollider *const restrict colliderA, physicsCollider *const restrict colliderB){
 	// We only want to run the narrowphase on two colliders once, so we
 	// do it when "colliderA" has the lower address. We also need to make
 	// sure they don't have the same owner and that their bounding boxes

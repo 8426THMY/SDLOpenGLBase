@@ -75,11 +75,11 @@ typedef struct memoryRegion {
 } memoryRegion;
 
 
-void memoryRegionAppend(memoryRegion **region, memoryRegion *newRegion, void *memory);
-void memoryRegionInsertBefore(memoryRegion **region, memoryRegion *newRegion, void *memory);
-void memoryRegionInsertAfter(memoryRegion *region, memoryRegion *newRegion, void *memory);
+void memoryRegionAppend(memoryRegion **const restrict region, memoryRegion *const restrict newRegion, void *const restrict memory);
+void memoryRegionInsertBefore(memoryRegion **const restrict region, memoryRegion *const restrict newRegion, void *const restrict memory);
+void memoryRegionInsertAfter(memoryRegion *const restrict region, memoryRegion *const restrict newRegion, void *const restrict memory);
 
-void memoryAllocatorDelete(memoryRegion *region);
+void memoryAllocatorDelete(memoryRegion *const restrict region);
 
 
 #endif

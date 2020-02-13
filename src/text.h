@@ -4,7 +4,7 @@
 
 #include <stddef.h>
 
-#include "textCmap.h"
+#include "textCMap.h"
 #include "utilTypes.h"
 
 
@@ -26,12 +26,12 @@ typedef struct textBuffer {
 } textBuffer;
 
 
-void textBufferInit(textBuffer *text, const size_t size);
+void textBufferInit(textBuffer *const restrict text, const size_t size);
 
-void textBufferWrite(textBuffer *text, char *str, size_t strSize);
-uint32_t textBufferRead(const textBuffer *text, const byte_t **cursor);
+void textBufferWrite(textBuffer *const restrict text, char *str, size_t strSize);
+uint32_t textBufferRead(const textBuffer *const restrict text, const byte_t **const restrict cursor);
 
-void textBufferDelete(textBuffer *text);
+void textBufferDelete(textBuffer *const restrict text);
 
 
 #endif

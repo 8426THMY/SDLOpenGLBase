@@ -8,7 +8,7 @@
 #include "moduleSkeleton.h"
 
 
-#define SKELETON_PATH_PREFIX        "./resource/models/"
+#define SKELETON_PATH_PREFIX        "."FILE_PATH_DELIMITER_STR"resource"FILE_PATH_DELIMITER_STR"models"FILE_PATH_DELIMITER_STR
 #define SKELETON_PATH_PREFIX_LENGTH (sizeof(SKELETON_PATH_PREFIX) - 1)
 
 // These must be at least 1!
@@ -45,7 +45,7 @@ skeleton g_skeleDefault = {
 };
 
 
-void boneInit(bone *bone, char *name, const size_t parent, const boneState *state){
+void boneInit(bone *const restrict bone, char *const restrict name, const size_t parent, const boneState *const restrict state){
 	bone->name = name;
 	bone->parent = parent;
 
@@ -59,14 +59,18 @@ void boneInit(bone *bone, char *name, const size_t parent, const boneState *stat
 	}
 }
 
-void skeleInit(skeleton *skele){
+void skeleInit(skeleton *const restrict skele){
 	skele->name = NULL;
 
 	skele->bones = NULL;
 	skele->numBones = 0;
 }
 
-void skeleInitSet(skeleton *skele, const char *name, const size_t nameLength, bone *bones, const size_t numBones){
+void skeleInitSet(
+	skeleton *const restrict skele, const char *const restrict name,
+	const size_t nameLength, bone *const restrict bones, const size_t numBones
+){
+
 	skele->name = memoryManagerGlobalAlloc(nameLength);
 	if(skele->name == NULL){
 		/** MALLOC FAILED **/
@@ -76,7 +80,7 @@ void skeleInitSet(skeleton *skele, const char *name, const size_t nameLength, bo
 	// If the skeleton actually has some bones, we can just copy the pointers.
 	if(bones != NULL){
 		bone *curBone = bones;
-		const bone *lastBone = &curBone[numBones];
+		const bone *const lastBone = &curBone[numBones];
 
 		// Make sure we invert each bone's state!
 		for(; curBone < lastBone; ++curBone){
@@ -93,7 +97,7 @@ void skeleInitSet(skeleton *skele, const char *name, const size_t nameLength, bo
 	}
 }
 
-void skeleAnimDefInit(skeletonAnimDef *animDef){
+void skeleAnimDefInit(skeletonAnimDef *const restrict animDef){
 	animDef->name = NULL;
 
 	animFrameDataInit(&animDef->frameData);
@@ -103,7 +107,7 @@ void skeleAnimDefInit(skeletonAnimDef *animDef){
 	animDef->numBones = 0;
 }
 
-void skeleAnimInit(skeletonAnim *anim, skeletonAnimDef *animDef, const float intensity){
+void skeleAnimInit(skeletonAnim *const restrict anim, skeletonAnimDef *const restrict animDef, const float intensity){
 	anim->animDef = animDef;
 
 	animationInit(&anim->animData, ANIMATION_LOOP_INDEFINITELY);
@@ -111,7 +115,7 @@ void skeleAnimInit(skeletonAnim *anim, skeletonAnimDef *animDef, const float int
 	anim->intensity = intensity;
 }
 
-void skeleObjInit(skeletonObject *skeleObj, skeleton *skele){
+void skeleObjInit(skeletonObject *const restrict skeleObj, skeleton *const restrict skele){
 	skeleObj->skele = skele;
 	moduleSkeleAnimFreeArray(&skeleObj->anims);
 	skeleObj->anims = NULL;
@@ -132,12 +136,11 @@ void skeleObjInit(skeletonObject *skeleObj, skeleton *skele){
 ** If the animation could not be loaded, return a NULL pointer.
 */
 /** This is temporary and should be merged with the function in "model.c" or removed. **/
-skeletonAnimDef *skeleAnimSMDLoad(const char *skeleAnimPath){
+skeletonAnimDef *skeleAnimSMDLoad(const char *const restrict skeleAnimPath, const size_t skeleAnimPathLength){
 	skeletonAnimDef *animDef;
 
 	FILE *skeleAnimFile;
 	char skeleAnimFullPath[FILE_MAX_PATH_LENGTH];
-	size_t skeleAnimPathLength;
 
 
 	#ifdef TEMP_MODULE_FIND
@@ -150,7 +153,6 @@ skeletonAnimDef *skeleAnimSMDLoad(const char *skeleAnimPath){
 	#endif
 
 
-	skeleAnimPathLength = strlen(skeleAnimPath);
 	// Generate the full path for the skeleton!
 	fileGenerateFullResourcePath(
 		SKELETON_PATH_PREFIX, SKELETON_PATH_PREFIX_LENGTH,
@@ -257,7 +259,7 @@ skeletonAnimDef *skeleAnimSMDLoad(const char *skeleAnimPath){
 						// Make sure a bone with this ID actually exists.
 						if(boneID == tempBonesSize){
 							size_t boneNameLength;
-							tokPos = getMultiDelimitedString(tokPos, line + lineLength - tokPos, "\" ", &boneNameLength);
+							tokPos = stringMultiDelimited(tokPos, line + lineLength - tokPos, "\" ", &boneNameLength);
 							// Get the bone's name.
 							tempBone.name = memoryManagerGlobalAlloc(boneNameLength + 1);
 							if(tempBone.name == NULL){
@@ -342,7 +344,7 @@ skeletonAnimDef *skeleAnimSMDLoad(const char *skeleAnimPath){
 							// Get this bone's ID.
 							const size_t boneID = strtoul(line, &tokPos, 10);
 							if(boneID < tempBonesSize){
-								boneState *currentState = &currentFrame[boneID];
+								boneState *const currentState = &currentFrame[boneID];
 
 								// Load the bone's position!
 								float x = strtod(tokPos, &tokPos) * 0.05f;
@@ -390,21 +392,20 @@ skeletonAnimDef *skeleAnimSMDLoad(const char *skeleAnimPath){
 
 		// If there weren't any errors, allocate memory for the animation and set it up!
 		if(success){
-			const bone *curBone;
+			const bone *curBone = tempBones;
+			const bone *const lastBone = &tempBones[tempBonesSize];
 			char **curName;
-			const bone *lastBone;
 
 
 			animDef = moduleSkeleAnimDefAlloc();
 
 
-			++skeleAnimPathLength;
 			// Set the animation's name!
-			animDef->name = memoryManagerGlobalAlloc(skeleAnimPathLength);
+			animDef->name = memoryManagerGlobalAlloc(skeleAnimPathLength + 1);
 			if(animDef->name == NULL){
 				/** MALLOC FAILED **/
 			}
-			memcpy(animDef->name, skeleAnimPath, skeleAnimPathLength);
+			memcpy(animDef->name, skeleAnimPath, skeleAnimPathLength + 1);
 
 
 			animDef->frameData.time = tempTimes;
@@ -417,9 +418,7 @@ skeletonAnimDef *skeleAnimSMDLoad(const char *skeleAnimPath){
 				/** MALLOC FAILED **/
 			}
 
-			curBone = tempBones;
 			curName = animDef->boneNames;
-			lastBone = &tempBones[tempBonesSize];
 			// Fill the array of bone names!
 			for(; curBone < lastBone; ++curBone, ++curName){
 				*curName = curBone->name;
@@ -451,9 +450,9 @@ skeletonAnimDef *skeleAnimSMDLoad(const char *skeleAnimPath){
 
 
 // Progress an animation!
-void skeleAnimUpdate(skeletonAnim *anim, const float time){
-	animationData *animData = &anim->animData;
-	const animationFrameData *frameData = &anim->animDef->frameData;
+void skeleAnimUpdate(skeletonAnim *const restrict anim, const float time){
+	animationData *const animData = &anim->animData;
+	const animationFrameData *const frameData = &anim->animDef->frameData;
 
 	animationUpdate(animData, frameData, time);
 	anim->interpTime = animationGetFrameProgress(animData, frameData);
@@ -461,7 +460,7 @@ void skeleAnimUpdate(skeletonAnim *anim, const float time){
 
 #warning "If interpolation is turned off, we don't need to call the transform functions."
 // Animate a particular bone in an animation instance!
-void skeleObjGenerateBoneState(const skeletonObject *skeleData, const size_t boneID, const char *boneName){
+void skeleObjGenerateBoneState(const skeletonObject *const restrict skeleData, const size_t boneID, const char *const restrict boneName){
 	const skeletonAnim *curAnim = skeleData->anims;
 
 	// Update the bone using each animation!
@@ -499,9 +498,9 @@ void skeleObjGenerateBoneState(const skeletonObject *skeleData, const size_t bon
 
 
 // Find a bone in a skeleton from its name and return its index.
-size_t skeleFindBone(const skeleton *skele, const char *name){
+size_t skeleFindBone(const skeleton *const restrict skele, const char *const restrict name){
 	const bone *curBone = skele->bones;
-	const bone *lastBone = &curBone[skele->numBones];
+	const bone *const lastBone = &curBone[skele->numBones];
 	size_t i = 0;
 	for(; curBone < lastBone; ++curBone, ++i){
 		if(strcmp(curBone->name, name) == 0){
@@ -513,9 +512,9 @@ size_t skeleFindBone(const skeleton *skele, const char *name){
 }
 
 // Find a bone in an animation from its name and return its index.
-size_t skeleAnimFindBone(const skeletonAnim *skeleAnim, const char *name){
+size_t skeleAnimFindBone(const skeletonAnim *const restrict skeleAnim, const char *const restrict name){
 	char **curName = skeleAnim->animDef->boneNames;
-	char **lastName = &curName[skeleAnim->animDef->numBones];
+	char **const lastName = &curName[skeleAnim->animDef->numBones];
 	size_t i = 0;
 	for(; curName < lastName; ++curName, ++i){
 		if(strcmp(*curName, name) == 0){
@@ -527,14 +526,14 @@ size_t skeleAnimFindBone(const skeletonAnim *skeleAnim, const char *name){
 }
 
 
-void boneDelete(bone *bone){
+void boneDelete(bone *const restrict bone){
 	// We can't free the default bone's name.
 	if(bone->name != NULL && bone != &defaultBone){
 		memoryManagerGlobalFree(bone->name);
 	}
 }
 
-void skeleDelete(skeleton *skele){
+void skeleDelete(skeleton *const restrict skele){
 	bone *curBone = skele->bones;
 
 	if(skele->name != NULL){
@@ -543,7 +542,7 @@ void skeleDelete(skeleton *skele){
 
 	// Make sure we don't free the bone array if its set to "defaultBone"!
 	if(curBone != NULL && curBone != &defaultBone){
-		const bone *lastBone = &curBone[skele->numBones];
+		const bone *const lastBone = &curBone[skele->numBones];
 		for(; curBone < lastBone; ++curBone){
 			boneDelete(curBone);
 		}
@@ -551,7 +550,7 @@ void skeleDelete(skeleton *skele){
 	}
 }
 
-void skeleAnimDefDelete(skeletonAnimDef *animDef){
+void skeleAnimDefDelete(skeletonAnimDef *const restrict animDef){
 	if(animDef->name != NULL){
 		memoryManagerGlobalFree(animDef->name);
 	}
@@ -560,10 +559,10 @@ void skeleAnimDefDelete(skeletonAnimDef *animDef){
 
 	char **curName = animDef->boneNames;
 	if(curName != NULL){
-		char **lastName = &curName[animDef->numBones];
+		char **const lastName = &curName[animDef->numBones];
 		// Free each bone name!
 		for(; curName < lastName; ++curName){
-			char *curNameValue = *curName;
+			char *const curNameValue = *curName;
 			if(curNameValue != NULL){
 				memoryManagerGlobalFree(curNameValue);
 			}
@@ -573,10 +572,10 @@ void skeleAnimDefDelete(skeletonAnimDef *animDef){
 	}
 	boneState **curFrame = animDef->frames;
 	if(curFrame != NULL){
-		boneState **lastFrame = &curFrame[animDef->frameData.numFrames];
+		boneState **const lastFrame = &curFrame[animDef->frameData.numFrames];
 		// Free each bone state!
 		for(; curFrame < lastFrame; ++curFrame){
-			boneState *curFrameState = *curFrame;
+			boneState *const curFrameState = *curFrame;
 			if(curFrameState != NULL){
 				memoryManagerGlobalFree(curFrameState);
 			}
@@ -586,7 +585,7 @@ void skeleAnimDefDelete(skeletonAnimDef *animDef){
 	}
 }
 
-void skeleObjDelete(skeletonObject *skeleObj){
+void skeleObjDelete(skeletonObject *const restrict skeleObj){
 	moduleSkeleAnimFreeArray(&skeleObj->anims);
 	if(skeleObj->bones != NULL){
 		memoryManagerGlobalFree(skeleObj->bones);

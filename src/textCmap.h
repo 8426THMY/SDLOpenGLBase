@@ -1,5 +1,5 @@
-#ifndef textCmap_h
-#define textCmap_h
+#ifndef textCMap_h
+#define textCMap_h
 
 
 #include <stdint.h>
@@ -14,7 +14,7 @@
 
 // This structure is handy for reading
 // and operating on encoded code points.
-typedef union textCmapCodeUnit_t {
+typedef union textCMapCodeUnit_t {
 	uint8_t _8;
 	uint16_t _16;
 	uint32_t _32;
@@ -24,30 +24,30 @@ typedef union textCmapCodeUnit_t {
 		uint8_t _3;
 		uint8_t _4;
 	} byte;
-} textCmapCodeUnit_t;
+} textCMapCodeUnit_t;
 
 
 // All character maps share this header, so we can use it
 // to represent the map until we know the subtable format.
-typedef uint16_t textCmapHeader;
+typedef uint16_t textCMapHeader;
 
 
 // Format 0 should be used for fonts
 // that only use single-byte code units.
-typedef struct textCmapFormat0 {
-	textCmapHeader format;
+typedef struct textCMapFormat0 {
+	textCMapHeader format;
 	uint16_t length;
 	uint16_t language;
 
 	// This array maps from a code unit between
 	// 0-255 to the index of its associated glyph.
 	uint8_t glyphIndices[256];
-} textCmapFormat0;
+} textCMapFormat0;
 
 
 // Subheaders map the second byte of code
 // units to a particular glyph index subarray.
-typedef struct textCmapSubHeader2 {
+typedef struct textCMapSubHeader2 {
 	// These two values specify a range of values that we can
 	// map to glyph subarrays. If the value of the second byte
 	// of the code unit is within this range, then we use its
@@ -63,7 +63,7 @@ typedef struct textCmapSubHeader2 {
 	// its own location in memory to the location of
 	// the glyph subarray associated with this subheader.
 	uint16_t idRangeOffset;
-} textCmapSubHeader2;
+} textCMapSubHeader2;
 
 /*
 ** Format 2 should be used for fonts that use a
@@ -80,8 +80,8 @@ typedef struct textCmapSubHeader2 {
 ** // The first subarray should map the single-byte characters.
 ** uint16_t **glyphIndices;
 */
-typedef struct textCmapFormat2 {
-	textCmapHeader format;
+typedef struct textCMapFormat2 {
+	textCMapHeader format;
 	uint16_t length;
 	uint16_t language;
 
@@ -95,7 +95,7 @@ typedef struct textCmapFormat2 {
 	// This is a uint16_t so we can begin loading from language.
 	// Otherwise, if we use a void pointer, we get padding.
 	uint16_t data;
-} textCmapFormat2;
+} textCMapFormat2;
 
 
 /*
@@ -131,8 +131,8 @@ typedef struct textCmapFormat2 {
 */
 #warning "Can we remove the useless stuff and use an array of structures instead of a structure of arrays?"
 #warning "We'd need to change the value of idRangeOffset for the latter, though..."
-typedef struct textCmapFormat4 {
-	textCmapHeader format;
+typedef struct textCMapFormat4 {
+	textCMapHeader format;
 	uint16_t length;
 	uint16_t language;
 
@@ -148,20 +148,20 @@ typedef struct textCmapFormat4 {
 	// This is a uint16_t so we can begin loading from language.
 	// Otherwise, if we use a void pointer, we get padding.
 	uint16_t data;
-} textCmapFormat4;
+} textCMapFormat4;
 
 
-textCmapHeader *textCmapLoadTTF(const char *cmapPath);
-uint32_t textCmapIndex(const textCmapHeader *cmap, const textCmapCodeUnit_t code);
-void textCmapDelete(textCmapHeader *cmap);
+textCMapHeader *textCMapLoadTTF(const char *const restrict cmapPath);
+uint32_t textCMapIndex(const textCMapHeader *const restrict cmap, const textCMapCodeUnit_t code);
+void textCMapDelete(textCMapHeader *const restrict cmap);
 
 #warning "This is temporary and should be removed."
-void textCmapOutputCodePoints(const textCmapHeader *cmap, const char *filePath, const char delim);
+void textCMapOutputCodePoints(const textCMapHeader *const restrict cmap, const char *const restrict filePath, const char delim);
 
 
-extern uint32_t (*textCmapIndexJumpTable[TEXT_CMAP_NUM_SUPPORTED_FORMATS])(
-	const textCmapHeader *cmap,
-	const textCmapCodeUnit_t code
+extern uint32_t (*textCMapIndexTable[TEXT_CMAP_NUM_SUPPORTED_FORMATS])(
+	const textCMapHeader *const restrict cmap,
+	const textCMapCodeUnit_t code
 );
 
 

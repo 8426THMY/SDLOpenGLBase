@@ -6,14 +6,19 @@
 #include "settingsProgram.h"
 
 
-void stateObjInit(stateObject *stateObj, const size_t stateSize){
+void stateObjInit(stateObject *const restrict stateObj, const size_t stateSize){
 	stateObj->states = malloc(sizeof(*stateObj->states) * NUM_LOOKBACK_STATES);
 	stateObj->numStates = 1;
 	stateObj->states[0] = malloc(stateSize);
 }
 
 
-void stateObjShift(stateObject *stateObj, const size_t stateSize, void (*copyFunc)(const void *s1, void *s2), void (*deleteFunc)(void *s)){
+void stateObjShift(
+	stateObject *const restrict stateObj, const size_t stateSize,
+	void (*const copyFunc)(const void *const restrict s1, void *const restrict s2),
+	void (*const deleteFunc)(void *const restrict s)
+){
+
 	if(NUM_LOOKBACK_STATES > 1){
 		// If the state array is full, we can use the memory we allocated for
 		// the oldest state so we don't have to allocate more for the new one.
@@ -61,7 +66,7 @@ void stateObjShift(stateObject *stateObj, const size_t stateSize, void (*copyFun
 }
 
 // Remove our oldest states, but keep the earlier ones.
-void stateObjRemove(stateObject *stateObj, void (*deleteFunc)(void *s)){
+void stateObjRemove(stateObject *const restrict stateObj, void (*const deleteFunc)(void *const restrict s)){
 	// Shift all the states we've stored over to the right, then set the latest one to NULL.
 	memmove(&stateObj->states[1], &stateObj->states[0], sizeof(*stateObj->states) * (NUM_LOOKBACK_STATES - 1));
 	stateObj->states[0] = NULL;
@@ -69,11 +74,11 @@ void stateObjRemove(stateObject *stateObj, void (*deleteFunc)(void *s)){
 
 
 // Delete our states, starting from the oldest, until we reach a NULL pointer!
-void stateObjDelete(stateObject *stateObj, void (*deleteFunc)(void *s)){
+void stateObjDelete(stateObject *const restrict stateObj, void (*const deleteFunc)(void *const restrict s)){
 	while(stateObj->numStates > 0){
 		--stateObj->numStates;
 
-		void *currentState = stateObj->states[stateObj->numStates];
+		void *const currentState = stateObj->states[stateObj->numStates];
 		if(currentState != NULL){
 			if(deleteFunc != NULL){
 				deleteFunc(currentState);

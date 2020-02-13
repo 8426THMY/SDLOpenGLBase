@@ -33,7 +33,7 @@ model *moduleModelAlloc(){
 }
 
 // Free a model that has been allocated.
-void moduleModelFree(model *mdl){
+void moduleModelFree(model *const restrict mdl){
 	modelDelete(mdl);
 	memPoolFree(&g_modelManager, mdl);
 }

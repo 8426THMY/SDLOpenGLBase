@@ -13,11 +13,11 @@ typedef struct particleOperator {
 	} data;
 
 	// This function is executed on each particle.
-	void (*func)(const void *operator, particle *part, const float time);
+	void (*func)(const void *const restrict operator, particle *const restrict part, const float time);
 } particleOperator;
 
 
-void particleOperatorAddGravity(const void *operator, particle *part, const float time);
+void particleOperatorAddGravity(const void *const restrict operator, particle *const restrict part, const float time);
 
 
 #endif

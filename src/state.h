@@ -15,13 +15,17 @@ typedef struct stateObject {
 } stateObject;
 
 
-void stateObjInit(stateObject *stateObj, const size_t stateSize);
+void stateObjInit(stateObject *const restrict stateObj, const size_t stateSize);
 
-void stateObjShift(stateObject *stateObj, const size_t stateSize, void (*copyFunc)(const void *s1, void *s2), void (*deleteFunc)(void *s));
+void stateObjShift(
+	stateObject *const restrict stateObj, const size_t stateSize,
+	void (*const copyFunc)(const void *const restrict s1, void *const restrict s2),
+	void (*const deleteFunc)(void *const restrict s)
+);
 #warning "This function is never called, and we don't handle what should happen when all the states are NULL."
-void stateObjRemove(stateObject *stateObj, void (*deleteFunc)(void *s));
+void stateObjRemove(stateObject *const restrict stateObj, void (*const deleteFunc)(void *const restrict s));
 
-void stateObjDelete(stateObject *stateObj, void (*deleteFunc)(void *s));
+void stateObjDelete(stateObject *const restrict stateObj, void (*const deleteFunc)(void *const restrict s));
 
 
 #endif

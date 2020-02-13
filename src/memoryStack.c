@@ -15,7 +15,7 @@
 #warning "What if the beginning or end of a memory region is not aligned?"
 
 
-void *memStackInit(memoryStack *stack, void *memory, const size_t stackSize){
+void *memStackInit(memoryStack *const restrict stack, void *const restrict memory, const size_t stackSize){
 	stack->top = memory;
 	stack->size = stackSize;
 	stack->bottom = memory;
@@ -25,8 +25,8 @@ void *memStackInit(memoryStack *stack, void *memory, const size_t stackSize){
 
 
 // Allocate a new block at the top of the stack!
-void *memStackAlloc(memoryStack *stack, const size_t blockSize){
-	void *newBlock = stack->top;
+void *memStackAlloc(memoryStack *const restrict stack, const size_t blockSize){
+	void *const newBlock = stack->top;
 	size_t actualBlockSize;
 
 	// Check for 0 byte allocations.
@@ -52,9 +52,9 @@ void *memStackAlloc(memoryStack *stack, const size_t blockSize){
 }
 
 // Free the block at the top of the stack!
-void memStackFreeLast(memoryStack *stack){
+void memStackFreeLast(memoryStack *const restrict stack){
 	// Get a pointer to the last block's footer and get its size.
-	size_t *lastBlockFooter = memStackBlockGetPrevBlockFooter(stack->top);
+	size_t *const lastBlockFooter = memStackBlockGetPrevBlockFooter(stack->top);
 	const size_t lastBlockSize = *lastBlockFooter;
 
 	// Move the top of the stack back and update its size.
@@ -64,6 +64,6 @@ void memStackFreeLast(memoryStack *stack){
 
 
 // Free the entire stack's memory.
-void memStackDelete(memoryStack *stack){
+void memStackDelete(memoryStack *const restrict stack){
 	memoryFree(stack->bottom);
 }

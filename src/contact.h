@@ -18,6 +18,7 @@
 
 
 typedef size_t separationFeature_t;
+typedef uint_least8_t separationType_t;
 typedef uint_least8_t contactPointIndex_t;
 
 
@@ -26,7 +27,7 @@ typedef uint_least8_t contactPointIndex_t;
 typedef struct contactSeparation {
 	separationFeature_t featureA;
 	separationFeature_t featureB;
-	type_t type;
+	separationType_t type;
 } contactSeparation;
 
 
@@ -66,20 +67,25 @@ typedef struct contactManifold {
 } contactManifold;
 
 
-return_t collidersAreSeparated(const collider *cA, const collider *cB, contactSeparation *cs);
-return_t collidersAreColliding(const collider *cA, const collider *cB, contactSeparation *cs, contactManifold *cm);
+return_t collidersAreSeparated(
+	const collider *const restrict cA, const collider *const restrict cB, contactSeparation *const restrict cs
+);
+return_t collidersAreColliding(
+	const collider *const restrict cA, const collider *const restrict cB,
+	contactSeparation *const restrict cs, contactManifold *const restrict cm
+);
 
 
 extern return_t (*contactSeparationTable[COLLIDER_NUM_TYPES][COLLIDER_NUM_TYPES])(
-	const void *cA,
-	const void *cB,
-	contactSeparation *cs
+	const void *const restrict cA,
+	const void *const restrict cB,
+	contactSeparation *const restrict cs
 );
 extern return_t (*contactCollisionTable[COLLIDER_NUM_TYPES][COLLIDER_NUM_TYPES])(
-	const void *cA,
-	const void *cB,
-	contactSeparation *cs,
-	contactManifold *cm
+	const void *const restrict cA,
+	const void *const restrict cB,
+	contactSeparation *const restrict cs,
+	contactManifold *const restrict cm
 );
 
 

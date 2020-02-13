@@ -21,12 +21,14 @@ typedef struct guiText {
 } guiText;
 
 
-void guiTextInit(guiText *gui, const textFont *font, const size_t bufferSize);
+void guiTextInit(guiText *const restrict gui, const textFont *const restrict font, const size_t bufferSize);
 
-void guiTextUpdate(void *gui, const float time);
-void guiTextDraw(const void *gui, const transformState *root, const shaderObject *shader);
+void guiTextUpdate(void *const restrict gui, const float time);
+void guiTextDraw(
+	const void *const restrict gui, const transformState *const restrict root, const shaderSprite *const restrict shader
+);
 
-void guiTextDelete(void *gui);
+void guiTextDelete(void *const restrict gui);
 
 
 #endif

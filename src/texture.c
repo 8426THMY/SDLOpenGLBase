@@ -11,9 +11,9 @@
 #include "memoryManager.h"
 #include "moduleTexture.h"
 
-#define TEXTURE_PATH_PREFIX        "./resource/textures/"
+#define TEXTURE_PATH_PREFIX        "."FILE_PATH_DELIMITER_STR"resource"FILE_PATH_DELIMITER_STR"textures"FILE_PATH_DELIMITER_STR
 #define TEXTURE_PATH_PREFIX_LENGTH (sizeof(TEXTURE_PATH_PREFIX) - 1)
-#define IMAGE_PATH_PREFIX          "./resource/images/"
+#define IMAGE_PATH_PREFIX          "."FILE_PATH_DELIMITER_STR"resource"FILE_PATH_DELIMITER_STR"images"FILE_PATH_DELIMITER_STR
 #define IMAGE_PATH_PREFIX_LENGTH   (sizeof(IMAGE_PATH_PREFIX) - 1)
 
 
@@ -48,7 +48,7 @@ texture g_texDefault = {
 #warning "What if we aren't using the global memory manager?"
 
 
-void textureInit(texture *tex){
+void textureInit(texture *const restrict tex){
 	tex->name = NULL;
 
 	tex->id = 0;
@@ -64,12 +64,11 @@ void textureInit(texture *tex){
 ** Load the texture specified by "texPath" and return a pointer to it.
 ** If the texture could not be loaded, return a pointer to the default texture.
 */
-texture *textureLoad(const char *texPath){
+texture *textureLoad(const char *const restrict texPath, const size_t texPathLength){
 	texture *tex;
 
 	FILE *texFile;
 	char texFullPath[FILE_MAX_PATH_LENGTH];
-	size_t texPathLength;
 
 
 	#ifdef TEMP_MODULE_FIND
@@ -82,7 +81,6 @@ texture *textureLoad(const char *texPath){
 	#endif
 
 
-	texPathLength = strlen(texPath);
 	// Generate the full path for the texture!
 	fileGenerateFullResourcePath(
 		TEXTURE_PATH_PREFIX, TEXTURE_PATH_PREFIX_LENGTH,
@@ -184,13 +182,12 @@ texture *textureLoad(const char *texPath){
 				}
 
 
-				++texPathLength;
 				// Set the texture's name!
-				tex->name = memoryManagerGlobalAlloc(texPathLength);
+				tex->name = memoryManagerGlobalAlloc(texPathLength + 1);
 				if(tex->name == NULL){
 					/** MALLOC FAILED **/
 				}
-				memcpy(tex->name, texPath, texPathLength);
+				memcpy(tex->name, texPath, texPathLength + 1);
 
 				tex->id = texID;
 				tex->width = image->w;
@@ -329,7 +326,7 @@ void textureSetFiltering(const GLuint id, GLint filtering, const uint_least8_t m
 }
 
 
-void textureDelete(texture *tex){
+void textureDelete(texture *const restrict tex){
 	// Only free the name if it's in use
 	// and it's not the error texture.
 	if(tex->name != NULL && tex != &g_texDefault){

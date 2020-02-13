@@ -74,7 +74,7 @@ skeletonAnimDef *moduleSkeleAnimDefAlloc(){
 }
 
 // Free a skeleton animation base that has been allocated.
-void moduleSkeleAnimDefFree(skeletonAnimDef *animDef){
+void moduleSkeleAnimDefFree(skeletonAnimDef *const restrict animDef){
 	skeleAnimDefDelete(animDef);
 	memPoolFree(&g_skeleAnimDefManager, animDef);
 }
@@ -93,32 +93,32 @@ skeletonAnim *moduleSkeleAnimAlloc(){
 }
 
 // Insert a skeleton animation state at the beginning of an array.
-skeletonAnim *moduleSkeleAnimPrepend(skeletonAnim **start){
+skeletonAnim *moduleSkeleAnimPrepend(skeletonAnim **const restrict start){
 	return(memSingleListPrepend(&g_skeleAnimManager, (void **)start));
 }
 
 // Insert a skeleton animation state at the end of an array.
-skeletonAnim *moduleSkeleAnimAppend(skeletonAnim **start){
+skeletonAnim *moduleSkeleAnimAppend(skeletonAnim **const restrict start){
 	return(memSingleListAppend(&g_skeleAnimManager, (void **)start));
 }
 
 // Insert a skeleton animation state after the element "prevData".
-skeletonAnim *moduleSkeleAnimInsertBefore(skeletonAnim **start, skeletonAnim *prevData){
+skeletonAnim *moduleSkeleAnimInsertBefore(skeletonAnim **const restrict start, skeletonAnim *const restrict prevData){
 	return(memSingleListInsertBefore(&g_skeleAnimManager, (void **)start, (void *)prevData));
 }
 
 // Insert a skeleton animation state after the element "data".
-skeletonAnim *moduleSkeleAnimInsertAfter(skeletonAnim **start, skeletonAnim *data){
+skeletonAnim *moduleSkeleAnimInsertAfter(skeletonAnim **const restrict start, skeletonAnim *const restrict data){
 	return(memSingleListInsertAfter(&g_skeleAnimManager, (void **)start, (void *)data));
 }
 
 // Free a skeleton animation state that has been allocated.
-void moduleSkeleAnimFree(skeletonAnim **start, skeletonAnim *anim, skeletonAnim *prevData){
+void moduleSkeleAnimFree(skeletonAnim **const restrict start, skeletonAnim *const restrict anim, skeletonAnim *const restrict prevData){
 	memSingleListFree(&g_skeleAnimManager, (void **)start, (void *)anim, (void *)prevData);
 }
 
 // Free an entire skeleton animation state array.
-void moduleSkeleAnimFreeArray(skeletonAnim **start){
+void moduleSkeleAnimFreeArray(skeletonAnim **const restrict start){
 	skeletonAnim *anim = *start;
 	while(anim != NULL){
 		moduleSkeleAnimFree(start, anim, NULL);

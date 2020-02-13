@@ -98,16 +98,19 @@ typedef struct particleSystem {
 } particleSystem;
 
 
-void particleSysDefInit(particleSystemDef *partSysDef);
-void particleSysInit(particleSystem *partSys, const particleSystemDef *partSysDef);
+void particleSysDefInit(particleSystemDef *const restrict partSysDef);
+void particleSysInit(particleSystem *const restrict partSys, const particleSystemDef *const restrict partSysDef);
 
-void particleSysUpdate(particleSystem *partSys, const float time);
-void particleSysDraw(const particleSystem *partSys, const camera *cam, const shaderSprite *shader, const float time);
+void particleSysUpdate(particleSystem *const restrict partSys, const float time);
+void particleSysDraw(
+	const particleSystem *const restrict partSys, const camera *const restrict cam,
+	const shaderSprite *const restrict shader, const float time
+);
 
-return_t particleSysAlive(particleSystem *partSys, const float time);
+return_t particleSysAlive(particleSystem *const restrict partSys, const float time);
 
-void particleSysDelete(particleSystem *partSys);
-void particleSysDefDelete(particleSystemDef *partSysDef);
+void particleSysDelete(particleSystem *const restrict partSys);
+void particleSysDefDelete(particleSystemDef *const restrict partSysDef);
 
 
 /**

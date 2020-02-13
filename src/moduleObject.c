@@ -38,33 +38,33 @@ objectDef *moduleObjectDefAlloc(){
 }
 
 // Insert an object base at the beginning of an array.
-objectDef *moduleObjectDefPrepend(objectDef **start){
+objectDef *moduleObjectDefPrepend(objectDef **const restrict start){
 	return(memSingleListPrepend(&g_objectDefManager, (void **)start));
 }
 
 // Insert an object base at the end of an array.
-objectDef *moduleObjectDefAppend(objectDef **start){
+objectDef *moduleObjectDefAppend(objectDef **const restrict start){
 	return(memSingleListAppend(&g_objectDefManager, (void **)start));
 }
 
 // Insert an object base after the element "prevData".
-objectDef *moduleObjectDefInsertBefore(objectDef **start, objectDef *prevData){
+objectDef *moduleObjectDefInsertBefore(objectDef **const restrict start, objectDef *const restrict prevData){
 	return(memSingleListInsertBefore(&g_objectDefManager, (void **)start, (void *)prevData));
 }
 
 // Insert an object base after the element "data".
-objectDef *moduleObjectDefInsertAfter(objectDef **start, objectDef *data){
+objectDef *moduleObjectDefInsertAfter(objectDef **const restrict start, objectDef *const restrict data){
 	return(memSingleListInsertAfter(&g_objectDefManager, (void **)start, (void *)data));
 }
 
 // Free an object base that has been allocated.
-void moduleObjectDefFree(objectDef **start, objectDef *objDef, objectDef *prevData){
+void moduleObjectDefFree(objectDef **const restrict start, objectDef *const restrict objDef, objectDef *const restrict prevData){
 	objectDefDelete(objDef);
 	memSingleListFree(&g_objectDefManager, (void **)start, (void *)objDef, (void *)prevData);
 }
 
 // Free an entire object base array.
-void moduleObjectDefFreeArray(objectDef **start){
+void moduleObjectDefFreeArray(objectDef **const restrict start){
 	objectDef *objDef = *start;
 	while(objDef != NULL){
 		moduleObjectDefFree(start, objDef, NULL);
@@ -86,33 +86,33 @@ object *moduleObjectAlloc(){
 }
 
 // Insert an object at the beginning of an array.
-object *moduleObjectPrepend(object **start){
+object *moduleObjectPrepend(object **const restrict start){
 	return(memSingleListPrepend(&g_objectManager, (void **)start));
 }
 
 // Insert an object at the end of an array.
-object *moduleObjectAppend(object **start){
+object *moduleObjectAppend(object **const restrict start){
 	return(memSingleListAppend(&g_objectManager, (void **)start));
 }
 
 // Insert an object after the element "prevData".
-object *moduleObjectInsertBefore(object **start, object *prevData){
+object *moduleObjectInsertBefore(object **const restrict start, object *const restrict prevData){
 	return(memSingleListInsertBefore(&g_objectManager, (void **)start, (void *)prevData));
 }
 
 // Insert an object after the element "data".
-object *moduleObjectInsertAfter(object **start, object *data){
+object *moduleObjectInsertAfter(object **const restrict start, object *const restrict data){
 	return(memSingleListInsertAfter(&g_objectManager, (void **)start, (void *)data));
 }
 
 // Free an object that has been allocated.
-void moduleObjectFree(object **start, object *obj, object *prevData){
+void moduleObjectFree(object **const restrict start, object *const restrict obj, object *const restrict prevData){
 	objectDelete(obj);
 	memSingleListFree(&g_objectManager, (void **)start, (void *)obj, (void *)prevData);
 }
 
 // Free an entire object array.
-void moduleObjectFreeArray(object **start){
+void moduleObjectFreeArray(object **const restrict start){
 	object *obj = *start;
 	while(obj != NULL){
 		moduleObjectFree(start, obj, NULL);

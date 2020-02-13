@@ -123,7 +123,12 @@ float fastInvSqrtAccurate(const float x){
 ** Compute the barycentric coordinates of the
 ** point "p" with respect to the triangle "abc".
 */
-void pointBarycentric(const vec3 *a, const vec3 *b, const vec3 *c, const vec3 *p, vec3 *out){
+void pointBarycentric(
+	const vec3 *const restrict a, const vec3 *const restrict b,
+	const vec3 *const restrict c, const vec3 *const restrict p,
+	vec3 *const restrict out
+){
+
 	// b - a
 	const vec3 v1 = {
 		.x = b->x - a->x,
@@ -161,7 +166,7 @@ void pointBarycentric(const vec3 *a, const vec3 *b, const vec3 *c, const vec3 *p
 **
 ** Special thanks to Erin Catto for this implementation!
 */
-void normalBasis(const vec3 *a, vec3 *b, vec3 *c){
+void normalBasis(const vec3 *const restrict a, vec3 *const restrict b, vec3 *const restrict c){
 	// The magic number "0x3F13CD3A" is approximately equivalent to the
 	// square root of 1 over 3. In three dimensions, at least one component
 	// of any unit vector must be greater than or equal to this number.
@@ -181,7 +186,7 @@ void normalBasis(const vec3 *a, vec3 *b, vec3 *c){
 **
 ** Special thanks to Erin Catto for this implementation!
 */
-void normalBasisFast(const vec3 *a, vec3 *b, vec3 *c){
+void normalBasisFast(const vec3 *const restrict a, vec3 *const restrict b, vec3 *const restrict c){
 	// The magic number "0x3F13CD3A" is approximately equivalent to the
 	// square root of 1 over 3. In three dimensions, at least one component
 	// of any unit vector must be greater than or equal to this number.
@@ -200,7 +205,11 @@ void normalBasisFast(const vec3 *a, vec3 *b, vec3 *c){
 ** with starting points "sn" and ending points "en",
 ** and store the new points in the variables "pn".
 */
-void segmentClosestPoints(const vec3 *s1, const vec3 *e1, const vec3 *s2, const vec3 *e2, vec3 *p1, vec3 *p2){
+void segmentClosestPoints(
+	const vec3 *const restrict s1, const vec3 *const restrict e1, const vec3 *const restrict s2,
+	const vec3 *const restrict e2, vec3 *const restrict p1, vec3 *const restrict p2
+){
+
 	// e1 - s1
 	const vec3 v1 = {
 		.x = e1->x - s1->x,
@@ -242,7 +251,7 @@ void segmentClosestPoints(const vec3 *s1, const vec3 *e1, const vec3 *s2, const 
 ** Calculate the normal of the triangle with vertices
 ** "a", "b" and "c" and store it in the variable "out".
 */
-void triangleNormal(const vec3 *a, const vec3 *b, const vec3 *c, vec3 *out){
+void triangleNormal(const vec3 *const restrict a, const vec3 *const restrict b, const vec3 *const restrict c, vec3 *const restrict out){
 	// b - a
 	const vec3 v1 = {
 		.x = b->x - a->x,
@@ -265,7 +274,7 @@ void triangleNormal(const vec3 *a, const vec3 *b, const vec3 *c, vec3 *out){
 ** The variable "vertex" can be any point on the
 ** plane, but the plane's normal must be a unit vector.
 */
-float pointPlaneDist(const vec3 *point, const vec3 *vertex, const vec3 *normal){
+float pointPlaneDist(const vec3 *const restrict point, const vec3 *const restrict vertex, const vec3 *const restrict normal){
 	// point - vertex
 	const vec3 offset = {
 		.x = point->x - vertex->x,
@@ -280,7 +289,7 @@ float pointPlaneDist(const vec3 *point, const vec3 *vertex, const vec3 *normal){
 ** Project a point onto a plane. The variable
 ** "vertex" can be any point on the plane.
 */
-void pointPlaneProject(const vec3 *point, const vec3 *vertex, const vec3 *normal, vec3 *out){
+void pointPlaneProject(const vec3 *const restrict point, const vec3 *const restrict vertex, const vec3 *const restrict normal, vec3 *const restrict out){
 	// point - vertex
 	const vec3 offset = {
 		.x = point->x - vertex->x,

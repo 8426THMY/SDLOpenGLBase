@@ -107,7 +107,7 @@
 ** By applying the impulse from the previous update,
 ** we can make the constraint converge more quickly.
 */
-void physJointFrictionWarmStart(const physicsJointFriction *joint, physicsRigidBody *bodyA, physicsRigidBody *bodyB){
+void physJointFrictionWarmStart(const physicsJointFriction *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB){
 	vec3 linearImpulse;
 	vec3 angularImpulse;
 
@@ -132,7 +132,11 @@ void physJointFrictionWarmStart(const physicsJointFriction *joint, physicsRigidB
 ** change between velocity iterations. We can just do it once
 ** per update.
 */
-void physJointFrictionCalculateEffectiveMass(physicsJointFriction *joint, const physicsRigidBody *bodyA, const physicsRigidBody *bodyB){
+void physJointFrictionCalculateEffectiveMass(
+	physicsJointFriction *const restrict joint,
+	const physicsRigidBody *const restrict bodyA, const physicsRigidBody *const restrict bodyB
+){
+
 	const float invMass = bodyA->invMass + bodyB->invMass;
 	const mat3 *invInertiaA = &bodyA->invInertiaGlobal;
 	const mat3 *invInertiaB = &bodyB->invInertiaGlobal;
@@ -187,7 +191,12 @@ void physJointFrictionCalculateEffectiveMass(physicsJointFriction *joint, const 
 ** they are within the constraints imposed by the joint.
 ** This may be called multiple times with sequential impulse.
 */
-void physJointFrictionSolveVelocity(physicsJointFriction *joint, physicsRigidBody *bodyA, physicsRigidBody *bodyB, const float maxFriction){
+void physJointFrictionSolveVelocity(
+	physicsJointFriction *const restrict joint,
+	physicsRigidBody *const restrict bodyA, physicsRigidBody *bodyB,
+	const float maxFriction
+){
+
 	vec2 lambda;
 	vec2 oldImpulse;
 	vec3 impulse;

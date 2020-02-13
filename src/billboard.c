@@ -4,7 +4,7 @@
 #include <stddef.h>
 
 
-void billboardInit(billboard *billboardData){
+void billboardInit(billboard *const restrict billboardData){
 	billboardData->axis = NULL;
 	billboardData->target = NULL;
 	billboardData->scale = 1.f/BILLBOARD_SCALE_CALIBRATION_DISTANCE;
@@ -13,7 +13,7 @@ void billboardInit(billboard *billboardData){
 }
 
 
-void billboardState(const billboard *billboardData, const camera *cam, const vec3 centroid, mat4 rootState, mat4 *out){
+void billboardState(const billboard *const restrict billboardData, const camera *const restrict cam, const vec3 centroid, mat4 rootState, mat4 *const restrict out){
 	// Use the camera's axes for billboarding.
 	// We can just use the columns of its view matrix.
 	if(flagsAreSet(billboardData->flags, BILLBOARD_SPRITE)){

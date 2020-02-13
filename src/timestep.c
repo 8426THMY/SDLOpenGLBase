@@ -4,7 +4,7 @@
 #include "settingsProgram.h"
 
 
-void timestepInit(timestep *step, const float updateRate, const float renderRate){
+void timestepInit(timestep *const restrict step, const float updateRate, const float renderRate){
 	// Updates/renders per second.
 	step->updateRate = updateRate;
 	step->renderRate = renderRate;

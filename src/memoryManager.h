@@ -24,10 +24,10 @@ typedef memoryTree memoryManager;
 return_t memoryManagerGlobalInit(const size_t heapSize);
 
 void *memoryManagerGlobalAlloc(const size_t heapSize);
-void *memoryManagerGlobalResize(void *block, const size_t blockSize);
-void *memoryManagerGlobalRealloc(void *block, const size_t blockSize);
+void *memoryManagerGlobalResize(void *const restrict block, const size_t blockSize);
+void *memoryManagerGlobalRealloc(void *const restrict block, const size_t blockSize);
 void *memoryManagerGlobalExtend(const size_t memorySize);
-void memoryManagerGlobalFree(void *block);
+void memoryManagerGlobalFree(void *const restrict block);
 
 void memoryManagerGlobalDelete();
 
@@ -38,15 +38,15 @@ extern memoryManager g_memManager;
 // This will define memory manager functions
 // that can be used with a user-defined manager.
 #ifdef MEMORY_USE_MODULE_MANAGER
-return_t memoryManagerInit(memoryManager *memMngr, const size_t heapSize);
+return_t memoryManagerInit(memoryManager *const restrict memMngr, const size_t heapSize);
 
-void *memoryManagerAlloc(memoryManager *memMngr, const size_t heapSize);
-void *memoryManagerResize(memoryManager *memMngr, void *block, const size_t blockSize);
-void *memoryManagerRealloc(memoryManager *memMngr, void *block, const size_t blockSize);
-void *memoryManagerExtend(memoryManager *memMngr, const size_t memorySize);
-void memoryManagerFree(memoryManager *memMngr, void *block);
+void *memoryManagerAlloc(memoryManager *const restrict memMngr, const size_t heapSize);
+void *memoryManagerResize(memoryManager *const restrict memMngr, void *const restrict block, const size_t blockSize);
+void *memoryManagerRealloc(memoryManager *const restrict memMngr, void *const restrict block, const size_t blockSize);
+void *memoryManagerExtend(memoryManager *const restrict memMngr, const size_t memorySize);
+void memoryManagerFree(memoryManager *const restrict memMngr, void *const restrict block);
 
-void memoryManagerDelete(memoryManager *memMngr);
+void memoryManagerDelete(memoryManager *const restrict memMngr);
 #endif
 
 

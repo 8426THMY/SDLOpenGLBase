@@ -8,8 +8,8 @@
 
 // Initialise a separation pair from a separation.
 void physSeparationPairInit(
-	physicsSeparationPair *pair, const contactSeparation *separation,
-	physicsCollider *cA, physicsCollider *cB,
+	physicsSeparationPair *const restrict pair, const contactSeparation *const restrict separation,
+	physicsCollider *const restrict cA, physicsCollider *const restrict cB,
 	physicsSeparationPair *prev, physicsSeparationPair *next
 ){
 
@@ -71,8 +71,8 @@ void physSeparationPairInit(
 
 // Initialise a contact pair from a manifold.
 void physContactPairInit(
-	physicsContactPair *pair, const contactManifold *manifold,
-	physicsCollider *cA, physicsCollider *cB,
+	physicsContactPair *const restrict pair, const contactManifold *const restrict manifold,
+	physicsCollider *const restrict cA, physicsCollider *const restrict cB,
 	physicsContactPair *prev, physicsContactPair *next
 ){
 
@@ -134,8 +134,8 @@ void physContactPairInit(
 
 // Initialise a joint pair from a joint.
 /*void physJointPairInit(
-	physicsJointPair *pair,
-	physicsCollider *cA, physicsCollider *cB,
+	physicsJointPair *const restrict pair,
+	physicsCollider *const restrict cA, physicsCollider *const restrict cB,
 	physicsJointPair *prev, physicsJointPair *next
 ){
 
@@ -197,7 +197,7 @@ void physContactPairInit(
 ** Delete a separation pair and remove it from the linked
 ** lists of both colliders involved in the separation.
 */
-void physSeparationPairDelete(physicsSeparationPair *pair){
+void physSeparationPairDelete(physicsSeparationPair *const restrict pair){
 	physicsSeparationPair *nextPair = pair->nextA;
 	physicsSeparationPair *prevPair = pair->prevA;
 	// The next pair in collider A's list
@@ -250,7 +250,7 @@ void physSeparationPairDelete(physicsSeparationPair *pair){
 ** Delete a contact pair and remove it from the linked
 ** lists of both colliders involved in the contact.
 */
-void physContactPairDelete(physicsContactPair *pair){
+void physContactPairDelete(physicsContactPair *const restrict pair){
 	physicsContactPair *nextPair = pair->nextA;
 	physicsContactPair *prevPair = pair->prevA;
 	// The next pair in collider A's list
@@ -303,7 +303,7 @@ void physContactPairDelete(physicsContactPair *pair){
 ** Delete a joint pair and remove it from the linked
 ** lists of both colliders involved in the joint.
 */
-/*void physJointPairDelete(physicsJointPair *pair){
+/*void physJointPairDelete(physicsJointPair *const restrict pair){
 	physicsJointPair *nextPair = pair->nextA;
 	physicsJointPair *prevPair = pair->prevA;
 	// The next pair in collider A's list

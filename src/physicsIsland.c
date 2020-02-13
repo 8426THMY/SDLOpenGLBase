@@ -6,7 +6,7 @@
 #include "modulePhysics.h"
 
 
-void physIslandInit(physicsIsland *island){
+void physIslandInit(physicsIsland *const restrict island){
 	aabbTreeInit(&island->tree);
 }
 
@@ -15,7 +15,7 @@ void physIslandInit(physicsIsland *island){
 ** If a collider's new bounding box is no longer completely
 ** inside its old one, we'll need to update its tree node.
 */
-void physIslandUpdateCollider(physicsIsland *island, physicsCollider *collider){
+void physIslandUpdateCollider(physicsIsland *const restrict island, physicsCollider *const restrict collider){
 	if(!colliderAABBEnvelopsAABB(&collider->node->aabb, &collider->aabb)){
 		#ifdef PHYSISLAND_AABB_EXPAND_BY_VELOCITY
 		colliderAABBExpandVec3(&collider->aabb, &collider->owner->linearVelocity, &collider->node->aabb);
@@ -28,7 +28,7 @@ void physIslandUpdateCollider(physicsIsland *island, physicsCollider *collider){
 	}
 }
 
-void physIslandRemoveCollider(physicsIsland *island, physicsCollider *collider){
+void physIslandRemoveCollider(physicsIsland *const restrict island, physicsCollider *const restrict collider){
 	/** Should we clear the collider's pairs here? **/
 	aabbTreeRemoveNode(&island->tree, collider->node, &modulePhysicsAABBNodeFree);
 }
@@ -38,7 +38,7 @@ void physIslandRemoveCollider(physicsIsland *island, physicsCollider *collider){
 ** Check for collision between every collider in
 ** the island and update their collision pairs.
 */
-void physIslandQueryCollisions(physicsIsland *island, const float dt){
+void physIslandQueryCollisions(physicsIsland *const restrict island, const float dt){
 	aabbNode *node = island->tree.leaves;
 	physicsCollider *collider;
 
@@ -59,6 +59,6 @@ void physIslandQueryCollisions(physicsIsland *island, const float dt){
 
 
 // Free every node in a physics island's tree.
-void physIslandDelete(physicsIsland *island){
+void physIslandDelete(physicsIsland *const restrict island){
 	aabbTreeTraverse(&island->tree, &modulePhysicsAABBNodeFree);
 }

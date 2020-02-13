@@ -12,7 +12,10 @@
 ** that are not expected to change between iterations.
 ** Such values include the effective mass and the bias.
 */
-void physJointFixedPresolve(void *joint, physicsRigidBody *bodyA, physicsRigidBody *bodyB, const float dt){
+void physJointFixedPresolve(
+	void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB, const float dt
+){
+
 	//
 }
 
@@ -21,7 +24,7 @@ void physJointFixedPresolve(void *joint, physicsRigidBody *bodyA, physicsRigidBo
 ** they are within the constraints imposed by the joint.
 ** This may be called multiple times with sequential impulse.
 */
-void physJointFixedSolveVelocity(void *joint, physicsRigidBody *bodyA, physicsRigidBody *bodyB){
+void physJointFixedSolveVelocity(void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB){
 	//
 }
 
@@ -31,6 +34,6 @@ void physJointFixedSolveVelocity(void *joint, physicsRigidBody *bodyA, physicsRi
 ** This may also be called multiple times, but by returning
 ** the amount of error we'll know when to stop.
 */
-float physJointFixedSolvePosition(void *joint, physicsRigidBody *bodyA, physicsRigidBody *bodyB){
+float physJointFixedSolvePosition(void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB){
 	return(0.f);
 }
