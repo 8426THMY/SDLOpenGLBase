@@ -9,14 +9,12 @@
 #include "memoryManager.h"
 
 
-textGlyph *textGlyphArrayLoad(const char *const restrict glyphPath, const texture *const restrict atlas){
+textGlyph *textGlyphArrayLoad(const char *const restrict glyphPath, const texture **const restrict atlasArray){
 	textGlyph *glyphs = NULL;
 
 	// Load the glyph offsets!
 	FILE *const glyphFile = fopen(glyphPath, "r");
 	if(glyphFile != NULL){
-		const float invAtlasSize[2] = {1.f/atlas->width, 1.f/atlas->height};
-
 		char *endPos = NULL;
 
 		size_t lastIndex = invalidValue(lastIndex);
@@ -47,25 +45,29 @@ textGlyph *textGlyphArrayLoad(const char *const restrict glyphPath, const textur
 				const size_t char_index = (token += tokenLength + 1, token = stringDelimited(token, lineLength, '"', &tokenLength), token[tokenLength] = '\0', strtoul(token, NULL, 10));
 				/** Unused, not functional at the moment. **/
 				const uint32_t char_char = (token += tokenLength + 1, token = stringDelimited(token, lineLength, '"', &tokenLength), token[tokenLength] = '\0', 1234);
-				const float char_width = (token += tokenLength + 1, token = stringDelimited(token, lineLength, '"', &tokenLength), token[tokenLength] = '\0', strtof(token, NULL));
-				const float char_height = (token += tokenLength + 1, token = stringDelimited(token, lineLength, '"', &tokenLength), token[tokenLength] = '\0', strtof(token, NULL));
-				const float char_xoffset = (token += tokenLength + 1, token = stringDelimited(token, lineLength, '"', &tokenLength), token[tokenLength] = '\0', strtof(token, NULL));
-				const float char_yoffset = (token += tokenLength + 1, token = stringDelimited(token, lineLength, '"', &tokenLength), token[tokenLength] = '\0', strtof(token, NULL));
-				const float char_xadvance = (token += tokenLength + 1, token = stringDelimited(token, lineLength, '"', &tokenLength), token[tokenLength] = '\0', strtof(token, NULL));
+				const float char_width = (token += tokenLength + 1, token = stringDelimited(token, lineLength, '"', &tokenLength), token[tokenLength] = '\0', strtol(token, NULL, 10));
+				const float char_height = (token += tokenLength + 1, token = stringDelimited(token, lineLength, '"', &tokenLength), token[tokenLength] = '\0', strtol(token, NULL, 10));
+				const float char_xoffset = (token += tokenLength + 1, token = stringDelimited(token, lineLength, '"', &tokenLength), token[tokenLength] = '\0', strtol(token, NULL, 10));
+				const float char_yoffset = (token += tokenLength + 1, token = stringDelimited(token, lineLength, '"', &tokenLength), token[tokenLength] = '\0', strtol(token, NULL, 10));
+				const float char_xadvance = (token += tokenLength + 1, token = stringDelimited(token, lineLength, '"', &tokenLength), token[tokenLength] = '\0', strtol(token, NULL, 10));
 				/** Unused. **/
 				const byte_t char_chnl = (token += tokenLength + 1, token = stringDelimited(token, lineLength, '"', &tokenLength), token[tokenLength] = '\0', strtoul(token, NULL, 10));
-				const float char_x = (token += tokenLength + 1, token = stringDelimited(token, lineLength, '"', &tokenLength), token[tokenLength] = '\0', strtof(token, NULL));
-				const float char_y = (token += tokenLength + 1, token = stringDelimited(token, lineLength, '"', &tokenLength), token[tokenLength] = '\0', strtof(token, NULL));
-				/** Unused. **/
+				const float char_x = (token += tokenLength + 1, token = stringDelimited(token, lineLength, '"', &tokenLength), token[tokenLength] = '\0', strtol(token, NULL, 10));
+				const float char_y = (token += tokenLength + 1, token = stringDelimited(token, lineLength, '"', &tokenLength), token[tokenLength] = '\0', strtol(token, NULL, 10));
 				const byte_t char_page = (token += tokenLength + 1, token = stringDelimited(token, lineLength, '"', &tokenLength), token[tokenLength] = '\0', strtoul(token, NULL, 10));
 				/** Unused, not functional at the moment. **/
 				const uint32_t info_charset = (token += tokenLength + 1, token = stringDelimited(token, lineLength, '"', &tokenLength), token[tokenLength] = '\0', 1234);
 
+				const texture *const atlas = atlasArray[char_page];
+				const float atlasInvWidth  = 1.f/atlas->width;
+				const float atlasInvHeight = 1.f/atlas->height;
+
 				const textGlyph newGlyph = {
-					.uvOffsets.x = char_x * invAtlasSize[0],
-					.uvOffsets.y = char_y * invAtlasSize[1],
-					.uvOffsets.w = char_width * invAtlasSize[0],
-					.uvOffsets.h = char_height * invAtlasSize[1],
+					.atlas = atlas,
+					.uvOffsets.x = char_x * atlasInvWidth,
+					.uvOffsets.y = char_y * atlasInvHeight,
+					.uvOffsets.w = char_width * atlasInvWidth,
+					.uvOffsets.h = char_height * atlasInvHeight,
 
 					.kerningX = char_xoffset,
 					.kerningY = char_yoffset,

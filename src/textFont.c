@@ -5,18 +5,16 @@
 
 
 return_t textFontLoad(
-	textFont *const restrict font, const textFontType_t type,
-	const char *const restrict texPath, const char *const restrict glyphPath, const char *const restrict cmapPath
+	textFont *const restrict font, const textFontType_t type, const texture **const restrict atlasArray,
+	const char *const restrict cmapPath, const char *const restrict glyphPath
 ){
-
-	// Load the font's graphics.
-	font->atlas = textureLoad(texPath, strlen(texPath));
-	font->type = type;
 
 	// Allocate memory for the font's character map and load it.
 	font->cmap = textCMapLoadTTF(cmapPath);
 	// Load the font's glyph offset information.
-	font->glyphs = textGlyphArrayLoad(glyphPath, font->atlas);
+	font->glyphs = textGlyphArrayLoad(glyphPath, atlasArray);
+
+	font->type = type;
 
 
 	return(1);

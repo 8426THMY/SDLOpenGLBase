@@ -7,7 +7,9 @@
 
 
 typedef struct textGlyph {
-	// This tells us where the character appears in the font image.
+	// Pointer to the texture atlas containing this glyph.
+	const texture *atlas;
+	// Coordinates of the glyph in the atlas.
 	rectangle uvOffsets;
 
 	// How to position the glyph relative to others on the line.
@@ -18,7 +20,7 @@ typedef struct textGlyph {
 } textGlyph;
 
 
-textGlyph *textGlyphArrayLoad(const char *const restrict glyphPath, const texture *const restrict atlas);
+textGlyph *textGlyphArrayLoad(const char *const restrict glyphPath, const texture **const restrict atlasArray);
 
 
 #endif

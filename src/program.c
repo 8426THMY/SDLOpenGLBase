@@ -437,8 +437,12 @@ static return_t initResources(program *const restrict prg){
 
 	/** TEMPORARY FONT STUFF **/
 	textFont *fontIBM = memoryManagerGlobalAlloc(sizeof(*fontIBM));
+	const texture *atlasArray[2] = {
+		textureLoad("gui/PxPlusIBMBIOS.0.tdt", sizeof("gui/PxPlusIBMBIOS.0.tdt")),
+		textureLoad("gui/PxPlusIBMBIOS.1.tdt", sizeof("gui/PxPlusIBMBIOS.1.tdt"))
+	};
 	//textFontLoad(fontIBM, "./resource/fonts/PxPlus_IBM_BIOS.tdf");
-	textFontLoad(fontIBM, TEXT_FONT_IMAGE_TYPE_NORMAL, "gui/PxPlusIBMBIOS.0.tdt", "./resource/fonts/PxPlus_IBM_BIOS-msdf-temp.csv", "./resource/fonts/PxPlus_IBM_BIOS.ttf");
+	textFontLoad(fontIBM, TEXT_FONT_IMAGE_TYPE_NORMAL, atlasArray, "./resource/fonts/PxPlus_IBM_BIOS.ttf", "./resource/fonts/PxPlus_IBM_BIOS-msdf-temp.csv");
 	//const uint32_t glyphIndex_a = textCMapIndex(fontIBM.cmap, (textCMapCodeUnit_t){._32 = 931});
 	//const textGlyph *glyph_a = &fontIBM.glyphs[glyphIndex_a];
 	//printf("%u - (%f, %f, %f, %f), (%f, %f, %f)\n", glyphIndex_a, glyph_a->uvOffsets.x, glyph_a->uvOffsets.y, glyph_a->uvOffsets.w, glyph_a->uvOffsets.h, glyph_a->kerningX, glyph_a->kerningY, glyph_a->advanceX);
@@ -447,8 +451,8 @@ static return_t initResources(program *const restrict prg){
 
 	/** EVEN MORE TEMPORARY GUI STUFF **/
 	guiElementInit(&gui, GUI_ELEMENT_TYPE_TEXT);
-	guiTextInit(&gui.data.text, fontIBM, sizeof("THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG!"));
-	textBufferWrite(&gui.data.text.text, "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG!", sizeof("THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG!"));
+	guiTextInit(&gui.data.text, fontIBM, sizeof("The quick brown fox jumps over the lazy dog!"));
+	textBufferWrite(&gui.data.text.text, "The quick brown fox jumps over the lazy dog!", sizeof("The quick brown fox jumps over the lazy dog!"));
 
 	gui.data.text.bounds.x = -320.f;
 	gui.data.text.bounds.y = 240.f;
