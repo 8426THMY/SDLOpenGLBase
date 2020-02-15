@@ -22,6 +22,9 @@ typedef struct spriteShader {
 	GLuint programID;
 
 	GLuint vpMatrixID;
+	GLuint sdfTypeID;
+	GLuint sdfColourID;
+	GLuint sdfBackgroundID;
 } shaderSprite;
 
 

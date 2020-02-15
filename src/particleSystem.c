@@ -371,6 +371,9 @@ static void drawParticles(
 
 	// Send the view-projection matrix to the shader!
 	glUniformMatrix4fv(shader->vpMatrixID, 1, GL_FALSE, (GLfloat *)&cam->viewProjectionMatrix);
+	// Particle systems do not currently support SDF.
+	#warning "Add SDF and MSDF support for particle systems?"
+	glUniform1ui(shader->sdfTypeID, SPRITE_IMAGE_TYPE_NORMAL);
 
 	// Bind the sprite we're using!
 	glBindVertexArray(particleSprite->vertexArrayID);

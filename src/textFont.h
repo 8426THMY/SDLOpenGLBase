@@ -4,15 +4,11 @@
 
 #include <stdint.h>
 
+#include "sprite.h"
 #include "texture.h"
 
 #include "textGlyph.h"
 #include "textCMap.h"
-
-
-#define TEXT_FONT_IMAGE_TYPE_NORMAL 0
-#define TEXT_FONT_IMAGE_TYPE_SDF    1
-#define TEXT_FONT_IMAGE_TYPE MSDF   2
 
 
 typedef uint_least8_t textFontType_t;

@@ -6,7 +6,7 @@ Features that need to be completed:
 * Skeletal animation. This should be mostly completed, but it needs to be optimized a bit more.
 * Physics engine. The components exist and are fully implemented save for a few constraints, but there is currently no way of testing it.
 * Source-like particle system. This is mostly implemented, but there are still a few missing features.
-* GUI system. Work on a simple GUI has been started, but this will be expanded once the particle system is usable.
+* GUI system. Panels and text rendering has been implemented, but there is a lot of temporary code and they still lack some functionality.
 * Quake-like console.
 * Multi-threading.
 

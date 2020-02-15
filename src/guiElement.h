@@ -58,16 +58,15 @@ void guiElementDelete(guiElement *const restrict gui);
 
 
 extern void (*guiElementUpdateTable[GUI_ELEMENT_NUM_TYPES])(
-	void *const restrict gui,
+	guiElement *const restrict gui,
 	const float time
 );
 extern void (*guiElementDrawTable[GUI_ELEMENT_NUM_TYPES])(
-	const void *const restrict gui,
-	const transformState *const restrict root,
+	const guiElement *const restrict gui,
 	const shaderSprite *const restrict shader
 );
 extern void (*guiElementDeleteTable[GUI_ELEMENT_NUM_TYPES])(
-	void *const restrict gui
+	guiElement *const restrict gui
 );
 
 

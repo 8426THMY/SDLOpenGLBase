@@ -575,7 +575,7 @@ void memTreeDelete(memoryTree *const restrict tree){
 void memTreePrintAllSizes(memoryTree *const restrict tree){
 	memoryRegion *region = tree->region;
 	size_t regionNum = 0;
-	
+
 	puts("MEMTREE_DEBUG: All Blocks\n"
 	     "~~~~~~~~~~~~~~~~~~~~~~~~~");
 
@@ -583,14 +583,14 @@ void memTreePrintAllSizes(memoryTree *const restrict tree){
 	do {
 		memTreeListNode *node = (memTreeListNode *)(region->start);
 		memTreeNode *nodeTree;
-		
+
 		// Print some details about the region.
 		printf(
 			"Region Number: "PRINTF_SIZE_T", Address: "PRINTF_SIZE_T", Start: "PRINTF_SIZE_T", Next: "PRINTF_SIZE_T"\n"
 			"-------------------------\n",
 			regionNum, (uintptr_t)region, (uintptr_t)(region->start), (uintptr_t)(region->next)
 		);
-		
+
 		// Loop through all of the nodes in this region.
 		for(;;){
 			nodeTree = listNodeGetTree(node);
@@ -640,13 +640,15 @@ void memTreePrintFreeSizes(memoryTree *const restrict tree){
 
 		while(node != NULL){
 			memTreeNode *const nodeRight = node->right;
-			
+
 			// Sizes include the block's header, so
 			// we need to remove that when we print it.
-			printf("Free Address: "PRINTF_SIZE_T", Size: "PRINTF_SIZE_T", Flags: "PRINTF_SIZE_T",\n"
-				   "Left: "PRINTF_SIZE_T", Right: "PRINTF_SIZE_T", Parent: "PRINTF_SIZE_T", Colour: "PRINTF_SIZE_T"\n\n",
-				   (uintptr_t)treeNodeGetList(node), treeNodeGetSize(node) - MEMTREE_BLOCK_HEADER_SIZE, treeNodeGetFlags(node),
-				   (uintptr_t)(node->left), (uintptr_t)(node->right), (uintptr_t)(treeNodeGetParent(node)), treeNodeGetColour(node));
+			printf(
+				"Free Address: "PRINTF_SIZE_T", Size: "PRINTF_SIZE_T", Flags: "PRINTF_SIZE_T",\n"
+				"Left: "PRINTF_SIZE_T", Right: "PRINTF_SIZE_T", Parent: "PRINTF_SIZE_T", Colour: "PRINTF_SIZE_T"\n\n",
+				(uintptr_t)treeNodeGetList(node), treeNodeGetSize(node) - MEMTREE_BLOCK_HEADER_SIZE, treeNodeGetFlags(node),
+				(uintptr_t)(node->left), (uintptr_t)(node->right), (uintptr_t)(treeNodeGetParent(node)), treeNodeGetColour(node)
+			);
 
 			// If there is a node to the right of
 			// the one the iterator is currently
@@ -725,7 +727,7 @@ static void treeInsert(memoryTree *const restrict tree, memTreeNode *node, const
 	// Make sure the tree isn't empty before inserting the node.
 	if(parent != NULL){
 		memTreeNode *grandparent;
-		
+
 		// Search our tree to find where the new node should be inserted.
 		for(;;){
 			// If the new size is smaller than or equal to the

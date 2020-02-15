@@ -5,6 +5,8 @@
 #include "texture.h"
 #include "textureGroup.h"
 
+#include "guiElement.h"
+
 
 void guiPanelInit(guiPanel *const restrict gui){
 	texGroupStateInit(&gui->borderTexState, &g_texGroupDefault);
@@ -35,21 +37,35 @@ void guiPanelInit(guiPanel *const restrict gui){
 }
 
 
-void guiPanelUpdate(void *const restrict gui, const float time){
-	texGroupStateUpdate(&(((guiPanel *)gui)->borderTexState), time);
-	texGroupStateUpdate(&(((guiPanel *)gui)->bodyTexState), time);
+void guiPanelUpdate(guiElement *const restrict gui, const float time){
+	texGroupStateUpdate(&(gui->data.panel.borderTexState), time);
+	texGroupStateUpdate(&(gui->data.panel.bodyTexState), time);
 }
 
 #warning "This is all very temporary. It'd be nice if we could fix the texture bleeding, though..."
 void guiPanelDraw(
-	const void *const restrict gui, const transformState *const restrict root, const shaderSprite *const restrict shader
+	const guiElement *const restrict gui, const shaderSprite *const restrict shader
 ){
 
+	const guiPanel panel = gui->data.panel;
+
 	spriteState panelStates[8];
-	const textureGroupFrame *const borderFrame = texGroupStateGetFrame(&(((const guiPanel *)gui)->borderTexState));
-	const textureGroupFrame *const bodyFrame = texGroupStateGetFrame(&(((const guiPanel *)gui)->bodyTexState));
-	float curWidth;
-	float curHeight;
+	const textureGroupFrame *const borderFrame = texGroupStateGetFrame(&panel.borderTexState);
+	const textureGroupFrame *const bodyFrame = texGroupStateGetFrame(&panel.bodyTexState);
+
+	const rectangle *offsets = panel.uvCoords;
+	float curWidth = offsets[0].w * borderFrame->diffuse->width;
+	float curHeight = offsets[0].h * borderFrame->diffuse->height;
+	const transformState rootTransform = {
+		// Move the panel's origin to the top-left corner.
+		.pos = {
+			.x = gui->root.pos.x + gui->root.scale.x * 0.5f + curWidth,
+			.y = gui->root.pos.y - gui->root.scale.y * 0.5f - curHeight,
+			.z = gui->root.pos.z
+		},
+		.rot = gui->root.rot,
+		.scale = gui->root.scale
+	};
 
 
 	// Bind the mesh we're using!
@@ -64,9 +80,6 @@ void guiPanelDraw(
 	#warning "Border tiling is not yet implemented."
 	#warning "Neither is panel rotation."
 	// Set up the bottom-right corner's state.
-	curWidth = ((const guiPanel *)gui)->uvCoords[0].w * borderFrame->diffuse->width;
-	curHeight = ((const guiPanel *)gui)->uvCoords[0].h * borderFrame->diffuse->height;
-
 	panelStates[0].state.m[0][0] = curWidth;
 	panelStates[0].state.m[0][1] = 0.f;
 	panelStates[0].state.m[0][2] = 0.f;
@@ -82,17 +95,17 @@ void guiPanelDraw(
 	panelStates[0].state.m[2][2] = 1.f;
 	panelStates[0].state.m[2][3] = 0.f;
 
-	panelStates[0].state.m[3][0] = root->pos.x + (root->scale.x + curWidth) * 0.5f;
-	panelStates[0].state.m[3][1] = root->pos.y - (root->scale.y + curHeight) * 0.5f;
+	panelStates[0].state.m[3][0] = rootTransform.pos.x + (rootTransform.scale.x + curWidth) * 0.5f;
+	panelStates[0].state.m[3][1] = rootTransform.pos.y - (rootTransform.scale.y + curHeight) * 0.5f;
 	panelStates[0].state.m[3][2] = 0.f;
 	panelStates[0].state.m[3][3] = 1.f;
 
-	panelStates[0].uvOffsets = ((const guiPanel *)gui)->uvCoords[0];
+	panelStates[0].uvOffsets = offsets[0];
 
 
 	// Set up the top-right corner's state.
-	curWidth = ((const guiPanel *)gui)->uvCoords[1].w * borderFrame->diffuse->width;
-	curHeight = ((const guiPanel *)gui)->uvCoords[1].h * borderFrame->diffuse->height;
+	curWidth = offsets[1].w * borderFrame->diffuse->width;
+	curHeight = offsets[1].h * borderFrame->diffuse->height;
 
 	panelStates[1].state.m[0][0] = curWidth;
 	panelStates[1].state.m[0][1] = 0.f;
@@ -109,17 +122,17 @@ void guiPanelDraw(
 	panelStates[1].state.m[2][2] = 1.f;
 	panelStates[1].state.m[2][3] = 0.f;
 
-	panelStates[1].state.m[3][0] = root->pos.x + (root->scale.x + curWidth) * 0.5f;
-	panelStates[1].state.m[3][1] = root->pos.y + (root->scale.y + curHeight) * 0.5f;
+	panelStates[1].state.m[3][0] = rootTransform.pos.x + (rootTransform.scale.x + curWidth) * 0.5f;
+	panelStates[1].state.m[3][1] = rootTransform.pos.y + (rootTransform.scale.y + curHeight) * 0.5f;
 	panelStates[1].state.m[3][2] = 0.f;
 	panelStates[1].state.m[3][3] = 1.f;
 
-	panelStates[1].uvOffsets = ((const guiPanel *)gui)->uvCoords[1];
+	panelStates[1].uvOffsets = offsets[1];
 
 
 	// Set up the top-left corner's state.
-	curWidth = ((const guiPanel *)gui)->uvCoords[2].w * borderFrame->diffuse->width;
-	curHeight = ((const guiPanel *)gui)->uvCoords[2].h * borderFrame->diffuse->height;
+	curWidth = offsets[2].w * borderFrame->diffuse->width;
+	curHeight = offsets[2].h * borderFrame->diffuse->height;
 
 	panelStates[2].state.m[0][0] = curWidth;
 	panelStates[2].state.m[0][1] = 0.f;
@@ -136,17 +149,17 @@ void guiPanelDraw(
 	panelStates[2].state.m[2][2] = 1.f;
 	panelStates[2].state.m[2][3] = 0.f;
 
-	panelStates[2].state.m[3][0] = root->pos.x - (root->scale.x + curWidth) * 0.5f;
-	panelStates[2].state.m[3][1] = root->pos.y + (root->scale.y + curHeight) * 0.5f;
+	panelStates[2].state.m[3][0] = rootTransform.pos.x - (rootTransform.scale.x + curWidth) * 0.5f;
+	panelStates[2].state.m[3][1] = rootTransform.pos.y + (rootTransform.scale.y + curHeight) * 0.5f;
 	panelStates[2].state.m[3][2] = 0.f;
 	panelStates[2].state.m[3][3] = 1.f;
 
-	panelStates[2].uvOffsets = ((const guiPanel *)gui)->uvCoords[2];
+	panelStates[2].uvOffsets = offsets[2];
 
 
 	// Set up the bottom-left corner's state.
-	curWidth = ((const guiPanel *)gui)->uvCoords[3].w * borderFrame->diffuse->width;
-	curHeight = ((const guiPanel *)gui)->uvCoords[3].h * borderFrame->diffuse->height;
+	curWidth = offsets[3].w * borderFrame->diffuse->width;
+	curHeight = offsets[3].h * borderFrame->diffuse->height;
 
 	panelStates[3].state.m[0][0] = curWidth;
 	panelStates[3].state.m[0][1] = 0.f;
@@ -163,19 +176,19 @@ void guiPanelDraw(
 	panelStates[3].state.m[2][2] = 1.f;
 	panelStates[3].state.m[2][3] = 0.f;
 
-	panelStates[3].state.m[3][0] = root->pos.x - (root->scale.x + curWidth) * 0.5f;
-	panelStates[3].state.m[3][1] = root->pos.y - (root->scale.y + curHeight) * 0.5f;
+	panelStates[3].state.m[3][0] = rootTransform.pos.x - (rootTransform.scale.x + curWidth) * 0.5f;
+	panelStates[3].state.m[3][1] = rootTransform.pos.y - (rootTransform.scale.y + curHeight) * 0.5f;
 	panelStates[3].state.m[3][2] = 0.f;
 	panelStates[3].state.m[3][3] = 1.f;
 
-	panelStates[3].uvOffsets = ((const guiPanel *)gui)->uvCoords[3];
+	panelStates[3].uvOffsets = offsets[3];
 
 
 	// Set up the right edge's state.
-	curHeight = ((const guiPanel *)gui)->uvCoords[4].h * borderFrame->diffuse->height;
+	curHeight = offsets[4].h * borderFrame->diffuse->height;
 
 	panelStates[4].state.m[0][0] = 0.f;
-	panelStates[4].state.m[0][1] = -root->scale.y;
+	panelStates[4].state.m[0][1] = -rootTransform.scale.y;
 	panelStates[4].state.m[0][2] = 0.f;
 	panelStates[4].state.m[0][3] = 0.f;
 
@@ -189,18 +202,18 @@ void guiPanelDraw(
 	panelStates[4].state.m[2][2] = 1.f;
 	panelStates[4].state.m[2][3] = 0.f;
 
-	panelStates[4].state.m[3][0] = root->pos.x + (root->scale.x + curHeight) * 0.5f;
-	panelStates[4].state.m[3][1] = root->pos.y;
+	panelStates[4].state.m[3][0] = rootTransform.pos.x + (rootTransform.scale.x + curHeight) * 0.5f;
+	panelStates[4].state.m[3][1] = rootTransform.pos.y;
 	panelStates[4].state.m[3][2] = 0.f;
 	panelStates[4].state.m[3][3] = 1.f;
 
-	panelStates[4].uvOffsets = ((const guiPanel *)gui)->uvCoords[4];
+	panelStates[4].uvOffsets = offsets[4];
 
 
 	// Set up the top edge's state.
-	curHeight = ((const guiPanel *)gui)->uvCoords[5].h * borderFrame->diffuse->height;
+	curHeight = offsets[5].h * borderFrame->diffuse->height;
 
-	panelStates[5].state.m[0][0] = root->scale.x;
+	panelStates[5].state.m[0][0] = rootTransform.scale.x;
 	panelStates[5].state.m[0][1] = 0.f;
 	panelStates[5].state.m[0][2] = 0.f;
 	panelStates[5].state.m[0][3] = 0.f;
@@ -215,19 +228,19 @@ void guiPanelDraw(
 	panelStates[5].state.m[2][2] = 1.f;
 	panelStates[5].state.m[2][3] = 0.f;
 
-	panelStates[5].state.m[3][0] = root->pos.x;
-	panelStates[5].state.m[3][1] = root->pos.y + (root->scale.y + curHeight) * 0.5f;
+	panelStates[5].state.m[3][0] = rootTransform.pos.x;
+	panelStates[5].state.m[3][1] = rootTransform.pos.y + (rootTransform.scale.y + curHeight) * 0.5f;
 	panelStates[5].state.m[3][2] = 0.f;
 	panelStates[5].state.m[3][3] = 1.f;
 
-	panelStates[5].uvOffsets = ((const guiPanel *)gui)->uvCoords[5];
+	panelStates[5].uvOffsets = offsets[5];
 
 
 	// Set up the left edge's state.
-	curHeight = ((const guiPanel *)gui)->uvCoords[6].h * borderFrame->diffuse->height;
+	curHeight = offsets[6].h * borderFrame->diffuse->height;
 
 	panelStates[6].state.m[0][0] = 0.f;
-	panelStates[6].state.m[0][1] = root->scale.y;
+	panelStates[6].state.m[0][1] = rootTransform.scale.y;
 	panelStates[6].state.m[0][2] = 0.f;
 	panelStates[6].state.m[0][3] = 0.f;
 
@@ -241,18 +254,18 @@ void guiPanelDraw(
 	panelStates[6].state.m[2][2] = 1.f;
 	panelStates[6].state.m[2][3] = 0.f;
 
-	panelStates[6].state.m[3][0] = root->pos.x - (root->scale.x + curHeight) * 0.5f;
-	panelStates[6].state.m[3][1] = root->pos.y;
+	panelStates[6].state.m[3][0] = rootTransform.pos.x - (rootTransform.scale.x + curHeight) * 0.5f;
+	panelStates[6].state.m[3][1] = rootTransform.pos.y;
 	panelStates[6].state.m[3][2] = 0.f;
 	panelStates[6].state.m[3][3] = 1.f;
 
-	panelStates[6].uvOffsets = ((const guiPanel *)gui)->uvCoords[6];
+	panelStates[6].uvOffsets = offsets[6];
 
 
 	// Set up the bottom edge's state.
-	curHeight = ((const guiPanel *)gui)->uvCoords[7].h * borderFrame->diffuse->height;
+	curHeight = offsets[7].h * borderFrame->diffuse->height;
 
-	panelStates[7].state.m[0][0] = -root->scale.x;
+	panelStates[7].state.m[0][0] = -rootTransform.scale.x;
 	panelStates[7].state.m[0][1] = 0.f;
 	panelStates[7].state.m[0][2] = 0.f;
 	panelStates[7].state.m[0][3] = 0.f;
@@ -267,12 +280,12 @@ void guiPanelDraw(
 	panelStates[7].state.m[2][2] = 1.f;
 	panelStates[7].state.m[2][3] = 0.f;
 
-	panelStates[7].state.m[3][0] = root->pos.x;
-	panelStates[7].state.m[3][1] = root->pos.y - (root->scale.y + curHeight) * 0.5f;
+	panelStates[7].state.m[3][0] = rootTransform.pos.x;
+	panelStates[7].state.m[3][1] = rootTransform.pos.y - (rootTransform.scale.y + curHeight) * 0.5f;
 	panelStates[7].state.m[3][2] = 0.f;
 	panelStates[7].state.m[3][3] = 1.f;
 
-	panelStates[7].uvOffsets = ((const guiPanel *)gui)->uvCoords[7];
+	panelStates[7].uvOffsets = offsets[7];
 
 
 	// Upload the border elements' states to the shader.
@@ -286,15 +299,15 @@ void guiPanelDraw(
 	glBindTexture(GL_TEXTURE_2D, bodyFrame->diffuse->id);
 
 	// Draw the main region of the panel.
-	transformStateToMat4(root, &panelStates[0].state);
+	transformStateToMat4(&rootTransform, &panelStates[0].state);
 
 	panelStates[0].uvOffsets.x = bodyFrame->bounds.x;
 	panelStates[0].uvOffsets.y = bodyFrame->bounds.y;
 	// Scroll the body image if tiling is enabled.
 	// Otherwise, we stretch it to fit the panel.
-	if(flagsAreSet(((const guiPanel *)gui)->flags, GUI_PANEL_TILE_BODY)){
-		panelStates[0].uvOffsets.w = root->scale.x / bodyFrame->diffuse->width;
-		panelStates[0].uvOffsets.h = root->scale.y / bodyFrame->diffuse->height;
+	if(flagsAreSet(panel.flags, GUI_PANEL_TILE_BODY)){
+		panelStates[0].uvOffsets.w = rootTransform.scale.x / bodyFrame->diffuse->width;
+		panelStates[0].uvOffsets.h = rootTransform.scale.y / bodyFrame->diffuse->height;
 	}else{
 		panelStates[0].uvOffsets.w = bodyFrame->bounds.w;
 		panelStates[0].uvOffsets.h = bodyFrame->bounds.h;
@@ -307,6 +320,6 @@ void guiPanelDraw(
 }
 
 
-void guiPanelDelete(void *const restrict gui){
+void guiPanelDelete(guiElement *const restrict gui){
 	return;
 }

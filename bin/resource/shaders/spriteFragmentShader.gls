@@ -1,14 +1,48 @@
 #version 330 core
 
 
+#define IMAGE_TYPE_NORMAL uint(0)
+#define IMAGE_TYPE_SDF    uint(1)
+#define IMAGE_TYPE_MSDF   uint(2)
+
+
 uniform sampler2D baseTex0;
+uniform uint sdfType;
+uniform vec4 sdfColour;
+uniform vec4 sdfBackground;
 
 in vec2 uv;
 out vec4 colour;
 
 
+// Sort a, b and c and return whichever is in the middle.
+float median(float a, float b, float c){
+	if(a > b){
+		float t = a;
+		a = b;
+		b = t;
+	}
+	if(b > c){
+		b = c;
+	}
+	if(a > b){
+		b = a;
+	}
+	return(b);
+}
+
+
 void main(){
 	vec4 fragColour = texture(baseTex0, uv);
+	
+	if(sdfType == IMAGE_TYPE_SDF){
+		//
+	}
+	if(sdfType == IMAGE_TYPE_MSDF){
+		float d = median(fragColour.r, fragColour.g, fragColour.b) - 0.5f;
+		float w = clamp(d/fwidth(d) + 0.5f, 0.f, 1.f);
+		fragColour = mix(sdfBackground, sdfColour, w);
+	}
 	
 	// If this fragment is fully transparent,
 	// discard it to avoid writing to the z-buffer.

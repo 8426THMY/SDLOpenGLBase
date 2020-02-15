@@ -17,6 +17,11 @@
 #include "settingsSprites.h"
 
 
+#define SPRITE_IMAGE_TYPE_NORMAL 0
+#define SPRITE_IMAGE_TYPE_SDF    1
+#define SPRITE_IMAGE_TYPE_MSDF   2
+
+
 typedef struct spriteVertex {
 	vec3 pos;
 	vec2 uv;

@@ -15,20 +15,25 @@
 
 
 typedef struct guiText {
+	textBuffer buffer;
 	const textFont *font;
-	textBuffer text;
-	rectangle bounds;
+
+	// Bounds for the text box.
+	float width;
+	float height;
 } guiText;
+
+typedef struct guiElement guiElement;
 
 
 void guiTextInit(guiText *const restrict gui, const textFont *const restrict font, const size_t bufferSize);
 
-void guiTextUpdate(void *const restrict gui, const float time);
+void guiTextUpdate(guiElement *const restrict gui, const float time);
 void guiTextDraw(
-	const void *const restrict gui, const transformState *const restrict root, const shaderSprite *const restrict shader
+	const guiElement *const restrict gui, const shaderSprite *const restrict shader
 );
 
-void guiTextDelete(void *const restrict gui);
+void guiTextDelete(guiElement *const restrict gui);
 
 
 #endif

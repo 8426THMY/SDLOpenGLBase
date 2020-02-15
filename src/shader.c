@@ -53,7 +53,10 @@ return_t shaderSpriteInit(shaderSprite *const restrict shader, const GLuint prog
 	glUseProgram(programID);
 
 	// Find the positions of our shader's uniform variables!
-	shader->vpMatrixID = glGetUniformLocation(programID, "vpMatrix");
+	shader->vpMatrixID      = glGetUniformLocation(programID, "vpMatrix");
+	shader->sdfTypeID       = glGetUniformLocation(programID, "sdfType");
+	shader->sdfColourID     = glGetUniformLocation(programID, "sdfColour");
+	shader->sdfBackgroundID = glGetUniformLocation(programID, "sdfBackground");
 	// Bind uniform variable "baseTex0" to the first texture mapping unit (GL_TEXTURE0)!
 	glUniform1i(glGetUniformLocation(shader->programID, "baseTex0"), 0);
 
@@ -105,25 +108,34 @@ GLuint shaderLoad(const char *const restrict shaderPath, const GLenum shaderType
 				}
 
 
-				printf("Shader could not be compiled!\n");
+				printf(
+					"Shader could not be compiled!\n"
+					"Path: %s\n", shaderPath
+				);
 				// If the compilation was unsuccessful, try to print the error message!
 				printShaderError(shaderID);
 			}else{
-				printf("Failed to allocate memory for shader file!\n"
-					   "Path: %s\n", shaderPath);
+				printf(
+					"Failed to allocate memory for shader file!\n"
+					"Path: %s\n", shaderPath
+				);
 				fclose(shaderFile);
 			}
 
 			// Delete the shader if it couldn't be loaded.
 			glDeleteShader(shaderID);
 		}else{
-			printf("Failed to create shader!\n"
-			       "Path: %s\n", shaderPath);
+			printf(
+				"Failed to create shader!\n"
+				"Path: %s\n", shaderPath
+			);
 			fclose(shaderFile);
 		}
 	}else{
-		printf("Unable to load shader file!\n"
-		       "Path: %s\n", shaderPath);
+		printf(
+			"Unable to load shader file!\n"
+			"Path: %s\n", shaderPath
+		);
 	}
 
 
@@ -183,7 +195,7 @@ static void printShaderError(const GLuint shaderID){
 		GLchar *shaderError = memoryManagerGlobalAlloc(infoLogLength);
 		glGetShaderInfoLog(shaderID, infoLogLength, NULL, shaderError);
 
-		printf("%s\n", shaderError);
+		printf("%s", shaderError);
 		memoryManagerGlobalFree(shaderError);
 	}
 }
@@ -201,7 +213,7 @@ static void printProgramError(const GLuint shaderID){
 		GLchar *programError = memoryManagerGlobalAlloc(infoLogLength);
 		glGetProgramInfoLog(shaderID, infoLogLength, NULL, programError);
 
-		printf("%s\n", programError);
+		printf("%s", programError);
 		memoryManagerGlobalFree(programError);
 	}
 }

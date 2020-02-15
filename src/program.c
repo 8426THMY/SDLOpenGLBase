@@ -241,6 +241,7 @@ static void updateObjects(program *const restrict prg){
 particleSystemDef partSysDef;
 particleSystem partSys;
 guiElement gui;
+textFont fontIBM;
 static void update(program *const restrict prg){
 	updateCameras(prg);
 	updateObjects(prg);
@@ -311,30 +312,38 @@ static void render(program *const restrict prg){
 static return_t initLibs(program *const restrict prg){
 	// Initialize the SDL2 video subsystem!
 	if(SDL_Init(SDL_INIT_VIDEO) != 0){
-		printf("Unable to initialize SDL2 video subsystem!\n"
-		       "Error: %s\n", SDL_GetError());
+		printf(
+			"Unable to initialize SDL2 video subsystem!\n"
+			"Error: %s\n", SDL_GetError()
+		);
 		return(0);
 	}
 
 	// Initialize the SDL2 Image library!
 	if(!IMG_Init(IMG_INIT_PNG)){
-		printf("Unable to initialize SDL2 Image library!\n"
-		       "Error: %s\n", IMG_GetError());
+		printf(
+			"Unable to initialize SDL2 Image library!\n"
+			"Error: %s\n", IMG_GetError()
+		);
 		return(0);
 	}
 
 	// Create a window using SDL2!
 	prg->window = SDL_CreateWindow("NewSDLOpenGLBaseC", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, prg->windowWidth, prg->windowHeight, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
 	if(!prg->window){
-		printf("Unable to create SDL2 window!\n"
-		       "Error: %s\n", SDL_GetError());
+		printf(
+			"Unable to create SDL2 window!\n"
+			"Error: %s\n", SDL_GetError()
+		);
 		return(0);
 	}
 
 	// Create an OpenGL context using SDL2!
 	if(!SDL_GL_CreateContext(prg->window)){
-		printf("Unable to create an OpenGL context!\n"
-		       "Error: %s\n", SDL_GetError());
+		printf(
+			"Unable to create an OpenGL context!\n"
+			"Error: %s\n", SDL_GetError()
+		);
 		return(0);
 	}
 
@@ -345,8 +354,10 @@ static return_t initLibs(program *const restrict prg){
 	// Initialize the GLEW library!
 	GLenum glewError = glewInit();
 	if(glewError != GLEW_OK){
-		printf("Unable to initialize GLEW!\n"
-		       "Error: %s\n", glewGetErrorString(glewError));
+		printf(
+			"Unable to initialize GLEW!\n"
+			"Error: %s\n", glewGetErrorString(glewError)
+		);
 		return(0);
 	}
 
@@ -367,12 +378,14 @@ static return_t initLibs(program *const restrict prg){
 }
 
 static return_t initResources(program *const restrict prg){
-	const GLuint objVertexShaderID    = shaderLoad("./resource/shaders/vertexShader.gls",       GL_VERTEX_SHADER);
-	const GLuint spriteVertexShaderID = shaderLoad("./resource/shaders/spriteVertexShader.gls", GL_VERTEX_SHADER);
-	const GLuint fragmentShaderID     = shaderLoad("./resource/shaders/fragmentShader.gls",     GL_FRAGMENT_SHADER);
-	const GLuint objectProgramID      = shaderLoadProgram(objVertexShaderID, fragmentShaderID);
-	const GLuint spriteProgramID      = shaderLoadProgram(spriteVertexShaderID, fragmentShaderID);
+	const GLuint objVertexShaderID      = shaderLoad("./resource/shaders/vertexShader.gls",         GL_VERTEX_SHADER);
+	const GLuint spriteVertexShaderID   = shaderLoad("./resource/shaders/spriteVertexShader.gls",   GL_VERTEX_SHADER);
+	const GLuint fragmentShaderID       = shaderLoad("./resource/shaders/fragmentShader.gls",       GL_FRAGMENT_SHADER);
+	const GLuint spriteFragmentShaderID = shaderLoad("./resource/shaders/spriteFragmentShader.gls", GL_FRAGMENT_SHADER);
+	const GLuint objectProgramID        = shaderLoadProgram(objVertexShaderID, fragmentShaderID);
+	const GLuint spriteProgramID        = shaderLoadProgram(spriteVertexShaderID, spriteFragmentShaderID);
 
+	shaderDelete(spriteFragmentShaderID);
 	shaderDelete(fragmentShaderID);
 	shaderDelete(spriteVertexShaderID);
 	shaderDelete(objVertexShaderID);
@@ -436,34 +449,33 @@ static return_t initResources(program *const restrict prg){
 
 
 	/** TEMPORARY FONT STUFF **/
-	textFont *fontIBM = memoryManagerGlobalAlloc(sizeof(*fontIBM));
 	const texture *atlasArray[2] = {
 		textureLoad("gui/PxPlusIBMBIOS.0.tdt", sizeof("gui/PxPlusIBMBIOS.0.tdt")),
 		textureLoad("gui/PxPlusIBMBIOS.1.tdt", sizeof("gui/PxPlusIBMBIOS.1.tdt"))
 	};
-	//textFontLoad(fontIBM, "./resource/fonts/PxPlus_IBM_BIOS.tdf");
-	textFontLoad(fontIBM, TEXT_FONT_IMAGE_TYPE_NORMAL, atlasArray, "./resource/fonts/PxPlus_IBM_BIOS.ttf", "./resource/fonts/PxPlus_IBM_BIOS-msdf-temp.csv");
-	//const uint32_t glyphIndex_a = textCMapIndex(fontIBM.cmap, (textCMapCodeUnit_t){._32 = 931});
-	//const textGlyph *glyph_a = &fontIBM.glyphs[glyphIndex_a];
-	//printf("%u - (%f, %f, %f, %f), (%f, %f, %f)\n", glyphIndex_a, glyph_a->uvOffsets.x, glyph_a->uvOffsets.y, glyph_a->uvOffsets.w, glyph_a->uvOffsets.h, glyph_a->kerningX, glyph_a->kerningY, glyph_a->advanceX);
-	//textCMapOutputCodePoints(fontIBM.cmap, "./resource/fonts/charset.txt", ' ');
+	//textFontLoad(&fontIBM, "./resource/fonts/PxPlus_IBM_BIOS.tdf");
+	textFontLoad(&fontIBM, SPRITE_IMAGE_TYPE_MSDF, atlasArray, "./resource/fonts/PxPlus_IBM_BIOS.ttf", "./resource/fonts/PxPlus_IBM_BIOS-msdf-temp.csv");
 
-
-	/** EVEN MORE TEMPORARY GUI STUFF **/
 	guiElementInit(&gui, GUI_ELEMENT_TYPE_TEXT);
-	guiTextInit(&gui.data.text, fontIBM, sizeof("The quick brown fox jumps over the lazy dog!"));
-	textBufferWrite(&gui.data.text.text, "The quick brown fox jumps over the lazy dog!", sizeof("The quick brown fox jumps over the lazy dog!"));
+	gui.root.pos.x = -320.f;
+	gui.root.pos.y = 240.f;
+	gui.root.scale.x = gui.root.scale.y = 2.f;
+	guiTextInit(&gui.data.text, &fontIBM, sizeof("The quick brown fox jumps over the lazy dog!"));
+	textBufferWrite(&gui.data.text.buffer, "The quick brown fox jumps over the lazy dog!", sizeof("The quick brown fox jumps over the lazy dog!"));
 
-	gui.data.text.bounds.x = -320.f;
-	gui.data.text.bounds.y = 240.f;
-	gui.data.text.bounds.w = 320.f;
-	gui.data.text.bounds.h = 240.f;
+	gui.data.text.width  = 640.f;
+	gui.data.text.height = 480.f;
 
-	/*guiElementInit(&gui, GUI_TYPE_PANEL);
+
+	/** TEMPORARY PANEL STUFF **/
+	/*guiElementInit(&gui, GUI_ELEMENT_TYPE_PANEL);
+	gui.root.pos.x = -320.f;
+	gui.root.pos.y = 240.f;
+	gui.root.scale.x = gui.root.scale.y = 100.f;
 	guiPanelInit(&gui.data.panel);
 
-	gui.data.panel.borderTexState.texGroup = texGroupLoad("gui/border.tdg");
-	gui.data.panel.bodyTexState.texGroup = texGroupLoad("gui/body.tdg");
+	gui.data.panel.borderTexState.texGroup = texGroupLoad("gui/border.tdg", sizeof("gui/border.tdg"));
+	gui.data.panel.bodyTexState.texGroup   = texGroupLoad("gui/body.tdg", sizeof("gui/body.tdg"));
 
 	// Bottom-right corner.
 	gui.data.panel.uvCoords[0].x = 0.75f;
@@ -507,7 +519,7 @@ static return_t initResources(program *const restrict prg){
 	gui.data.panel.uvCoords[7].w = 1.f;
 	gui.data.panel.uvCoords[7].h = 0.2f;
 
-	flagsSet(gui.data.panel.flags, GUIPANEL_TILE_BODY);*/
+	flagsSet(gui.data.panel.flags, GUI_PANEL_TILE_BODY);*/
 
 
 	return(1);
@@ -580,8 +592,9 @@ static void cleanupModules(){
 	particleSysDelete(&partSys);
 	particleSysDefDelete(&partSysDef);
 	/** YET MORE TEMPORARY GUI STUFF **/
-	textFontDelete(gui.data.text.font);
-	memoryManagerGlobalFree(gui.data.text.font);
+	if(gui.type == GUI_ELEMENT_TYPE_TEXT){
+		textFontDelete(&fontIBM);
+	}
 	guiElementDelete(&gui);
 	#ifdef MODULE_PARTICLE
 	moduleParticleCleanup();

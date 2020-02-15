@@ -120,15 +120,17 @@ typedef struct guiPanel {
 	flags_t flags;
 } guiPanel;
 
+typedef struct guiElement guiElement;
+
 
 void guiPanelInit(guiPanel *const restrict gui);
 
-void guiPanelUpdate(void *const restrict gui, const float time);
+void guiPanelUpdate(guiElement *const restrict gui, const float time);
 void guiPanelDraw(
-	const void *const restrict gui, const transformState *const restrict root, const shaderSprite *const restrict shader
+	const guiElement *const restrict gui, const shaderSprite *const restrict shader
 );
 
-void guiPanelDelete(void *const restrict gui);
+void guiPanelDelete(guiElement *const restrict gui);
 
 
 #endif
