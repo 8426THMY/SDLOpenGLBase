@@ -12,6 +12,8 @@
 #include "physicsCollider.h"
 #include "physicsJoint.h"
 
+#include "utilTypes.h"
+
 
 // If we're using non-linear Gauss-Seidel stabilisation
 // anywhere, we'll need to define some additional functions.
@@ -22,6 +24,58 @@
 
 	#define PHYSCOLLIDER_USE_POSITIONAL_CORRECTION
 #endif
+
+// The body has not been initialized yet.
+#define PHYSRIGIDBODY_UNINITIALIZED      0x01
+// The body should be simulated in some way.
+#define PHYSRIGIDBODY_SIMULATE_LINEAR    0x02
+#define PHYSRIGIDBODY_SIMULATE_ANGULAR   0x04
+#define PHYSRIGIDBODY_SIMULATE           (PHYSRIGIDBODY_SIMULATE_LINEAR | PHYSRIGIDBODY_SIMULATE_ANGULAR)
+// The body should allow collisions.
+#define PHYSRIGIDBODY_COLLIDE            0x08
+// The body is awake and should be simulated.
+#define PHYSRIGIDBODY_AWAKE              (PHYSRIGIDBODY_SIMULATE | PHYSRIGIDBODY_COLLIDE)
+// The body has just been initialized.
+#define PHYSRIGIDBODY_INITIALIZED        0x10
+// The body has been transformed in some way.
+#define PHYSRIGIDBODY_TRANSLATED         0x20
+#define PHYSRIGIDBODY_ROTATED            0x40
+#define PHYSRIGIDBODY_TRANSFORMED        0x60
+// The body's collision flag has changed.
+#define PHYSRIGIDBODY_COLLISION_MODIFIED 0x80
+// The body is currently sleeping.
+#define PHYSRIGIDBODY_ASLEEP             (PHYSRIGIDBODY_UNINITIALIZED | PHYSRIGIDBODY_TRANSFORMED | PHYSRIGIDBODY_INITIALIZED)
+
+#ifndef PHYSRIGIDBODY_DEFAULT_STATE
+	#define PHYSRIGIDBODY_DEFAULT_STATE (PHYSRIGIDBODY_UNINITIALIZED | PHYSRIGIDBODY_SIMULATE | PHYSRIGIDBODY_COLLIDE | PHYSRIGIDBODY_COLLISION_MODIFIED)
+#endif
+
+#define physRigidBodySetUninitialized(body) flagsSet(body->flags, PHYSRIGIDBODY_UNINITIALIZED)
+#define physRigidBodySetInitialized(body)                \
+	flagsUnset(body->flags, PHYSRIGIDBODY_UNINITIALIZED) \
+	flagsSet(body->flags, PHYSRIGIDBODY_INITIALIZED)
+#define physRigidBodySetInitializedFull(body) flagsUnset(body->flags, PHYSRIGIDBODY_UNINITIALIZED)
+#define physRigidBodySetAsleep(body) flagsMask(body->flags, PHYSRIGIDBODY_ASLEEP)
+#define physRigidBodySetAwake(body) flagsSet(body->flags, PHYSRIGIDBODY_AWAKE)
+
+#define physRigidBodySimulateCollisions(body) flagsSet(body->flags, PHYSRIGIDBODY_COLLIDE | PHYSRIGIDBODY_COLLISION_MODIFIED)
+#define physRigidBodySimulateLinear(body) flagsSet(body->flags, PHYSRIGIDBODY_SIMULATE_LINEAR)
+#define physRigidBodySimulateAngular(body) flagsSet(body->flags, PHYSRIGIDBODY_SIMULATE_ANGULAR)
+
+#define physRigidBodyIgnoreCollisions(body)        \
+	flagsUnset(body->flags, PHYSRIGIDBODY_COLLIDE) \
+	flagsSet(body->flags, PHYSRIGIDBODY_COLLISION_MODIFIED)
+#define physRigidBodyIgnoreLinear(body) flagsUnset(body->flags, PHYSRIGIDBODY_SIMULATE_LINEAR)
+#define physRigidBodyIgnoreAngular(body) flagsUnset(body->flags, PHYSRIGIDBODY_SIMULATE_ANGULAR)
+
+#define physRigidBodyIsUninitialized(body) flagsAreSet(body->flags, PHYSRIGIDBODY_UNINITIALIZED)
+
+#define physRigidBodyIsSimulated(body) flagsAreSet(body->flags, PHYSRIGIDBODY_SIMULATE)
+
+#define physRigidBodyIsCollidable(body) flagsAreSet(body->flags, PHYSRIGIDBODY_COLLIDE)
+#define physRigidBodyIsAsleep(body) flagsAreSet(body->flags, PHYSRIGIDBODY_ASLEEP)
+
+#define physRigidBodyWasInitialized(body) flagsAreSet(body->flags, PHYSRIGIDBODY_INITIALIZED)
 
 
 typedef struct physicsRigidBodyDef {
@@ -36,9 +90,11 @@ typedef struct physicsRigidBodyDef {
 	// Matrix that describes how the body
 	// resists rotation around an axis.
 	mat3 invInertia;
+
+	// Default flags for the rigid body.
+	flags_t flags;
 } physicsRigidBodyDef;
 
-#warning "Add some flags!"
 #warning "Maybe store the regular local intertia tensor for more efficient scaling?"
 #warning "Linear and angular damping would also be nice."
 // Rigid body instance.
@@ -71,13 +127,15 @@ typedef struct physicsRigidBody {
 	// that they are a part of. These behave
 	// similarly to the previous linked lists.
 	physicsJoint *joints;
+
+	flags_t flags;
 } physicsRigidBody;
 
 
 void physRigidBodyDefInit(physicsRigidBodyDef *const restrict bodyDef);
 void physRigidBodyInit(physicsRigidBody *const restrict body, const physicsRigidBodyDef *const restrict bodyDef);
 
-return_t physRigidBodyDefLoad(physicsRigidBodyDef *const restrict bodyDef, const char *const restrict bodyPath, const size_t bodyPathLength);
+return_t physRigidBodyDefLoad(physicsRigidBodyDef **const restrict bodies, const char *const restrict bodyPath, const size_t bodyPathLength);
 
 void physRigidBodyDefSumCentroids(physicsRigidBodyDef *const restrict bodyDef, const vec3 *centroidArray, const size_t numBodies);
 void physRigidBodyDefSumInertia(physicsRigidBodyDef *const restrict bodyDef, const mat3 *inertiaArray, const size_t numBodies);

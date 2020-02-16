@@ -26,6 +26,7 @@
 static void input(program *const restrict prg);
 static void updateCameras(program *const restrict prg);
 static void updateObjects(program *const restrict prg);
+static void updatePhysics(program *const restrict prg);
 static void update(program *const restrict prg);
 static void render(program *const restrict prg);
 
@@ -234,6 +235,10 @@ static void updateObjects(program *const restrict prg){
 	}*/
 }
 
+static void updatePhysics(program *const restrict prg){
+	//
+}
+
 /** TEMPORARY STUFF! **/
 #include "particleSystem.h"
 #include "textFont.h"
@@ -245,6 +250,7 @@ textFont fontIBM;
 static void update(program *const restrict prg){
 	updateCameras(prg);
 	updateObjects(prg);
+	updatePhysics(prg);
 
 
 	/** TEMPORARY PARTICLE UPDATE STUFF! **/
@@ -252,7 +258,7 @@ static void update(program *const restrict prg){
 
 
 	/** TEMPORARY GUI UPDATE STUFF! **/
-	if(prg->keyStates[SDL_SCANCODE_LEFT]){
+	/*if(prg->keyStates[SDL_SCANCODE_LEFT]){
 		gui.root.pos.x -= 100.f * prg->step.updateDelta;
 	}
 	if(prg->keyStates[SDL_SCANCODE_RIGHT]){
@@ -276,7 +282,7 @@ static void update(program *const restrict prg){
 	}
 	if(prg->keyStates[SDL_SCANCODE_S]){
 		gui.root.scale.y -= 100.f * prg->step.updateDelta;
-	}
+	}*/
 
 	guiElementUpdate(&gui, prg->step.updateTime);
 }
@@ -432,6 +438,18 @@ static return_t initResources(program *const restrict prg){
 	}
 
 
+	/** TEMPORARY PHYSICS STUFF **/
+	objDef = moduleObjectDefAlloc();
+	objectDefInit(objDef);
+	physRigidBodyDefLoad(&objDef->physBodies, "cube.tdp", sizeof("cube.tdp"));
+	renderDef = moduleRenderableDefAlloc();
+	renderableDefInit(renderDef, &g_mdlDefault);
+	objDef->renderables = renderDef;
+
+	obj = moduleObjectAlloc();
+	objectInit(obj, objDef);
+
+
 	/** EVEN MORE TEMPORARY PARTICLE STUFF **/
 	spriteSetupDefault();
 
@@ -459,7 +477,7 @@ static return_t initResources(program *const restrict prg){
 	guiElementInit(&gui, GUI_ELEMENT_TYPE_TEXT);
 	gui.root.pos.x = -320.f;
 	gui.root.pos.y = 240.f;
-	gui.root.scale.x = gui.root.scale.y = 2.f;
+	gui.root.scale.x = gui.root.scale.y = 0.5f;
 	guiTextInit(&gui.data.text, &fontIBM, sizeof("The quick brown fox jumps over the lazy dog!"));
 	textBufferWrite(&gui.data.text.buffer, "The quick brown fox jumps over the lazy dog!", sizeof("The quick brown fox jumps over the lazy dog!"));
 

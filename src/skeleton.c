@@ -117,9 +117,8 @@ void skeleAnimInit(skeletonAnim *const restrict anim, skeletonAnimDef *const res
 
 void skeleObjInit(skeletonObject *const restrict skeleObj, skeleton *const restrict skele){
 	skeleObj->skele = skele;
-	moduleSkeleAnimFreeArray(&skeleObj->anims);
 	skeleObj->anims = NULL;
-	skeleObj->bones = memoryManagerGlobalRealloc(skeleObj->bones, sizeof(*skeleObj->bones) * skele->numBones);
+	skeleObj->bones = memoryManagerGlobalAlloc(sizeof(*skeleObj->bones) * skele->numBones);
 	if(skeleObj->bones == NULL){
 		/** REALLOC FAILED **/
 	}

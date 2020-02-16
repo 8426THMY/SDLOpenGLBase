@@ -17,13 +17,13 @@
 #define IMAGE_PATH_PREFIX_LENGTH   (sizeof(IMAGE_PATH_PREFIX) - 1)
 
 
-#define TEXTURE_FILTER_ANY       0
-#define TEXTURE_FILTER_NEAREST   1
-#define TEXTURE_FILTER_LINEAR    2
-#define TEXTURE_FILTER_BILINEAR  3
-#define TEXTURE_FILTER_TRILINEAR 4
+#define TEXTURE_FILTER_DEFAULT_ID   0
+#define TEXTURE_FILTER_NEAREST_ID   1
+#define TEXTURE_FILTER_LINEAR_ID    2
+#define TEXTURE_FILTER_BILINEAR_ID  3
+#define TEXTURE_FILTER_TRILINEAR_ID 4
 
-#define TEXTURE_FILTER_DEFAULT GL_NEAREST
+#define TEXTURE_FILTER_DEFAULT TEXTURE_FILTER_NEAREST_ID
 #define TEXTURE_FILTER_ERROR   GL_LINEAR
 
 #define TEXTURE_ERROR_WIDTH  6
@@ -289,27 +289,27 @@ return_t textureSetupDefault(){
 void textureSetFiltering(const GLuint id, GLint filtering, const uint_least8_t mips){
 	GLint filteringMin, filteringMag;
 
-	if(filtering == TEXTURE_FILTER_ANY){
+	if(filtering == TEXTURE_FILTER_DEFAULT_ID){
 		filtering = TEXTURE_FILTER_DEFAULT;
 	}
 
 	switch(filtering){
-		case TEXTURE_FILTER_NEAREST:
+		case TEXTURE_FILTER_NEAREST_ID:
 			filteringMin = (mips > 1) ? GL_NEAREST_MIPMAP_NEAREST : GL_NEAREST;
 			filteringMag = GL_NEAREST;
 		break;
 
-		case TEXTURE_FILTER_LINEAR:
+		case TEXTURE_FILTER_LINEAR_ID:
 			filteringMin = (mips > 1) ? GL_NEAREST_MIPMAP_LINEAR : GL_LINEAR;
 			filteringMag = GL_LINEAR;
 		break;
 
-		case TEXTURE_FILTER_BILINEAR:
+		case TEXTURE_FILTER_BILINEAR_ID:
 			filteringMin = (mips > 1) ? GL_LINEAR_MIPMAP_NEAREST : GL_LINEAR;
 			filteringMag = GL_LINEAR;
 		break;
 
-		case TEXTURE_FILTER_TRILINEAR:
+		case TEXTURE_FILTER_TRILINEAR_ID:
 			filteringMin = (mips > 1) ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR;
 			filteringMag = GL_LINEAR;
 		break;

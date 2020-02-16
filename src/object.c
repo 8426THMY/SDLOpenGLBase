@@ -171,8 +171,6 @@ static void updateBones(object *const restrict obj, const float time){
 	size_t i = 0;
 	// Apply the effects of each animation one bone at a time!
 	for(; curObjBone < lastObjBone; ++curObjBone, ++curSkeleBone, ++i){
-		const size_t parentID = curSkeleBone->parent;
-
 		// Apply the current skeleton's local bind pose.
 		*curObjBone = curSkeleBone->localBind;
 
@@ -181,8 +179,8 @@ static void updateBones(object *const restrict obj, const float time){
 
 		// If this bone has a parent, add its animation
 		// transformations to those of its parent.
-		if(!valueIsInvalid(parentID)){
-			transformStateAppend(&obj->skeleData.bones[parentID], curObjBone, curObjBone);
+		if(!valueIsInvalid(curSkeleBone->parent)){
+			transformStateAppend(&obj->skeleData.bones[curSkeleBone->parent], curObjBone, curObjBone);
 		}
 	}
 

@@ -6,6 +6,8 @@
 #include "utilString.h"
 #include "utilFile.h"
 
+#include "collider.h"
+
 #include "modulePhysics.h"
 
 
@@ -37,7 +39,7 @@ void physRigidBodyInit(physicsRigidBody *const restrict body, const physicsRigid
 
 // Load a rigid body, including any of its colliders.
 #warning "Maybe update this like the other loading functions?"
-return_t physRigidBodyDefLoad(physicsRigidBodyDef *const restrict bodyDef, const char *const restrict bodyPath, const size_t bodyPathLength){
+return_t physRigidBodyDefLoad(physicsRigidBodyDef **const restrict bodies, const char *const restrict bodyPath, const size_t bodyPathLength){
 	FILE *bodyFile;
 	char bodyFullPath[FILE_MAX_PATH_LENGTH];
 
@@ -49,15 +51,13 @@ return_t physRigidBodyDefLoad(physicsRigidBodyDef *const restrict bodyDef, const
 	);
 
 
-	physRigidBodyDefInit(bodyDef);
-
-
 	// Load the rigid body!
 	bodyFile = fopen(bodyFullPath, "r");
 	if(bodyFile != NULL){
 		return_t success = 0;
 
 
+		physicsRigidBodyDef bodyDef;
 		physicsCollider *curCollider = NULL;
 		float curMass;
 		vec3 curCentroid;
@@ -69,6 +69,10 @@ return_t physRigidBodyDefLoad(physicsRigidBodyDef *const restrict bodyDef, const
 		char lineBuffer[FILE_MAX_LINE_LENGTH];
 		char *line;
 		size_t lineLength;
+
+
+		physRigidBodyDefInit(&bodyDef);
+
 
 		while((line = fileReadLine(bodyFile, &lineBuffer[0], &lineLength)) != NULL){
 			if(curCollider != NULL){
@@ -113,7 +117,7 @@ return_t physRigidBodyDefLoad(physicsRigidBodyDef *const restrict bodyDef, const
 				}else if(line[0] == '}'){
 					// Add the new physics collider to our rigid body!
 					if(colliderLoaded){
-						physRigidBodyDefAddCollider(bodyDef, curMass, &curCentroid, &curInertia);
+						physRigidBodyDefAddCollider(&bodyDef, curMass, &curCentroid, &curInertia);
 						success = 1;
 
 					// If there was an error, delete the physics collider.
@@ -143,15 +147,13 @@ return_t physRigidBodyDefLoad(physicsRigidBodyDef *const restrict bodyDef, const
 						#warning "This should be 'currentType < COLLIDER_NUM_TYPES'."
 						#warning "Please remember to remove the 'currentType=0' statement on the next line."
 						if(currentType == 3){currentType=0;
-							modulePhysicsColliderPrepend(&bodyDef->colliders);
-							curCollider = bodyDef->colliders;
+							modulePhysicsColliderPrepend(&bodyDef.colliders);
+							curCollider = bodyDef.colliders;
 							curMass = PHYSCOLLIDER_DEFAULT_MASS;
-							physColliderInit(curCollider, currentType, bodyDef);
+							physColliderInit(curCollider, currentType, &bodyDef);
 
-							// When we actually load this collider successfully, we can
-							// set this value. This exists to make sure we don't add a
-							// collider to a rigid body without loading it properly.
-							colliderLoaded = 0;
+							// Load the new collider!
+							colliderLoaded = colliderLoad(&curCollider->global, bodyFile, &curCentroid, &curInertia);
 
 						// If an invalid type was specified, ignore the collider.
 						}else{
@@ -179,16 +181,11 @@ return_t physRigidBodyDefLoad(physicsRigidBodyDef *const restrict bodyDef, const
 		fclose(bodyFile);
 
 
-		// If we loaded at least one
-		// collider, keep the rigid body!
+		// If we loaded at least one collider, add
+		// it to the beginning of the "bodies" array!
 		if(success){
-			#warning "Do something with the bone name, perhaps?"
-
-		// Otherwise, delete the rigid body.
-		}else{
-			physRigidBodyDefDelete(bodyDef);
+			modulePhysicsBodyDefPrepend(bodies);
 		}
-
 
 		return(success);
 	}else{
