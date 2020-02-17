@@ -118,11 +118,18 @@ static void calculateEffectiveMass(
 	const physicsManifold *const restrict pm, physicsContactPoint *const restrict contact,
 	const physicsRigidBody *const restrict bodyA, const physicsRigidBody *const restrict bodyB
 );
+#ifdef PHYSCONTACT_STABILISER_BAUMGARTE
 static void calculateBias(
 	const physicsManifold *const restrict pm, physicsContactPoint *const restrict contact,
 	const physicsRigidBody *const restrict bodyA, const physicsRigidBody *const restrict bodyB,
 	const float dt
 );
+#else
+static void calculateBias(
+	const physicsManifold *const restrict pm, physicsContactPoint *const restrict contact,
+	const physicsRigidBody *const restrict bodyA, const physicsRigidBody *const restrict bodyB
+);
+#endif
 
 #ifndef PHYSCONTACT_USE_FRICTION_JOINT
 static void solveTangents(
@@ -385,16 +392,26 @@ void physManifoldPersist(
 ** that are not expected to change between iterations.
 ** Such values include the effective mass and the bias.
 */
+#ifdef PHYSCONTACT_STABILISER_BAUMGARTE
 void physManifoldPresolve(
 	physicsManifold *const restrict pm,const physicsRigidBody *const restrict bodyA, const physicsRigidBody *const restrict bodyB, const float dt
 ){
+#else
+void physManifoldPresolve(
+	physicsManifold *const restrict pm,const physicsRigidBody *const restrict bodyA, const physicsRigidBody *const restrict bodyB
+){
+#endif
 
 	physicsContactPoint *curContact = pm->contacts;
 	const physicsContactPoint *const lastContact = &curContact[pm->numContacts];
 
 	for(; curContact < lastContact; ++curContact){
 		calculateEffectiveMass(pm, curContact, bodyA, bodyB);
+		#ifdef PHYSCONTACT_STABILISER_BAUMGARTE
 		calculateBias(pm, curContact, bodyA, bodyB, dt);
+		#else
+		calculateBias(pm, curContact, bodyA, bodyB);
+		#endif
 	}
 }
 
@@ -536,11 +553,18 @@ static void calculateEffectiveMass(
 }
 
 // Calculate the contact's bias term.
+#ifdef PHYSCONTACT_STABILISER_BAUMGARTE
 static void calculateBias(
 	const physicsManifold *const restrict pm, physicsContactPoint *const restrict contact,
 	const physicsRigidBody *const restrict bodyA, const physicsRigidBody *const restrict bodyB,
 	const float dt
 ){
+#else
+static void calculateBias(
+	const physicsManifold *const restrict pm, physicsContactPoint *const restrict contact,
+	const physicsRigidBody *const restrict bodyA, const physicsRigidBody *const restrict bodyB
+){
+#endif
 
 	float tempBias;
 	vec3 tempVelocity;

@@ -235,8 +235,12 @@ static void updateObjects(program *const restrict prg){
 	}*/
 }
 
+/** TEMPORARY STUFF! **/
+#include "physicsIsland.h"
+physicsIsland island;
 static void updatePhysics(program *const restrict prg){
-	//
+	physIslandQueryCollisions(&island, prg->step.updateTime);
+	/** Solve constraints. **/
 }
 
 /** TEMPORARY STUFF! **/
@@ -439,6 +443,7 @@ static return_t initResources(program *const restrict prg){
 
 
 	/** TEMPORARY PHYSICS STUFF **/
+	physIslandInit(&island);
 	objDef = moduleObjectDefAlloc();
 	objectDefInit(objDef);
 	physRigidBodyDefLoad(&objDef->physBodies, "cube.tdp", sizeof("cube.tdp"));

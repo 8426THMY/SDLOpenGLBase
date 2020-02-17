@@ -17,6 +17,14 @@
 
 void physRigidBodyDefInit(physicsRigidBodyDef *const restrict bodyDef){
 	bodyDef->colliders = NULL;
+
+	bodyDef->mass = 0.f;
+	bodyDef->invMass = 0.f;
+
+	vec3InitZero(&bodyDef->centroid);
+	bodyDef->invInertia = g_mat3Identity;
+
+	bodyDef->flags = PHYSRIGIDBODY_ASLEEP;
 }
 
 void physRigidBodyInit(physicsRigidBody *const restrict body, const physicsRigidBodyDef *const restrict bodyDef){
@@ -34,6 +42,10 @@ void physRigidBodyInit(physicsRigidBody *const restrict body, const physicsRigid
 	vec3InitZero(&body->angularVelocity);
 	vec3InitZero(&body->netForce);
 	vec3InitZero(&body->netTorque);
+
+	body->joints = /** ALLOCATE NEW JOINT LIST **/NULL;
+
+	body->flags = bodyDef->flags;
 }
 
 
@@ -83,7 +95,7 @@ return_t physRigidBodyDefLoad(physicsRigidBodyDef **const restrict bodies, const
 
 				// Physics collider mass.
 				}else if(memcmp(line, "m ", 2) == 0){
-					curMass = strtod(&line[2], &tokPos);
+					curMass = strtof(&line[2], &tokPos);
 					// If the mass specified is invalid, use the default value.
 					if(&line[2] == tokPos){
 						curMass = PHYSCOLLIDER_DEFAULT_MASS;
@@ -91,7 +103,7 @@ return_t physRigidBodyDefLoad(physicsRigidBodyDef **const restrict bodies, const
 
 				// Physics collider density.
 				}else if(memcmp(line, "d ", 2) == 0){
-					curCollider->density = strtod(&line[2], &tokPos);
+					curCollider->density = strtof(&line[2], &tokPos);
 					// If the density specified is invalid, use the default value.
 					if(&line[2] == tokPos){
 						curCollider->density = PHYSCOLLIDER_DEFAULT_DENSITY;
@@ -99,7 +111,7 @@ return_t physRigidBodyDefLoad(physicsRigidBodyDef **const restrict bodies, const
 
 				// Physics collider friction.
 				}else if(memcmp(line, "f ", 2) == 0){
-					curCollider->friction = strtod(&line[2], &tokPos);
+					curCollider->friction = strtof(&line[2], &tokPos);
 					// If the friction specified is invalid, use the default value.
 					if(&line[2] == tokPos){
 						curCollider->friction = PHYSCOLLIDER_DEFAULT_FRICTION;
@@ -107,7 +119,7 @@ return_t physRigidBodyDefLoad(physicsRigidBodyDef **const restrict bodies, const
 
 				// Physics collider restitution.
 				}else if(memcmp(line, "r ", 2) == 0){
-					curCollider->restitution = strtod(&line[2], &tokPos);
+					curCollider->restitution = strtof(&line[2], &tokPos);
 					// If the restitution specified is invalid, use the default value.
 					if(&line[2] == tokPos){
 						curCollider->restitution = PHYSCOLLIDER_DEFAULT_RESTITUTION;
@@ -449,19 +461,26 @@ void physRigidBodyDefGenerateProperties(physicsRigidBodyDef *const restrict body
 ** w^(t + 1) = w^n + T * I^-1 * dt
 */
 void physRigidBodyIntegrateVelocity(physicsRigidBody *const restrict body, const float dt){
-	vec3 linearAcceleration;
-	vec3 angularAcceleration;
+	if(physRigidBodySimulateLinear(body)){
+		vec3 linearAcceleration;
+		// Calculate the body's linear acceleration.
+		vec3MultiplySOut(&body->netForce, body->invMass * dt, &linearAcceleration);
+		// Add the linear acceleration to the linear velocity.
+		vec3AddVec3(&body->linearVelocity, &linearAcceleration);
+	}
 
-	// Calculate the body's linear acceleration.
-	vec3MultiplySOut(&body->netForce, body->invMass * dt, &linearAcceleration);
-	// Add the linear acceleration to the linear velocity.
-	vec3AddVec3(&body->linearVelocity, &linearAcceleration);
+	if(physRigidBodySimulateAngular(body)){
+		vec3 angularAcceleration;
 
-	// Calculate the body's angular acceleration.
-	vec3MultiplySOut(&body->netTorque, dt, &angularAcceleration);
-	mat3MultiplyByVec3(&body->invInertiaGlobal, &angularAcceleration);
-	// Add the angular acceleration to the angular velocity.
-	vec3AddVec3(&body->angularVelocity, &angularAcceleration);
+		#error "Update global intertia tensor."
+		//
+
+		// Calculate the body's angular acceleration.
+		vec3MultiplySOut(&body->netTorque, dt, &angularAcceleration);
+		mat3MultiplyByVec3(&body->invInertiaGlobal, &angularAcceleration);
+		// Add the angular acceleration to the angular velocity.
+		vec3AddVec3(&body->angularVelocity, &angularAcceleration);
+	}
 }
 
 /*
@@ -473,17 +492,41 @@ void physRigidBodyIntegrateVelocity(physicsRigidBody *const restrict body, const
 ** q^(t + 1) = q^t + dq/dt * dt
 */
 void physRigidBodyIntegratePosition(physicsRigidBody *const restrict body, const float dt){
-	vec3 linearVelocityDelta;
+	if(physRigidBodySimulateLinear(body)){
+		vec3 linearVelocityDelta;
+		vec3MultiplySOut(&body->linearVelocity, dt, &linearVelocityDelta);
+		// Compute the object's new position.
+		vec3AddVec3(&body->state.pos, &linearVelocityDelta);
+	}
 
-	vec3MultiplySOut(&body->linearVelocity, dt, &linearVelocityDelta);
-	// Compute the object's new position.
-	vec3AddVec3(&body->state.pos, &linearVelocityDelta);
+	if(physRigidBodySimulateAngular(body)){
+		// Calculate the change in orientation.
+		quatIntegrate(&body->state.rot, &body->angularVelocity, dt);
+		// Don't forget to normalize it, as
+		// this process can introduce errors.
+		quatNormalizeQuatFast(&body->state.rot);
+	}
+}
 
-	// Calculate the change in orientation.
-	quatIntegrate(&body->state.rot, &body->angularVelocity, dt);
-	// Don't forget to normalize it, as
-	// this process can introduce errors.
-	quatNormalizeQuatFast(&body->state.rot);
+
+// Add a translational force to a rigid body.
+void physRigidBodyApplyLinearForce(physicsRigidBody *const restrict body, const vec3 *const restrict F){
+	vec3AddVec3(&body->netForce, F);
+}
+
+// Add a rotational force to a rigid body.
+void physRigidBodyApplyAngularForce(physicsRigidBody *const restrict body, const vec3 *const restrict r, const vec3 *const restrict F){
+	vec3 torque = body->centroidGlobal;
+	vec3SubtractVec3FromOut(r, &body->centroidGlobal, &torque);
+	vec3CrossByVec3(&torque, F);
+	vec3AddVec3(&body->netTorque, &torque);
+}
+
+// Add a translational and rotational force to a rigid body.
+void physRigidBodyApplyForce(physicsRigidBody *const restrict body, const vec3 *const restrict r, const vec3 *const restrict F){
+	physRigidBodyApplyLinearForce(body, F);
+	physRigidBodyApplyAngularForce(body, r, F);
+
 }
 
 
@@ -517,65 +560,81 @@ void physRigidBodyApplyAngularImpulseInverse(physicsRigidBody *const restrict bo
 
 // Add a translational and rotational impulse to a rigid body.
 void physRigidBodyApplyImpulse(physicsRigidBody *const restrict body, const vec3 *const restrict r, const vec3 *const restrict J){
-	vec3 impulse;
-
 	// Linear velocity.
-	vec3MultiplySOut(J, body->mass, &impulse);
-	vec3AddVec3(&body->linearVelocity, &impulse);
+	if(physRigidBodySimulateLinear(body)){
+		vec3 impulse;
+		vec3MultiplySOut(J, body->mass, &impulse);
+		vec3AddVec3(&body->linearVelocity, &impulse);
+	}
 
 	// Angular velocity.
-	vec3CrossVec3Out(r, J, &impulse);
-	mat3MultiplyByVec3(&body->invInertiaGlobal, &impulse);
-	vec3AddVec3(&body->angularVelocity, &impulse);
+	if(physRigidBodySimulateAngular(body)){
+		vec3 impulse;
+		vec3CrossVec3Out(r, J, &impulse);
+		mat3MultiplyByVec3(&body->invInertiaGlobal, &impulse);
+		vec3AddVec3(&body->angularVelocity, &impulse);
+	}
 }
 
 // Subtract a translational and rotational impulse from a rigid body.
 void physRigidBodyApplyImpulseInverse(physicsRigidBody *const restrict body, const vec3 *const restrict r, const vec3 *const restrict J){
-	vec3 impulse;
-
 	// Linear velocity.
-	vec3MultiplySOut(J, body->mass, &impulse);
-	vec3SubtractVec3From(&body->linearVelocity, &impulse);
+	if(physRigidBodySimulateLinear(body)){
+		vec3 impulse;
+		vec3MultiplySOut(J, body->mass, &impulse);
+		vec3SubtractVec3From(&body->linearVelocity, &impulse);
+	}
 
 	// Angular velocity.
-	vec3CrossVec3Out(r, J, &impulse);
-	mat3MultiplyByVec3(&body->invInertiaGlobal, &impulse);
-	vec3SubtractVec3From(&body->angularVelocity, &impulse);
+	if(physRigidBodySimulateAngular(body)){
+		vec3 impulse;
+		vec3CrossVec3Out(r, J, &impulse);
+		mat3MultiplyByVec3(&body->invInertiaGlobal, &impulse);
+		vec3SubtractVec3From(&body->angularVelocity, &impulse);
+	}
 }
 
 #ifdef PHYSCOLLIDER_USE_POSITIONAL_CORRECTION
 // Add a translational and rotational impulse to a rigid body's position.
 void physRigidBodyApplyImpulsePosition(physicsRigidBody *const restrict body, const vec3 *const restrict r, const vec3 *const restrict J){
-	vec3 impulse;
-	quat tempRot;
-
 	// Position.
-	vec3MultiplySOut(J, body->mass, &impulse);
-	vec3AddVec3(&body->state.pos, &impulse);
+	if(physRigidBodySimulateLinear(body)){
+		vec3 impulse;
+		vec3MultiplySOut(J, body->mass, &impulse);
+		vec3AddVec3(&body->state.pos, &impulse);
+	}
 
 	// Orientation.
-	vec3CrossVec3Out(r, J, &impulse);
-	mat3MultiplyByVec3(&body->invInertiaGlobal, &impulse);
-	quatDifferentiateOut(&body->state.rot, &impulse, &tempRot);
-	quatAddQuat(&body->state.rot, &tempRot);
-	quatNormalizeQuatFast(&body->state.rot);
+	if(physRigidBodySimulateAngular(body)){
+		vec3 impulse;
+		quat tempRot;
+		vec3CrossVec3Out(r, J, &impulse);
+		mat3MultiplyByVec3(&body->invInertiaGlobal, &impulse);
+		quatDifferentiateOut(&body->state.rot, &impulse, &tempRot);
+		quatAddQuat(&body->state.rot, &tempRot);
+		quatNormalizeQuatFast(&body->state.rot);
+	}
 }
 
 // Subtract a translational and rotational impulse from a rigid body's position.
 void physRigidBodyApplyImpulsePositionInverse(physicsRigidBody *const restrict body, const vec3 *const restrict r, const vec3 *const restrict J){
-	vec3 impulse;
-	quat tempRot;
-
 	// Position.
-	vec3MultiplySOut(J, body->mass, &impulse);
-	vec3SubtractVec3From(&body->state.pos, &impulse);
+	if(physRigidBodySimulateLinear(body)){
+		vec3 impulse;
+		vec3MultiplySOut(J, body->mass, &impulse);
+		vec3SubtractVec3From(&body->state.pos, &impulse);
+	}
 
 	// Orientation.
-	vec3CrossVec3Out(r, J, &impulse);
-	mat3MultiplyByVec3(&body->invInertiaGlobal, &impulse);
-	quatDifferentiateOut(&body->state.rot, &impulse, &tempRot);
-	quatSubtractQuatFrom(&body->state.rot, &tempRot);
-	quatNormalizeQuatFast(&body->state.rot);
+	if(physRigidBodySimulateAngular(body)){
+		vec3 impulse;
+		quat tempRot;
+		vec3CrossVec3Out(r, J, &impulse);
+		mat3MultiplyByVec3(&body->invInertiaGlobal, &impulse);
+		quatDifferentiateOut(&body->state.rot, &impulse, &tempRot);
+		quatSubtractQuatFrom(&body->state.rot, &tempRot);
+		quatNormalizeQuatFast(&body->state.rot);
+	}
 }
 #endif
 

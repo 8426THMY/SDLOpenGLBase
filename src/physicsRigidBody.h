@@ -148,6 +148,10 @@ void physRigidBodyDefGenerateProperties(physicsRigidBodyDef *const restrict body
 void physRigidBodyIntegrateVelocity(physicsRigidBody *const restrict body, const float time);
 void physRigidBodyIntegratePosition(physicsRigidBody *const restrict body, const float time);
 
+void physRigidBodyApplyLinearForce(physicsRigidBody *const restrict body, const vec3 *const restrict F);
+void physRigidBodyApplyAngularForce(physicsRigidBody *const restrict body, const vec3 *const restrict r, const vec3 *const restrict F);
+void physRigidBodyApplyForce(physicsRigidBody *const restrict body, const vec3 *const restrict r, const vec3 *const restrict F);
+
 void physRigidBodyApplyLinearImpulse(physicsRigidBody *const restrict body, vec3 J);
 void physRigidBodyApplyLinearImpulseInverse(physicsRigidBody *const restrict body, vec3 J);
 void physRigidBodyApplyAngularImpulse(physicsRigidBody *const restrict body, vec3 J);

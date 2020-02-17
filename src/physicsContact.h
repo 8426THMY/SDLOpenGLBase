@@ -140,9 +140,15 @@ void physManifoldPersist(
 	const physicsCollider *const restrict cA, const physicsCollider *const restrict cB
 );
 
+#ifdef PHYSCONTACT_STABILISER_BAUMGARTE
 void physManifoldPresolve(
 	physicsManifold *const restrict pm,const physicsRigidBody *const restrict bodyA, const physicsRigidBody *const restrict bodyB, const float dt
 );
+#else
+void physManifoldPresolve(
+	physicsManifold *const restrict pm,const physicsRigidBody *const restrict bodyA, const physicsRigidBody *const restrict bodyB
+);
+#endif
 void physManifoldSolveVelocity(physicsManifold *const restrict pm, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB);
 #ifdef PHYSCONTACT_STABILISER_GAUSS_SEIDEL
 void physManifoldSolvePosition(const physicsManifold *const restrict pm, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB);

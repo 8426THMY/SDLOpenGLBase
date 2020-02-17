@@ -265,11 +265,11 @@ return_t colliderHullLoad(
 			}
 
 			// Read the vertex positions from the line!
-			newVertex.x = strtod(&line[2], &tokPos);
-			newVertex.y = strtod(tokPos, &tokPos);
-			newVertex.z = strtod(tokPos, &tokPos);
+			newVertex.x = strtof(&line[2], &tokPos);
+			newVertex.y = strtof(tokPos, &tokPos);
+			newVertex.z = strtof(tokPos, &tokPos);
 			#ifdef COLLIDER_HULL_USE_VERTEX_WEIGHT
-			newWeight = strtod(tokPos, &tokEnd);
+			newWeight = strtof(tokPos, &tokEnd);
 			// If no weight was specified, use the default value.
 			if(tokPos == tokEnd){
 				newWeight = COLLIDER_HULL_DEFAULT_VERTEX_WEIGHT;

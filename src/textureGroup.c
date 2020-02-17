@@ -307,11 +307,11 @@ textureGroup *texGroupLoad(const char *const restrict texGroupPath, const size_t
 					size_t tempEndTex = strtoul(tokPos, &tokPos, 10);
 					size_t tempFramesPerTex = strtoul(tokPos, &tokPos, 10);
 
-					float tempTime = strtod(tokPos, &tokPos);
-					float tempX = strtod(tokPos, &tokPos);
-					float tempY = strtod(tokPos, &tokPos);
-					float tempWidth = strtod(tokPos, &tokPos);
-					float tempHeight = strtod(tokPos, &tokPos);
+					float tempTime = strtof(tokPos, &tokPos);
+					float tempX = strtof(tokPos, &tokPos);
+					float tempY = strtof(tokPos, &tokPos);
+					float tempWidth = strtof(tokPos, &tokPos);
+					float tempHeight = strtof(tokPos, &tokPos);
 
 					size_t tempFramesPerLine = strtoul(tokPos, &tokPos, 10);
 					int tempAxis = strtol(tokPos, NULL, 10);

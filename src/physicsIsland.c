@@ -46,14 +46,18 @@ void physIslandQueryCollisions(physicsIsland *const restrict island, const float
 		// Update all of the current collider's separations and contacts.
 		aabbTreeQueryCollisionsStack(&island->tree, node, &physColliderCollisionCallback);
 
-		collider = (physicsCollider *)node->data.leaf.userData;
+		collider = (physicsCollider *)node->data.leaf.value;
 		node = node->data.leaf.next;
 
 		// Remove any separations and contacts that are now inactive.
 		physColliderUpdateSeparations(collider);
 		// For valid contacts, we also need to compute the
 		// new presolve information for each contact point.
+		#ifdef PHYSCONTACT_STABILISER_BAUMGARTE
 		physColliderUpdateContacts(collider, dt);
+		#else
+		physColliderUpdateContacts(collider);
+		#endif
 	}
 }
 

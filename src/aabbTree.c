@@ -29,7 +29,7 @@ void aabbTreeInit(aabbTree *const restrict tree){
 // Add the user's data to the tree.
 aabbNode *aabbTreeInsertNode(
 	aabbTree *const restrict tree, colliderAABB *const restrict aabb,
-	void *const restrict userData, aabbNode *(*const allocate)()
+	void *const restrict value, aabbNode *(*const allocate)()
 ){
 
 	aabbNode *const node = (*allocate)();
@@ -38,7 +38,7 @@ aabbNode *aabbTreeInsertNode(
 	}
 
 	node->aabb = *aabb;
-	node->data.leaf.userData = userData;
+	node->data.leaf.value = value;
 	node->data.leaf.next = tree->leaves;
 	node->height = AABBNODE_HEIGHT_LEAF;
 	tree->leaves = node;
@@ -176,8 +176,8 @@ void aabbTreeQueryCollisions(
 					// If we've found a node who parents two leaves, we
 					// can run the callback function with its children.
 					if(AABBNODE_IS_LAST_BRANCH(curNode)){
-						(*callback)(node->data.leaf.userData, curNode->data.children.left->data.leaf.userData);
-						(*callback)(node->data.leaf.userData, curNode->data.children.right->data.leaf.userData);
+						(*callback)(node->data.leaf.value, curNode->data.children.left->data.leaf.value);
+						(*callback)(node->data.leaf.value, curNode->data.children.right->data.leaf.value);
 
 						break;
 					}else{
@@ -208,7 +208,7 @@ void aabbTreeQueryCollisions(
 		// If our tree only has one node, we
 		// can simply run our callback on it.
 		}else{
-			(*callback)(node->data.leaf.userData, curNode->data.leaf.userData);
+			(*callback)(node->data.leaf.value, curNode->data.leaf.value);
 		}
 	}
 }
@@ -231,7 +231,7 @@ void aabbTreeQueryCollisionsStack(
 		aabbNode *curNode = stack[--i];
 
 		if(AABBNODE_IS_LEAF(curNode)){
-			(*callback)(node->data.leaf.userData, curNode->data.leaf.userData);
+			(*callback)(node->data.leaf.value, curNode->data.leaf.value);
 		}else if(colliderAABBCollidingAABB(&node->aabb, &curNode->aabb)){
 			stack[i] = curNode->data.children.left;
 			++i;

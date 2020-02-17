@@ -16,7 +16,7 @@ typedef struct aabbNodeChildren {
 } aabbNodeChildren;
 
 typedef struct aabbNodeLeaf {
-	void *userData;
+	void *value;
 	// Pointer to the next
 	// leaf node in the list.
 	aabbNode *next;
@@ -48,7 +48,7 @@ void aabbTreeInit(aabbTree *const restrict tree);
 
 aabbNode *aabbTreeInsertNode(
 	aabbTree *const restrict tree, colliderAABB *const restrict aabb,
-	void *const restrict userData, aabbNode *(*const allocate)()
+	void *const restrict value, aabbNode *(*const allocate)()
 );
 void aabbTreeUpdateNode(aabbTree *const restrict tree, aabbNode *const restrict node);
 void aabbTreeRemoveNode(

@@ -206,7 +206,11 @@ void physColliderUpdateSeparations(physicsCollider *const restrict collider){
 ** update the inactivity flags of contacts that are still active.
 ** This will also update the manifolds of active contact pairs.
 */
+#ifdef PHYSCONTACT_STABILISER_BAUMGARTE
 void physColliderUpdateContacts(physicsCollider *const restrict collider, const float dt){
+#else
+void physColliderUpdateContacts(physicsCollider *const restrict collider){
+#endif
 	physicsContactPair *curPair = collider->contacts;
 
 	while(curPair != NULL && curPair->cA == collider){
@@ -220,7 +224,11 @@ void physColliderUpdateContacts(physicsCollider *const restrict collider, const 
 		// For contacts, we need to precalculate their impulses and
 		// bias terms as well as increment their inactivity flag.
 		}else{
+			#ifdef PHYSCONTACT_STABILISER_BAUMGARTE
 			physManifoldPresolve(&curPair->manifold, curPair->cA->owner, curPair->cB->owner, dt);
+			#else
+			physManifoldPresolve(&curPair->manifold, curPair->cA->owner, curPair->cB->owner);
+			#endif
 			++curPair->inactive;
 		}
 

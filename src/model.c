@@ -152,9 +152,9 @@ model *modelOBJLoad(const char *const restrict mdlPath, const size_t mdlPathLeng
 				}
 
 				// Read the vertex positions from the line!
-				newPosition.x = strtod(&line[2], &tokPos);
-				newPosition.y = strtod(tokPos, &tokPos);
-				newPosition.z = strtod(tokPos, NULL);
+				newPosition.x = strtof(&line[2], &tokPos);
+				newPosition.y = strtof(tokPos, &tokPos);
+				newPosition.z = strtof(tokPos, NULL);
 
 				tempPositions[tempPositionsSize] = newPosition;
 				++tempPositionsSize;
@@ -173,8 +173,8 @@ model *modelOBJLoad(const char *const restrict mdlPath, const size_t mdlPathLeng
 				}
 
 				// Read the vertex UVs from the line!
-				newUV.x = strtod(&line[3], &tokPos);
-				newUV.y = 1.f - strtod(tokPos, NULL);
+				newUV.x = strtof(&line[3], &tokPos);
+				newUV.y = 1.f - strtof(tokPos, NULL);
 
 				tempUVs[tempUVsSize] = newUV;
 				++tempUVsSize;
@@ -193,9 +193,9 @@ model *modelOBJLoad(const char *const restrict mdlPath, const size_t mdlPathLeng
 				}
 
 				// Read the vertex normals from the line!
-				newNormal.x = strtod(&line[3], &tokPos);
-				newNormal.y = strtod(tokPos, &tokPos);
-				newNormal.z = strtod(tokPos, NULL);
+				newNormal.x = strtof(&line[3], &tokPos);
+				newNormal.y = strtof(tokPos, &tokPos);
+				newNormal.z = strtof(tokPos, NULL);
 
 				tempNormals[tempNormalsSize] = newNormal;
 				++tempNormalsSize;
@@ -571,15 +571,15 @@ model *modelSMDLoad(const char *const restrict mdlPath, const size_t mdlPathLeng
 								// If the current frame timestamp is 0, set the bone's initial state!
 								if(data == 0){
 									// Load the bone's position!
-									float x = strtod(tokPos, &tokPos) * 0.05f;
-									float y = strtod(tokPos, &tokPos) * 0.05f;
-									float z = strtod(tokPos, &tokPos) * 0.05f;
+									float x = strtof(tokPos, &tokPos) * 0.05f;
+									float y = strtof(tokPos, &tokPos) * 0.05f;
+									float z = strtof(tokPos, &tokPos) * 0.05f;
 									vec3InitSet(&currentBone->localBind.pos, x, y, z);
 
 									// Load the bone's rotation!
-									x = strtod(tokPos, &tokPos);
-									y = strtod(tokPos, &tokPos);
-									z = strtod(tokPos, NULL);
+									x = strtof(tokPos, &tokPos);
+									y = strtof(tokPos, &tokPos);
+									z = strtof(tokPos, NULL);
 									quatInitEulerRad(&currentBone->localBind.rot, x, y, z);
 
 									// Set the bone's scale!
@@ -620,14 +620,14 @@ model *modelSMDLoad(const char *const restrict mdlPath, const size_t mdlPathLeng
 							size_t parentBoneID = strtoul(line, &tokPos, 10);
 							// Make sure a bone with this ID actually exists.
 							if(parentBoneID < tempBonesSize){
-								tempVertex.pos.x = strtod(tokPos, &tokPos) * 0.05f;
-								tempVertex.pos.y = strtod(tokPos, &tokPos) * 0.05f;
-								tempVertex.pos.z = strtod(tokPos, &tokPos) * 0.05f;
-								tempVertex.normal.x = strtod(tokPos, &tokPos);
-								tempVertex.normal.y = strtod(tokPos, &tokPos);
-								tempVertex.normal.z = strtod(tokPos, &tokPos);
-								tempVertex.uv.x = strtod(tokPos, &tokPos);
-								tempVertex.uv.y = 1.f - strtod(tokPos, &tokPos);
+								tempVertex.pos.x = strtof(tokPos, &tokPos) * 0.05f;
+								tempVertex.pos.y = strtof(tokPos, &tokPos) * 0.05f;
+								tempVertex.pos.z = strtof(tokPos, &tokPos) * 0.05f;
+								tempVertex.normal.x = strtof(tokPos, &tokPos);
+								tempVertex.normal.y = strtof(tokPos, &tokPos);
+								tempVertex.normal.z = strtof(tokPos, &tokPos);
+								tempVertex.uv.x = strtof(tokPos, &tokPos);
+								tempVertex.uv.y = 1.f - strtof(tokPos, &tokPos);
 								size_t numLinks = strtoul(tokPos, &tokPos, 10);
 								// Make sure some links were specified.
 								if(numLinks > 0){
@@ -670,7 +670,7 @@ model *modelSMDLoad(const char *const restrict mdlPath, const size_t mdlPathLeng
 										}
 
 										// Load the bone's weights!
-										*curBoneWeight = strtod(tokPos, &tokPos);
+										*curBoneWeight = strtof(tokPos, &tokPos);
 										totalWeight += *curBoneWeight;
 										// Make sure the total weight doesn't exceed 1!
 										if(totalWeight > 1.f){
@@ -678,6 +678,9 @@ model *modelSMDLoad(const char *const restrict mdlPath, const size_t mdlPathLeng
 											totalWeight = 1.f;
 
 											++i;
+											++curBoneID;
+											++curBoneWeight;
+
 											break;
 										}
 
@@ -693,7 +696,10 @@ model *modelSMDLoad(const char *const restrict mdlPath, const size_t mdlPathLeng
 												*curBoneID = parentBoneID;
 												*curBoneWeight = 0.f;
 												parentPos = i;
+
 												++i;
+												++curBoneID;
+												++curBoneWeight;
 
 											// If there's no room, just use the first bone we loaded.
 											}else{
@@ -705,8 +711,8 @@ model *modelSMDLoad(const char *const restrict mdlPath, const size_t mdlPathLeng
 									}
 
 									// Make sure we fill the rest with invalid values so we know they aren't used.
-									memset(&curBoneID, -1, (VERTEX_MAX_WEIGHTS - i) * sizeof(*tempVertex.boneIDs));
-									memset(&curBoneWeight, 0.f, (VERTEX_MAX_WEIGHTS - i) * sizeof(*tempVertex.boneWeights));
+									memset(curBoneID, -1, (VERTEX_MAX_WEIGHTS - i) * sizeof(*tempVertex.boneIDs));
+									memset(curBoneWeight, 0.f, (VERTEX_MAX_WEIGHTS - i) * sizeof(*tempVertex.boneWeights));
 
 								// Otherwise, just bind it to the parent bone.
 								}else{

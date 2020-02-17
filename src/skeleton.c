@@ -346,15 +346,15 @@ skeletonAnimDef *skeleAnimSMDLoad(const char *const restrict skeleAnimPath, cons
 								boneState *const currentState = &currentFrame[boneID];
 
 								// Load the bone's position!
-								float x = strtod(tokPos, &tokPos) * 0.05f;
-								float y = strtod(tokPos, &tokPos) * 0.05f;
-								float z = strtod(tokPos, &tokPos) * 0.05f;
+								float x = strtof(tokPos, &tokPos) * 0.05f;
+								float y = strtof(tokPos, &tokPos) * 0.05f;
+								float z = strtof(tokPos, &tokPos) * 0.05f;
 								vec3InitSet(&currentState->pos, x, y, z);
 
 								// Load the bone's rotation!
-								x = strtod(tokPos, &tokPos);
-								y = strtod(tokPos, &tokPos);
-								z = strtod(tokPos, NULL);
+								x = strtof(tokPos, &tokPos);
+								y = strtof(tokPos, &tokPos);
+								z = strtof(tokPos, NULL);
 								quatInitEulerRad(&currentState->rot, x, y, z);
 
 								//The Source Engine uses Z as its up axis, so we need to fix that with the root bone.
