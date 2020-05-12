@@ -29,6 +29,9 @@ void *memPoolInit(memoryPool *const restrict pool, void *const restrict memory, 
 		memPoolClearLastRegion(pool, region);
 
 		pool->nextFreeBlock = memPoolBlockFreeFlagGetNext(memory);
+		#ifdef MEMPOOL_COUNT_USED_BLOCKS
+		pool->usedBlocks = 0;
+		#endif
 		pool->region = region;
 	}
 
@@ -43,6 +46,9 @@ void *memPoolAlloc(memoryPool *const restrict pool){
 	if(newBlock != NULL){
 		// Remove this node from the free list.
 		pool->nextFreeBlock = memPoolBlockFreeGetNext(newBlock);
+		#ifdef MEMPOOL_COUNT_USED_BLOCKS
+		++pool->usedBlocks;
+		#endif
 		// Set its active flag.
 		*memPoolBlockUsedDataGetFlag(newBlock) = MEMPOOL_FLAG_ACTIVE;
 	}
@@ -57,6 +63,9 @@ void memPoolFree(memoryPool *const restrict pool, void *const restrict data){
 	*memPoolBlockFreeNextGetFlag(data) = MEMPOOL_FLAG_INACTIVE;
 	memPoolBlockFreeGetNext(data) = pool->nextFreeBlock;
 	pool->nextFreeBlock = data;
+	#ifdef MEMPOOL_COUNT_USED_BLOCKS
+	--pool->usedBlocks;
+	#endif
 }
 
 
@@ -113,6 +122,9 @@ void memPoolClearLastRegion(memoryPool *const restrict pool, memoryRegion *const
 void memPoolClear(memoryPool *const restrict pool){
 	memoryRegion *region = pool->region;
 	pool->nextFreeBlock = region->start;
+	#ifdef MEMPOOL_COUNT_USED_BLOCKS
+	pool->usedBlocks = 0;
+	#endif
 
 	// Loop through every region in the allocator.
 	for(;;){

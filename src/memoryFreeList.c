@@ -21,6 +21,9 @@ void *memFreeListInit(memoryFreeList *const restrict freeList, void *const restr
 		memFreeListClearLastRegion(freeList, region);
 
 		freeList->nextFreeBlock = memory;
+		#ifdef MEMFREELIST_COUNT_USED_BLOCKS
+		freeList->usedBlocks = 0;
+		#endif
 		freeList->region = region;
 	}
 
@@ -35,6 +38,9 @@ void *memFreeListAlloc(memoryFreeList *const restrict freeList){
 	// the list's free block pointer!
 	if(newBlock != NULL){
 		freeList->nextFreeBlock = memFreeListBlockFreeGetNext(newBlock);
+		#ifdef MEMFREELIST_COUNT_USED_BLOCKS
+		++freeList->usedBlocks;
+		#endif
 	}
 
 	return(newBlock);
@@ -45,6 +51,9 @@ void memFreeListFree(memoryFreeList *const restrict freeList, void *const restri
 	// Make the block pointer to the next free
 	// block in the list then add it to the front!
 	memFreeListBlockFreeGetNext(data) = freeList->nextFreeBlock;
+	#ifdef MEMFREELIST_COUNT_USED_BLOCKS
+	--freeList->usedBlocks;
+	#endif
 	freeList->nextFreeBlock = data;
 }
 
@@ -94,6 +103,9 @@ void memFreeListClearLastRegion(memoryFreeList *const restrict freeList, memoryR
 void memFreeListClear(memoryFreeList *const restrict freeList){
 	memoryRegion *region = freeList->region;
 	freeList->nextFreeBlock = region->start;
+	#ifdef MEMFREELIST_COUNT_USED_BLOCKS
+	freeList->usedBlocks = 0;
+	#endif
 
 	// Loop through every region in the allocator.
 	for(;;){

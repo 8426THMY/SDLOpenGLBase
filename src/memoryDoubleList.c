@@ -38,6 +38,9 @@ void *memDoubleListInit(memoryDoubleList *const restrict doubleList, void *const
 		memDoubleListClearLastRegion(doubleList, region);
 
 		doubleList->nextFreeBlock = memDoubleListBlockFreeFlagGetNext(memory);
+		#ifdef MEMDOUBLELIST_COUNT_USED_BLOCKS
+		doubleList->usedBlocks = 0;
+		#endif
 		doubleList->region = region;
 	}
 
@@ -52,6 +55,9 @@ void *memDoubleListAlloc(memoryDoubleList *const restrict doubleList){
 	if(newBlock != NULL){
 		// Move the free pointer to the next free block.
 		doubleList->nextFreeBlock = memDoubleListBlockFreeGetNext(newBlock);
+		#ifdef MEMDOUBLELIST_COUNT_USED_BLOCKS
+		++doubleList->usedBlocks;
+		#endif
 
 		// Change this block's pointers.
 		*memDoubleListBlockUsedDataGetPrev(newBlock) = NULL;
@@ -68,6 +74,9 @@ void *memDoubleListPrepend(memoryDoubleList *const restrict doubleList, void **c
 	if(newBlock != NULL){
 		// Move the free pointer to the next free block.
 		doubleList->nextFreeBlock = memDoubleListBlockFreeGetNext(newBlock);
+		#ifdef MEMDOUBLELIST_COUNT_USED_BLOCKS
+		++doubleList->usedBlocks;
+		#endif
 
 		// Make sure the new block points
 		// to the start of the array list.
@@ -99,6 +108,9 @@ void *memDoubleListAppend(memoryDoubleList *const restrict doubleList, void **co
 
 		// Move the free pointer to the next free block.
 		doubleList->nextFreeBlock = memDoubleListBlockFreeGetNext(newBlock);
+		#ifdef MEMDOUBLELIST_COUNT_USED_BLOCKS
+		++doubleList->usedBlocks;
+		#endif
 
 		// Make our new block the last in the array list!
 		*nextBlock = newBlock;
@@ -116,6 +128,9 @@ void *memoryDoubleListInsertBefore(memoryDoubleList *const restrict doubleList, 
 	if(newBlock != NULL){
 		// Move the free pointer to the next free block.
 		doubleList->nextFreeBlock = memDoubleListBlockFreeGetNext(newBlock);
+		#ifdef MEMDOUBLELIST_COUNT_USED_BLOCKS
+		++doubleList->usedBlocks;
+		#endif
 
 		// Make the new block point back to the one before it.
 		*memDoubleListBlockUsedDataGetPrev(newBlock) = prevData;
@@ -164,6 +179,9 @@ void *memoryDoubleListInsertAfter(memoryDoubleList *const restrict doubleList, v
 	if(newBlock != NULL){
 		// Move the free pointer to the next free block.
 		doubleList->nextFreeBlock = memDoubleListBlockFreeGetNext(newBlock);
+		#ifdef MEMDOUBLELIST_COUNT_USED_BLOCKS
+		++doubleList->usedBlocks;
+		#endif
 
 		// Make the new block point back to the one before it.
 		*memDoubleListBlockUsedDataGetPrev(newBlock) = data;
@@ -231,6 +249,9 @@ void memDoubleListFree(memoryDoubleList *const restrict doubleList, void **const
 	memDoubleListBlockFreeGetFlag(block) = MEMDOUBLELIST_FLAG_INACTIVE;
 	memDoubleListBlockFreeGetNext(data) = doubleList->nextFreeBlock;
 	doubleList->nextFreeBlock = data;
+	#ifdef MEMDOUBLELIST_COUNT_USED_BLOCKS
+	--doubleList->usedBlocks;
+	#endif
 }
 
 // Free every block in a single array.
@@ -242,6 +263,10 @@ void memDoubleListFreeArray(memoryDoubleList *const restrict doubleList, void *c
 
 			memDoubleListBlockFreeGetFlag(memDoubleListBlockFreeNextGetFlag(block)) = MEMDOUBLELIST_FLAG_INACTIVE;
 			memDoubleListBlockFreeGetNext(block) = NULL;
+
+			#ifdef MEMDOUBLELIST_COUNT_USED_BLOCKS
+			--doubleList->usedBlocks;
+			#endif
 
 			block = blockNext;
 		} while(block != NULL);
@@ -302,6 +327,9 @@ void memDoubleListClearLastRegion(memoryDoubleList *const restrict doubleList, m
 void memDoubleListClear(memoryDoubleList *const restrict doubleList){
 	memoryRegion *region = doubleList->region;
 	doubleList->nextFreeBlock = region->start;
+	#ifdef MEMDOUBLELIST_COUNT_USED_BLOCKS
+	doubleList->usedBlocks = 0;
+	#endif
 
 	// Loop through every region in the allocator.
 	for(;;){

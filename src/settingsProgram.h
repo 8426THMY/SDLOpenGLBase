@@ -4,12 +4,14 @@
 
 // Included for "size_t".
 #include <stddef.h>
+// Included for "M_PI".
+#include <math.h>
 
 
 #define ASPECT_RATIO_X 4
 #define ASPECT_RATIO_Y 3
 
-#define FOV_DEFAULT 60.f
+#define FOV_DEFAULT M_PI/3
 
 #define UPDATE_RATE 125.f
 #define FRAME_RATE  125.f

@@ -40,7 +40,7 @@ void moduleModelFree(model *const restrict mdl){
 
 // Delete every model in the manager.
 void moduleModelClear(){
-	MEMPOOL_LOOP_BEGIN(g_modelManager, i, model *)
+	MEMPOOL_LOOP_BEGIN(g_modelManager, i, model)
 		moduleModelFree(i);
-	MEMPOOL_LOOP_END(g_modelManager, i, model *, return)
+	MEMPOOL_LOOP_END(g_modelManager, i, return)
 }

@@ -472,8 +472,9 @@ void physRigidBodyIntegrateVelocity(physicsRigidBody *const restrict body, const
 	if(physRigidBodySimulateAngular(body)){
 		vec3 angularAcceleration;
 
-		#error "Update global intertia tensor."
+		//#error "Update global intertia tensor."
 		//
+
 
 		// Calculate the body's angular acceleration.
 		vec3MultiplySOut(&body->netTorque, dt, &angularAcceleration);
@@ -481,6 +482,12 @@ void physRigidBodyIntegrateVelocity(physicsRigidBody *const restrict body, const
 		// Add the angular acceleration to the angular velocity.
 		vec3AddVec3(&body->angularVelocity, &angularAcceleration);
 	}
+}
+
+// Reset the forces acting on a rigid body.
+void physRigidBodyResetAccumulators(physicsRigidBody *const restrict body){
+	vec3InitZero(&body->netForce);
+	vec3InitZero(&body->netTorque);
 }
 
 /*
@@ -644,12 +651,13 @@ void physRigidBodyApplyImpulsePositionInverse(physicsRigidBody *const restrict b
 ** rotating its centroid and inertia tensor, updating
 ** its velocity and updating all of its colliders.
 */
-void physRigidBodyUpdate(physicsRigidBody *const restrict body, const float dt){
+void physRigidBodyUpdate(physicsRigidBody *const restrict body, const float invDt){
 	physicsCollider *curCollider;
 
 
 	/** update centroid **/
 	/** update inverse inertia tensor **/
+	/** update AABB node **/
 	/*
 	** Note: Scaling the inverse inertia tensor may seem
 	** difficult at first, but there is a solution. When
@@ -697,7 +705,8 @@ void physRigidBodyUpdate(physicsRigidBody *const restrict body, const float dt){
 	*/
 
 	// Update the body's velocity.
-	physRigidBodyIntegrateVelocity(body, dt);
+	physRigidBodyIntegrateVelocity(body, invDt);
+	physRigidBodyResetAccumulators(body);
 
 
 	curCollider = body->colliders;

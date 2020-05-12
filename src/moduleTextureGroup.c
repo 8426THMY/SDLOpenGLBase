@@ -38,19 +38,19 @@ void moduleTexGroupFree(textureGroup *const restrict texGroup){
 
 // Delete every texture group in the manager.
 void moduleTexGroupClear(){
-	MEMPOOL_LOOP_BEGIN(g_texGroupManager, i, textureGroup *)
+	MEMPOOL_LOOP_BEGIN(g_texGroupManager, i, textureGroup)
 		moduleTexGroupFree(i);
-	MEMPOOL_LOOP_END(g_texGroupManager, i, textureGroup *, return)
+	MEMPOOL_LOOP_END(g_texGroupManager, i, return)
 }
 
 
 // Find a textureGroup whose name matches "name"!
 textureGroup *moduleTexGroupFind(const char *const restrict name){
-	MEMPOOL_LOOP_BEGIN(g_texGroupManager, i, textureGroup *)
+	MEMPOOL_LOOP_BEGIN(g_texGroupManager, i, textureGroup)
 		if(strcmp(name, i->name) == 0){
 			return(i);
 		}
-	MEMPOOL_LOOP_END(g_texGroupManager, i, textureGroup *, return(NULL))
+	MEMPOOL_LOOP_END(g_texGroupManager, i, return(NULL))
 
 	return(NULL);
 }

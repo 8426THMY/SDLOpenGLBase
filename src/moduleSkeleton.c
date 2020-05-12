@@ -62,9 +62,9 @@ void moduleSkeletonFree(skeleton *skele){
 
 // Delete every skeleton in the manager.
 void moduleSkeletonClear(){
-	MEMPOOL_LOOP_BEGIN(g_skeletonManager, i, skeleton *)
+	MEMPOOL_LOOP_BEGIN(g_skeletonManager, i, skeleton)
 		moduleSkeletonFree(i);
-	MEMPOOL_LOOP_END(g_skeletonManager, i, skeleton *, return)
+	MEMPOOL_LOOP_END(g_skeletonManager, i, return)
 }
 
 
@@ -81,9 +81,9 @@ void moduleSkeleAnimDefFree(skeletonAnimDef *const restrict animDef){
 
 // Delete every skeleton animation base in the manager.
 void moduleSkeleAnimDefClear(){
-	MEMPOOL_LOOP_BEGIN(g_skeleAnimDefManager, i, skeletonAnimDef *)
+	MEMPOOL_LOOP_BEGIN(g_skeleAnimDefManager, i, skeletonAnimDef)
 		moduleSkeleAnimDefFree(i);
-	MEMPOOL_LOOP_END(g_skeleAnimDefManager, i, skeletonAnimDef *, return)
+	MEMPOOL_LOOP_END(g_skeleAnimDefManager, i, return)
 }
 
 
@@ -128,7 +128,7 @@ void moduleSkeleAnimFreeArray(skeletonAnim **const restrict start){
 
 // Delete every skeleton animation state in the manager.
 void moduleSkeleAnimClear(){
-	MEMSINGLELIST_LOOP_BEGIN(g_skeleAnimManager, i, skeletonAnim *)
+	MEMSINGLELIST_LOOP_BEGIN(g_skeleAnimManager, i, skeletonAnim)
 		moduleSkeleAnimFree(NULL, i, NULL);
-	MEMSINGLELIST_LOOP_END(g_skeleAnimManager, i, skeletonAnim *, return)
+	MEMSINGLELIST_LOOP_END(g_skeleAnimManager, i, return)
 }

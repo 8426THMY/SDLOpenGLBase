@@ -40,6 +40,9 @@ void *memQuadListInit(memoryQuadList *const restrict quadList, void *const restr
 		memQuadListClearLastRegion(quadList, region);
 
 		quadList->nextFreeBlock = memQuadListBlockFreeFlagGetNext(memory);
+		#ifdef MEMQUADLIST_COUNT_USED_BLOCKS
+		quadList->usedBlocks = 0;
+		#endif
 		quadList->region = region;
 	}
 
@@ -54,6 +57,9 @@ void *memQuadListAlloc(memoryQuadList *const restrict quadList){
 	if(newBlock != NULL){
 		// Move the free pointer to the next free block.
 		quadList->nextFreeBlock = memQuadListBlockFreeGetNext(newBlock);
+		#ifdef MEMQUADLIST_COUNT_USED_BLOCKS
+		++quadList->usedBlocks;
+		#endif
 
 		// Change this block's pointers.
 		*memQuadListBlockUsedDataGetPrevB(newBlock) = NULL;
@@ -80,6 +86,9 @@ void *memQuadListInsertSorted(
 	if(newBlock != NULL){
 		// Move the free pointer to the next free block.
 		quadList->nextFreeBlock = memQuadListBlockFreeGetNext(newBlock);
+		#ifdef MEMQUADLIST_COUNT_USED_BLOCKS
+		++quadList->usedBlocks;
+		#endif
 
 
 		// Fix up the pointers for the first
@@ -132,6 +141,9 @@ void memQuadListFree(memoryQuadList *const restrict quadList, void **const restr
 	*memQuadListBlockFreeNextGetFlag(data) = MEMQUADLIST_FLAG_INACTIVE;
 	memQuadListBlockFreeGetNext(data) = quadList->nextFreeBlock;
 	quadList->nextFreeBlock = data;
+	#ifdef MEMQUADLIST_COUNT_USED_BLOCKS
+	--quadList->usedBlocks;
+	#endif
 }
 
 // Free a block and fix up the pointers for any previous and next blocks.
@@ -177,6 +189,9 @@ void memQuadListFreeSorted(memoryQuadList *const restrict quadList, void **const
 	memQuadListBlockFreeGetFlag(block) = MEMQUADLIST_FLAG_INACTIVE;
 	memQuadListBlockFreeGetNext(data) = quadList->nextFreeBlock;
 	quadList->nextFreeBlock = data;
+	#ifdef MEMQUADLIST_COUNT_USED_BLOCKS
+	--quadList->usedBlocks;
+	#endif
 }
 
 // Free every block in a single array.
@@ -188,6 +203,10 @@ void memQuadListFreeArray(memoryQuadList *const restrict quadList, void *const r
 
 			memQuadListBlockFreeGetFlag(memQuadListBlockFreeNextGetFlag(block)) = MEMQUADLIST_FLAG_INACTIVE;
 			memQuadListBlockFreeGetNext(block) = NULL;
+
+			#ifdef MEMQUADLIST_COUNT_USED_BLOCKS
+			--quadList->usedBlocks;
+			#endif
 
 			block = blockNext;
 		} while(block != NULL);
@@ -248,6 +267,9 @@ void memQuadListClearLastRegion(memoryQuadList *const restrict quadList, memoryR
 void memQuadListClear(memoryQuadList *const restrict quadList){
 	memoryRegion *region = quadList->region;
 	quadList->nextFreeBlock = region->start;
+	#ifdef MEMQUADLIST_COUNT_USED_BLOCKS
+	quadList->usedBlocks = 0;
+	#endif
 
 	// Loop through every region in the allocator.
 	for(;;){

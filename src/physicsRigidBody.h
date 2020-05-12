@@ -18,9 +18,9 @@
 // If we're using non-linear Gauss-Seidel stabilisation
 // anywhere, we'll need to define some additional functions.
 #if \
-	defined PHYSCONTACT_STABILISER_GAUSS_SEIDEL        || defined PHYSJOINTDISTANCE_STABILISER_GAUSS_SEIDEL || \
-	defined PHYSJOINTFIXED_STABILISER_GAUSS_SEIDEL     || defined PHYSJOINTREVOLUTE_STABILISER_GAUSS_SEIDEL || \
-	defined PHYSJOINTPRISMATIC_STABILISER_GAUSS_SEIDEL || defined PHYSJOINTSPHERE_STABILISER_GAUSS_SEIDEL
+	defined(PHYSCONTACT_STABILISER_GAUSS_SEIDEL)        || defined(PHYSJOINTDISTANCE_STABILISER_GAUSS_SEIDEL) || \
+	defined(PHYSJOINTFIXED_STABILISER_GAUSS_SEIDEL)     || defined(PHYSJOINTREVOLUTE_STABILISER_GAUSS_SEIDEL) || \
+	defined(PHYSJOINTPRISMATIC_STABILISER_GAUSS_SEIDEL) || defined(PHYSJOINTSPHERE_STABILISER_GAUSS_SEIDEL)
 
 	#define PHYSCOLLIDER_USE_POSITIONAL_CORRECTION
 #endif
@@ -163,7 +163,7 @@ void physRigidBodyApplyImpulsePosition(physicsRigidBody *const restrict body, co
 void physRigidBodyApplyImpulsePositionInverse(physicsRigidBody *const restrict body, const vec3 *const restrict r, const vec3 *const restrict J);
 #endif
 
-void physRigidBodyUpdate(physicsRigidBody *const restrict body, const float dt);
+void physRigidBodyUpdate(physicsRigidBody *const restrict body, const float invDt);
 
 void physRigidBodyDefDelete(physicsRigidBodyDef *const restrict bodyDef);
 void physRigidBodyDelete(physicsRigidBody *const restrict body);

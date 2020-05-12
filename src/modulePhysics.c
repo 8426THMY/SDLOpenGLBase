@@ -55,6 +55,71 @@ return_t modulePhysicsSetup(){
 	);
 }
 
+/*
+** Solve the constraints, such as contacts and joints,
+** for every system that is currently being simulated.
+*/
+void modulePhysicsSolveConstraints(const float invDt){
+	size_t i;
+
+
+	// Presolve joints.
+	/**MEMORY_QLINK_LOOP_BEGIN(__g_PhysicsJointResourceArray, joint, physJoint *);
+		physJointPresolveConstraints(joint, dt);
+	MEMORY_QLINK_LOOP_END(__g_PhysicsJointResourceArray, joint, goto PHYSICS_VELOCITY_PRESOLVER;);**/
+
+
+	// Iteratively solve joint and contact velocity constraints.
+	for(i = PHYSICS_VELOCITY_SOLVER_NUM_ITERATIONS; i > 0; --i){
+		// Solve joint velocity constraints.
+		/**MEMORY_QLINK_LOOP_BEGIN(__g_PhysicsJointResourceArray, joint, physJoint *);
+			physJointSolveVelocityConstraints(joint);
+		MEMORY_QLINK_LOOP_END(__g_PhysicsJointResourceArray, joint, break);**/
+
+		// Solve contact velocity constraints.
+		/**MEMORY_QLINK_LOOP_BEGIN(__g_PhysicsContactPairResourceArray, contact, physContactPair *);
+			physContactSolveVelocityConstraints(&contact->data, contact->colliderA->body, contact->colliderB->body);
+		MEMORY_QLINK_LOOP_END(__g_PhysicsContactPairResourceArray, contact, break);**/
+	}
+
+
+	// Integrate each physics object's position.
+	MEMSINGLELIST_LOOP_BEGIN(g_physRigidBodyManager, body, physicsRigidBody);
+		/**physRigidBodyIntegrateConfiguration(body, invDt);**/
+	#ifndef PHYSCOLLIDER_USE_POSITIONAL_CORRECTION
+	MEMSINGLELIST_LOOP_END(g_physRigidBodyManager, body, return);
+	#else
+	MEMSINGLELIST_LOOP_END(g_physRigidBodyManager, body, break);
+
+
+	// Iteratively solve joint and contact configuration constraints.
+	for(i = PHYSICS_POSITION_SOLVER_NUM_ITERATIONS; i > 0; --i){
+
+		return_t solved = 1;
+		float error = 0.f;
+
+		// Solve joint configuration constraints.
+		/**MEMORY_QLINK_LOOP_BEGIN(__g_PhysicsJointResourceArray, joint, physJoint *);
+			solved &= physJointSolveConfigurationConstraints(joint);
+		MEMORY_QLINK_LOOP_END(__g_PhysicsJointResourceArray, joint, break);**/
+
+		// Solve contact configuration constraints.
+		/**MEMORY_QLINK_LOOP_BEGIN(__g_PhysicsContactPairResourceArray, contact, physContactPair *);
+			error = physContactSolveConfigurationConstraints(&contact->data, contact->colliderA->body, contact->colliderB->body, error);
+		MEMORY_QLINK_LOOP_END(__g_PhysicsContactPairResourceArray, contact, break);**/
+
+		// Exit if the errors are small.
+		if(solved && error >= 0.f){
+			return;
+		}else{
+			--i;
+		}
+
+	}
+
+	#endif
+}
+
 void modulePhysicsCleanup(){
 	// physicsRigidBody
 	modulePhysicsBodyClear();
@@ -89,9 +154,9 @@ void modulePhysicsAABBNodeFree(aabbNode *const restrict node){
 
 // Delete every AABB tree node in the manager.
 void modulePhysicsAABBNodeClear(){
-	MEMPOOL_LOOP_BEGIN(g_aabbNodeManager, i, aabbNode *)
+	MEMPOOL_LOOP_BEGIN(g_aabbNodeManager, i, aabbNode)
 		modulePhysicsAABBNodeFree(i);
-	MEMPOOL_LOOP_END(g_aabbNodeManager, i, aabbNode *, return)
+	MEMPOOL_LOOP_END(g_aabbNodeManager, i, return)
 }
 
 
@@ -109,9 +174,9 @@ void modulePhysicsContactPairFree(physicsContactPair *const restrict cPair){
 
 // Delete every contact pair in the manager.
 void modulePhysicsContactPairClear(){
-	MEMPOOL_LOOP_BEGIN(g_physContactPairManager, i, physicsContactPair *)
+	MEMPOOL_LOOP_BEGIN(g_physContactPairManager, i, physicsContactPair)
 		modulePhysicsContactPairFree(i);
-	MEMPOOL_LOOP_END(g_physContactPairManager, i, physicsContactPair *, return)
+	MEMPOOL_LOOP_END(g_physContactPairManager, i, return)
 }
 
 
@@ -128,9 +193,9 @@ void modulePhysicsSeparationPairFree(physicsSeparationPair *const restrict sPair
 
 // Delete every separation pair in the manager.
 void modulePhysicsSeparationPairClear(){
-	MEMPOOL_LOOP_BEGIN(g_physSeparationPairManager, i, physicsSeparationPair *)
+	MEMPOOL_LOOP_BEGIN(g_physSeparationPairManager, i, physicsSeparationPair)
 		modulePhysicsSeparationPairFree(i);
-	MEMPOOL_LOOP_END(g_physSeparationPairManager, i, physicsSeparationPair *, return)
+	MEMPOOL_LOOP_END(g_physSeparationPairManager, i, return)
 }
 
 
@@ -191,9 +256,9 @@ void modulePhysicsColliderFreeArray(physicsCollider **const restrict start){
 
 // Delete every collider in the manager.
 void modulePhysicsColliderClear(){
-	MEMSINGLELIST_LOOP_BEGIN(g_physColliderManager, i, physicsCollider *)
+	MEMSINGLELIST_LOOP_BEGIN(g_physColliderManager, i, physicsCollider)
 		modulePhysicsColliderFree(NULL, i, NULL);
-	MEMSINGLELIST_LOOP_END(g_physColliderManager, i, physicsCollider *, return)
+	MEMSINGLELIST_LOOP_END(g_physColliderManager, i, return)
 }
 
 
@@ -239,9 +304,9 @@ void modulePhysicsBodyDefFreeArray(physicsRigidBodyDef **const restrict start){
 
 // Delete every rigid body base in the manager.
 void modulePhysicsBodyDefClear(){
-	MEMSINGLELIST_LOOP_BEGIN(g_physRigidBodyDefManager, i, physicsRigidBodyDef *)
+	MEMSINGLELIST_LOOP_BEGIN(g_physRigidBodyDefManager, i, physicsRigidBodyDef)
 		modulePhysicsBodyDefFree(NULL, i, NULL);
-	MEMSINGLELIST_LOOP_END(g_physRigidBodyDefManager, i, physicsRigidBodyDef *, return)
+	MEMSINGLELIST_LOOP_END(g_physRigidBodyDefManager, i, return)
 }
 
 
@@ -287,7 +352,7 @@ void modulePhysicsBodyFreeArray(physicsRigidBody **const restrict start){
 
 // Delete every rigid body in the manager.
 void modulePhysicsBodyClear(){
-	MEMSINGLELIST_LOOP_BEGIN(g_physRigidBodyManager, i, physicsRigidBody *)
+	MEMSINGLELIST_LOOP_BEGIN(g_physRigidBodyManager, i, physicsRigidBody)
 		modulePhysicsBodyFree(NULL, i, NULL);
-	MEMSINGLELIST_LOOP_END(g_physRigidBodyManager, i, physicsRigidBody *, return)
+	MEMSINGLELIST_LOOP_END(g_physRigidBodyManager, i, return)
 }

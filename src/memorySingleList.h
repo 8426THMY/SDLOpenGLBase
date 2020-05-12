@@ -102,26 +102,44 @@
 #define memSingleListMemoryForBlocksRegion(num, size) memoryGetRequiredSize(memSingleListMemoryForBlocks(num, size))
 
 
-#warning "These functions are kind of bad, is there a better way to stop them from looping through everything?"
-#warning "What if we count the number of blocks we've used, and stop looping as soon as we find them all?"
+#ifdef MEMSINGLELIST_COUNT_USED_BLOCKS
+#define MEMSINGLELIST_LOOP_BEGIN(allocator, node, type)                                       \
+{                                                                                             \
+	const memoryRegion *__region_##node = allocator.region;                                   \
+	size_t __remaining_##node = allocator.usedBlocks;                                         \
+	do {                                                                                      \
+		type *node = (type *)(allocator.region->start);                                       \
+		for(; __remaining_##node > 0; --__remaining_##node){                                  \
+			while(memSingleListBlockUsedDataGetFlagValue(node) != MEMSINGLELIST_FLAG_ACTIVE){ \
+				node = memSingleListBlockGetNextBlock(node, allocator.blockSize);             \
+			}
+
+#define MEMSINGLELIST_LOOP_END(allocator, node, earlyexit)                    \
+			node = memSingleListBlockGetNextBlock(node, allocator.blockSize); \
+		}                                                                     \
+		__region_##node = __region_##node->next;                              \
+	} while(__region_##node != NULL);                                         \
+}
+#else
 #define MEMSINGLELIST_LOOP_BEGIN(allocator, node, type)                                   \
 {                                                                                         \
 	const memoryRegion *__region_##node = allocator.region;                               \
 	do {                                                                                  \
-		type node = (type)(allocator.region->start);                                      \
+		type *node = (type *)(allocator.region->start);                                   \
 		do {                                                                              \
 			const uintptr_t __flag_##node = memSingleListBlockUsedDataGetFlagValue(node); \
-			if(__flag_##node == MEMSINGLELIST_FLAG_ACTIVE){                               \
+			if(__flag_##node == MEMSINGLELIST_FLAG_ACTIVE){
 
-#define MEMSINGLELIST_LOOP_END(allocator, node, type, earlyexit)              \
+#define MEMSINGLELIST_LOOP_END(allocator, node, earlyexit)                    \
 			}else if(__flag_##node == MEMSINGLELIST_FLAG_INVALID){            \
 				earlyexit;                                                    \
 			}                                                                 \
 			node = memSingleListBlockGetNextBlock(node, allocator.blockSize); \
-		} while(node < (type)__region_##node);                                \
+		} while((void *)node < (void *)__region_##node);                      \
 		__region_##node = __region_##node->next;                              \
 	} while(__region_##node != NULL);                                         \
-}                                                                             \
+}
+#endif
 
 
 // Block data usage diagrams:
@@ -136,6 +154,9 @@ typedef struct memorySingleList {
 	size_t blockSize;
 	// Points to the next pointer of a free block.
 	void *nextFreeBlock;
+	#ifdef MEMSINGLELIST_COUNT_USED_BLOCKS
+	size_t usedBlocks;
+	#endif
 
 	// This is stored at the very end of the allocated memory,
 	// meaning it can be used as a pointer to the end. The

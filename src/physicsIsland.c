@@ -16,7 +16,12 @@ void physIslandInit(physicsIsland *const restrict island){
 ** inside its old one, we'll need to update its tree node.
 */
 void physIslandUpdateCollider(physicsIsland *const restrict island, physicsCollider *const restrict collider){
-	if(!colliderAABBEnvelopsAABB(&collider->node->aabb, &collider->aabb)){
+	// If the collider isn't already part of an island, add it to this one!
+	if(collider->node == NULL){
+		collider->node = aabbTreeInsertNode(&island->tree, &collider->aabb, (void *)collider, &modulePhysicsAABBNodeAlloc);
+
+	// Otherwise, update its node!
+	}else if(!colliderAABBEnvelopsAABB(&collider->node->aabb, &collider->aabb)){
 		#ifdef PHYSISLAND_AABB_EXPAND_BY_VELOCITY
 		colliderAABBExpandVec3(&collider->aabb, &collider->owner->linearVelocity, &collider->node->aabb);
 		colliderAABBExpandFloat(&collider->node->aabb, PHYSISLAND_AABB_EXTRA_SPACE, &collider->node->aabb);
@@ -38,7 +43,11 @@ void physIslandRemoveCollider(physicsIsland *const restrict island, physicsColli
 ** Check for collision between every collider in
 ** the island and update their collision pairs.
 */
+#ifdef PHYSCONTACT_STABILISER_BAUMGARTE
 void physIslandQueryCollisions(physicsIsland *const restrict island, const float dt){
+#else
+void physIslandQueryCollisions(physicsIsland *const restrict island){
+#endif
 	aabbNode *node = island->tree.leaves;
 	physicsCollider *collider;
 

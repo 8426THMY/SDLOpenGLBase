@@ -158,26 +158,44 @@
 #define memQuadListMemoryForBlocksRegion(num, size) memoryGetRequiredSize(memQuadListMemoryForBlocks(num, size))
 
 
-#warning "These functions are kind of bad, is there a better way to stop them from looping through everything?"
-#warning "What if we count the number of blocks we've used, and stop looping as soon as we find them all?"
+#ifdef MEMQUADLIST_COUNT_USED_BLOCKS
+#define MEMQUADLIST_LOOP_BEGIN(allocator, node, type)                                     \
+{                                                                                         \
+	const memoryRegion *__region_##node = allocator.region;                               \
+	size_t __remaining_##node = allocator.usedBlocks;                                     \
+	do {                                                                                  \
+		type *node = (type *)(allocator.region->start);                                   \
+		for(; __remaining_##node > 0; --__remaining_##node){                              \
+			while(memQuadListBlockUsedDataGetFlagValue(node) != MEMQUADLIST_FLAG_ACTIVE){ \
+				node = memQuadListBlockGetNextBlock(node, allocator.blockSize);           \
+			}
+
+#define MEMQUADLIST_LOOP_END(allocator, node, earlyexit)                    \
+			node = memQuadListBlockGetNextBlock(node, allocator.blockSize); \
+		}                                                                   \
+		__region_##node = __region_##node->next;                            \
+	} while(__region_##node != NULL);                                       \
+}
+#else
 #define MEMQUADLIST_LOOP_BEGIN(allocator, node, type)                                   \
 {                                                                                       \
 	const memoryRegion *__region_##node = allocator.region;                             \
 	do {                                                                                \
-		type node = (type)(allocator.region->start);                                    \
+		type *node = (type *)(allocator.region->start);                                 \
 		do {                                                                            \
 			const uintptr_t __flag_##node = memQuadListBlockUsedDataGetFlagValue(node); \
-			if(__flag_##node == MEMQUADLIST_FLAG_ACTIVE){                               \
+			if(__flag_##node == MEMQUADLIST_FLAG_ACTIVE){
 
-#define MEMQUADLIST_LOOP_END(allocator, node, type, earlyexit)              \
+#define MEMQUADLIST_LOOP_END(allocator, node, earlyexit)                    \
 			}else if(__flag_##node == MEMQUADLIST_FLAG_INVALID){            \
 				earlyexit;                                                  \
 			}                                                               \
 			node = memQuadListBlockGetNextBlock(node, allocator.blockSize); \
-		} while(node < (type)__region_##node);                              \
+		} while((void *)node < (void *)__region_##node);                    \
 		__region_##node = __region_##node->next;                            \
 	} while(__region_##node != NULL);                                       \
-}                                                                           \
+}
+#endif
 
 
 // Block data usage diagrams:
@@ -197,6 +215,9 @@ typedef struct memoryQuadList {
 	size_t blockSize;
 	// Points to the next pointer of a free block.
 	void *nextFreeBlock;
+	#ifdef MEMQUADLIST_COUNT_USED_BLOCKS
+	size_t usedBlocks;
+	#endif
 
 	// This is stored at the very end of the allocated memory,
 	// meaning it can be used as a pointer to the end. The

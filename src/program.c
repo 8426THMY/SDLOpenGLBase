@@ -220,9 +220,9 @@ static void updateCameras(program *const restrict prg){
 }
 
 static void updateObjects(program *const restrict prg){
-	MEMSINGLELIST_LOOP_BEGIN(g_objectManager, curObj, object *)
+	MEMSINGLELIST_LOOP_BEGIN(g_objectManager, curObj, object)
 		objectUpdate(curObj, prg->step.updateTime);
-	MEMSINGLELIST_LOOP_END(g_objectManager, curObj, object *, return)
+	MEMSINGLELIST_LOOP_END(g_objectManager, curObj, return)
 
 	// Update the models' positions and rotations!
 	/** Temporary if statement for temporary code. Don't want the program to crash, do we? **/
@@ -239,8 +239,17 @@ static void updateObjects(program *const restrict prg){
 #include "physicsIsland.h"
 physicsIsland island;
 static void updatePhysics(program *const restrict prg){
+	MEMSINGLELIST_LOOP_BEGIN(g_physRigidBodyManager, curBody, physicsRigidBody)
+		physRigidBodyUpdate(curBody, prg->step.updateTickrate);
+	MEMSINGLELIST_LOOP_END(g_physRigidBodyManager, curBody, break)
+
+	#ifdef PHYSCONTACT_STABILISER_BAUMGARTE
 	physIslandQueryCollisions(&island, prg->step.updateTime);
-	/** Solve constraints. **/
+	#else
+	physIslandQueryCollisions(&island);
+	#endif
+
+	modulePhysicsSolveConstraints(prg->step.updateTickrate);
 }
 
 /** TEMPORARY STUFF! **/
@@ -253,8 +262,8 @@ guiElement gui;
 textFont fontIBM;
 static void update(program *const restrict prg){
 	updateCameras(prg);
-	updateObjects(prg);
 	updatePhysics(prg);
+	updateObjects(prg);
 
 
 	/** TEMPORARY PARTICLE UPDATE STUFF! **/
@@ -299,10 +308,10 @@ static void render(program *const restrict prg){
 	cameraUpdateViewProjectionMatrix(&prg->cam, prg->windowWidth, prg->windowHeight);
 
 	glUseProgram(prg->objectShader.programID);
-	MEMSINGLELIST_LOOP_BEGIN(g_objectManager, curObj, object *)
+	MEMSINGLELIST_LOOP_BEGIN(g_objectManager, curObj, object)
 		#warning "We'll need the camera in this function for billboards. Just pass it instead of the matrix."
 		objectDraw(curObj, &prg->cam, &prg->objectShader, prg->step.renderDelta);
-	MEMSINGLELIST_LOOP_END(g_objectManager, curObj, object *, NULL)
+	MEMSINGLELIST_LOOP_END(g_objectManager, curObj, break)
 
 	/** TEMPORARY PARTICLE RENDER STUFF! **/
 	glUseProgram(prg->spriteShader.programID);
@@ -443,6 +452,70 @@ static return_t initResources(program *const restrict prg){
 
 
 	/** TEMPORARY PHYSICS STUFF **/
+	/**
+	for all scenes {
+		sceneTick(){
+			for all scene.objects {
+				objTick(){
+					for all object.bones {
+						if bone has rigid body {
+							update collider configuration;
+							update collider vertices;
+							update collider AABB node;
+						}else{
+							animate bone;
+						}
+					}
+				}
+			}
+		}
+	}
+
+	queryIslands(){
+		for all islands {
+			for all island.rigidBodies {
+				check collisions;
+				update contacts;
+				update separations;
+			}
+		}
+	}
+
+	solveConstraints(){
+		for all joints {
+			presolve joint;
+		}
+
+		for all rigid bodies {
+			integrate velocity;
+			reset forces;
+		}
+
+		for all velocity solver iterations {
+			for all joints {
+				solve joint velocity constraints;
+			}
+
+			for all contacts {
+				solve contact velocity constraints;
+			}
+		}
+
+		for all rigid bodies {
+			integrate configuration;
+		}
+
+		for configuration solver iterations {
+			for all joints {
+				solve joint configuration constraints;
+			}
+
+			for all contacts {
+				solve contact configuration constraints;
+			}
+		}
+	}
+	**/
 	physIslandInit(&island);
 	objDef = moduleObjectDefAlloc();
 	objectDefInit(objDef);

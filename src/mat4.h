@@ -124,8 +124,8 @@ mat4 mat4InvertR(const mat4 m);
 return_t mat4CanInvert(mat4 *const restrict m);
 return_t mat4CanInvertOut(const mat4 m, mat4 *const restrict out);
 
-void mat4Orthographic(mat4 *const restrict m, const float right, const float left, const float bottom, const float top, const float near, const float far);
-mat4 mat4OrthographicR(const float right, const float left, const float bottom, const float top, const float near, const float far);
+void mat4Orthographic(mat4 *const restrict m, const float right, const float left, const float top, const float bottom, const float near, const float far);
+mat4 mat4OrthographicR(const float right, const float left, const float top, const float bottom, const float near, const float far);
 void mat4Perspective(mat4 *const restrict m, const float fov, const float aspectRatio, const float near, const float far);
 mat4 mat4PerspectiveR(const float fov, const float aspectRatio, const float near, const float far);
 void mat4PerspectiveOld(mat4 *const restrict m, const float fov, const float aspectRatio, const float near, const float far);

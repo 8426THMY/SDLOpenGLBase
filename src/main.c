@@ -114,6 +114,11 @@ New To-Do List:
 	c. Create new object type whose base structure has arrays of render objects,
 	   colliders and joints as well as other information currently stored by render
 	   objects (such as skeletons).
+
+9. Particle system.
+	a. Custom functions (perhaps using DLLs).
+	b. Functions for evenly distributing particles on a mathematical surface or something.
+	   Use custom functions for interesting plots.
 **/
 
 

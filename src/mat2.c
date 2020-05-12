@@ -125,7 +125,7 @@ mat2 mat2MultiplyVec2ByR(const mat2 m, const vec2 v){
 	return(out);
 }
 
-// Multiply "m1" by "m2"!
+// Right-multiply "m1" by "m2"!
 void mat2MultiplyByMat2(mat2 *const restrict m1, const mat2 m2){
 	const mat2 tempMatrix = *m1;
 
@@ -136,7 +136,7 @@ void mat2MultiplyByMat2(mat2 *const restrict m1, const mat2 m2){
 	m1->m[1][1] = tempMatrix.m[0][1] * m2.m[1][0] + tempMatrix.m[1][1] * m2.m[1][1];
 }
 
-// Multiply "m2" by "m1"!
+// Left-multiply "m1" by "m2"!
 void mat2MultiplyMat2By(mat2 *const restrict m1, const mat2 m2){
 	const mat2 tempMatrix = *m1;
 
@@ -147,7 +147,7 @@ void mat2MultiplyMat2By(mat2 *const restrict m1, const mat2 m2){
 	m1->m[1][1] = m2.m[0][1] * tempMatrix.m[1][0] + m2.m[1][1] * tempMatrix.m[1][1];
 }
 
-// Multiply "m1" by "m2" and store the result in "out"!
+// Right-multiply "m1" by "m2" and store the result in "out"!
 void mat2MultiplyByMat2Out(const mat2 m1, const mat2 m2, mat2 *const restrict out){
 	out->m[0][0] = m1.m[0][0] * m2.m[0][0] + m1.m[1][0] * m2.m[0][1];
 	out->m[0][1] = m1.m[0][1] * m2.m[0][0] + m1.m[1][1] * m2.m[0][1];
@@ -156,7 +156,7 @@ void mat2MultiplyByMat2Out(const mat2 m1, const mat2 m2, mat2 *const restrict ou
 	out->m[1][1] = m1.m[0][1] * m2.m[1][0] + m1.m[1][1] * m2.m[1][1];
 }
 
-// Multiply "m1" by "m2"!
+// Right-multiply "m1" by "m2"!
 mat2 mat2MultiplyByMat2R(const mat2 m1, const mat2 m2){
 	const mat2 out = {
 		.m[0][0] = m1.m[0][0] * m2.m[0][0] + m1.m[1][0] * m2.m[0][1],

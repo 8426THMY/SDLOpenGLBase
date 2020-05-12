@@ -22,7 +22,11 @@ void physIslandInit(physicsIsland *const restrict island);
 void physIslandUpdateCollider(physicsIsland *const restrict island, physicsCollider *const restrict collider);
 void physIslandRemoveCollider(physicsIsland *const restrict island, physicsCollider *const restrict collider);
 
+#ifdef PHYSCONTACT_STABILISER_BAUMGARTE
 void physIslandQueryCollisions(physicsIsland *const restrict island, const float dt);
+#else
+void physIslandQueryCollisions(physicsIsland *const restrict island);
+#endif
 
 void physIslandDelete(physicsIsland *const restrict island);
 

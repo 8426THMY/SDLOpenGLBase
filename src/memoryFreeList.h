@@ -51,21 +51,19 @@
 #define memFreeListMemoryForBlocksRegion(num, size) memoryGetRequiredSize(memFreeListMemoryForBlocks(num, size))
 
 
-#warning "These functions are kind of bad, is there a better way to stop them from looping through everything?"
-#warning "What if we count the number of blocks we've used, and stop looping as soon as we find them all?"
 #define MEMFREELIST_LOOP_BEGIN(allocator, node, type)       \
 {                                                           \
 	const memoryRegion *__region_##node = allocator.region; \
 	do {                                                    \
-		type node = (type)(allocator.region->start);        \
+		type *node = (type *)(allocator.region->start);     \
 		do {
 
-#define MEMFREELIST_LOOP_END(allocator, node, type)                         \
+#define MEMFREELIST_LOOP_END(allocator, node)                               \
 			node = memFreeListBlockGetNextBlock(node, allocator.blockSize); \
-		} while(node < (type)__region_##node);                              \
+		} while((void *)node < (void *)__region_##node);                    \
 		__region_##node = __region_##node->next;                            \
 	} while(__region_##node != NULL);                                       \
-}                                                                           \
+}
 
 
 // Block data usage diagrams:
@@ -77,6 +75,9 @@ typedef struct memoryFreeList {
 	size_t blockSize;
 	// Points to the next pointer of a free block.
 	void *nextFreeBlock;
+	#ifdef MEMFREELIST_COUNT_USED_BLOCKS
+	size_t usedBlocks;
+	#endif
 
 	// This is stored at the very end of the allocated memory,
 	// meaning it can be used as a pointer to the end. The

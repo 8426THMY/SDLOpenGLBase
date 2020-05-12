@@ -37,14 +37,22 @@ void guiElementUpdate(guiElement *const restrict gui, const float time){
 }
 
 void guiElementDraw(
-	guiElement *const restrict gui, const float windowWidth, const float windowHeight, const shaderSprite *const restrict shader
+	guiElement *const restrict gui, const int windowWidth, const int windowHeight, const shaderSprite *const restrict shader
 ){
 
+	mat4 viewMatrix;
+	mat4 projectionMatrix;
 	mat4 viewProjectionMatrix;
 
 	// We use a scale matrix as the view-projection matrix
 	// so our interface's size can be specified in pixels.
-	mat4InitScale(&viewProjectionMatrix, 2.f/windowWidth, 2.f/windowHeight, 1.f);
+	//
+	// To help prevent texturing artifacts, we start from the middle of
+	// the lower-left pixel and end at the middle of the upper-right pixel.
+	#warning "We still get artifacts. Maybe use integer positions and scales for elements?"
+	#warning "Also, it'd be nice if we could move this into our camera."
+	//mat4Orthographic(&viewProjectionMatrix, (windowWidth - 1)*0.5f, -(windowWidth - 1)*0.5f, (windowHeight - 1)*0.5f, -(windowHeight - 1)*0.5f, -1000.f, 1000.f);
+	mat4InitScale(&viewProjectionMatrix, 2.f/(windowWidth - 1), 2.f/(windowHeight - 1), -1.f/1000.f);
 	glUniformMatrix4fv(shader->vpMatrixID, 1, GL_FALSE, (GLfloat *)&viewProjectionMatrix);
 
 	guiElementDrawTable[gui->type](gui, shader);

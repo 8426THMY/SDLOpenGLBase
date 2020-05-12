@@ -233,7 +233,7 @@ mat3 mat3MultiplyVec3ByR(const mat3 m, const vec3 v){
 	return(out);
 }
 
-// Multiply "m1" by "m2"!
+// Right-multiply "m1" by "m2"!
 void mat3MultiplyByMat3(mat3 *const restrict m1, const mat3 m2){
 	const mat3 tempMatrix = *m1;
 
@@ -250,7 +250,7 @@ void mat3MultiplyByMat3(mat3 *const restrict m1, const mat3 m2){
 	m1->m[2][2] = tempMatrix.m[0][2] * m2.m[2][0] + tempMatrix.m[1][2] * m2.m[2][1] + tempMatrix.m[2][2] * m2.m[2][2];
 }
 
-// Multiply "m2" by "m1"!
+// Left-multiply "m1" by "m2"!
 void mat3MultiplyMat3By(mat3 *const restrict m1, const mat3 m2){
 	const mat3 tempMatrix = *m1;
 
@@ -267,7 +267,7 @@ void mat3MultiplyMat3By(mat3 *const restrict m1, const mat3 m2){
 	m1->m[2][2] = m2.m[0][2] * tempMatrix.m[2][0] + m2.m[1][2] * tempMatrix.m[2][1] + m2.m[2][2] * tempMatrix.m[2][2];
 }
 
-// Multiply "m1" by "m2" and store the result in "out"!
+// Right-multiply "m1" by "m2" and store the result in "out"!
 void mat3MultiplyByMat3Out(const mat3 m1, const mat3 m2, mat3 *const restrict out){
 	out->m[0][0] = m1.m[0][0] * m2.m[0][0] + m1.m[1][0] * m2.m[0][1] + m1.m[2][0] * m2.m[0][2];
 	out->m[0][1] = m1.m[0][1] * m2.m[0][0] + m1.m[1][1] * m2.m[0][1] + m1.m[2][1] * m2.m[0][2];
@@ -282,7 +282,7 @@ void mat3MultiplyByMat3Out(const mat3 m1, const mat3 m2, mat3 *const restrict ou
 	out->m[2][2] = m1.m[0][2] * m2.m[2][0] + m1.m[1][2] * m2.m[2][1] + m1.m[2][2] * m2.m[2][2];
 }
 
-// Multiply "m1" by "m2"!
+// Right-multiply "m1" by "m2"!
 mat3 mat3MultiplyByMat3R(const mat3 m1, const mat3 m2){
 	const mat3 out = {
 		.m[0][0] = m1.m[0][0] * m2.m[0][0] + m1.m[1][0] * m2.m[0][1] + m1.m[2][0] * m2.m[0][2],

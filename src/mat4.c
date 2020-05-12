@@ -560,7 +560,7 @@ vec4 mat4MultiplyByVec4R(const mat4 m, const vec4 v){
 	return(out);
 }
 
-// Multiply "m1" by "m2"!
+// Right-multiply "m1" by "m2"!
 void mat4MultiplyByMat4(mat4 *const restrict m1, const mat4 m2){
 	const mat4 tempMatrix1 = *m1;
 
@@ -585,7 +585,7 @@ void mat4MultiplyByMat4(mat4 *const restrict m1, const mat4 m2){
 	m1->m[3][3] = tempMatrix1.m[0][3] * m2.m[3][0] + tempMatrix1.m[1][3] * m2.m[3][1] + tempMatrix1.m[2][3] * m2.m[3][2] + tempMatrix1.m[3][3] * m2.m[3][3];
 }
 
-// Multiply "m2" by "m1"!
+// Left-multiply "m1" by "m2"!
 void mat4MultiplyMat4By(mat4 *const restrict m1, const mat4 m2){
 	const mat4 tempMatrix1 = *m1;
 
@@ -610,7 +610,7 @@ void mat4MultiplyMat4By(mat4 *const restrict m1, const mat4 m2){
 	m1->m[3][3] = m2.m[0][3] * tempMatrix1.m[3][0] + m2.m[1][3] * tempMatrix1.m[3][1] + m2.m[2][3] * tempMatrix1.m[3][2] + m2.m[3][3] * tempMatrix1.m[3][3];
 }
 
-// Multiply "m1" by "m2" and store the result in "out"! This assumes that "out" isn't "m1" or "m2".
+// Right-multiply "m1" by "m2" and store the result in "out"! This assumes that "out" isn't "m1" or "m2".
 void mat4MultiplyByMat4Out(const mat4 m1, const mat4 m2, mat4 *const restrict out){
 	out->m[0][0] = m1.m[0][0] * m2.m[0][0] + m1.m[1][0] * m2.m[0][1] + m1.m[2][0] * m2.m[0][2] + m1.m[3][0] * m2.m[0][3];
 	out->m[0][1] = m1.m[0][1] * m2.m[0][0] + m1.m[1][1] * m2.m[0][1] + m1.m[2][1] * m2.m[0][2] + m1.m[3][1] * m2.m[0][3];
@@ -633,7 +633,7 @@ void mat4MultiplyByMat4Out(const mat4 m1, const mat4 m2, mat4 *const restrict ou
 	out->m[3][3] = m1.m[0][3] * m2.m[3][0] + m1.m[1][3] * m2.m[3][1] + m1.m[2][3] * m2.m[3][2] + m1.m[3][3] * m2.m[3][3];
 }
 
-// Multiply "m1" by "m2" and return the result!
+// Right-multiply "m1" by "m2" and return the result!
 mat4 mat4MultiplyByMat4R(const mat4 m1, const mat4 m2){
 	const mat4 out = {
 		.m[0][0] = m1.m[0][0] * m2.m[0][0] + m1.m[1][0] * m2.m[0][1] + m1.m[2][0] * m2.m[0][2] + m1.m[3][0] * m2.m[0][3],
@@ -1972,12 +1972,12 @@ return_t mat4CanInvertOut(const mat4 m, mat4 *const restrict out){
 
 
 // Generate an orthographic matrix!
-void mat4Orthographic(mat4 *const restrict m, const float right, const float left, const float bottom, const float top, const float near, const float far){
-	const float invRightMinLeft = 1.f / (right - left);
-	const float invTopMinBottom = 1.f / (top - bottom);
-	const float invFarMinNear   = 1.f / (far - near);
+void mat4Orthographic(mat4 *const restrict m, const float right, const float left, const float top, const float bottom, const float near, const float far){
+	const float invRightMinLeft = 1.f/(right - left);
+	const float invTopMinBottom = 1.f/(top - bottom);
+	const float invNearMinFar   = 1.f/(near - far);
 
-	m->m[0][0] = -invRightMinLeft - invRightMinLeft;
+	m->m[0][0] = invRightMinLeft + invRightMinLeft;
 	m->m[0][1] = 0.f;
 	m->m[0][2] = 0.f;
 	m->m[0][3] = -((right + left) * invRightMinLeft);
@@ -1989,25 +1989,25 @@ void mat4Orthographic(mat4 *const restrict m, const float right, const float lef
 
 	m->m[2][0] = 0.f;
 	m->m[2][1] = 0.f;
-	m->m[2][2] = -invFarMinNear - invFarMinNear;
-	m->m[2][3] = 0.f;
+	m->m[2][2] = invNearMinFar + invNearMinFar;
+	m->m[2][3] = ((near + far) * invNearMinFar);
 
 	m->m[3][0] = 0.f;
 	m->m[3][1] = 0.f;
-	m->m[3][2] = -((far + near) * invFarMinNear);
+	m->m[3][2] = 0.f;
 	m->m[3][3] = 1.f;
 }
 
 // Generate an orthographic matrix!
-mat4 mat4OrthographicR(const float right, const float left, const float bottom, const float top, const float near, const float far){
-	const float invRightMinLeft = 1.f / (right - left);
-	const float invTopMinBottom = 1.f / (top - bottom);
-	const float invFarMinNear   = 1.f / (far - near);
+mat4 mat4OrthographicR(const float right, const float left, const float top, const float bottom, const float near, const float far){
+	const float invRightMinLeft = 1.f/(right - left);
+	const float invTopMinBottom = 1.f/(top - bottom);
+	const float invNearMinFar   = 1.f/(near - far);
 	const mat4 m = {
-		.m[0][0] = -invRightMinLeft - invRightMinLeft, .m[0][1] = 0.f,                               .m[0][2] = 0.f,                             .m[0][3] = -((right + left) * invRightMinLeft),
-		.m[1][0] = 0.f,                                .m[1][1] = invTopMinBottom + invTopMinBottom, .m[1][2] = 0.f,                             .m[1][3] = -((top + bottom) * invTopMinBottom),
-		.m[2][0] = 0.f,                                .m[2][1] = 0.f,                               .m[2][2] = -invFarMinNear - invFarMinNear,  .m[2][3] = 0.f,
-		.m[3][0] = 0.f,                                .m[3][1] = 0.f,                               .m[3][2] = -((far + near) * invFarMinNear), .m[3][3] = 1.f
+		.m[0][0] = invRightMinLeft + invRightMinLeft,   .m[0][1] = 0.f,                                 .m[0][2] = 0.f,                            .m[0][3] = 0.f,
+		.m[1][0] = 0.f,                                 .m[1][1] = invTopMinBottom + invTopMinBottom,   .m[1][2] = 0.f,                            .m[1][3] = 0.f,
+		.m[2][0] = 0.f,                                 .m[2][1] = 0.f,                                 .m[2][2] = invNearMinFar + invNearMinFar,  .m[2][3] = 0.f,
+		.m[3][0] = -((right + left) * invRightMinLeft), .m[3][1] = -((top + bottom) * invTopMinBottom), .m[3][2] = ((near + far) * invNearMinFar), .m[3][3] = 1.f
 	};
 
 	return(m);
@@ -2015,10 +2015,10 @@ mat4 mat4OrthographicR(const float right, const float left, const float bottom, 
 
 // Generate a perspective matrix!
 void mat4Perspective(mat4 *const restrict m, const float fov, const float aspectRatio, const float near, const float far){
-	const float invScale = 1.f / tan(fov * 0.5f);
-	const float invFarMinNear = 1.f / (far - near);
+	const float invScale = 1.f/tan(fov * 0.5f);
+	const float invNearMinFar = 1.f/(near - far);
 
-	m->m[0][0] = invScale / aspectRatio;
+	m->m[0][0] = invScale/aspectRatio;
 	m->m[0][1] = 0.f;
 	m->m[0][2] = 0.f;
 	m->m[0][3] = 0.f;
@@ -2030,24 +2030,24 @@ void mat4Perspective(mat4 *const restrict m, const float fov, const float aspect
 
 	m->m[2][0] = 0.f;
 	m->m[2][1] = 0.f;
-	m->m[2][2] = -((far + near) * invFarMinNear);
+	m->m[2][2] = ((far + near) * invNearMinFar);
 	m->m[2][3] = -1.f;
 
 	m->m[3][0] = 0.f;
 	m->m[3][1] = 0.f;
-	m->m[3][2] = -((far + far * near) * invFarMinNear);
+	m->m[3][2] = (((far + far) * near) * invNearMinFar);
 	m->m[3][3] = 0.f;
 }
 
 // Generate a perspective matrix!
 mat4 mat4PerspectiveR(const float fov, const float aspectRatio, const float near, const float far){
-	const float invScale = 1.f / tan(fov * 0.5f);
-	const float invFarMinNear = 1.f / (far - near);
+	const float invScale = 1.f/tan(fov * 0.5f);
+	const float invNearMinFar = 1.f/(near - far);
 	const mat4 m = {
-		.m[0][0] = invScale / aspectRatio, .m[0][1] = 0.f,      .m[0][2] = 0.f,                                   .m[0][3] = 0.f,
-		.m[1][0] = 0.f,                    .m[1][1] = invScale, .m[1][2] = 0.f,                                   .m[1][3] = 0.f,
-		.m[2][0] = 0.f,                    .m[2][1] = 0.f,      .m[2][2] = -((far + near) * invFarMinNear),       .m[2][3] = -1.f,
-		.m[3][0] = 0.f,                    .m[3][1] = 0.f,      .m[3][2] = -((far + far * near) * invFarMinNear), .m[3][3] = 0.f
+		.m[0][0] = invScale/aspectRatio, .m[0][1] = 0.f,      .m[0][2] = 0.f,                                    .m[0][3] = 0.f,
+		.m[1][0] = 0.f,                  .m[1][1] = invScale, .m[1][2] = 0.f,                                    .m[1][3] = 0.f,
+		.m[2][0] = 0.f,                  .m[2][1] = 0.f,      .m[2][2] = ((far + near) * invNearMinFar),         .m[2][3] = -1.f,
+		.m[3][0] = 0.f,                  .m[3][1] = 0.f,      .m[3][2] = (((far + far) * near) * invNearMinFar), .m[3][3] = 0.f
 	};
 
 	return(m);
@@ -2057,9 +2057,9 @@ mat4 mat4PerspectiveR(const float fov, const float aspectRatio, const float near
 void mat4PerspectiveOld(mat4 *const restrict m, const float fov, const float aspectRatio, const float near, const float far){
 	const float top    = near * tanf(fov * 0.5f);
 	const float right  = top * aspectRatio;
-	const float invRightMinLeft = 1.f / (right + right);
-	const float invTopMinBottom = 1.f / (top + top);
-	const float invFarMinNear   = 1.f / (far - near);
+	const float invRightMinLeft = 1.f/(right + right);
+	const float invTopMinBottom = 1.f/(top + top);
+	const float invNearMinFar = 1.f/(near - far);
 
 	m->m[0][0] = (near + near) * invRightMinLeft;
 	m->m[0][1] = 0.f;
@@ -2073,12 +2073,12 @@ void mat4PerspectiveOld(mat4 *const restrict m, const float fov, const float asp
 
 	m->m[2][0] = 0.f;
 	m->m[2][1] = 0.f;
-	m->m[2][2] = -((far + near) * invFarMinNear);
+	m->m[2][2] = ((far + near) * invNearMinFar);
 	m->m[2][3] = -1.f;
 
 	m->m[3][0] = 0.f;
 	m->m[3][1] = 0.f;
-	m->m[3][2] = -((far + far * near) * invFarMinNear);
+	m->m[3][2] = (((far + far) * near) * invNearMinFar);
 	m->m[3][3] = 0.f;
 }
 
@@ -2086,14 +2086,14 @@ void mat4PerspectiveOld(mat4 *const restrict m, const float fov, const float asp
 mat4 mat4PerspectiveOldR(const float fov, const float aspectRatio, const float near, const float far){
 	const float top    = near * tanf(fov * 0.5f);
 	const float right  = top * aspectRatio;
-	const float invRightMinLeft = 1.f / (right + right);
-	const float invTopMinBottom = 1.f / (top + top);
-	const float invFarMinNear   = 1.f / (far - near);
+	const float invRightMinLeft = 1.f/(right + right);
+	const float invTopMinBottom = 1.f/(top + top);
+	const float invNearMinFar = 1.f/(near - far);
 	const mat4 m = {
-		.m[0][0] = (near + near) * invRightMinLeft, .m[0][1] = 0.f,                             .m[0][2] = 0.f,                                   .m[0][3] = 0.f,
-		.m[1][0] = 0.f,                             .m[1][1] = (near + near) * invTopMinBottom, .m[1][2] = 0.f,                                   .m[1][3] = 0.f,
-		.m[2][0] = 0.f,                             .m[2][1] = 0.f,                             .m[2][2] = -((far + near) * invFarMinNear),       .m[2][3] = -1.f,
-		.m[3][0] = 0.f,                             .m[3][1] = 0.f,                             .m[3][2] = -((far + far * near) * invFarMinNear), .m[3][3] = 0.f
+		.m[0][0] = (near + near) * invRightMinLeft, .m[0][1] = 0.f,                             .m[0][2] = 0.f,                                    .m[0][3] = 0.f,
+		.m[1][0] = 0.f,                             .m[1][1] = (near + near) * invTopMinBottom, .m[1][2] = 0.f,                                    .m[1][3] = 0.f,
+		.m[2][0] = 0.f,                             .m[2][1] = 0.f,                             .m[2][2] = ((far + near) * invNearMinFar),         .m[2][3] = -1.f,
+		.m[3][0] = 0.f,                             .m[3][1] = 0.f,                             .m[3][2] = (((far + far) * near) * invNearMinFar), .m[3][3] = 0.f
 	};
 
 	return(m);
@@ -2192,7 +2192,7 @@ mat4 mat4LookAtR(const vec3 eye, const vec3 target, const vec3 worldUp){
 	const vec3 up      = vec3NormalizeVec3FastR(vec3CrossVec3R(forward, right));
 	// Translate the matrix to "eye" and make it look at "target"!
 	const mat4 m = {
-		.m[0][0] = right.x,                   .m[0][1] = up.x,                   .m[0][2] = forward.x,                   .m[0][3] = 0.f,
+		.m[0][0] = right.x,                   .m[0][1] = up.x,                   .m[0][2] = forward.z,                   .m[0][3] = 0.f,
 		.m[1][0] = right.y,                   .m[1][1] = up.y,                   .m[1][2] = forward.y,                   .m[1][3] = 0.f,
 		.m[2][0] = right.z,                   .m[2][1] = up.z,                   .m[2][2] = forward.z,                   .m[2][3] = 0.f,
 		.m[3][0] = -vec3DotVec3R(right, eye), .m[3][1] = -vec3DotVec3R(up, eye), .m[3][2] = -vec3DotVec3R(forward, eye), .m[3][3] = 1.f

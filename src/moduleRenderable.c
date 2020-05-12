@@ -73,9 +73,9 @@ void moduleRenderableDefFreeArray(renderableDef **const restrict start){
 
 // Delete every renderable base in the manager.
 void moduleRenderableDefClear(){
-	MEMSINGLELIST_LOOP_BEGIN(g_renderableDefManager, i, renderableDef *)
+	MEMSINGLELIST_LOOP_BEGIN(g_renderableDefManager, i, renderableDef)
 		moduleRenderableDefFree(NULL, i, NULL);
-	MEMSINGLELIST_LOOP_END(g_renderableDefManager, i, renderableDef *, return)
+	MEMSINGLELIST_LOOP_END(g_renderableDefManager, i, return)
 }
 
 
@@ -120,7 +120,7 @@ void moduleRenderableFreeArray(renderable **const restrict start){
 
 // Delete every renderable in the manager.
 void moduleRenderableClear(){
-	MEMSINGLELIST_LOOP_BEGIN(g_renderableManager, i, renderable *)
+	MEMSINGLELIST_LOOP_BEGIN(g_renderableManager, i, renderable)
 		moduleRenderableFree(NULL, i, NULL);
-	MEMSINGLELIST_LOOP_END(g_renderableManager, i, renderable *, return)
+	MEMSINGLELIST_LOOP_END(g_renderableManager, i, return)
 }

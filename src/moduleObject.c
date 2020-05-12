@@ -74,9 +74,9 @@ void moduleObjectDefFreeArray(objectDef **const restrict start){
 
 // Delete every object base in the manager.
 void moduleObjectDefClear(){
-	MEMSINGLELIST_LOOP_BEGIN(g_objectDefManager, i, objectDef *)
+	MEMSINGLELIST_LOOP_BEGIN(g_objectDefManager, i, objectDef)
 		moduleObjectDefFree(NULL, i, NULL);
-	MEMSINGLELIST_LOOP_END(g_objectDefManager, i, objectDef *, return)
+	MEMSINGLELIST_LOOP_END(g_objectDefManager, i, return)
 }
 
 
@@ -122,7 +122,7 @@ void moduleObjectFreeArray(object **const restrict start){
 
 // Delete every object in the manager.
 void moduleObjectClear(){
-	MEMSINGLELIST_LOOP_BEGIN(g_objectManager, i, object *)
+	MEMSINGLELIST_LOOP_BEGIN(g_objectManager, i, object)
 		moduleObjectFree(NULL, i, NULL);
-	MEMSINGLELIST_LOOP_END(g_objectManager, i, object *, return)
+	MEMSINGLELIST_LOOP_END(g_objectManager, i, return)
 }

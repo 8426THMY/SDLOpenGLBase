@@ -394,11 +394,11 @@ void physManifoldPersist(
 */
 #ifdef PHYSCONTACT_STABILISER_BAUMGARTE
 void physManifoldPresolve(
-	physicsManifold *const restrict pm,const physicsRigidBody *const restrict bodyA, const physicsRigidBody *const restrict bodyB, const float dt
+	physicsManifold *const restrict pm, const physicsRigidBody *const restrict bodyA, const physicsRigidBody *const restrict bodyB, const float dt
 ){
 #else
 void physManifoldPresolve(
-	physicsManifold *const restrict pm,const physicsRigidBody *const restrict bodyA, const physicsRigidBody *const restrict bodyB
+	physicsManifold *const restrict pm, const physicsRigidBody *const restrict bodyA, const physicsRigidBody *const restrict bodyB
 ){
 #endif
 

@@ -114,26 +114,44 @@
 #define memDoubleListMemoryForBlocksRegion(num, size) memoryGetRequiredSize(memDoubleListMemoryForBlocks(num, size))
 
 
-#warning "These functions are kind of bad, is there a better way to stop them from looping through everything?"
-#warning "What if we count the number of blocks we've used, and stop looping as soon as we find them all?"
+#ifdef MEMDOUBLELIST_COUNT_USED_BLOCKS
+#define MEMDOUBLELIST_LOOP_BEGIN(allocator, node, type)                                       \
+{                                                                                             \
+	const memoryRegion *__region_##node = allocator.region;                                   \
+	size_t __remaining_##node = allocator.usedBlocks;                                         \
+	do {                                                                                      \
+		type *node = (type *)(allocator.region->start);                                       \
+		for(; __remaining_##node > 0; --__remaining_##node){                                  \
+			while(memDoubleListBlockUsedDataGetFlagValue(node) != MEMDOUBLELIST_FLAG_ACTIVE){ \
+				node = memDoubleListBlockGetNextBlock(node, allocator.blockSize);             \
+			}
+
+#define MEMDOUBLELIST_LOOP_END(allocator, node, earlyexit)                    \
+			node = memDoubleListBlockGetNextBlock(node, allocator.blockSize); \
+		}                                                                     \
+		__region_##node = __region_##node->next;                              \
+	} while(__region_##node != NULL);                                         \
+}
+#else
 #define MEMDOUBLELIST_LOOP_BEGIN(allocator, node, type)                                   \
 {                                                                                         \
 	const memoryRegion *__region_##node = allocator.region;                               \
 	do {                                                                                  \
-		type node = (type)(allocator.region->start);                                      \
+		type *node = (type *)(allocator.region->start);                                   \
 		do {                                                                              \
 			const uintptr_t __flag_##node = memDoubleListBlockUsedDataGetFlagValue(node); \
-			if(__flag_##node == MEMDOUBLELIST_FLAG_ACTIVE){                               \
+			if(__flag_##node == MEMDOUBLELIST_FLAG_ACTIVE){
 
-#define MEMDOUBLELIST_LOOP_END(allocator, node, type, earlyexit)              \
+#define MEMDOUBLELIST_LOOP_END(allocator, node, earlyexit)                    \
 			}else if(__flag_##node == MEMDOUBLELIST_FLAG_INVALID){            \
 				earlyexit;                                                    \
 			}                                                                 \
 			node = memDoubleListBlockGetNextBlock(node, allocator.blockSize); \
-		} while(node < (type)__region_##node);                                \
+		} while((void *)node < (void *)__region_##node);                      \
 		__region_##node = __region_##node->next;                              \
 	} while(__region_##node != NULL);                                         \
-}                                                                             \
+}
+#endif
 
 
 // Block data usage diagrams:
@@ -148,6 +166,9 @@ typedef struct memoryDoubleList {
 	size_t blockSize;
 	// Points to the next pointer of a free block.
 	void *nextFreeBlock;
+	#ifdef MEMDOUBLELIST_COUNT_USED_BLOCKS
+	size_t usedBlocks;
+	#endif
 
 	// This is stored at the very end of the allocated memory,
 	// meaning it can be used as a pointer to the end. The
