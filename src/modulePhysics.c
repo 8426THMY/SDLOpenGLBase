@@ -58,8 +58,79 @@ return_t modulePhysicsSetup(){
 /*
 ** Solve the constraints, such as contacts and joints,
 ** for every system that is currently being simulated.
+**
+** Currently, our physics tick looks something like this:
+**
+** for all scenes {
+**     sceneTick(){
+**         for all scene.objects {
+**             objTick(){
+**                 for all object.bones {
+**                     if bone has rigid body {
+**                         update collider configuration;
+**                         update collider vertices;
+**                         update collider AABB node;
+**                     }else{
+**                         animate bone;
+**                     }
+**                 }
+**             }
+**         }
+**     }
+** }
+**
+** for all rigid bodies {
+**     integrate velocity;
+**     reset forces;
+**     update colliders;
+**     update bounding boxes;
+** }
+**
+** queryIslands(){
+**     for all islands {
+**         for all island.rigidBodies {
+**             check collisions;
+**             update separations;
+**             update contacts {
+**                 if contact persists {
+**                     presolve contact;
+**                 }
+**             }
+**         }
+**     }
+** }
+**
+** solveConstraints(){
+**     for all joints {
+**         presolve joint;
+**     }
+**
+**     for all velocity solver iterations {
+**         for all joints {
+**             solve joint velocity constraints;
+**         }
+**
+**         for all contacts {
+**             solve contact velocity constraints;
+**         }
+**     }
+**
+**     for all rigid bodies {
+**         integrate position;
+**     }
+**
+**     for configuration solver iterations {
+**         for all joints {
+**             solve joint configuration constraints;
+**         }
+**
+**         for all contacts {
+**             solve contact configuration constraints;
+**         }
+**     }
+** }
 */
-void modulePhysicsSolveConstraints(const float invDt){
+void modulePhysicsSolveConstraints(const float dt){
 	size_t i;
 
 
@@ -77,42 +148,43 @@ void modulePhysicsSolveConstraints(const float invDt){
 		MEMORY_QLINK_LOOP_END(__g_PhysicsJointResourceArray, joint, break);**/
 
 		// Solve contact velocity constraints.
-		/**MEMORY_QLINK_LOOP_BEGIN(__g_PhysicsContactPairResourceArray, contact, physContactPair *);
-			physContactSolveVelocityConstraints(&contact->data, contact->colliderA->body, contact->colliderB->body);
-		MEMORY_QLINK_LOOP_END(__g_PhysicsContactPairResourceArray, contact, break);**/
+		MEMPOOL_LOOP_BEGIN(g_physContactPairManager, contact, physicsContactPair)
+			physManifoldSolveVelocity(&contact->manifold, contact->cA->owner, contact->cB->owner);
+		MEMPOOL_LOOP_END(g_physContactPairManager, contact, break)
 	}
 
 
 	// Integrate each physics object's position.
-	MEMSINGLELIST_LOOP_BEGIN(g_physRigidBodyManager, body, physicsRigidBody);
-		/**physRigidBodyIntegrateConfiguration(body, invDt);**/
+	MEMSINGLELIST_LOOP_BEGIN(g_physRigidBodyManager, body, physicsRigidBody)
+		physRigidBodyIntegratePosition(body, dt);
 	#ifndef PHYSCOLLIDER_USE_POSITIONAL_CORRECTION
-	MEMSINGLELIST_LOOP_END(g_physRigidBodyManager, body, return);
+	MEMSINGLELIST_LOOP_END(g_physRigidBodyManager, body, return)
 	#else
-	MEMSINGLELIST_LOOP_END(g_physRigidBodyManager, body, break);
+	MEMSINGLELIST_LOOP_END(g_physRigidBodyManager, body, break)
 
 
 	// Iteratively solve joint and contact configuration constraints.
 	for(i = PHYSICS_POSITION_SOLVER_NUM_ITERATIONS; i > 0; --i){
-
 		return_t solved = 1;
-		float error = 0.f;
+		float separation = PHYSCONTACT_PENETRATION_ERROR_THRESHOLD;
 
+		#ifdef PHYSJOINT_USE_POSITIONAL_CORRECTION
 		// Solve joint configuration constraints.
 		/**MEMORY_QLINK_LOOP_BEGIN(__g_PhysicsJointResourceArray, joint, physJoint *);
 			solved &= physJointSolveConfigurationConstraints(joint);
 		MEMORY_QLINK_LOOP_END(__g_PhysicsJointResourceArray, joint, break);**/
+		#endif
 
+		#ifdef PHYSCONTACT_STABILISER_GAUSS_SEIDEL
 		// Solve contact configuration constraints.
-		/**MEMORY_QLINK_LOOP_BEGIN(__g_PhysicsContactPairResourceArray, contact, physContactPair *);
-			error = physContactSolveConfigurationConstraints(&contact->data, contact->colliderA->body, contact->colliderB->body, error);
-		MEMORY_QLINK_LOOP_END(__g_PhysicsContactPairResourceArray, contact, break);**/
+		MEMPOOL_LOOP_BEGIN(g_physContactPairManager, contact, physicsContactPair)
+			separation = physManifoldSolvePosition(&contact->manifold, contact->cA->owner, contact->cB->owner, separation);
+		MEMPOOL_LOOP_END(g_physContactPairManager, contact, break)
+		#endif
 
 		// Exit if the errors are small.
-		if(solved && error >= 0.f){
+		if(solved && separation >= PHYSCONTACT_PENETRATION_ERROR_THRESHOLD){
 			return;
-		}else{
-			--i;
 		}
 
 	}

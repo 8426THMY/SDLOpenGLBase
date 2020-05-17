@@ -479,6 +479,7 @@ void skeleObjGenerateBoneState(const skeletonObject *const restrict skeleData, c
 				curAnim->interpTime,
 				&animState
 			);
+			/** TEMPORARY **/
 			// Remove the bind pose's "contribution" to the animation.
 			if(strcmp(curAnim->animDef->name, "soldier_animations_anims_new/a_flinch01.smd") != 0){
 				boneState invLocalBind;
@@ -496,6 +497,7 @@ void skeleObjGenerateBoneState(const skeletonObject *const restrict skeleData, c
 }
 
 
+#warning "We should store bones in a search tree of some kind."
 // Find a bone in a skeleton from its name and return its index.
 size_t skeleFindBone(const skeleton *const restrict skele, const char *const restrict name){
 	const bone *curBone = skele->bones;
@@ -510,6 +512,7 @@ size_t skeleFindBone(const skeleton *const restrict skele, const char *const res
 	return(-1);
 }
 
+#warning "We should store bones in a search tree of some kind."
 // Find a bone in an animation from its name and return its index.
 size_t skeleAnimFindBone(const skeletonAnim *const restrict skeleAnim, const char *const restrict name){
 	char **curName = skeleAnim->animDef->boneNames;

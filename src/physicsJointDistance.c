@@ -52,14 +52,14 @@
 **
 ** ----------------------------------------------------------------------
 **
-** The effective mass for the constraint is given by (JM^-1)J^T,
-** where M^-1 is the inverse mass matrix and J^T is the transposed
+** The effective mass for the constraint is given by (JM^(-1))J^T,
+** where M^(-1) is the inverse mass matrix and J^T is the transposed
 ** Jacobian.
 **
-**        [mA^-1  0    0    0  ]
-**        [  0  IA^-1  0    0  ]
-** M^-1 = [  0    0  mB^-1  0  ]
-**        [  0    0    0  IB^-1],
+**          [mA^(-1)    0       0       0   ]
+**          [   0    IA^(-1)    0       0   ]
+** M^(-1) = [   0       0    mB^(-1)    0   ]
+**          [   0       0       0    IB^(-1)],
 **
 **       [    -d   ]
 **       [-(rA X d)]
@@ -69,7 +69,7 @@
 **
 ** Evaluating this expression gives us:
 **
-** (JM^-1)J^T = mA^-1 + mB^-1 + (((rA X d) * IA^-1) . (rA X d)) + (((rB X d) * IB^-1) . (rB X d)).
+** (JM^(-1))J^T = mA^(-1) + mB^(-1) + (((rA X d) * IA^(-1)) . (rA X d)) + (((rB X d) * IB^(-1)) . (rB X d)).
 **
 ** ----------------------------------------------------------------------
 */
@@ -180,7 +180,7 @@ void physJointDistanceSolveVelocity(void *const restrict joint, physicsRigidBody
 	vec3SubtractVec3From(&relativeVelocity, &impulse);
 
 
-	// lambda = -(JV + b)/((JM^-1)J^T)
+	// lambda = -(JV + b)/((JM^(-1))J^T)
 	//        = -((v_relative . d) + b)/K
 	lambda = -(vec3DotVec3(&relativeVelocity, &((physicsJointDistance *)joint)->rAB) + ((physicsJointDistance *)joint)->bias +
 	         ((physicsJointDistance *)joint)->gamma * ((physicsJointDistance *)joint)->impulse) * ((physicsJointDistance *)joint)->effectiveMass;
@@ -210,16 +210,16 @@ float physJointDistanceSolvePosition(void *const restrict joint, physicsRigidBod
 
 		// Transform the anchor points using the bodies' new scales and rotations.
 		vec3MultiplyVec3Out(&bodyA->state.scale, &((physicsJointDistance *)joint)->anchorA, &rA);
-		quatRotateVec3Fast(&bodyA->state.rot, &rA, &rA);
+		quatRotateVec3Fast(&bodyA->state.rot, &rA);
 		vec3MultiplyVec3Out(&bodyB->state.scale, &((physicsJointDistance *)joint)->anchorB, &rB);
-		quatRotateVec3Fast(&bodyB->state.rot, &rB, &rB);
+		quatRotateVec3Fast(&bodyB->state.rot, &rB);
 
 		// Find the relative position of the two bodies.
 		// d = (pB - pA)
 		//   = (cB + rB - cA - rA)
-		rAB = bodyB->centroidGlobal;
+		rAB = bodyB->centroid;
 		vec3AddVec3(&rAB, &rB);
-		vec3SubtractVec3From(&rAB, &bodyA->centroidGlobal);
+		vec3SubtractVec3From(&rAB, &bodyA->centroid);
 		vec3SubtractVec3From(&rAB, &rA);
 
 		distance = vec3MagnitudeVec3(&rAB);
@@ -261,16 +261,16 @@ static void updateConstraintData(
 
 	// Transform the anchor points using the bodies' new scales and rotations.
 	vec3MultiplyVec3Out(&bodyA->state.scale, &joint->anchorA, &joint->rA);
-	quatRotateVec3Fast(&bodyA->state.rot, &joint->rA, &joint->rA);
+	quatRotateVec3Fast(&bodyA->state.rot, &joint->rA);
 	vec3MultiplyVec3Out(&bodyB->state.scale, &joint->anchorB, &joint->rB);
-	quatRotateVec3Fast(&bodyB->state.rot, &joint->rB, &joint->rB);
+	quatRotateVec3Fast(&bodyB->state.rot, &joint->rB);
 
 	// Find the relative position of the two bodies.
 	// d = (pB - pA)
 	//   = (cB + rB - cA - rA)
-	joint->rAB = bodyB->centroidGlobal;
+	joint->rAB = bodyB->centroid;
 	vec3AddVec3(&joint->rAB, &joint->rB);
-	vec3SubtractVec3From(&joint->rAB, &bodyA->centroidGlobal);
+	vec3SubtractVec3From(&joint->rAB, &bodyA->centroid);
 	vec3SubtractVec3From(&joint->rAB, &joint->rA);
 
 	// When we calculate the effective mass, we
@@ -303,7 +303,7 @@ static void calculateEffectiveMass(
 	vec3 rpB;
 	vec3 rpIB;
 
-	// (JM^-1)J^T = mA^-1 + mB^-1 + (((rA X d) * IA^-1) . (rA X d)) + (((rB X d) * IB^-1) . (rB X d))
+	// (JM^(-1))J^T = mA^(-1) + mB^(-1) + (((rA X d) * IA^(-1)) . (rA X d)) + (((rB X d) * IB^(-1)) . (rB X d))
 	vec3CrossVec3Out(&joint->rA, &joint->rAB, &rpA);
 	mat3MultiplyByVec3Out(&bodyA->invInertiaGlobal, &rpA, &rpIA);
 	vec3CrossVec3Out(&joint->rB, &joint->rAB, &rpB);

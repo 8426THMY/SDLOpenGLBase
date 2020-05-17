@@ -38,6 +38,15 @@ void mat3MultiplyMat3By(mat3 *const restrict m1, const mat3 m2);
 void mat3MultiplyByMat3Out(const mat3 m1, const mat3 m2, mat3 *const restrict out);
 mat3 mat3MultiplyByMat3R(const mat3 m1, const mat3 m2);
 
+void mat3ScalePre(mat3 *const restrict m, const float x, const float y, const float z);
+mat3 mat3ScalePreR(mat3 m, const float x, const float y, const float z);
+void mat3ScalePreVec3(mat3 *const restrict m, const vec3 *const restrict v);
+mat3 mat3ScalePreVec3R(mat3 m, const vec3 v);
+void mat3Scale(mat3 *const restrict m, const float x, const float y, const float z);
+mat3 mat3ScaleR(mat3 m, const float x, const float y, const float z);
+void mat3ScaleVec3(mat3 *const restrict m, const vec3 *const restrict v);
+mat3 mat3ScaleVec3R(mat3 m, const vec3 v);
+
 void mat3Transpose(mat3 *const restrict m);
 void mat3TransposeOut(const mat3 m, mat3 *const restrict out);
 mat3 mat3TransposeR(const mat3 m);

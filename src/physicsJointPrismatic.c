@@ -60,19 +60,19 @@
 **
 ** ----------------------------------------------------------------------
 **
-** The effective mass for the constraint is given by (JM^-1)J^T,
-** where M^-1 is the inverse mass matrix and J^T is the transposed
+** The effective mass for the constraint is given by (JM^(-1))J^T,
+** where M^(-1) is the inverse mass matrix and J^T is the transposed
 ** Jacobian.
 **
-**        [mA^-1  0    0    0  ]
-**        [  0  IA^-1  0    0  ]
-** M^-1 = [  0    0  mB^-1  0  ]
-**        [  0    0    0  IB^-1],
+**          [mA^(-1)    0       0       0   ]
+**          [   0    IA^(-1)    0       0   ]
+** M^(-1) = [   0       0    mB^(-1)    0   ]
+**          [   0       0       0    IB^(-1)],
 **
 **        [       -u1,        -u2]
 **        [-(rA X u1), -(rA X u2)]
 ** J1^T = [        u1,         u2]
-**        [ (rB X u1),  (rB X u2,
+**        [ (rB X u1),  (rB X u2)],
 **
 **        [ 0]
 **        [-1]
@@ -83,20 +83,20 @@
 ** Evaluating this expression gives us the
 ** following matrix for our linear constraints:
 **
-**          [-u1 * mA^-1, -((rA + d) X u1) * IA^-1, u1 * mB^-1, (rB X u1) * IB^-1]
-** J1M^-1 = [-u2 * mA^-1, -((rA + d) X u2) * IA^-1, u2 * mB^-1, (rB X u2) * IB^-1]
+**             [-u1 * mA^(-1), -((rA + d) X u1) * IA^(-1), u1 * mB^(-1), (rB X u1) * IB^(-1)]
+** J1*M^(-1) = [-u2 * mA^(-1), -((rA + d) X u2) * IA^(-1), u2 * mB^(-1), (rB X u2) * IB^(-1)]
 **
-** K = (J1M^-1)J1^T
-** [K]_00 = mA^-1 + mB^-1 + ((((rA + d) X u1) * IA^-1) . ((rA + d) X u1)) + (((rB X u1) * IB^-1) . (rB X u1)),
-** [K]_01 =                 ((((rA + d) X u1) * IA^-1) . ((rA + d) X u2)) + (((rB X u1) * IB^-1) . (rB X u2)),
-** [K]_10 =                 ((((rA + d) X u1) * IA^-1) . ((rA + d) X u2)) + (((rB X u1) * IB^-1) . (rB X u2)),
-** [K]_11 = mA^-1 + mB^-1 + ((((rA + d) X u2) * IA^-1) . ((rA + d) X u2)) + (((rB X u2) * IB^-1) . (rB X u2)).
+** K = (J1*M^(-1))J1^T
+** [K]_00 = mA^(-1) + mB^(-1) + ((((rA + d) X u1) * IA^(-1)) . ((rA + d) X u1)) + (((rB X u1) * IB^(-1)) . (rB X u1)),
+** [K]_01 =                     ((((rA + d) X u1) * IA^(-1)) . ((rA + d) X u2)) + (((rB X u1) * IB^(-1)) . (rB X u2)),
+** [K]_10 =                     ((((rA + d) X u1) * IA^(-1)) . ((rA + d) X u2)) + (((rB X u1) * IB^(-1)) . (rB X u2)),
+** [K]_11 = mA^(-1) + mB^(-1) + ((((rA + d) X u2) * IA^(-1)) . ((rA + d) X u2)) + (((rB X u2) * IB^(-1)) . (rB X u2)).
 **
 ** It is also worth noting that in this case, J1V is not
 ** a scalar either. It is the following 2x1 matrix:
 **
-**       [-(u1 . vA) - (((rA + d) X u1) . wA) + (u1 . vB) + ((rB X u1) . wB)]
-** J1V = [-(u2 . vA) - (((rA + d) X u2) . wA) + (u2 . vB) + ((rB X u2) . wB)].
+**        [-(u1 . vA) - (((rA + d) X u1) . wA) + (u1 . vB) + ((rB X u1) . wB)]
+** J1*V = [-(u2 . vA) - (((rA + d) X u2) . wA) + (u2 . vB) + ((rB X u2) . wB)].
 **
 ** Multiplying the inverse of our effective mass by this matrix
 ** gives us a 2D vector, where each row contains the magnitude
@@ -107,7 +107,7 @@
 **
 ** For our angular constraint, we simply get:
 **
-** (J2M^-1)J2^T = IA^-1 + IB^-1.
+** (J2*M^(-1))J2^T = IA^(-1) + IB^(-1).
 **
 **
 ** Finally, adding a potential bias term, we have
@@ -155,7 +155,7 @@
 **
 ** Using this, we get that the effective mass is:
 **
-** J1M^-1J1^T = J2M^-1J2^T = mA^-1 + mB^-1 + (((rA + d) X a) * IA^-1) . ((rA + d) X a) + (((rB X a) * IB^-1) . (rB X a))
+** J1*M^(-1)J1^T = J2*M^(-1)J2^T = mA^(-1) + mB^(-1) + (((rA + d) X a) * IA^(-1)) . ((rA + d) X a) + (((rB X a) * IB^(-1)) . (rB X a))
 **/
 
 /**
@@ -176,7 +176,7 @@
 **
 ** Using this, we get that the effective mass is:
 **
-** (JM^-1)J^T = mA^-1 + mB^-1
+** (JM^(-1))J^T = mA^(-1) + mB^(-1)
 **/
 
 
@@ -289,34 +289,34 @@ static void updateConstraintData(
 
 	// Transform the anchor points using the bodies' new scales and rotations.
 	vec3MultiplyVec3Out(&bodyA->state.scale, &joint->anchorA, &rA);
-	quatRotateVec3Fast(&bodyA->state.rot, &rA, &rA);
+	quatRotateVec3Fast(&bodyA->state.rot, &rA);
 	vec3MultiplyVec3Out(&bodyB->state.scale, &joint->anchorB, &rB);
-	quatRotateVec3Fast(&bodyB->state.rot, &rB, &rB);
+	quatRotateVec3Fast(&bodyB->state.rot, &rB);
 
 	// Find the relative position of the two bodies.
 	// d = (pB - pA)
 	//   = (cB + rB - cA - rA)
 	// We don't subtract rA yet, as we'll just be adding it back.
-	d = bodyB->centroidGlobal;
+	d = bodyB->centroid;
 	vec3AddVec3(&d, &rB);
-	vec3SubtractVec3From(&d, &bodyA->centroidGlobal);
+	vec3SubtractVec3From(&d, &bodyA->centroid);
 
 
 	// Transform the constraint axis and its tangents to body A's
 	// space, then cross them by the transformed anchor points.
 	// a
 	vec3MultiplyVec3Out(&bodyA->state.scale, &joint->axisLocal, &joint->axisGlobal);
-	quatRotateVec3Fast(&bodyA->state.rot, &joint->axisGlobal, &joint->axisGlobal);
+	quatRotateVec3Fast(&bodyA->state.rot, &joint->axisGlobal);
 	vec3CrossVec3Out(&d, &joint->axisGlobal, &joint->rAa);
 	vec3CrossVec3Out(&rB, &joint->axisGlobal, &joint->rBa);
 	// u1
 	vec3MultiplyVec3Out(&bodyA->state.scale, &joint->tangentsLocal[0], &joint->tangentsGlobal[0]);
-	quatRotateVec3Fast(&bodyA->state.rot, &joint->tangentsGlobal[0], &joint->tangentsGlobal[0]);
+	quatRotateVec3Fast(&bodyA->state.rot, &joint->tangentsGlobal[0]);
 	vec3CrossVec3Out(&d, &joint->tangentsGlobal[0], &joint->rAu1);
 	vec3CrossVec3Out(&rB, &joint->tangentsGlobal[0], &joint->rBu1);
 	// u2
 	vec3MultiplyVec3Out(&bodyA->state.scale, &joint->tangentsLocal[1], &joint->tangentsGlobal[1]);
-	quatRotateVec3Fast(&bodyA->state.rot, &joint->tangentsGlobal[1], &joint->tangentsGlobal[1]);
+	quatRotateVec3Fast(&bodyA->state.rot, &joint->tangentsGlobal[1]);
 	vec3CrossVec3Out(&d, &joint->tangentsGlobal[1], &joint->rAu2);
 	vec3CrossVec3Out(&rB, &joint->tangentsGlobal[1], &joint->rBu2);
 
@@ -355,7 +355,7 @@ static void calculateEffectiveMass(
 	vec3 rBu2IB;
 
 
-	// (JM^-1)J^T = mA^-1 + mB^-1 + (((rA + d) X a) * IA^-1) . ((rA + d) X a) + (((rB X a) * IB^-1) . (rB X a))
+	// (JM^(-1))J^T = mA^(-1) + mB^(-1) + (((rA + d) X a) * IA^(-1)) . ((rA + d) X a) + (((rB X a) * IB^(-1)) . (rB X a))
 	mat3MultiplyByVec3Out(invInertiaA, rAa, &rAu1IA);
 	mat3MultiplyByVec3Out(invInertiaB, rBa, &rBu1IB);
 
@@ -364,11 +364,11 @@ static void calculateEffectiveMass(
 	joint->limitMotorMass = 1.f / (invMass + vec3DotVec3(&rAu1IA, rAa) + vec3DotVec3(&rBu1IB, rBa));
 
 
-	// K = (JM^-1)J^T
-	// [K]_00 = mA^-1 + mB^-1 + ((((rA + d) X u1) * IA^-1) . ((rA + d) X u1)) + (((rB X u1) * IB^-1) . (rB X u1))
-	// [K]_01 =                 ((((rA + d) X u1) * IA^-1) . ((rA + d) X u2)) + (((rB X u1) * IB^-1) . (rB X u2))
+	// K = (JM^(-1))J^T
+	// [K]_00 = mA^(-1) + mB^(-1) + ((((rA + d) X u1) * IA^(-1)) . ((rA + d) X u1)) + (((rB X u1) * IB^(-1)) . (rB X u1))
+	// [K]_01 =                     ((((rA + d) X u1) * IA^(-1)) . ((rA + d) X u2)) + (((rB X u1) * IB^(-1)) . (rB X u2))
 	// [K]_10 = [K]_01
-	// [K]_11 = mA^-1 + mB^-1 + ((((rA + d) X u2) * IA^-1) . ((rA + d) X u2)) + (((rB X u2) * IB^-1) . (rB X u2))
+	// [K]_11 = mA^(-1) + mB^(-1) + ((((rA + d) X u2) * IA^(-1)) . ((rA + d) X u2)) + (((rB X u2) * IB^(-1)) . (rB X u2))
 	mat3MultiplyByVec3Out(invInertiaA, rAu1, &rAu1IA);
 	mat3MultiplyByVec3Out(invInertiaA, rAu2, &rAu2IA);
 	mat3MultiplyByVec3Out(invInertiaB, rBu1, &rBu1IB);
@@ -382,7 +382,7 @@ static void calculateEffectiveMass(
 	mat2Invert(&joint->linearMass);
 
 
-	// (JM^-1)J^T = IA^-1 + IB^-1
+	// (JM^(-1))J^T = IA^(-1) + IB^(-1)
 	// Calculate the inverse angular effective mass.
     mat3AddMat3Out(invInertiaA, invInertiaB, &joint->angularMass);
 	mat3Invert(&joint->angularMass);

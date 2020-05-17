@@ -130,6 +130,9 @@
 			const uintptr_t __flag_##node = memSingleListBlockUsedDataGetFlagValue(node); \
 			if(__flag_##node == MEMSINGLELIST_FLAG_ACTIVE){
 
+#define MEMSINGLELIST_LOOP_INACTIVE(node)                           \
+			}else if(__flag_##node == MEMSINGLELIST_FLAG_INACTIVE){
+
 #define MEMSINGLELIST_LOOP_END(allocator, node, earlyexit)                    \
 			}else if(__flag_##node == MEMSINGLELIST_FLAG_INVALID){            \
 				earlyexit;                                                    \

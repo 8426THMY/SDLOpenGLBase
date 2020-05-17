@@ -31,6 +31,8 @@ void objectInit(object *const restrict obj, const objectDef *const restrict objD
 	obj->objDef = objDef;
 
 	skeleObjInit(&obj->skeleData, objDef->skele);
+	transformStateInit(&obj->state);
+	obj->boneTransforms = NULL;
 
 	obj->colliders = NULL;
 	obj->physBodies = NULL;
@@ -85,17 +87,26 @@ void objectDraw(
 
 	#warning "Could we store these in the skeleton object and allocate them in the same call as the bone states?"
 	#warning "We could possibly use a global bone states array."
+	#warning "Probably not a good idea if we want to create a render queue sometime in the future."
+	#warning "It's also a bad idea to be allocating large arrays on the stack."
 	mat4 animStates[SKELETON_MAX_BONES];
 	mat4 *curState = animStates;
-	const boneState *curBone = obj->skeleData.bones;
-	const boneState *const lastBone = &curBone[obj->skeleData.skele->numBones];
+	const boneState *curObjBone = obj->skeleData.bones;
+	const bone *curSkeleBone = obj->skeleData.skele->bones;
+	const boneState *const lastBone = &curObjBone[obj->skeleData.skele->numBones];
 
-	// Convert every bone transformation to a matrix!
 	do {
-		transformStateToMat4(curBone, curState);
+		boneState localBone;
+
+		// Move the current bone into local space by append its inverse bind pose.
+		transformStateAppend(curObjBone, &curSkeleBone->invGlobalBind, &localBone);
+		// Convert it to a matrix representation.
+		transformStateToMat4(&localBone, curState);
+
 		++curState;
-		++curBone;
-	} while(curBone != lastBone);
+		++curSkeleBone;
+		++curObjBone;
+	} while(curObjBone < lastBone);
 
 
 	// Send the new model-view-projection matrix to the shader!
@@ -143,6 +154,9 @@ void objectDraw(
 /** We don't currently have a way of freeing the stuff that's commented out. **/
 void objectDelete(object *const restrict obj){
 	skeleObjDelete(&obj->skeleData);
+	if(obj->boneTransforms != NULL){
+		memoryManagerGlobalFree(&obj->boneTransforms);
+	}
 
 	// obj->colliders = NULL;
 	modulePhysicsBodyFreeArray(&obj->physBodies);
@@ -163,32 +177,58 @@ void objectDefDelete(objectDef *const restrict objDef){
 }
 
 
-// Update all of an object's bones!
+/*
+** Update an object's skeleton using the following procedure:
+**     1. Begin with the skeleton's local bind pose transformation.
+**     2. Apply the transformations from each skeletal animation on top of the bind pose.
+**     3. If the bone has a parent, append this state to its parent's state.
+** Note that step 3 implicitly assumes that parent bones are animated before children.
+*/
 static void updateBones(object *const restrict obj, const float time){
 	boneState *curObjBone = obj->skeleData.bones;
 	const boneState *const lastObjBone = &curObjBone[obj->skeleData.skele->numBones];
 	const bone *curSkeleBone = obj->skeleData.skele->bones;
+	physicsRigidBody *curBody = obj->physBodies;
+
 	size_t i = 0;
 	// Apply the effects of each animation one bone at a time!
 	for(; curObjBone < lastObjBone; ++curObjBone, ++curSkeleBone, ++i){
-		// Apply the current skeleton's local bind pose.
-		*curObjBone = curSkeleBone->localBind;
+		/** TEMPORARY PHYSICS STUFF - WE ASSUME ONLY THE ROOT BONE IS SIMULATED. **/
+		if(curBody != NULL && physRigidBodyIsSimulated(curBody)){
+			// Copy the rigid body's state over to the bone.
+			/** WE SHOULDN'T CHECK FOR THE ROOT BONE HERE! **/
+			if(valueIsInvalid(curSkeleBone->parent)){
+				obj->state = curBody->state;
+				*curObjBone = curBody->state;
+			}
+		}else{
+			// We store the root bone's transformations differently to other bones'.
+			if(valueIsInvalid(curSkeleBone->parent)){
+				// Apply the current skeleton's local bind pose and any transformations.
+				transformStateAppend(&obj->state, &curSkeleBone->localBind, curObjBone);
+				// Transform the bone using each animation.
+				skeleObjGenerateBoneState(&obj->skeleData, i, curSkeleBone->name);
 
-		// Transform the bone using each animation.
-		skeleObjGenerateBoneState(&obj->skeleData, i, curSkeleBone->name);
+			// If this bone has a parent, we need to add its parent's transformations.
+			}else{
+				// Apply the current skeleton's local bind pose and any transformations.
+				/** THIS SHOULD USE THE BONETRANSFORMS! **/
+				///transformStateAppend(curTransform, &curSkeleBone->localBind, curObjBone);
+				*curObjBone = curSkeleBone->localBind;
+				// Transform the bone using each animation.
+				skeleObjGenerateBoneState(&obj->skeleData, i, curSkeleBone->name);
+				// Add the parent's transformations.
+				transformStateAppend(&obj->skeleData.bones[curSkeleBone->parent], curObjBone, curObjBone);
+			}
 
-		// If this bone has a parent, add its animation
-		// transformations to those of its parent.
-		if(!valueIsInvalid(curSkeleBone->parent)){
-			transformStateAppend(&obj->skeleData.bones[curSkeleBone->parent], curObjBone, curObjBone);
+			if(curBody != NULL){
+				// Copy the bone's state over to the rigid boddy.
+				curBody->state = *curObjBone;
+				// Update the rigid body's centroid to reflect its new position.
+				physRigidBodyCentroidFromPosition(curBody);
+			}
+
+			curBody = NULL;
 		}
-	}
-
-	curObjBone = obj->skeleData.bones;
-	curSkeleBone = obj->skeleData.skele->bones;
-	#warning "We may need to move this out eventually."
-	// Append each bone's inverse bind pose!
-	for(; curObjBone < lastObjBone; ++curObjBone, ++curSkeleBone){
-		transformStateAppend(curObjBone, &curSkeleBone->invGlobalBind, curObjBone);
 	}
 }

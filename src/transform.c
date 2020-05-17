@@ -13,13 +13,12 @@ void transformStateInit(transformState *trans){
 }
 
 
-// Accumulate two transformation states and store the result in "out"!
-// This effectively multiplies them as if they're matrices.
+// Append "trans2" to "trans1". This effectively multiplies them as if they're matrices.
 void transformStateAppend(const transformState *const restrict trans1, const transformState *const restrict trans2, transformState *const restrict out){
 	vec3 pos;
 
 	vec3MultiplyVec3Out(&trans1->scale, &trans2->pos, &pos);
-	quatRotateVec3Fast(&trans1->rot, &pos, &pos);
+	quatRotateVec3Fast(&trans1->rot, &pos);
 	// Generate the new position!
 	vec3AddVec3Out(&trans1->pos, &pos, &out->pos);
 	// Generate the new orientation!
@@ -65,7 +64,7 @@ void transformStateInvert(const transformState *const restrict trans, transformS
 	quatConjugateOut(&trans->rot, &out->rot);
 
 	// Invert its position with respect to the new rotation!
-	quatRotateVec3Fast(&out->rot, &trans->pos, &out->pos);
+	quatRotateVec3FastOut(&out->rot, &trans->pos, &out->pos);
 	vec3Negate(&out->pos);
 
 	// Invert its scale by storing the reciprocal of each value!
@@ -83,12 +82,12 @@ void transformStateToMat4(const transformState *const restrict trans, mat4 *cons
 // Transform a vec3 by scaling it, rotating it and finally translating it.
 void transformStateTransformPosition(const transformState *const restrict trans, const vec3 *const restrict v, vec3 *const restrict out){
 	vec3MultiplyVec3Out(&trans->scale, v, out);
-	quatRotateVec3Fast(&trans->rot, out, out);
+	quatRotateVec3Fast(&trans->rot, out);
 	vec3AddVec3(out, &trans->pos);
 }
 
 // Transform a vec3 by scaling it and rotating it, but not translating it.
 void transformStateTransformVelocity(const transformState *const restrict trans, const vec3 *const restrict v, vec3 *const restrict out){
 	vec3MultiplyVec3Out(&trans->scale, v, out);
-	quatRotateVec3Fast(&trans->rot, out, out);
+	quatRotateVec3Fast(&trans->rot, out);
 }

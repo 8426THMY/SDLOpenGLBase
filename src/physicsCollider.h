@@ -74,7 +74,7 @@ physicsContactPair *physColliderFindContact(
 );
 void physColliderUpdateSeparations(physicsCollider *const restrict collider);
 #ifdef PHYSCONTACT_STABILISER_BAUMGARTE
-void physColliderUpdateContacts(physicsCollider *const restrict collider, const float dt);
+void physColliderUpdateContacts(physicsCollider *const restrict collider, const float invDt);
 #else
 void physColliderUpdateContacts(physicsCollider *const restrict collider);
 #endif

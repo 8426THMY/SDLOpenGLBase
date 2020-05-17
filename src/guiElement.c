@@ -40,8 +40,6 @@ void guiElementDraw(
 	guiElement *const restrict gui, const int windowWidth, const int windowHeight, const shaderSprite *const restrict shader
 ){
 
-	mat4 viewMatrix;
-	mat4 projectionMatrix;
 	mat4 viewProjectionMatrix;
 
 	// We use a scale matrix as the view-projection matrix

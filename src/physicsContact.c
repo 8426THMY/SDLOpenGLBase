@@ -64,8 +64,8 @@
 **
 ** Semi-implicit Euler:
 **
-** V   = V_i + dt * M^-1 * F_ext,
-** V_f = V   + dt * M^-1 * F_C.
+** V   = V_i + dt * M^(-1) * F_ext,
+** V_f = V   + dt * M^(-1) * F_C.
 **
 ** Where V_i is the initial velocity vector, V_f is the final
 ** velocity vector, F_ext is the external force on the body
@@ -77,23 +77,23 @@
 ** multiplier) lambda':
 **
 ** JV_f + b = 0
-** J(V + dt * M^-1 * F_C) + b = 0
-** JV + dt * (JM^-1)F_C + b = 0
-** JV + dt * (JM^-1)J^T . lambda + b = 0
-** dt * (JM^-1)J^T . lambda = -(JV + b)
-** dt * lambda = -(JV + b)/((JM^-1)J^T)
-** lambda' = -(JV + b)/((JM^-1)J^T).
+** J(V + dt * M^(-1) * F_C) + b = 0
+** JV + dt * (JM^(-1))F_C + b = 0
+** JV + dt * (JM^(-1))J^T . lambda + b = 0
+** dt * (JM^(-1))J^T . lambda = -(JV + b)
+** dt * lambda = -(JV + b)/((JM^(-1))J^T)
+** lambda' = -(JV + b)/((JM^(-1))J^T).
 **
 ** ----------------------------------------------------------------------
 **
-** The effective mass for the constraint is given by (JM^-1)J^T,
-** where M^-1 is the inverse mass matrix and J^T is the transposed
+** The effective mass for the constraint is given by (JM^(-1))J^T,
+** where M^(-1) is the inverse mass matrix and J^T is the transposed
 ** Jacobian.
 **
-**        [mA^-1  0    0    0  ]
-**        [  0  IA^-1  0    0  ]
-** M^-1 = [  0    0  mB^-1  0  ]
-**        [  0    0    0  IB^-1],
+**          [mA^(-1)    0       0       0   ]
+**          [   0    IA^(-1)    0       0   ]
+** M^(-1) = [   0       0    mB^(-1)    0   ]
+**          [   0       0       0    IB^(-1)],
 **
 **       [    -n   ]
 **       [-(rA X n)]
@@ -103,7 +103,7 @@
 **
 ** Evaluating this expression gives us:
 **
-** (JM^-1)J^T = mA^-1 + mB^-1 + ((rA X n) . (IA^-1 * (rA X n))) + ((rB X n) . (IB^-1 * (rB X n))).
+** (JM^(-1))J^T = mA^(-1) + mB^(-1) + ((rA X n) . (IA^(-1) * (rA X n))) + ((rB X n) . (IB^(-1) * (rB X n))).
 **
 ** ----------------------------------------------------------------------
 */
@@ -122,7 +122,7 @@ static void calculateEffectiveMass(
 static void calculateBias(
 	const physicsManifold *const restrict pm, physicsContactPoint *const restrict contact,
 	const physicsRigidBody *const restrict bodyA, const physicsRigidBody *const restrict bodyB,
-	const float dt
+	const float invDt
 );
 #else
 static void calculateBias(
@@ -160,8 +160,8 @@ void physManifoldInit(
 	const contactPoint *cmContact = cm->contacts;
 	const contactPoint *const lastContact = &cmContact[cm->numContacts];
 
-	const vec3 *const bodyACentroid = &cA->owner->centroidGlobal;
-	const vec3 *const bodyBCentroid = &cB->owner->centroidGlobal;
+	const vec3 *const bodyACentroid = &cA->owner->centroid;
+	const vec3 *const bodyBCentroid = &cB->owner->centroid;
 	#ifdef PHYSCONTACT_STABILISER_GAUSS_SEIDEL
 	const quat *const bodyARot      = &cA->owner->transform.rot;
 	const quat *const bodyBRot      = &cB->owner->transform.rot;
@@ -189,11 +189,11 @@ void physManifoldInit(
 		// need the untransformed contact points and normal.
 		#ifdef PHYSCONTACT_STABILISER_GAUSS_SEIDEL
 		vec3SubtractVec3FromOut(&cmContact->pA, bodyACentroid, &curHalfway);
-		quatRotateVec3InverseFast(bodyARot, &curHalfway, &pmContact->rAlocal);
+		quatRotateVec3InverseFastOut(bodyARot, &curHalfway, &pmContact->rAlocal);
 		vec3SubtractVec3FromOut(&cmContact->pB, bodyBCentroid, &curHalfway);
-		quatRotateVec3InverseFast(bodyBRot, &curHalfway, &pmContact->rBlocal);
+		quatRotateVec3InverseFastOut(bodyBRot, &curHalfway, &pmContact->rBlocal);
 
-		quatRotateVec3InverseFast(bodyARot, &cmContact->normal, &pmContact->normalLocal);
+		quatRotateVec3InverseFastOut(bodyARot, &cmContact->normal, &pmContact->normalLocal);
 		#endif
 
 		// Find the average contact normal.
@@ -248,8 +248,8 @@ void physManifoldPersist(
 	physicsContactPoint *pmSwap = pmContact;
 	const physicsContactPoint *const lastPhysContact = &pmContact[pm->numContacts];
 
-	const vec3 *const bodyACentroid = &cA->owner->centroidGlobal;
-	const vec3 *const bodyBCentroid = &cB->owner->centroidGlobal;
+	const vec3 *const bodyACentroid = &cA->owner->centroid;
+	const vec3 *const bodyBCentroid = &cB->owner->centroid;
 	#ifdef PHYSCONTACT_STABILISER_GAUSS_SEIDEL
 	const quat *const bodyARot      = &cA->owner->transform.rot;
 	const quat *const bodyBRot      = &cB->owner->transform.rot;
@@ -345,11 +345,11 @@ void physManifoldPersist(
 		// need the untransformed contact points and normal.
 		#ifdef PHYSCONTACT_STABILISER_GAUSS_SEIDEL
 		vec3SubtractVec3FromOut(&cmContact->pA, bodyACentroid, &curHalfway);
-		quatRotateVec3InverseFast(bodyARot, &curHalfway, &pmContact->rAlocal);
+		quatRotateVec3InverseFastOut(bodyARot, &curHalfway, &pmContact->rAlocal);
 		vec3SubtractVec3FromOut(&cmContact->pB, bodyBCentroid, &curHalfway);
-		quatRotateVec3InverseFast(bodyBRot, &curHalfway, &pmContact->rBlocal);
+		quatRotateVec3InverseFastOut(bodyBRot, &curHalfway, &pmContact->rBlocal);
 
-		quatRotateVec3InverseFast(bodyARot, &cmContact->normal, &pmContact->normalLocal);
+		quatRotateVec3InverseFastOut(bodyARot, &cmContact->normal, &pmContact->normalLocal);
 		#endif
 
 		pmContact->separation = cmContact->separation;
@@ -394,7 +394,7 @@ void physManifoldPersist(
 */
 #ifdef PHYSCONTACT_STABILISER_BAUMGARTE
 void physManifoldPresolve(
-	physicsManifold *const restrict pm, const physicsRigidBody *const restrict bodyA, const physicsRigidBody *const restrict bodyB, const float dt
+	physicsManifold *const restrict pm, const physicsRigidBody *const restrict bodyA, const physicsRigidBody *const restrict bodyB, const float invDt
 ){
 #else
 void physManifoldPresolve(
@@ -408,7 +408,7 @@ void physManifoldPresolve(
 	for(; curContact < lastContact; ++curContact){
 		calculateEffectiveMass(pm, curContact, bodyA, bodyB);
 		#ifdef PHYSCONTACT_STABILISER_BAUMGARTE
-		calculateBias(pm, curContact, bodyA, bodyB, dt);
+		calculateBias(pm, curContact, bodyA, bodyB, invDt);
 		#else
 		calculateBias(pm, curContact, bodyA, bodyB);
 		#endif
@@ -452,13 +452,17 @@ void physManifoldSolveVelocity(physicsManifold *const restrict pm, physicsRigidB
 ** This may also be called multiple times.
 */
 #ifdef PHYSCONTACT_STABILISER_GAUSS_SEIDEL
-void physManifoldSolvePosition(const physicsManifold *const restrict pm, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB){
+float physManifoldSolvePosition(const physicsManifold *const restrict pm, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB, float separation){
 	const physicsContactPoint *curContact = pm->contacts;
 	const physicsContactPoint *const lastContact = &curContact[pm->numContacts];
 
 	for(; curContact < lastContact; ++curContact){
-		solvePosition(pm, curContact, bodyA, bodyB);
+		const float newSeparation = solvePosition(pm, curContact, bodyA, bodyB);
+		// The maximum error is given by the most penetrating contact point.
+		separation = (separation < newSeparation) ? separation : newSeparation;
 	}
+
+	return(separation);
 }
 #endif
 
@@ -513,7 +517,7 @@ static void calculateEffectiveMass(
 	const mat3 *const invInertiaA = &bodyA->invInertiaGlobal;
 	const mat3 *const invInertiaB = &bodyB->invInertiaGlobal;
 
-	// (JM^-1)J^T = mA^-1 + mB^-1 + (((rA X n) * IA^-1) . (rA X n)) + (((rB X n) * IB^-1) . (rB X n))
+	// (JM^(-1))J^T = mA^(-1) + mB^(-1) + (((rA X n) * IA^(-1)) . (rA X n)) + (((rB X n) * IB^(-1)) . (rB X n))
 	vec3CrossVec3Out(&contact->rA, &physContactNormal(pm), &rnA);
 	mat3MultiplyByVec3Out(invInertiaA, &rnA, &rnIA);
 	vec3CrossVec3Out(&contact->rB, &physContactNormal(pm), &rnB);
@@ -526,7 +530,7 @@ static void calculateEffectiveMass(
 	);
 
 	#ifndef PHYSCONTACT_USE_FRICTION_JOINT
-	// (JM^-1)J^T = mA^-1 + mB^-1 + (((rA X u1) * IA^-1) . (rA X u1)) + (((rB X u1) * IB^-1) . (rB X u1))
+	// (JM^(-1))J^T = mA^(-1) + mB^(-1) + (((rA X u1) * IA^(-1)) . (rA X u1)) + (((rB X u1) * IB^(-1)) . (rB X u1))
 	vec3CrossVec3Out(&contact->rA, &pm->tangents[0], &rnA);
 	mat3MultiplyByVec3Out(invInertiaA, &rnA, &rnIA);
 	vec3CrossVec3Out(&contact->rB, &pm->tangents[0], &rnB);
@@ -538,7 +542,7 @@ static void calculateEffectiveMass(
 		vec3DotVec3(&rnB, &rnIB)
 	);
 
-	// (JM^-1)J^T = mA^-1 + mB^-1 + (((rA X u2) * IA^-1) . (rA X u2)) + (((rB X u2) * IB^-1) . (rB X u2))
+	// (JM^(-1))J^T = mA^(-1) + mB^(-1) + (((rA X u2) * IA^(-1)) . (rA X u2)) + (((rB X u2) * IB^(-1)) . (rB X u2))
 	vec3CrossVec3Out(&contact->rA, &pm->tangents[1], &rnA);
 	mat3MultiplyByVec3Out(invInertiaA, &rnA, &rnIA);
 	vec3CrossVec3Out(&contact->rB, &pm->tangents[1], &rnB);
@@ -557,7 +561,7 @@ static void calculateEffectiveMass(
 static void calculateBias(
 	const physicsManifold *const restrict pm, physicsContactPoint *const restrict contact,
 	const physicsRigidBody *const restrict bodyA, const physicsRigidBody *const restrict bodyB,
-	const float dt
+	const float invDt
 ){
 #else
 static void calculateBias(
@@ -577,7 +581,7 @@ static void calculateBias(
 	tempBias = contact->separation - PHYSCONSTRAINT_LINEAR_SLOP;
 	// B = Baumgarte constant
 	// b_penetration = B/dt * C(x)
-	contact->bias = (tempBias > 0.f) ? (PHYSCONTACT_BAUMGARTE_BIAS * dt * tempBias) : 0.f;
+	contact->bias = (tempBias > 0.f) ? (PHYSCONTACT_BAUMGARTE_BIAS * invDt * tempBias) : 0.f;
 	#endif
 
 
@@ -652,7 +656,7 @@ static void solveTangents(
 	vec3SubtractVec3From(&contactVelocity, &temp);
 
 
-	// lambda = -(JV + b)/((JM^-1)J^T)
+	// lambda = -(JV + b)/((JM^(-1))J^T)
 	//        = -(v_relative . n)/K
 	lambda = -vec3DotVec3(&contactVelocity, &pm->tangents[0]) * contact->tangentEffectiveMass[0];
 	oldImpulse = contact->tangentImpulse[0];
@@ -672,7 +676,7 @@ static void solveTangents(
 	}
 
 
-	// lambda = -(JV + b)/((JM^-1)J^T)
+	// lambda = -(JV + b)/((JM^(-1))J^T)
 	//        = -(v_relative . n)/K
 	lambda = -vec3DotVec3(&contactVelocity, &pm->tangents[1]) * contact->tangentEffectiveMass[1];
 	oldImpulse = contact->tangentImpulse[1];
@@ -728,7 +732,7 @@ static void solveNormal(
 	vec3SubtractVec3From(&contactVelocity, &impulse);
 
 
-	// lambda = -(JV + b)/((JM^-1)J^T)
+	// lambda = -(JV + b)/((JM^(-1))J^T)
 	//        = -((v_relative . n) + b)/K
 	lambda = -(vec3DotVec3(&contactVelocity, &physContactNormal(pm)) + contact->bias) * contact->normalEffectiveMass;
 	oldImpulse = contact->normalImpulse;
@@ -779,12 +783,12 @@ float solvePosition(
 
 	// Update the contact points' positions using
 	// their new translations and orientations.
-	quatRotateVec3Fast(&bodyA->transform.rot, &contact->rAlocal, &rA);
-	vec3AddVec3(&rA, &bodyA->centroidGlobal);
-	quatRotateVec3Fast(&bodyB->transform.rot, &contact->rBlocal, &rB);
-	vec3AddVec3(&rB, &bodyB->centroidGlobal);
+	quatRotateVec3FastOut(&bodyA->transform.rot, &contact->rAlocal, &rA);
+	vec3AddVec3(&rA, &bodyA->centroid);
+	quatRotateVec3FastOut(&bodyB->transform.rot, &contact->rBlocal, &rB);
+	vec3AddVec3(&rB, &bodyB->centroid);
 	// We also need to update the normal.
-	quatRotateVec3Fast(&bodyA->transform.rot, &physContactNormal(pm), &normal);
+	quatRotateVec3FastOut(&bodyA->transform.rot, &physContactNormal(pm), &normal);
 
 	// With the contact points now in global space,
 	// we can find the new separation between them.
@@ -802,14 +806,14 @@ float solvePosition(
 
 		// Calculate the transformed contact points'
 		// offsets from their bodies' centres of mass.
-		vec3SubtractVec3FromOut(&rB, &bodyA->centroidGlobal, &rA);
-		vec3SubtractVec3From(&rB, &bodyB->centroidGlobal);
+		vec3SubtractVec3FromOut(&rB, &bodyA->centroid, &rA);
+		vec3SubtractVec3From(&rB, &bodyB->centroid);
 
 		// JA = (IA * (rA X n)) . (rA X n)
 		// JB = (IB * (rB X n)) . (rB X n)
 		//
-		// K = (JM^-1)J^T
-		//   = mA^-1 + mB^-1 + JA + JB
+		// K = (JM^(-1))J^T
+		//   = mA^(-1) + mB^(-1) + JA + JB
 
 		// We use *full* non-linear Gauss-Seidel, which
 		// requires us to recompute the effective mass.

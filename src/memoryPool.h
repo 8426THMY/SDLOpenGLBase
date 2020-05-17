@@ -119,6 +119,9 @@
 			const uintptr_t __flag_##node = memPoolBlockDataGetFlagValue(node); \
 			if(__flag_##node == MEMPOOL_FLAG_ACTIVE){
 
+#define MEMPOOL_LOOP_INACTIVE(node)                           \
+			}else if(__flag_##node == MEMPOOL_FLAG_INACTIVE){
+
 #define MEMPOOL_LOOP_END(allocator, node, earlyexit)                    \
 			}else if(__flag_##node == MEMPOOL_FLAG_INVALID){            \
 				earlyexit;                                              \

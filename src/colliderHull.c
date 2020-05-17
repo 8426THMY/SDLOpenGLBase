@@ -470,6 +470,7 @@ return_t colliderHullLoad(
 	}
 
 
+	#warning "Ideally, this macro shouldn't exist. We should check if weights were specified, then call the correct functions."
 	#ifdef COLLIDER_HULL_DEFAULT_VERTEX_WEIGHT
 	colliderHullGenerateCentroidWeighted(&tempHull, vertexWeights, centroid);
 	colliderHullGenerateInertiaWeighted(&tempHull, vertexWeights, inertia);
@@ -665,7 +666,8 @@ void colliderHullGenerateInertiaWeighted(
 ** information supplied and, in doing so, generate a new bounding box.
 */
 void colliderHullUpdate(
-	void *const restrict hull, const void *const restrict base,
+	void *const restrict hull, const vec3 *const restrict hullCentroid,
+	const void *const restrict base, const vec3 *const restrict baseCentroid,
 	const transformState *const restrict trans, colliderAABB *const restrict aabb
 ){
 
@@ -674,20 +676,28 @@ void colliderHullUpdate(
 	const vec3 *lastFeature = &curFeature[((colliderHull *)hull)->numVertices];
 
 	// Find the collider's new centroid!
-	transformStateTransformPosition(trans, &(((colliderHull *)base)->centroid), &(((colliderHull *)hull)->centroid));
+	quatRotateVec3Fast(&trans->rot, &(((colliderHull *)hull)->centroid));
+	vec3MultiplyVec3(&(((colliderHull *)hull)->centroid), &trans->scale);
+	vec3AddVec3(&(((colliderHull *)hull)->centroid), &trans->pos);
 
-	// We can only update the hull's
-	// vertices if it actually has any.
+	// We can only update the hull's vertices if it actually has any.
 	if(curFeature < lastFeature){
 		colliderAABB tempAABB;
 
 		// Transform the first vertex and use it for the bounding box.
-		transformStateTransformPosition(trans, baseFeature, curFeature);
+		vec3SubtractVec3FromOut(baseFeature, baseCentroid, curFeature);
+		vec3MultiplyVec3(curFeature, &trans->scale);
+		quatRotateVec3Fast(&trans->rot, curFeature);
+		vec3AddVec3(curFeature, hullCentroid);
+
 		tempAABB.min = tempAABB.max = *curFeature;
 
 		// Transform the remaining vertices!
 		for(; curFeature < lastFeature;){
-			transformStateTransformPosition(trans, ++baseFeature, ++curFeature);
+			vec3SubtractVec3FromOut(++baseFeature, baseCentroid, ++curFeature);
+			vec3MultiplyVec3(curFeature, &trans->scale);
+			quatRotateVec3Fast(&trans->rot, curFeature);
+			vec3AddVec3(curFeature, hullCentroid);
 
 			// If this vertex exceeds the bounds of
 			// our current bounding box, we should
@@ -720,7 +730,7 @@ void colliderHullUpdate(
 		// The hull's faces have been rotated,
 		// so we need to rotate their normals.
 		for(; curFeature < lastFeature; ++curFeature, ++baseFeature){
-			quatRotateVec3Fast(&trans->rot, baseFeature, curFeature);
+			quatRotateVec3FastOut(&trans->rot, baseFeature, curFeature);
 		}
 
 

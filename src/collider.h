@@ -39,7 +39,8 @@ return_t colliderLoad(
 	collider *const restrict c, FILE *const restrict cFile, vec3 *const restrict centroid, mat3 *const restrict inertia
 );
 void colliderUpdate(
-	collider *const restrict c, const collider *const restrict cBase,
+	collider *const restrict c, const vec3 *const restrict centroid,
+	const collider *const restrict cBase, const vec3 *const restrict baseCentroid,
 	const transformState *const restrict trans, colliderAABB *const restrict aabb
 );
 
@@ -56,7 +57,8 @@ extern return_t (*colliderLoadTable[COLLIDER_NUM_TYPES])(
 	vec3 *const restrict centroid, mat3 *const restrict inertia
 );
 extern void (*colliderUpdateTable[COLLIDER_NUM_TYPES])(
-	void *const restrict c, const void *const restrict cBase,
+	void *const restrict c, const vec3 *const restrict centroid,
+	const void *const restrict cBase, const vec3 *const restrict baseCentroid,
 	const transformState *const restrict trans, colliderAABB *const restrict aabb
 );
 

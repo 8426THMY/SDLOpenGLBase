@@ -35,6 +35,9 @@
 #ifndef PHYSCONTACT_GAUSS_SEIDEL_NUM_ITERATIONS
 	#define PHYSCONTACT_GAUSS_SEIDEL_NUM_ITERATIONS 4
 #endif
+#ifndef PHYSCONTACT_PENETRATION_ERROR_THRESHOLD
+	#define PHYSCONTACT_PENETRATION_ERROR_THRESHOLD (-3.f * PHYSCONSTRAINT_LINEAR_SLOP)
+#endif
 
 
 // Depending on whether or not we're using friciton joints, the place
@@ -88,7 +91,7 @@ typedef struct physicsContactPoint {
 	float tangentImpulse[2];
 	#endif
 
-	// Stores the result of 1/((JM^-1)J^T) (which is equivalent
+	// Stores the result of 1/((JM^(-1))J^T) (which is equivalent
 	// to the inverse denominator of the impulse equation)
 	// prior to collision response, as it only needs to be
 	// calculated once.
@@ -142,7 +145,7 @@ void physManifoldPersist(
 
 #ifdef PHYSCONTACT_STABILISER_BAUMGARTE
 void physManifoldPresolve(
-	physicsManifold *const restrict pm, const physicsRigidBody *const restrict bodyA, const physicsRigidBody *const restrict bodyB, const float dt
+	physicsManifold *const restrict pm, const physicsRigidBody *const restrict bodyA, const physicsRigidBody *const restrict bodyB, const float invDt
 );
 #else
 void physManifoldPresolve(
@@ -151,7 +154,7 @@ void physManifoldPresolve(
 #endif
 void physManifoldSolveVelocity(physicsManifold *const restrict pm, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB);
 #ifdef PHYSCONTACT_STABILISER_GAUSS_SEIDEL
-void physManifoldSolvePosition(const physicsManifold *const restrict pm, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB);
+float physManifoldSolvePosition(const physicsManifold *const restrict pm, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB, float separation);
 #endif
 
 

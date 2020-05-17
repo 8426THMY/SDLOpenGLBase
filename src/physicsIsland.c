@@ -34,8 +34,9 @@ void physIslandUpdateCollider(physicsIsland *const restrict island, physicsColli
 }
 
 void physIslandRemoveCollider(physicsIsland *const restrict island, physicsCollider *const restrict collider){
-	/** Should we clear the collider's pairs here? **/
-	aabbTreeRemoveNode(&island->tree, collider->node, &modulePhysicsAABBNodeFree);
+	if(collider->node != NULL){
+		aabbTreeRemoveNode(&island->tree, collider->node, &modulePhysicsAABBNodeFree);
+	}
 }
 
 
@@ -44,7 +45,7 @@ void physIslandRemoveCollider(physicsIsland *const restrict island, physicsColli
 ** the island and update their collision pairs.
 */
 #ifdef PHYSCONTACT_STABILISER_BAUMGARTE
-void physIslandQueryCollisions(physicsIsland *const restrict island, const float dt){
+void physIslandQueryCollisions(physicsIsland *const restrict island, const float invDt){
 #else
 void physIslandQueryCollisions(physicsIsland *const restrict island){
 #endif
@@ -63,7 +64,7 @@ void physIslandQueryCollisions(physicsIsland *const restrict island){
 		// For valid contacts, we also need to compute the
 		// new presolve information for each contact point.
 		#ifdef PHYSCONTACT_STABILISER_BAUMGARTE
-		physColliderUpdateContacts(collider, dt);
+		physColliderUpdateContacts(collider, invDt);
 		#else
 		physColliderUpdateContacts(collider);
 		#endif

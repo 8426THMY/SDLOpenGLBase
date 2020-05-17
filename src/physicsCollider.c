@@ -85,7 +85,7 @@ void physColliderGenerateInertia(physicsCollider *const restrict collider, const
 */
 void physColliderUpdate(physicsCollider *const restrict collider, physicsIsland *const restrict island){
 	// Update the collider and generate its new bounding box!
-	colliderUpdate(&collider->global, collider->local, &collider->owner->state, &collider->aabb);
+	colliderUpdate(&collider->global, &collider->owner->centroid, collider->local, &collider->owner->base->centroid, &collider->owner->state, &collider->aabb);
 	// Update its tree node if required.
 	physIslandUpdateCollider(island, collider);
 }
@@ -207,7 +207,7 @@ void physColliderUpdateSeparations(physicsCollider *const restrict collider){
 ** This will also update the manifolds of active contact pairs.
 */
 #ifdef PHYSCONTACT_STABILISER_BAUMGARTE
-void physColliderUpdateContacts(physicsCollider *const restrict collider, const float dt){
+void physColliderUpdateContacts(physicsCollider *const restrict collider, const float invDt){
 #else
 void physColliderUpdateContacts(physicsCollider *const restrict collider){
 #endif
@@ -225,7 +225,7 @@ void physColliderUpdateContacts(physicsCollider *const restrict collider){
 		// bias terms as well as increment their inactivity flag.
 		}else{
 			#ifdef PHYSCONTACT_STABILISER_BAUMGARTE
-			physManifoldPresolve(&curPair->manifold, curPair->cA->owner, curPair->cB->owner, dt);
+			physManifoldPresolve(&curPair->manifold, curPair->cA->owner, curPair->cB->owner, invDt);
 			#else
 			physManifoldPresolve(&curPair->manifold, curPair->cA->owner, curPair->cB->owner);
 			#endif

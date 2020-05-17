@@ -12,6 +12,9 @@
 #endif
 
 
+#warning "We should investigate how Randy Gaul and Erin Catto handle physics islands."
+
+
 typedef struct physicsIsland {
 	aabbTree tree;
 } physicsIsland;
@@ -23,7 +26,7 @@ void physIslandUpdateCollider(physicsIsland *const restrict island, physicsColli
 void physIslandRemoveCollider(physicsIsland *const restrict island, physicsCollider *const restrict collider);
 
 #ifdef PHYSCONTACT_STABILISER_BAUMGARTE
-void physIslandQueryCollisions(physicsIsland *const restrict island, const float dt);
+void physIslandQueryCollisions(physicsIsland *const restrict island, const float invDt);
 #else
 void physIslandQueryCollisions(physicsIsland *const restrict island);
 #endif

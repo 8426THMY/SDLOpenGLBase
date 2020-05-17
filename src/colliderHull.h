@@ -105,7 +105,8 @@ void colliderHullGenerateInertiaWeighted(
 );
 
 void colliderHullUpdate(
-	void *const restrict hull, const void *const restrict base,
+	void *const restrict hull, const vec3 *const restrict hullCentroid,
+	const void *const restrict base, const vec3 *const restrict baseCentroid,
 	const transformState *const restrict trans, colliderAABB *const restrict aabb
 );
 

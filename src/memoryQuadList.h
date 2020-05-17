@@ -186,6 +186,9 @@
 			const uintptr_t __flag_##node = memQuadListBlockUsedDataGetFlagValue(node); \
 			if(__flag_##node == MEMQUADLIST_FLAG_ACTIVE){
 
+#define MEMQUADLIST_LOOP_INACTIVE(node)                           \
+			}else if(__flag_##node == MEMQUADLIST_FLAG_INACTIVE){
+
 #define MEMQUADLIST_LOOP_END(allocator, node, earlyexit)                    \
 			}else if(__flag_##node == MEMQUADLIST_FLAG_INVALID){            \
 				earlyexit;                                                  \

@@ -1317,7 +1317,7 @@ mat4 mat4RotateZDegR(const mat4 m, const float z){
 }
 
 
-// Scale a matrix by three floats!
+// Left-multiply a matrix by a scale matrix stored as three floats!
 void mat4ScalePre(mat4 *const restrict m, const float x, const float y, const float z){
 	m->m[0][0] *= x;
 	m->m[0][1] *= y;
@@ -1336,7 +1336,7 @@ void mat4ScalePre(mat4 *const restrict m, const float x, const float y, const fl
 	m->m[3][2] *= z;
 }
 
-// Scale a matrix by three floats!
+// Left-multiply a matrix by a scale matrix stored as three floats!
 mat4 mat4ScalePreR(mat4 m, const float x, const float y, const float z){
 	m.m[0][0] *= x;
 	m.m[0][1] *= y;
@@ -1357,7 +1357,7 @@ mat4 mat4ScalePreR(mat4 m, const float x, const float y, const float z){
 	return(m);
 }
 
-// Scale a matrix by four floats!
+// Left-multiply a matrix by a scale matrix stored as four floats!
 void mat4ScalePre4(mat4 *const restrict m, const float x, const float y, const float z, const float w){
 	m->m[0][0] *= x;
 	m->m[0][1] *= y;
@@ -1380,7 +1380,7 @@ void mat4ScalePre4(mat4 *const restrict m, const float x, const float y, const f
 	m->m[3][3] *= w;
 }
 
-// Scale a matrix by four floats!
+// Left-multiply a matrix by a scale matrix stored as four floats!
 mat4 mat4ScalePre4R(mat4 m, const float x, const float y, const float z, const float w){
 	m.m[0][0] *= x;
 	m.m[0][1] *= y;
@@ -1405,27 +1405,27 @@ mat4 mat4ScalePre4R(mat4 m, const float x, const float y, const float z, const f
 	return(m);
 }
 
-// Scale a matrix by a vec3!
+// Left-multiply a matrix by a scale matrix stored as a vec3!
 void mat4ScalePreVec3(mat4 *const restrict m, const vec3 *const restrict v){
 	mat4ScalePre(m, v->x, v->y, v->z);
 }
 
-// Scale a matrix by a vec3!
+// Left-multiply a matrix by a scale matrix stored as a vec3!
 mat4 mat4ScalePreVec3R(mat4 m, const vec3 v){
 	return(mat4ScalePreR(m, v.x, v.y, v.z));
 }
 
-// Scale a matrix by a vec4!
+// Left-multiply a matrix by a scale matrix stored as a vec4!
 void mat4ScalePreVec4(mat4 *const restrict m, const vec4 *const restrict v){
 	mat4ScalePre4(m, v->x, v->y, v->z, v->w);
 }
 
-// Scale a matrix by a vec4!
+// Left-multiply a matrix by a scale matrix stored as a vec4!
 mat4 mat4ScalePreVec4R(mat4 m, const vec4 v){
 	return(mat4ScalePre4R(m, v.x, v.y, v.z, v.w));
 }
 
-// Scale a matrix by three floats!
+// Right-multiply a matrix by a scale matrix stored as three floats!
 void mat4Scale(mat4 *const restrict m, const float x, const float y, const float z){
 	m->m[0][0] *= x;
 	m->m[0][1] *= x;
@@ -1443,7 +1443,7 @@ void mat4Scale(mat4 *const restrict m, const float x, const float y, const float
 	m->m[2][3] *= z;
 }
 
-// Scale a matrix by three floats!
+// Right-multiply a matrix by a scale matrix stored as three floats!
 mat4 mat4ScaleR(mat4 m, const float x, const float y, const float z){
 	m.m[0][0] *= x;
 	m.m[0][1] *= x;
@@ -1463,7 +1463,7 @@ mat4 mat4ScaleR(mat4 m, const float x, const float y, const float z){
 	return(m);
 }
 
-// Scale a matrix by four floats!
+// Right-multiply a matrix by a scale matrix stored as four floats!
 void mat4Scale4(mat4 *const restrict m, const float x, const float y, const float z, const float w){
 	m->m[0][0] *= x;
 	m->m[0][1] *= x;
@@ -1486,7 +1486,7 @@ void mat4Scale4(mat4 *const restrict m, const float x, const float y, const floa
 	m->m[3][3] *= w;
 }
 
-// Scale a matrix by four floats!
+// Right-multiply a matrix by a scale matrix stored as four floats!
 mat4 mat4Scale4R(mat4 m, const float x, const float y, const float z, const float w){
 	m.m[0][0] *= x;
 	m.m[0][1] *= x;
@@ -1511,22 +1511,22 @@ mat4 mat4Scale4R(mat4 m, const float x, const float y, const float z, const floa
 	return(m);
 }
 
-// Scale a matrix by a vec3!
+// Right-multiply a matrix by a scale matrix stored as a vec3!
 void mat4ScaleVec3(mat4 *const restrict m, const vec3 *const restrict v){
 	mat4Scale(m, v->x, v->y, v->z);
 }
 
-// Scale a matrix by a vec3!
+// Right-multiply a matrix by a scale matrix stored as a vec3!
 mat4 mat4ScaleVec3R(mat4 m, const vec3 v){
 	return(mat4ScaleR(m, v.x, v.y, v.z));
 }
 
-// Scale a matrix by a vec4!
+// Right-multiply a matrix by a scale matrix stored as a vec4!
 void mat4ScaleVec4(mat4 *const restrict m, const vec4 *const restrict v){
 	mat4Scale4(m, v->x, v->y, v->z, v->w);
 }
 
-// Scale a matrix by a vec4!
+// Right-multiply a matrix by a scale matrix stored as a vec4!
 mat4 mat4ScaleVec4R(mat4 m, const vec4 v){
 	return(mat4Scale4R(m, v.x, v.y, v.z, v.w));
 }

@@ -238,18 +238,19 @@ static void updateObjects(program *const restrict prg){
 /** TEMPORARY STUFF! **/
 #include "physicsIsland.h"
 physicsIsland island;
+#warning "Everything in here should eventually be moved into modulePhysicsSolveConstraints."
 static void updatePhysics(program *const restrict prg){
 	MEMSINGLELIST_LOOP_BEGIN(g_physRigidBodyManager, curBody, physicsRigidBody)
-		physRigidBodyUpdate(curBody, prg->step.updateTickrate);
+		physRigidBodyUpdate(curBody, &island, prg->step.updateDelta);
 	MEMSINGLELIST_LOOP_END(g_physRigidBodyManager, curBody, break)
 
 	#ifdef PHYSCONTACT_STABILISER_BAUMGARTE
-	physIslandQueryCollisions(&island, prg->step.updateTime);
+	physIslandQueryCollisions(&island, prg->step.updateRate);
 	#else
 	physIslandQueryCollisions(&island);
 	#endif
 
-	modulePhysicsSolveConstraints(prg->step.updateTickrate);
+	modulePhysicsSolveConstraints(prg->step.updateDelta);
 }
 
 /** TEMPORARY STUFF! **/
@@ -452,70 +453,6 @@ static return_t initResources(program *const restrict prg){
 
 
 	/** TEMPORARY PHYSICS STUFF **/
-	/**
-	for all scenes {
-		sceneTick(){
-			for all scene.objects {
-				objTick(){
-					for all object.bones {
-						if bone has rigid body {
-							update collider configuration;
-							update collider vertices;
-							update collider AABB node;
-						}else{
-							animate bone;
-						}
-					}
-				}
-			}
-		}
-	}
-
-	queryIslands(){
-		for all islands {
-			for all island.rigidBodies {
-				check collisions;
-				update contacts;
-				update separations;
-			}
-		}
-	}
-
-	solveConstraints(){
-		for all joints {
-			presolve joint;
-		}
-
-		for all rigid bodies {
-			integrate velocity;
-			reset forces;
-		}
-
-		for all velocity solver iterations {
-			for all joints {
-				solve joint velocity constraints;
-			}
-
-			for all contacts {
-				solve contact velocity constraints;
-			}
-		}
-
-		for all rigid bodies {
-			integrate configuration;
-		}
-
-		for configuration solver iterations {
-			for all joints {
-				solve joint configuration constraints;
-			}
-
-			for all contacts {
-				solve contact configuration constraints;
-			}
-		}
-	}
-	**/
 	physIslandInit(&island);
 	objDef = moduleObjectDefAlloc();
 	objectDefInit(objDef);

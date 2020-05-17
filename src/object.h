@@ -34,6 +34,12 @@ typedef struct object {
 
 	// Stores the skeleton and animations that this object is using.
 	skeletonObject skeleData;
+	// Controls the object's position, orientation and scale.
+	// This transformation is applied to the root bone during animation.
+	transformState state;
+	// Array of custom transformations to apply to each non-root bone.
+	// This can be used by physics or to simply move the object.
+	transformState *boneTransforms;
 
 	// Arrays of colliders and rigid bodies for each bone.
 	// The colliders are for object collision, not rigid body collision.

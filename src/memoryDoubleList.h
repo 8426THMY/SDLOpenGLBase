@@ -142,6 +142,9 @@
 			const uintptr_t __flag_##node = memDoubleListBlockUsedDataGetFlagValue(node); \
 			if(__flag_##node == MEMDOUBLELIST_FLAG_ACTIVE){
 
+#define MEMDOUBLELIST_LOOP_INACTIVE(node)                           \
+			}else if(__flag_##node == MEMDOUBLELIST_FLAG_INACTIVE){
+
 #define MEMDOUBLELIST_LOOP_END(allocator, node, earlyexit)                    \
 			}else if(__flag_##node == MEMDOUBLELIST_FLAG_INVALID){            \
 				earlyexit;                                                    \

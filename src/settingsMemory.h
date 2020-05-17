@@ -18,6 +18,7 @@
 #define MEMQUADLIST_COUNT_USED_BLOCKS
 
 
+#warning "Modules should allocate new memory regions once they're full."
 // Define the base pool sizes for our object allocators!
 #define MEMORY_MODULE_NUM_TEXTURES            4
 #define MEMORY_MODULE_NUM_TEXGROUPS           3

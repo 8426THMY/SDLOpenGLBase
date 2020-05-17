@@ -58,6 +58,9 @@
 		type *node = (type *)(allocator.region->start);     \
 		do {
 
+#define MEMFREELIST_LOOP_INACTIVE(node)                           \
+			}else if(__flag_##node == MEMFREELIST_FLAG_INACTIVE){
+
 #define MEMFREELIST_LOOP_END(allocator, node)                               \
 			node = memFreeListBlockGetNextBlock(node, allocator.blockSize); \
 		} while((void *)node < (void *)__region_##node);                    \

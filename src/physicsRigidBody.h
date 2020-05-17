@@ -17,65 +17,35 @@
 
 // If we're using non-linear Gauss-Seidel stabilisation
 // anywhere, we'll need to define some additional functions.
-#if \
-	defined(PHYSCONTACT_STABILISER_GAUSS_SEIDEL)        || defined(PHYSJOINTDISTANCE_STABILISER_GAUSS_SEIDEL) || \
-	defined(PHYSJOINTFIXED_STABILISER_GAUSS_SEIDEL)     || defined(PHYSJOINTREVOLUTE_STABILISER_GAUSS_SEIDEL) || \
-	defined(PHYSJOINTPRISMATIC_STABILISER_GAUSS_SEIDEL) || defined(PHYSJOINTSPHERE_STABILISER_GAUSS_SEIDEL)
-
+#if defined(PHYSCONTACT_STABILISER_GAUSS_SEIDEL) || defined(PHYSJOINT_USE_POSITIONAL_CORRECTION)
 	#define PHYSCOLLIDER_USE_POSITIONAL_CORRECTION
 #endif
 
-// The body has not been initialized yet.
-#define PHYSRIGIDBODY_UNINITIALIZED      0x01
 // The body should be simulated in some way.
-#define PHYSRIGIDBODY_SIMULATE_LINEAR    0x02
-#define PHYSRIGIDBODY_SIMULATE_ANGULAR   0x04
+#define PHYSRIGIDBODY_SIMULATE_LINEAR    0x01
+#define PHYSRIGIDBODY_SIMULATE_ANGULAR   0x02
 #define PHYSRIGIDBODY_SIMULATE           (PHYSRIGIDBODY_SIMULATE_LINEAR | PHYSRIGIDBODY_SIMULATE_ANGULAR)
 // The body should allow collisions.
-#define PHYSRIGIDBODY_COLLIDE            0x08
-// The body is awake and should be simulated.
-#define PHYSRIGIDBODY_AWAKE              (PHYSRIGIDBODY_SIMULATE | PHYSRIGIDBODY_COLLIDE)
-// The body has just been initialized.
-#define PHYSRIGIDBODY_INITIALIZED        0x10
+#define PHYSRIGIDBODY_COLLIDE            0x04
 // The body has been transformed in some way.
-#define PHYSRIGIDBODY_TRANSLATED         0x20
-#define PHYSRIGIDBODY_ROTATED            0x40
-#define PHYSRIGIDBODY_TRANSFORMED        0x60
-// The body's collision flag has changed.
-#define PHYSRIGIDBODY_COLLISION_MODIFIED 0x80
-// The body is currently sleeping.
-#define PHYSRIGIDBODY_ASLEEP             (PHYSRIGIDBODY_UNINITIALIZED | PHYSRIGIDBODY_TRANSFORMED | PHYSRIGIDBODY_INITIALIZED)
+#define PHYSRIGIDBODY_TRANSLATED         0x10
+#define PHYSRIGIDBODY_ROTATED            0x20
+#define PHYSRIGIDBODY_TRANSFORMED        0x40
 
 #ifndef PHYSRIGIDBODY_DEFAULT_STATE
-	#define PHYSRIGIDBODY_DEFAULT_STATE (PHYSRIGIDBODY_UNINITIALIZED | PHYSRIGIDBODY_SIMULATE | PHYSRIGIDBODY_COLLIDE | PHYSRIGIDBODY_COLLISION_MODIFIED)
+	#define PHYSRIGIDBODY_DEFAULT_STATE (PHYSRIGIDBODY_SIMULATE | PHYSRIGIDBODY_COLLIDE)
 #endif
 
-#define physRigidBodySetUninitialized(body) flagsSet(body->flags, PHYSRIGIDBODY_UNINITIALIZED)
-#define physRigidBodySetInitialized(body)                \
-	flagsUnset(body->flags, PHYSRIGIDBODY_UNINITIALIZED) \
-	flagsSet(body->flags, PHYSRIGIDBODY_INITIALIZED)
-#define physRigidBodySetInitializedFull(body) flagsUnset(body->flags, PHYSRIGIDBODY_UNINITIALIZED)
-#define physRigidBodySetAsleep(body) flagsMask(body->flags, PHYSRIGIDBODY_ASLEEP)
-#define physRigidBodySetAwake(body) flagsSet(body->flags, PHYSRIGIDBODY_AWAKE)
-
-#define physRigidBodySimulateCollisions(body) flagsSet(body->flags, PHYSRIGIDBODY_COLLIDE | PHYSRIGIDBODY_COLLISION_MODIFIED)
 #define physRigidBodySimulateLinear(body) flagsSet(body->flags, PHYSRIGIDBODY_SIMULATE_LINEAR)
 #define physRigidBodySimulateAngular(body) flagsSet(body->flags, PHYSRIGIDBODY_SIMULATE_ANGULAR)
+#define physRigidBodySimulateCollisions(body) flagsSet(body->flags, PHYSRIGIDBODY_COLLIDE)
 
-#define physRigidBodyIgnoreCollisions(body)        \
-	flagsUnset(body->flags, PHYSRIGIDBODY_COLLIDE) \
-	flagsSet(body->flags, PHYSRIGIDBODY_COLLISION_MODIFIED)
 #define physRigidBodyIgnoreLinear(body) flagsUnset(body->flags, PHYSRIGIDBODY_SIMULATE_LINEAR)
 #define physRigidBodyIgnoreAngular(body) flagsUnset(body->flags, PHYSRIGIDBODY_SIMULATE_ANGULAR)
-
-#define physRigidBodyIsUninitialized(body) flagsAreSet(body->flags, PHYSRIGIDBODY_UNINITIALIZED)
+#define physRigidBodyIgnoreCollisions(body) flagsUnset(body->flags, PHYSRIGIDBODY_COLLIDE)
 
 #define physRigidBodyIsSimulated(body) flagsAreSet(body->flags, PHYSRIGIDBODY_SIMULATE)
-
 #define physRigidBodyIsCollidable(body) flagsAreSet(body->flags, PHYSRIGIDBODY_COLLIDE)
-#define physRigidBodyIsAsleep(body) flagsAreSet(body->flags, PHYSRIGIDBODY_ASLEEP)
-
-#define physRigidBodyWasInitialized(body) flagsAreSet(body->flags, PHYSRIGIDBODY_INITIALIZED)
 
 
 typedef struct physicsRigidBodyDef {
@@ -86,30 +56,33 @@ typedef struct physicsRigidBodyDef {
 	float mass;
 	float invMass;
 
+	// The local centroid of the body.
 	vec3 centroid;
 	// Matrix that describes how the body
 	// resists rotation around an axis.
-	mat3 invInertia;
+	mat3 inertia;
 
 	// Default flags for the rigid body.
 	flags_t flags;
 } physicsRigidBodyDef;
 
-#warning "Maybe store the regular local intertia tensor for more efficient scaling?"
 #warning "Linear and angular damping would also be nice."
 // Rigid body instance.
 typedef struct physicsRigidBody {
+	const physicsRigidBodyDef *base;
+
 	// Singly linked list of colliders used by this rigid body.
 	physicsCollider *colliders;
 
 	float mass;
 	float invMass;
 
-	// We need to keep the local versions
-	// for when we add new colliders.
-	vec3 centroidLocal;
-	vec3 centroidGlobal;
+	// The global centroid of the body.
+	vec3 centroid;
+	// We store the local inverse so we don't need to
+	// recompute it every time for scaled rigid bodies.
 	mat3 invInertiaLocal;
+	// The inverse global inertia tensor of the body.
 	mat3 invInertiaGlobal;
 
 	// Defines the body's spacial configuration.
@@ -137,16 +110,20 @@ void physRigidBodyInit(physicsRigidBody *const restrict body, const physicsRigid
 
 return_t physRigidBodyDefLoad(physicsRigidBodyDef **const restrict bodies, const char *const restrict bodyPath, const size_t bodyPathLength);
 
-void physRigidBodyDefSumCentroids(physicsRigidBodyDef *const restrict bodyDef, const vec3 *centroidArray, const size_t numBodies);
-void physRigidBodyDefSumInertia(physicsRigidBodyDef *const restrict bodyDef, const mat3 *inertiaArray, const size_t numBodies);
 void physRigidBodyDefAddCollider(
 	physicsRigidBodyDef *const restrict bodyDef, const float mass,
-	const vec3 *const restrict centroid, const mat3 *const restrict inertia
+	const vec3 *const restrict centroid, mat3 inertia
 );
+#if 0
+/** I don't think we need these anymore, as the function above handles this stuff more cleanly. **/
+void physRigidBodyDefSumCentroids(physicsRigidBodyDef *const restrict bodyDef, const vec3 *centroidArray, const size_t numBodies);
+void physRigidBodyDefSumInertia(physicsRigidBodyDef *const restrict bodyDef, const mat3 *inertiaArray, const size_t numBodies);
 void physRigidBodyDefGenerateProperties(physicsRigidBodyDef *const restrict bodyDef, const float **const restrict massArrays);
+#endif
 
-void physRigidBodyIntegrateVelocity(physicsRigidBody *const restrict body, const float time);
-void physRigidBodyIntegratePosition(physicsRigidBody *const restrict body, const float time);
+void physRigidBodyIntegrateVelocity(physicsRigidBody *const restrict body, const float dt);
+void physRigidBodyResetAccumulators(physicsRigidBody *const restrict body);
+void physRigidBodyIntegratePosition(physicsRigidBody *const restrict body, const float dt);
 
 void physRigidBodyApplyLinearForce(physicsRigidBody *const restrict body, const vec3 *const restrict F);
 void physRigidBodyApplyAngularForce(physicsRigidBody *const restrict body, const vec3 *const restrict r, const vec3 *const restrict F);
@@ -156,14 +133,21 @@ void physRigidBodyApplyLinearImpulse(physicsRigidBody *const restrict body, vec3
 void physRigidBodyApplyLinearImpulseInverse(physicsRigidBody *const restrict body, vec3 J);
 void physRigidBodyApplyAngularImpulse(physicsRigidBody *const restrict body, vec3 J);
 void physRigidBodyApplyAngularImpulseInverse(physicsRigidBody *const restrict body, vec3 J);
-void physRigidBodyApplyImpulse(physicsRigidBody *const restrict body, const vec3 *const restrict r, const vec3 *const restrict J);
-void physRigidBodyApplyImpulseInverse(physicsRigidBody *const restrict body, const vec3 *const restrict r, const vec3 *const restrict J);
+void physRigidBodyApplyImpulse(physicsRigidBody *const restrict body, const vec3 *const restrict r, const vec3 *const restrict p);
+void physRigidBodyApplyImpulseBoost(physicsRigidBody *const restrict body, const vec3 *const restrict r, const vec3 *const restrict p, const vec3 *const restrict a);
+void physRigidBodyApplyImpulseInverse(physicsRigidBody *const restrict body, const vec3 *const restrict r, const vec3 *const restrict p);
+void physRigidBodyApplyImpulseBoostInverse(physicsRigidBody *const restrict body, const vec3 *const restrict r, const vec3 *const restrict p, const vec3 *const restrict a);
 #ifdef PHYSCOLLIDER_USE_POSITIONAL_CORRECTION
-void physRigidBodyApplyImpulsePosition(physicsRigidBody *const restrict body, const vec3 *const restrict r, const vec3 *const restrict J);
-void physRigidBodyApplyImpulsePositionInverse(physicsRigidBody *const restrict body, const vec3 *const restrict r, const vec3 *const restrict J);
+void physRigidBodyApplyImpulsePosition(physicsRigidBody *const restrict body, const vec3 *const restrict r, const vec3 *const restrict p);
+void physRigidBodyApplyImpulsePositionInverse(physicsRigidBody *const restrict body, const vec3 *const restrict r, const vec3 *const restrict p);
 #endif
 
-void physRigidBodyUpdate(physicsRigidBody *const restrict body, const float invDt);
+void physRigidBodySetScale(physicsRigidBody *const restrict body, const vec3 scale);
+
+void physRigidBodyCentroidFromPosition(physicsRigidBody *const restrict body);
+void physRigidBodyPositionFromCentroid(physicsRigidBody *const restrict body);
+void physRigidBodyUpdateGlobalInertia(physicsRigidBody *const restrict body);
+void physRigidBodyUpdate(physicsRigidBody *const restrict body, physicsIsland *const restrict island, const float dt);
 
 void physRigidBodyDefDelete(physicsRigidBodyDef *const restrict bodyDef);
 void physRigidBodyDelete(physicsRigidBody *const restrict body);

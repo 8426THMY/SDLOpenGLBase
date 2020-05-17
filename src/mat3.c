@@ -302,6 +302,91 @@ mat3 mat3MultiplyByMat3R(const mat3 m1, const mat3 m2){
 }
 
 
+// Left-multiply a matrix by a scale matrix stored as three floats!
+void mat3ScalePre(mat3 *const restrict m, const float x, const float y, const float z){
+	m->m[0][0] *= x;
+	m->m[0][1] *= y;
+	m->m[0][2] *= z;
+
+	m->m[1][0] *= x;
+	m->m[1][1] *= y;
+	m->m[1][2] *= z;
+
+	m->m[2][0] *= x;
+	m->m[2][1] *= y;
+	m->m[2][2] *= z;
+}
+
+// Left-multiply a matrix by a scale matrix stored as three floats!
+mat3 mat3ScalePreR(mat3 m, const float x, const float y, const float z){
+	m.m[0][0] *= x;
+	m.m[0][1] *= y;
+	m.m[0][2] *= z;
+
+	m.m[1][0] *= x;
+	m.m[1][1] *= y;
+	m.m[1][2] *= z;
+
+	m.m[2][0] *= x;
+	m.m[2][1] *= y;
+	m.m[2][2] *= z;
+
+	return(m);
+}
+
+// Left-multiply a matrix by a scale matrix stored as a vec3!
+void mat3ScalePreVec3(mat3 *const restrict m, const vec3 *const restrict v){
+	mat3ScalePre(m, v->x, v->y, v->z);
+}
+
+// Left-multiply a matrix by a scale matrix stored as a vec3!
+mat3 mat3ScalePreVec3R(mat3 m, const vec3 v){
+	return(mat3ScalePreR(m, v.x, v.y, v.z));
+}
+
+// Right-multiply a matrix by a scale matrix stored as three floats!
+void mat3Scale(mat3 *const restrict m, const float x, const float y, const float z){
+	m->m[0][0] *= x;
+	m->m[0][1] *= x;
+	m->m[0][2] *= x;
+
+	m->m[1][0] *= y;
+	m->m[1][1] *= y;
+	m->m[1][2] *= y;
+
+	m->m[2][0] *= z;
+	m->m[2][1] *= z;
+	m->m[2][2] *= z;
+}
+
+// Right-multiply a matrix by a scale matrix stored as three floats!
+mat3 mat3ScaleR(mat3 m, const float x, const float y, const float z){
+	m.m[0][0] *= x;
+	m.m[0][1] *= x;
+	m.m[0][2] *= x;
+
+	m.m[1][0] *= y;
+	m.m[1][1] *= y;
+	m.m[1][2] *= y;
+
+	m.m[2][0] *= z;
+	m.m[2][1] *= z;
+	m.m[2][2] *= z;
+
+	return(m);
+}
+
+// Right-multiply a matrix by a scale matrix stored as a vec3!
+void mat3ScaleVec3(mat3 *const restrict m, const vec3 *const restrict v){
+	mat3Scale(m, v->x, v->y, v->z);
+}
+
+// Right-multiply a matrix by a scale matrix stored as a vec3!
+mat3 mat3ScaleVec3R(mat3 m, const vec3 v){
+	return(mat3ScaleR(m, v.x, v.y, v.z));
+}
+
+
 /*
 ** Find the transpose of a matrix! For column-major matrices, this effectively
 ** translates it to a row-major matrix. The reverse is true for row-major matrices.

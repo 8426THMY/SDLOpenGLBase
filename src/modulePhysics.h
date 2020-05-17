@@ -52,7 +52,7 @@
 
 
 return_t modulePhysicsSetup();
-void modulePhysicsSolveConstraints(const float invDt);
+void modulePhysicsSolveConstraints(const float dt);
 void modulePhysicsCleanup();
 
 aabbNode *modulePhysicsAABBNodeAlloc();

@@ -62,14 +62,16 @@ static void updateShaderBones(
 	const size_t numBones = mdlSkele->numBones;
 
 	#warning "We could possibly use a global bone states array."
+	#warning "Probably not a good idea if we want to create a render queue sometime in the future."
+	#warning "It's also a bad idea to be allocating large arrays on the stack."
 	mat4 boneStates[SKELETON_MAX_BONES];
 	mat4 *curBoneState = boneStates;
 	const bone *curBone = mdlSkele->bones;
 	const bone *const lastBone = &curBone[numBones];
 
 
-	// Before sending our bones to the shader, we
-	// convert them all to a matrix representation.
+	// Search the object's skeleton for bones shared by the
+	// renderable's skeleton and copy them into a new array.
 	for(; curBone < lastBone; ++curBone, ++curBoneState){
 		const size_t boneID = skeleFindBone(objSkele, curBone->name);
 		// If this bone appeared in an animation, convert the
@@ -84,6 +86,6 @@ static void updateShaderBones(
 	}
 
 
-	// Send them to the shader!
+	// Send the new bone array to the shader!
 	glUniformMatrix4fv(boneStatesID, numBones, GL_FALSE, (GLfloat *)boneStates);
 }

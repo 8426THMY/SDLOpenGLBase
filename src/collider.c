@@ -13,7 +13,8 @@ return_t (*colliderLoadTable[COLLIDER_NUM_TYPES])(
 	colliderHullLoad
 };
 void (*colliderUpdateTable[COLLIDER_NUM_TYPES])(
-	void *const restrict c, const void *const restrict cBase,
+	void *const restrict c, const vec3 *const restrict centroid,
+	const void *const restrict cBase, const vec3 *const restrict baseCentroid,
 	const transformState *const restrict trans, colliderAABB *const restrict aabb
 ) = {
 
@@ -52,11 +53,12 @@ return_t colliderLoad(
 
 // Update a collider instance and return its new bounding box.
 void colliderUpdate(
-	collider *const restrict c, const collider *const restrict cBase,
+	collider *const restrict c, const vec3 *const restrict centroid,
+	const collider *const restrict cBase, const vec3 *const restrict baseCentroid,
 	const transformState *const restrict trans, colliderAABB *const restrict aabb
 ){
 
-	colliderUpdateTable[c->type]((void *)(&c->data), (void *)(&cBase->data), trans, aabb);
+	colliderUpdateTable[c->type]((void *)(&c->data), centroid, (void *)(&cBase->data), baseCentroid, trans, aabb);
 }
 
 

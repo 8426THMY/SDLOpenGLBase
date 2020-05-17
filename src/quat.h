@@ -84,13 +84,17 @@ void quatMultiplyByQuatOut(const quat q1, const quat q2, quat *const restrict ou
 void quatMultiplyByQuatFastOut(const quat *const restrict q1, const quat *const restrict q2, quat *const restrict out);
 quat quatMultiplyByQuatR(const quat q1, const quat q2);
 
-void quatRotateVec3(const quat *const restrict q, const vec3 *const restrict v, vec3 *const restrict out);
+void quatRotateVec3(const quat *const restrict q, vec3 *const restrict v);
+void quatRotateVec3Out(const quat *const restrict q, const vec3 *const restrict v, vec3 *const restrict out);
 vec3 quatRotateVec3R(const quat q, vec3 v);
-void quatRotateVec3Inverse(const quat *const restrict q, const vec3 *const restrict v, vec3 *const restrict out);
+void quatRotateVec3Inverse(const quat *const restrict q, vec3 *const restrict v);
+void quatRotateVec3InverseOut(const quat *const restrict q, const vec3 *const restrict v, vec3 *const restrict out);
 vec3 quatRotateVec3InverseR(const quat q, vec3 v);
-void quatRotateVec3Fast(const quat *const restrict q, const vec3 *const restrict v, vec3 *const restrict out);
+void quatRotateVec3Fast(const quat *const restrict q, vec3 *const restrict v);
+void quatRotateVec3FastOut(const quat *const restrict q, const vec3 *const restrict v, vec3 *const restrict out);
 vec3 quatRotateVec3FastR(const quat q, vec3 v);
-void quatRotateVec3InverseFast(const quat *const restrict q, const vec3 *const restrict v, vec3 *const restrict out);
+void quatRotateVec3InverseFast(const quat *const restrict q, vec3 *const restrict v);
+void quatRotateVec3InverseFastOut(const quat *const restrict q, const vec3 *const restrict v, vec3 *const restrict out);
 vec3 quatRotateVec3InverseFastR(const quat q, vec3 v);
 
 float quatMagnitude(const float x, const float y, const float z, const float w);
