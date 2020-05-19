@@ -18,6 +18,9 @@
 
 #include "utilFile.h"
 
+/** TEMPORARY DEBUG DRAW STUFF **/
+#include "debugDraw.h"
+
 
 #define MODULE_SETUP_SUCCESS 0
 
@@ -121,6 +124,8 @@ void programLoop(program *const restrict prg){
 }
 
 void programClose(program *const restrict prg){
+	shaderDeleteProgram(prg->objectShader.programID);
+	shaderDeleteProgram(prg->spriteShader.programID);
 	cleanupModules();
 
 	SDL_DestroyWindow(prg->window);
@@ -400,18 +405,18 @@ static return_t initLibs(program *const restrict prg){
 static return_t initResources(program *const restrict prg){
 	const GLuint objVertexShaderID      = shaderLoad("./resource/shaders/vertexShader.gls",         GL_VERTEX_SHADER);
 	const GLuint spriteVertexShaderID   = shaderLoad("./resource/shaders/spriteVertexShader.gls",   GL_VERTEX_SHADER);
-	const GLuint fragmentShaderID       = shaderLoad("./resource/shaders/fragmentShader.gls",       GL_FRAGMENT_SHADER);
+	const GLuint objFragmentShaderID       = shaderLoad("./resource/shaders/fragmentShader.gls",       GL_FRAGMENT_SHADER);
 	const GLuint spriteFragmentShaderID = shaderLoad("./resource/shaders/spriteFragmentShader.gls", GL_FRAGMENT_SHADER);
-	const GLuint objectProgramID        = shaderLoadProgram(objVertexShaderID, fragmentShaderID);
+	const GLuint objectProgramID        = shaderLoadProgram(objVertexShaderID, objFragmentShaderID);
 	const GLuint spriteProgramID        = shaderLoadProgram(spriteVertexShaderID, spriteFragmentShaderID);
 
 	shaderDelete(spriteFragmentShaderID);
-	shaderDelete(fragmentShaderID);
+	shaderDelete(objFragmentShaderID);
 	shaderDelete(spriteVertexShaderID);
 	shaderDelete(objVertexShaderID);
 
 	// Load, compile and attach our OpenGL shader programs!
-	if(!shaderObjectInit(&prg->objectShader, objectProgramID) || !shaderSpriteInit(&prg->spriteShader, spriteProgramID)){
+	if(!meshShaderInit(&prg->objectShader, objectProgramID) || !spriteShaderInit(&prg->spriteShader, spriteProgramID)){
 		shaderDeleteProgram(spriteProgramID);
 		shaderDeleteProgram(objectProgramID);
 		return(0);
@@ -454,15 +459,23 @@ static return_t initResources(program *const restrict prg){
 
 	/** TEMPORARY PHYSICS STUFF **/
 	physIslandInit(&island);
+	mdl = modelOBJLoad("egg.obj", sizeof("egg.obj"));
 	objDef = moduleObjectDefAlloc();
 	objectDefInit(objDef);
-	physRigidBodyDefLoad(&objDef->physBodies, "cube.tdp", sizeof("cube.tdp"));
+	physRigidBodyDefLoad(&objDef->physBodies, "egg.tdp", sizeof("egg.tdp"));
 	renderDef = moduleRenderableDefAlloc();
-	renderableDefInit(renderDef, &g_mdlDefault);
+	renderableDefInit(renderDef, mdl);
 	objDef->renderables = renderDef;
 
 	obj = moduleObjectAlloc();
 	objectInit(obj, objDef);
+	/** We should be doing this for every bone's physics object, but only the root has one in this case. **/
+	// Apply the current skeleton's local bind pose and any transformations.
+	transformStateAppend(&obj->state, &obj->skeleData.skele->bones->localBind, &obj->physBodies->state);
+	// Transform the bone using each animation.
+	skeleObjGenerateBoneState(&obj->skeleData, 0, obj->skeleData.skele->bones->name, &obj->physBodies->state);
+	// Update the rigid body's centroid to reflect its new position.
+	physRigidBodyCentroidFromPosition(obj->physBodies);
 
 
 	/** EVEN MORE TEMPORARY PARTICLE STUFF **/
@@ -610,6 +623,9 @@ static return_t setupModules(){
 	}
 	#endif
 
+	/** THIS IS TEMPORARY **/
+	debugDrawSetup();
+
 	memTreePrintAllSizes(&g_memManager);
 	puts("Setup complete!\n");
 
@@ -656,6 +672,9 @@ static void cleanupModules(){
 	#ifdef MODULE_SHADER
 	moduleShaderCleanup();
 	#endif
+
+	/** THIS IS TEMPORARY **/
+	debugDrawCleanup();
 
 	memTreePrintAllSizes(&g_memManager);
 	memoryManagerGlobalDelete();

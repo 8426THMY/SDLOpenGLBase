@@ -1,9 +1,6 @@
 #include "shader.h"
 
 
-#define SHADER_INVALID_ID 0
-
-
 #include <stdio.h>
 
 #include "memoryManager.h"
@@ -12,60 +9,6 @@
 // Forward-declare any helper functions!
 static void printShaderError(const GLuint shaderID);
 static void printProgramError(const GLuint shaderID);
-
-
-return_t shaderObjectInit(shaderObject *const restrict shader, const GLuint programID){
-	// Make sure the shader program was loaded successfully.
-	if(programID == SHADER_INVALID_ID){
-		return(0);
-	}
-
-
-	shader->programID = programID;
-
-	// Enable the shader we just loaded!
-	glUseProgram(programID);
-
-	// Find the positions of our shader's uniform variables!
-	shader->vpMatrixID   = glGetUniformLocation(programID, "vpMatrix");
-	shader->uvOffsetsID  = glGetUniformLocation(programID, "uvOffsets");
-	shader->boneStatesID = glGetUniformLocation(programID, "boneStates");
-	// Bind uniform variable "baseTex0" to the first texture mapping unit (GL_TEXTURE0)!
-	glUniform1i(glGetUniformLocation(shader->programID, "baseTex0"), 0);
-
-	// Unbind the shader!
-	glUseProgram(SHADER_INVALID_ID);
-
-
-	return(1);
-}
-
-return_t shaderSpriteInit(shaderSprite *const restrict shader, const GLuint programID){
-	// Make sure the shader program was loaded successfully.
-	if(programID == SHADER_INVALID_ID){
-		return(0);
-	}
-
-
-	shader->programID = programID;
-
-	// Enable the shader we just loaded!
-	glUseProgram(programID);
-
-	// Find the positions of our shader's uniform variables!
-	shader->vpMatrixID      = glGetUniformLocation(programID, "vpMatrix");
-	shader->sdfTypeID       = glGetUniformLocation(programID, "sdfType");
-	shader->sdfColourID     = glGetUniformLocation(programID, "sdfColour");
-	shader->sdfBackgroundID = glGetUniformLocation(programID, "sdfBackground");
-	// Bind uniform variable "baseTex0" to the first texture mapping unit (GL_TEXTURE0)!
-	glUniform1i(glGetUniformLocation(shader->programID, "baseTex0"), 0);
-
-	// Unbind the shader!
-	glUseProgram(SHADER_INVALID_ID);
-
-
-	return(1);
-}
 
 
 // Load the shader of type "shaderType" specified by "shaderPath" and return its ID!
@@ -193,6 +136,9 @@ static void printShaderError(const GLuint shaderID){
 	// I've found that the size is 1 when there is no error.
 	if(infoLogLength > 1){
 		GLchar *shaderError = memoryManagerGlobalAlloc(infoLogLength);
+		if(shaderError == NULL){
+			/** MALLOC FAILED **/
+		}
 		glGetShaderInfoLog(shaderID, infoLogLength, NULL, shaderError);
 
 		printf("%s", shaderError);
@@ -211,6 +157,9 @@ static void printProgramError(const GLuint shaderID){
 	// I've found that the size is 1 when there is no error.
 	if(infoLogLength > 1){
 		GLchar *programError = memoryManagerGlobalAlloc(infoLogLength);
+		if(programError == NULL){
+			/** MALLOC FAILED **/
+		}
 		glGetProgramInfoLog(shaderID, infoLogLength, NULL, programError);
 
 		printf("%s", programError);

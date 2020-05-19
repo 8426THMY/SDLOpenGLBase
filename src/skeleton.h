@@ -92,7 +92,9 @@ void skeleObjInit(skeletonObject *const restrict skeleObj, skeleton *const restr
 skeletonAnimDef *skeleAnimSMDLoad(const char *const restrict skeleAnimPath, const size_t skeleAnimPathLength);
 
 void skeleAnimUpdate(skeletonAnim *const restrict anim, const float time);
-void skeleObjGenerateBoneState(const skeletonObject *const restrict skeleData, const size_t boneID, const char *const restrict boneName);
+void skeleObjGenerateBoneState(
+	const skeletonObject *const restrict skeleData, const size_t boneID, const char *const restrict boneName, boneState *const restrict out
+);
 
 size_t skeleFindBone(const skeleton *const restrict skele, const char *const restrict name);
 size_t skeleAnimFindBone(const skeletonAnim *const restrict skeleAnim, const char *name);

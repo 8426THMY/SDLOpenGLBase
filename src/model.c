@@ -363,6 +363,8 @@ model *modelOBJLoad(const char *const restrict mdlPath, const size_t mdlPathLeng
 			// successful, find the texture group.
 			if(tempTexGroupName != NULL){
 				mdl->texGroup = texGroupLoad(tempTexGroupName, tempTexGroupNameLength);
+			}else{
+				mdl->texGroup = &g_texGroupDefault;
 			}
 		}
 

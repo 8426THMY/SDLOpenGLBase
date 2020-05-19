@@ -34,6 +34,16 @@ typedef struct mesh {
 } mesh;
 
 
+// These shaders are used for drawing most things, such as objects.
+typedef struct meshShader {
+	GLuint programID;
+
+	GLuint vpMatrixID;
+	GLuint uvOffsetsID;
+	GLuint boneStatesID;
+} meshShader;
+
+
 void meshInit(mesh *const restrict meshData);
 
 void meshGenerateBuffers(
@@ -47,6 +57,8 @@ return_t meshDifferent(const mesh *const restrict m1, const mesh *const restrict
 return_t meshSetupDefault();
 
 void meshDelete(mesh *const restrict meshData);
+
+return_t meshShaderInit(meshShader *const restrict shader, const GLuint programID);
 
 
 extern mesh g_meshDefault;

@@ -3,7 +3,6 @@
 
 #include <math.h>
 
-#include "sprite.h"
 #include "sort.h"
 
 #include "memoryManager.h"
@@ -21,7 +20,7 @@ static void updateSysParticles(particleSystem *const restrict partSys, const flo
 
 static void drawParticles(
 	const particleSystem *const restrict partSys, const camera *const restrict cam,
-	const shaderSprite *const restrict shader, const float time
+	const spriteShader *const restrict shader, const float time
 );
 
 
@@ -146,7 +145,7 @@ void particleSysUpdate(particleSystem *const restrict partSys, const float time)
 */
 void particleSysDraw(
 	const particleSystem *const restrict partSys, const camera *const restrict cam,
-	const shaderSprite *const restrict shader, const float time
+	const spriteShader *const restrict shader, const float time
 ){
 
 	const particleSystem *const firstChild = partSys->children;
@@ -355,7 +354,7 @@ static void updateSysParticles(particleSystem *const restrict partSys, const flo
 #warning "If we get the state matrix once though, what about billboarding?"
 static void drawParticles(
 	const particleSystem *const restrict partSys, const camera *const restrict cam,
-	const shaderSprite *const restrict shader, const float time
+	const spriteShader *const restrict shader, const float time
 ){
 
 	const particleSystemDef *const partSysDef = partSys->partSysDef;

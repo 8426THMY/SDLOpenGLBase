@@ -44,6 +44,16 @@ typedef struct spriteState {
 } spriteState;
 
 
+typedef struct spriteShader {
+	GLuint programID;
+
+	GLuint vpMatrixID;
+	GLuint sdfTypeID;
+	GLuint sdfColourID;
+	GLuint sdfBackgroundID;
+} spriteShader;
+
+
 void spriteInit(sprite *const restrict spriteData);
 
 void spriteGenerateBuffers(
@@ -57,6 +67,8 @@ return_t spriteDifferent(const sprite *const restrict s1, const sprite *const re
 return_t spriteSetupDefault();
 
 void spriteDelete(sprite *const restrict spriteData);
+
+return_t spriteShaderInit(spriteShader *const restrict shader, const GLuint programID);
 
 
 extern sprite g_spriteDefault;

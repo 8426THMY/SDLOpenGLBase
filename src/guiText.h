@@ -5,10 +5,9 @@
 #include "rectangle.h"
 #include "transform.h"
 
+#include "sprite.h"
 #include "textFont.h"
 #include "text.h"
-
-#include "shader.h"
 
 
 #define GUI_ELEMENT_TYPE_TEXT 1
@@ -30,7 +29,7 @@ void guiTextInit(guiText *const restrict gui, const textFont *const restrict fon
 
 void guiTextUpdate(guiElement *const restrict gui, const float time);
 void guiTextDraw(
-	const guiElement *const restrict gui, const shaderSprite *const restrict shader
+	const guiElement *const restrict gui, const spriteShader *const restrict shader
 );
 
 void guiTextDelete(guiElement *const restrict gui);

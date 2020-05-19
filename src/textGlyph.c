@@ -34,6 +34,9 @@ textGlyph *textGlyphArrayLoad(const char *const restrict glyphPath, const textur
 				// Otherwise, allocate memory for our glyphs!
 				}else{
 					glyphs = memoryManagerGlobalAlloc(sizeof(*glyphs) * (lastIndex + 1));
+					if(glyphs == NULL){
+						/** MALLOC FAILED **/
+					}
 				}
 			}else if(line[0] != '\0'){
 				size_t tokenLength;

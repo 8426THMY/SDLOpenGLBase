@@ -5,6 +5,7 @@
 #include "vec3.h"
 #include "mat4.h"
 
+#include "mesh.h"
 #include "model.h"
 #include "textureGroup.h"
 #include "skeleton.h"
@@ -34,7 +35,7 @@ void renderableInit(renderable *const restrict render, const renderableDef *cons
 void renderableUpdate(renderable *const restrict render, const float time);
 void renderableDraw(
 	const renderable *const restrict render, const skeleton *const restrict objSkele,
-	const mat4 *const restrict animStates, const shaderObject *const restrict shader
+	const mat4 *const restrict animStates, const meshShader *const restrict shader
 );
 
 

@@ -50,7 +50,7 @@ void physColliderInit(physicsCollider *const restrict pc, const colliderType_t t
 ** Create a new instance of a physics
 ** collider from a base physics collider.
 */
-void physColliderInstantiate(physicsCollider *const restrict pc, physicsCollider *const restrict local, void *const restrict owner){
+void physColliderInstantiate(physicsCollider *const restrict pc, const physicsCollider *const restrict local, void *const restrict owner){
 	colliderInstantiate(&pc->global, &local->global);
 	pc->local = &local->global;
 
@@ -87,7 +87,9 @@ void physColliderUpdate(physicsCollider *const restrict collider, physicsIsland 
 	// Update the collider and generate its new bounding box!
 	colliderUpdate(&collider->global, &collider->owner->centroid, collider->local, &collider->owner->base->centroid, &collider->owner->state, &collider->aabb);
 	// Update its tree node if required.
-	physIslandUpdateCollider(island, collider);
+	if(island != NULL){
+		physIslandUpdateCollider(island, collider);
+	}
 }
 
 /*

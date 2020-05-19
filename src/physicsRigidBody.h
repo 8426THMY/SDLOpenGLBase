@@ -49,6 +49,7 @@
 
 
 typedef struct physicsRigidBodyDef {
+	#warning "We don't allow colliders to be added, so why not make this a normal array?"
 	// Singly linked list of colliders used by this rigid body.
 	physicsCollider *colliders;
 
@@ -71,6 +72,7 @@ typedef struct physicsRigidBodyDef {
 typedef struct physicsRigidBody {
 	const physicsRigidBodyDef *base;
 
+	#warning "We don't allow colliders to be added, so why not make this a normal array?"
 	// Singly linked list of colliders used by this rigid body.
 	physicsCollider *colliders;
 

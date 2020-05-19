@@ -4,9 +4,13 @@
 #define GLEW_STATIC
 #include <GL/glew.h>
 
+#include "memoryManager.h"
 #include "moduleRenderable.h"
 #include "moduleSkeleton.h"
 #include "modulePhysics.h"
+
+/** TEMPORARY DEBUG DRAW STUFF **/
+#include "debugDraw.h"
 
 
 // Forward-declare any helper functions!
@@ -80,7 +84,7 @@ void objectUpdate(object *const restrict obj, const float time){
 #include "billboard.h"
 void objectDraw(
 	const object *const restrict obj, const camera *const restrict cam,
-	const shaderObject *const restrict shader, const float time
+	const meshShader *const restrict shader, const float time
 ){
 
 	const renderable *curRenderable;
@@ -95,6 +99,7 @@ void objectDraw(
 	const bone *curSkeleBone = obj->skeleData.skele->bones;
 	const boneState *const lastBone = &curObjBone[obj->skeleData.skele->numBones];
 
+	#warning "Every object has at least one bone. Why not transform it by the view projection matrix now so we don't have to on the shader?"
 	do {
 		boneState localBone;
 
@@ -107,6 +112,13 @@ void objectDraw(
 		++curSkeleBone;
 		++curObjBone;
 	} while(curObjBone < lastBone);
+
+
+	/** TEMPORARY DEBUG DRAW TEST **/
+	#warning "Rigid body instances aren't storing colliders?"
+	if(obj->physBodies != NULL){
+		debugDrawColliderHull(&(obj->physBodies->colliders->global.data.hull), debugDrawInfoInit(GL_LINE, vec3InitSetR(1.f, 0.4f, 0.f)), &cam->viewProjectionMatrix);
+	}
 
 
 	// Send the new model-view-projection matrix to the shader!
@@ -207,7 +219,7 @@ static void updateBones(object *const restrict obj, const float time){
 				// Apply the current skeleton's local bind pose and any transformations.
 				transformStateAppend(&obj->state, &curSkeleBone->localBind, curObjBone);
 				// Transform the bone using each animation.
-				skeleObjGenerateBoneState(&obj->skeleData, i, curSkeleBone->name);
+				skeleObjGenerateBoneState(&obj->skeleData, i, curSkeleBone->name, curObjBone);
 
 			// If this bone has a parent, we need to add its parent's transformations.
 			}else{
@@ -216,7 +228,7 @@ static void updateBones(object *const restrict obj, const float time){
 				///transformStateAppend(curTransform, &curSkeleBone->localBind, curObjBone);
 				*curObjBone = curSkeleBone->localBind;
 				// Transform the bone using each animation.
-				skeleObjGenerateBoneState(&obj->skeleData, i, curSkeleBone->name);
+				skeleObjGenerateBoneState(&obj->skeleData, i, curSkeleBone->name, curObjBone);
 				// Add the parent's transformations.
 				transformStateAppend(&obj->skeleData.bones[curSkeleBone->parent], curObjBone, curObjBone);
 			}

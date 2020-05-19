@@ -28,9 +28,16 @@ void physRigidBodyDefInit(physicsRigidBodyDef *const restrict bodyDef){
 }
 
 void physRigidBodyInit(physicsRigidBody *const restrict body, const physicsRigidBodyDef *const restrict bodyDef){
+	const physicsCollider *curCollider = bodyDef->colliders;
+
 	body->base = bodyDef;
 
-	body->colliders = /** ALLOCATE NEW COLLIDER LIST **/NULL;
+	// Instantiate the rigid body's colliders.
+	while(curCollider != NULL){
+		body->colliders = modulePhysicsColliderPrepend(&body->colliders);
+		physColliderInstantiate(body->colliders, curCollider, body);
+		curCollider = memSingleListNext(curCollider);
+	}
 
 	body->mass = bodyDef->mass;
 	body->invMass = bodyDef->invMass;
@@ -802,7 +809,7 @@ void physRigidBodyUpdate(physicsRigidBody *const restrict body, physicsIsland *c
 	// this rigid body, we will need to update its
 	// base collider and its node in the broadphase.
 	while(curCollider != NULL){
-		physColliderUpdate(curCollider, NULL);
+		physColliderUpdate(curCollider, island);
 		curCollider = memSingleListNext(curCollider);
 	}
 }

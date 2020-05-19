@@ -459,7 +459,10 @@ void skeleAnimUpdate(skeletonAnim *const restrict anim, const float time){
 
 #warning "If interpolation is turned off, we don't need to call the transform functions."
 // Animate a particular bone in an animation instance!
-void skeleObjGenerateBoneState(const skeletonObject *const restrict skeleData, const size_t boneID, const char *const restrict boneName){
+void skeleObjGenerateBoneState(
+	const skeletonObject *const restrict skeleData, const size_t boneID, const char *const restrict boneName, boneState *const restrict out
+){
+
 	const skeletonAnim *curAnim = skeleData->anims;
 
 	// Update the bone using each animation!
@@ -488,7 +491,7 @@ void skeleObjGenerateBoneState(const skeletonObject *const restrict skeleData, c
 			}
 			// Set the animation's intensity by blending from the identity state.
 			transformStateInterpSet(&g_transformIdentity, &animState, curAnim->intensity, &animState);
-			transformStateAppend(&skeleData->bones[boneID], &animState, &skeleData->bones[boneID]);
+			transformStateAppend(&skeleData->bones[boneID], &animState, out);
 		}
 
 		// Continue to the next animation in the list.

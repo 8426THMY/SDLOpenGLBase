@@ -32,7 +32,7 @@ void renderableUpdate(renderable *const restrict render, const float time){
 #warning "We probably shouldn't have the OpenGL drawing stuff split up so much."
 void renderableDraw(
 	const renderable *const restrict render, const skeleton *const restrict objSkele,
-	const mat4 *const restrict animStates, const shaderObject *const restrict shader
+	const mat4 *const restrict animStates, const meshShader *const restrict shader
 ){
 
 	const textureGroupFrame *const texFrame = texGroupStateGetFrame(&render->texState);

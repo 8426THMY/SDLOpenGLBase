@@ -29,7 +29,7 @@ typedef struct physicsCollider {
 	// for convex hulls, we store a copy of the collider
 	// in local space and one in global space.
 	collider global;
-	collider *local;
+	const collider *local;
 	// Tightly-fitting bounding box, used to check
 	// if we should perform narrowphase collision.
 	colliderAABB aabb;
@@ -56,7 +56,7 @@ typedef struct physicsCollider {
 typedef struct physicsIsland physicsIsland;
 
 void physColliderInit(physicsCollider *const restrict pc, const colliderType_t type, void *const restrict owner);
-void physColliderInstantiate(physicsCollider *const restrict pc, physicsCollider *const restrict base, void *const restrict owner);
+void physColliderInstantiate(physicsCollider *const restrict pc, const physicsCollider *const restrict base, void *const restrict owner);
 
 void physColliderGenerateCentroid(physicsCollider *const restrict collider, vec3 *const restrict centroid);
 void physColliderGenerateInertia(physicsCollider *const restrict collider, const vec3 *const restrict centroid, mat3 *const restrict inertia);

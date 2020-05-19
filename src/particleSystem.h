@@ -18,8 +18,7 @@
 #include "particleOperator.h"
 #include "particleConstraint.h"
 
-#include "shader.h"
-
+#include "sprite.h"
 #include "settingsSprites.h"
 
 #include "utilTypes.h"
@@ -104,7 +103,7 @@ void particleSysInit(particleSystem *const restrict partSys, const particleSyste
 void particleSysUpdate(particleSystem *const restrict partSys, const float time);
 void particleSysDraw(
 	const particleSystem *const restrict partSys, const camera *const restrict cam,
-	const shaderSprite *const restrict shader, const float time
+	const spriteShader *const restrict shader, const float time
 );
 
 return_t particleSysAlive(particleSystem *const restrict partSys, const float time);

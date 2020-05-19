@@ -59,7 +59,7 @@ return_t objectDefLoad(objectDef *const restrict objDef, const char *const restr
 void objectUpdate(object *const restrict obj, const float time);
 void objectDraw(
 	const object *const restrict obj, const camera *const restrict cam,
-	const shaderObject *const restrict shader, const float time
+	const meshShader *const restrict shader, const float time
 );
 
 void objectDelete(object *const restrict obj);

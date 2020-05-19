@@ -6,7 +6,6 @@
 #include "vec2.h"
 
 #include "texture.h"
-#include "sprite.h"
 
 #include "guiElement.h"
 
@@ -26,7 +25,7 @@ void guiTextUpdate(guiElement *const restrict gui, const float time){
 
 #warning "To correctly handle size changes mid-text, we need to know the largest font size of the following line."
 void guiTextDraw(
-	const guiElement *const restrict gui, const shaderSprite *const restrict shader
+	const guiElement *const restrict gui, const spriteShader *const restrict shader
 ){
 
 	const guiText text = gui->data.text;

@@ -7,7 +7,8 @@
 
 #include <SDL2/SDL.h>
 
-#include "shader.h"
+#include "sprite.h"
+#include "mesh.h"
 #include "camera.h"
 #include "timestep.h"
 
@@ -25,8 +26,8 @@ typedef struct program {
 
 	return_t running;
 
-	shaderObject objectShader;
-	shaderSprite spriteShader;
+	meshShader objectShader;
+	spriteShader spriteShader;
 
 	camera cam;
 

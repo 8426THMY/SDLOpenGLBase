@@ -17,7 +17,8 @@
 #include "physicsContact.h"
 
 
-#define COLLIDER_HULL_INSTANCE_STATIC_BYTES (offsetof(colliderHull, centroid) - offsetof(colliderHull, edges))
+// This is the number of bytes that are shared between bases and instances.
+#define COLLIDER_HULL_INSTANCE_STATIC_BYTES (sizeof(colliderHull) - offsetof(colliderHull, faces))
 
 
 #define COLLISION_PARALLEL_THRESHOLD    0.005f
@@ -175,7 +176,7 @@ void colliderHullInstantiate(void *const restrict hull, const void *const restri
 	}
 
 	// Copy the rest of the components over from the base collider.
-	memcpy(((colliderHull *)hull)->edges, ((colliderHull *)base)->edges, COLLIDER_HULL_INSTANCE_STATIC_BYTES);
+	memcpy(&((colliderHull *)hull)->faces, &((colliderHull *)base)->faces, COLLIDER_HULL_INSTANCE_STATIC_BYTES);
 }
 
 
@@ -299,7 +300,7 @@ return_t colliderHullLoad(
 			// We also need to know the first edge's index
 			// so we can make the last edge point to it.
 			colliderEdgeIndex_t firstIndex = invalidValue(firstIndex);
-			// Keep the index of the last edge
+			// Keep the index of the last edge.
 			colliderEdgeIndex_t prevIndex;
 			// This is the value of the first edge's start vertex.
 			// We can't just use the pointer above, as we don't
@@ -320,6 +321,15 @@ return_t colliderHullLoad(
 
 
 			// Load all of this face's edges and add them to our collider!
+			//
+			// 1. Load the first two vertex indices.
+			// 2. Search for another edge that shares these indices.
+			// 3. If such an edge exists, make this one its twin.
+			//    Otherwise, create a new edge.
+			// 4. If this is the first edge we've loaded for this face, keep its index.
+			//    Otherwise, make the previous one point to it.
+			// 5. Once we've loaded every edge for the face, make the last edge point to the first one.
+			// 6. Create a new face whose edge index is the index of the first edge we loaded and compute the normals.
 			while(tokPos != tokEnd){
 				colliderEdgeIndex_t twinIndex = 0;
 
@@ -342,42 +352,46 @@ return_t colliderHullLoad(
 
 				tempEdge = tempHull.edges;
 				// Find this edge's twin if it exists.
-				while(twinIndex < lastIndex && (tempEdge->startVertexIndex != endIndex || tempEdge->endVertexIndex != startIndex)){
+				while(twinIndex < lastIndex){
+					// If we were able to find a twin, set its properties.
+					if(tempEdge->startVertexIndex == endIndex && tempEdge->endVertexIndex == startIndex){
+						tempEdge->twinFaceIndex = tempHull.numFaces;
+
+						// If this is the first edge we've loaded,
+						// we'll need to keep a reference to it.
+						if(valueIsInvalid(firstIndex)){
+							firstIndex = twinIndex;
+							firstEdgeStartIndex = startIndex;
+							firstEdgeEndIndex = endIndex;
+
+						// Make sure the last edge we loaded points to this one.
+						}else{
+							tempEdge = &tempHull.edges[prevIndex];
+							// The value of "nextIndex" is always set before "twinNextIndex",
+							// so if it's unset we know that the previous edge was not a twin.
+							if(valueIsInvalid(tempEdge->nextIndex)){
+								tempEdge->nextIndex = twinIndex;
+							}else{
+								tempEdge->twinNextIndex = twinIndex;
+							}
+						}
+						prevIndex = twinIndex;
+
+						break;
+					}
 					++tempEdge;
 					++twinIndex;
 				}
 
-				// If we were able to find a twin, set its properties.
-				if(twinIndex != lastIndex){
-					tempEdge->twinFaceIndex = tempHull.numFaces;
-
-					// If this is the first edge we've loaded,
-					// we'll need to keep a reference to it.
-					if(valueIsInvalid(firstIndex)){
-						firstIndex = twinIndex;
-						firstEdgeStartIndex = startIndex;
-						firstEdgeEndIndex = endIndex;
-
-					// Make sure the last edge we loaded points to this one.
-					}else{
-						tempEdge = &tempHull.edges[prevIndex];
-						// The value of "nextIndex" is always set before "twinNextIndex",
-						// so if it's unset we know that the previous edge was not a twin.
-						if(valueIsInvalid(tempEdge->nextIndex)){
-							tempEdge->nextIndex = twinIndex;
-						}else{
-							tempEdge->twinNextIndex = twinIndex;
-						}
-					}
-					prevIndex = twinIndex;
-
-				// Otherwise, create a new edge.
-				}else{
+				// Create a new edge if we couldn't find a twin.
+				if(twinIndex == lastIndex){
 					colliderHullEdge newEdge = {
 						.startVertexIndex = startIndex,
 						.endVertexIndex = endIndex,
-						.nextIndex = -1,
-						.faceIndex = tempHull.numFaces
+						.nextIndex = invalidValue(colliderEdgeIndex_t),
+						.twinNextIndex = 0,
+						.faceIndex = tempHull.numFaces,
+						.twinFaceIndex = 0
 					};
 
 					// If we're out of space, allocate some more!
@@ -675,7 +689,7 @@ void colliderHullUpdate(
 	const vec3 *baseFeature = ((colliderHull *)base)->vertices;
 	const vec3 *lastFeature = &curFeature[((colliderHull *)hull)->numVertices];
 
-	// Find the collider's new centroid!
+	// Compute the collider's new centroid!
 	quatRotateVec3Fast(&trans->rot, &(((colliderHull *)hull)->centroid));
 	vec3MultiplyVec3(&(((colliderHull *)hull)->centroid), &trans->scale);
 	vec3AddVec3(&(((colliderHull *)hull)->centroid), &trans->pos);
@@ -692,9 +706,12 @@ void colliderHullUpdate(
 
 		tempAABB.min = tempAABB.max = *curFeature;
 
+		++curFeature;
+		++baseFeature;
+
 		// Transform the remaining vertices!
-		for(; curFeature < lastFeature;){
-			vec3SubtractVec3FromOut(++baseFeature, baseCentroid, ++curFeature);
+		for(; curFeature < lastFeature; ++curFeature, ++baseFeature){
+			vec3SubtractVec3FromOut(baseFeature, baseCentroid, curFeature);
 			vec3MultiplyVec3(curFeature, &trans->scale);
 			quatRotateVec3Fast(&trans->rot, curFeature);
 			vec3AddVec3(curFeature, hullCentroid);
@@ -1388,7 +1405,7 @@ static void clipFaceContact(
 	// to store twice the maximum number of edges that a face has, as
 	// each edge can intersect two faces at most. This means that, in
 	// practice, we are really storing four times the number of edges.
-	vertexClip *const vertices = memoryManagerGlobalAlloc(hullB->maxFaceEdges * sizeof(*vertices) * 2);
+	vertexClip *const vertices = memoryManagerGlobalAlloc(2 * hullB->maxFaceEdges * sizeof(*vertices) * 2);
 	if(vertices == NULL){
 		/** MALLOC FAILED **/
 	}

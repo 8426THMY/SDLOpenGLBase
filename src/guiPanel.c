@@ -1,7 +1,6 @@
 #include "guiPanel.h"
 
 
-#include "sprite.h"
 #include "texture.h"
 #include "textureGroup.h"
 
@@ -44,7 +43,7 @@ void guiPanelUpdate(guiElement *const restrict gui, const float time){
 
 #warning "This is all very temporary. It'd be nice if we could fix the texture bleeding, though..."
 void guiPanelDraw(
-	const guiElement *const restrict gui, const shaderSprite *const restrict shader
+	const guiElement *const restrict gui, const spriteShader *const restrict shader
 ){
 
 	const guiPanel panel = gui->data.panel;

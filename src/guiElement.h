@@ -8,10 +8,9 @@
 #include "mat4.h"
 #include "transform.h"
 
+#include "sprite.h"
 #include "renderable.h"
 #include "object.h"
-
-#include "shader.h"
 
 #include "utilTypes.h"
 
@@ -51,7 +50,7 @@ void guiElementInit(guiElement *const restrict gui, const guiElementType_t type)
 
 void guiElementUpdate(guiElement *const restrict gui, const float time);
 void guiElementDraw(
-	guiElement *const restrict gui, const int windowWidth, const int windowHeight, const shaderSprite *const restrict shader
+	guiElement *const restrict gui, const int windowWidth, const int windowHeight, const spriteShader *const restrict shader
 );
 
 void guiElementDelete(guiElement *const restrict gui);
@@ -63,7 +62,7 @@ extern void (*guiElementUpdateTable[GUI_ELEMENT_NUM_TYPES])(
 );
 extern void (*guiElementDrawTable[GUI_ELEMENT_NUM_TYPES])(
 	const guiElement *const restrict gui,
-	const shaderSprite *const restrict shader
+	const spriteShader *const restrict shader
 );
 extern void (*guiElementDeleteTable[GUI_ELEMENT_NUM_TYPES])(
 	guiElement *const restrict gui

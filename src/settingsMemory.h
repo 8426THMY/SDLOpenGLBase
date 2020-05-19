@@ -20,7 +20,7 @@
 
 #warning "Modules should allocate new memory regions once they're full."
 // Define the base pool sizes for our object allocators!
-#define MEMORY_MODULE_NUM_TEXTURES            4
+#define MEMORY_MODULE_NUM_TEXTURES            36
 #define MEMORY_MODULE_NUM_TEXGROUPS           3
 #define MEMORY_MODULE_NUM_SKELETONS           2
 #define MEMORY_MODULE_NUM_SKELEANIMDEFS       2
@@ -29,7 +29,7 @@
 #define MEMORY_MODULE_NUM_PHYSCONTACTPAIRS    1
 #define MEMORY_MODULE_NUM_PHYSSEPARATIONPAIRS 1
 #define MEMORY_MODULE_NUM_AABBNODES           1
-#define MEMORY_MODULE_NUM_PHYSCOLLIDERS       1
+#define MEMORY_MODULE_NUM_PHYSCOLLIDERS       2
 #define MEMORY_MODULE_NUM_PHYSRIGIDBODYDEFS   1
 #define MEMORY_MODULE_NUM_PHYSRIGIDBODIES     1
 #define MEMORY_MODULE_NUM_OBJECTDEFS          2

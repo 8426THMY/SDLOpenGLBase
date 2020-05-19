@@ -5,11 +5,10 @@
 #include "vec2.h"
 #include "transform.h"
 
+#include "sprite.h"
 #include "model.h"
 #include "textureGroup.h"
 #include "renderable.h"
-
-#include "shader.h"
 
 #include "utilTypes.h"
 
@@ -127,7 +126,7 @@ void guiPanelInit(guiPanel *const restrict gui);
 
 void guiPanelUpdate(guiElement *const restrict gui, const float time);
 void guiPanelDraw(
-	const guiElement *const restrict gui, const shaderSprite *const restrict shader
+	const guiElement *const restrict gui, const spriteShader *const restrict shader
 );
 
 void guiPanelDelete(guiElement *const restrict gui);
