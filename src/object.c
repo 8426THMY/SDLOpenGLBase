@@ -42,8 +42,7 @@ void objectInit(object *const restrict obj, const objectDef *const restrict objD
 	obj->physBodies = NULL;
 	// Instantiate the object's physics rigid bodies.
 	while(curBody != NULL){
-		obj->physBodies = modulePhysicsBodyPrepend(&obj->physBodies);
-		physRigidBodyInit(obj->physBodies, curBody);
+		objectAddRigidBody(obj, curBody);
 		curBody = memSingleListNext(curBody);
 	}
 
@@ -51,6 +50,9 @@ void objectInit(object *const restrict obj, const objectDef *const restrict objD
 	// Instantiate the object's default renderables.
 	while(curRenderable != NULL){
 		obj->renderables = moduleRenderablePrepend(&obj->renderables);
+		if(obj->renderables == NULL){
+			/** MALLOC FAILED **/
+		}
 		renderableInit(obj->renderables, curRenderable);
 		curRenderable = memSingleListNext(curRenderable);
 	}
@@ -59,6 +61,23 @@ void objectInit(object *const restrict obj, const objectDef *const restrict objD
 
 return_t objectDefLoad(objectDef *const restrict objDef, const char *const restrict objFile){
 	return(0);
+}
+
+
+void objectAddRigidBody(object *const restrict obj, const physicsRigidBodyDef *const restrict bodyDef){
+	obj->physBodies = modulePhysicsBodyPrepend(&obj->physBodies);
+	if(obj->physBodies == NULL){
+		/** MALLOC FAILED **/
+	}
+
+	physRigidBodyInit(obj->physBodies, bodyDef);
+	/** We should be doing this for every bone's physics object, but only the root has one in this case. **/
+	// Apply the current skeleton's local bind pose and any transformations.
+	transformStateAppend(&obj->state, &obj->skeleData.skele->bones->localBind, &obj->physBodies->state);
+	// Transform the bone using each animation.
+	skeleObjGenerateBoneState(&obj->skeleData, 0, obj->skeleData.skele->bones->name, &obj->physBodies->state);
+	// Update the rigid body's centroid to reflect its new position.
+	physRigidBodyCentroidFromPosition(obj->physBodies);
 }
 
 
@@ -209,13 +228,13 @@ static void updateBones(object *const restrict obj, const float time){
 		if(curBody != NULL && physRigidBodyIsSimulated(curBody)){
 			// Copy the rigid body's state over to the bone.
 			/** WE SHOULDN'T CHECK FOR THE ROOT BONE HERE! **/
-			if(valueIsInvalid(curSkeleBone->parent)){
+			if(valueIsInvalid(curSkeleBone->parent, size_t)){
 				obj->state = curBody->state;
 				*curObjBone = curBody->state;
 			}
 		}else{
 			// We store the root bone's transformations differently to other bones'.
-			if(valueIsInvalid(curSkeleBone->parent)){
+			if(valueIsInvalid(curSkeleBone->parent, size_t)){
 				// Apply the current skeleton's local bind pose and any transformations.
 				transformStateAppend(&obj->state, &curSkeleBone->localBind, curObjBone);
 				// Transform the bone using each animation.

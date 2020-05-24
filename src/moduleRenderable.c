@@ -24,37 +24,116 @@ return_t moduleRenderableSetup(){
 
 void moduleRenderableCleanup(){
 	// renderable
-	moduleRenderableClear();
-	memoryManagerGlobalFree(memSingleListRegionStart(g_renderableManager.region));
+	MEMSINGLELIST_LOOP_BEGIN(g_renderableManager, i, renderable)
+		moduleRenderableFree(NULL, i, NULL);
+	MEMSINGLELIST_LOOP_END(g_renderableManager, i, break)
+	memSingleListDelete(&g_renderableManager, memoryManagerGlobalFree);
 	// renderableDef
-	moduleRenderableDefClear();
-	memoryManagerGlobalFree(memSingleListRegionStart(g_renderableDefManager.region));
+	MEMSINGLELIST_LOOP_BEGIN(g_renderableDefManager, i, renderableDef)
+		moduleRenderableDefFree(NULL, i, NULL);
+	MEMSINGLELIST_LOOP_END(g_renderableDefManager, i, break)
+	memSingleListDelete(&g_renderableDefManager, memoryManagerGlobalFree);
 }
 
 
 // Allocate a new renderable base array.
 renderableDef *moduleRenderableDefAlloc(){
+	#ifndef MEMORYREGION_EXTEND_ALLOCATORS
 	return(memSingleListAlloc(&g_renderableDefManager));
+	#else
+	renderableDef *newBlock = memSingleListAlloc(&g_renderableDefManager);
+	// If we've run out of memory, allocate some more!
+	if(newBlock == NULL){
+		if(memSingleListExtend(
+			&g_renderableDefManager,
+			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_RENDERABLEDEF_MANAGER_SIZE)),
+			MODULE_RENDERABLEDEF_MANAGER_SIZE
+		)){
+			newBlock = memSingleListAlloc(&g_renderableDefManager);
+		}
+	}
+	return(newBlock);
+	#endif
 }
 
 // Insert an renderable base at the beginning of an array.
 renderableDef *moduleRenderableDefPrepend(renderableDef **const restrict start){
+	#ifndef MEMORYREGION_EXTEND_ALLOCATORS
 	return(memSingleListPrepend(&g_renderableDefManager, (void **)start));
+	#else
+	renderableDef *newBlock = memSingleListPrepend(&g_renderableDefManager, (void **)start);
+	// If we've run out of memory, allocate some more!
+	if(newBlock == NULL){
+		if(memSingleListExtend(
+			&g_renderableDefManager,
+			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_RENDERABLEDEF_MANAGER_SIZE)),
+			MODULE_RENDERABLEDEF_MANAGER_SIZE
+		)){
+			newBlock = memSingleListPrepend(&g_renderableDefManager, (void **)start);
+		}
+	}
+	return(newBlock);
+	#endif
 }
 
 // Insert an renderable base at the end of an array.
 renderableDef *moduleRenderableDefAppend(renderableDef **const restrict start){
+	#ifndef MEMORYREGION_EXTEND_ALLOCATORS
 	return(memSingleListAppend(&g_renderableDefManager, (void **)start));
+	#else
+	renderableDef *newBlock = memSingleListAppend(&g_renderableDefManager, (void **)start);
+	// If we've run out of memory, allocate some more!
+	if(newBlock == NULL){
+		if(memSingleListExtend(
+			&g_renderableDefManager,
+			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_RENDERABLEDEF_MANAGER_SIZE)),
+			MODULE_RENDERABLEDEF_MANAGER_SIZE
+		)){
+			newBlock = memSingleListAppend(&g_renderableDefManager, (void **)start);
+		}
+	}
+	return(newBlock);
+	#endif
 }
 
 // Insert an renderable base after the element "prevData".
 renderableDef *moduleRenderableDefInsertBefore(renderableDef **const restrict start, renderableDef *const restrict prevData){
+	#ifndef MEMORYREGION_EXTEND_ALLOCATORS
 	return(memSingleListInsertBefore(&g_renderableDefManager, (void **)start, (void *)prevData));
+	#else
+	renderableDef *newBlock = memSingleListInsertBefore(&g_renderableDefManager, (void **)start, (void *)prevData);
+	// If we've run out of memory, allocate some more!
+	if(newBlock == NULL){
+		if(memSingleListExtend(
+			&g_renderableDefManager,
+			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_RENDERABLEDEF_MANAGER_SIZE)),
+			MODULE_RENDERABLEDEF_MANAGER_SIZE
+		)){
+			newBlock = memSingleListInsertBefore(&g_renderableDefManager, (void **)start, (void *)prevData);
+		}
+	}
+	return(newBlock);
+	#endif
 }
 
 // Insert an renderable base after the element "data".
 renderableDef *moduleRenderableDefInsertAfter(renderableDef **const restrict start, renderableDef *const restrict data){
+	#ifndef MEMORYREGION_EXTEND_ALLOCATORS
 	return(memSingleListInsertAfter(&g_renderableDefManager, (void **)start, (void *)data));
+	#else
+	renderableDef *newBlock = memSingleListInsertAfter(&g_renderableDefManager, (void **)start, (void *)data);
+	// If we've run out of memory, allocate some more!
+	if(newBlock == NULL){
+		if(memSingleListExtend(
+			&g_renderableDefManager,
+			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_RENDERABLEDEF_MANAGER_SIZE)),
+			MODULE_RENDERABLEDEF_MANAGER_SIZE
+		)){
+			newBlock = memSingleListInsertAfter(&g_renderableDefManager, (void **)start, (void *)data);
+		}
+	}
+	return(newBlock);
+	#endif
 }
 
 // Free an renderable base that has been allocated.
@@ -75,33 +154,109 @@ void moduleRenderableDefFreeArray(renderableDef **const restrict start){
 void moduleRenderableDefClear(){
 	MEMSINGLELIST_LOOP_BEGIN(g_renderableDefManager, i, renderableDef)
 		moduleRenderableDefFree(NULL, i, NULL);
-	MEMSINGLELIST_LOOP_END(g_renderableDefManager, i, return)
+	MEMSINGLELIST_LOOP_END(g_renderableDefManager, i, break)
+	memSingleListClear(&g_renderableDefManager);
 }
 
 
 // Allocate a new renderable array.
 renderable *moduleRenderableAlloc(){
+	#ifndef MEMORYREGION_EXTEND_ALLOCATORS
 	return(memSingleListAlloc(&g_renderableManager));
+	#else
+	renderable *newBlock = memSingleListAlloc(&g_renderableManager);
+	// If we've run out of memory, allocate some more!
+	if(newBlock == NULL){
+		if(memSingleListExtend(
+			&g_renderableManager,
+			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_RENDERABLE_MANAGER_SIZE)),
+			MODULE_RENDERABLE_MANAGER_SIZE
+		)){
+			newBlock = memSingleListAlloc(&g_renderableManager);
+		}
+	}
+	return(newBlock);
+	#endif
 }
 
 // Insert an renderable at the beginning of an array.
 renderable *moduleRenderablePrepend(renderable **const restrict start){
+	#ifndef MEMORYREGION_EXTEND_ALLOCATORS
 	return(memSingleListPrepend(&g_renderableManager, (void **)start));
+	#else
+	renderable *newBlock = memSingleListPrepend(&g_renderableManager, (void **)start);
+	// If we've run out of memory, allocate some more!
+	if(newBlock == NULL){
+		if(memSingleListExtend(
+			&g_renderableManager,
+			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_RENDERABLE_MANAGER_SIZE)),
+			MODULE_RENDERABLE_MANAGER_SIZE
+		)){
+			newBlock = memSingleListPrepend(&g_renderableManager, (void **)start);
+		}
+	}
+	return(newBlock);
+	#endif
 }
 
 // Insert an renderable at the end of an array.
 renderable *moduleRenderableAppend(renderable **const restrict start){
+	#ifndef MEMORYREGION_EXTEND_ALLOCATORS
 	return(memSingleListAppend(&g_renderableManager, (void **)start));
+	#else
+	renderable *newBlock = memSingleListAppend(&g_renderableManager, (void **)start);
+	// If we've run out of memory, allocate some more!
+	if(newBlock == NULL){
+		if(memSingleListExtend(
+			&g_renderableManager,
+			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_RENDERABLE_MANAGER_SIZE)),
+			MODULE_RENDERABLE_MANAGER_SIZE
+		)){
+			newBlock = memSingleListAppend(&g_renderableManager, (void **)start);
+		}
+	}
+	return(newBlock);
+	#endif
 }
 
 // Insert an renderable after the element "prevData".
 renderable *moduleRenderableInsertBefore(renderable **const restrict start, renderable *const restrict prevData){
+	#ifndef MEMORYREGION_EXTEND_ALLOCATORS
 	return(memSingleListInsertBefore(&g_renderableManager, (void **)start, (void *)prevData));
+	#else
+	renderable *newBlock = memSingleListInsertBefore(&g_renderableManager, (void **)start, (void *)prevData);
+	// If we've run out of memory, allocate some more!
+	if(newBlock == NULL){
+		if(memSingleListExtend(
+			&g_renderableManager,
+			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_RENDERABLE_MANAGER_SIZE)),
+			MODULE_RENDERABLE_MANAGER_SIZE
+		)){
+			newBlock = memSingleListInsertBefore(&g_renderableManager, (void **)start, (void *)prevData);
+		}
+	}
+	return(newBlock);
+	#endif
 }
 
 // Insert an renderable after the element "data".
 renderable *moduleRenderableInsertAfter(renderable **const restrict start, renderable *const restrict data){
+	#ifndef MEMORYREGION_EXTEND_ALLOCATORS
 	return(memSingleListInsertAfter(&g_renderableManager, (void **)start, (void *)data));
+	#else
+	renderable *newBlock = memSingleListInsertAfter(&g_renderableManager, (void **)start, (void *)data);
+	// If we've run out of memory, allocate some more!
+	if(newBlock == NULL){
+		if(memSingleListExtend(
+			&g_renderableManager,
+			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_RENDERABLE_MANAGER_SIZE)),
+			MODULE_RENDERABLE_MANAGER_SIZE
+		)){
+			newBlock = memSingleListInsertAfter(&g_renderableManager, (void **)start, (void *)data);
+		}
+	}
+	return(newBlock);
+	#endif
 }
 
 // Free an renderable that has been allocated.
@@ -122,5 +277,6 @@ void moduleRenderableFreeArray(renderable **const restrict start){
 void moduleRenderableClear(){
 	MEMSINGLELIST_LOOP_BEGIN(g_renderableManager, i, renderable)
 		moduleRenderableFree(NULL, i, NULL);
-	MEMSINGLELIST_LOOP_END(g_renderableManager, i, return)
+	MEMSINGLELIST_LOOP_END(g_renderableManager, i, break)
+	memSingleListClear(&g_renderableManager);
 }

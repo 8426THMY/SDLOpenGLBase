@@ -591,7 +591,7 @@ model *modelSMDLoad(const char *const restrict mdlPath, const size_t mdlPathLeng
 									// Set the inverse bind state!
 									currentBone->invGlobalBind = currentBone->localBind;
 									// If this bone has a parent, append its state to its parent's state!
-									if(!valueIsInvalid(currentBone->parent)){
+									if(!valueIsInvalid(currentBone->parent, size_t)){
 										transformStateAppend(
 											&tempBones[currentBone->parent].invGlobalBind,
 											&currentBone->invGlobalBind,
@@ -646,7 +646,7 @@ model *modelSMDLoad(const char *const restrict mdlPath, const size_t mdlPathLeng
 										numLinks = VERTEX_MAX_WEIGHTS;
 									}
 
-									size_t parentPos = invalidValue(parentPos);
+									size_t parentPos = valueInvalid(size_t);
 									float totalWeight = 0.f;
 
 									size_t *curBoneID = tempVertex.boneIDs;
@@ -693,7 +693,7 @@ model *modelSMDLoad(const char *const restrict mdlPath, const size_t mdlPathLeng
 									// Make sure the total weight isn't less than 1!
 									if(totalWeight < 1.f){
 										// If we never loaded the parent bone, see if we can add it!
-										if(valueIsInvalid(parentPos)){
+										if(valueIsInvalid(parentPos, size_t)){
 											if(i < VERTEX_MAX_WEIGHTS){
 												*curBoneID = parentBoneID;
 												*curBoneWeight = 0.f;

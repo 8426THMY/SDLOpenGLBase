@@ -551,6 +551,7 @@ void memTreeClear(memoryTree *const restrict tree, void *const restrict memory, 
 }
 
 
+#ifdef MEMORYREGION_EXTEND_ALLOCATORS
 void *memTreeExtend(memoryTree *const restrict tree, void *const restrict memory, const size_t memorySize){
 	if(memory != NULL){
 		const size_t regionSize = memoryGetRegionSize(memorySize);
@@ -564,10 +565,18 @@ void *memTreeExtend(memoryTree *const restrict tree, void *const restrict memory
 
 	return(memory);
 }
+#endif
 
 
-void memTreeDelete(memoryTree *const restrict tree){
-	memoryAllocatorDelete(tree->region);
+void memTreeDelete(memoryTree *const restrict tree, void (*freeFunc)(void *block)){
+	memoryRegion *region = tree->region;
+	// Free every memory region in the allocator.
+	while(region != NULL){
+		memoryRegion *next = region->next;
+
+		(*freeFunc)(memTreeRegionStart(region));
+		region = next;
+	}
 }
 
 

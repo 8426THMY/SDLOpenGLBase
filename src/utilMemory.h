@@ -20,9 +20,9 @@
 // Add "num" to the address "pointer". We need to cast the pointer
 // to a character pointer, as otherwise we will be adding "num"
 // multiplied by the size of the type that "pointer" points to.
-#define memoryAddPointer(pointer, num) ((void *)(((byte_t *)(pointer)) + (num)))
+#define memoryAddPointer(pointer, num) ((void *)(((uintptr_t)(pointer)) + ((uintptr_t)(num))))
 // Same as above, but subtracts "num" from "pointer" instead of adding it.
-#define memorySubPointer(pointer, num) ((void *)(((byte_t *)(pointer)) - (num)))
+#define memorySubPointer(pointer, num) ((void *)(((uintptr_t)(pointer)) - ((uintptr_t)(num))))
 
 // We'll assume the system is 8 byte aligned.
 #define MEMORY_ALIGNMENT 8
@@ -36,11 +36,15 @@
 // does is subtracts the size of the object from its size.
 #define memoryGetRegionSize(size) ((size) - sizeof(memoryRegion))
 // Return a pointer to a memory region object using the total size of the region.
+// Note the assumption that the size of the region doesn't include the size of the memoryRegion object.
 #define memoryGetRegionFromSize(start, size) ((memoryRegion *)memoryAddPointer(start, size))
 // Return a pointer to a memory region object using the number of blocks in the region.
 #define memoryGetRegionFromBlocks(start, blocks, size) ((memoryRegion *)memoryAddPointer(start, (blocks) * (size)))
 // Return the amount of memory required for a region of "size" bytes.
 #define memoryGetRequiredSize(size) ((size) + sizeof(memoryRegion))
+
+// This can be used to exit from memory allocator loops early.
+#define memoryLoopExit(allocator, node) goto allocator##_EXIT_LOOP_##node
 
 // The main reason for using these flags
 // are for when we want to enable or
@@ -51,7 +55,7 @@
 	#define MEMORY_WIN32_HEAP_FLAGS       MEMORY_WIN32_HEAP_FLAG_UNSAFE
 #endif
 
-#ifndef MEMORY_LOW_LEVEL
+/*#ifndef MEMORY_LOW_LEVEL
 	#define memoryAlloc(size)          malloc(size)
 	#define memoryRealloc(block, size) realloc(block, size)
 	#define memoryFree(block)          free(block)
@@ -63,7 +67,7 @@
 	#define memoryAlloc(size)          memoryLowLevelAlloc(size)
 	#define memoryRealloc(block, size) memoryLowLevelRealloc(block, size)
 	#define memoryFree(block)          memoryLowLevelFree(block)
-#endif
+#endif*/
 
 
 // Stored at the end of certain allocators' memory regions,
@@ -74,6 +78,10 @@ typedef struct memoryRegion {
 	memoryRegion *next;
 } memoryRegion;
 
+
+void *memoryAlloc(const size_t size);
+void *memoryRealloc(void *block, const size_t size);
+void memoryFree(void *block);
 
 void memoryRegionAppend(memoryRegion **const restrict region, memoryRegion *const restrict newRegion, void *const restrict memory);
 void memoryRegionInsertBefore(memoryRegion **const restrict region, memoryRegion *const restrict newRegion, void *const restrict memory);

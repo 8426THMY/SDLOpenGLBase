@@ -22,14 +22,31 @@ return_t moduleTextureSetup(){
 }
 
 void moduleTextureCleanup(){
-	moduleTextureClear();
-	memoryManagerGlobalFree(memPoolRegionStart(g_textureManager.region));
+	MEMPOOL_LOOP_BEGIN(g_textureManager, i, texture)
+		moduleTextureFree(i);
+	MEMPOOL_LOOP_END(g_textureManager, i, break)
+	memPoolDelete(&g_textureManager, memoryManagerGlobalFree);
 }
 
 
 // Allocate memory for a texture and return a handle to it.
 texture *moduleTextureAlloc(){
+	#ifndef MEMORYREGION_EXTEND_ALLOCATORS
 	return(memPoolAlloc(&g_textureManager));
+	#else
+	texture *newBlock = memPoolAlloc(&g_textureManager);
+	// If we've run out of memory, allocate some more!
+	if(newBlock == NULL){
+		if(memPoolExtend(
+			&g_textureManager,
+			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_TEXTURE_MANAGER_SIZE)),
+			MODULE_TEXTURE_MANAGER_SIZE
+		)){
+			newBlock = memPoolAlloc(&g_textureManager);
+		}
+	}
+	return(newBlock);
+	#endif
 }
 
 // Free a texture that has been allocated.
@@ -42,7 +59,8 @@ void moduleTextureFree(texture *const restrict tex){
 void moduleTextureClear(){
 	MEMPOOL_LOOP_BEGIN(g_textureManager, i, texture)
 		moduleTextureFree(i);
-	MEMPOOL_LOOP_END(g_textureManager, i, return)
+	MEMPOOL_LOOP_END(g_textureManager, i, break)
+	memPoolClear(&g_textureManager);
 }
 
 
@@ -52,7 +70,7 @@ texture *moduleTextureFind(const char *const restrict name){
 		if(strcmp(name, i->name) == 0){
 			return(i);
 		}
-	MEMPOOL_LOOP_END(g_textureManager, i, return(NULL))
+	MEMPOOL_LOOP_END(g_textureManager, i, break)
 
 	return(NULL);
 }

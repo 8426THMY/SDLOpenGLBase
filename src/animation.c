@@ -93,7 +93,7 @@ static void getFrameForward(animationData *const restrict animData, const animat
 			} while(animData->animTime > lastFrameTime);
 
 			// Only increment the play count if we're not looping indefinitely.
-			if(!valueIsInvalid(animData->currentPlayNum)){
+			if(!valueIsInvalid(animData->currentPlayNum, unsigned int)){
 				animData->currentPlayNum += numLoops;
 				// If we've finished looping, end on the last frame!
 				if(animData->currentPlayNum >= frameData->playNum){
@@ -133,7 +133,7 @@ static void getFrameBackward(animationData *const restrict animData, const anima
 			} while(animData->animTime < 0.f);
 
 			// Only increment the play count if we're not looping indefinitely.
-			if(!valueIsInvalid(animData->currentPlayNum)){
+			if(!valueIsInvalid(animData->currentPlayNum, unsigned int)){
 				animData->currentPlayNum -= numLoops;
 				// If we've finished looping, end on the last frame!
 				if(animData->currentPlayNum <= numLoops){

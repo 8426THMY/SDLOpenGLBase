@@ -351,12 +351,14 @@ void memDoubleListClear(memoryDoubleList *const restrict doubleList){
 }
 
 
+#ifdef MEMORYREGION_EXTEND_ALLOCATORS
 // Append a new memory region to the end of our allocator's region list!
 void *memDoubleListExtend(memoryDoubleList *const restrict doubleList, void *const restrict memory, const size_t memorySize){
 	if(memory != NULL){
 		memoryRegion *newRegion = memoryGetRegionFromSize(memory, memorySize);
 		// Add the new region to the end of the list!
 		memoryRegionAppend(&doubleList->region, newRegion, memory);
+		newRegion->start = memDoubleListBlockFreeFlagGetNext(memory);
 		// Set up its memory!
 		memDoubleListClearLastRegion(doubleList, newRegion);
 
@@ -365,15 +367,16 @@ void *memDoubleListExtend(memoryDoubleList *const restrict doubleList, void *con
 
 	return(memory);
 }
+#endif
 
 
-void memDoubleListDelete(memoryDoubleList *const restrict doubleList){
+void memDoubleListDelete(memoryDoubleList *const restrict doubleList, void (*freeFunc)(void *block)){
 	memoryRegion *region = doubleList->region;
 	// Free every memory region in the allocator.
 	while(region != NULL){
 		memoryRegion *next = region->next;
 
-		memoryFree(memDoubleListRegionStart(region));
+		(*freeFunc)(memDoubleListRegionStart(region));
 		region = next;
 	}
 }

@@ -299,7 +299,7 @@ return_t colliderHullLoad(
 			colliderEdgeIndex_t lastIndex = tempHull.numEdges;
 			// We also need to know the first edge's index
 			// so we can make the last edge point to it.
-			colliderEdgeIndex_t firstIndex = invalidValue(firstIndex);
+			colliderEdgeIndex_t firstIndex = valueInvalid(colliderEdgeIndex_t);
 			// Keep the index of the last edge.
 			colliderEdgeIndex_t prevIndex;
 			// This is the value of the first edge's start vertex.
@@ -359,7 +359,7 @@ return_t colliderHullLoad(
 
 						// If this is the first edge we've loaded,
 						// we'll need to keep a reference to it.
-						if(valueIsInvalid(firstIndex)){
+						if(valueIsInvalid(firstIndex, colliderEdgeIndex_t)){
 							firstIndex = twinIndex;
 							firstEdgeStartIndex = startIndex;
 							firstEdgeEndIndex = endIndex;
@@ -369,7 +369,7 @@ return_t colliderHullLoad(
 							tempEdge = &tempHull.edges[prevIndex];
 							// The value of "nextIndex" is always set before "twinNextIndex",
 							// so if it's unset we know that the previous edge was not a twin.
-							if(valueIsInvalid(tempEdge->nextIndex)){
+							if(valueIsInvalid(tempEdge->nextIndex, colliderEdgeIndex_t)){
 								tempEdge->nextIndex = twinIndex;
 							}else{
 								tempEdge->twinNextIndex = twinIndex;
@@ -388,7 +388,7 @@ return_t colliderHullLoad(
 					colliderHullEdge newEdge = {
 						.startVertexIndex = startIndex,
 						.endVertexIndex = endIndex,
-						.nextIndex = invalidValue(colliderEdgeIndex_t),
+						.nextIndex = valueInvalid(colliderEdgeIndex_t),
 						.twinNextIndex = 0,
 						.faceIndex = tempHull.numFaces,
 						.twinFaceIndex = 0
@@ -408,7 +408,7 @@ return_t colliderHullLoad(
 
 					// If this is the first edge we've loaded,
 					// we'll need to keep a reference to it.
-					if(valueIsInvalid(firstIndex)){
+					if(valueIsInvalid(firstIndex, colliderEdgeIndex_t)){
 						firstIndex = tempHull.numEdges;
 						firstEdgeStartIndex = startIndex;
 						firstEdgeEndIndex = endIndex;
@@ -418,7 +418,7 @@ return_t colliderHullLoad(
 						tempEdge = &tempHull.edges[prevIndex];
 						// The value of "nextIndex" is always set before "twinNextIndex",
 						// so if it's unset we know that the previous edge was not a twin.
-						if(valueIsInvalid(tempEdge->nextIndex)){
+						if(valueIsInvalid(tempEdge->nextIndex, colliderEdgeIndex_t)){
 							tempEdge->nextIndex = tempHull.numEdges;
 						}else{
 							tempEdge->twinNextIndex = tempHull.numEdges;
@@ -435,7 +435,7 @@ return_t colliderHullLoad(
 			tempEdge = &tempHull.edges[prevIndex];
 			// The value of "nextIndex" is always set before "twinNextIndex",
 			// so if it's unset we know that the previous edge was not a twin.
-			if(valueIsInvalid(tempEdge->nextIndex)){
+			if(valueIsInvalid(tempEdge->nextIndex, colliderEdgeIndex_t)){
 				tempEdge->nextIndex = firstIndex;
 			}else{
 				tempEdge->twinNextIndex = firstIndex;

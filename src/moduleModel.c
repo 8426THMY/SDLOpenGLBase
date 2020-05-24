@@ -22,14 +22,31 @@ return_t moduleModelSetup(){
 }
 
 void moduleModelCleanup(){
-	moduleModelClear();
-	memoryManagerGlobalFree(memPoolRegionStart(g_modelManager.region));
+	MEMPOOL_LOOP_BEGIN(g_modelManager, i, model)
+		moduleModelFree(i);
+	MEMPOOL_LOOP_END(g_modelManager, i, break)
+	memPoolDelete(&g_modelManager, memoryManagerGlobalFree);
 }
 
 
 // Allocate memory for a model and return a handle to it.
 model *moduleModelAlloc(){
+	#ifndef MEMORYREGION_EXTEND_ALLOCATORS
 	return(memPoolAlloc(&g_modelManager));
+	#else
+	model *newBlock = memPoolAlloc(&g_modelManager);
+	// If we've run out of memory, allocate some more!
+	if(newBlock == NULL){
+		if(memPoolExtend(
+			&g_modelManager,
+			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_MODEL_MANAGER_SIZE)),
+			MODULE_MODEL_MANAGER_SIZE
+		)){
+			newBlock = memPoolAlloc(&g_modelManager);
+		}
+	}
+	return(newBlock);
+	#endif
 }
 
 // Free a model that has been allocated.
@@ -42,5 +59,6 @@ void moduleModelFree(model *const restrict mdl){
 void moduleModelClear(){
 	MEMPOOL_LOOP_BEGIN(g_modelManager, i, model)
 		moduleModelFree(i);
-	MEMPOOL_LOOP_END(g_modelManager, i, return)
+	MEMPOOL_LOOP_END(g_modelManager, i, break)
+	memPoolClear(&g_modelManager);
 }

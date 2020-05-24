@@ -227,7 +227,7 @@ static void updateCameras(program *const restrict prg){
 static void updateObjects(program *const restrict prg){
 	MEMSINGLELIST_LOOP_BEGIN(g_objectManager, curObj, object)
 		objectUpdate(curObj, prg->step.updateTime);
-	MEMSINGLELIST_LOOP_END(g_objectManager, curObj, return)
+	MEMSINGLELIST_LOOP_END(g_objectManager, curObj, break)
 
 	// Update the models' positions and rotations!
 	/** Temporary if statement for temporary code. Don't want the program to crash, do we? **/
@@ -459,7 +459,7 @@ static return_t initResources(program *const restrict prg){
 
 	/** TEMPORARY PHYSICS STUFF **/
 	physIslandInit(&island);
-	mdl = modelOBJLoad("egg.obj", sizeof("egg.obj"));
+	mdl = modelOBJLoad("cube.obj", sizeof("cube.obj"));
 	objDef = moduleObjectDefAlloc();
 	objectDefInit(objDef);
 	physRigidBodyDefLoad(&objDef->physBodies, "egg.tdp", sizeof("egg.tdp"));
@@ -469,13 +469,6 @@ static return_t initResources(program *const restrict prg){
 
 	obj = moduleObjectAlloc();
 	objectInit(obj, objDef);
-	/** We should be doing this for every bone's physics object, but only the root has one in this case. **/
-	// Apply the current skeleton's local bind pose and any transformations.
-	transformStateAppend(&obj->state, &obj->skeleData.skele->bones->localBind, &obj->physBodies->state);
-	// Transform the bone using each animation.
-	skeleObjGenerateBoneState(&obj->skeleData, 0, obj->skeleData.skele->bones->name, &obj->physBodies->state);
-	// Update the rigid body's centroid to reflect its new position.
-	physRigidBodyCentroidFromPosition(obj->physBodies);
 
 
 	/** EVEN MORE TEMPORARY PARTICLE STUFF **/

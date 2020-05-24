@@ -44,6 +44,31 @@ return_t memoryLowLevelFree(void *block){
 #endif
 
 
+void *memoryAlloc(const size_t size){
+	#ifndef MEMORY_LOW_LEVEL
+		return(malloc(size));
+	#else
+		return(memoryLowLevelAlloc(size));
+	#endif
+}
+
+void *memoryRealloc(void *block, const size_t size){
+	#ifndef MEMORY_LOW_LEVEL
+		return(realloc(block, size));
+	#else
+		return(memoryLowLevelRealloc(block, size));
+	#endif
+}
+
+void memoryFree(void *block){
+	#ifndef MEMORY_LOW_LEVEL
+		free(block);
+	#else
+		memoryLowLevelFree(block);
+	#endif
+}
+
+
 void memoryRegionAppend(memoryRegion **region, memoryRegion *newRegion, void *memory){
 	newRegion->start = memory;
 	// Find the last memory region.

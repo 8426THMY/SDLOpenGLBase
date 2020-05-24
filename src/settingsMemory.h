@@ -11,6 +11,9 @@
 #define MEMORY_USE_GLOBAL_MANAGER
 #define MEMORY_USE_MODULE_MANAGER
 
+#define MEMORYREGION_EXTEND_ALLOCATORS
+#define MEMORYREGION_EXTEND_MANAGERS
+
 #define MEMPOOL_COUNT_USED_BLOCKS
 #define MEMFREELIST_COUNT_USED_BLOCKS
 #define MEMSINGLELIST_COUNT_USED_BLOCKS
@@ -18,9 +21,8 @@
 #define MEMQUADLIST_COUNT_USED_BLOCKS
 
 
-#warning "Modules should allocate new memory regions once they're full."
 // Define the base pool sizes for our object allocators!
-#define MEMORY_MODULE_NUM_TEXTURES            36
+#define MEMORY_MODULE_NUM_TEXTURES            18
 #define MEMORY_MODULE_NUM_TEXGROUPS           3
 #define MEMORY_MODULE_NUM_SKELETONS           2
 #define MEMORY_MODULE_NUM_SKELEANIMDEFS       2

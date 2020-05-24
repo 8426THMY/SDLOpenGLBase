@@ -312,12 +312,14 @@ void memSingleListClear(memorySingleList *const restrict singleList){
 }
 
 
+#ifdef MEMORYREGION_EXTEND_ALLOCATORS
 // Append a new memory region to the end of our allocator's region list!
 void *memSingleListExtend(memorySingleList *const restrict singleList, void *const restrict memory, const size_t memorySize){
 	if(memory != NULL){
 		memoryRegion *const newRegion = memoryGetRegionFromSize(memory, memorySize);
 		// Add the new region to the end of the list!
 		memoryRegionAppend(&singleList->region, newRegion, memory);
+		newRegion->start = memSingleListBlockFreeFlagGetNext(memory);
 		// Set up its memory!
 		memSingleListClearLastRegion(singleList, newRegion);
 
@@ -326,15 +328,16 @@ void *memSingleListExtend(memorySingleList *const restrict singleList, void *con
 
 	return(memory);
 }
+#endif
 
 
-void memSingleListDelete(memorySingleList *const restrict singleList){
+void memSingleListDelete(memorySingleList *const restrict singleList, void (*freeFunc)(void *block)){
 	memoryRegion *region = singleList->region;
 	// Free every memory region in the allocator.
 	while(region != NULL){
 		memoryRegion *next = region->next;
 
-		memoryFree(memSingleListRegionStart(region));
+		(*freeFunc)(memSingleListRegionStart(region));
 		region = next;
 	}
 }

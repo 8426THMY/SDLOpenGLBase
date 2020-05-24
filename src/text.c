@@ -47,6 +47,9 @@ static byte_t readBufferByte(const textBuffer *const restrict text, const byte_t
 
 void textBufferInit(textBuffer *const restrict text, const size_t size){
 	text->offset = text->start = text->end = memoryManagerGlobalAlloc(size);
+	if(text->offset == NULL){
+		/** MALLOC FAILED **/
+	}
 	text->end += size;
 }
 

@@ -92,44 +92,59 @@
 
 
 #ifdef MEMPOOL_COUNT_USED_BLOCKS
-#define MEMPOOL_LOOP_BEGIN(allocator, node, type)                             \
-{                                                                             \
-	const memoryRegion *__region_##node = allocator.region;                   \
-	size_t __remaining_##node = allocator.usedBlocks;                         \
-	do {                                                                      \
-		type *node = (type *)(allocator.region->start);                       \
-		for(; __remaining_##node > 0; --__remaining_##node){                  \
-			while(memPoolBlockDataGetFlagValue(node) != MEMPOOL_FLAG_ACTIVE){ \
-				node = memPoolBlockGetNextBlock(node, allocator.blockSize);   \
-			}
+#define MEMPOOL_LOOP_BEGIN(allocator, node, type)                                     \
+{                                                                                     \
+	memoryRegion *allocator##_region_##node = allocator.region;                       \
+	size_t allocator##_remaining_##node = allocator.usedBlocks;                       \
+	type *node = (void *)(allocator##_region_##node->start);                          \
+	for(;;){                                                                          \
+		const uintptr_t allocator##_flag_##node = memPoolBlockDataGetFlagValue(node); \
+		if(allocator##_flag_##node == MEMPOOL_FLAG_ACTIVE){                           \
+			--allocator##_remaining_##node;
 
-#define MEMPOOL_LOOP_END(allocator, node, earlyexit)                    \
-			node = memPoolBlockGetNextBlock(node, allocator.blockSize); \
-		}                                                               \
-		__region_##node = __region_##node->next;                        \
-	} while(__region_##node != NULL);                                   \
+#define MEMPOOL_LOOP_INACTIVE(node)                                 \
+		}else if(allocator##_flag_##node == MEMPOOL_FLAG_INACTIVE){ \
+
+#define MEMPOOL_LOOP_END(allocator, node, earlyexit)                     \
+		}                                                                \
+		if(allocator##_remaining_##node <= 0){                           \
+			earlyexit;                                                   \
+		}                                                                \
+		node = memPoolBlockGetNextBlock(node, allocator.blockSize);      \
+		if((void *)node >= (void *)allocator##_region_##node){           \
+			allocator##_region_##node = allocator##_region_##node->next; \
+			if(allocator##_region_##node == NULL){                       \
+				break;                                                   \
+			}                                                            \
+			node = (void *)allocator##_region_##node->start;             \
+		}                                                                \
+	}                                                                    \
 }
 #else
-#define MEMPOOL_LOOP_BEGIN(allocator, node, type)                               \
-{                                                                               \
-	const memoryRegion *__region_##node = allocator.region;                     \
-	do {                                                                        \
-		type *node = (type *)(allocator.region->start);                         \
-		do {                                                                    \
-			const uintptr_t __flag_##node = memPoolBlockDataGetFlagValue(node); \
-			if(__flag_##node == MEMPOOL_FLAG_ACTIVE){
+#define MEMPOOL_LOOP_BEGIN(allocator, node, type)                                     \
+{                                                                                     \
+	memoryRegion *allocator##_region_##node = allocator.region;                       \
+	type *node = (void *)(allocator##_region_##node->start);                          \
+	for(;;){                                                                          \
+		const uintptr_t allocator##_flag_##node = memPoolBlockDataGetFlagValue(node); \
+		if(allocator##_flag_##node == MEMPOOL_FLAG_ACTIVE){
 
-#define MEMPOOL_LOOP_INACTIVE(node)                           \
-			}else if(__flag_##node == MEMPOOL_FLAG_INACTIVE){
+#define MEMPOOL_LOOP_INACTIVE(node)                                 \
+		}else if(allocator##_flag_##node == MEMPOOL_FLAG_INACTIVE){ \
 
-#define MEMPOOL_LOOP_END(allocator, node, earlyexit)                    \
-			}else if(__flag_##node == MEMPOOL_FLAG_INVALID){            \
-				earlyexit;                                              \
-			}                                                           \
-			node = memPoolBlockGetNextBlock(node, allocator.blockSize); \
-		} while((void *)node < (void *)__region_##node);                \
-		__region_##node = __region_##node->next;                        \
-	} while(__region_##node != NULL);                                   \
+#define MEMPOOL_LOOP_END(allocator, node, earlyexit)                     \
+		}else if(allocator##_flag_##node == MEMPOOL_FLAG_INVALID){       \
+			earlyexit;                                                   \
+		}                                                                \
+		node = memPoolBlockGetNextBlock(node, allocator.blockSize);      \
+		if((void *)node >= (void *)allocator##_region_##node){           \
+			allocator##_region_##node = allocator##_region_##node->next; \
+			if(allocator##_region_##node == NULL){                       \
+				break;                                                   \
+			}                                                            \
+			node = (void *)allocator##_region_##node->start;             \
+		}                                                                \
+	}                                                                    \
 }
 #endif
 
@@ -165,9 +180,11 @@ void memPoolClearRegion(memoryPool *const restrict pool, memoryRegion *const res
 void memPoolClearLastRegion(memoryPool *const restrict pool, memoryRegion *const restrict region);
 void memPoolClear(memoryPool *const restrict pool);
 
+#ifdef MEMORYREGION_EXTEND_ALLOCATORS
 void *memPoolExtend(memoryPool *const restrict pool, void *const restrict memory, const size_t memorySize);
+#endif
 
-void memPoolDelete(memoryPool *const restrict pool);
+void memPoolDelete(memoryPool *const restrict pool, void (*freeFunc)(void *block));
 
 
 #endif

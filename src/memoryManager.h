@@ -26,7 +26,9 @@ return_t memoryManagerGlobalInit(const size_t heapSize);
 void *memoryManagerGlobalAlloc(const size_t heapSize);
 void *memoryManagerGlobalResize(void *const restrict block, const size_t blockSize);
 void *memoryManagerGlobalRealloc(void *const restrict block, const size_t blockSize);
+#if defined(MEMORYREGION_EXTEND_ALLOCATORS) && defined(MEMORYREGION_EXTEND_MANAGERS)
 void *memoryManagerGlobalExtend(const size_t memorySize);
+#endif
 void memoryManagerGlobalFree(void *const restrict block);
 
 void memoryManagerGlobalDelete();
@@ -43,7 +45,9 @@ return_t memoryManagerInit(memoryManager *const restrict memMngr, const size_t h
 void *memoryManagerAlloc(memoryManager *const restrict memMngr, const size_t heapSize);
 void *memoryManagerResize(memoryManager *const restrict memMngr, void *const restrict block, const size_t blockSize);
 void *memoryManagerRealloc(memoryManager *const restrict memMngr, void *const restrict block, const size_t blockSize);
+#if defined(MEMORYREGION_EXTEND_ALLOCATORS) && defined(MEMORYREGION_EXTEND_MANAGERS)
 void *memoryManagerExtend(memoryManager *const restrict memMngr, const size_t memorySize);
+#endif
 void memoryManagerFree(memoryManager *const restrict memMngr, void *const restrict block);
 
 void memoryManagerDelete(memoryManager *const restrict memMngr);

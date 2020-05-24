@@ -8,7 +8,7 @@
 #include "utilTypes.h"
 
 
-#define TEXT_UTF8_INVALID_CODE ((uint32_t)-1)
+#define TEXT_UTF8_INVALID_CODE valueInvalid(uint32_t)
 
 
 /*

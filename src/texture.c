@@ -55,8 +55,8 @@ void textureInit(texture *const restrict tex){
 	tex->width = 0;
 	tex->height = 0;
 
-	tex->format = invalidValue(tex->format);
-	tex->filtering = invalidValue(tex->filtering);
+	tex->format = valueInvalid(GLint);
+	tex->filtering = valueInvalid(GLint);
 }
 
 

@@ -17,7 +17,7 @@ textGlyph *textGlyphArrayLoad(const char *const restrict glyphPath, const textur
 	if(glyphFile != NULL){
 		char *endPos = NULL;
 
-		size_t lastIndex = invalidValue(lastIndex);
+		size_t lastIndex = valueInvalid(size_t);
 
 		char lineBuffer[FILE_MAX_LINE_LENGTH];
 		char *line;
@@ -25,11 +25,11 @@ textGlyph *textGlyphArrayLoad(const char *const restrict glyphPath, const textur
 
 		while((line = fileReadLine(glyphFile, &lineBuffer[0], &lineLength)) != NULL){
 			// If we haven't read the character count, try and read it!
-			if(valueIsInvalid(lastIndex)){
+			if(valueIsInvalid(lastIndex, size_t)){
 				lastIndex = strtoul(line, &endPos, 10);
 				// If we didn't read a number, return numGlyphs to the invalid value.
 				if(endPos == line){
-					lastIndex = invalidValue(lastIndex);
+					lastIndex = valueInvalid(size_t);
 
 				// Otherwise, allocate memory for our glyphs!
 				}else{
@@ -100,7 +100,7 @@ textGlyph *textGlyphArrayLoad(const char *const restrict glyphPath, const textur
 	if(glyphFile != NULL){
 		char *endPos = NULL;
 
-		size_t numGlyphs = invalidValue(numGlyphs);
+		size_t numGlyphs = valueInvalid(size_t);
 
 		char lineBuffer[FILE_MAX_LINE_LENGTH];
 		char *line;
@@ -108,11 +108,11 @@ textGlyph *textGlyphArrayLoad(const char *const restrict glyphPath, const textur
 
 		while((line = fileReadLine(glyphFile, &lineBuffer[0], &lineLength)) != NULL){
 			// If we haven't read the character count, try and read it!
-			if(valueIsInvalid(numGlyphs)){
+			if(valueIsInvalid(numGlyphs, size_t)){
 				numGlyphs = strtoul(line, &endPos, 10);
 				// If we didn't read a number, return numGlyphs to the invalid value.
 				if(endPos == line){
-					numGlyphs = invalidValue(numGlyphs);
+					numGlyphs = valueInvalid(size_t);
 				}
 			}else{
 				const size_t curID = strtoul(line, &endPos, 10);

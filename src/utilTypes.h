@@ -11,8 +11,8 @@ typedef uint_least8_t flags_t;
 typedef int return_t;
 
 
-#define invalidValue(x)   ((typeof(x))-1)
-#define valueIsInvalid(x) ((x) == ((typeof(x))-1))
+#define valueInvalid(type) ((type)-1)
+#define valueIsInvalid(x, type) ((x) == ((type)-1))
 
 #define flagsSet(flags, bits) ((flags) |= (bits))
 #define flagsUnset(flags, bits) ((flags) &= ~(bits))

@@ -103,44 +103,59 @@
 
 
 #ifdef MEMSINGLELIST_COUNT_USED_BLOCKS
-#define MEMSINGLELIST_LOOP_BEGIN(allocator, node, type)                                       \
-{                                                                                             \
-	const memoryRegion *__region_##node = allocator.region;                                   \
-	size_t __remaining_##node = allocator.usedBlocks;                                         \
-	do {                                                                                      \
-		type *node = (type *)(allocator.region->start);                                       \
-		for(; __remaining_##node > 0; --__remaining_##node){                                  \
-			while(memSingleListBlockUsedDataGetFlagValue(node) != MEMSINGLELIST_FLAG_ACTIVE){ \
-				node = memSingleListBlockGetNextBlock(node, allocator.blockSize);             \
-			}
+#define MEMSINGLELIST_LOOP_BEGIN(allocator, node, type)                                         \
+{                                                                                               \
+	memoryRegion *allocator##_region_##node = allocator.region;                                 \
+	size_t allocator##_remaining_##node = allocator.usedBlocks;                                 \
+	type *node = (void *)(allocator##_region_##node->start);                                    \
+	for(;;){                                                                                    \
+		const uintptr_t allocator##_flag_##node = memSingleListBlockUsedDataGetFlagValue(node); \
+		if(allocator##_flag_##node == MEMSINGLELIST_FLAG_ACTIVE){                               \
+			--allocator##_remaining_##node;
 
-#define MEMSINGLELIST_LOOP_END(allocator, node, earlyexit)                    \
-			node = memSingleListBlockGetNextBlock(node, allocator.blockSize); \
-		}                                                                     \
-		__region_##node = __region_##node->next;                              \
-	} while(__region_##node != NULL);                                         \
+#define MEMSINGLELIST_LOOP_INACTIVE(node)                                 \
+		}else if(allocator##_flag_##node == MEMSINGLELIST_FLAG_INACTIVE){ \
+
+#define MEMSINGLELIST_LOOP_END(allocator, node, earlyexit)                \
+		}                                                                 \
+		if(allocator##_remaining_##node <= 0){                            \
+			earlyexit;                                                    \
+		}                                                                 \
+		node = memSingleListBlockGetNextBlock(node, allocator.blockSize); \
+		if((void *)node >= (void *)allocator##_region_##node){            \
+			allocator##_region_##node = allocator##_region_##node->next;  \
+			if(allocator##_region_##node == NULL){                        \
+				break;                                                    \
+			}                                                             \
+			node = (void *)allocator##_region_##node->start;              \
+		}                                                                 \
+	}                                                                     \
 }
 #else
-#define MEMSINGLELIST_LOOP_BEGIN(allocator, node, type)                                   \
-{                                                                                         \
-	const memoryRegion *__region_##node = allocator.region;                               \
-	do {                                                                                  \
-		type *node = (type *)(allocator.region->start);                                   \
-		do {                                                                              \
-			const uintptr_t __flag_##node = memSingleListBlockUsedDataGetFlagValue(node); \
-			if(__flag_##node == MEMSINGLELIST_FLAG_ACTIVE){
+#define MEMSINGLELIST_LOOP_BEGIN(allocator, node, type)                                         \
+{                                                                                               \
+	memoryRegion *allocator##_region_##node = allocator.region;                                 \
+	type *node = (void *)(allocator##_region_##node->start);                                    \
+	for(;;){                                                                                    \
+		const uintptr_t allocator##_flag_##node = memSingleListBlockUsedDataGetFlagValue(node); \
+		if(allocator##_flag_##node == MEMSINGLELIST_FLAG_ACTIVE){
 
-#define MEMSINGLELIST_LOOP_INACTIVE(node)                           \
-			}else if(__flag_##node == MEMSINGLELIST_FLAG_INACTIVE){
+#define MEMSINGLELIST_LOOP_INACTIVE(node)                                 \
+		}else if(allocator##_flag_##node == MEMSINGLELIST_FLAG_INACTIVE){ \
 
-#define MEMSINGLELIST_LOOP_END(allocator, node, earlyexit)                    \
-			}else if(__flag_##node == MEMSINGLELIST_FLAG_INVALID){            \
-				earlyexit;                                                    \
-			}                                                                 \
-			node = memSingleListBlockGetNextBlock(node, allocator.blockSize); \
-		} while((void *)node < (void *)__region_##node);                      \
-		__region_##node = __region_##node->next;                              \
-	} while(__region_##node != NULL);                                         \
+#define MEMSINGLELIST_LOOP_END(allocator, node, earlyexit)                \
+		}else if(allocator##_flag_##node == MEMSINGLELIST_FLAG_INVALID){  \
+			earlyexit;                                                    \
+		}                                                                 \
+		node = memSingleListBlockGetNextBlock(node, allocator.blockSize); \
+		if((void *)node >= (void *)allocator##_region_##node){            \
+			allocator##_region_##node = allocator##_region_##node->next;  \
+			if(allocator##_region_##node == NULL){                        \
+				break;                                                    \
+			}                                                             \
+			node = (void *)allocator##_region_##node->start;              \
+		}                                                                 \
+	}                                                                     \
 }
 #endif
 
@@ -184,9 +199,11 @@ void memSingleListClearRegion(memorySingleList *const restrict singleList, memor
 void memSingleListClearLastRegion(memorySingleList *const restrict singleList, memoryRegion *const restrict region);
 void memSingleListClear(memorySingleList *const restrict singleList);
 
+#ifdef MEMORYREGION_EXTEND_ALLOCATORS
 void *memSingleListExtend(memorySingleList *const restrict singleList, void *const restrict memory, const size_t memorySize);
+#endif
 
-void memSingleListDelete(memorySingleList *const restrict singleList);
+void memSingleListDelete(memorySingleList *const restrict singleList, void (*freeFunc)(void *block));
 
 
 #endif

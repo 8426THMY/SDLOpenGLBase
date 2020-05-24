@@ -137,7 +137,7 @@ void modulePhysicsSolveConstraints(const float dt){
 	// Presolve joints.
 	/**MEMORY_QLINK_LOOP_BEGIN(__g_PhysicsJointResourceArray, joint, physJoint *);
 		physJointPresolveConstraints(joint, dt);
-	MEMORY_QLINK_LOOP_END(__g_PhysicsJointResourceArray, joint, goto PHYSICS_VELOCITY_PRESOLVER;);**/
+	MEMORY_QLINK_LOOP_END(__g_PhysicsJointResourceArray, joint, break);**/
 
 
 	// Iteratively solve joint and contact velocity constraints.
@@ -186,37 +186,62 @@ void modulePhysicsSolveConstraints(const float dt){
 		if(solved && separation >= PHYSCONTACT_PENETRATION_ERROR_THRESHOLD){
 			return;
 		}
-
 	}
-
 	#endif
 }
 
 void modulePhysicsCleanup(){
 	// physicsRigidBody
-	modulePhysicsBodyClear();
-	memoryManagerGlobalFree(memSingleListRegionStart(g_physRigidBodyManager.region));
+	MEMSINGLELIST_LOOP_BEGIN(g_physRigidBodyManager, i, physicsRigidBody)
+		modulePhysicsBodyFree(NULL, i, NULL);
+	MEMSINGLELIST_LOOP_END(g_physRigidBodyManager, i, break)
+	memSingleListDelete(&g_physRigidBodyManager, memoryManagerGlobalFree);
 	// physicsRigidBodyDef
-	modulePhysicsBodyDefClear();
-	memoryManagerGlobalFree(memSingleListRegionStart(g_physRigidBodyDefManager.region));
+	MEMSINGLELIST_LOOP_BEGIN(g_physRigidBodyDefManager, i, physicsRigidBodyDef)
+		modulePhysicsBodyDefFree(NULL, i, NULL);
+	MEMSINGLELIST_LOOP_END(g_physRigidBodyDefManager, i, break)
+	memSingleListDelete(&g_physRigidBodyDefManager, memoryManagerGlobalFree);
 	// physicsCollider
-	modulePhysicsColliderClear();
-	memoryManagerGlobalFree(memSingleListRegionStart(g_physColliderManager.region));
+	MEMSINGLELIST_LOOP_BEGIN(g_physColliderManager, i, physicsCollider)
+		modulePhysicsColliderFree(NULL, i, NULL);
+	MEMSINGLELIST_LOOP_END(g_physColliderManager, i, break)
+	memSingleListDelete(&g_physColliderManager, memoryManagerGlobalFree);
 	// physicsSeparationPair
-	modulePhysicsSeparationPairClear();
-	memoryManagerGlobalFree(memPoolRegionStart(g_physSeparationPairManager.region));
+	MEMPOOL_LOOP_BEGIN(g_physSeparationPairManager, i, physicsSeparationPair)
+		modulePhysicsSeparationPairFree(i);
+	MEMPOOL_LOOP_END(g_physSeparationPairManager, i, break)
+	memPoolDelete(&g_physSeparationPairManager, memoryManagerGlobalFree);
 	// physicsContactPair
-	modulePhysicsContactPairClear();
-	memoryManagerGlobalFree(memPoolRegionStart(g_physContactPairManager.region));
+	MEMPOOL_LOOP_BEGIN(g_physContactPairManager, i, physicsContactPair)
+		modulePhysicsContactPairFree(i);
+	MEMPOOL_LOOP_END(g_physContactPairManager, i, break)
+	memPoolDelete(&g_physContactPairManager, memoryManagerGlobalFree);
 	// aabbNode
-	modulePhysicsAABBNodeClear();
-	memoryManagerGlobalFree(memPoolRegionStart(g_aabbNodeManager.region));
+	MEMPOOL_LOOP_BEGIN(g_aabbNodeManager, i, aabbNode)
+		modulePhysicsAABBNodeFree(i);
+	MEMPOOL_LOOP_END(g_aabbNodeManager, i, break)
+	memPoolDelete(&g_aabbNodeManager, memoryManagerGlobalFree);
 }
 
 
 // Allocate memory for an AABB tree node and return a handle to it.
 aabbNode *modulePhysicsAABBNodeAlloc(){
+	#ifndef MEMORYREGION_EXTEND_ALLOCATORS
 	return(memPoolAlloc(&g_aabbNodeManager));
+	#else
+	aabbNode *newBlock = memPoolAlloc(&g_aabbNodeManager);
+	// If we've run out of memory, allocate some more!
+	if(newBlock == NULL){
+		if(memPoolExtend(
+			&g_aabbNodeManager,
+			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_AABBNODES_MANAGER_SIZE)),
+			MODULE_AABBNODES_MANAGER_SIZE
+		)){
+			newBlock = memPoolAlloc(&g_aabbNodeManager);
+		}
+	}
+	return(newBlock);
+	#endif
 }
 
 // Free an AABB tree node that has been allocated.
@@ -228,14 +253,30 @@ void modulePhysicsAABBNodeFree(aabbNode *const restrict node){
 void modulePhysicsAABBNodeClear(){
 	MEMPOOL_LOOP_BEGIN(g_aabbNodeManager, i, aabbNode)
 		modulePhysicsAABBNodeFree(i);
-	MEMPOOL_LOOP_END(g_aabbNodeManager, i, return)
+	MEMPOOL_LOOP_END(g_aabbNodeManager, i, break)
+	memPoolClear(&g_aabbNodeManager);
 }
 
 
 // Allocate memory for a contact
 // pair and return a handle to it.
 physicsContactPair *modulePhysicsContactPairAlloc(){
+	#ifndef MEMORYREGION_EXTEND_ALLOCATORS
 	return(memPoolAlloc(&g_physContactPairManager));
+	#else
+	physicsContactPair *newBlock = memPoolAlloc(&g_physContactPairManager);
+	// If we've run out of memory, allocate some more!
+	if(newBlock == NULL){
+		if(memPoolExtend(
+			&g_physContactPairManager,
+			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSCONTACTPAIRS_MANAGER_SIZE)),
+			MODULE_PHYSCONTACTPAIRS_MANAGER_SIZE
+		)){
+			newBlock = memPoolAlloc(&g_physContactPairManager);
+		}
+	}
+	return(newBlock);
+	#endif
 }
 
 // Free a contact pair that has been allocated.
@@ -248,13 +289,29 @@ void modulePhysicsContactPairFree(physicsContactPair *const restrict cPair){
 void modulePhysicsContactPairClear(){
 	MEMPOOL_LOOP_BEGIN(g_physContactPairManager, i, physicsContactPair)
 		modulePhysicsContactPairFree(i);
-	MEMPOOL_LOOP_END(g_physContactPairManager, i, return)
+	MEMPOOL_LOOP_END(g_physContactPairManager, i, break)
+	memPoolClear(&g_physContactPairManager);
 }
 
 
 // Allocate memory for a separation pair and return a handle to it.
 physicsSeparationPair *modulePhysicsSeparationPairAlloc(){
+	#ifndef MEMORYREGION_EXTEND_ALLOCATORS
 	return(memPoolAlloc(&g_physSeparationPairManager));
+	#else
+	physicsSeparationPair *newBlock = memPoolAlloc(&g_physSeparationPairManager);
+	// If we've run out of memory, allocate some more!
+	if(newBlock == NULL){
+		if(memPoolExtend(
+			&g_physSeparationPairManager,
+			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSSEPARATIONPAIRS_MANAGER_SIZE)),
+			MODULE_PHYSSEPARATIONPAIRS_MANAGER_SIZE
+		)){
+			newBlock = memPoolAlloc(&g_physSeparationPairManager);
+		}
+	}
+	return(newBlock);
+	#endif
 }
 
 // Free a separation pair that has been allocated.
@@ -267,33 +324,109 @@ void modulePhysicsSeparationPairFree(physicsSeparationPair *const restrict sPair
 void modulePhysicsSeparationPairClear(){
 	MEMPOOL_LOOP_BEGIN(g_physSeparationPairManager, i, physicsSeparationPair)
 		modulePhysicsSeparationPairFree(i);
-	MEMPOOL_LOOP_END(g_physSeparationPairManager, i, return)
+	MEMPOOL_LOOP_END(g_physSeparationPairManager, i, break)
+	memPoolClear(&g_physSeparationPairManager);
 }
 
 
 // Allocate a new collider array.
 physicsCollider *modulePhysicsColliderAlloc(){
+	#ifndef MEMORYREGION_EXTEND_ALLOCATORS
 	return(memSingleListAlloc(&g_physColliderManager));
+	#else
+	physicsCollider *newBlock = memSingleListAlloc(&g_physColliderManager);
+	// If we've run out of memory, allocate some more!
+	if(newBlock == NULL){
+		if(memSingleListExtend(
+			&g_physColliderManager,
+			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSCOLLIDER_MANAGER_SIZE)),
+			MODULE_PHYSCOLLIDER_MANAGER_SIZE
+		)){
+			newBlock = memSingleListAlloc(&g_physColliderManager);
+		}
+	}
+	return(newBlock);
+	#endif
 }
 
 // Insert a collider at the beginning of an array.
 physicsCollider *modulePhysicsColliderPrepend(physicsCollider **const restrict start){
+	#ifndef MEMORYREGION_EXTEND_ALLOCATORS
 	return(memSingleListPrepend(&g_physColliderManager, (void **)start));
+	#else
+	physicsCollider *newBlock = memSingleListPrepend(&g_physColliderManager, (void **)start);
+	// If we've run out of memory, allocate some more!
+	if(newBlock == NULL){
+		if(memSingleListExtend(
+			&g_physColliderManager,
+			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSCOLLIDER_MANAGER_SIZE)),
+			MODULE_PHYSCOLLIDER_MANAGER_SIZE
+		)){
+			newBlock = memSingleListPrepend(&g_physColliderManager, (void **)start);
+		}
+	}
+	return(newBlock);
+	#endif
 }
 
 // Insert a collider at the end of an array.
 physicsCollider *modulePhysicsColliderAppend(physicsCollider **const restrict start){
+	#ifndef MEMORYREGION_EXTEND_ALLOCATORS
 	return(memSingleListAppend(&g_physColliderManager, (void **)start));
+	#else
+	physicsCollider *newBlock = memSingleListAppend(&g_physColliderManager, (void **)start);
+	// If we've run out of memory, allocate some more!
+	if(newBlock == NULL){
+		if(memSingleListExtend(
+			&g_physColliderManager,
+			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSCOLLIDER_MANAGER_SIZE)),
+			MODULE_PHYSCOLLIDER_MANAGER_SIZE
+		)){
+			newBlock = memSingleListAppend(&g_physColliderManager, (void **)start);
+		}
+	}
+	return(newBlock);
+	#endif
 }
 
 // Insert a collider after the element "prevData".
 physicsCollider *modulePhysicsColliderInsertBefore(physicsCollider **const restrict start, physicsCollider *const restrict prevData){
+	#ifndef MEMORYREGION_EXTEND_ALLOCATORS
 	return(memSingleListInsertBefore(&g_physColliderManager, (void **)start, (void *)prevData));
+	#else
+	physicsCollider *newBlock = memSingleListInsertBefore(&g_physColliderManager, (void **)start, (void *)prevData);
+	// If we've run out of memory, allocate some more!
+	if(newBlock == NULL){
+		if(memSingleListExtend(
+			&g_physColliderManager,
+			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSCOLLIDER_MANAGER_SIZE)),
+			MODULE_PHYSCOLLIDER_MANAGER_SIZE
+		)){
+			newBlock = memSingleListInsertBefore(&g_physColliderManager, (void **)start, (void *)prevData);
+		}
+	}
+	return(newBlock);
+	#endif
 }
 
 // Insert a collider after the element "data".
 physicsCollider *modulePhysicsColliderInsertAfter(physicsCollider **const restrict start, physicsCollider *const restrict data){
+	#ifndef MEMORYREGION_EXTEND_ALLOCATORS
 	return(memSingleListInsertAfter(&g_physColliderManager, (void **)start, (void *)data));
+	#else
+	physicsCollider *newBlock = memSingleListInsertAfter(&g_physColliderManager, (void **)start, (void *)data);
+	// If we've run out of memory, allocate some more!
+	if(newBlock == NULL){
+		if(memSingleListExtend(
+			&g_physColliderManager,
+			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSCOLLIDER_MANAGER_SIZE)),
+			MODULE_PHYSCOLLIDER_MANAGER_SIZE
+		)){
+			newBlock = memSingleListInsertAfter(&g_physColliderManager, (void **)start, (void *)data);
+		}
+	}
+	return(newBlock);
+	#endif
 }
 
 // Free a collider instance that has been allocated.
@@ -330,33 +463,109 @@ void modulePhysicsColliderFreeArray(physicsCollider **const restrict start){
 void modulePhysicsColliderClear(){
 	MEMSINGLELIST_LOOP_BEGIN(g_physColliderManager, i, physicsCollider)
 		modulePhysicsColliderFree(NULL, i, NULL);
-	MEMSINGLELIST_LOOP_END(g_physColliderManager, i, return)
+	MEMSINGLELIST_LOOP_END(g_physColliderManager, i, break)
+	memSingleListClear(&g_physColliderManager);
 }
 
 
 // Allocate a new rigid body base array.
 physicsRigidBodyDef *modulePhysicsBodyDefAlloc(){
+	#ifndef MEMORYREGION_EXTEND_ALLOCATORS
 	return(memSingleListAlloc(&g_physRigidBodyDefManager));
+	#else
+	physicsRigidBodyDef *newBlock = memSingleListAlloc(&g_physRigidBodyDefManager);
+	// If we've run out of memory, allocate some more!
+	if(newBlock == NULL){
+		if(memSingleListExtend(
+			&g_physRigidBodyDefManager,
+			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSRIGIDBODYDEF_MANAGER_SIZE)),
+			MODULE_PHYSRIGIDBODYDEF_MANAGER_SIZE
+		)){
+			newBlock = memSingleListAlloc(&g_physRigidBodyDefManager);
+		}
+	}
+	return(newBlock);
+	#endif
 }
 
 // Insert a rigid body base at the beginning of an array.
 physicsRigidBodyDef *modulePhysicsBodyDefPrepend(physicsRigidBodyDef **const restrict start){
+	#ifndef MEMORYREGION_EXTEND_ALLOCATORS
 	return(memSingleListPrepend(&g_physRigidBodyDefManager, (void **)start));
+	#else
+	physicsRigidBodyDef *newBlock = memSingleListPrepend(&g_physRigidBodyDefManager, (void **)start);
+	// If we've run out of memory, allocate some more!
+	if(newBlock == NULL){
+		if(memSingleListExtend(
+			&g_physRigidBodyDefManager,
+			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSRIGIDBODYDEF_MANAGER_SIZE)),
+			MODULE_PHYSRIGIDBODYDEF_MANAGER_SIZE
+		)){
+			newBlock = memSingleListPrepend(&g_physRigidBodyDefManager, (void **)start);
+		}
+	}
+	return(newBlock);
+	#endif
 }
 
 // Insert a rigid body base at the end of an array.
 physicsRigidBodyDef *modulePhysicsBodyDefAppend(physicsRigidBodyDef **const restrict start){
+	#ifndef MEMORYREGION_EXTEND_ALLOCATORS
 	return(memSingleListAppend(&g_physRigidBodyDefManager, (void **)start));
+	#else
+	physicsRigidBodyDef *newBlock = memSingleListAppend(&g_physRigidBodyDefManager, (void **)start);
+	// If we've run out of memory, allocate some more!
+	if(newBlock == NULL){
+		if(memSingleListExtend(
+			&g_physRigidBodyDefManager,
+			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSRIGIDBODYDEF_MANAGER_SIZE)),
+			MODULE_PHYSRIGIDBODYDEF_MANAGER_SIZE
+		)){
+			newBlock = memSingleListAppend(&g_physRigidBodyDefManager, (void **)start);
+		}
+	}
+	return(newBlock);
+	#endif
 }
 
 // Insert a rigid body base after the element "prevData".
 physicsRigidBodyDef *modulePhysicsBodyDefInsertBefore(physicsRigidBodyDef **const restrict start, physicsRigidBodyDef *const restrict prevData){
+	#ifndef MEMORYREGION_EXTEND_ALLOCATORS
 	return(memSingleListInsertBefore(&g_physRigidBodyDefManager, (void **)start, (void *)prevData));
+	#else
+	physicsRigidBodyDef *newBlock = memSingleListInsertBefore(&g_physRigidBodyDefManager, (void **)start, (void *)prevData);
+	// If we've run out of memory, allocate some more!
+	if(newBlock == NULL){
+		if(memSingleListExtend(
+			&g_physRigidBodyDefManager,
+			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSRIGIDBODYDEF_MANAGER_SIZE)),
+			MODULE_PHYSRIGIDBODYDEF_MANAGER_SIZE
+		)){
+			newBlock = memSingleListInsertBefore(&g_physRigidBodyDefManager, (void **)start, (void *)prevData);
+		}
+	}
+	return(newBlock);
+	#endif
 }
 
 // Insert a rigid body base after the element "data".
 physicsRigidBodyDef *modulePhysicsBodyDefInsertAfter(physicsRigidBodyDef **const restrict start, physicsRigidBodyDef *const restrict data){
+	#ifndef MEMORYREGION_EXTEND_ALLOCATORS
 	return(memSingleListInsertAfter(&g_physRigidBodyDefManager, (void **)start, (void *)data));
+	#else
+	physicsRigidBodyDef *newBlock = memSingleListInsertAfter(&g_physRigidBodyDefManager, (void **)start, (void *)data);
+	// If we've run out of memory, allocate some more!
+	if(newBlock == NULL){
+		if(memSingleListExtend(
+			&g_physRigidBodyDefManager,
+			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSRIGIDBODYDEF_MANAGER_SIZE)),
+			MODULE_PHYSRIGIDBODYDEF_MANAGER_SIZE
+		)){
+			newBlock = memSingleListInsertAfter(&g_physRigidBodyDefManager, (void **)start, (void *)data);
+		}
+	}
+	return(newBlock);
+	#endif
 }
 
 // Free a rigid body base that has been allocated.
@@ -378,33 +587,109 @@ void modulePhysicsBodyDefFreeArray(physicsRigidBodyDef **const restrict start){
 void modulePhysicsBodyDefClear(){
 	MEMSINGLELIST_LOOP_BEGIN(g_physRigidBodyDefManager, i, physicsRigidBodyDef)
 		modulePhysicsBodyDefFree(NULL, i, NULL);
-	MEMSINGLELIST_LOOP_END(g_physRigidBodyDefManager, i, return)
+	MEMSINGLELIST_LOOP_END(g_physRigidBodyDefManager, i, break)
+	memSingleListClear(&g_physRigidBodyDefManager);
 }
 
 
 // Allocate a new rigid body array.
 physicsRigidBody *modulePhysicsBodyAlloc(){
+	#ifndef MEMORYREGION_EXTEND_ALLOCATORS
 	return(memSingleListAlloc(&g_physRigidBodyManager));
+	#else
+	physicsRigidBody *newBlock = memSingleListAlloc(&g_physRigidBodyManager);
+	// If we've run out of memory, allocate some more!
+	if(newBlock == NULL){
+		if(memSingleListExtend(
+			&g_physRigidBodyManager,
+			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSRIGIDBODY_MANAGER_SIZE)),
+			MODULE_PHYSRIGIDBODY_MANAGER_SIZE
+		)){
+			newBlock = memSingleListAlloc(&g_physRigidBodyManager);
+		}
+	}
+	return(newBlock);
+	#endif
 }
 
 // Insert a rigid body at the beginning of an array.
 physicsRigidBody *modulePhysicsBodyPrepend(physicsRigidBody **const restrict start){
+	#ifndef MEMORYREGION_EXTEND_ALLOCATORS
 	return(memSingleListPrepend(&g_physRigidBodyManager, (void **)start));
+	#else
+	physicsRigidBody *newBlock = memSingleListPrepend(&g_physRigidBodyManager, (void **)start);
+	// If we've run out of memory, allocate some more!
+	if(newBlock == NULL){
+		if(memSingleListExtend(
+			&g_physRigidBodyManager,
+			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSRIGIDBODY_MANAGER_SIZE)),
+			MODULE_PHYSRIGIDBODY_MANAGER_SIZE
+		)){
+			newBlock = memSingleListPrepend(&g_physRigidBodyManager, (void **)start);
+		}
+	}
+	return(newBlock);
+	#endif
 }
 
 // Insert a rigid body at the end of an array.
 physicsRigidBody *modulePhysicsBodyAppend(physicsRigidBody **const restrict start){
+	#ifndef MEMORYREGION_EXTEND_ALLOCATORS
 	return(memSingleListAppend(&g_physRigidBodyManager, (void **)start));
+	#else
+	physicsRigidBody *newBlock = memSingleListAppend(&g_physRigidBodyManager, (void **)start);
+	// If we've run out of memory, allocate some more!
+	if(newBlock == NULL){
+		if(memSingleListExtend(
+			&g_physRigidBodyManager,
+			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSRIGIDBODY_MANAGER_SIZE)),
+			MODULE_PHYSRIGIDBODY_MANAGER_SIZE
+		)){
+			newBlock = memSingleListAppend(&g_physRigidBodyManager, (void **)start);
+		}
+	}
+	return(newBlock);
+	#endif
 }
 
 // Insert a rigid body after the element "prevData".
 physicsRigidBody *modulePhysicsBodyInsertBefore(physicsRigidBody **const restrict start, physicsRigidBody *const restrict prevData){
+	#ifndef MEMORYREGION_EXTEND_ALLOCATORS
 	return(memSingleListInsertBefore(&g_physRigidBodyManager, (void **)start, (void *)prevData));
+	#else
+	physicsRigidBody *newBlock = memSingleListInsertBefore(&g_physRigidBodyManager, (void **)start, (void *)prevData);
+	// If we've run out of memory, allocate some more!
+	if(newBlock == NULL){
+		if(memSingleListExtend(
+			&g_physRigidBodyManager,
+			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSRIGIDBODY_MANAGER_SIZE)),
+			MODULE_PHYSRIGIDBODY_MANAGER_SIZE
+		)){
+			newBlock = memSingleListInsertBefore(&g_physRigidBodyManager, (void **)start, (void *)prevData);
+		}
+	}
+	return(newBlock);
+	#endif
 }
 
 // Insert a rigid body after the element "data".
 physicsRigidBody *modulePhysicsBodyInsertAfter(physicsRigidBody **const restrict start, physicsRigidBody *const restrict data){
+	#ifndef MEMORYREGION_EXTEND_ALLOCATORS
 	return(memSingleListInsertAfter(&g_physRigidBodyManager, (void **)start, (void *)data));
+	#else
+	physicsRigidBody *newBlock = memSingleListInsertAfter(&g_physRigidBodyManager, (void **)start, (void *)data);
+	// If we've run out of memory, allocate some more!
+	if(newBlock == NULL){
+		if(memSingleListExtend(
+			&g_physRigidBodyManager,
+			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSRIGIDBODY_MANAGER_SIZE)),
+			MODULE_PHYSRIGIDBODY_MANAGER_SIZE
+		)){
+			newBlock = memSingleListInsertAfter(&g_physRigidBodyManager, (void **)start, (void *)data);
+		}
+	}
+	return(newBlock);
+	#endif
 }
 
 // Free a rigid body that has been allocated.
@@ -426,5 +711,6 @@ void modulePhysicsBodyFreeArray(physicsRigidBody **const restrict start){
 void modulePhysicsBodyClear(){
 	MEMSINGLELIST_LOOP_BEGIN(g_physRigidBodyManager, i, physicsRigidBody)
 		modulePhysicsBodyFree(NULL, i, NULL);
-	MEMSINGLELIST_LOOP_END(g_physRigidBodyManager, i, return)
+	MEMSINGLELIST_LOOP_END(g_physRigidBodyManager, i, break)
+	memSingleListClear(&g_physRigidBodyManager);
 }

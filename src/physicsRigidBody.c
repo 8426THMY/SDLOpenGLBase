@@ -35,6 +35,9 @@ void physRigidBodyInit(physicsRigidBody *const restrict body, const physicsRigid
 	// Instantiate the rigid body's colliders.
 	while(curCollider != NULL){
 		body->colliders = modulePhysicsColliderPrepend(&body->colliders);
+		if(body->colliders == NULL){
+			/** MALLOC FAILED **/
+		}
 		physColliderInstantiate(body->colliders, curCollider, body);
 		curCollider = memSingleListNext(curCollider);
 	}
@@ -167,10 +170,13 @@ return_t physRigidBodyDefLoad(physicsRigidBodyDef **const restrict bodies, const
 						#warning "This should be 'currentType < COLLIDER_NUM_TYPES'."
 						#warning "Please remember to remove the 'currentType=0' statement on the next line."
 						if(currentType == 3){currentType=0;
-							modulePhysicsColliderPrepend(&bodyDef.colliders);
+							bodyDef.colliders = modulePhysicsColliderPrepend(&bodyDef.colliders);
+							if(bodyDef.colliders == NULL){
+								/** MALLOC FAILED **/
+							}
 							curCollider = bodyDef.colliders;
 							curMass = PHYSCOLLIDER_DEFAULT_MASS;
-							physColliderInit(curCollider, currentType, &bodyDef);
+							physColliderInit(curCollider, currentType);
 
 						// If an invalid type was specified, ignore the collider.
 						}else{
@@ -201,7 +207,10 @@ return_t physRigidBodyDefLoad(physicsRigidBodyDef **const restrict bodies, const
 		// If we loaded at least one collider, add
 		// it to the beginning of the "bodies" array!
 		if(success){
-			modulePhysicsBodyDefPrepend(bodies);
+			*bodies = modulePhysicsBodyDefPrepend(bodies);
+			if(*bodies == NULL){
+				/** MALLOC FAILED **/
+			}
 			**bodies = bodyDef;
 		}
 

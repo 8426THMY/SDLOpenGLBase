@@ -7,7 +7,7 @@
 #include "utilTypes.h"
 
 
-#define ANIMATION_LOOP_INDEFINITELY ((unsigned int)-1)
+#define ANIMATION_LOOP_INDEFINITELY valueInvalid(unsigned int)
 
 
 // Stores frame data for an instance of any sort of animation.

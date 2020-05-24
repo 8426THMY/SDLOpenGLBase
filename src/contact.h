@@ -14,7 +14,7 @@
 
 
 #define CONTACT_MAX_POINTS 4
-#define CONTACT_KEY_INVALID_EDGE ((colliderEdgeIndex_t)-1)
+#define CONTACT_KEY_INVALID_EDGE valueInvalid(colliderEdgeIndex_t)
 
 
 typedef size_t separationFeature_t;

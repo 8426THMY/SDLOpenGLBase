@@ -26,11 +26,13 @@ void *memoryManagerGlobalRealloc(void *const restrict block, const size_t blockS
 	return(memTreeRealloc(&g_memManager, block, blockSize));
 }
 
+#if defined(MEMORYREGION_EXTEND_ALLOCATORS) && defined(MEMORYREGION_EXTEND_MANAGERS)
 void *memoryManagerGlobalExtend(const size_t heapSize){
 	const size_t regionSize = memTreeMemoryForSize(heapSize);
 
 	return(memTreeExtend(&g_memManager, memoryAlloc(regionSize), regionSize));
 }
+#endif
 
 void memoryManagerGlobalFree(void *const restrict block){
 	memTreeFree(&g_memManager, block);
@@ -39,7 +41,7 @@ void memoryManagerGlobalFree(void *const restrict block){
 
 // Free memory used by the global memory manager.
 void memoryManagerGlobalDelete(){
-    memTreeDelete(&g_memManager);
+    memTreeDelete(&g_memManager, memoryFree);
 }
 #endif
 
@@ -64,11 +66,13 @@ void *memoryManagerRealloc(memoryManager *const restrict memMngr, void *const re
 	return(memTreeRealloc(memMngr, block, blockSize));
 }
 
+#if defined(MEMORYREGION_EXTEND_ALLOCATORS) && defined(MEMORYREGION_EXTEND_MANAGERS)
 void *memoryManagerExtend(memoryManager *const restrict memMngr, const size_t heapSize){
 	const size_t regionSize = memTreeMemoryForSize(heapSize);
 
 	return(memTreeExtend(memMngr, memoryAlloc(regionSize), regionSize));
 }
+#endif
 
 void memoryManagerFree(memoryManager *const restrict memMngr, void *const restrict block){
 	memTreeFree(memMngr, block);
@@ -77,6 +81,6 @@ void memoryManagerFree(memoryManager *const restrict memMngr, void *const restri
 
 // Free memory used by the memory manager.
 void memoryManagerDelete(memoryManager *const restrict memMngr){
-    memTreeDelete(memMngr);
+    memTreeDelete(memMngr, memoryFree);
 }
 #endif

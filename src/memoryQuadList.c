@@ -291,12 +291,14 @@ void memQuadListClear(memoryQuadList *const restrict quadList){
 }
 
 
+#ifdef MEMORYREGION_EXTEND_ALLOCATORS
 // Append a new memory region to the end of our allocator's region list!
 void *memQuadListExtend(memoryQuadList *const restrict quadList, void *const restrict memory, const size_t memorySize){
 	if(memory != NULL){
 		memoryRegion *const newRegion = memoryGetRegionFromSize(memory, memorySize);
 		// Add the new region to the end of the list!
 		memoryRegionAppend(&quadList->region, newRegion, memory);
+		newRegion->start = memQuadListBlockFreeFlagGetNext(memory);
 		// Set up its memory!
 		memQuadListClearLastRegion(quadList, newRegion);
 
@@ -305,15 +307,16 @@ void *memQuadListExtend(memoryQuadList *const restrict quadList, void *const res
 
 	return(memory);
 }
+#endif
 
 
-void memQuadListDelete(memoryQuadList *const restrict quadList){
+void memQuadListDelete(memoryQuadList *const restrict quadList, void (*freeFunc)(void *block)){
 	memoryRegion *region = quadList->region;
 	// Free every memory region in the allocator.
 	while(region != NULL){
 		memoryRegion *const next = region->next;
 
-		memoryFree(memQuadListRegionStart(region));
+		(*freeFunc)(memQuadListRegionStart(region));
 		region = next;
 	}
 }

@@ -76,7 +76,7 @@ static void updateShaderBones(
 		const size_t boneID = skeleFindBone(objSkele, curBone->name);
 		// If this bone appeared in an animation, convert the
 		// bone state to a matrix so it can be sent to the shader!
-		if(!valueIsInvalid(boneID)){
+		if(!valueIsInvalid(boneID, size_t)){
 			*curBoneState = animStates[boneID];
 
 		// Otherwise, use the root's transformation!

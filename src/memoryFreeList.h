@@ -51,21 +51,22 @@
 #define memFreeListMemoryForBlocksRegion(num, size) memoryGetRequiredSize(memFreeListMemoryForBlocks(num, size))
 
 
-#define MEMFREELIST_LOOP_BEGIN(allocator, node, type)       \
-{                                                           \
-	const memoryRegion *__region_##node = allocator.region; \
-	do {                                                    \
-		type *node = (type *)(allocator.region->start);     \
-		do {
+#define MEMFREELIST_LOOP_BEGIN(allocator, node, type)           \
+{                                                               \
+	memoryRegion *allocator##_region_##node = allocator.region; \
+	type *node = (void *)(allocator##_region_##node->start);    \
+	for(;;){                                                    \
 
-#define MEMFREELIST_LOOP_INACTIVE(node)                           \
-			}else if(__flag_##node == MEMFREELIST_FLAG_INACTIVE){
-
-#define MEMFREELIST_LOOP_END(allocator, node)                               \
-			node = memFreeListBlockGetNextBlock(node, allocator.blockSize); \
-		} while((void *)node < (void *)__region_##node);                    \
-		__region_##node = __region_##node->next;                            \
-	} while(__region_##node != NULL);                                       \
+#define MEMFREELIST_LOOP_END(allocator, node)                            \
+		node = memFreeListBlockGetNextBlock(node, allocator.blockSize);  \
+		if((void *)node >= (void *)allocator##_region_##node){           \
+			allocator##_region_##node = allocator##_region_##node->next; \
+			if(allocator##_region_##node == NULL){                       \
+				break;                                                   \
+			}                                                            \
+			node = (void *)allocator##_region_##node->start;             \
+		}                                                                \
+	}                                                                    \
 }
 
 
@@ -100,9 +101,11 @@ void memFreeListClearRegion(memoryFreeList *const restrict freeList, memoryRegio
 void memFreeListClearLastRegion(memoryFreeList *const restrict freeList, memoryRegion *const restrict region);
 void memFreeListClear(memoryFreeList *const restrict freeList);
 
+#ifdef MEMORYREGION_EXTEND_ALLOCATORS
 void *memFreeListExtend(memoryFreeList *const restrict freeList, void *memory, const size_t memorySize);
+#endif
 
-void memFreeListDelete(memoryFreeList *const restrict freeList);
+void memFreeListDelete(memoryFreeList *const restrict freeList, void (*freeFunc)(void *block));
 
 
 #endif

@@ -66,6 +66,8 @@ void particleSysInit(particleSystem *const restrict partSys, const particleSyste
 		for(; curEmitter < lastEmitter; ++curEmitter){
 			particleEmitterInit(curEmitter);
 		}
+	}else{
+		partSys->emitters = NULL;
 	}
 
 
@@ -98,6 +100,8 @@ void particleSysInit(particleSystem *const restrict partSys, const particleSyste
 				particleDelete(curParticle);
 			}
 		}
+	}else{
+		partSys->particles = NULL;
 	}
 
 
@@ -119,6 +123,8 @@ void particleSysInit(particleSystem *const restrict partSys, const particleSyste
 		for(; curChild < lastChild; ++curChild, ++curChildDef){
 			particleSysInit(curChild, curChildDef);
 		}
+	}else{
+		partSys->children = NULL;
 	}
 }
 

@@ -145,7 +145,7 @@ textureGroup *texGroupLoad(const char *const restrict texGroupPath, const size_t
 		animationFrameData *tempAnimFrameData = NULL;
 
 		// This is the index of the animation we're currently working on.
-		size_t currentAnim = invalidValue(currentAnim);
+		size_t currentAnim = valueInvalid(size_t);
 
 		char lineBuffer[FILE_MAX_LINE_LENGTH];
 		char *line;
@@ -155,7 +155,7 @@ textureGroup *texGroupLoad(const char *const restrict texGroupPath, const size_t
 		while((line = fileReadLine(texGroupFile, &lineBuffer[0], &lineLength)) != NULL){
 			// If we aren't loading an animation, check
 			// for any texture or animation definitions.
-			if(valueIsInvalid(currentAnim)){
+			if(valueIsInvalid(currentAnim, size_t)){
 				// Texture path.
 				if(memcmp(line, "t ", 2) == 0){
 					char texPath[FILE_MAX_PATH_LENGTH];
@@ -285,7 +285,7 @@ textureGroup *texGroupLoad(const char *const restrict texGroupPath, const size_t
 						tempAnimFrameData->playNum = strtol(tempEnd, &playNumEnd, 10);
 						// If no digits were read, set playNum to -1 (so it loops indefinitely).
 						if(playNumEnd == tempEnd){
-							tempAnimFrameData->playNum = invalidValue(tempAnimFrameData->playNum);
+							tempAnimFrameData->playNum = valueInvalid(unsigned int);
 						}
 					}
 
@@ -295,7 +295,7 @@ textureGroup *texGroupLoad(const char *const restrict texGroupPath, const size_t
 						texGroupAnimDefDelete(tempAnim);
 						--texAnimsSize;
 
-						currentAnim = invalidValue(currentAnim);
+						currentAnim = valueInvalid(size_t);
 					}
 
 				// Animation frame.
@@ -460,7 +460,7 @@ textureGroup *texGroupLoad(const char *const restrict texGroupPath, const size_t
 					animFramesSize = 0;
 					animFramesCapacity = 0;
 
-					currentAnim = invalidValue(currentAnim);
+					currentAnim = valueInvalid(size_t);
 				}
 			}
 		}

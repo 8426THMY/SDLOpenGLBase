@@ -146,12 +146,14 @@ void memPoolClear(memoryPool *const restrict pool){
 }
 
 
+#ifdef MEMORYREGION_EXTEND_ALLOCATORS
 // Append a new memory region to the end of our allocator's region list!
 void *memPoolExtend(memoryPool *const restrict pool, void *const restrict memory, const size_t memorySize){
 	if(memory != NULL){
 		memoryRegion *newRegion = memoryGetRegionFromSize(memory, memorySize);
 		// Add the new region to the end of the list!
 		memoryRegionAppend(&pool->region, newRegion, memory);
+		newRegion->start = memPoolBlockFreeFlagGetNext(memory);
 		// Set up its memory!
 		memPoolClearLastRegion(pool, newRegion);
 
@@ -160,15 +162,16 @@ void *memPoolExtend(memoryPool *const restrict pool, void *const restrict memory
 
 	return(memory);
 }
+#endif
 
 
-void memPoolDelete(memoryPool *const restrict pool){
+void memPoolDelete(memoryPool *const restrict pool, void (*freeFunc)(void *block)){
 	memoryRegion *region = pool->region;
 	// Free every memory region in the allocator.
 	while(region != NULL){
 		memoryRegion *next = region->next;
 
-		memoryFree(memPoolRegionStart(region));
+		(*freeFunc)(memPoolRegionStart(region));
 		region = next;
 	}
 }

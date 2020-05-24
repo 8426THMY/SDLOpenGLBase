@@ -27,7 +27,22 @@ void moduleTexGroupCleanup(){
 
 // Allocate memory for a textureGroup and return a handle to it.
 textureGroup *moduleTexGroupAlloc(){
+	#ifndef MEMORYREGION_EXTEND_ALLOCATORS
 	return(memPoolAlloc(&g_texGroupManager));
+	#else
+	textureGroup *newBlock = memPoolAlloc(&g_texGroupManager);
+	// If we've run out of memory, allocate some more!
+	if(newBlock == NULL){
+		if(memPoolExtend(
+			&g_texGroupManager,
+			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_TEXGROUP_MANAGER_SIZE)),
+			MODULE_TEXGROUP_MANAGER_SIZE
+		)){
+			newBlock = memPoolAlloc(&g_texGroupManager);
+		}
+	}
+	return(newBlock);
+	#endif
 }
 
 // Free a textureGroup that has been allocated.
@@ -40,7 +55,7 @@ void moduleTexGroupFree(textureGroup *const restrict texGroup){
 void moduleTexGroupClear(){
 	MEMPOOL_LOOP_BEGIN(g_texGroupManager, i, textureGroup)
 		moduleTexGroupFree(i);
-	MEMPOOL_LOOP_END(g_texGroupManager, i, return)
+	MEMPOOL_LOOP_END(g_texGroupManager, i, break)
 }
 
 
@@ -50,7 +65,7 @@ textureGroup *moduleTexGroupFind(const char *const restrict name){
 		if(strcmp(name, i->name) == 0){
 			return(i);
 		}
-	MEMPOOL_LOOP_END(g_texGroupManager, i, return(NULL))
+	MEMPOOL_LOOP_END(g_texGroupManager, i, break)
 
 	return(NULL);
 }

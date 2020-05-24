@@ -159,44 +159,59 @@
 
 
 #ifdef MEMQUADLIST_COUNT_USED_BLOCKS
-#define MEMQUADLIST_LOOP_BEGIN(allocator, node, type)                                     \
-{                                                                                         \
-	const memoryRegion *__region_##node = allocator.region;                               \
-	size_t __remaining_##node = allocator.usedBlocks;                                     \
-	do {                                                                                  \
-		type *node = (type *)(allocator.region->start);                                   \
-		for(; __remaining_##node > 0; --__remaining_##node){                              \
-			while(memQuadListBlockUsedDataGetFlagValue(node) != MEMQUADLIST_FLAG_ACTIVE){ \
-				node = memQuadListBlockGetNextBlock(node, allocator.blockSize);           \
-			}
+#define MEMQUADLIST_LOOP_BEGIN(allocator, node, type)                                         \
+{                                                                                             \
+	memoryRegion *allocator##_region_##node = allocator.region;                               \
+	size_t allocator##_remaining_##node = allocator.usedBlocks;                               \
+	type *node = (void *)(allocator##_region_##node->start);                                  \
+	for(;;){                                                                                  \
+		const uintptr_t allocator##_flag_##node = memQuadListBlockUsedDataGetFlagValue(node); \
+		if(allocator##_flag_##node == MEMQUADLIST_FLAG_ACTIVE){                               \
+			--allocator##_remaining_##node;
 
-#define MEMQUADLIST_LOOP_END(allocator, node, earlyexit)                    \
-			node = memQuadListBlockGetNextBlock(node, allocator.blockSize); \
-		}                                                                   \
-		__region_##node = __region_##node->next;                            \
-	} while(__region_##node != NULL);                                       \
+#define MEMQUADLIST_LOOP_INACTIVE(node)                                 \
+		}else if(allocator##_flag_##node == MEMQUADLIST_FLAG_INACTIVE){ \
+
+#define MEMQUADLIST_LOOP_END(allocator, node, earlyexit)                 \
+		}                                                                \
+		if(allocator##_remaining_##node <= 0){                           \
+			earlyexit;                                                   \
+		}                                                                \
+		node = memQuadListBlockGetNextBlock(node, allocator.blockSize);  \
+		if((void *)node >= (void *)allocator##_region_##node){           \
+			allocator##_region_##node = allocator##_region_##node->next; \
+			if(allocator##_region_##node == NULL){                       \
+				break;                                                   \
+			}                                                            \
+			node = (void *)allocator##_region_##node->start;             \
+		}                                                                \
+	}                                                                    \
 }
 #else
-#define MEMQUADLIST_LOOP_BEGIN(allocator, node, type)                                   \
-{                                                                                       \
-	const memoryRegion *__region_##node = allocator.region;                             \
-	do {                                                                                \
-		type *node = (type *)(allocator.region->start);                                 \
-		do {                                                                            \
-			const uintptr_t __flag_##node = memQuadListBlockUsedDataGetFlagValue(node); \
-			if(__flag_##node == MEMQUADLIST_FLAG_ACTIVE){
+#define MEMQUADLIST_LOOP_BEGIN(allocator, node, type)                                         \
+{                                                                                             \
+	memoryRegion *allocator##_region_##node = allocator.region;                               \
+	type *node = (void *)(allocator##_region_##node->start);                                  \
+	for(;;){                                                                                  \
+		const uintptr_t allocator##_flag_##node = memQuadListBlockUsedDataGetFlagValue(node); \
+		if(allocator##_flag_##node == MEMQUADLIST_FLAG_ACTIVE){
 
-#define MEMQUADLIST_LOOP_INACTIVE(node)                           \
-			}else if(__flag_##node == MEMQUADLIST_FLAG_INACTIVE){
+#define MEMQUADLIST_LOOP_INACTIVE(node)                                 \
+		}else if(allocator##_flag_##node == MEMQUADLIST_FLAG_INACTIVE){ \
 
-#define MEMQUADLIST_LOOP_END(allocator, node, earlyexit)                    \
-			}else if(__flag_##node == MEMQUADLIST_FLAG_INVALID){            \
-				earlyexit;                                                  \
-			}                                                               \
-			node = memQuadListBlockGetNextBlock(node, allocator.blockSize); \
-		} while((void *)node < (void *)__region_##node);                    \
-		__region_##node = __region_##node->next;                            \
-	} while(__region_##node != NULL);                                       \
+#define MEMQUADLIST_LOOP_END(allocator, node, earlyexit)                 \
+		}else if(allocator##_flag_##node == MEMQUADLIST_FLAG_INVALID){   \
+			earlyexit;                                                   \
+		}                                                                \
+		node = memQuadListBlockGetNextBlock(node, allocator.blockSize);  \
+		if((void *)node >= (void *)allocator##_region_##node){           \
+			allocator##_region_##node = allocator##_region_##node->next; \
+			if(allocator##_region_##node == NULL){                       \
+				break;                                                   \
+			}                                                            \
+			node = (void *)allocator##_region_##node->start;             \
+		}                                                                \
+	}                                                                    \
 }
 #endif
 
@@ -246,9 +261,11 @@ void memQuadListClearRegion(memoryQuadList *const restrict quadList, memoryRegio
 void memQuadListClearLastRegion(memoryQuadList *const restrict quadList, memoryRegion *const restrict region);
 void memQuadListClear(memoryQuadList *const restrict quadList);
 
+#ifdef MEMORYREGION_EXTEND_ALLOCATORS
 void *memQuadListExtend(memoryQuadList *const restrict quadList, void *const restrict memory, const size_t memorySize);
+#endif
 
-void memQuadListDelete(memoryQuadList *const restrict quadList);
+void memQuadListDelete(memoryQuadList *const restrict quadList, void (*freeFunc)(void *block));
 
 
 #endif

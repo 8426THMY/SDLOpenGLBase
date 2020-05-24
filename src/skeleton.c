@@ -35,7 +35,7 @@ static bone defaultBone = {
 	.invGlobalBind.rot.x   = 0.f, .invGlobalBind.rot.y   = 0.f, .invGlobalBind.rot.z   = 0.f, .invGlobalBind.rot.w = 1.f,
 	.invGlobalBind.scale.x = 1.f, .invGlobalBind.scale.y = 1.f, .invGlobalBind.scale.z = 1.f,
 
-	.parent = invalidValue(defaultBone.parent)
+	.parent = valueInvalid(size_t)
 };
 
 skeleton g_skeleDefault = {
@@ -397,6 +397,9 @@ skeletonAnimDef *skeleAnimSMDLoad(const char *const restrict skeleAnimPath, cons
 
 
 			animDef = moduleSkeleAnimDefAlloc();
+			if(animDef == NULL){
+				/** MALLOC FAILED **/
+			}
 
 
 			// Set the animation's name!
@@ -409,7 +412,7 @@ skeletonAnimDef *skeleAnimSMDLoad(const char *const restrict skeleAnimPath, cons
 
 			animDef->frameData.time = tempTimes;
 			animDef->frameData.numFrames = numFrames;
-			animDef->frameData.playNum = invalidValue(animDef->frameData.playNum);
+			animDef->frameData.playNum = valueInvalid(unsigned int);
 
 			// Allocate memory for the array of bone names!
 			animDef->boneNames = memoryManagerGlobalAlloc(tempBonesSize * sizeof(*animDef->boneNames));
@@ -469,7 +472,7 @@ void skeleObjGenerateBoneState(
 	while(curAnim != NULL){
 		const size_t animBoneID = skeleAnimFindBone(curAnim, boneName);
 		// Make sure this bone exists in the animation!
-		if(!valueIsInvalid(animBoneID)){
+		if(!valueIsInvalid(animBoneID, size_t)){
 			const size_t currentFrame = curAnim->animData.currentFrame;
 			const size_t nextFrame = animationGetNextFrame(currentFrame, curAnim->animDef->frameData.numFrames);
 			boneState animState;

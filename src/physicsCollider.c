@@ -31,7 +31,7 @@ static return_t permitCollision(physicsCollider *const restrict colliderA, physi
 ** Initialise a physics collider base
 ** object using the type of its collider.
 */
-void physColliderInit(physicsCollider *const restrict pc, const colliderType_t type, void *const restrict owner){
+void physColliderInit(physicsCollider *const restrict pc, const colliderType_t type){
 	colliderInit(&pc->global, type);
 	pc->local = NULL;
 
@@ -39,7 +39,7 @@ void physColliderInit(physicsCollider *const restrict pc, const colliderType_t t
 	pc->friction = PHYSCOLLIDER_DEFAULT_FRICTION;
 	pc->restitution = PHYSCOLLIDER_DEFAULT_RESTITUTION;
 
-	pc->owner = owner;
+	pc->owner = NULL;
 	pc->node = NULL;
 
 	pc->contacts = NULL;
@@ -50,7 +50,7 @@ void physColliderInit(physicsCollider *const restrict pc, const colliderType_t t
 ** Create a new instance of a physics
 ** collider from a base physics collider.
 */
-void physColliderInstantiate(physicsCollider *const restrict pc, const physicsCollider *const restrict local, void *const restrict owner){
+void physColliderInstantiate(physicsCollider *const restrict pc, const physicsCollider *const restrict local, physicsRigidBody *const restrict owner){
 	colliderInstantiate(&pc->global, &local->global);
 	pc->local = &local->global;
 

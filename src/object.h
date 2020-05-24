@@ -14,6 +14,12 @@
 #include "renderable.h"
 
 
+typedef struct objectDefBody {
+	// This is the index of the bone that this rigid body is attached to.
+	size_t id;
+	physicsRigidBodyDef *bodyDef;
+} objectDefBody;
+
 typedef struct objectDef {
 	char *name;
 
@@ -28,6 +34,13 @@ typedef struct objectDef {
 	// associated with this object.
 	renderableDef *renderables;
 } objectDef;
+
+
+typedef struct objectBody {
+	// This is the index of the bone that this rigid body is attached to.
+	size_t id;
+	physicsRigidBody body;
+} objectBody;
 
 typedef struct object {
 	const objectDef *objDef;
@@ -55,6 +68,8 @@ void objectDefInit(objectDef *const restrict objDef);
 void objectInit(object *const restrict obj, const objectDef *const restrict objDef);
 
 return_t objectDefLoad(objectDef *const restrict objDef, const char *const restrict objFile);
+
+void objectAddRigidBody(object *const restrict obj, const physicsRigidBodyDef *const restrict bodyDef);
 
 void objectUpdate(object *const restrict obj, const float time);
 void objectDraw(
