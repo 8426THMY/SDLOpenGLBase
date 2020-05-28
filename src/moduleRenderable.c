@@ -26,12 +26,12 @@ void moduleRenderableCleanup(){
 	// renderable
 	MEMSINGLELIST_LOOP_BEGIN(g_renderableManager, i, renderable)
 		moduleRenderableFree(NULL, i, NULL);
-	MEMSINGLELIST_LOOP_END(g_renderableManager, i, break)
+	MEMSINGLELIST_LOOP_END(g_renderableManager, i)
 	memSingleListDelete(&g_renderableManager, memoryManagerGlobalFree);
 	// renderableDef
 	MEMSINGLELIST_LOOP_BEGIN(g_renderableDefManager, i, renderableDef)
 		moduleRenderableDefFree(NULL, i, NULL);
-	MEMSINGLELIST_LOOP_END(g_renderableDefManager, i, break)
+	MEMSINGLELIST_LOOP_END(g_renderableDefManager, i)
 	memSingleListDelete(&g_renderableDefManager, memoryManagerGlobalFree);
 }
 
@@ -154,7 +154,7 @@ void moduleRenderableDefFreeArray(renderableDef **const restrict start){
 void moduleRenderableDefClear(){
 	MEMSINGLELIST_LOOP_BEGIN(g_renderableDefManager, i, renderableDef)
 		moduleRenderableDefFree(NULL, i, NULL);
-	MEMSINGLELIST_LOOP_END(g_renderableDefManager, i, break)
+	MEMSINGLELIST_LOOP_END(g_renderableDefManager, i)
 	memSingleListClear(&g_renderableDefManager);
 }
 
@@ -277,6 +277,6 @@ void moduleRenderableFreeArray(renderable **const restrict start){
 void moduleRenderableClear(){
 	MEMSINGLELIST_LOOP_BEGIN(g_renderableManager, i, renderable)
 		moduleRenderableFree(NULL, i, NULL);
-	MEMSINGLELIST_LOOP_END(g_renderableManager, i, break)
+	MEMSINGLELIST_LOOP_END(g_renderableManager, i)
 	memSingleListClear(&g_renderableManager);
 }

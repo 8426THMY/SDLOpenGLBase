@@ -105,10 +105,10 @@
 #define MEMPOOL_LOOP_INACTIVE(node)                                 \
 		}else if(allocator##_flag_##node == MEMPOOL_FLAG_INACTIVE){ \
 
-#define MEMPOOL_LOOP_END(allocator, node, earlyexit)                     \
+#define MEMPOOL_LOOP_END(allocator, node)                                \
 		}                                                                \
 		if(allocator##_remaining_##node <= 0){                           \
-			earlyexit;                                                   \
+			break;                                                       \
 		}                                                                \
 		node = memPoolBlockGetNextBlock(node, allocator.blockSize);      \
 		if((void *)node >= (void *)allocator##_region_##node){           \
@@ -132,9 +132,9 @@
 #define MEMPOOL_LOOP_INACTIVE(node)                                 \
 		}else if(allocator##_flag_##node == MEMPOOL_FLAG_INACTIVE){ \
 
-#define MEMPOOL_LOOP_END(allocator, node, earlyexit)                     \
+#define MEMPOOL_LOOP_END(allocator, node)                                \
 		}else if(allocator##_flag_##node == MEMPOOL_FLAG_INVALID){       \
-			earlyexit;                                                   \
+			break;                                                       \
 		}                                                                \
 		node = memPoolBlockGetNextBlock(node, allocator.blockSize);      \
 		if((void *)node >= (void *)allocator##_region_##node){           \

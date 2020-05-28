@@ -55,7 +55,7 @@ void moduleTexGroupFree(textureGroup *const restrict texGroup){
 void moduleTexGroupClear(){
 	MEMPOOL_LOOP_BEGIN(g_texGroupManager, i, textureGroup)
 		moduleTexGroupFree(i);
-	MEMPOOL_LOOP_END(g_texGroupManager, i, break)
+	MEMPOOL_LOOP_END(g_texGroupManager, i)
 }
 
 
@@ -65,7 +65,7 @@ textureGroup *moduleTexGroupFind(const char *const restrict name){
 		if(strcmp(name, i->name) == 0){
 			return(i);
 		}
-	MEMPOOL_LOOP_END(g_texGroupManager, i, break)
+	MEMPOOL_LOOP_END(g_texGroupManager, i)
 
 	return(NULL);
 }

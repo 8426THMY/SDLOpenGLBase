@@ -4,27 +4,20 @@
 #include "modulePhysics.h"
 
 #include "colliderAABB.h"
-#include "physicsIsland.h"
 #include "physicsRigidBody.h"
-
-#include "utilTypes.h"
 
 
 #warning "These are temporary (duh)."
 void (*physColliderGenerateCentroidTable[COLLIDER_NUM_TYPES])(const void *const restrict collider, vec3 *const restrict centroid) = {
-	NULL// colliderHullGenerateCentroid
+	NULL//colliderHullGenerateCentroid
 };
 
 void (*physColliderGenerateInertiaTable[COLLIDER_NUM_TYPES])(
 	const void *const restrict collider, const vec3 *const restrict centroid, mat3 *const restrict inertia
 ) = {
 
-	NULL// colliderHullGenerateInertia
+	NULL//colliderHullGenerateInertia
 };
-
-
-// Forward-declare any helper functions!
-static return_t permitCollision(physicsCollider *const restrict colliderA, physicsCollider *const restrict colliderB);
 
 
 /*
@@ -78,67 +71,37 @@ void physColliderGenerateInertia(physicsCollider *const restrict collider, const
 
 
 /*
-** Update a physics collider. What is involved in an update
-** mostly depends on the base collider (hulls, for instance,
-** may update their vertices), although all colliders will
-** also update their broadphase nodes in this function.
-*/
-void physColliderUpdate(physicsCollider *const restrict collider, physicsIsland *const restrict island){
-	// Update the collider and generate its new bounding box!
-	colliderUpdate(&collider->global, &collider->owner->centroid, collider->local, &collider->owner->base->centroid, &collider->owner->state, &collider->aabb);
-	// Update its tree node if required.
-	if(island != NULL){
-		physIslandUpdateCollider(island, collider);
-	}
-}
-
-/*
-** Iterate through the broadphase, searching for
-** other colliders that this one may be colliding
-** with and check collision with any possible pairs.
-*/
-void physColliderQueryCollisions(physicsCollider *const restrict collider){
-	// Check for narrowphase collision with every collider
-	// whose bounding box collides with this collider's.
-	aabbTreeQueryCollisionsStack(NULL, collider->node, &physColliderCollisionCallback);
-}
-
-
-/*
-** Find and return a separation involving "colliderA" and "colliderB".
-** If such a separation could not be found, a NULL pointer is returned.
+** Update a physics collider. What is involved in an update mostly depends
+** on the base collider (hulls, for instance, may update their vertices).
 **
-** We don't need to loop through every separation, as our linked lists
-** are sorted according to the address of the second collider involved
-** in the collision. If we find a pair whose second collider's address
-** is greater than "colliderB", we can exit early.
+** Every collider needs to update its axis-aligned bounding box, though.
 */
-physicsSeparationPair *physColliderFindSeparation(
-	const physicsCollider *const restrict colliderA, const physicsCollider *const restrict colliderB,
-	physicsSeparationPair **const restrict prev, physicsSeparationPair **const restrict next
-){
+void physColliderUpdate(physicsCollider *const restrict collider){
+	colliderUpdate(&collider->global, &collider->owner->centroid, collider->local, &collider->owner->base->centroid, &collider->owner->state, &collider->aabb);
+}
 
-	physicsSeparationPair *prevPair = NULL;
-	physicsSeparationPair *curPair = colliderA->separations;
 
-	while(curPair != NULL && colliderB >= curPair->cB){
-		// If this pair contains both of our colliders, return it!
-		if(curPair->cB == colliderB){
-			*prev = prevPair;
-			*next = curPair;
-
-			return(curPair);
-		}
-
-		prevPair = curPair;
-		curPair = curPair->nextA;
+/*
+** Check whether or not two colliders should be
+** considered for the narrowphase collision check.
+*/
+return_t physColliderPermitCollision(physicsCollider *const colliderA, physicsCollider *const colliderB){
+	// We only want to run the narrowphase on two colliders once, so we
+	// do it when "colliderA" has the lower address. We also need to make
+	// sure they don't have the same owner and that their bounding boxes
+	// are actually colliding.
+	if(
+		colliderA < colliderB &&
+		colliderA->owner != colliderB->owner &&
+		colliderAABBCollidingAABB(&colliderA->aabb, &colliderB->node->aabb)
+	){
+		return(1);
 	}
 
-	*prev = prevPair;
-	*next = curPair;
 
-	return(NULL);
+	return(0);
 }
+
 
 /*
 ** Find and return a contact involving "colliderA" and "colliderB".
@@ -157,15 +120,9 @@ physicsContactPair *physColliderFindContact(
 	physicsContactPair *prevPair = NULL;
 	physicsContactPair *curPair = colliderA->contacts;
 
-	while(curPair != NULL && colliderB >= curPair->cB){
-		// If this pair contains both of our colliders, return it!
-		if(curPair->cB == colliderB){
-			*prev = prevPair;
-			*next = curPair;
-
-			return(curPair);
-		}
-
+	// Iterate through the contacts until we find one where
+	// the second collider is less than or equal to "colliderB".
+	while(curPair != NULL && colliderB > curPair->cB){
 		prevPair = curPair;
 		curPair = curPair->nextA;
 	}
@@ -173,82 +130,61 @@ physicsContactPair *physColliderFindContact(
 	*prev = prevPair;
 	*next = curPair;
 
+	// If the pair we ended on involves our colliders, return it!
+	if(curPair->cB == colliderB){
+		return(curPair);
+	}
+	return(NULL);
+}
+
+/*
+** Find and return a separation involving "colliderA" and "colliderB".
+** If such a separation could not be found, a NULL pointer is returned.
+**
+** We don't need to loop through every separation, as our linked lists
+** are sorted according to the address of the second collider involved
+** in the collision. If we find a pair whose second collider's address
+** is greater than "colliderB", we can exit early.
+*/
+physicsSeparationPair *physColliderFindSeparation(
+	const physicsCollider *const restrict colliderA, const physicsCollider *const restrict colliderB,
+	physicsSeparationPair **const restrict prev, physicsSeparationPair **const restrict next
+){
+
+	physicsSeparationPair *prevPair = NULL;
+	physicsSeparationPair *curPair = colliderA->separations;
+
+	// Iterate through the separations until we find one where
+	// the second collider is less than or equal to "colliderB".
+	while(curPair != NULL && colliderB > curPair->cB){
+		prevPair = curPair;
+		curPair = curPair->nextA;
+	}
+
+	*prev = prevPair;
+	*next = curPair;
+
+	// If the pair we ended on involves our colliders, return it!
+	if(curPair->cB == colliderB){
+		return(curPair);
+	}
 	return(NULL);
 }
 
 
 /*
-** Remove any separations that have been inactive for too long and
-** update the inactivity flags of separations that are still active.
+** Clear all of a physics collider's contact and separation pairs.
+** Note that islands should control the constraints for colliders,
+** so this really should not be necessary.
 */
-void physColliderUpdateSeparations(physicsCollider *const restrict collider){
-	physicsSeparationPair *curPair = collider->separations;
-
-	while(curPair != NULL && curPair->cA == collider){
-		physicsSeparationPair *nextPair = curPair->nextA;
-
-		// If the current separation has been
-		// inactive for too long, deallocate it.
-		if(physSeparationPairIsInactive(curPair)){
-			modulePhysicsSeparationPairFree(curPair);
-
-		// We only need to increment the inactivity flag for
-		// separations. On the next physics step, this will
-		// let us know that this particular pair is not new.
-		}else{
-			++curPair->inactive;
-		}
-
-		curPair = nextPair;
-	}
-}
-
-/*
-** Remove any contacts that have been inactive for too long and
-** update the inactivity flags of contacts that are still active.
-** This will also update the manifolds of active contact pairs.
-*/
-#ifdef PHYSCONTACT_STABILISER_BAUMGARTE
-void physColliderUpdateContacts(physicsCollider *const restrict collider, const float invDt){
-#else
-void physColliderUpdateContacts(physicsCollider *const restrict collider){
-#endif
-	physicsContactPair *curPair = collider->contacts;
-
-	while(curPair != NULL && curPair->cA == collider){
-		physicsContactPair *nextPair = curPair->nextA;
-
-		// If the current contact has been
-		// inactive for too long, deallocate it.
-		if(physSeparationPairIsInactive(curPair)){
-			modulePhysicsContactPairFree(curPair);
-
-		// For contacts, we need to precalculate their impulses and
-		// bias terms as well as increment their inactivity flag.
-		}else{
-			#ifdef PHYSCONTACT_STABILISER_BAUMGARTE
-			physManifoldPresolve(&curPair->manifold, curPair->cA->owner, curPair->cB->owner, invDt);
-			#else
-			physManifoldPresolve(&curPair->manifold, curPair->cA->owner, curPair->cB->owner);
-			#endif
-			++curPair->inactive;
-		}
-
-		curPair = nextPair;
-	}
-}
-
-// Clear all of a physics collider's contact and separation pairs.
 void physColliderClearPairs(physicsCollider *const restrict collider){
-	void *curPair;
-
-	// Delete every separation that this collider is involved in.
-	while((curPair = collider->separations) != NULL){
-		modulePhysicsSeparationPairFree(curPair);
-	}
 	// Delete every contact that this collider is involved in.
-	while((curPair = collider->contacts) != NULL){
-		modulePhysicsContactPairFree(curPair);
+	while(collider->contacts != NULL){
+		modulePhysicsContactPairFree(NULL, collider->contacts);
+	}
+	// Delete every separation that this collider is involved in.
+	while(collider->separations != NULL){
+		modulePhysicsSeparationPairFree(NULL, collider->separations);
 	}
 }
 
@@ -265,121 +201,4 @@ void physColliderDeleteInstance(physicsCollider *const restrict collider){
 // Delete a physics collider base.
 void physColliderDelete(physicsCollider *const restrict collider){
 	colliderDelete(&collider->global);
-}
-
-
-/*
-** If the bounding boxes of "colliderA" and "colliderB" intersect, check
-** for collision with the narrowphase and create a collision pair for them.
-*/
-void physColliderCollisionCallback(void *const restrict colliderA, void *const restrict colliderB){
-	// Make sure these colliders are actually allowed
-	// to collide before executing the narrowphase.
-	if(permitCollision((physicsCollider *)colliderA, (physicsCollider *)colliderB)){
-		// Used when searching for an
-		// existing contact or separation
-		// or when creating a new one.
-		void *prevPair;
-		void *nextPair;
-		void *sharedPair;
-		// These variables store the results
-		// of our narrowphase collision check.
-		contactSeparation *separationPointer;
-		contactSeparation separation;
-		contactManifold manifold;
-
-
-		// Check if a separation involving our colliders exists.
-		sharedPair = physColliderFindSeparation(
-			(physicsCollider *)colliderA, (physicsCollider *)colliderB,
-			(physicsSeparationPair **)&prevPair, (physicsSeparationPair **)&nextPair
-		);
-		// If it does, we need to check if it is still valid.
-		if(sharedPair != NULL){
-			separationPointer = &(((physicsSeparationPair *)sharedPair)->separation);
-
-			// If the separation still exists, refresh it and return.
-			if(collidersAreSeparated(&(((physicsCollider *)colliderA)->global), &(((physicsCollider *)colliderB)->global), separationPointer)){
-				physPairRefresh((physicsSeparationPair *)sharedPair);
-				return;
-			}
-
-		// Otherwise, direct our pointer to our new separation.
-		}else{
-			separationPointer = &separation;
-		}
-
-
-		// Narrowphase collision check.
-		if(collidersAreColliding(&(((physicsCollider *)colliderA)->global), &(((physicsCollider *)colliderB)->global), separationPointer, &manifold)){
-			sharedPair = physColliderFindContact(
-				(physicsCollider *)colliderA, (physicsCollider *)colliderB,
-				(physicsContactPair **)&prevPair, (physicsContactPair **)&nextPair
-			);
-			// If a contact pair already exists, we need to refresh it
-			// and update the manifold components required for persistence.
-			if(sharedPair != NULL){
-				physManifoldPersist(&(((physicsContactPair *)sharedPair)->manifold), &manifold, colliderA, colliderB);
-				physPairRefresh((physicsContactPair *)sharedPair);
-
-			// If this is a new contact, allocate a new pair.
-			}else{
-				if(!(sharedPair = modulePhysicsContactPairAlloc())){
-					/** MALLOC FAILED **/
-				}
-
-				// Set up the new contact pair. This involves building
-				// a physics manifold from our contact manifold and
-				// setting up its linked lists components.
-				physContactPairInit(
-					(physicsContactPair *)sharedPair, &manifold,
-					(physicsCollider *)colliderA, (physicsCollider *)colliderB,
-					(physicsContactPair *)prevPair, (physicsContactPair *)nextPair
-				);
-			}
-
-		// Colliders are not penetrating, so we have a separation.
-		}else{
-			// If a separation pair containing these colliders
-			// already existed, we just have to refresh it.
-			if(sharedPair != NULL){
-				physPairRefresh((physicsSeparationPair *)sharedPair);
-
-			// Otherwise, we'll have to create one.
-			}else{
-				if(!(sharedPair = modulePhysicsSeparationPairAlloc())){
-					/** MALLOC FAILED **/
-				}
-
-				// Set up the new separation pair, including its lists.
-				physSeparationPairInit(
-					(physicsSeparationPair *)sharedPair, separationPointer,
-					(physicsCollider *)colliderA, (physicsCollider *)colliderB,
-					(physicsSeparationPair *)prevPair, (physicsSeparationPair *)nextPair
-				);
-			}
-		}
-	}
-}
-
-
-/*
-** Check whether or not two colliders should be
-** considered for the narrowphase collision check.
-*/
-static return_t permitCollision(physicsCollider *const restrict colliderA, physicsCollider *const restrict colliderB){
-	// We only want to run the narrowphase on two colliders once, so we
-	// do it when "colliderA" has the lower address. We also need to make
-	// sure they don't have the same owner and that their bounding boxes
-	// are actually colliding.
-	if(
-		colliderA < colliderB &&
-		colliderA->owner != colliderB->owner &&
-		colliderAABBCollidingAABB(&colliderA->aabb, &colliderB->node->aabb)
-	){
-		return(1);
-	}
-
-
-	return(0);
 }

@@ -7,6 +7,7 @@
 #include "memoryManager.h"
 #include "memoryPool.h"
 #include "memorySingleList.h"
+#include "memoryDoubleList.h"
 
 #include "aabbTree.h"
 #include "physicsConstraintPair.h"
@@ -17,18 +18,18 @@
 #define MODULE_PHYSICS
 #define MODULE_PHYSICS_SETUP_FAIL 4
 
-#define MODULE_PHYSCONTACTPAIRS_ELEMENT_SIZE    sizeof(physicsContactPair)
-#define MODULE_PHYSSEPARATIONPAIRS_ELEMENT_SIZE sizeof(physicsSeparationPair)
-#define MODULE_AABBNODES_ELEMENT_SIZE           sizeof(aabbNode)
+#define MODULE_PHYSCONTACTPAIR_ELEMENT_SIZE    sizeof(physicsContactPair)
+#define MODULE_PHYSSEPARATIONPAIR_ELEMENT_SIZE sizeof(physicsSeparationPair)
+#define MODULE_AABBNODE_ELEMENT_SIZE           sizeof(aabbNode)
 #define MODULE_PHYSCOLLIDER_ELEMENT_SIZE        sizeof(physicsCollider)
 #define MODULE_PHYSRIGIDBODYDEF_ELEMENT_SIZE    sizeof(physicsRigidBodyDef)
 #define MODULE_PHYSRIGIDBODY_ELEMENT_SIZE       sizeof(physicsRigidBody)
 
-#ifndef MEMORY_MODULE_NUM_PHYSCONTACTPAIRS
-	#define MEMORY_MODULE_NUM_PHYSCONTACTPAIRS 1
+#ifndef MEMORY_MODULE_NUM_PHYSCONTACTPAIR
+	#define MEMORY_MODULE_NUM_PHYSCONTACTPAIR 1
 #endif
-#ifndef MEMORY_MODULE_NUM_PHYSSEPARATIONPAIRS
-	#define MEMORY_MODULE_NUM_PHYSSEPARATIONPAIRS 1
+#ifndef MEMORY_MODULE_NUM_PHYSSEPARATIONPAIR
+	#define MEMORY_MODULE_NUM_PHYSSEPARATIONPAIR 1
 #endif
 #ifndef MEMORY_MODULE_NUM_AABBNODES
 	#define MEMORY_MODULE_NUM_AABBNODES 1
@@ -43,9 +44,9 @@
 	#define MEMORY_MODULE_NUM_PHYSRIGIDBODIES 1
 #endif
 
-#define MODULE_PHYSCONTACTPAIRS_MANAGER_SIZE    memPoolMemoryForBlocks(MEMORY_MODULE_NUM_PHYSCONTACTPAIRS, MODULE_PHYSCONTACTPAIRS_ELEMENT_SIZE)
-#define MODULE_PHYSSEPARATIONPAIRS_MANAGER_SIZE memPoolMemoryForBlocks(MEMORY_MODULE_NUM_PHYSSEPARATIONPAIRS, MODULE_PHYSSEPARATIONPAIRS_ELEMENT_SIZE)
-#define MODULE_AABBNODES_MANAGER_SIZE           memPoolMemoryForBlocks(MEMORY_MODULE_NUM_AABBNODES, MODULE_AABBNODES_ELEMENT_SIZE)
+#define MODULE_PHYSCONTACTPAIR_MANAGER_SIZE    memPoolMemoryForBlocks(MEMORY_MODULE_NUM_PHYSCONTACTPAIR, MODULE_PHYSCONTACTPAIR_ELEMENT_SIZE)
+#define MODULE_PHYSSEPARATIONPAIR_MANAGER_SIZE memPoolMemoryForBlocks(MEMORY_MODULE_NUM_PHYSSEPARATIONPAIR, MODULE_PHYSSEPARATIONPAIR_ELEMENT_SIZE)
+#define MODULE_AABBNODE_MANAGER_SIZE           memPoolMemoryForBlocks(MEMORY_MODULE_NUM_AABBNODES, MODULE_AABBNODE_ELEMENT_SIZE)
 #define MODULE_PHYSCOLLIDER_MANAGER_SIZE        memSingleListMemoryForBlocks(MEMORY_MODULE_NUM_PHYSCOLLIDERS, MODULE_PHYSCOLLIDER_ELEMENT_SIZE)
 #define MODULE_PHYSRIGIDBODYDEF_MANAGER_SIZE    memSingleListMemoryForBlocks(MEMORY_MODULE_NUM_PHYSRIGIDBODYDEFS, MODULE_PHYSRIGIDBODYDEF_ELEMENT_SIZE)
 #define MODULE_PHYSRIGIDBODY_MANAGER_SIZE       memSingleListMemoryForBlocks(MEMORY_MODULE_NUM_PHYSRIGIDBODIES, MODULE_PHYSRIGIDBODY_ELEMENT_SIZE)
@@ -60,11 +61,21 @@ void modulePhysicsAABBNodeFree(aabbNode *const restrict node);
 void modulePhysicsAABBNodeClear();
 
 physicsContactPair *modulePhysicsContactPairAlloc();
-void modulePhysicsContactPairFree(physicsContactPair *const restrict cPair);
+physicsContactPair *modulePhysicsContactPairPrepend(physicsContactPair **const restrict start);
+physicsContactPair *modulePhysicsContactPairAppend(physicsContactPair **const restrict start);
+physicsContactPair *modulePhysicsContactPairInsertBefore(physicsContactPair **const restrict start, physicsContactPair *const restrict prevData);
+physicsContactPair *modulePhysicsContactPairInsertAfter(physicsContactPair **const restrict start, physicsContactPair *const restrict data);
+void modulePhysicsContactPairFree(physicsContactPair **const restrict start, physicsContactPair *const restrict cPair);
+void modulePhysicsContactPairFreeArray(physicsContactPair **const restrict start);
 void modulePhysicsContactPairClear();
 
 physicsSeparationPair *modulePhysicsSeparationPairAlloc();
-void modulePhysicsSeparationPairFree(physicsSeparationPair *const restrict sPair);
+physicsSeparationPair *modulePhysicsSeparationPairPrepend(physicsSeparationPair **const restrict start);
+physicsSeparationPair *modulePhysicsSeparationPairAppend(physicsSeparationPair **const restrict start);
+physicsSeparationPair *modulePhysicsSeparationPairInsertBefore(physicsSeparationPair **const restrict start, physicsSeparationPair *const restrict prevData);
+physicsSeparationPair *modulePhysicsSeparationPairInsertAfter(physicsSeparationPair **const restrict start, physicsSeparationPair *const restrict data);
+void modulePhysicsSeparationPairFree(physicsSeparationPair **const restrict start, physicsSeparationPair *const restrict sPair);
+void modulePhysicsSeparationPairFreeArray(physicsSeparationPair **const restrict start);
 void modulePhysicsSeparationPairClear();
 
 physicsCollider *modulePhysicsColliderAlloc();
@@ -98,8 +109,8 @@ void modulePhysicsBodyClear();
 
 
 extern memoryPool g_aabbNodeManager;
-extern memoryPool g_physContactPairManager;
-extern memoryPool g_physSeparationPairManager;
+extern memoryDoubleList g_physContactPairManager;
+extern memoryDoubleList g_physSeparationPairManager;
 extern memorySingleList g_physColliderManager;
 extern memorySingleList g_physRigidBodyDefManager;
 extern memorySingleList g_physRigidBodyManager;

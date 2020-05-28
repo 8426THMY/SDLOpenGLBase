@@ -172,10 +172,10 @@
 #define MEMQUADLIST_LOOP_INACTIVE(node)                                 \
 		}else if(allocator##_flag_##node == MEMQUADLIST_FLAG_INACTIVE){ \
 
-#define MEMQUADLIST_LOOP_END(allocator, node, earlyexit)                 \
+#define MEMQUADLIST_LOOP_END(allocator, node)                            \
 		}                                                                \
 		if(allocator##_remaining_##node <= 0){                           \
-			earlyexit;                                                   \
+			break;                                                       \
 		}                                                                \
 		node = memQuadListBlockGetNextBlock(node, allocator.blockSize);  \
 		if((void *)node >= (void *)allocator##_region_##node){           \
@@ -199,9 +199,9 @@
 #define MEMQUADLIST_LOOP_INACTIVE(node)                                 \
 		}else if(allocator##_flag_##node == MEMQUADLIST_FLAG_INACTIVE){ \
 
-#define MEMQUADLIST_LOOP_END(allocator, node, earlyexit)                 \
+#define MEMQUADLIST_LOOP_END(allocator, node)                            \
 		}else if(allocator##_flag_##node == MEMQUADLIST_FLAG_INVALID){   \
-			earlyexit;                                                   \
+			break;                                                       \
 		}                                                                \
 		node = memQuadListBlockGetNextBlock(node, allocator.blockSize);  \
 		if((void *)node >= (void *)allocator##_region_##node){           \

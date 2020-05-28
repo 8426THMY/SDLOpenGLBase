@@ -116,10 +116,10 @@
 #define MEMSINGLELIST_LOOP_INACTIVE(node)                                 \
 		}else if(allocator##_flag_##node == MEMSINGLELIST_FLAG_INACTIVE){ \
 
-#define MEMSINGLELIST_LOOP_END(allocator, node, earlyexit)                \
+#define MEMSINGLELIST_LOOP_END(allocator, node)                           \
 		}                                                                 \
 		if(allocator##_remaining_##node <= 0){                            \
-			earlyexit;                                                    \
+			break;                                                        \
 		}                                                                 \
 		node = memSingleListBlockGetNextBlock(node, allocator.blockSize); \
 		if((void *)node >= (void *)allocator##_region_##node){            \
@@ -143,9 +143,9 @@
 #define MEMSINGLELIST_LOOP_INACTIVE(node)                                 \
 		}else if(allocator##_flag_##node == MEMSINGLELIST_FLAG_INACTIVE){ \
 
-#define MEMSINGLELIST_LOOP_END(allocator, node, earlyexit)                \
+#define MEMSINGLELIST_LOOP_END(allocator, node)                           \
 		}else if(allocator##_flag_##node == MEMSINGLELIST_FLAG_INVALID){  \
-			earlyexit;                                                    \
+			break;                                                        \
 		}                                                                 \
 		node = memSingleListBlockGetNextBlock(node, allocator.blockSize); \
 		if((void *)node >= (void *)allocator##_region_##node){            \

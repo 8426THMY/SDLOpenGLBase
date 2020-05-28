@@ -40,17 +40,17 @@ void moduleSkeletonCleanup(){
 	// skeletonAnim
 	MEMSINGLELIST_LOOP_BEGIN(g_skeleAnimManager, i, skeletonAnim)
 		moduleSkeleAnimFree(NULL, i, NULL);
-	MEMSINGLELIST_LOOP_END(g_skeleAnimManager, i, break)
+	MEMSINGLELIST_LOOP_END(g_skeleAnimManager, i)
 	memSingleListDelete(&g_skeleAnimManager, memoryManagerGlobalFree);
 	// skeletonAnimDef
 	MEMPOOL_LOOP_BEGIN(g_skeleAnimDefManager, i, skeletonAnimDef)
 		moduleSkeleAnimDefFree(i);
-	MEMPOOL_LOOP_END(g_skeleAnimDefManager, i, break)
+	MEMPOOL_LOOP_END(g_skeleAnimDefManager, i)
 	memPoolDelete(&g_skeleAnimDefManager, memoryManagerGlobalFree);
 	// skeleton
 	MEMPOOL_LOOP_BEGIN(g_skeletonManager, i, skeleton)
 		moduleSkeletonFree(i);
-	MEMPOOL_LOOP_END(g_skeletonManager, i, break)
+	MEMPOOL_LOOP_END(g_skeletonManager, i)
 	memPoolDelete(&g_skeletonManager, memoryManagerGlobalFree);
 }
 
@@ -85,7 +85,7 @@ void moduleSkeletonFree(skeleton *skele){
 void moduleSkeletonClear(){
 	MEMPOOL_LOOP_BEGIN(g_skeletonManager, i, skeleton)
 		moduleSkeletonFree(i);
-	MEMPOOL_LOOP_END(g_skeletonManager, i, break)
+	MEMPOOL_LOOP_END(g_skeletonManager, i)
 	memPoolClear(&g_skeletonManager);
 }
 
@@ -120,7 +120,7 @@ void moduleSkeleAnimDefFree(skeletonAnimDef *const restrict animDef){
 void moduleSkeleAnimDefClear(){
 	MEMPOOL_LOOP_BEGIN(g_skeleAnimDefManager, i, skeletonAnimDef)
 		moduleSkeleAnimDefFree(i);
-	MEMPOOL_LOOP_END(g_skeleAnimDefManager, i, break)
+	MEMPOOL_LOOP_END(g_skeleAnimDefManager, i)
 	memPoolClear(&g_skeleAnimDefManager);
 }
 
@@ -243,6 +243,6 @@ void moduleSkeleAnimFreeArray(skeletonAnim **const restrict start){
 void moduleSkeleAnimClear(){
 	MEMSINGLELIST_LOOP_BEGIN(g_skeleAnimManager, i, skeletonAnim)
 		moduleSkeleAnimFree(NULL, i, NULL);
-	MEMSINGLELIST_LOOP_END(g_skeleAnimManager, i, break)
+	MEMSINGLELIST_LOOP_END(g_skeleAnimManager, i)
 	memSingleListClear(&g_skeleAnimManager);
 }

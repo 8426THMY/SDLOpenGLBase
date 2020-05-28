@@ -6,12 +6,6 @@
 
 #define AABBTREE_QUERY_STACK_SIZE 256
 
-#define AABBNODE_HEIGHT_LEAF        0
-#define AABBNODE_HEIGHT_LAST_BRANCH 1
-
-#define AABBNODE_IS_LEAF(node) ((node)->height == AABBNODE_HEIGHT_LEAF)
-#define AABBNODE_IS_LAST_BRANCH(node) ((node)->height == AABBNODE_HEIGHT_LAST_BRANCH)
-
 
 // Forward-declare any helper functions!
 static aabbNode *balanceNode(aabbTree *const restrict tree, aabbNode *const restrict node);
@@ -76,14 +70,14 @@ void aabbTreeUpdateNode(aabbTree *const restrict tree, aabbNode *const restrict 
 
 // Remove the user's data from the tree.
 void aabbTreeRemoveNode(
-	aabbTree *const restrict tree, aabbNode *const restrict node, void (*const deallocate)(aabbNode *const restrict node)
+	aabbTree *const restrict tree, aabbNode *const restrict node, void (*const deallocate)(aabbNode *node, void *args), void *args
 ){
 
 	// If we are not deleting the root node, we should
 	// replace the node's parent with its sibling.
 	if(node != tree->root){
 		removeLeaf(tree, node);
-		(*deallocate)(node->parent);
+		(*deallocate)(node->parent, args);
 
 	// If we're deleting the root node, it cannot
 	// have any children since it's a leaf, so we
@@ -92,7 +86,7 @@ void aabbTreeRemoveNode(
 		tree->root = NULL;
 	}
 
-	(*deallocate)(node);
+	(*deallocate)(node, args);
 }
 
 
@@ -100,26 +94,26 @@ void aabbTreeRemoveNode(
 ** Traverse the tree in post-order and run the function "callback"
 ** on every node. This is primarily used for memory deallocation.
 */
-void aabbTreeTraverse(aabbTree *const restrict tree, void (*const callback)(aabbNode *const restrict node)){
+void aabbTreeTraverse(aabbTree *const restrict tree, void (*const callback)(aabbNode *node, void *args), void *args){
 	aabbNode *node = tree->root;
 
 	if(node != NULL){
 		// Make sure our tree has more than one node.
-		if(!AABBNODE_IS_LEAF(node)){
+		if(!aabbNodeIsLeaf(node)){
 			for(;;){
 				aabbNode *parent;
 
 				// Find the left-most branch node of the current subtree.
-				while(!AABBNODE_IS_LAST_BRANCH(node)){
+				while(!aabbNodeIsLastBranch(node)){
 					node = node->data.children.left;
 				}
 				parent = node->parent;
 
 				// Run the callback function on the
 				// branch node and its two leaves.
-				(*callback)(node->data.children.left);
-				(*callback)(node->data.children.right);
-				(*callback)(node);
+				(*callback)(node->data.children.left, args);
+				(*callback)(node->data.children.right, args);
+				(*callback)(node, args);
 
 				// Now that we've reached the end of the current branch,
 				// we'll need to keep climbing the tree until we reach
@@ -136,7 +130,7 @@ void aabbTreeTraverse(aabbTree *const restrict tree, void (*const callback)(aabb
 						node = parent->data.children.right;
 						break;
 					}
-					(*callback)(node);
+					(*callback)(node, args);
 					node = parent;
 					parent = node->parent;
 				}
@@ -145,7 +139,7 @@ void aabbTreeTraverse(aabbTree *const restrict tree, void (*const callback)(aabb
 		// If the tree only has a single node,
 		// we can run the callback on it and exit.
 		}else{
-			(*callback)(node);
+			(*callback)(node, args);
 		}
 	}
 }
@@ -157,7 +151,7 @@ void aabbTreeTraverse(aabbTree *const restrict tree, void (*const callback)(aabb
 */
 void aabbTreeQueryCollisions(
 	aabbTree *const restrict tree, aabbNode *const node,
-	void (*const callback)(void *const restrict d1, void *const restrict d2)
+	void (*const callback)(void *const restrict d1, void *const restrict d2, void *args), void *args
 ){
 
 	aabbNode *curNode = tree->root;
@@ -165,7 +159,7 @@ void aabbTreeQueryCollisions(
 	// Make sure the tree isn't empty.
 	if(curNode != NULL){
 		// Our loop won't work if the tree's root is its only leaf.
-		if(!AABBNODE_IS_LEAF(curNode)){
+		if(!aabbNodeIsLeaf(curNode)){
 			for(;;){
 				aabbNode *parent;
 
@@ -175,9 +169,9 @@ void aabbTreeQueryCollisions(
 				while(colliderAABBCollidingAABB(&node->aabb, &curNode->aabb)){
 					// If we've found a node who parents two leaves, we
 					// can run the callback function with its children.
-					if(AABBNODE_IS_LAST_BRANCH(curNode)){
-						(*callback)(node->data.leaf.value, curNode->data.children.left->data.leaf.value);
-						(*callback)(node->data.leaf.value, curNode->data.children.right->data.leaf.value);
+					if(aabbNodeIsLastBranch(curNode)){
+						(*callback)(node->data.leaf.value, curNode->data.children.left->data.leaf.value, args);
+						(*callback)(node->data.leaf.value, curNode->data.children.right->data.leaf.value, args);
 
 						break;
 					}else{
@@ -208,7 +202,7 @@ void aabbTreeQueryCollisions(
 		// If our tree only has one node, we
 		// can simply run our callback on it.
 		}else{
-			(*callback)(node->data.leaf.value, curNode->data.leaf.value);
+			(*callback)(node->data.leaf.value, curNode->data.leaf.value, args);
 		}
 	}
 }
@@ -219,7 +213,7 @@ void aabbTreeQueryCollisions(
 */
 void aabbTreeQueryCollisionsStack(
 	aabbTree *const restrict tree, const aabbNode *const node,
-	void (*const callback)(void *const restrict d1, void *const restrict d2)
+	void (*const callback)(void *const restrict d1, void *const restrict d2, void *args), void *args
 ){
 
 	aabbNode *stack[AABBTREE_QUERY_STACK_SIZE];
@@ -230,8 +224,8 @@ void aabbTreeQueryCollisionsStack(
 	do {
 		aabbNode *curNode = stack[--i];
 
-		if(AABBNODE_IS_LEAF(curNode)){
-			(*callback)(node->data.leaf.value, curNode->data.leaf.value);
+		if(aabbNodeIsLeaf(curNode)){
+			(*callback)(node->data.leaf.value, curNode->data.leaf.value, args);
 		}else if(colliderAABBCollidingAABB(&node->aabb, &curNode->aabb)){
 			stack[i] = curNode->data.children.left;
 			++i;
@@ -254,7 +248,7 @@ aabbNode *aabbTreeFindNextNode(
 	if(curNode != NULL){
 		// If the tree has more than one node, we'll
 		// need to find the next node after "prevNode".
-		if(!AABBNODE_IS_LEAF(curNode)){
+		if(!aabbNodeIsLeaf(curNode)){
 			aabbNode *parent;
 
 			// If a previous node was specified, we may have
@@ -300,7 +294,7 @@ aabbNode *aabbTreeFindNextNode(
 				// Keep going left until we either find a branch that
 				// our node doesn't collide with or we reach a leaf.
 				if(colliderAABBCollidingAABB(aabb, &curNode->aabb)){
-					if(AABBNODE_IS_LEAF(curNode)){
+					if(aabbNodeIsLeaf(curNode)){
 						return(curNode);
 					}
 
@@ -479,7 +473,7 @@ static void insertLeaf(aabbTree *const restrict tree, aabbNode *const restrict n
 	aabbNode *siblingParent;
 
 	// Find a leaf node to serve as our new node's sibling.
-	while(!AABBNODE_IS_LEAF(sibling)){
+	while(!aabbNodeIsLeaf(sibling)){
 		aabbNode *const left = sibling->data.children.left;
 		aabbNode *const right = sibling->data.children.right;
 
@@ -496,7 +490,7 @@ static void insertLeaf(aabbTree *const restrict tree, aabbNode *const restrict n
 		leftCost = colliderAABBCombinedSurfaceAreaHalf(&node->aabb, &left->aabb);
 		// If the child is a leaf node, the cost must
 		// include the creation of a new branch node.
-		if(AABBNODE_IS_LEAF(left)){
+		if(aabbNodeIsLeaf(left)){
 			leftCost += -colliderAABBSurfaceAreaHalf(&left->aabb) + inheritedCost;
 		}
 
@@ -505,7 +499,7 @@ static void insertLeaf(aabbTree *const restrict tree, aabbNode *const restrict n
 		rightCost = colliderAABBCombinedSurfaceAreaHalf(&node->aabb, &right->aabb);
 		// If the child is a leaf node, the cost must
 		// include the creation of a new branch node.
-		if(AABBNODE_IS_LEAF(right)){
+		if(aabbNodeIsLeaf(right)){
 			rightCost += -colliderAABBSurfaceAreaHalf(&right->aabb) + inheritedCost;
 		}
 

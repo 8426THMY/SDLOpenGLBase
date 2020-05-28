@@ -227,7 +227,7 @@ static void updateCameras(program *const restrict prg){
 static void updateObjects(program *const restrict prg){
 	MEMSINGLELIST_LOOP_BEGIN(g_objectManager, curObj, object)
 		objectUpdate(curObj, prg->step.updateTime);
-	MEMSINGLELIST_LOOP_END(g_objectManager, curObj, break)
+	MEMSINGLELIST_LOOP_END(g_objectManager, curObj)
 
 	// Update the models' positions and rotations!
 	/** Temporary if statement for temporary code. Don't want the program to crash, do we? **/
@@ -245,9 +245,143 @@ static void updateObjects(program *const restrict prg){
 physicsIsland island;
 #warning "Everything in here should eventually be moved into modulePhysicsSolveConstraints."
 static void updatePhysics(program *const restrict prg){
+	/*
+	** We need to make it so modulePhysics uses doubleLists for contacts, separations, joints and rigid bodies.
+	** When we allocate any of them, it should add them to an island's lists.
+	** Probably ignore the stuff below here.
+	*/
+	/**
+	*** Physics needs a rewrite, specifically with respect to how we handle islands.
+	*** Box2D and Qu3e do something like this:
+	***
+	*** // other stuff?
+	***
+	*** for all curBody in rigid bodies {
+	*** 	stack[0] = curBody;
+	*** 	++stackCount;
+	***
+	*** 	while(stackCount > 0){
+	*** 		--stackCount;
+	*** 		islandBody = stack[stackCount];
+	*** 		add islandBody to island;
+	***
+	*** 		for all curContact in islandBody contacts {
+	*** 			add curContact to island;
+	***
+	*** 			otherBody = curContact other rigid body;
+	*** 			stack[stackCount] = otherBody;
+	*** 			++stackCount;
+	*** 		}
+	*** 	}
+	*** }
+	***
+	*** for all rigid bodies {
+	*** 	for all body colliders {
+	*** 		updateCollider();
+	*** 		updateAABBNode();
+	*** 	}
+	*** 	resetForces();
+	*** }
+	***
+	*** for all rigid bodies {
+	*** 	if moving {
+	*** 		query AABB tree {
+	*** 			add contact to contact manager;
+	*** 		}
+	*** 	}
+	*** }
+	**/
+	/*
+	typedef struct physicsConstraintManager {
+		physicsSeparationPair *separations;
+		physicsContactPair *contacts;
+		physicsJointPair *joints;
+	} physicsConstraintManager;
+
+	typedef struct physicsIsland {
+		aabbTree tree;
+		physicsConstraintManager constraintManager;
+	} physicsIsland;
+
+	typedef struct physicsSystem {
+		physicsRigidBody *bodies;
+		physicsIsland island;
+	} physicsSystem;
+
+
+
+
+	//------------------------------------------------------------------------------
+	physicsSystemUpdateBodies(physicsSystem){
+		for all curBody in physicsSystem.bodies {
+			applyForces(curBody);
+			integrateVelocity(curBody);
+			resetForces(curBody);
+
+			positionFromCentroid(curBody);
+
+			for all curCollider in curBody.colliders {
+				updateCollider(curCollider);
+				updateIslandNode(curCollider, physicsSystem.island);
+			}
+		}
+	}
+
+
+	//------------------------------------------------------------------------------
+	physicsIslandCollisionCallback(colliderA, colliderB, island){
+		if separation exists between colliderA and colliderB {
+			if separation is valid {
+				refreshSeparation(separation);
+			}
+		}
+
+		if colliderA and colliderB are colliding {
+			if contact exists between colliderA and colliderB {
+				persistContact(contact);
+				refreshContact(contact);
+			}else{
+				physicsConstraintManagerNewContact(island.constraintManager, contact);
+			}
+		}else{
+			if separation existed {
+				refreshSeparation;
+			}else{
+				physicsConstraintManagerNewSeparation(island.constraintManager, separation);
+			}
+		}
+	}
+
+	physicsIslandQueryCollisions(island){
+		for all nodes in island.tree.leaves {
+			queryCollisions(island.tree, node, &physicsIslandCollisionCallback, island);
+
+			for all separations in node.data.separations {
+				if separation is inactive {
+					removeSeparation(island.contactManager, separation);
+				}
+			}
+			for all contacts in node.data.contacts {
+				if contact is inactive {
+					removeContact(island.contactManager, contact);
+				}else{
+					presolveContact(contact);
+				}
+			}
+		}
+	}
+
+	physicsSystemUpdateConstraints(physicsSystem){
+		//
+	}
+	*/
+	/// Islands should store doubly-linked lists of rigid bodies, contacts, separations and joints.
+	/// When an object wishes to "own" a new rigid body, we allocate a new singly-linked list, then merge it with the island's one.
+	/// Same for contacts, separations and joints.
+	#if 0
 	MEMSINGLELIST_LOOP_BEGIN(g_physRigidBodyManager, curBody, physicsRigidBody)
 		physRigidBodyUpdate(curBody, &island, prg->step.updateDelta);
-	MEMSINGLELIST_LOOP_END(g_physRigidBodyManager, curBody, break)
+	MEMSINGLELIST_LOOP_END(g_physRigidBodyManager, curBody)
 
 	#ifdef PHYSCONTACT_STABILISER_BAUMGARTE
 	physIslandQueryCollisions(&island, prg->step.updateRate);
@@ -256,6 +390,7 @@ static void updatePhysics(program *const restrict prg){
 	#endif
 
 	modulePhysicsSolveConstraints(prg->step.updateDelta);
+	#endif
 }
 
 /** TEMPORARY STUFF! **/
@@ -317,7 +452,7 @@ static void render(program *const restrict prg){
 	MEMSINGLELIST_LOOP_BEGIN(g_objectManager, curObj, object)
 		#warning "We'll need the camera in this function for billboards. Just pass it instead of the matrix."
 		objectDraw(curObj, &prg->cam, &prg->objectShader, prg->step.renderDelta);
-	MEMSINGLELIST_LOOP_END(g_objectManager, curObj, break)
+	MEMSINGLELIST_LOOP_END(g_objectManager, curObj)
 
 	/** TEMPORARY PARTICLE RENDER STUFF! **/
 	glUseProgram(prg->spriteShader.programID);
@@ -630,6 +765,8 @@ static void cleanupModules(){
 	puts("Beginning cleanup...\n");
 	//memTreePrintAllSizes(&g_memManager);
 
+	/** YET MORE TEMPORARY PHYSICS STUFF **/
+	physIslandDelete(&island);
 	/** YET MORE TEMPORARY PARTICLE STUFF **/
 	particleSysDelete(&partSys);
 	particleSysDefDelete(&partSysDef);

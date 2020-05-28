@@ -2,8 +2,8 @@
 
 
 memoryPool g_aabbNodeManager;
-memoryPool g_physContactPairManager;
-memoryPool g_physSeparationPairManager;
+memoryDoubleList g_physContactPairManager;
+memoryDoubleList g_physSeparationPairManager;
 memorySingleList g_physColliderManager;
 memorySingleList g_physRigidBodyDefManager;
 memorySingleList g_physRigidBodyManager;
@@ -19,20 +19,20 @@ return_t modulePhysicsSetup(){
 		// aabbNode
 		memPoolInit(
 			&g_aabbNodeManager,
-			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_AABBNODES_MANAGER_SIZE)),
-			MODULE_AABBNODES_MANAGER_SIZE, MODULE_AABBNODES_ELEMENT_SIZE
+			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_AABBNODE_MANAGER_SIZE)),
+			MODULE_AABBNODE_MANAGER_SIZE, MODULE_AABBNODE_ELEMENT_SIZE
 		) != NULL &&
 		// physicsContactPair
-		memPoolInit(
+		memDoubleListInit(
 			&g_physContactPairManager,
-			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSCONTACTPAIRS_MANAGER_SIZE)),
-			MODULE_PHYSCONTACTPAIRS_MANAGER_SIZE, MODULE_PHYSCOLLIDER_ELEMENT_SIZE
+			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSCONTACTPAIR_MANAGER_SIZE)),
+			MODULE_PHYSCONTACTPAIR_MANAGER_SIZE, MODULE_PHYSCOLLIDER_ELEMENT_SIZE
 		) != NULL &&
 		// physicsSeparationPair
-		memPoolInit(
+		memDoubleListInit(
 			&g_physSeparationPairManager,
-			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSSEPARATIONPAIRS_MANAGER_SIZE)),
-			MODULE_PHYSSEPARATIONPAIRS_MANAGER_SIZE, MODULE_PHYSSEPARATIONPAIRS_ELEMENT_SIZE
+			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSSEPARATIONPAIR_MANAGER_SIZE)),
+			MODULE_PHYSSEPARATIONPAIR_MANAGER_SIZE, MODULE_PHYSSEPARATIONPAIR_ELEMENT_SIZE
 		) != NULL &&
 		// physicsCollider
 		memSingleListInit(
@@ -131,13 +131,14 @@ return_t modulePhysicsSetup(){
 ** }
 */
 void modulePhysicsSolveConstraints(const float dt){
+	#if 0
 	size_t i;
 
 
 	// Presolve joints.
 	/**MEMORY_QLINK_LOOP_BEGIN(__g_PhysicsJointResourceArray, joint, physJoint *);
 		physJointPresolveConstraints(joint, dt);
-	MEMORY_QLINK_LOOP_END(__g_PhysicsJointResourceArray, joint, break);**/
+	MEMORY_QLINK_LOOP_END(__g_PhysicsJointResourceArray, joint);**/
 
 
 	// Iteratively solve joint and contact velocity constraints.
@@ -145,12 +146,12 @@ void modulePhysicsSolveConstraints(const float dt){
 		// Solve joint velocity constraints.
 		/**MEMORY_QLINK_LOOP_BEGIN(__g_PhysicsJointResourceArray, joint, physJoint *);
 			physJointSolveVelocityConstraints(joint);
-		MEMORY_QLINK_LOOP_END(__g_PhysicsJointResourceArray, joint, break);**/
+		MEMORY_QLINK_LOOP_END(__g_PhysicsJointResourceArray, joint);**/
 
 		// Solve contact velocity constraints.
 		MEMPOOL_LOOP_BEGIN(g_physContactPairManager, contact, physicsContactPair)
 			physManifoldSolveVelocity(&contact->manifold, contact->cA->owner, contact->cB->owner);
-		MEMPOOL_LOOP_END(g_physContactPairManager, contact, break)
+		MEMPOOL_LOOP_END(g_physContactPairManager, contact)
 	}
 
 
@@ -158,9 +159,9 @@ void modulePhysicsSolveConstraints(const float dt){
 	MEMSINGLELIST_LOOP_BEGIN(g_physRigidBodyManager, body, physicsRigidBody)
 		physRigidBodyIntegratePosition(body, dt);
 	#ifndef PHYSCOLLIDER_USE_POSITIONAL_CORRECTION
-	MEMSINGLELIST_LOOP_END(g_physRigidBodyManager, body, return)
+	MEMSINGLELIST_LOOP_END(g_physRigidBodyManager, body)
 	#else
-	MEMSINGLELIST_LOOP_END(g_physRigidBodyManager, body, break)
+	MEMSINGLELIST_LOOP_END(g_physRigidBodyManager, body)
 
 
 	// Iteratively solve joint and contact configuration constraints.
@@ -172,14 +173,14 @@ void modulePhysicsSolveConstraints(const float dt){
 		// Solve joint configuration constraints.
 		/**MEMORY_QLINK_LOOP_BEGIN(__g_PhysicsJointResourceArray, joint, physJoint *);
 			solved &= physJointSolveConfigurationConstraints(joint);
-		MEMORY_QLINK_LOOP_END(__g_PhysicsJointResourceArray, joint, break);**/
+		MEMORY_QLINK_LOOP_END(__g_PhysicsJointResourceArray, joint);**/
 		#endif
 
 		#ifdef PHYSCONTACT_STABILISER_GAUSS_SEIDEL
 		// Solve contact configuration constraints.
 		MEMPOOL_LOOP_BEGIN(g_physContactPairManager, contact, physicsContactPair)
 			separation = physManifoldSolvePosition(&contact->manifold, contact->cA->owner, contact->cB->owner, separation);
-		MEMPOOL_LOOP_END(g_physContactPairManager, contact, break)
+		MEMPOOL_LOOP_END(g_physContactPairManager, contact)
 		#endif
 
 		// Exit if the errors are small.
@@ -188,38 +189,39 @@ void modulePhysicsSolveConstraints(const float dt){
 		}
 	}
 	#endif
+	#endif
 }
 
 void modulePhysicsCleanup(){
 	// physicsRigidBody
 	MEMSINGLELIST_LOOP_BEGIN(g_physRigidBodyManager, i, physicsRigidBody)
 		modulePhysicsBodyFree(NULL, i, NULL);
-	MEMSINGLELIST_LOOP_END(g_physRigidBodyManager, i, break)
+	MEMSINGLELIST_LOOP_END(g_physRigidBodyManager, i)
 	memSingleListDelete(&g_physRigidBodyManager, memoryManagerGlobalFree);
 	// physicsRigidBodyDef
 	MEMSINGLELIST_LOOP_BEGIN(g_physRigidBodyDefManager, i, physicsRigidBodyDef)
 		modulePhysicsBodyDefFree(NULL, i, NULL);
-	MEMSINGLELIST_LOOP_END(g_physRigidBodyDefManager, i, break)
+	MEMSINGLELIST_LOOP_END(g_physRigidBodyDefManager, i)
 	memSingleListDelete(&g_physRigidBodyDefManager, memoryManagerGlobalFree);
 	// physicsCollider
 	MEMSINGLELIST_LOOP_BEGIN(g_physColliderManager, i, physicsCollider)
 		modulePhysicsColliderFree(NULL, i, NULL);
-	MEMSINGLELIST_LOOP_END(g_physColliderManager, i, break)
+	MEMSINGLELIST_LOOP_END(g_physColliderManager, i)
 	memSingleListDelete(&g_physColliderManager, memoryManagerGlobalFree);
 	// physicsSeparationPair
 	MEMPOOL_LOOP_BEGIN(g_physSeparationPairManager, i, physicsSeparationPair)
-		modulePhysicsSeparationPairFree(i);
-	MEMPOOL_LOOP_END(g_physSeparationPairManager, i, break)
-	memPoolDelete(&g_physSeparationPairManager, memoryManagerGlobalFree);
+		modulePhysicsSeparationPairFree(NULL, i);
+	MEMPOOL_LOOP_END(g_physSeparationPairManager, i)
+	memDoubleListDelete(&g_physSeparationPairManager, memoryManagerGlobalFree);
 	// physicsContactPair
-	MEMPOOL_LOOP_BEGIN(g_physContactPairManager, i, physicsContactPair)
-		modulePhysicsContactPairFree(i);
-	MEMPOOL_LOOP_END(g_physContactPairManager, i, break)
-	memPoolDelete(&g_physContactPairManager, memoryManagerGlobalFree);
+	MEMDOUBLELIST_LOOP_BEGIN(g_physContactPairManager, i, physicsContactPair)
+		modulePhysicsContactPairFree(NULL, i);
+	MEMDOUBLELIST_LOOP_END(g_physContactPairManager, i)
+	memDoubleListDelete(&g_physContactPairManager, memoryManagerGlobalFree);
 	// aabbNode
-	MEMPOOL_LOOP_BEGIN(g_aabbNodeManager, i, aabbNode)
+	MEMDOUBLELIST_LOOP_BEGIN(g_aabbNodeManager, i, aabbNode)
 		modulePhysicsAABBNodeFree(i);
-	MEMPOOL_LOOP_END(g_aabbNodeManager, i, break)
+	MEMDOUBLELIST_LOOP_END(g_aabbNodeManager, i)
 	memPoolDelete(&g_aabbNodeManager, memoryManagerGlobalFree);
 }
 
@@ -234,8 +236,8 @@ aabbNode *modulePhysicsAABBNodeAlloc(){
 	if(newBlock == NULL){
 		if(memPoolExtend(
 			&g_aabbNodeManager,
-			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_AABBNODES_MANAGER_SIZE)),
-			MODULE_AABBNODES_MANAGER_SIZE
+			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_AABBNODE_MANAGER_SIZE)),
+			MODULE_AABBNODE_MANAGER_SIZE
 		)){
 			newBlock = memPoolAlloc(&g_aabbNodeManager);
 		}
@@ -253,26 +255,105 @@ void modulePhysicsAABBNodeFree(aabbNode *const restrict node){
 void modulePhysicsAABBNodeClear(){
 	MEMPOOL_LOOP_BEGIN(g_aabbNodeManager, i, aabbNode)
 		modulePhysicsAABBNodeFree(i);
-	MEMPOOL_LOOP_END(g_aabbNodeManager, i, break)
+	MEMPOOL_LOOP_END(g_aabbNodeManager, i)
 	memPoolClear(&g_aabbNodeManager);
 }
 
 
-// Allocate memory for a contact
-// pair and return a handle to it.
+// Allocate a new contact pair array.
 physicsContactPair *modulePhysicsContactPairAlloc(){
 	#ifndef MEMORYREGION_EXTEND_ALLOCATORS
-	return(memPoolAlloc(&g_physContactPairManager));
+	return(memDoubleListAlloc(&g_physContactPairManager));
 	#else
-	physicsContactPair *newBlock = memPoolAlloc(&g_physContactPairManager);
+	physicsContactPair *newBlock = memDoubleListAlloc(&g_physContactPairManager);
 	// If we've run out of memory, allocate some more!
 	if(newBlock == NULL){
-		if(memPoolExtend(
+		if(memDoubleListExtend(
 			&g_physContactPairManager,
-			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSCONTACTPAIRS_MANAGER_SIZE)),
-			MODULE_PHYSCONTACTPAIRS_MANAGER_SIZE
+			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSCONTACTPAIR_MANAGER_SIZE)),
+			MODULE_PHYSCONTACTPAIR_MANAGER_SIZE
 		)){
-			newBlock = memPoolAlloc(&g_physContactPairManager);
+			newBlock = memDoubleListAlloc(&g_physContactPairManager);
+		}
+	}
+	return(newBlock);
+	#endif
+}
+
+// Insert a contact pair at the beginning of an array.
+physicsContactPair *modulePhysicsContactPairPrepend(physicsContactPair **const restrict start){
+	#ifndef MEMORYREGION_EXTEND_ALLOCATORS
+	return(memDoubleListPrepend(&g_physContactPairManager, (void **)start));
+	#else
+	physicsContactPair *newBlock = memDoubleListPrepend(&g_physContactPairManager, (void **)start);
+	// If we've run out of memory, allocate some more!
+	if(newBlock == NULL){
+		if(memDoubleListExtend(
+			&g_physContactPairManager,
+			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSCONTACTPAIR_MANAGER_SIZE)),
+			MODULE_PHYSCONTACTPAIR_MANAGER_SIZE
+		)){
+			newBlock = memDoubleListPrepend(&g_physContactPairManager, (void **)start);
+		}
+	}
+	return(newBlock);
+	#endif
+}
+
+// Insert a contact pair at the end of an array.
+physicsContactPair *modulePhysicsContactPairAppend(physicsContactPair **const restrict start){
+	#ifndef MEMORYREGION_EXTEND_ALLOCATORS
+	return(memDoubleListAppend(&g_physContactPairManager, (void **)start));
+	#else
+	physicsContactPair *newBlock = memDoubleListAppend(&g_physContactPairManager, (void **)start);
+	// If we've run out of memory, allocate some more!
+	if(newBlock == NULL){
+		if(memDoubleListExtend(
+			&g_physContactPairManager,
+			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSCONTACTPAIR_MANAGER_SIZE)),
+			MODULE_PHYSCONTACTPAIR_MANAGER_SIZE
+		)){
+			newBlock = memDoubleListAppend(&g_physContactPairManager, (void **)start);
+		}
+	}
+	return(newBlock);
+	#endif
+}
+
+// Insert a contact pair after the element "prevData".
+physicsContactPair *modulePhysicsContactPairInsertBefore(physicsContactPair **const restrict start, physicsContactPair *const restrict prevData){
+	#ifndef MEMORYREGION_EXTEND_ALLOCATORS
+	return(memDoubleListInsertBefore(&g_physContactPairManager, (void **)start, (void *)prevData));
+	#else
+	physicsContactPair *newBlock = memDoubleListInsertBefore(&g_physContactPairManager, (void **)start, (void *)prevData);
+	// If we've run out of memory, allocate some more!
+	if(newBlock == NULL){
+		if(memDoubleListExtend(
+			&g_physContactPairManager,
+			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSCONTACTPAIR_MANAGER_SIZE)),
+			MODULE_PHYSCONTACTPAIR_MANAGER_SIZE
+		)){
+			newBlock = memDoubleListInsertBefore(&g_physContactPairManager, (void **)start, (void *)prevData);
+		}
+	}
+	return(newBlock);
+	#endif
+}
+
+// Insert a contact pair after the element "data".
+physicsContactPair *modulePhysicsContactPairInsertAfter(physicsContactPair **const restrict start, physicsContactPair *const restrict data){
+	#ifndef MEMORYREGION_EXTEND_ALLOCATORS
+	return(memDoubleListInsertAfter(&g_physContactPairManager, (void **)start, (void *)data));
+	#else
+	physicsContactPair *newBlock = memDoubleListInsertAfter(&g_physContactPairManager, (void **)start, (void *)data);
+	// If we've run out of memory, allocate some more!
+	if(newBlock == NULL){
+		if(memDoubleListExtend(
+			&g_physContactPairManager,
+			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSCONTACTPAIR_MANAGER_SIZE)),
+			MODULE_PHYSCONTACTPAIR_MANAGER_SIZE
+		)){
+			newBlock = memDoubleListInsertAfter(&g_physContactPairManager, (void **)start, (void *)data);
 		}
 	}
 	return(newBlock);
@@ -280,34 +361,123 @@ physicsContactPair *modulePhysicsContactPairAlloc(){
 }
 
 // Free a contact pair that has been allocated.
-void modulePhysicsContactPairFree(physicsContactPair *const restrict cPair){
+void modulePhysicsContactPairFree(physicsContactPair **const restrict start, physicsContactPair *const restrict cPair){
 	physContactPairDelete(cPair);
-	memPoolFree(&g_physContactPairManager, cPair);
+	memDoubleListFree(&g_physContactPairManager, (void **)start, (void *)cPair);
+}
+
+// Free an entire contact pair array.
+void modulePhysicsContactPairFreeArray(physicsContactPair **const restrict start){
+	physicsContactPair *cPair = *start;
+	while(cPair != NULL){
+		modulePhysicsContactPairFree(start, cPair);
+		cPair = *start;
+	}
 }
 
 // Delete every contact pair in the manager.
 void modulePhysicsContactPairClear(){
-	MEMPOOL_LOOP_BEGIN(g_physContactPairManager, i, physicsContactPair)
-		modulePhysicsContactPairFree(i);
-	MEMPOOL_LOOP_END(g_physContactPairManager, i, break)
-	memPoolClear(&g_physContactPairManager);
+	MEMDOUBLELIST_LOOP_BEGIN(g_physContactPairManager, i, physicsContactPair)
+		modulePhysicsContactPairFree(NULL, i);
+	MEMDOUBLELIST_LOOP_END(g_physContactPairManager, i)
+	memDoubleListClear(&g_physContactPairManager);
 }
 
 
-// Allocate memory for a separation pair and return a handle to it.
+// Allocate a new separation pair array.
 physicsSeparationPair *modulePhysicsSeparationPairAlloc(){
 	#ifndef MEMORYREGION_EXTEND_ALLOCATORS
-	return(memPoolAlloc(&g_physSeparationPairManager));
+	return(memDoubleListAlloc(&g_physSeparationPairManager));
 	#else
-	physicsSeparationPair *newBlock = memPoolAlloc(&g_physSeparationPairManager);
+	physicsSeparationPair *newBlock = memDoubleListAlloc(&g_physSeparationPairManager);
 	// If we've run out of memory, allocate some more!
 	if(newBlock == NULL){
-		if(memPoolExtend(
+		if(memDoubleListExtend(
 			&g_physSeparationPairManager,
-			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSSEPARATIONPAIRS_MANAGER_SIZE)),
-			MODULE_PHYSSEPARATIONPAIRS_MANAGER_SIZE
+			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSCONTACTPAIR_MANAGER_SIZE)),
+			MODULE_PHYSCONTACTPAIR_MANAGER_SIZE
 		)){
-			newBlock = memPoolAlloc(&g_physSeparationPairManager);
+			newBlock = memDoubleListAlloc(&g_physSeparationPairManager);
+		}
+	}
+	return(newBlock);
+	#endif
+}
+
+// Insert a separation pair at the beginning of an array.
+physicsSeparationPair *modulePhysicsSeparationPairPrepend(physicsSeparationPair **const restrict start){
+	#ifndef MEMORYREGION_EXTEND_ALLOCATORS
+	return(memDoubleListPrepend(&g_physSeparationPairManager, (void **)start));
+	#else
+	physicsSeparationPair *newBlock = memDoubleListPrepend(&g_physSeparationPairManager, (void **)start);
+	// If we've run out of memory, allocate some more!
+	if(newBlock == NULL){
+		if(memDoubleListExtend(
+			&g_physSeparationPairManager,
+			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSCONTACTPAIR_MANAGER_SIZE)),
+			MODULE_PHYSCONTACTPAIR_MANAGER_SIZE
+		)){
+			newBlock = memDoubleListPrepend(&g_physSeparationPairManager, (void **)start);
+		}
+	}
+	return(newBlock);
+	#endif
+}
+
+// Insert a separation pair at the end of an array.
+physicsSeparationPair *modulePhysicsSeparationPairAppend(physicsSeparationPair **const restrict start){
+	#ifndef MEMORYREGION_EXTEND_ALLOCATORS
+	return(memDoubleListAppend(&g_physSeparationPairManager, (void **)start));
+	#else
+	physicsSeparationPair *newBlock = memDoubleListAppend(&g_physSeparationPairManager, (void **)start);
+	// If we've run out of memory, allocate some more!
+	if(newBlock == NULL){
+		if(memDoubleListExtend(
+			&g_physSeparationPairManager,
+			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSCONTACTPAIR_MANAGER_SIZE)),
+			MODULE_PHYSCONTACTPAIR_MANAGER_SIZE
+		)){
+			newBlock = memDoubleListAppend(&g_physSeparationPairManager, (void **)start);
+		}
+	}
+	return(newBlock);
+	#endif
+}
+
+// Insert a separation pair after the element "prevData".
+physicsSeparationPair *modulePhysicsSeparationPairInsertBefore(physicsSeparationPair **const restrict start, physicsSeparationPair *const restrict prevData){
+	#ifndef MEMORYREGION_EXTEND_ALLOCATORS
+	return(memDoubleListInsertBefore(&g_physSeparationPairManager, (void **)start, (void *)prevData));
+	#else
+	physicsSeparationPair *newBlock = memDoubleListInsertBefore(&g_physSeparationPairManager, (void **)start, (void *)prevData);
+	// If we've run out of memory, allocate some more!
+	if(newBlock == NULL){
+		if(memDoubleListExtend(
+			&g_physSeparationPairManager,
+			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSCONTACTPAIR_MANAGER_SIZE)),
+			MODULE_PHYSCONTACTPAIR_MANAGER_SIZE
+		)){
+			newBlock = memDoubleListInsertBefore(&g_physSeparationPairManager, (void **)start, (void *)prevData);
+		}
+	}
+	return(newBlock);
+	#endif
+}
+
+// Insert a separation pair after the element "data".
+physicsSeparationPair *modulePhysicsSeparationPairInsertAfter(physicsSeparationPair **const restrict start, physicsSeparationPair *const restrict data){
+	#ifndef MEMORYREGION_EXTEND_ALLOCATORS
+	return(memDoubleListInsertAfter(&g_physSeparationPairManager, (void **)start, (void *)data));
+	#else
+	physicsSeparationPair *newBlock = memDoubleListInsertAfter(&g_physSeparationPairManager, (void **)start, (void *)data);
+	// If we've run out of memory, allocate some more!
+	if(newBlock == NULL){
+		if(memDoubleListExtend(
+			&g_physSeparationPairManager,
+			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSCONTACTPAIR_MANAGER_SIZE)),
+			MODULE_PHYSCONTACTPAIR_MANAGER_SIZE
+		)){
+			newBlock = memDoubleListInsertAfter(&g_physSeparationPairManager, (void **)start, (void *)data);
 		}
 	}
 	return(newBlock);
@@ -315,17 +485,26 @@ physicsSeparationPair *modulePhysicsSeparationPairAlloc(){
 }
 
 // Free a separation pair that has been allocated.
-void modulePhysicsSeparationPairFree(physicsSeparationPair *const restrict sPair){
+void modulePhysicsSeparationPairFree(physicsSeparationPair **const restrict start, physicsSeparationPair *const restrict sPair){
 	physSeparationPairDelete(sPair);
-	memPoolFree(&g_physSeparationPairManager, sPair);
+	memDoubleListFree(&g_physSeparationPairManager, (void **)start, (void *)sPair);
+}
+
+// Free an entire separation pair array.
+void modulePhysicsSeparationPairFreeArray(physicsSeparationPair **const restrict start){
+	physicsSeparationPair *sPair = *start;
+	while(sPair != NULL){
+		modulePhysicsSeparationPairFree(start, sPair);
+		sPair = *start;
+	}
 }
 
 // Delete every separation pair in the manager.
 void modulePhysicsSeparationPairClear(){
-	MEMPOOL_LOOP_BEGIN(g_physSeparationPairManager, i, physicsSeparationPair)
-		modulePhysicsSeparationPairFree(i);
-	MEMPOOL_LOOP_END(g_physSeparationPairManager, i, break)
-	memPoolClear(&g_physSeparationPairManager);
+	MEMDOUBLELIST_LOOP_BEGIN(g_physSeparationPairManager, i, physicsSeparationPair)
+		modulePhysicsSeparationPairFree(NULL, i);
+	MEMDOUBLELIST_LOOP_END(g_physSeparationPairManager, i)
+	memDoubleListClear(&g_physSeparationPairManager);
 }
 
 
@@ -463,7 +642,7 @@ void modulePhysicsColliderFreeArray(physicsCollider **const restrict start){
 void modulePhysicsColliderClear(){
 	MEMSINGLELIST_LOOP_BEGIN(g_physColliderManager, i, physicsCollider)
 		modulePhysicsColliderFree(NULL, i, NULL);
-	MEMSINGLELIST_LOOP_END(g_physColliderManager, i, break)
+	MEMSINGLELIST_LOOP_END(g_physColliderManager, i)
 	memSingleListClear(&g_physColliderManager);
 }
 
@@ -587,7 +766,7 @@ void modulePhysicsBodyDefFreeArray(physicsRigidBodyDef **const restrict start){
 void modulePhysicsBodyDefClear(){
 	MEMSINGLELIST_LOOP_BEGIN(g_physRigidBodyDefManager, i, physicsRigidBodyDef)
 		modulePhysicsBodyDefFree(NULL, i, NULL);
-	MEMSINGLELIST_LOOP_END(g_physRigidBodyDefManager, i, break)
+	MEMSINGLELIST_LOOP_END(g_physRigidBodyDefManager, i)
 	memSingleListClear(&g_physRigidBodyDefManager);
 }
 
@@ -711,6 +890,6 @@ void modulePhysicsBodyFreeArray(physicsRigidBody **const restrict start){
 void modulePhysicsBodyClear(){
 	MEMSINGLELIST_LOOP_BEGIN(g_physRigidBodyManager, i, physicsRigidBody)
 		modulePhysicsBodyFree(NULL, i, NULL);
-	MEMSINGLELIST_LOOP_END(g_physRigidBodyManager, i, break)
+	MEMSINGLELIST_LOOP_END(g_physRigidBodyManager, i)
 	memSingleListClear(&g_physRigidBodyManager);
 }

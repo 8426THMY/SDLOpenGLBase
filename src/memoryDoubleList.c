@@ -122,7 +122,7 @@ void *memDoubleListAppend(memoryDoubleList *const restrict doubleList, void **co
 }
 
 // Prepend a new block before another in an array list.
-void *memoryDoubleListInsertBefore(memoryDoubleList *const restrict doubleList, void **const restrict start, void *prevData){
+void *memDoubleListInsertBefore(memoryDoubleList *const restrict doubleList, void **const restrict start, void *prevData){
 	void *const newBlock = doubleList->nextFreeBlock;
 
 	if(newBlock != NULL){
@@ -173,7 +173,7 @@ void *memoryDoubleListInsertBefore(memoryDoubleList *const restrict doubleList, 
 }
 
 // Append a new block after another in an array list.
-void *memoryDoubleListInsertAfter(memoryDoubleList *const restrict doubleList, void **const restrict start, void *data){
+void *memDoubleListInsertAfter(memoryDoubleList *const restrict doubleList, void **const restrict start, void *data){
 	void *const newBlock = doubleList->nextFreeBlock;
 
 	if(newBlock != NULL){

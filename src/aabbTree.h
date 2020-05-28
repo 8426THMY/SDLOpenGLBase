@@ -9,6 +9,13 @@
 #include "colliderAABB.h"
 
 
+#define AABBNODE_HEIGHT_LEAF        0
+#define AABBNODE_HEIGHT_LAST_BRANCH 1
+
+#define aabbNodeIsLeaf(node)       ((node)->height == AABBNODE_HEIGHT_LEAF)
+#define aabbNodeIsLastBranch(node) ((node)->height == AABBNODE_HEIGHT_LAST_BRANCH)
+
+
 typedef struct aabbNode aabbNode;
 typedef struct aabbNodeChildren {
 	aabbNode *left;
@@ -52,17 +59,17 @@ aabbNode *aabbTreeInsertNode(
 );
 void aabbTreeUpdateNode(aabbTree *const restrict tree, aabbNode *const restrict node);
 void aabbTreeRemoveNode(
-	aabbTree *const restrict tree, aabbNode *const restrict node, void (*const deallocate)(aabbNode *const restrict node)
+	aabbTree *const restrict tree, aabbNode *const restrict node, void (*const deallocate)(aabbNode *node, void *args), void *args
 );
 
-void aabbTreeTraverse(aabbTree *const restrict tree, void (*const callback)(aabbNode *const restrict node));
+void aabbTreeTraverse(aabbTree *const restrict tree, void (*const callback)(aabbNode *node, void *args), void *args);
 void aabbTreeQueryCollisions(
-	aabbTree *const restrict tree, aabbNode *const restrict node,
-	void (*const callback)(void *const restrict d1, void *const restrict d2)
+	aabbTree *const restrict tree, aabbNode *const node,
+	void (*const callback)(void *const restrict d1, void *const restrict d2, void *args), void *args
 );
 void aabbTreeQueryCollisionsStack(
-	aabbTree *const restrict tree, const aabbNode *const restrict node,
-	void (*const callback)(void *const restrict d1, void *const restrict d2)
+	aabbTree *const restrict tree, const aabbNode *const node,
+	void (*const callback)(void *const restrict d1, void *const restrict d2, void *args), void *args
 );
 aabbNode *aabbTreeFindNextNode(
 	aabbTree *const restrict tree, const colliderAABB *const restrict aabb, const aabbNode *const restrict prevNode

@@ -128,10 +128,10 @@
 #define MEMDOUBLELIST_LOOP_INACTIVE(node)                                 \
 		}else if(allocator##_flag_##node == MEMDOUBLELIST_FLAG_INACTIVE){ \
 
-#define MEMDOUBLELIST_LOOP_END(allocator, node, earlyexit)                \
+#define MEMDOUBLELIST_LOOP_END(allocator, node)                           \
 		}                                                                 \
 		if(allocator##_remaining_##node <= 0){                            \
-			earlyexit;                                                    \
+			break;                                                        \
 		}                                                                 \
 		node = memDoubleListBlockGetNextBlock(node, allocator.blockSize); \
 		if((void *)node >= (void *)allocator##_region_##node){            \
@@ -155,9 +155,9 @@
 #define MEMDOUBLELIST_LOOP_INACTIVE(node)                                 \
 		}else if(allocator##_flag_##node == MEMDOUBLELIST_FLAG_INACTIVE){ \
 
-#define MEMDOUBLELIST_LOOP_END(allocator, node, earlyexit)                \
+#define MEMDOUBLELIST_LOOP_END(allocator, node)                           \
 		}else if(allocator##_flag_##node == MEMDOUBLELIST_FLAG_INVALID){  \
-			earlyexit;                                                    \
+			break;                                                        \
 		}                                                                 \
 		node = memDoubleListBlockGetNextBlock(node, allocator.blockSize); \
 		if((void *)node >= (void *)allocator##_region_##node){            \
@@ -201,8 +201,8 @@ void *memDoubleListInit(memoryDoubleList *const restrict doubleList, void *const
 void *memDoubleListAlloc(memoryDoubleList *const restrict doubleList);
 void *memDoubleListPrepend(memoryDoubleList *const restrict doubleList, void **const restrict start);
 void *memDoubleListAppend(memoryDoubleList *const restrict doubleList, void **const restrict start);
-void *memoryDoubleListInsertBefore(memoryDoubleList *const restrict doubleList, void **const restrict start, void *prevData);
-void *memoryDoubleListInsertAfter(memoryDoubleList *const restrict doubleList, void **const restrict start, void *data);
+void *memDoubleListInsertBefore(memoryDoubleList *const restrict doubleList, void **const restrict start, void *prevData);
+void *memDoubleListInsertAfter(memoryDoubleList *const restrict doubleList, void **const restrict start, void *data);
 
 void memDoubleListFree(memoryDoubleList *const restrict doubleList, void **const restrict start, void *const restrict data);
 void memDoubleListFreeArray(memoryDoubleList *const restrict doubleList, void *const restrict start);

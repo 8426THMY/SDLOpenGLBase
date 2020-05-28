@@ -4,11 +4,13 @@
 
 #include "aabbTree.h"
 
+#include "physicsConstraintPair.h"
 #include "physicsCollider.h"
+#include "physicsRigidBody.h"
 
 
-#ifndef PHYSISLAND_AABB_EXTRA_SPACE
-	#define PHYSISLAND_AABB_EXTRA_SPACE 0.2f
+#ifndef PHYSISLAND_AABB_PADDING
+	#define PHYSISLAND_AABB_PADDING 0.2f
 #endif
 
 
@@ -17,18 +19,28 @@
 
 typedef struct physicsIsland {
 	aabbTree tree;
+
+	// We store doubly-linked lists of the resources that the island "owns".
+	// Colliders will store their own lists of contacts and separations, for
+	// instance, but they get inserted into the island's lists.
+	physicsRigidBody *bodies;
+	physicsContactPair *contacts;
+	physicsSeparationPair *separations;
+	//physicsJointPair *joints;
 } physicsIsland;
 
 
 void physIslandInit(physicsIsland *const restrict island);
 
-void physIslandUpdateCollider(physicsIsland *const restrict island, physicsCollider *const restrict collider);
-void physIslandRemoveCollider(physicsIsland *const restrict island, physicsCollider *const restrict collider);
+void physIslandInsertRigidBody(physicsIsland *const restrict island, physicsRigidBody *const body);
+void physIslandRemoveRigidBody(physicsIsland *const restrict island, physicsRigidBody *const body);
+void physIslandInsertRigidBodyList(physicsIsland *const restrict island, physicsRigidBody *const bodies);
+void physIslandRemoveRigidBodyList(physicsIsland *const restrict island, physicsRigidBody *const bodies, size_t numBodies);
 
 #ifdef PHYSCONTACT_STABILISER_BAUMGARTE
-void physIslandQueryCollisions(physicsIsland *const restrict island, const float invDt);
+void physIslandUpdate(physicsIsland *const restrict island, const float dt, const float invDt);
 #else
-void physIslandQueryCollisions(physicsIsland *const restrict island);
+void physIslandUpdate(physicsIsland *const restrict island, const float dt);
 #endif
 
 void physIslandDelete(physicsIsland *const restrict island);

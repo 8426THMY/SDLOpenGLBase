@@ -24,7 +24,7 @@ return_t moduleTextureSetup(){
 void moduleTextureCleanup(){
 	MEMPOOL_LOOP_BEGIN(g_textureManager, i, texture)
 		moduleTextureFree(i);
-	MEMPOOL_LOOP_END(g_textureManager, i, break)
+	MEMPOOL_LOOP_END(g_textureManager, i)
 	memPoolDelete(&g_textureManager, memoryManagerGlobalFree);
 }
 
@@ -59,7 +59,7 @@ void moduleTextureFree(texture *const restrict tex){
 void moduleTextureClear(){
 	MEMPOOL_LOOP_BEGIN(g_textureManager, i, texture)
 		moduleTextureFree(i);
-	MEMPOOL_LOOP_END(g_textureManager, i, break)
+	MEMPOOL_LOOP_END(g_textureManager, i)
 	memPoolClear(&g_textureManager);
 }
 
@@ -70,7 +70,7 @@ texture *moduleTextureFind(const char *const restrict name){
 		if(strcmp(name, i->name) == 0){
 			return(i);
 		}
-	MEMPOOL_LOOP_END(g_textureManager, i, break)
+	MEMPOOL_LOOP_END(g_textureManager, i)
 
 	return(NULL);
 }

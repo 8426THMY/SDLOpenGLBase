@@ -24,7 +24,7 @@ return_t moduleModelSetup(){
 void moduleModelCleanup(){
 	MEMPOOL_LOOP_BEGIN(g_modelManager, i, model)
 		moduleModelFree(i);
-	MEMPOOL_LOOP_END(g_modelManager, i, break)
+	MEMPOOL_LOOP_END(g_modelManager, i)
 	memPoolDelete(&g_modelManager, memoryManagerGlobalFree);
 }
 
@@ -59,6 +59,6 @@ void moduleModelFree(model *const restrict mdl){
 void moduleModelClear(){
 	MEMPOOL_LOOP_BEGIN(g_modelManager, i, model)
 		moduleModelFree(i);
-	MEMPOOL_LOOP_END(g_modelManager, i, break)
+	MEMPOOL_LOOP_END(g_modelManager, i)
 	memPoolClear(&g_modelManager);
 }

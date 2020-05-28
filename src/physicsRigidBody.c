@@ -793,33 +793,19 @@ void physRigidBodyUpdateGlobalInertia(physicsRigidBody *const restrict body){
 
 /*
 ** Update a rigid body. This involves moving and
-** rotating its centroid and inertia tensor, updating
-** its velocity and updating all of its colliders.
+** rotating its centroid and inertia tensor as
+** well as integrating its velocity using any forces.
 */
-void physRigidBodyUpdate(physicsRigidBody *const restrict body, physicsIsland *const restrict island, const float dt){
-	physicsCollider *curCollider;
-
-
+void physRigidBodyUpdate(physicsRigidBody *const restrict body, const float dt){
 	if(physRigidBodyIsSimulated(body)){
 		// Apply gravity.
 		const vec3 gravity = {.x = 0.f, .y = -9.80665f * body->mass, .z = 0.f};
 		physRigidBodyApplyLinearForce(body, &gravity);
-
 		// Update the body's velocity.
 		physRigidBodyIntegrateVelocity(body, dt);
 		physRigidBodyResetAccumulators(body);
 
 		physRigidBodyPositionFromCentroid(body);
-	}
-
-
-	curCollider = body->colliders;
-	// For every physics collider that is a part of
-	// this rigid body, we will need to update its
-	// base collider and its node in the broadphase.
-	while(curCollider != NULL){
-		physColliderUpdate(curCollider, island);
-		curCollider = memSingleListNext(curCollider);
 	}
 }
 

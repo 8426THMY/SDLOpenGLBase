@@ -8,6 +8,8 @@
 #include "physicsConstraintPair.h"
 #include "aabbTree.h"
 
+#include "utilTypes.h"
+
 
 #ifndef PHYSCOLLIDER_DEFAULT_MASS
 	#define PHYSCOLLIDER_DEFAULT_MASS        0.f
@@ -43,19 +45,16 @@ typedef struct physicsCollider {
 	physicsRigidBody *owner;
 	aabbNode *node;
 
-	#warning "Use quad-lists for these!"
 	// Colliders store linked lists of active contacts
 	// and separations. These lists are mostly sorted
 	// according to the addresses of the second collider
 	// involved in the contact or separation. I say
 	// "mostly" because only pairs where this collider
 	// is the first really need to be sorted.
-	physicsSeparationPair *separations;
 	physicsContactPair *contacts;
+	physicsSeparationPair *separations;
 } physicsCollider;
 
-
-typedef struct physicsIsland physicsIsland;
 
 void physColliderInit(physicsCollider *const restrict pc, const colliderType_t type);
 void physColliderInstantiate(physicsCollider *const restrict pc, const physicsCollider *const restrict base, physicsRigidBody *const restrict owner);
@@ -63,16 +62,17 @@ void physColliderInstantiate(physicsCollider *const restrict pc, const physicsCo
 void physColliderGenerateCentroid(physicsCollider *const restrict collider, vec3 *const restrict centroid);
 void physColliderGenerateInertia(physicsCollider *const restrict collider, const vec3 *const restrict centroid, mat3 *const restrict inertia);
 
-void physColliderUpdate(physicsCollider *const restrict collider, physicsIsland *const restrict island);
-void physColliderQueryCollisions(physicsCollider *const restrict collider);
+void physColliderUpdate(physicsCollider *const restrict collider);
 
-physicsSeparationPair *physColliderFindSeparation(
-	const physicsCollider *const restrict colliderA, const physicsCollider *const restrict colliderB,
-	physicsSeparationPair **const restrict prev, physicsSeparationPair **const restrict next
-);
+return_t physColliderPermitCollision(physicsCollider *const colliderA, physicsCollider *const colliderB);
+
 physicsContactPair *physColliderFindContact(
 	const physicsCollider *const restrict colliderA, const physicsCollider *const restrict colliderB,
 	physicsContactPair **const restrict prev, physicsContactPair **const restrict next
+);
+physicsSeparationPair *physColliderFindSeparation(
+	const physicsCollider *const restrict colliderA, const physicsCollider *const restrict colliderB,
+	physicsSeparationPair **const restrict prev, physicsSeparationPair **const restrict next
 );
 void physColliderUpdateSeparations(physicsCollider *const restrict collider);
 #ifdef PHYSCONTACT_STABILISER_BAUMGARTE
@@ -84,8 +84,6 @@ void physColliderClearPairs(physicsCollider *const restrict collider);
 
 void physColliderDeleteInstance(physicsCollider *const restrict collider);
 void physColliderDelete(physicsCollider *const restrict collider);
-
-void physColliderCollisionCallback(void *const restrict colliderA, void *const restrict colliderB);
 
 
 extern void (*physColliderGenerateCentroidTable[COLLIDER_NUM_TYPES])(

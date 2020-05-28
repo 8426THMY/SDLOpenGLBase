@@ -149,7 +149,7 @@ void physRigidBodySetScale(physicsRigidBody *const restrict body, const vec3 sca
 void physRigidBodyCentroidFromPosition(physicsRigidBody *const restrict body);
 void physRigidBodyPositionFromCentroid(physicsRigidBody *const restrict body);
 void physRigidBodyUpdateGlobalInertia(physicsRigidBody *const restrict body);
-void physRigidBodyUpdate(physicsRigidBody *const restrict body, physicsIsland *const restrict island, const float dt);
+void physRigidBodyUpdate(physicsRigidBody *const restrict body, const float dt);
 
 void physRigidBodyDefDelete(physicsRigidBodyDef *const restrict bodyDef);
 void physRigidBodyDelete(physicsRigidBody *const restrict body);

@@ -26,12 +26,12 @@ void moduleObjectCleanup(){
 	// object
 	MEMSINGLELIST_LOOP_BEGIN(g_objectDefManager, i, objectDef)
 		moduleObjectDefFree(NULL, i, NULL);
-	MEMSINGLELIST_LOOP_END(g_objectDefManager, i, break)
+	MEMSINGLELIST_LOOP_END(g_objectDefManager, i)
 	memSingleListDelete(&g_objectDefManager, memoryManagerGlobalFree);
 	// objectDef
 	MEMSINGLELIST_LOOP_BEGIN(g_objectManager, i, object)
 		moduleObjectFree(NULL, i, NULL);
-	MEMSINGLELIST_LOOP_END(g_objectManager, i, break)
+	MEMSINGLELIST_LOOP_END(g_objectManager, i)
 	memSingleListDelete(&g_objectManager, memoryManagerGlobalFree);
 }
 
@@ -155,7 +155,7 @@ void moduleObjectDefFreeArray(objectDef **const restrict start){
 void moduleObjectDefClear(){
 	MEMSINGLELIST_LOOP_BEGIN(g_objectDefManager, i, objectDef)
 		moduleObjectDefFree(NULL, i, NULL);
-	MEMSINGLELIST_LOOP_END(g_objectDefManager, i, break)
+	MEMSINGLELIST_LOOP_END(g_objectDefManager, i)
 	memSingleListClear(&g_objectDefManager);
 }
 
@@ -279,6 +279,6 @@ void moduleObjectFreeArray(object **const restrict start){
 void moduleObjectClear(){
 	MEMSINGLELIST_LOOP_BEGIN(g_objectManager, i, object)
 		moduleObjectFree(NULL, i, NULL);
-	MEMSINGLELIST_LOOP_END(g_objectManager, i, break)
+	MEMSINGLELIST_LOOP_END(g_objectManager, i)
 	memSingleListClear(&g_objectManager);
 }
