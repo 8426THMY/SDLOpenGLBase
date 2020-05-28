@@ -116,12 +116,6 @@ void physRigidBodyDefAddCollider(
 	physicsRigidBodyDef *const restrict bodyDef, const float mass,
 	const vec3 *const restrict centroid, mat3 inertia
 );
-#if 0
-/** I don't think we need these anymore, as the function above handles this stuff more cleanly. **/
-void physRigidBodyDefSumCentroids(physicsRigidBodyDef *const restrict bodyDef, const vec3 *centroidArray, const size_t numBodies);
-void physRigidBodyDefSumInertia(physicsRigidBodyDef *const restrict bodyDef, const mat3 *inertiaArray, const size_t numBodies);
-void physRigidBodyDefGenerateProperties(physicsRigidBodyDef *const restrict bodyDef, const float **const restrict massArrays);
-#endif
 
 void physRigidBodyIntegrateVelocity(physicsRigidBody *const restrict body, const float dt);
 void physRigidBodyResetAccumulators(physicsRigidBody *const restrict body);
@@ -153,30 +147,6 @@ void physRigidBodyUpdate(physicsRigidBody *const restrict body, const float dt);
 
 void physRigidBodyDefDelete(physicsRigidBodyDef *const restrict bodyDef);
 void physRigidBodyDelete(physicsRigidBody *const restrict body);
-
-
-/**
-Load colliders.
-Load bodies {
-	How do we generate the centroid inertia tensor?
-	We could do one of the following:
-		Store an array of mat3s and centroids (one pair per collider)
-		and a single vertex mass array (one used by every collider).
-
-		Store an array of vertex mass arrays. Each array also contains
-		the collider's mass and, possibly for hulls, an element at the
-		end (containing NaN or something) that specifies whether or not
-		the collider's vertices should be weighted.
-
-		Add each collider's contribution to the centroid and inertia
-		tensor the moment we finish loading it. This would require an
-		extra division per collider and would also need the same vertex
-		mass array used by the first method.
-}
-
-Component-wise addition for matrices (specifically mat3s)?
-Strtoul base? Maybe check other strtox functions, too.
-**/
 
 
 #endif

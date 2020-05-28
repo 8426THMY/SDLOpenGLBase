@@ -95,15 +95,6 @@ return_t colliderHullLoad(
 	vec3 *const restrict centroid, mat3 *const restrict inertia
 );
 
-void colliderHullGenerateCentroid(const colliderHull *const restrict hull, vec3 *const restrict centroid);
-void colliderHullGenerateCentroidWeighted(
-	const colliderHull *const restrict hull, const float *restrict vertexWeights, vec3 *const restrict centroid
-);
-void colliderHullGenerateInertia(const colliderHull *const restrict hull, mat3 *const restrict inertia);
-void colliderHullGenerateInertiaWeighted(
-	const colliderHull *const restrict hull, const float *restrict vertexWeights, mat3 *const restrict inertia
-);
-
 void colliderHullUpdate(
 	void *const restrict hull, const vec3 *const restrict hullCentroid,
 	const void *const restrict base, const vec3 *const restrict baseCentroid,

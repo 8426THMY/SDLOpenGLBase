@@ -102,6 +102,19 @@ typedef struct vertexProject {
 
 
 // Forward-declare any helper functions!
+#warning "Ideally, this macro shouldn't exist. We should check if weights were specified, then call the correct functions."
+#ifdef COLLIDER_HULL_DEFAULT_VERTEX_WEIGHT
+static void generateCentroidWeighted(
+	const colliderHull *const restrict hull, const float *restrict vertexWeights, vec3 *const restrict centroid
+);
+static void generateInertiaWeighted(
+	const colliderHull *const restrict hull, const float *restrict vertexWeights, mat3 *const restrict inertia
+);
+#else
+static void generateCentroid(const colliderHull *const restrict hull, vec3 *const restrict centroid);
+static void generateInertia(const colliderHull *const restrict hull, mat3 *const restrict inertia);
+#endif
+
 static void hullFaceDataInit(hullFaceData *const restrict faceData);
 static void hullEdgeDataInit(hullEdgeData *const restrict edgeData);
 static void collisionDataInit(collisionData *const restrict cd);
@@ -484,15 +497,14 @@ return_t colliderHullLoad(
 	}
 
 
-	#warning "Ideally, this macro shouldn't exist. We should check if weights were specified, then call the correct functions."
 	#ifdef COLLIDER_HULL_DEFAULT_VERTEX_WEIGHT
-	colliderHullGenerateCentroidWeighted(&tempHull, vertexWeights, centroid);
-	colliderHullGenerateInertiaWeighted(&tempHull, vertexWeights, inertia);
+	generateCentroidWeighted(&tempHull, vertexWeights, centroid);
+	generateInertiaWeighted(&tempHull, vertexWeights, inertia);
 	// Free the array of vertex weights.
 	memoryManagerGlobalFree(vertexWeights);
 	#else
-	colliderHullGenerateCentroid(&tempHull, centroid);
-	colliderHullGenerateInertia(&tempHull, inertia);
+	generateCentroid(&tempHull, centroid);
+	generateInertia(&tempHull, inertia);
 	#endif
 
 	tempHull.centroid = *centroid;
@@ -521,157 +533,6 @@ return_t colliderHullLoad(
 
 
 	return(1);
-}
-
-
-/*
-** Calculate the collider's centre of gravity.
-** To do this, we calculate the average of the
-** hull's vertices.
-*/
-void colliderHullGenerateCentroid(const colliderHull *const restrict hull, vec3 *const restrict centroid){
-	const colliderVertexIndex_t numVertices = hull->numVertices;
-
-	// We don't want to divide by zero.
-	if(numVertices > 0){
-		const vec3 *curVertex = hull->vertices;
-		const vec3 *const lastVertex = &curVertex[numVertices];
-		vec3 newCentroid;
-		vec3InitZero(&newCentroid);
-
-		// Add each vertex's contribution to the centroid.
-		do {
-			vec3AddVec3(&newCentroid, curVertex);
-			++curVertex;
-		} while(curVertex < lastVertex);
-
-		vec3DivideBySOut(&newCentroid, numVertices, centroid);
-	}else{
-		vec3InitZero(centroid);
-	}
-}
-
-/*
-** Calculate the collider's weighted centre of gravity.
-** To do this, we calculate the weighted average of the
-** hull's vertices.
-*/
-void colliderHullGenerateCentroidWeighted(
-	const colliderHull *const restrict hull, const float *restrict vertexWeights, vec3 *const restrict centroid
-){
-
-	const colliderVertexIndex_t numVertices = hull->numVertices;
-	const vec3 *curVertex = hull->vertices;
-	const vec3 *const lastVertex = &curVertex[numVertices];
-	vec3 newCentroid;
-	float totalWeight = 0.f;
-
-	vec3InitZero(&newCentroid);
-
-	// Add each vertex's contribution to the centroid.
-	for(; curVertex < lastVertex; ++curVertex, ++vertexWeights){
-		const float curWeight = *vertexWeights;
-		vec3 weightedVertex;
-
-		vec3MultiplySOut(curVertex, curWeight, &weightedVertex);
-		vec3AddVec3(&newCentroid, &weightedVertex);
-		totalWeight += curWeight;
-	}
-
-	// We don't want to divide by zero.
-	if(totalWeight != 0.f){
-		vec3DivideBySOut(&newCentroid, totalWeight, centroid);
-	}else{
-		vec3InitZero(centroid);
-	}
-}
-
-// Calculate the collider's inertia tensor.
-void colliderHullGenerateInertia(const colliderHull *const restrict hull, mat3 *const restrict inertia){
-	const vec3 *const centroid = &hull->centroid;
-	const vec3 *curVertex = hull->vertices;
-	const vec3 *const lastVertex = &curVertex[hull->numVertices];
-	float tempInertia[6];
-
-	memset(tempInertia, 0.f, sizeof(tempInertia));
-
-	for(; curVertex < lastVertex; ++curVertex){
-		vec3 offset;
-		float xx;
-		float yy;
-		float zz;
-
-		vec3SubtractVec3FromOut(curVertex, centroid, &offset);
-		xx = offset.x * offset.x;
-		yy = offset.y * offset.y;
-		zz = offset.z * offset.z;
-
-		tempInertia[0] += yy + zz;
-		tempInertia[1] += xx + zz;
-		tempInertia[2] += xx + yy;
-		tempInertia[3] -= offset.x * offset.y;
-		tempInertia[4] -= offset.x * offset.z;
-		tempInertia[5] -= offset.y * offset.z;
-	}
-
-	inertia->m[0][0] = tempInertia[0];
-	inertia->m[1][1] = tempInertia[1];
-	inertia->m[2][2] = tempInertia[2];
-	inertia->m[0][1] = tempInertia[3];
-	inertia->m[0][2] = tempInertia[4];
-	inertia->m[1][2] = tempInertia[5];
-	// These should be the same as the values we've already calculated.
-	inertia->m[1][0] = tempInertia[3];
-	inertia->m[2][0] = tempInertia[4];
-	inertia->m[2][1] = tempInertia[5];
-}
-
-/*
-** Calculate the collider's weighted inertia tensor.
-** Vertices with a greater weight value will have a
-** greater contribution to the final tensor.
-*/
-void colliderHullGenerateInertiaWeighted(
-	const colliderHull *const restrict hull, const float *restrict vertexWeights, mat3 *const restrict inertia
-){
-
-	const vec3 *const centroid = &hull->centroid;
-	const vec3 *curVertex = hull->vertices;
-	const vec3 *const lastVertex = &curVertex[hull->numVertices];
-	float tempInertia[6];
-
-	memset(tempInertia, 0.f, sizeof(tempInertia));
-
-	for(; curVertex < lastVertex; ++curVertex, ++vertexWeights){
-		vec3 offset;
-		float xx;
-		float yy;
-		float zz;
-		const float curWeight = *vertexWeights;
-
-		vec3SubtractVec3FromOut(curVertex, centroid, &offset);
-		xx = offset.x * offset.x;
-		yy = offset.y * offset.y;
-		zz = offset.z * offset.z;
-
-		tempInertia[0] += (yy + zz) * curWeight;
-		tempInertia[1] += (xx + zz) * curWeight;
-		tempInertia[2] += (xx + yy) * curWeight;
-		tempInertia[3] -= offset.x * offset.y * curWeight;
-		tempInertia[4] -= offset.x * offset.z * curWeight;
-		tempInertia[5] -= offset.y * offset.z * curWeight;
-	}
-
-	inertia->m[0][0] = tempInertia[0];
-	inertia->m[1][1] = tempInertia[1];
-	inertia->m[2][2] = tempInertia[2];
-	inertia->m[0][1] = tempInertia[3];
-	inertia->m[0][2] = tempInertia[4];
-	inertia->m[1][2] = tempInertia[5];
-	// These should be the same as the values we've already calculated.
-	inertia->m[1][0] = tempInertia[3];
-	inertia->m[2][0] = tempInertia[4];
-	inertia->m[2][1] = tempInertia[5];
 }
 
 
@@ -857,6 +718,159 @@ void colliderHullDelete(void *const restrict hull){
 		memoryManagerGlobalFree(((colliderHull *)hull)->faces);
 	}
 }
+
+
+#ifdef COLLIDER_HULL_DEFAULT_VERTEX_WEIGHT
+/*
+** Calculate the collider's weighted centre of gravity.
+** To do this, we calculate the weighted average of the
+** hull's vertices.
+*/
+static void generateCentroidWeighted(
+	const colliderHull *const restrict hull, const float *restrict vertexWeights, vec3 *const restrict centroid
+){
+
+	const colliderVertexIndex_t numVertices = hull->numVertices;
+	const vec3 *curVertex = hull->vertices;
+	const vec3 *const lastVertex = &curVertex[numVertices];
+	vec3 newCentroid;
+	float totalWeight = 0.f;
+
+	vec3InitZero(&newCentroid);
+
+	// Add each vertex's contribution to the centroid.
+	for(; curVertex < lastVertex; ++curVertex, ++vertexWeights){
+		const float curWeight = *vertexWeights;
+		vec3 weightedVertex;
+
+		vec3MultiplySOut(curVertex, curWeight, &weightedVertex);
+		vec3AddVec3(&newCentroid, &weightedVertex);
+		totalWeight += curWeight;
+	}
+
+	// We don't want to divide by zero.
+	if(totalWeight != 0.f){
+		vec3DivideBySOut(&newCentroid, totalWeight, centroid);
+	}else{
+		vec3InitZero(centroid);
+	}
+}
+
+/*
+** Calculate the collider's weighted inertia tensor.
+** Vertices with a greater weight value will have a
+** greater contribution to the final tensor.
+*/
+static void generateInertiaWeighted(
+	const colliderHull *const restrict hull, const float *restrict vertexWeights, mat3 *const restrict inertia
+){
+
+	const vec3 *const centroid = &hull->centroid;
+	const vec3 *curVertex = hull->vertices;
+	const vec3 *const lastVertex = &curVertex[hull->numVertices];
+	float tempInertia[6];
+
+	memset(tempInertia, 0.f, sizeof(tempInertia));
+
+	for(; curVertex < lastVertex; ++curVertex, ++vertexWeights){
+		vec3 offset;
+		float xx;
+		float yy;
+		float zz;
+		const float curWeight = *vertexWeights;
+
+		vec3SubtractVec3FromOut(curVertex, centroid, &offset);
+		xx = offset.x * offset.x;
+		yy = offset.y * offset.y;
+		zz = offset.z * offset.z;
+
+		tempInertia[0] += (yy + zz) * curWeight;
+		tempInertia[1] += (xx + zz) * curWeight;
+		tempInertia[2] += (xx + yy) * curWeight;
+		tempInertia[3] -= offset.x * offset.y * curWeight;
+		tempInertia[4] -= offset.x * offset.z * curWeight;
+		tempInertia[5] -= offset.y * offset.z * curWeight;
+	}
+
+	inertia->m[0][0] = tempInertia[0];
+	inertia->m[1][1] = tempInertia[1];
+	inertia->m[2][2] = tempInertia[2];
+	inertia->m[0][1] = tempInertia[3];
+	inertia->m[0][2] = tempInertia[4];
+	inertia->m[1][2] = tempInertia[5];
+	// These should be the same as the values we've already calculated.
+	inertia->m[1][0] = tempInertia[3];
+	inertia->m[2][0] = tempInertia[4];
+	inertia->m[2][1] = tempInertia[5];
+}
+#else
+/*
+** Calculate the collider's centre of gravity.
+** To do this, we calculate the average of the
+** hull's vertices.
+*/
+static void generateCentroid(const colliderHull *const restrict hull, vec3 *const restrict centroid){
+	const colliderVertexIndex_t numVertices = hull->numVertices;
+
+	// We don't want to divide by zero.
+	if(numVertices > 0){
+		const vec3 *curVertex = hull->vertices;
+		const vec3 *const lastVertex = &curVertex[numVertices];
+		vec3 newCentroid;
+		vec3InitZero(&newCentroid);
+
+		// Add each vertex's contribution to the centroid.
+		do {
+			vec3AddVec3(&newCentroid, curVertex);
+			++curVertex;
+		} while(curVertex < lastVertex);
+
+		vec3DivideBySOut(&newCentroid, numVertices, centroid);
+	}else{
+		vec3InitZero(centroid);
+	}
+}
+
+// Calculate the collider's inertia tensor.
+static void generateInertia(const colliderHull *const restrict hull, mat3 *const restrict inertia){
+	const vec3 *const centroid = &hull->centroid;
+	const vec3 *curVertex = hull->vertices;
+	const vec3 *const lastVertex = &curVertex[hull->numVertices];
+	float tempInertia[6];
+
+	memset(tempInertia, 0.f, sizeof(tempInertia));
+
+	for(; curVertex < lastVertex; ++curVertex){
+		vec3 offset;
+		float xx;
+		float yy;
+		float zz;
+
+		vec3SubtractVec3FromOut(curVertex, centroid, &offset);
+		xx = offset.x * offset.x;
+		yy = offset.y * offset.y;
+		zz = offset.z * offset.z;
+
+		tempInertia[0] += yy + zz;
+		tempInertia[1] += xx + zz;
+		tempInertia[2] += xx + yy;
+		tempInertia[3] -= offset.x * offset.y;
+		tempInertia[4] -= offset.x * offset.z;
+		tempInertia[5] -= offset.y * offset.z;
+	}
+
+	inertia->m[0][0] = tempInertia[0];
+	inertia->m[1][1] = tempInertia[1];
+	inertia->m[2][2] = tempInertia[2];
+	inertia->m[0][1] = tempInertia[3];
+	inertia->m[0][2] = tempInertia[4];
+	inertia->m[1][2] = tempInertia[5];
+	// These should be the same as the values we've already calculated.
+	inertia->m[1][0] = tempInertia[3];
+	inertia->m[2][0] = tempInertia[4];
+	inertia->m[2][1] = tempInertia[5];
+}
+#endif
 
 
 static void hullFaceDataInit(hullFaceData *const restrict faceData){

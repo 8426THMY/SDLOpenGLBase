@@ -7,19 +7,6 @@
 #include "physicsRigidBody.h"
 
 
-#warning "These are temporary (duh)."
-void (*physColliderGenerateCentroidTable[COLLIDER_NUM_TYPES])(const void *const restrict collider, vec3 *const restrict centroid) = {
-	NULL//colliderHullGenerateCentroid
-};
-
-void (*physColliderGenerateInertiaTable[COLLIDER_NUM_TYPES])(
-	const void *const restrict collider, const vec3 *const restrict centroid, mat3 *const restrict inertia
-) = {
-
-	NULL//colliderHullGenerateInertia
-};
-
-
 /*
 ** Initialise a physics collider base
 ** object using the type of its collider.
@@ -56,17 +43,6 @@ void physColliderInstantiate(physicsCollider *const restrict pc, const physicsCo
 
 	pc->contacts = NULL;
 	pc->separations = NULL;
-}
-
-
-// Generate a physics collider's centroid.
-void physColliderGenerateCentroid(physicsCollider *const restrict collider, vec3 *const restrict centroid){
-	physColliderGenerateCentroidTable[collider->global.type]((void *)(&collider->global.data), centroid);
-}
-
-// Generate a physics collider's moment of inertia tensor.
-void physColliderGenerateInertia(physicsCollider *const restrict collider, const vec3 *centroid, mat3 *const restrict inertia){
-	physColliderGenerateInertiaTable[collider->global.type]((void *)(&collider->global.data), centroid, inertia);
 }
 
 

@@ -59,9 +59,6 @@ typedef struct physicsCollider {
 void physColliderInit(physicsCollider *const restrict pc, const colliderType_t type);
 void physColliderInstantiate(physicsCollider *const restrict pc, const physicsCollider *const restrict base, physicsRigidBody *const restrict owner);
 
-void physColliderGenerateCentroid(physicsCollider *const restrict collider, vec3 *const restrict centroid);
-void physColliderGenerateInertia(physicsCollider *const restrict collider, const vec3 *const restrict centroid, mat3 *const restrict inertia);
-
 void physColliderUpdate(physicsCollider *const restrict collider);
 
 return_t physColliderPermitCollision(physicsCollider *const colliderA, physicsCollider *const colliderB);
@@ -84,18 +81,6 @@ void physColliderClearPairs(physicsCollider *const restrict collider);
 
 void physColliderDeleteInstance(physicsCollider *const restrict collider);
 void physColliderDelete(physicsCollider *const restrict collider);
-
-
-extern void (*physColliderGenerateCentroidTable[COLLIDER_NUM_TYPES])(
-	const void *const restrict collider,
-	vec3 *const restrict centroid
-);
-
-extern void (*physColliderGenerateInertiaTable[COLLIDER_NUM_TYPES])(
-	const void *const restrict collider,
-	const vec3 *const restrict centroid,
-	mat3 *const restrict inertia
-);
 
 
 #endif
