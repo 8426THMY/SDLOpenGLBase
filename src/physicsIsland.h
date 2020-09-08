@@ -32,13 +32,14 @@ typedef struct physicsIsland {
 
 void physIslandInit(physicsIsland *const restrict island);
 
+void physIslandRemoveCollider(physicsIsland *const restrict island, physicsCollider *const restrict collider);
 void physIslandInsertRigidBody(physicsIsland *const restrict island, physicsRigidBody *const body);
 void physIslandRemoveRigidBody(physicsIsland *const restrict island, physicsRigidBody *const body);
-void physIslandInsertRigidBodyList(physicsIsland *const restrict island, physicsRigidBody *const bodies);
+void physIslandInsertRigidBodyList(physicsIsland *const restrict island, physicsRigidBody *const bodies, size_t numBodies);
 void physIslandRemoveRigidBodyList(physicsIsland *const restrict island, physicsRigidBody *const bodies, size_t numBodies);
 
 #ifdef PHYSCONTACT_STABILISER_BAUMGARTE
-void physIslandUpdate(physicsIsland *const restrict island, const float dt, const float invDt);
+void physIslandUpdate(physicsIsland *const restrict island, const float dt, const float frequency);
 #else
 void physIslandUpdate(physicsIsland *const restrict island, const float dt);
 #endif

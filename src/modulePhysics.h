@@ -53,7 +53,6 @@
 
 
 return_t modulePhysicsSetup();
-void modulePhysicsSolveConstraints(const float dt);
 void modulePhysicsCleanup();
 
 aabbNode *modulePhysicsAABBNodeAlloc();
@@ -65,6 +64,8 @@ physicsContactPair *modulePhysicsContactPairPrepend(physicsContactPair **const r
 physicsContactPair *modulePhysicsContactPairAppend(physicsContactPair **const restrict start);
 physicsContactPair *modulePhysicsContactPairInsertBefore(physicsContactPair **const restrict start, physicsContactPair *const restrict prevData);
 physicsContactPair *modulePhysicsContactPairInsertAfter(physicsContactPair **const restrict start, physicsContactPair *const restrict data);
+physicsContactPair *modulePhysicsContactPairNext(const physicsContactPair *const restrict cPair);
+physicsContactPair *modulePhysicsContactPairPrev(const physicsContactPair *const restrict cPair);
 void modulePhysicsContactPairFree(physicsContactPair **const restrict start, physicsContactPair *const restrict cPair);
 void modulePhysicsContactPairFreeArray(physicsContactPair **const restrict start);
 void modulePhysicsContactPairClear();
@@ -74,6 +75,8 @@ physicsSeparationPair *modulePhysicsSeparationPairPrepend(physicsSeparationPair 
 physicsSeparationPair *modulePhysicsSeparationPairAppend(physicsSeparationPair **const restrict start);
 physicsSeparationPair *modulePhysicsSeparationPairInsertBefore(physicsSeparationPair **const restrict start, physicsSeparationPair *const restrict prevData);
 physicsSeparationPair *modulePhysicsSeparationPairInsertAfter(physicsSeparationPair **const restrict start, physicsSeparationPair *const restrict data);
+physicsSeparationPair *modulePhysicsSeparationPairNext(const physicsSeparationPair *const restrict sPair);
+physicsSeparationPair *modulePhysicsSeparationPairPrev(const physicsSeparationPair *const restrict sPair);
 void modulePhysicsSeparationPairFree(physicsSeparationPair **const restrict start, physicsSeparationPair *const restrict sPair);
 void modulePhysicsSeparationPairFreeArray(physicsSeparationPair **const restrict start);
 void modulePhysicsSeparationPairClear();
@@ -83,6 +86,7 @@ physicsCollider *modulePhysicsColliderPrepend(physicsCollider **const restrict s
 physicsCollider *modulePhysicsColliderAppend(physicsCollider **const restrict start);
 physicsCollider *modulePhysicsColliderInsertBefore(physicsCollider **const restrict start, physicsCollider *const restrict prevData);
 physicsCollider *modulePhysicsColliderInsertAfter(physicsCollider **const restrict start, physicsCollider *const restrict data);
+physicsCollider *modulePhysicsColliderNext(const physicsCollider *const restrict collider);
 void modulePhysicsColliderFreeInstance(physicsCollider **const restrict start, physicsCollider *const restrict collider, physicsCollider *const restrict prevData);
 void modulePhysicsColliderFree(physicsCollider **const restrict start, physicsCollider *const restrict collider, physicsCollider *const restrict prevData);
 void modulePhysicsColliderFreeInstanceArray(physicsCollider **const restrict start);
@@ -94,6 +98,7 @@ physicsRigidBodyDef *modulePhysicsBodyDefPrepend(physicsRigidBodyDef **const res
 physicsRigidBodyDef *modulePhysicsBodyDefAppend(physicsRigidBodyDef **const restrict start);
 physicsRigidBodyDef *modulePhysicsBodyDefInsertBefore(physicsRigidBodyDef **const restrict start, physicsRigidBodyDef *const restrict prevData);
 physicsRigidBodyDef *modulePhysicsBodyDefInsertAfter(physicsRigidBodyDef **const restrict start, physicsRigidBodyDef *const restrict data);
+physicsRigidBodyDef *modulePhysicsBodyDefNext(const physicsRigidBodyDef *const restrict bodyDef);
 void modulePhysicsBodyDefFree(physicsRigidBodyDef **const restrict start, physicsRigidBodyDef *const restrict bodyDef, physicsRigidBodyDef *const restrict prevData);
 void modulePhysicsBodyDefFreeArray(physicsRigidBodyDef **const restrict start);
 void modulePhysicsBodyDefClear();
@@ -103,7 +108,9 @@ physicsRigidBody *modulePhysicsBodyPrepend(physicsRigidBody **const restrict sta
 physicsRigidBody *modulePhysicsBodyAppend(physicsRigidBody **const restrict start);
 physicsRigidBody *modulePhysicsBodyInsertBefore(physicsRigidBody **const restrict start, physicsRigidBody *const restrict prevData);
 physicsRigidBody *modulePhysicsBodyInsertAfter(physicsRigidBody **const restrict start, physicsRigidBody *const restrict data);
-void modulePhysicsBodyFree(physicsRigidBody **const restrict start, physicsRigidBody *const restrict body, physicsRigidBody *const restrict prevData);
+physicsRigidBody *modulePhysicsBodyNext(const physicsRigidBody *const restrict body);
+physicsRigidBody *modulePhysicsBodyPrev(const physicsRigidBody *const restrict body);
+void modulePhysicsBodyFree(physicsRigidBody **const restrict start, physicsRigidBody *const restrict body);
 void modulePhysicsBodyFreeArray(physicsRigidBody **const restrict start);
 void modulePhysicsBodyClear();
 
@@ -113,7 +120,7 @@ extern memoryDoubleList g_physContactPairManager;
 extern memoryDoubleList g_physSeparationPairManager;
 extern memorySingleList g_physColliderManager;
 extern memorySingleList g_physRigidBodyDefManager;
-extern memorySingleList g_physRigidBodyManager;
+extern memoryDoubleList g_physRigidBodyManager;
 
 
 #endif

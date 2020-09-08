@@ -11,10 +11,6 @@
 #include "physicsCollider.h"
 
 
-#define combineFriction(mu1, mu2)    (sqrtf((mu1) * (mu2)))
-#define combineRestitution(e1, e2) (((e1) >= (e2)) ? (e1) : (e2))
-
-
 /*
 ** ----------------------------------------------------------------------
 **
@@ -110,6 +106,9 @@
 
 
 // Forward-declare any helper functions!
+static float combineFriction(const float mu1, const float mu2);
+static float combineRestitution(const float e1, const float e2);
+
 static void warmStartContactPoint(
 	const physicsManifold *const restrict pm, physicsContactPoint *const restrict contact,
 	physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB
@@ -122,7 +121,7 @@ static void calculateEffectiveMass(
 static void calculateBias(
 	const physicsManifold *const restrict pm, physicsContactPoint *const restrict contact,
 	const physicsRigidBody *const restrict bodyA, const physicsRigidBody *const restrict bodyB,
-	const float invDt
+	const float frequency
 );
 #else
 static void calculateBias(
@@ -173,6 +172,7 @@ void physManifoldInit(
 	vec3InitZero(&halfway);
 
 	// Create a physics contact point for each regular one!
+	// Note that we calculate the bias and effective mass when we presolve.
 	do {
 		vec3 curHalfway;
 		vec3AddVec3Out(&cmContact->pA, &cmContact->pB, &curHalfway);
@@ -365,7 +365,7 @@ void physManifoldPersist(
 
 		// If it is, we can warm start it!
 		}else{
-			warmStartContactPoint(pm, pmContact, cA->owner, cB->owner);
+			//warmStartContactPoint(pm, pmContact, cA->owner, cB->owner);
 		}
 
 		++cmContact;
@@ -382,7 +382,7 @@ void physManifoldPersist(
 	vec3SubtractVec3FromOut(&halfway, bodyACentroid, &pm->frictionJoint.rA);
 	vec3SubtractVec3FromOut(&halfway, bodyBCentroid, &pm->frictionJoint.rB);
 
-	physJointFrictionWarmStart(&pm->frictionJoint, cA->owner, cB->owner);
+	//physJointFrictionWarmStart(&pm->frictionJoint, cA->owner, cB->owner);
 	#endif
 }
 
@@ -394,7 +394,7 @@ void physManifoldPersist(
 */
 #ifdef PHYSCONTACT_STABILISER_BAUMGARTE
 void physManifoldPresolve(
-	physicsManifold *const restrict pm, const physicsRigidBody *const restrict bodyA, const physicsRigidBody *const restrict bodyB, const float invDt
+	physicsManifold *const restrict pm, const physicsRigidBody *const restrict bodyA, const physicsRigidBody *const restrict bodyB, const float frequency
 ){
 #else
 void physManifoldPresolve(
@@ -408,7 +408,7 @@ void physManifoldPresolve(
 	for(; curContact < lastContact; ++curContact){
 		calculateEffectiveMass(pm, curContact, bodyA, bodyB);
 		#ifdef PHYSCONTACT_STABILISER_BAUMGARTE
-		calculateBias(pm, curContact, bodyA, bodyB, invDt);
+		calculateBias(pm, curContact, bodyA, bodyB, frequency);
 		#else
 		calculateBias(pm, curContact, bodyA, bodyB);
 		#endif
@@ -465,6 +465,21 @@ float physManifoldSolvePosition(const physicsManifold *const restrict pm, physic
 	return(separation);
 }
 #endif
+
+
+static float combineFriction(const float mu1, const float mu2){
+	#ifdef PHYSCONTACT_FRICTION_GEOMETRIC_AVERAGE
+	return(sqrtf(mu1 * mu2));
+	#else
+	const float w1 = M_SQRT2 * (1.f - mu1) + 1.f;
+	const float w2 = M_SQRT2 * (1.f - mu2) + 1.f;
+	return((mu1*w1 + mu2*w2)/(w1 + w2));
+	#endif
+}
+
+static float combineRestitution(const float e1, const float e2){
+	return((e1 >= e2) ? e1 : e2);
+}
 
 
 /*
@@ -561,7 +576,7 @@ static void calculateEffectiveMass(
 static void calculateBias(
 	const physicsManifold *const restrict pm, physicsContactPoint *const restrict contact,
 	const physicsRigidBody *const restrict bodyA, const physicsRigidBody *const restrict bodyB,
-	const float invDt
+	const float frequency
 ){
 #else
 static void calculateBias(
@@ -581,7 +596,7 @@ static void calculateBias(
 	tempBias = contact->separation - PHYSCONSTRAINT_LINEAR_SLOP;
 	// B = Baumgarte constant
 	// b_penetration = B/dt * C(x)
-	contact->bias = (tempBias > 0.f) ? (PHYSCONTACT_BAUMGARTE_BIAS * invDt * tempBias) : 0.f;
+	contact->bias = (tempBias > 0.f) ? (PHYSCONTACT_BAUMGARTE_BIAS * frequency * tempBias) : 0.f;
 	#endif
 
 
@@ -712,7 +727,6 @@ static void solveNormal(
 ){
 
 	float lambda;
-	float oldImpulse;
 	float newImpulse;
 	vec3 impulse;
 	vec3 contactVelocity;
@@ -735,20 +749,19 @@ static void solveNormal(
 	// lambda = -(JV + b)/((JM^(-1))J^T)
 	//        = -((v_relative . n) + b)/K
 	lambda = -(vec3DotVec3(&contactVelocity, &physContactNormal(pm)) + contact->bias) * contact->normalEffectiveMass;
-	oldImpulse = contact->normalImpulse;
-	newImpulse = oldImpulse + lambda;
+	newImpulse = contact->normalImpulse + lambda;
 
 	// C' >= 0
 	// If our impulse magnitude is valid, multiply it
 	// by the direction so we can apply the impulse.
-	if(newImpulse >= 0.f){
-		contact->normalImpulse = newImpulse;
+	if(newImpulse > 0.f){
 		vec3MultiplySOut(&physContactNormal(pm), lambda, &impulse);
+		contact->normalImpulse = newImpulse;
 
 	// Otherwise, clamp our accumulated impulse so it doesn't become negative.
 	}else{
+		vec3MultiplySOut(&physContactNormal(pm), -contact->normalImpulse, &impulse);
 		contact->normalImpulse = 0.f;
-		vec3MultiplySOut(&physContactNormal(pm), -oldImpulse, &impulse);
 	}
 
 	// Apply the correctional impulse.

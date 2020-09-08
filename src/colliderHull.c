@@ -21,9 +21,10 @@
 #define COLLIDER_HULL_INSTANCE_STATIC_BYTES (sizeof(colliderHull) - offsetof(colliderHull, faces))
 
 
-#define COLLISION_PARALLEL_THRESHOLD    0.005f
-#define COLLISION_TOLERANCE_COEFFICIENT 0.95f
-#define COLLISION_TOLERANCE_TERM        0.025f
+#define COLLISION_PARALLEL_THRESHOLD         0.005f
+#define COLLISION_PARALLEL_THRESHOLD_SQUARED COLLISION_PARALLEL_THRESHOLD*COLLISION_PARALLEL_THRESHOLD
+#define COLLISION_TOLERANCE_COEFFICIENT      0.95f
+#define COLLISION_TOLERANCE_TERM             0.025f
 
 #define CLIPPING_INORDER 0
 // We can use byte offsets or a conditional check to swap our keys around.
@@ -131,9 +132,8 @@ static void clipManifoldSHC(
 	const collisionData *const restrict cd, contactManifold *const restrict cm
 );
 static return_t isMinkowskiFace(
-	const colliderHull *const restrict hullA, const colliderHull *const restrict hullB,
-	const colliderHullEdge *const restrict eA, const vec3 *const restrict invEdgeA,
-	const colliderHullEdge *const restrict eB, const vec3 *const restrict invEdgeB
+	const vec3 *const restrict A, const vec3 *const restrict B, const vec3 *const restrict BA,
+	const vec3 *const restrict C, const vec3 *const restrict D, const vec3 *const restrict DC
 );
 static float edgeDistSquared(
 	const vec3 *const restrict pA, const vec3 *const restrict edgeDirA,
@@ -323,9 +323,9 @@ return_t colliderHullLoad(
 			colliderVertexIndex_t lastEdgeStartIndex;
 			colliderVertexIndex_t firstEdgeEndIndex;
 
+			vec3 *A;
 			vec3 AB;
-			vec3 *B;
-			vec3 BC;
+			vec3 AC;
 			vec3 curNormal;
 
 
@@ -471,12 +471,12 @@ return_t colliderHullLoad(
 			}
 
 
-			B = &tempHull.vertices[firstEdgeStartIndex];
-			vec3SubtractVec3FromOut(B, &tempHull.vertices[lastEdgeStartIndex], &AB);
-			vec3SubtractVec3FromOut(&tempHull.vertices[firstEdgeEndIndex], B, &BC);
+			A = &tempHull.vertices[firstEdgeStartIndex];
+			vec3SubtractVec3FromOut(&tempHull.vertices[firstEdgeEndIndex], A, &AB);
+			vec3SubtractVec3FromOut(&tempHull.vertices[lastEdgeStartIndex], A, &AC);
 			// Calculate the current face's normal.
-			vec3CrossVec3Out(&AB, &BC, &curNormal);
-			vec3NormalizeVec3Out(&curNormal, &tempHull.normals[tempHull.numFaces]);
+			vec3CrossVec3Out(&AB, &AC, &curNormal);
+			vec3NormalizeVec3FastOut(&curNormal, &tempHull.normals[tempHull.numFaces]);
 
 			// Store a reference to one of the edges on this face.
 			tempHull.faces[tempHull.numFaces] = firstIndex;
@@ -551,8 +551,8 @@ void colliderHullUpdate(
 	const vec3 *lastFeature = &curFeature[((colliderHull *)hull)->numVertices];
 
 	// Compute the collider's new centroid!
+	vec3MultiplyVec3Out(&(((colliderHull *)base)->centroid), &trans->scale, &(((colliderHull *)hull)->centroid));
 	quatRotateVec3Fast(&trans->rot, &(((colliderHull *)hull)->centroid));
-	vec3MultiplyVec3(&(((colliderHull *)hull)->centroid), &trans->scale);
 	vec3AddVec3(&(((colliderHull *)hull)->centroid), &trans->pos);
 
 	// We can only update the hull's vertices if it actually has any.
@@ -605,10 +605,12 @@ void colliderHullUpdate(
 		baseFeature = ((colliderHull *)base)->normals;
 		lastFeature = &curFeature[((colliderHull *)hull)->numFaces];
 
-		// The hull's faces have been rotated,
-		// so we need to rotate their normals.
+		// The hull's faces have been rotated, so we
+		// need to scale and rotate their normals.
 		for(; curFeature < lastFeature; ++curFeature, ++baseFeature){
+			vec3MultiplyVec3(curFeature, &trans->scale);
 			quatRotateVec3FastOut(&trans->rot, baseFeature, curFeature);
+			vec3NormalizeVec3Fast(curFeature);
 		}
 
 
@@ -910,7 +912,7 @@ static return_t faceSeparation(
 	return(
 		pointPlaneDist(
 			colliderHullSupport(hullB, &invNormal),
-			&hullA->vertices[cs->featureA],
+			&hullA->vertices[hullA->edges[hullA->faces[cs->featureA]].startVertexIndex],
 			normal
 		) > 0.f
 	);
@@ -922,18 +924,21 @@ static return_t edgeSeparation(
 ){
 
 	const colliderHullEdge *const edgeA = &hullA->edges[cs->featureA];
-	const vec3 *const startVertexA = &hullA->vertices[edgeA->endVertexIndex];
+	const vec3 *const startVertexA = &hullA->vertices[edgeA->startVertexIndex];
 	vec3 invEdgeA;
 	const colliderHullEdge *const edgeB = &hullB->edges[cs->featureB];
-	const vec3 *const startVertexB = &hullB->vertices[edgeB->endVertexIndex];
+	const vec3 *const startVertexB = &hullB->vertices[edgeB->startVertexIndex];
 	vec3 invEdgeB;
 
 	vec3SubtractVec3FromOut(startVertexA, &hullA->vertices[edgeA->endVertexIndex], &invEdgeA);
 	vec3SubtractVec3FromOut(startVertexB, &hullB->vertices[edgeB->endVertexIndex], &invEdgeB);
 
+
 	return(
-		!isMinkowskiFace(hullA, hullB, edgeA, &invEdgeA, edgeB, &invEdgeB) ||
-		edgeDistSquared(startVertexA, &invEdgeA, startVertexB, &invEdgeB, &hullA->centroid) > 0.f
+		isMinkowskiFace(
+			&hullA->normals[edgeA->faceIndex], &hullA->normals[edgeA->twinFaceIndex], &invEdgeA,
+			&hullB->normals[edgeB->faceIndex], &hullB->normals[edgeB->twinFaceIndex], &invEdgeB
+		) && edgeDistSquared(startVertexA, &invEdgeA, startVertexB, &invEdgeB, &hullA->centroid) > 0.f
 	);
 }
 
@@ -1019,9 +1024,8 @@ static void clipManifoldSHC(
 ** whether they form a face on the Minkowski difference.
 */
 static return_t isMinkowskiFace(
-	const colliderHull *const restrict hullA, const colliderHull *const restrict hullB,
-	const colliderHullEdge *const restrict eA, const vec3 *const restrict invEdgeA,
-	const colliderHullEdge *const restrict eB, const vec3 *const restrict invEdgeB
+	const vec3 *const restrict A, const vec3 *const restrict B, const vec3 *const restrict BA,
+	const vec3 *const restrict C, const vec3 *const restrict D, const vec3 *const restrict DC
 ){
 
 	// Note that in this function, the following terminology is used:
@@ -1032,19 +1036,20 @@ static return_t isMinkowskiFace(
 	// BA - Cross product of B and A (normal of their shared edge).
 	// DC - Cross product of D and C (normal of their shared edge).
 
-	const float CBA = vec3DotVec3(&hullB->normals[eB->faceIndex], invEdgeA);
+	const float BDC = vec3DotVec3(B, DC);
 
-	// First, make sure the edge formed by CD are on
-	// opposite sides of the plane with normal BA.
-	if(CBA * vec3DotVec3(&hullB->normals[eB->twinFaceIndex], invEdgeA) < 0.f){
-		const float BDC = vec3DotVec3(&hullA->normals[eA->twinFaceIndex], invEdgeB);
+	// First, make sure the vertices forming the edge AB are
+	// on the opposite sides of the plane with normal DC.
+	if(vec3DotVec3(A, DC) * BDC < 0.f){
+		const float CBA = vec3DotVec3(C, BA);
 
-		// Now make sure the edge formed by AB are on
-		// opposite sides of the plane with normal DC.
-		if(vec3DotVec3(&hullA->normals[eA->faceIndex], invEdgeB) * BDC < 0.f){
-			// If the two arcs are on the same hemisphere of the unit
-			// sphere, they form a face on the Minkowski difference!
-			return(CBA * BDC > 0.f);
+		// Make sure the two arcs are on the
+		// same hemisphere of the unit sphere
+		if(CBA * BDC < 0.f){
+			// If the vertices forming the edge CD are on the
+			// opposite sides of the plane with normal BA,
+			// they form a face on the Minkowski difference!
+			return(CBA * vec3DotVec3(D, BA) < 0.f);
 		}
 	}
 
@@ -1060,19 +1065,18 @@ static float edgeDistSquared(
 
 	vec3 edgeNormal;
 	vec3 offset;
-	float edgeCrossLength;
+	float edgeNormalMagnitude;
 
 
 	vec3CrossVec3Out(edgeDirA, edgeDirB, &edgeNormal);
-	// The norm of the vector is the square of its magnitude.
-	edgeCrossLength = vec3NormVec3(&edgeNormal);
+	edgeNormalMagnitude = vec3NormVec3(&edgeNormal);
 	// If the two edges are parallel, we can exit early.
-	if(edgeCrossLength < COLLISION_PARALLEL_THRESHOLD * (vec3NormVec3(edgeDirA) + vec3NormVec3(edgeDirB))){
+	if(edgeNormalMagnitude < COLLISION_PARALLEL_THRESHOLD_SQUARED * vec3NormVec3(edgeDirA) * vec3NormVec3(edgeDirB)){
 		return(-INFINITY);
 	}
 
 
-	vec3MultiplyS(&edgeNormal, invSqrt(edgeCrossLength));
+	vec3MultiplyS(&edgeNormal, invSqrt(edgeNormalMagnitude));
 	vec3SubtractVec3FromOut(pA, centroid, &offset);
 	// If the edge normal does not point from
 	// object A to object B, we need to invert it.
@@ -1080,9 +1084,7 @@ static float edgeDistSquared(
 		vec3Negate(&edgeNormal);
 	}
 
-
 	vec3SubtractVec3FromOut(pB, pA, &offset);
-
 	// Return the distance between the edges.
 	return(vec3DotVec3(&edgeNormal, &offset));
 }
@@ -1103,12 +1105,11 @@ static return_t noSeparatingFace(
 	contactSeparation *const restrict separation, const separationType_t separationType
 ){
 
-	const colliderHullFace *curFace = hullA->faces;
 	const vec3 *curNormal = hullA->normals;
-	const colliderHullFace *lastFace = &hullA->faces[hullA->numFaces];
+	const colliderHullFace *curFace = hullA->faces;
 
 	colliderFaceIndex_t i;
-	for(i = 0; curFace < lastFace; ++i){
+	for(i = 0; i < hullA->numFaces; ++curNormal, ++curFace, ++i){
 		const vec3 invNormal = {
 			.x = -curNormal->x,
 			.y = -curNormal->y,
@@ -1139,9 +1140,6 @@ static return_t noSeparatingFace(
 			faceData->index = i;
 			faceData->separation = curDistance;
 		}
-
-		++curFace;
-		++curNormal;
 	}
 
 	return(1);
@@ -1165,13 +1163,11 @@ static return_t noSeparatingEdge(
 ){
 
 	colliderHullEdge *edgeA = hullA->edges;
-	const colliderHullEdge *const lastEdgeA = &edgeA[hullA->numEdges];
-	const colliderHullEdge *const lastEdgeB = &hullB->edges[hullB->numEdges];
 	colliderEdgeIndex_t a;
 
 	// We skip every second edge since
 	// it will be the last one's twin.
-	for(a = 0; edgeA < lastEdgeA; ++edgeA, ++a){
+	for(a = 0; a < hullA->numEdges; ++edgeA, ++a){
 		colliderHullEdge *edgeB = hullB->edges;
 		const vec3 *const startVertexA = &hullA->vertices[edgeA->startVertexIndex];
 		vec3 invEdgeA;
@@ -1180,7 +1176,7 @@ static return_t noSeparatingEdge(
 		// Get the inverse of edge 1's normal.
 		vec3SubtractVec3FromOut(startVertexA, &hullA->vertices[edgeA->endVertexIndex], &invEdgeA);
 
-		for(b = 0; edgeB < lastEdgeB; ++edgeB, ++b){
+		for(b = 0; b < hullB->numEdges; ++edgeB, ++b){
 			const vec3 *startVertexB = &hullB->vertices[edgeB->startVertexIndex];
 			vec3 invEdgeB;
 			// Get the inverse of edge 2's normal
@@ -1188,7 +1184,11 @@ static return_t noSeparatingEdge(
 
 			// We only need to compare two edges if they
 			// form a face on the Minkowski difference.
-			if(isMinkowskiFace(hullA, hullB, edgeA, &invEdgeA, edgeB, &invEdgeB)){
+			if(isMinkowskiFace(
+				&hullA->normals[edgeA->faceIndex], &hullA->normals[edgeA->twinFaceIndex], &invEdgeA,
+				&hullB->normals[edgeB->faceIndex], &hullB->normals[edgeB->twinFaceIndex], &invEdgeB
+			)){
+
 				const float curDistance = edgeDistSquared(startVertexA, &invEdgeA, startVertexB, &invEdgeB, &hullA->centroid);
 
 				// If the distance is less than zero, we can
@@ -1267,6 +1267,7 @@ static void reduceContacts(
 	contactPoint *curContact = cm->contacts;
 
 	vec3 edgeNormal;
+	vec3 contactNormal;
 
 	const vertexProject *curProj = &vProj[1];
 	const vertexClip *curClip = &vClip[1];
@@ -1298,15 +1299,23 @@ static void reduceContacts(
 	firstContact = &bestProj->v;
 	secondContact = &worstProj->v;
 
+	// If the hulls were swapped, invert the normal.
+	if(swapped){
+		vec3NegateOut(refNormal, &contactNormal);
+	}else{
+		contactNormal = *refNormal;
+	}
 	// Add the points to our manifold.
 	curContact->key = bestClip->key;
 	curContact->pA = bestProj->v;
 	curContact->pB = bestClip->v;
+	curContact->normal = contactNormal;
 	curContact->separation = bestProj->dist;
 	++curContact;
 	curContact->key = worstClip->key;
 	curContact->pA = worstProj->v;
 	curContact->pB = worstClip->v;
+	curContact->normal = contactNormal;
 	curContact->separation = worstProj->dist;
 	++curContact;
 
@@ -1357,20 +1366,20 @@ static void reduceContacts(
 		// Add the points to our manifold.
 		curContact->pA = bestProj->v;
 		curContact->pB = bestClip->v;
-		curContact->normal = *refNormal;
+		curContact->normal = contactNormal;
 		curContact->separation = bestProj->dist;
 		curContact->key = bestClip->key;
 		++curContact;
 		curContact->pA = worstProj->v;
 		curContact->pB = worstClip->v;
-		curContact->normal = *refNormal;
+		curContact->normal = contactNormal;
 		curContact->separation = worstProj->dist;
 		curContact->key = worstClip->key;
 	}else{
 		// Add the points to our manifold.
 		curContact->pA = bestProj->v;
 		curContact->pB = bestClip->v;
-		vec3NegateOut(refNormal, &curContact->normal);
+		curContact->normal = contactNormal;
 		curContact->separation = bestProj->dist;
 		#ifdef CONTACT_MANIFOLD_SIMPLE_KEYS
 		curContact->key.edgeA = bestClip->key.edgeB;
@@ -1384,7 +1393,7 @@ static void reduceContacts(
 		++curContact;
 		curContact->pA = worstProj->v;
 		curContact->pB = worstClip->v;
-		vec3NegateOut(refNormal, &curContact->normal);
+		curContact->normal = contactNormal;
 		curContact->separation = worstProj->dist;
 		#ifdef CONTACT_MANIFOLD_SIMPLE_KEYS
 		curContact->key.edgeA = worstClip->key.edgeB;
@@ -1438,7 +1447,7 @@ static void clipFaceContact(
 	} clipVertices, clipVertex;
 	clipVertices.v = &vertices[hullB->maxFaceEdges];
 
-	vec3 refNormal = hullA->normals[refIndex];
+	const vec3 refNormal = hullA->normals[refIndex];
 	// Using the normal of the reference face, find the face
 	// on the incident hull whose normal is most opposite it.
 	const colliderFaceIndex_t incIndex = findIncidentFace(hullB, &refNormal);
@@ -1446,7 +1455,7 @@ static void clipFaceContact(
 	float curDist;
 
 	const vec3 *refVertex;
-	const vertexClip *curVertex;
+	vertexClip *curVertex;
 	vertexClip *lastVertex = loopVertices;
 	const colliderHullEdge *curEdge = &hullB->edges[hullB->faces[incIndex]];
 	const colliderHullEdge *startEdge = curEdge;
@@ -1461,7 +1470,6 @@ static void clipFaceContact(
 		#ifdef CONTACT_MANIFOLD_SIMPLE_KEYS
 		lastVertex->key.edgeB = outEdgeIndex;
 		#else
-		lastVertex->key.inEdgeB  = CONTACT_KEY_INVALID_EDGE;
 		lastVertex->key.outEdgeB = outEdgeIndex;
 		#endif
 		inEdgeIndex = outEdgeIndex;
@@ -1485,7 +1493,7 @@ static void clipFaceContact(
 		}
 		// Otherwise, add the next vertex. We only increment after
 		// checking if the loop can be ended to ensure that "lastVertex"
-		// points to the last vertex and not the one before the last.
+		// points to the last vertex and not the one after the last.
 		++lastVertex;
 		// Now we can set the in-edge for the next vertex.
 		// This ensures that every vertex except the first
@@ -1494,18 +1502,15 @@ static void clipFaceContact(
 		lastVertex->key.edgeA = inEdgeIndex;
 		#else
 		lastVertex->key.inEdgeB  = inEdgeIndex;
-		lastVertex->key.outEdgeB = CONTACT_KEY_INVALID_EDGE;
 		#endif
 	}
 
-	// We skipped setting the first vertex's
-	// in-edge since we didn't know what it was,
-	// but now that we do we can set it here.
+	// Set the first vertex's in-edge to the correct
+	// value now that we know what it should be.
 	#ifdef CONTACT_MANIFOLD_SIMPLE_KEYS
-	loopVertices[0].key.edgeA = inEdgeIndex;
+	loopVertices->key.edgeA = inEdgeIndex;
 	#else
-	loopVertices[0].key.inEdgeB  = inEdgeIndex;
-	loopVertices[0].key.outEdgeB = CONTACT_KEY_INVALID_EDGE;
+	loopVertices->key.inEdgeB  = inEdgeIndex;
 	#endif
 
 
@@ -1513,31 +1518,33 @@ static void clipFaceContact(
 	startEdge = curEdge;
 	inEdgeIndex = refIndex;
 
+	// We only do this so "nextVertex" is set correctly inside this loop.
+	curVertex = loopVertices;
 	// For each face surrounding the reference face,
 	// clip each incident vertex against its normal.
 	do {
-		const vertexClip *nextVertex;
+		vertexClip *nextVertex;
 		const vec3 *adjNormal;
 
 		clipVertex.v = clipVertices.v;
+
+		refVertex = &hullA->vertices[curEdge->startVertexIndex];
 		// Edges are shared by both faces that use
 		// them, so we need to check whether or not
 		// the reference face is this edge's twin
 		// face to make sure we get the right data.
 		if(curEdge->faceIndex == refIndex){
-			refVertex = &hullA->vertices[curEdge->startVertexIndex];
 			adjNormal = &hullA->normals[curEdge->twinFaceIndex];
 			outEdgeIndex = curEdge->nextIndex;
 		}else{
-			refVertex = &hullA->vertices[curEdge->startVertexIndex];
-			adjNormal = &hullA->normals[curEdge->nextIndex];
-			outEdgeIndex = curEdge->twinFaceIndex;
+			adjNormal = &hullA->normals[curEdge->faceIndex];
+			outEdgeIndex = curEdge->twinNextIndex;
 		}
 		curEdge = &hullA->edges[outEdgeIndex];
 
+		nextVertex = curVertex;
 		curVertex = lastVertex;
 		curDist = pointPlaneDist(&curVertex->v, refVertex, adjNormal);
-		nextVertex = loopVertices;
 		// For each edge on the incident face, clip
 		// it against the current reference face.
 		do {
@@ -1584,12 +1591,12 @@ static void clipFaceContact(
 					*/
 					vec3Lerp(&curVertex->v, &nextVertex->v, curDist / (curDist - nextDist), &clipVertex.v->v);
 					#ifdef CONTACT_MANIFOLD_SIMPLE_KEYS
-					clipVertex.v->key.edgeA = curVertex->key.edgeA;
+					clipVertex.v->key.edgeA = nextVertex->key.edgeA;
 					clipVertex.v->key.edgeB = inEdgeIndex;
 					#else
 					clipVertex.v->key.inEdgeA  = CONTACT_KEY_INVALID_EDGE;
 					clipVertex.v->key.outEdgeA = inEdgeIndex;
-					clipVertex.v->key.inEdgeB  = curVertex->key.outEdgeB;
+					clipVertex.v->key.inEdgeB  = nextVertex->key.outEdgeB;
 					clipVertex.v->key.outEdgeB = CONTACT_KEY_INVALID_EDGE;
 					#endif
 					++clipVertex.v;
@@ -1622,7 +1629,7 @@ static void clipFaceContact(
 				clipVertex.v->key.inEdgeA  = inEdgeIndex;
 				clipVertex.v->key.outEdgeA = CONTACT_KEY_INVALID_EDGE;
 				clipVertex.v->key.inEdgeB  = CONTACT_KEY_INVALID_EDGE;
-				clipVertex.v->key.outEdgeB = curVertex->key.outEdgeB;
+				clipVertex.v->key.outEdgeB = nextVertex->key.outEdgeB;
 				#endif
 				++clipVertex.v;
 			}
@@ -1631,26 +1638,29 @@ static void clipFaceContact(
 			// distance, so set the current vertex to it.
 			curVertex = nextVertex;
 			curDist = nextDist;
-			inEdgeIndex = outEdgeIndex;
 			++nextVertex;
 		} while(curVertex != lastVertex);
 
 		// After clipping the face, we need to swap the "loop" array
 		// with the "clip" array. This will allow us to loop through
 		// the newly clipped vertices on the next iteration.
-		lastVertex = clipVertices.v;
+		curVertex = clipVertices.v;
 		clipVertices.v = loopVertices;
-		loopVertices = lastVertex;
+		loopVertices = curVertex;
 		// The variable "clipVertex" will point to the vertex after the
 		// last one that was set, so we need to get the one before it.
 		// The array should never be empty, so we don't have to worry
 		// about funny stuff happening as a result of this subtraction.
 		lastVertex = &clipVertex.v[-1];
+
+		inEdgeIndex = outEdgeIndex;
 	} while(curEdge != startEdge);
 
 	loopVertex = loopVertices;
 	clipVertex.p = clipVertices.p;
 	curVertex = loopVertices;
+	// We haven't found any contact points yet.
+	cm->numContacts = 0;
 	// Keep any points below the reference face and project them
 	// onto it. We won't keep any intersection points, as they do
 	// not contribute towards the stability of the contact manifold.
@@ -1664,7 +1674,7 @@ static void clipFaceContact(
 		// that it is within the clipping region.
 		curDist = pointPlaneDist(&curVertex->v, refVertex, &refNormal);
 		if(curDist <= 0.f){
-			loopVertex->v = curVertex->v;
+			*loopVertex = *curVertex;
 			++loopVertex;
 			// Project the vertex onto the reference
 			// face and store it in "clipVertices".
@@ -1672,6 +1682,7 @@ static void clipFaceContact(
 			// Keep the vertex's separation, too.
 			clipVertex.p->dist = curDist;
 			++clipVertex.p;
+			++cm->numContacts;
 		}
 	}
 
@@ -1679,51 +1690,46 @@ static void clipFaceContact(
 	// Now that we've finished clipping, we can begin adding
 	// our remaining contact points to the manifold.
 
+	// If there are more than four vertices, we'll
+	// need to perform contact point reduction.
+	if(cm->numContacts > CONTACT_MAX_POINTS){
+		reduceContacts(clipVertices.p, clipVertex.p, loopVertices, &refNormal, swapped, cm);
+
 	// If there are four or less vertices, we can
 	// simply keep all of them. Note that we check
 	// "loopVertex" instead of "lastVertex", as it
 	// points to the vertex after the last valid one.
-	if(loopVertex <= &loopVertices[CONTACT_MAX_POINTS]){
+	}else{
 		contactPoint *curContact = cm->contacts;
 
-		clipVertex.p = clipVertices.p;
-		curVertex = loopVertices;
 		// Add out contact points to the manifold.
-		for(; curVertex < loopVertex; ++curVertex, ++clipVertex.p, ++curContact){
-			curContact->pA = clipVertex.p->v;
-			curContact->pB = curVertex->v;
-			curContact->normal = refNormal;
-			curContact->separation = clipVertex.p->dist;
+		for(; loopVertices < loopVertex; ++loopVertices, ++clipVertices.p, ++curContact){
+			curContact->separation = clipVertices.p->dist;
+
+			if(swapped == CLIPPING_INORDER){
+				curContact->pA = clipVertices.p->v;
+				curContact->pB = loopVertices->v;
+				curContact->normal = refNormal;
+				curContact->key = loopVertices->key;
 
 			// If the hulls were swapped before being passed into
 			// this function, we'll need to swap the key values.
-			if(swapped == CLIPPING_INORDER){
-				curContact->key = curVertex->key;
-
-				curContact->normal = refNormal;
 			}else{
+				curContact->pA = loopVertices->v;
+				curContact->pB = clipVertices.p->v;
 				#ifdef CONTACT_MANIFOLD_SIMPLE_KEYS
-				curContact->key.edgeA = curVertex->key.edgeB;
-				curContact->key.edgeB = curVertex->key.edgeA;
-
 				vec3NegateOut(&refNormal, &curContact->normal);
+				curContact->key.edgeA = loopVertices->key.edgeB;
+				curContact->key.edgeB = loopVertices->key.edgeA;
 				#else
-				curContact->key.inEdgeA  = curVertex->key.inEdgeB;
-				curContact->key.outEdgeA = curVertex->key.outEdgeB;
-				curContact->key.inEdgeB  = curVertex->key.inEdgeA;
-				curContact->key.outEdgeB = curVertex->key.outEdgeA;
-
 				vec3NegateOut(&refNormal, &curContact->normal);
+				curContact->key.inEdgeA  = loopVertices->key.inEdgeB;
+				curContact->key.outEdgeA = loopVertices->key.outEdgeB;
+				curContact->key.inEdgeB  = loopVertices->key.inEdgeA;
+				curContact->key.outEdgeB = loopVertices->key.outEdgeA;
 				#endif
 			}
-
-			++cm->numContacts;
 		}
-
-	// If there are more than four vertices, we'll
-	// need to perform contact point reduction.
-	}else{
-		reduceContacts(clipVertices.p, clipVertex.p, loopVertices, &refNormal, swapped, cm);
 	}
 
 
@@ -1787,24 +1793,11 @@ static void clipEdgeContact(
 	const float m1 = (denom != 0.f) ? (d23 * d31 - d21 * d33) / denom : 0.5f;
 	const float m2 = (d23 + d31 * m1) / d33;
 
+
 	// Find the closest point on the first line.
 	vec3LerpFast(refStart, &ref, m1, &contact->pA);
 	// Find the closest point on the second line.
 	vec3LerpFast(incStart, &inc, m2, &contact->pB);
-
-
-	#ifdef CONTACT_MANIFOLD_SIMPLE_KEYS
-	contact->key.edgeA = edgeData->edgeA;
-	contact->key.edgeB = edgeData->edgeB;
-	#else
-	contact->key.inEdgeA  = edgeData->edgeA;
-	contact->key.outEdgeA = edgeData->edgeA;
-	contact->key.inEdgeB  = edgeData->edgeB;
-	contact->key.outEdgeB = edgeData->edgeB;
-	#endif
-
-	contact->separation = edgeData->separation;
-
 
 	// Find the collision's normal. We use the
 	// cross product of the two intersecting edges.
@@ -1816,6 +1809,18 @@ static void clipEdgeContact(
 		vec3Negate(&normal);
 	}
 	contact->normal = normal;
+
+	contact->separation = edgeData->separation;
+
+	#ifdef CONTACT_MANIFOLD_SIMPLE_KEYS
+	contact->key.edgeA = edgeData->edgeA;
+	contact->key.edgeB = edgeData->edgeB;
+	#else
+	contact->key.inEdgeA  = edgeData->edgeA;
+	contact->key.outEdgeA = edgeData->edgeA;
+	contact->key.inEdgeB  = edgeData->edgeB;
+	contact->key.outEdgeB = edgeData->edgeB;
+	#endif
 
 
 	cm->numContacts = 1;

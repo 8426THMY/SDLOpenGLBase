@@ -1,7 +1,7 @@
 #include "physicsJoint.h"
 
 
-void (*physJointPresolveTable[PHYSJOINT_NUM_TYPES])(
+void (*const physJointPresolveTable[PHYSJOINT_NUM_TYPES])(
 	void *const restrict joint,
 	physicsRigidBody *const restrict bodyA,
 	physicsRigidBody *const restrict bodyB,
@@ -15,7 +15,7 @@ void (*physJointPresolveTable[PHYSJOINT_NUM_TYPES])(
 	physJointSpherePresolve
 };
 
-void (*physJointSolveVelocityTable[PHYSJOINT_NUM_TYPES])(
+void (*const physJointSolveVelocityTable[PHYSJOINT_NUM_TYPES])(
 	void *const restrict joint,
 	physicsRigidBody *const restrict bodyA,
 	physicsRigidBody *const restrict bodyB
@@ -28,7 +28,7 @@ void (*physJointSolveVelocityTable[PHYSJOINT_NUM_TYPES])(
 	physJointSphereSolveVelocity
 };
 
-float (*physJointSolvePositionTable[PHYSJOINT_NUM_TYPES])(
+float (*const physJointSolvePositionTable[PHYSJOINT_NUM_TYPES])(
 	void *const restrict joint,
 	physicsRigidBody *const restrict bodyA,
 	physicsRigidBody *const restrict bodyB

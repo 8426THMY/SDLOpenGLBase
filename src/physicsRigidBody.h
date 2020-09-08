@@ -27,10 +27,11 @@
 #define PHYSRIGIDBODY_SIMULATE           (PHYSRIGIDBODY_SIMULATE_LINEAR | PHYSRIGIDBODY_SIMULATE_ANGULAR)
 // The body should allow collisions.
 #define PHYSRIGIDBODY_COLLIDE            0x04
+#define PHYSRIGIDBODY_COLLISION_MODIFIED 0x08
 // The body has been transformed in some way.
 #define PHYSRIGIDBODY_TRANSLATED         0x10
 #define PHYSRIGIDBODY_ROTATED            0x20
-#define PHYSRIGIDBODY_TRANSFORMED        0x40
+#define PHYSRIGIDBODY_TRANSFORMED        0x30
 
 #ifndef PHYSRIGIDBODY_DEFAULT_STATE
 	#define PHYSRIGIDBODY_DEFAULT_STATE (PHYSRIGIDBODY_SIMULATE | PHYSRIGIDBODY_COLLIDE)
@@ -38,11 +39,11 @@
 
 #define physRigidBodySimulateLinear(body) flagsSet(body->flags, PHYSRIGIDBODY_SIMULATE_LINEAR)
 #define physRigidBodySimulateAngular(body) flagsSet(body->flags, PHYSRIGIDBODY_SIMULATE_ANGULAR)
-#define physRigidBodySimulateCollisions(body) flagsSet(body->flags, PHYSRIGIDBODY_COLLIDE)
+#define physRigidBodySimulate(body) flagsSet(body->flags, PHYSRIGIDBODY_SIMULATE)
 
 #define physRigidBodyIgnoreLinear(body) flagsUnset(body->flags, PHYSRIGIDBODY_SIMULATE_LINEAR)
 #define physRigidBodyIgnoreAngular(body) flagsUnset(body->flags, PHYSRIGIDBODY_SIMULATE_ANGULAR)
-#define physRigidBodyIgnoreCollisions(body) flagsUnset(body->flags, PHYSRIGIDBODY_COLLIDE)
+#define physRigidBodyIgnoreSimulation(body) flagsUnset(body->flags, PHYSRIGIDBODY_SIMULATE)
 
 #define physRigidBodyIsSimulated(body) flagsAreSet(body->flags, PHYSRIGIDBODY_SIMULATE)
 #define physRigidBodyIsCollidable(body) flagsAreSet(body->flags, PHYSRIGIDBODY_COLLIDE)
@@ -117,6 +118,9 @@ void physRigidBodyDefAddCollider(
 	const vec3 *const restrict centroid, mat3 inertia
 );
 
+void physRigidBodySimulateCollisions(physicsRigidBody *const restrict body);
+void physRigidBodyIgnoreCollisions(physicsRigidBody *const restrict body);
+
 void physRigidBodyIntegrateVelocity(physicsRigidBody *const restrict body, const float dt);
 void physRigidBodyResetAccumulators(physicsRigidBody *const restrict body);
 void physRigidBodyIntegratePosition(physicsRigidBody *const restrict body, const float dt);
@@ -142,6 +146,7 @@ void physRigidBodySetScale(physicsRigidBody *const restrict body, const vec3 sca
 
 void physRigidBodyCentroidFromPosition(physicsRigidBody *const restrict body);
 void physRigidBodyPositionFromCentroid(physicsRigidBody *const restrict body);
+void physRigidBodyUpdatePosition(physicsRigidBody *const restrict body);
 void physRigidBodyUpdateGlobalInertia(physicsRigidBody *const restrict body);
 void physRigidBodyUpdate(physicsRigidBody *const restrict body, const float dt);
 

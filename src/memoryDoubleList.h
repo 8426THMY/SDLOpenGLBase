@@ -215,7 +215,7 @@ void memDoubleListClear(memoryDoubleList *const restrict doubleList);
 void *memDoubleListExtend(memoryDoubleList *const restrict doubleList, void *const restrict memory, const size_t memorySize);
 #endif
 
-void memDoubleListDelete(memoryDoubleList *const restrict doubleList, void (*freeFunc)(void *block));
+void memDoubleListDelete(memoryDoubleList *const restrict doubleList, void (*const freeFunc)(void *block));
 
 
 #endif

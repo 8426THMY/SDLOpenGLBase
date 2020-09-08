@@ -29,13 +29,15 @@ void vec4InitVec3(vec4 *const restrict v1, const vec3 *const restrict v2, const 
 }
 
 // Initialize the vec4's values using a vec3!
-vec4 vec4InitVec3R(vec4 v1, const vec3 v2, const float w){
-	v1.x = v1.x;
-	v1.y = v1.y;
-	v1.z = v1.z;
-	v1.w = w;
+vec4 vec4InitVec3R(const vec3 v, const float w){
+	vec4 v2 = {
+		.x = v.x,
+		.y = v.y,
+		.z = v.z,
+		.w = w
+	};
 
-	return(v1);
+	return(v2);
 }
 
 // Initialize the vec4's values to the ones specified!
@@ -47,11 +49,13 @@ void vec4InitSet(vec4 *const restrict v, const float x, const float y, const flo
 }
 
 // Initialize the vec4's values to the ones specified!
-vec4 vec4InitSetR(vec4 v, const float x, const float y, const float z, const float w){
-	v.x = x;
-	v.y = y;
-	v.z = z;
-	v.w = w;
+vec4 vec4InitSetR(const float x, const float y, const float z, const float w){
+	vec4 v = {
+		.x = x,
+		.y = y,
+		.z = z,
+		.w = w
+	};
 
 	return(v);
 }

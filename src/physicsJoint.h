@@ -79,13 +79,13 @@ void physJointSolveVelocity(physicsJoint *const restrict joint, physicsRigidBody
 void physJointSolvePosition(physicsJoint *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB);
 
 
-extern void (*physJointPresolveTable[PHYSJOINT_NUM_TYPES])(
+extern void (*const physJointPresolveTable[PHYSJOINT_NUM_TYPES])(
 	void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB, const float dt
 );
-extern void (*physJointSolveVelocityTable[PHYSJOINT_NUM_TYPES])(
+extern void (*const physJointSolveVelocityTable[PHYSJOINT_NUM_TYPES])(
 	void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB
 );
-extern float (*physJointSolvePositionTable[PHYSJOINT_NUM_TYPES])(
+extern float (*const physJointSolvePositionTable[PHYSJOINT_NUM_TYPES])(
 	void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB
 );
 

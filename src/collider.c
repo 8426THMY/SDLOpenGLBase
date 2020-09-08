@@ -1,18 +1,18 @@
 #include "collider.h"
 
 
-void (*colliderInstantiateTable[COLLIDER_NUM_TYPES])(void *const restrict c, const void *const restrict cBase) = {
+void (*const colliderInstantiateTable[COLLIDER_NUM_TYPES])(void *const restrict c, const void *const restrict cBase) = {
 	colliderHullInstantiate
 };
 
-return_t (*colliderLoadTable[COLLIDER_NUM_TYPES])(
+return_t (*const colliderLoadTable[COLLIDER_NUM_TYPES])(
 	void *const restrict c, FILE *const restrict cFile,
 	vec3 *const restrict centroid, mat3 *const restrict inertia
 ) = {
 
 	colliderHullLoad
 };
-void (*colliderUpdateTable[COLLIDER_NUM_TYPES])(
+void (*const colliderUpdateTable[COLLIDER_NUM_TYPES])(
 	void *const restrict c, const vec3 *const restrict centroid,
 	const void *const restrict cBase, const vec3 *const restrict baseCentroid,
 	const transformState *const restrict trans, colliderAABB *const restrict aabb
@@ -21,10 +21,10 @@ void (*colliderUpdateTable[COLLIDER_NUM_TYPES])(
 	colliderHullUpdate
 };
 
-void (*colliderDeleteInstanceTable[COLLIDER_NUM_TYPES])(void *const restrict c) = {
+void (*const colliderDeleteInstanceTable[COLLIDER_NUM_TYPES])(void *const restrict c) = {
 	colliderHullDeleteInstance
 };
-void (*colliderDeleteTable[COLLIDER_NUM_TYPES])(void *const restrict c) = {
+void (*const colliderDeleteTable[COLLIDER_NUM_TYPES])(void *const restrict c) = {
 	colliderHullDelete
 };
 

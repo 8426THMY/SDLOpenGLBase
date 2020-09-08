@@ -24,12 +24,17 @@ void objectDefInit(objectDef *objDef){
 
 	objDef->colliders = NULL;
 	objDef->physBodies = NULL;
+	objDef->physBoneIDs = NULL;
+	objDef->numBodies = 0;
 
 	objDef->renderables = NULL;
 }
 
+#warning "Can we allocate all of our memory in one go?"
 void objectInit(object *const restrict obj, const objectDef *const restrict objDef){
-	const physicsRigidBodyDef *curBody = objDef->physBodies;
+	const physicsRigidBodyDef *curBodyDef = objDef->physBodies;
+	const size_t *curPhysBodyID = objDef->physBoneIDs;
+	physicsRigidBody *lastBody = NULL;
 	const renderableDef *curRenderable = objDef->renderables;
 
 	obj->objDef = objDef;
@@ -41,9 +46,16 @@ void objectInit(object *const restrict obj, const objectDef *const restrict objD
 	obj->colliders = NULL;
 	obj->physBodies = NULL;
 	// Instantiate the object's physics rigid bodies.
-	while(curBody != NULL){
-		objectAddRigidBody(obj, curBody);
-		curBody = memSingleListNext(curBody);
+	while(curBodyDef != NULL){
+		lastBody = modulePhysicsBodyInsertAfter(&obj->physBodies, lastBody);
+		if(lastBody == NULL){
+			/** MALLOC FAILED **/
+		}
+		physRigidBodyInit(lastBody, curBodyDef);
+		objectPrepareRigidBody(obj, lastBody, *curPhysBodyID);
+
+		curBodyDef = modulePhysicsBodyDefNext(curBodyDef);
+		++curPhysBodyID;
 	}
 
 	obj->renderables = NULL;
@@ -54,7 +66,8 @@ void objectInit(object *const restrict obj, const objectDef *const restrict objD
 			/** MALLOC FAILED **/
 		}
 		renderableInit(obj->renderables, curRenderable);
-		curRenderable = memSingleListNext(curRenderable);
+
+		curRenderable = moduleRenderableDefNext(curRenderable);
 	}
 }
 
@@ -64,20 +77,101 @@ return_t objectDefLoad(objectDef *const restrict objDef, const char *const restr
 }
 
 
-void objectAddRigidBody(object *const restrict obj, const physicsRigidBodyDef *const restrict bodyDef){
-	obj->physBodies = modulePhysicsBodyPrepend(&obj->physBodies);
-	if(obj->physBodies == NULL){
-		/** MALLOC FAILED **/
+/*
+** When we add a rigid body to an object, we need to transform it by the bone its attached to.
+** We only do this once, as afterwards it will be physically simulated so we shouldn't interfere.
+*/
+void objectPrepareRigidBody(object *const restrict obj, physicsRigidBody *const restrict body, const size_t boneID){
+	if(physRigidBodyIsSimulated(body)){
+		const bone *const skeleBone = &obj->skeleData.skele->bones[boneID];
+
+		// Apply the current skeleton's local bind pose and any user transformations.
+		if(boneID == 0){
+			transformStateAppend(&obj->state, &skeleBone->localBind, &body->state);
+		}else{
+			/** THIS SHOULD USE THE BONETRANSFORMS! **/
+			///transformStateAppend(curTransform, &skeleBone->localBind, &body->state);
+			body->state = skeleBone->localBind;
+		}
+		// Transform the bone using each animation.
+		skeleObjGenerateBoneState(&obj->skeleData, boneID, skeleBone->name, &body->state);
+		// Add the parent's transformations if the bone has a parent.
+		if(!valueIsInvalid(skeleBone->parent, size_t)){
+			transformStateAppend(&obj->skeleData.bones[skeleBone->parent], &body->state, &body->state);
+		}
+	}
+	// Add the rigid body's colliders to the island.
+	if(physRigidBodyIsCollidable(body)){
+		body->flags |= PHYSRIGIDBODY_TRANSFORMED;
+	}
+}
+
+/*
+** Prepare all of the physics objects at once. This is used when we first
+** create an object to make the rigid bodies appear at their bones.
+*/
+void objectPreparePhysics(object *const restrict obj){
+	const bone *curSkeleBone = obj->skeleData.skele->bones;
+	physicsRigidBody *curBody = obj->physBodies;
+	// We store the rigid bodies in order of increasing bone IDs.
+	// We can simply move to the next ID when we find a bone with a rigid body.
+	const size_t *curPhysBoneID = obj->objDef->physBoneIDs;
+	const size_t *lastPhysBoneID = &obj->objDef->physBoneIDs[obj->objDef->numBodies];
+
+	size_t boneID;
+	const size_t lastID = obj->skeleData.skele->numBones;
+
+
+	// We transform the first body outside of the main
+	// loop, as it's stored differently to the others.
+	if(curPhysBoneID < lastPhysBoneID && *curPhysBoneID == 0){
+		if(physRigidBodyIsSimulated(curBody)){
+			// Apply the current skeleton's local bind pose and any user transformations.
+			transformStateAppend(&obj->state, &curSkeleBone->localBind, &curBody->state);
+			// Transform the bone using each animation.
+			skeleObjGenerateBoneState(&obj->skeleData, 0, curSkeleBone->name, &curBody->state);
+
+			// Make sure the rigid body actually stays where we've placed it.
+			physRigidBodyCentroidFromPosition(curBody);
+
+		}
+		// Add the rigid body's colliders to the island.
+		if(physRigidBodyIsCollidable(curBody)){
+			curBody->flags |= PHYSRIGIDBODY_TRANSFORMED;
+		}
+
+		modulePhysicsBodyNext(curBody);
+		++curPhysBoneID;
 	}
 
-	physRigidBodyInit(obj->physBodies, bodyDef);
-	/** We should be doing this for every bone's physics object, but only the root has one in this case. **/
-	// Apply the current skeleton's local bind pose and any transformations.
-	transformStateAppend(&obj->state, &obj->skeleData.skele->bones->localBind, &obj->physBodies->state);
-	// Transform the bone using each animation.
-	skeleObjGenerateBoneState(&obj->skeleData, 0, obj->skeleData.skele->bones->name, &obj->physBodies->state);
-	// Update the rigid body's centroid to reflect its new position.
-	physRigidBodyCentroidFromPosition(obj->physBodies);
+	// Move the rest of the physics objects to their bones.
+	for(++curSkeleBone, boneID = 1; boneID < lastID; ++curPhysBoneID, ++curSkeleBone, ++boneID){
+		if(curPhysBoneID < lastPhysBoneID && *curPhysBoneID == boneID){
+			if(physRigidBodyIsSimulated(curBody)){
+				// Apply the current skeleton's local bind pose and any user transformations.
+				/** THIS SHOULD USE THE BONETRANSFORMS! **/
+				///transformStateAppend(curTransform, &curSkeleBone->localBind, &curBody->state);
+				curBody->state = curSkeleBone->localBind;
+				// Transform the bone using each animation.
+				skeleObjGenerateBoneState(&obj->skeleData, boneID, curSkeleBone->name, &curBody->state);
+				// Add the parent's transformations if the bone has a parent.
+				if(!valueIsInvalid(curSkeleBone->parent, size_t)){
+					transformStateAppend(&obj->skeleData.bones[curSkeleBone->parent], &curBody->state, &curBody->state);
+				}
+
+				// Make sure the rigid body actually stays where we've placed it.
+				physRigidBodyCentroidFromPosition(curBody);
+
+			}
+			// Add the rigid body's colliders to the island.
+			if(physRigidBodyIsCollidable(curBody)){
+				curBody->flags |= PHYSRIGIDBODY_TRANSFORMED;
+			}
+
+			modulePhysicsBodyNext(curBody);
+			++curPhysBoneID;
+		}
+	}
 }
 
 
@@ -86,7 +180,7 @@ void objectUpdate(object *const restrict obj, const float time){
 	// Update which frame each animation is currently on!
 	while(curAnim != NULL){
 		skeleAnimUpdate(curAnim, time);
-		curAnim = memSingleListNext(curAnim);
+		curAnim = moduleSkeleAnimNext(curAnim);
 	}
 
 	updateBones(obj, time);
@@ -95,7 +189,7 @@ void objectUpdate(object *const restrict obj, const float time){
 	// Animate each of the renderables.
 	while(curRenderable != NULL){
 		renderableUpdate(curRenderable, time);
-		curRenderable = memSingleListNext(curRenderable);
+		curRenderable = moduleRenderableNext(curRenderable);
 	}
 }
 
@@ -135,6 +229,7 @@ void objectDraw(
 
 	/** TEMPORARY DEBUG DRAW TEST **/
 	#warning "Rigid body instances aren't storing colliders?"
+	#warning "I've forgotten what the above warning was about, although it seems like it's been fixed."
 	if(obj->physBodies != NULL){
 		debugDrawColliderHull(&(obj->physBodies->colliders->global.data.hull), debugDrawInfoInit(GL_LINE, vec3InitSetR(1.f, 0.4f, 0.f)), &cam->viewProjectionMatrix);
 	}
@@ -177,7 +272,7 @@ void objectDraw(
 	// Draw each of the renderables.
 	while(curRenderable != NULL){
 		renderableDraw(curRenderable, obj->skeleData.skele, animStates, shader);
-		curRenderable = memSingleListNext(curRenderable);
+		curRenderable = moduleRenderableNext(curRenderable);
 	}
 }
 
@@ -189,8 +284,18 @@ void objectDelete(object *const restrict obj){
 		memoryManagerGlobalFree(&obj->boneTransforms);
 	}
 
-	// obj->colliders = NULL;
-	modulePhysicsBodyFreeArray(&obj->physBodies);
+	//obj->colliders = NULL;
+	// We have to free each rigid body ourselves rather than
+	// use the array free function, as otherwise it will
+	// cause problems for rigid bodies owned by islands.
+	if(obj->physBodies != NULL){
+		physicsRigidBody *body = obj->physBodies;
+		size_t numBodies = obj->objDef->numBodies;
+		do {
+			modulePhysicsBodyFree(&obj->physBodies, body);
+			--numBodies;
+		} while(numBodies > 0);
+	}
 
 	moduleRenderableFreeArray(&obj->renderables);
 }
@@ -201,8 +306,11 @@ void objectDefDelete(objectDef *const restrict objDef){
 		memoryManagerGlobalFree(objDef->name);
 	}
 
-	// objDef->colliders = NULL;
+	//objDef->colliders = NULL;
 	modulePhysicsBodyDefFreeArray(&objDef->physBodies);
+	if(objDef->physBoneIDs != NULL){
+		memoryManagerGlobalFree(objDef->physBoneIDs);
+	}
 
 	moduleRenderableDefFreeArray(&objDef->renderables);
 }
@@ -220,46 +328,75 @@ static void updateBones(object *const restrict obj, const float time){
 	const boneState *const lastObjBone = &curObjBone[obj->skeleData.skele->numBones];
 	const bone *curSkeleBone = obj->skeleData.skele->bones;
 	physicsRigidBody *curBody = obj->physBodies;
+	// We store the rigid bodies in order of increasing bone IDs.
+	// We can simply move to the next ID when we find a bone with a rigid body.
+	const size_t *curPhysBoneID = obj->objDef->physBoneIDs;
+	const size_t *lastPhysBoneID = &obj->objDef->physBoneIDs[obj->objDef->numBodies];
 
-	size_t i = 0;
-	// Apply the effects of each animation one bone at a time!
-	for(; curObjBone < lastObjBone; ++curObjBone, ++curSkeleBone, ++i){
-		/** TEMPORARY PHYSICS STUFF - WE ASSUME ONLY THE ROOT BONE IS SIMULATED. **/
-		if(curBody != NULL && physRigidBodyIsSimulated(curBody)){
+	size_t i;
+
+
+	// We transform the first bone outside of the main
+	// loop, as it's stored differently to the others.
+	if(curPhysBoneID < lastPhysBoneID && *curPhysBoneID == 0 && physRigidBodyIsSimulated(curBody)){
+		physRigidBodyUpdatePosition(curBody);
+		// Copy the rigid body's state over to the bone.
+		obj->state = curBody->state;
+		*curObjBone = curBody->state;
+
+		modulePhysicsBodyNext(curBody);
+		++curPhysBoneID;
+
+	// Apply the effects of each animation to the bone.
+	}else{
+		// Apply the current skeleton's local bind pose and any transformations.
+		transformStateAppend(&obj->state, &curSkeleBone->localBind, curObjBone);
+		// Transform the bone using each animation.
+		skeleObjGenerateBoneState(&obj->skeleData, 0, curSkeleBone->name, curObjBone);
+
+		if(curPhysBoneID < lastPhysBoneID && *curPhysBoneID == 0){
+			// Copy the bone's state over to the rigid body.
+			curBody->state = *curObjBone;
+			// Update the rigid body's centroid to reflect its new position.
+			physRigidBodyCentroidFromPosition(curBody);
+
+			modulePhysicsBodyNext(curBody);
+			++curPhysBoneID;
+		}
+	}
+
+
+	// Now apply the effects of each animation one bone at a time!
+	for(++curObjBone, ++curSkeleBone, i = 1; curObjBone < lastObjBone; ++curObjBone, ++curSkeleBone, ++i){
+		if(curPhysBoneID < lastPhysBoneID && *curPhysBoneID == i && physRigidBodyIsSimulated(curBody)){
+			physRigidBodyUpdatePosition(curBody);
 			// Copy the rigid body's state over to the bone.
-			/** WE SHOULDN'T CHECK FOR THE ROOT BONE HERE! **/
-			if(valueIsInvalid(curSkeleBone->parent, size_t)){
-				obj->state = curBody->state;
-				*curObjBone = curBody->state;
-			}
-		}else{
-			// We store the root bone's transformations differently to other bones'.
-			if(valueIsInvalid(curSkeleBone->parent, size_t)){
-				// Apply the current skeleton's local bind pose and any transformations.
-				transformStateAppend(&obj->state, &curSkeleBone->localBind, curObjBone);
-				// Transform the bone using each animation.
-				skeleObjGenerateBoneState(&obj->skeleData, i, curSkeleBone->name, curObjBone);
+			obj->state = curBody->state;
+			*curObjBone = curBody->state;
 
-			// If this bone has a parent, we need to add its parent's transformations.
-			}else{
-				// Apply the current skeleton's local bind pose and any transformations.
-				/** THIS SHOULD USE THE BONETRANSFORMS! **/
-				///transformStateAppend(curTransform, &curSkeleBone->localBind, curObjBone);
-				*curObjBone = curSkeleBone->localBind;
-				// Transform the bone using each animation.
-				skeleObjGenerateBoneState(&obj->skeleData, i, curSkeleBone->name, curObjBone);
-				// Add the parent's transformations.
+			modulePhysicsBodyNext(curBody);
+			++curPhysBoneID;
+		}else{
+			// Apply the current skeleton's local bind pose and any user transformations.
+			/** THIS SHOULD USE THE BONETRANSFORMS! **/
+			///transformStateAppend(curTransform, &curSkeleBone->localBind, curObjBone);
+			*curObjBone = curSkeleBone->localBind;
+			// Transform the bone using each animation.
+			skeleObjGenerateBoneState(&obj->skeleData, i, curSkeleBone->name, curObjBone);
+			// Add the parent's transformations if the bone has a parent.
+			if(!valueIsInvalid(curSkeleBone->parent, size_t)){
 				transformStateAppend(&obj->skeleData.bones[curSkeleBone->parent], curObjBone, curObjBone);
 			}
 
-			if(curBody != NULL){
-				// Copy the bone's state over to the rigid boddy.
+			if(curPhysBoneID < lastPhysBoneID && *curPhysBoneID == i){
+				// Copy the bone's state over to the rigid body.
 				curBody->state = *curObjBone;
 				// Update the rigid body's centroid to reflect its new position.
 				physRigidBodyCentroidFromPosition(curBody);
-			}
 
-			curBody = NULL;
+				modulePhysicsBodyNext(curBody);
+				++curPhysBoneID;
+			}
 		}
 	}
 }

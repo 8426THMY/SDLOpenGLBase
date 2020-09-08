@@ -22,13 +22,8 @@ How can we do this?
 #warning "Not sure if we get 1/dt in our contact functions, either."
 #warning "Differentiate between joints and constraints. Constraints are always between two physics objects and joints often have an anchor point."
 
-#warning "Do we extend the total memory when we run out? Maybe make it so this functionality can be toggled."
-
 #warning "Add more matrix functions for left- and right-multiplying vectors by matrices. We need bra and ket functions that produce a vector on left-multiplication."
 #warning "Should we use our 'R' math functions? It would also be a good idea to stop passing so many things by pointer."
-
-#warning "Add 'const restrict' keywords to pointers where applicable? That's a lot of work though."
-#warning "Change 'const type *' to 'const type *const' almost everywhere we use it."
 
 #warning "Texture group animation needs a rewrite. It's messy and we can't do diagonal scrolling effects."
 #warning "Model loading also needs a rewrite, but it's not really important since we won't need it when we have a binary format."

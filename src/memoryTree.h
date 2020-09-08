@@ -95,7 +95,7 @@ void memTreeClear(memoryTree *const restrict tree, void *const restrict memory, 
 void *memTreeExtend(memoryTree *const restrict tree, void *const restrict memory, const size_t memorySize);
 #endif
 
-void memTreeDelete(memoryTree *const restrict tree, void (*freeFunc)(void *block));
+void memTreeDelete(memoryTree *const restrict tree, void (*const freeFunc)(void *block));
 
 #ifdef MEMTREE_DEBUG
 void memTreePrintAllSizes(memoryTree *const restrict tree);

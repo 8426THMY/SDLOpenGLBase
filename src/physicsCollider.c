@@ -62,20 +62,9 @@ void physColliderUpdate(physicsCollider *const restrict collider){
 ** considered for the narrowphase collision check.
 */
 return_t physColliderPermitCollision(physicsCollider *const colliderA, physicsCollider *const colliderB){
-	// We only want to run the narrowphase on two colliders once, so we
-	// do it when "colliderA" has the lower address. We also need to make
-	// sure they don't have the same owner and that their bounding boxes
-	// are actually colliding.
-	if(
-		colliderA < colliderB &&
-		colliderA->owner != colliderB->owner &&
-		colliderAABBCollidingAABB(&colliderA->aabb, &colliderB->node->aabb)
-	){
-		return(1);
-	}
-
-
-	return(0);
+	// We only want to run the narrowphase on two colliders once,
+	// so we do it when "colliderA" has the lower address.
+	return(colliderA < colliderB && colliderA->owner != colliderB->owner);
 }
 
 
@@ -98,18 +87,20 @@ physicsContactPair *physColliderFindContact(
 
 	// Iterate through the contacts until we find one where
 	// the second collider is less than or equal to "colliderB".
-	while(curPair != NULL && colliderB > curPair->cB){
+	while(curPair != NULL && colliderB >= curPair->cB){
+		// If the pair we ended on involves our colliders, return it!
+		if(curPair->cB == colliderB){
+			*prev = prevPair;
+			*next = curPair;
+			return(curPair);
+		}
+
 		prevPair = curPair;
 		curPair = curPair->nextA;
 	}
 
 	*prev = prevPair;
 	*next = curPair;
-
-	// If the pair we ended on involves our colliders, return it!
-	if(curPair->cB == colliderB){
-		return(curPair);
-	}
 	return(NULL);
 }
 
@@ -132,18 +123,19 @@ physicsSeparationPair *physColliderFindSeparation(
 
 	// Iterate through the separations until we find one where
 	// the second collider is less than or equal to "colliderB".
-	while(curPair != NULL && colliderB > curPair->cB){
+	while(curPair != NULL && colliderB >= curPair->cB){
+		// If the pair we ended on involves our colliders, return it!
+		if(curPair->cB == colliderB){
+			*prev = prevPair;
+			*next = curPair;
+			return(curPair);
+		}
 		prevPair = curPair;
 		curPair = curPair->nextA;
 	}
 
 	*prev = prevPair;
 	*next = curPair;
-
-	// If the pair we ended on involves our colliders, return it!
-	if(curPair->cB == colliderB){
-		return(curPair);
-	}
 	return(NULL);
 }
 

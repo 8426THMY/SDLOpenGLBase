@@ -331,7 +331,7 @@ void *memSingleListExtend(memorySingleList *const restrict singleList, void *con
 #endif
 
 
-void memSingleListDelete(memorySingleList *const restrict singleList, void (*freeFunc)(void *block)){
+void memSingleListDelete(memorySingleList *const restrict singleList, void (*const freeFunc)(void *block)){
 	memoryRegion *region = singleList->region;
 	// Free every memory region in the allocator.
 	while(region != NULL){

@@ -498,7 +498,7 @@ void skeleObjGenerateBoneState(
 		}
 
 		// Continue to the next animation in the list.
-		curAnim = memSingleListNext(curAnim);
+		curAnim = moduleSkeleAnimNext(curAnim);
 	}
 }
 

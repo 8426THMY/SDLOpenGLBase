@@ -14,33 +14,25 @@
 #include "renderable.h"
 
 
-typedef struct objectDefBody {
-	// This is the index of the bone that this rigid body is attached to.
-	size_t id;
-	physicsRigidBodyDef *bodyDef;
-} objectDefBody;
-
 typedef struct objectDef {
 	char *name;
 
 	// Default skeleton for this object.
 	skeleton *skele;
 
-	// Arrays of colliders and rigid bodies for each bone.
+	// Array of colliders used for object collision.
 	collider *colliders;
+	// Singly linked list of rigid body bases.
 	physicsRigidBodyDef *physBodies;
+	// Array of identifiers that tell us which
+	// bones each rigid body should be attached to.
+	size_t *physBoneIDs;
+	size_t numBodies;
 
 	// Default array of drawable models
 	// associated with this object.
 	renderableDef *renderables;
 } objectDef;
-
-
-typedef struct objectBody {
-	// This is the index of the bone that this rigid body is attached to.
-	size_t id;
-	physicsRigidBody body;
-} objectBody;
 
 typedef struct object {
 	const objectDef *objDef;
@@ -54,9 +46,10 @@ typedef struct object {
 	// This can be used by physics or to simply move the object.
 	transformState *boneTransforms;
 
-	// Arrays of colliders and rigid bodies for each bone.
-	// The colliders are for object collision, not rigid body collision.
 	collider *colliders;
+	// Doubly linked list of rigid bodies. This is usually inserted into an
+	// island's list, so we need to know the total number of rigid bodies.
+	// The number of bodies is stored by the object's base.
 	physicsRigidBody *physBodies;
 
 	// These models are drawn at the object's bones.
@@ -69,7 +62,8 @@ void objectInit(object *const restrict obj, const objectDef *const restrict objD
 
 return_t objectDefLoad(objectDef *const restrict objDef, const char *const restrict objFile);
 
-void objectAddRigidBody(object *const restrict obj, const physicsRigidBodyDef *const restrict bodyDef);
+void objectPrepareRigidBody(object *const restrict obj, physicsRigidBody *const restrict body, const size_t boneID);
+void objectPreparePhysics(object *const restrict obj);
 
 void objectUpdate(object *const restrict obj, const float time);
 void objectDraw(

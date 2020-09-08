@@ -226,6 +226,9 @@ static void updateCameras(program *const restrict prg){
 
 static void updateObjects(program *const restrict prg){
 	MEMSINGLELIST_LOOP_BEGIN(g_objectManager, curObj, object)
+		if(curObj->state.pos.y == -4.f){
+			//
+		}
 		objectUpdate(curObj, prg->step.updateTime);
 	MEMSINGLELIST_LOOP_END(g_objectManager, curObj)
 
@@ -243,20 +246,11 @@ static void updateObjects(program *const restrict prg){
 /** TEMPORARY STUFF! **/
 #include "physicsIsland.h"
 physicsIsland island;
-#warning "Everything in here should eventually be moved into modulePhysicsSolveConstraints."
 static void updatePhysics(program *const restrict prg){
-	#if 0
-	MEMSINGLELIST_LOOP_BEGIN(g_physRigidBodyManager, curBody, physicsRigidBody)
-		physRigidBodyUpdate(curBody, &island, prg->step.updateDelta);
-	MEMSINGLELIST_LOOP_END(g_physRigidBodyManager, curBody)
-
 	#ifdef PHYSCONTACT_STABILISER_BAUMGARTE
-	physIslandQueryCollisions(&island, prg->step.updateRate);
+	physIslandUpdate(&island, prg->step.updateDelta, prg->step.updateRate);
 	#else
-	physIslandQueryCollisions(&island);
-	#endif
-
-	modulePhysicsSolveConstraints(prg->step.updateDelta);
+	physIslandUpdate(&island);
 	#endif
 }
 
@@ -270,8 +264,8 @@ guiElement gui;
 textFont fontIBM;
 static void update(program *const restrict prg){
 	updateCameras(prg);
-	updatePhysics(prg);
 	updateObjects(prg);
+	updatePhysics(prg);
 
 
 	/** TEMPORARY PARTICLE UPDATE STUFF! **/
@@ -426,7 +420,7 @@ static return_t initResources(program *const restrict prg){
 
 
 	/** TEMPORARY OBJECT STUFF **/
-	model *mdl;
+	/*model *mdl;
 	renderableDef *renderDef = moduleRenderableDefAlloc();
 	objectDef *objDef = moduleObjectDefAlloc();
 	object *obj = moduleObjectAlloc();
@@ -440,6 +434,9 @@ static return_t initResources(program *const restrict prg){
 	objDef->renderables = renderDef;
 
 	objectInit(obj, objDef);
+	//obj->state.rot = quatInitEulerDegR(45.f, 0.f, 23.f);
+	#warning "Global scales don't seem to work correctly. We'll probably have to 'pre-scale' every bone by it or something. Try it with the matrices we send to the shader first."
+	//obj->state.scale.x = obj->state.scale.z = 1.5f;
 	// Temporary object stuff.
 	//mdl = modelSMDLoad(mdl, "scout_reference.smd");
 	//skeleObjInit(&obj->skeleData, mdl->skele);
@@ -456,7 +453,10 @@ static return_t initResources(program *const restrict prg){
 	if(animDef != NULL){
 		obj->skeleData.anims = moduleSkeleAnimPrepend(&obj->skeleData.anims);
 		skeleAnimInit(obj->skeleData.anims, animDef, 0.5f);
-	}
+	}*/model *mdl;
+	renderableDef *renderDef;
+	objectDef *objDef;
+	object *obj;
 
 
 	/** TEMPORARY PHYSICS STUFF **/
@@ -465,12 +465,39 @@ static return_t initResources(program *const restrict prg){
 	objDef = moduleObjectDefAlloc();
 	objectDefInit(objDef);
 	physRigidBodyDefLoad(&objDef->physBodies, "egg.tdp", sizeof("egg.tdp"));
+	objDef->physBoneIDs = memoryManagerGlobalAlloc(sizeof(size_t));
+	*objDef->physBoneIDs = 0;
+	objDef->numBodies = 1;
 	renderDef = moduleRenderableDefAlloc();
 	renderableDefInit(renderDef, mdl);
 	objDef->renderables = renderDef;
 
 	obj = moduleObjectAlloc();
 	objectInit(obj, objDef);
+	physIslandInsertRigidBody(&island, obj->physBodies);printf("Egg: %u\n", obj->physBodies);
+	//obj->state.pos.y = -1.6952170133590698f;
+	//obj->physBodies->linearVelocity.y = -5.8055357933044434f;
+	objectPreparePhysics(obj);
+
+	/** MORE TEMPORARY PHYSICS STUFF **/
+	objDef = moduleObjectDefAlloc();
+	objectDefInit(objDef);
+	physRigidBodyDefLoad(&objDef->physBodies, "cube.tdp", sizeof("cube.tdp"));
+	objDef->physBoneIDs = memoryManagerGlobalAlloc(sizeof(size_t));
+	*objDef->physBoneIDs = 0;
+	objDef->numBodies = 1;
+	renderDef = moduleRenderableDefAlloc();
+	renderableDefInit(renderDef, &g_mdlDefault);
+	objDef->renderables = renderDef;
+
+	obj = moduleObjectAlloc();
+	objectInit(obj, objDef);
+	physIslandInsertRigidBody(&island, obj->physBodies);printf("Cube: %u\n", obj->physBodies);
+	obj->state.pos.y = -4.f;
+	obj->state.scale.x = obj->state.scale.z = 100.f;
+	physRigidBodySetScale(obj->physBodies, vec3InitSetR(20.f, 0.f, 20.f));
+	physRigidBodyIgnoreLinear(obj->physBodies);
+	objectPreparePhysics(obj);
 
 
 	/** EVEN MORE TEMPORARY PARTICLE STUFF **/

@@ -310,7 +310,7 @@ void *memQuadListExtend(memoryQuadList *const restrict quadList, void *const res
 #endif
 
 
-void memQuadListDelete(memoryQuadList *const restrict quadList, void (*freeFunc)(void *block)){
+void memQuadListDelete(memoryQuadList *const restrict quadList, void (*const freeFunc)(void *block)){
 	memoryRegion *region = quadList->region;
 	// Free every memory region in the allocator.
 	while(region != NULL){

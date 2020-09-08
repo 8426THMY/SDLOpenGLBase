@@ -487,20 +487,20 @@ static void insertLeaf(aabbTree *const restrict tree, aabbNode *const restrict n
 
 		// Calculate the total increase in surface area that we will get
 		// after combining our node with the current one's left child.
-		leftCost = colliderAABBCombinedSurfaceAreaHalf(&node->aabb, &left->aabb);
+		leftCost = colliderAABBCombinedSurfaceAreaHalf(&node->aabb, &left->aabb) + inheritedCost;
 		// If the child is a leaf node, the cost must
 		// include the creation of a new branch node.
-		if(aabbNodeIsLeaf(left)){
-			leftCost += -colliderAABBSurfaceAreaHalf(&left->aabb) + inheritedCost;
+		if(!aabbNodeIsLeaf(left)){
+			leftCost -= colliderAABBSurfaceAreaHalf(&left->aabb);
 		}
 
 		// Calculate the total increase in surface area that we will get
 		// after combining our node with the current one's right child.
-		rightCost = colliderAABBCombinedSurfaceAreaHalf(&node->aabb, &right->aabb);
+		rightCost = colliderAABBCombinedSurfaceAreaHalf(&node->aabb, &right->aabb) + inheritedCost;
 		// If the child is a leaf node, the cost must
 		// include the creation of a new branch node.
-		if(aabbNodeIsLeaf(right)){
-			rightCost += -colliderAABBSurfaceAreaHalf(&right->aabb) + inheritedCost;
+		if(!aabbNodeIsLeaf(right)){
+			rightCost -= colliderAABBSurfaceAreaHalf(&right->aabb);
 		}
 
 		// If it's cheapest to create a new
@@ -525,7 +525,7 @@ static void insertLeaf(aabbTree *const restrict tree, aabbNode *const restrict n
 	colliderAABBCombine(&node->aabb, &sibling->aabb, &parent->aabb);
 	parent->parent = siblingParent;
 	parent->data.children.left = sibling;
-	parent->data.children.left = node;
+	parent->data.children.right = node;
 	parent->height = sibling->height + 1;
 
 	node->parent = parent;
@@ -535,7 +535,7 @@ static void insertLeaf(aabbTree *const restrict tree, aabbNode *const restrict n
 	// need to make its parent point to the new parent node.
 	if(siblingParent != NULL){
 		if(siblingParent->data.children.left == sibling){
-		   siblingParent->data.children.left = parent;
+			siblingParent->data.children.left = parent;
 		}else{
 			siblingParent->data.children.right = parent;
 		}

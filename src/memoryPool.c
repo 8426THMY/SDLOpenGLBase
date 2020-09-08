@@ -165,7 +165,7 @@ void *memPoolExtend(memoryPool *const restrict pool, void *const restrict memory
 #endif
 
 
-void memPoolDelete(memoryPool *const restrict pool, void (*freeFunc)(void *block)){
+void memPoolDelete(memoryPool *const restrict pool, void (*const freeFunc)(void *block)){
 	memoryRegion *region = pool->region;
 	// Free every memory region in the allocator.
 	while(region != NULL){

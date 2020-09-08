@@ -136,6 +136,10 @@ renderableDef *moduleRenderableDefInsertAfter(renderableDef **const restrict sta
 	#endif
 }
 
+renderableDef *moduleRenderableDefNext(const renderableDef *const restrict renderDef){
+	return(memSingleListNext(renderDef));
+}
+
 // Free an renderable base that has been allocated.
 void moduleRenderableDefFree(renderableDef **const restrict start, renderableDef *const restrict renderDef, renderableDef *const restrict prevData){
 	memSingleListFree(&g_renderableDefManager, (void **)start, (void *)renderDef, (void *)prevData);
@@ -257,6 +261,10 @@ renderable *moduleRenderableInsertAfter(renderable **const restrict start, rende
 	}
 	return(newBlock);
 	#endif
+}
+
+renderable *moduleRenderableNext(const renderable *const restrict render){
+	return(memSingleListNext(render));
 }
 
 // Free an renderable that has been allocated.

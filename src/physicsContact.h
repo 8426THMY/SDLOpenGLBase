@@ -145,7 +145,7 @@ void physManifoldPersist(
 
 #ifdef PHYSCONTACT_STABILISER_BAUMGARTE
 void physManifoldPresolve(
-	physicsManifold *const restrict pm, const physicsRigidBody *const restrict bodyA, const physicsRigidBody *const restrict bodyB, const float invDt
+	physicsManifold *const restrict pm, const physicsRigidBody *const restrict bodyA, const physicsRigidBody *const restrict bodyB, const float frequency
 );
 #else
 void physManifoldPresolve(

@@ -225,6 +225,10 @@ skeletonAnim *moduleSkeleAnimInsertAfter(skeletonAnim **const restrict start, sk
 	#endif
 }
 
+skeletonAnim *moduleSkeleAnimNext(const skeletonAnim *const restrict animInst){
+	return(memSingleListNext(animInst));
+}
+
 // Free a skeleton animation state that has been allocated.
 void moduleSkeleAnimFree(skeletonAnim **const restrict start, skeletonAnim *const restrict anim, skeletonAnim *const restrict prevData){
 	memSingleListFree(&g_skeleAnimManager, (void **)start, (void *)anim, (void *)prevData);

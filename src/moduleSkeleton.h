@@ -49,6 +49,7 @@ skeletonAnim *moduleSkeleAnimPrepend(skeletonAnim **const restrict start);
 skeletonAnim *moduleSkeleAnimAppend(skeletonAnim **const restrict start);
 skeletonAnim *moduleSkeleAnimInsertBefore(skeletonAnim **const restrict start, skeletonAnim *const restrict prevData);
 skeletonAnim *moduleSkeleAnimInsertAfter(skeletonAnim **const restrict start, skeletonAnim *const restrict data);
+skeletonAnim *moduleSkeleAnimNext(const skeletonAnim *const restrict animInst);
 void moduleSkeleAnimFree(skeletonAnim **const restrict start, skeletonAnim *const restrict animInst, skeletonAnim *const restrict prevData);
 void moduleSkeleAnimFreeArray(skeletonAnim **const restrict start);
 void moduleSkeleAnimClear();

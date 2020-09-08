@@ -203,7 +203,7 @@ void memSingleListClear(memorySingleList *const restrict singleList);
 void *memSingleListExtend(memorySingleList *const restrict singleList, void *const restrict memory, const size_t memorySize);
 #endif
 
-void memSingleListDelete(memorySingleList *const restrict singleList, void (*freeFunc)(void *block));
+void memSingleListDelete(memorySingleList *const restrict singleList, void (*const freeFunc)(void *block));
 
 
 #endif

@@ -4,18 +4,18 @@
 #include "memoryManager.h"
 
 
-void (*guiElementUpdateTable[GUI_ELEMENT_NUM_TYPES])(guiElement *const restrict gui, const float time) = {
+void (*const guiElementUpdateTable[GUI_ELEMENT_NUM_TYPES])(guiElement *const restrict gui, const float time) = {
 	guiPanelUpdate,
 	guiTextUpdate
 };
-void (*guiElementDrawTable[GUI_ELEMENT_NUM_TYPES])(
+void (*const guiElementDrawTable[GUI_ELEMENT_NUM_TYPES])(
 	const guiElement *const restrict gui, const spriteShader *const restrict shader
 ) = {
 
 	guiPanelDraw,
 	guiTextDraw
 };
-void (*guiElementDeleteTable[GUI_ELEMENT_NUM_TYPES])(guiElement *const restrict gui) = {
+void (*const guiElementDeleteTable[GUI_ELEMENT_NUM_TYPES])(guiElement *const restrict gui) = {
 	guiPanelDelete,
 	guiTextDelete
 };

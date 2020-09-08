@@ -22,7 +22,7 @@ void physRigidBodyDefInit(physicsRigidBodyDef *const restrict bodyDef){
 	bodyDef->invMass = 0.f;
 
 	vec3InitZero(&bodyDef->centroid);
-	bodyDef->inertia = g_mat3Identity;
+	mat3InitZero(&bodyDef->inertia);
 
 	bodyDef->flags = PHYSRIGIDBODY_DEFAULT_STATE;
 }
@@ -39,7 +39,7 @@ void physRigidBodyInit(physicsRigidBody *const restrict body, const physicsRigid
 			/** MALLOC FAILED **/
 		}
 		physColliderInstantiate(body->colliders, curCollider, body);
-		curCollider = memSingleListNext(curCollider);
+		curCollider = modulePhysicsColliderNext(curCollider);
 	}
 
 	body->mass = bodyDef->mass;
@@ -325,6 +325,20 @@ void physRigidBodyDefAddCollider(
 }
 
 
+void physRigidBodySimulateCollisions(physicsRigidBody *const restrict body){
+	if(!physRigidBodyIsSimulated(body)){
+		flagsSet(body->flags, PHYSRIGIDBODY_COLLIDE | PHYSRIGIDBODY_COLLISION_MODIFIED);
+	}
+}
+
+void physRigidBodyIgnoreCollisions(physicsRigidBody *const restrict body){
+	if(physRigidBodyIsSimulated(body)){
+		flagsUnset(body->flags, PHYSRIGIDBODY_COLLIDE);
+		flagsSet(body->flags, PHYSRIGIDBODY_COLLISION_MODIFIED);
+	}
+}
+
+
 /*
 ** Calculate the body's increase in velocity for
 ** the current timestep using symplectic Euler.
@@ -333,7 +347,7 @@ void physRigidBodyDefAddCollider(
 ** w_(n + 1) = w_n + T * I^(-1) * dt
 */
 void physRigidBodyIntegrateVelocity(physicsRigidBody *const restrict body, const float dt){
-	if(physRigidBodySimulateLinear(body)){
+	if(flagsAreSet(body->flags, PHYSRIGIDBODY_SIMULATE_LINEAR)){
 		vec3 linearAcceleration;
 		// Calculate the body's linear acceleration.
 		vec3MultiplySOut(&body->netForce, body->invMass * dt, &linearAcceleration);
@@ -343,8 +357,12 @@ void physRigidBodyIntegrateVelocity(physicsRigidBody *const restrict body, const
 		vec3InitZero(&body->linearVelocity);
 	}
 
-	if(physRigidBodySimulateAngular(body)){
+	if(flagsAreSet(body->flags, PHYSRIGIDBODY_SIMULATE_ANGULAR)){
 		vec3 angularAcceleration;
+
+		// Update the global inertia tensor.
+		physRigidBodyUpdateGlobalInertia(body);
+
 		// Calculate the body's angular acceleration.
 		vec3MultiplySOut(&body->netTorque, dt, &angularAcceleration);
 		mat3MultiplyByVec3(&body->invInertiaGlobal, &angularAcceleration);
@@ -371,19 +389,27 @@ void physRigidBodyResetAccumulators(physicsRigidBody *const restrict body){
 ** q_(n + 1) = q_n + dq/dt * dt
 */
 void physRigidBodyIntegratePosition(physicsRigidBody *const restrict body, const float dt){
-	if(physRigidBodySimulateLinear(body)){
+	if(flagsAreSet(body->flags, PHYSRIGIDBODY_SIMULATE_LINEAR)){
 		vec3 linearVelocityDelta;
 		vec3MultiplySOut(&body->linearVelocity, dt, &linearVelocityDelta);
 		// Compute the object's new position.
 		vec3AddVec3(&body->centroid, &linearVelocityDelta);
+
+		flagsSet(body->flags, PHYSRIGIDBODY_TRANSLATED);
+	}else{
+		flagsUnset(body->flags, PHYSRIGIDBODY_TRANSLATED);
 	}
 
-	if(physRigidBodySimulateAngular(body)){
+	if(flagsAreSet(body->flags, PHYSRIGIDBODY_SIMULATE_ANGULAR)){
 		// Calculate the change in orientation.
 		quatIntegrate(&body->state.rot, &body->angularVelocity, dt);
 		// Don't forget to normalize it, as
 		// this process can introduce errors.
 		quatNormalizeQuatFast(&body->state.rot);
+
+		flagsSet(body->flags, PHYSRIGIDBODY_ROTATED);
+	}else{
+		flagsUnset(body->flags, PHYSRIGIDBODY_ROTATED);
 	}
 }
 
@@ -499,14 +525,14 @@ void physRigidBodyApplyImpulseBoostInverse(physicsRigidBody *const restrict body
 // Add a translational and rotational impulse to a rigid body's position.
 void physRigidBodyApplyImpulsePosition(physicsRigidBody *const restrict body, const vec3 *const restrict r, const vec3 *const restrict p){
 	// Position.
-	if(physRigidBodySimulateLinear(body)){
+	if(flagsAreSet(body->flags, PHYSRIGIDBODY_SIMULATE_LINEAR)){
 		vec3 impulse;
 		vec3MultiplySOut(p, body->invMass, &impulse);
 		vec3AddVec3(&body->centroid, &impulse);
 	}
 
 	// Orientation.
-	if(physRigidBodySimulateAngular(body)){
+	if(flagsSet(body->flags, PHYSRIGIDBODY_SIMULATE_ANGULAR)){
 		vec3 impulse;
 		quat tempRot;
 		vec3CrossVec3Out(r, p, &impulse);
@@ -522,14 +548,14 @@ void physRigidBodyApplyImpulsePosition(physicsRigidBody *const restrict body, co
 // Subtract a translational and rotational impulse from a rigid body's position.
 void physRigidBodyApplyImpulsePositionInverse(physicsRigidBody *const restrict body, const vec3 *const restrict r, const vec3 *const restrict p){
 	// Position.
-	if(physRigidBodySimulateLinear(body)){
+	if(flagsAreSet(body->flags, PHYSRIGIDBODY_SIMULATE_LINEAR)){
 		vec3 impulse;
 		vec3MultiplySOut(p, body->invMass, &impulse);
 		vec3SubtractVec3From(&body->centroid, &impulse);
 	}
 
 	// Orientation.
-	if(physRigidBodySimulateAngular(body)){
+	if(flagsSet(body->flags, PHYSRIGIDBODY_SIMULATE_ANGULAR)){
 		vec3 impulse;
 		quat tempRot;
 		vec3CrossVec3Out(r, p, &impulse);
@@ -616,16 +642,22 @@ void physRigidBodySetScale(physicsRigidBody *const restrict body, const vec3 sca
 
 
 void physRigidBodyCentroidFromPosition(physicsRigidBody *const restrict body){
-	quatRotateVec3FastOut(&body->state.rot, &body->base->centroid, &body->centroid);
-	vec3MultiplyVec3(&body->centroid, &body->state.scale);
+	vec3MultiplyVec3Out(&body->base->centroid, &body->state.scale, &body->centroid);
+	quatRotateVec3Fast(&body->state.rot, &body->centroid);
 	vec3AddVec3(&body->centroid, &body->state.pos);
 }
 
 void physRigidBodyPositionFromCentroid(physicsRigidBody *const restrict body){
 	vec3NegateOut(&body->base->centroid, &body->state.pos);
-	quatRotateVec3Fast(&body->state.rot, &body->state.pos);
 	vec3MultiplyVec3(&body->state.pos, &body->state.scale);
+	quatRotateVec3Fast(&body->state.rot, &body->state.pos);
 	vec3AddVec3(&body->state.pos, &body->centroid);
+}
+
+void physRigidBodyUpdatePosition(physicsRigidBody *const restrict body){
+	if(flagsAreSet(body->flags, PHYSRIGIDBODY_TRANSFORMED)){
+		physRigidBodyPositionFromCentroid(body);
+	}
 }
 
 void physRigidBodyUpdateGlobalInertia(physicsRigidBody *const restrict body){
@@ -657,16 +689,14 @@ void physRigidBodyUpdateGlobalInertia(physicsRigidBody *const restrict body){
 ** well as integrating its velocity using any forces.
 */
 void physRigidBodyUpdate(physicsRigidBody *const restrict body, const float dt){
-	if(physRigidBodyIsSimulated(body)){
-		// Apply gravity.
-		const vec3 gravity = {.x = 0.f, .y = -9.80665f * body->mass, .z = 0.f};
-		physRigidBodyApplyLinearForce(body, &gravity);
-		// Update the body's velocity.
-		physRigidBodyIntegrateVelocity(body, dt);
-		physRigidBodyResetAccumulators(body);
+	// Apply gravity.
+	const vec3 gravity = {.x = 0.f, .y = -9.80665f * body->mass, .z = 0.f};
+	physRigidBodyApplyLinearForce(body, &gravity);
+	// Update the body's velocity.
+	physRigidBodyIntegrateVelocity(body, dt);
+	physRigidBodyResetAccumulators(body);
 
-		physRigidBodyPositionFromCentroid(body);
-	}
+	physRigidBodyPositionFromCentroid(body);
 }
 
 

@@ -136,6 +136,10 @@ objectDef *moduleObjectDefInsertAfter(objectDef **const restrict start, objectDe
 	#endif
 }
 
+objectDef *moduleObjectDefNext(const objectDef *const restrict objDef){
+	return(memSingleListNext(objDef));
+}
+
 // Free an object base that has been allocated.
 void moduleObjectDefFree(objectDef **const restrict start, objectDef *const restrict objDef, objectDef *const restrict prevData){
 	objectDefDelete(objDef);
@@ -258,6 +262,10 @@ object *moduleObjectInsertAfter(object **const restrict start, object *const res
 	}
 	return(newBlock);
 	#endif
+}
+
+object *moduleObjectNext(const object *const restrict obj){
+	return(memSingleListNext(obj));
 }
 
 // Free an object that has been allocated.

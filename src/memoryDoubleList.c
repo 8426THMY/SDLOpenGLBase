@@ -370,7 +370,7 @@ void *memDoubleListExtend(memoryDoubleList *const restrict doubleList, void *con
 #endif
 
 
-void memDoubleListDelete(memoryDoubleList *const restrict doubleList, void (*freeFunc)(void *block)){
+void memDoubleListDelete(memoryDoubleList *const restrict doubleList, void (*const freeFunc)(void *block)){
 	memoryRegion *region = doubleList->region;
 	// Free every memory region in the allocator.
 	while(region != NULL){

@@ -16,9 +16,9 @@ typedef struct vec4 {
 void vec4InitZero(vec4 *const restrict v);
 vec4 vec4InitZeroR();
 void vec4InitVec3(vec4 *const restrict v1, const vec3 *const restrict v2, const float w);
-vec4 vec4InitVec3R(vec4 v1, const vec3 v2, const float w);
+vec4 vec4InitVec3R(const vec3 v, const float w);
 void vec4InitSet(vec4 *const restrict v, const float x, const float y, const float z, const float w);
-vec4 vec4InitSetR(vec4 v, const float x, const float y, const float z, const float w);
+vec4 vec4InitSetR(const float x, const float y, const float z, const float w);
 
 void vec4Add(vec4 *const restrict v, const float x, const float y, const float z, const float w);
 void vec4AddOut(const vec4 *const restrict v, const float x, const float y, const float z, const float w, vec4 *const restrict out);

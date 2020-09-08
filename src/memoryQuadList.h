@@ -265,7 +265,7 @@ void memQuadListClear(memoryQuadList *const restrict quadList);
 void *memQuadListExtend(memoryQuadList *const restrict quadList, void *const restrict memory, const size_t memorySize);
 #endif
 
-void memQuadListDelete(memoryQuadList *const restrict quadList, void (*freeFunc)(void *block));
+void memQuadListDelete(memoryQuadList *const restrict quadList, void (*const freeFunc)(void *block));
 
 
 #endif

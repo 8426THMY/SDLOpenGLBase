@@ -184,7 +184,7 @@ void memPoolClear(memoryPool *const restrict pool);
 void *memPoolExtend(memoryPool *const restrict pool, void *const restrict memory, const size_t memorySize);
 #endif
 
-void memPoolDelete(memoryPool *const restrict pool, void (*freeFunc)(void *block));
+void memPoolDelete(memoryPool *const restrict pool, void (*const freeFunc)(void *block));
 
 
 #endif
