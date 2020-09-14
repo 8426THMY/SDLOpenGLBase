@@ -7,6 +7,8 @@
 
 #include "shader.h"
 
+#include "skeleton.h"
+#include "colliderAABB.h"
 #include "colliderHull.h"
 
 #include "memoryManager.h"
@@ -18,6 +20,8 @@ typedef struct debugMesh {
 
 	GLuint indexBufferID;
 	size_t numIndices;
+
+	GLuint drawMode;
 } debugMesh;
 
 typedef struct debugShader {
@@ -76,6 +80,118 @@ return_t debugDrawSetup(){
 
 
 	return(0);
+}
+
+// Draw a skeleton object using the settings supplied.
+void debugDrawSkeleton(const skeletonObject *const restrict skeleData, const debugDrawInfo info, const mat4 *const restrict vpMatrix){
+	debugMesh meshData;
+	GLint prevArrayObject;
+	GLint prevShader;
+
+
+	vec3 *vertices;
+	size_t *indices;
+	const size_t numBones = skeleData->skele->numBones;
+	size_t i = 0;
+
+	vertices = memoryManagerGlobalAlloc(numBones * sizeof(*vertices));
+	if(vertices == NULL){
+		/** MALLOC FAILED **/
+	}
+	indices = memoryManagerGlobalAlloc(2*(numBones - 1) * sizeof(*indices));
+	if(indices == NULL){
+		/** MALLOC FAILED **/
+	}
+	meshData.numIndices = 0;
+
+
+	// Copy each bone's position and create a new edge between it and its parent.
+	for(; i < numBones; ++i){
+		const size_t parentID = skeleData->skele->bones[i].parent;
+		vertices[i] = skeleData->bones[i].pos;
+		if(!valueIsInvalid(parentID, size_t)){
+			indices[meshData.numIndices] = parentID;
+			++meshData.numIndices;
+			indices[meshData.numIndices] = i;
+			++meshData.numIndices;
+		}
+	}
+
+
+	// Make sure we keep the current global state so we can restore it after drawing.
+	glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &prevArrayObject);
+	glGetIntegerv(GL_CURRENT_PROGRAM, &prevShader);
+
+	// Bind the debug shader for when we draw the mesh.
+	glUseProgram(debugDrawShader.programID);
+	// Generate temporary buffers for the mesh data.
+	debugMeshGenerateBuffers(&meshData, vertices, numBones, indices, meshData.numIndices);
+	// Draw the mesh from the buffers.
+	meshData.drawMode = GL_LINES;
+	debugMeshDrawBuffers(&meshData, &info, vpMatrix);
+	// Now that we've drawn the mesh, we can destroy the buffers.
+	debugMeshDelete(&meshData);
+
+	// Restore the global state.
+	glUseProgram(prevShader);
+	glBindVertexArray(prevArrayObject);
+
+
+	memoryManagerGlobalFree(indices);
+	memoryManagerGlobalFree(vertices);
+}
+
+// Draw an axis-aligned bounding box using the settings supplied.
+void debugDrawColliderAABB(const colliderAABB *aabb, const debugDrawInfo info, const mat4 *const restrict vpMatrix){
+	debugMesh meshData;
+	GLint prevArrayObject;
+	GLint prevShader;
+
+
+	const vec3 vertices[8] = {
+		aabb->max,
+		{.x = aabb->min.x, .y = aabb->max.y, .z = aabb->max.z},
+		{.x = aabb->min.x, .y = aabb->max.y, .z = aabb->min.z},
+		{.x = aabb->max.x, .y = aabb->max.y, .z = aabb->min.z},
+		aabb->min,
+		{.x = aabb->max.x, .y = aabb->min.y, .z = aabb->min.z},
+		{.x = aabb->max.x, .y = aabb->min.y, .z = aabb->max.z},
+		{.x = aabb->min.x, .y = aabb->min.y, .z = aabb->max.z}
+	};
+	const size_t indices[36] = {
+		0, 1, 2,
+		2, 3, 0,
+		1, 0, 6,
+		6, 7, 1,
+		0, 3, 5,
+		5, 6, 0,
+		2, 1, 7,
+		7, 4, 2,
+		3, 2, 4,
+		4, 5, 3,
+		5, 4, 7,
+		7, 6, 5
+	};
+	meshData.numIndices = 36;
+
+
+	// Make sure we keep the current global state so we can restore it after drawing.
+	glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &prevArrayObject);
+	glGetIntegerv(GL_CURRENT_PROGRAM, &prevShader);
+
+	// Bind the debug shader for when we draw the mesh.
+	glUseProgram(debugDrawShader.programID);
+	// Generate temporary buffers for the mesh data.
+	debugMeshGenerateBuffers(&meshData, vertices, 8, indices, 36);
+	// Draw the mesh from the buffers.
+	meshData.drawMode = GL_TRIANGLES;
+	debugMeshDrawBuffers(&meshData, &info, vpMatrix);
+	// Now that we've drawn the mesh, we can destroy the buffers.
+	debugMeshDelete(&meshData);
+
+	// Restore the global state.
+	glUseProgram(prevShader);
+	glBindVertexArray(prevArrayObject);
 }
 
 // Draw a collider hull using the settings supplied.
@@ -167,6 +283,7 @@ void debugDrawColliderHull(const colliderHull *const restrict hull, const debugD
 	// Generate temporary buffers for the mesh data.
 	debugMeshGenerateBuffers(&meshData, hull->vertices, hull->numVertices, indices, meshData.numIndices);
 	// Draw the mesh from the buffers.
+	meshData.drawMode = GL_TRIANGLES;
 	debugMeshDrawBuffers(&meshData, &info, vpMatrix);
 	// Now that we've drawn the mesh, we can destroy the buffers.
 	debugMeshDelete(&meshData);
@@ -219,7 +336,7 @@ static void debugMeshDrawBuffers(
 	glPolygonMode(GL_FRONT_AND_BACK, info->fillMode);
 	glUniform3fv(debugDrawShader.colourID, 1, (GLfloat *)&info->colour);
 	glUniformMatrix4fv(debugDrawShader.vpMatrixID, 1, GL_FALSE, (GLfloat *)vpMatrix);
-	glDrawElements(GL_TRIANGLES, meshData->numIndices, GL_UNSIGNED_INT, NULL);
+	glDrawElements(meshData->drawMode, meshData->numIndices, GL_UNSIGNED_INT, NULL);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }
 

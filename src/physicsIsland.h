@@ -9,8 +9,8 @@
 #include "physicsRigidBody.h"
 
 
-#ifndef PHYSISLAND_AABB_PADDING
-	#define PHYSISLAND_AABB_PADDING 0.2f
+#ifndef PHYSISLAND_AABBTREE_NODE_PADDING
+	#define PHYSISLAND_AABBTREE_NODE_PADDING 0.2f
 #endif
 
 

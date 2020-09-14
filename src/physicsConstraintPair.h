@@ -13,15 +13,15 @@
 #define PHYSCOLLISIONPAIR_ACTIVE 0
 
 #ifndef PHYSICS_SEPARATION_PAIR_MAX_INACTIVE_STEPS
-	#define PHYSICS_SEPARATION_PAIR_MAX_INACTIVE_STEPS 0
+	#define PHYSICS_SEPARATION_PAIR_MAX_INACTIVE_STEPS 1
 #endif
 #ifndef PHYSICS_CONTACT_PAIR_MAX_INACTIVE_STEPS
-	#define PHYSICS_CONTACT_PAIR_MAX_INACTIVE_STEPS 0
+	#define PHYSICS_CONTACT_PAIR_MAX_INACTIVE_STEPS 1
 #endif
 
 #define physPairRefresh(pair)              ((pair)->inactive = PHYSCOLLISIONPAIR_ACTIVE)
-#define physContactPairIsInactive(pair)    ((pair)->inactive > PHYSICS_CONTACT_PAIR_MAX_INACTIVE_STEPS)
-#define physSeparationPairIsInactive(pair) ((pair)->inactive > PHYSICS_SEPARATION_PAIR_MAX_INACTIVE_STEPS)
+#define physContactPairIsInactive(pair)    ((pair)->inactive >= PHYSICS_CONTACT_PAIR_MAX_INACTIVE_STEPS)
+#define physSeparationPairIsInactive(pair) ((pair)->inactive >= PHYSICS_SEPARATION_PAIR_MAX_INACTIVE_STEPS)
 #define physConstraintPairIsNew(pair)      ((pair)->inactive == 0)
 
 

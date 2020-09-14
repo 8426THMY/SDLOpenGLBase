@@ -35,6 +35,32 @@ How can we do this?
 #warning "Apparently '-ffast-math' should do this anyway. Maybe test it?"
 /* https://stackoverflow.com/questions/9314534/why-does-changing-0-1f-to-0-slow-down-performance-by-10x */
 
+#warning "Applying global transformations to animated objects is kind of hacky and incorrect (it rotates before scaling)."
+#warning "This is because transformStates cannot represent every possible global bone state - we need matrices for that."
+#warning "Are matrices faster than transformStates using SIMD? Do they still work with physics objects?"
+
+/**
+Fix up the maths functions (use the R variants) in these files:
+
+billboard.c
+camera.c
+colliderAABB.c
+colliderHull.c
+guiElement.c
+object.c
+particle.c
+particleOperator.c
+physicsContact.c
+physicsJointDistance.c
+physicsJointFriction.c
+physicsJointPrismatic.c
+physicsRigidBody.c
+program.c
+skeleton.c
+transform.c
+utilMath.c
+**/
+
 
 int main(int argc, char **argv){
 	program prg;

@@ -54,7 +54,7 @@ typedef struct aabbTree {
 void aabbTreeInit(aabbTree *const restrict tree);
 
 aabbNode *aabbTreeInsertNode(
-	aabbTree *const restrict tree, colliderAABB *const restrict aabb,
+	aabbTree *const restrict tree, const colliderAABB *const restrict aabb,
 	void *const restrict value, aabbNode *(*const allocate)()
 );
 void aabbTreeUpdateNode(aabbTree *const restrict tree, aabbNode *const restrict node);

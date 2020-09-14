@@ -37,20 +37,22 @@ typedef struct physicsJointFriction {
 	// Accumulated impulses used for warm starting.
 	vec2 linearImpulse;
 	float angularImpulse;
+
+	float friction;
 } physicsJointFriction;
 
 
 typedef struct physicsRigidBody physicsRigidBody;
 
 void physJointFrictionWarmStart(const physicsJointFriction *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB);
-void physJointFrictionCalculateEffectiveMass(
+void physJointFrictionCalculateInverseEffectiveMass(
 	physicsJointFriction *const restrict joint,
 	const physicsRigidBody *const restrict bodyA, const physicsRigidBody *const restrict bodyB
 );
 void physJointFrictionSolveVelocity(
 	physicsJointFriction *joint,
 	physicsRigidBody *bodyA, physicsRigidBody *bodyB,
-	const float maxFriction
+	const float maxForce
 );
 
 

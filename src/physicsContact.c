@@ -113,7 +113,11 @@ static void warmStartContactPoint(
 	const physicsManifold *const restrict pm, physicsContactPoint *const restrict contact,
 	physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB
 );
-static void calculateEffectiveMass(
+static float calculateEffectiveMass(
+	const vec3 *const restrict pointA, const vec3 *const restrict pointB, const vec3 *const restrict normal,
+	const mat3 *const restrict invInertiaA, const mat3 *const restrict invInertiaB, const float invMass
+);
+static void calculateInverseEffectiveMass(
 	const physicsManifold *const restrict pm, physicsContactPoint *const restrict contact,
 	const physicsRigidBody *const restrict bodyA, const physicsRigidBody *const restrict bodyB
 );
@@ -162,8 +166,8 @@ void physManifoldInit(
 	const vec3 *const bodyACentroid = &cA->owner->centroid;
 	const vec3 *const bodyBCentroid = &cB->owner->centroid;
 	#ifdef PHYSCONTACT_STABILISER_GAUSS_SEIDEL
-	const quat *const bodyARot      = &cA->owner->transform.rot;
-	const quat *const bodyBRot      = &cB->owner->transform.rot;
+	const quat *const bodyARot      = &cA->owner->state.rot;
+	const quat *const bodyBRot      = &cB->owner->state.rot;
 	#endif
 
 	vec3 normal;
@@ -199,7 +203,9 @@ void physManifoldInit(
 		// Find the average contact normal.
 		vec3AddVec3(&normal, &cmContact->normal);
 
+		#ifdef PHYSCONTACT_STABILISER_BAUMGARTE
 		pmContact->separation = cmContact->separation;
+		#endif
 		pmContact->key = cmContact->key;
 
 		pmContact->normalImpulse = 0.f;
@@ -216,10 +222,16 @@ void physManifoldInit(
 
 
 	vec3NormalizeVec3Fast(&normal);
+	physContactNormal(pm) = normal;
+	#ifdef PHYSCONTACT_FRICTION_DELAY
+	// Delay the effects of friction for the first frame of collision.
+	vec3InitZero(&physContactTangent(pm, 0));
+	vec3InitZero(&physContactTangent(pm, 1));
+	#else
 	// Set the tangent vectors such that they form an
 	// orthonormal basis together with the contact normal.
 	normalBasisFast(&normal, &physContactTangent(pm, 0), &physContactTangent(pm, 1));
-	physContactNormal(pm) = normal;
+	#endif
 
 	// If we're using a friction join, we initialize it here.
 	#ifdef PHYSCONTACT_USE_FRICTION_JOINT
@@ -232,7 +244,11 @@ void physManifoldInit(
 	pm->frictionJoint.angularImpulse = 0.f;
 	#endif
 
-	pm->friction = combineFriction(cA->friction, cB->friction);
+	#ifdef PHYSCONTACT_STABILISER_GAUSS_SEIDEL
+	quatRotateVec3InverseFastOut(bodyARot, &normal, &pm->normalA);
+	#endif
+
+	physContactFriction(pm) = combineFriction(cA->friction, cB->friction);
 	pm->restitution = combineRestitution(cA->restitution, cB->restitution);
 }
 
@@ -245,56 +261,60 @@ void physManifoldPersist(
 	const contactPoint *cmContact = cm->contacts;
 	const contactPoint *const lastContact = &cmContact[cm->numContacts];
 	physicsContactPoint *pmContact = pm->contacts;
-	physicsContactPoint *pmSwap = pmContact;
 	const physicsContactPoint *const lastPhysContact = &pmContact[pm->numContacts];
 
 	const vec3 *const bodyACentroid = &cA->owner->centroid;
 	const vec3 *const bodyBCentroid = &cB->owner->centroid;
 	#ifdef PHYSCONTACT_STABILISER_GAUSS_SEIDEL
-	const quat *const bodyARot      = &cA->owner->transform.rot;
-	const quat *const bodyBRot      = &cB->owner->transform.rot;
+	const quat *const bodyARot      = &cA->owner->state.rot;
+	const quat *const bodyBRot      = &cB->owner->state.rot;
 	#endif
-
-	vec3 normal;
-	vec3 halfway;
 
 	unsigned int persistentFlags[CONTACT_MAX_POINTS];
 	unsigned int *isPersistent = persistentFlags;
 
+	vec3 normal;
+	#ifdef PHYSCONTACT_USE_FRICTION_JOINT
+	vec3 halfway;
+	#endif
+
 	vec3InitZero(&normal);
+	#ifdef PHYSCONTACT_USE_FRICTION_JOINT
 	vec3InitZero(&halfway);
+	#endif
 	// Initialise our flags to 0. A value of 0
 	// means that a contact is not persistent.
 	memset(persistentFlags, 0, sizeof(persistentFlags));
 
 	do {
+		physicsContactPoint *pmSwap = pm->contacts;
 		do {
 			// We've found a matching key pair, so the point is persistent!
-			if(memcmp(&pmContact->key, &cmContact->key, sizeof(pmContact->key)) == 0){
+			if(memcmp(&pmSwap->key, &cmContact->key, sizeof(pmSwap->key)) == 0){
 				// We want contacts in the old physics manifold to be moved
 				// to their new positions in the current manifold. This will
 				// make it easier to copy the keys for non-persistent points.
-				if(pmContact != pmSwap){
-					const contactKey tempKey = pmSwap->key;
+				if(pmSwap != pmContact){
+					const contactKey tempKey = pmContact->key;
 					float tempImpulse;
 
 					// Swap the keys.
-					pmSwap->key = pmContact->key;
-					pmContact->key = tempKey;
+					pmContact->key = pmSwap->key;
+					pmSwap->key = tempKey;
 
 					// Swap the accumulators.
-                    tempImpulse = pmSwap->normalImpulse;
-                    pmSwap->normalImpulse = pmContact->normalImpulse;
-                    pmContact->normalImpulse = tempImpulse;
+                    tempImpulse = pmContact->normalImpulse;
+                    pmContact->normalImpulse = pmSwap->normalImpulse;
+                    pmSwap->normalImpulse = tempImpulse;
 
 					#ifndef PHYSCONTACT_USE_FRICTION_JOINT
-                    tempImpulse = pmSwap->tangentImpulse[0];
-                    pmSwap->tangentImpulse[0] = pmContact->tangentImpulse[0];
-                    pmContact->tangentImpulse[0] = tempImpulse;
+                    tempImpulse = pmContact->tangentImpulse[0];
+                    pmContact->tangentImpulse[0] = pmSwap->tangentImpulse[0];
+                    pmSwap->tangentImpulse[0] = tempImpulse;
 
-                    tempImpulse = pmSwap->tangentImpulse[1];
-                    pmSwap->tangentImpulse[1] = pmContact->tangentImpulse[1];
-                    pmContact->tangentImpulse[1] = tempImpulse;
+                    tempImpulse = pmContact->tangentImpulse[1];
+                    pmContact->tangentImpulse[1] = pmSwap->tangentImpulse[1];
+                    pmSwap->tangentImpulse[1] = tempImpulse;
                     #endif
 				}
 
@@ -302,15 +322,15 @@ void physManifoldPersist(
 				break;
 			}
 
-			++pmContact;
-			++isPersistent;
-		} while(pmContact < lastPhysContact);
+			++pmSwap;
+		} while(pmSwap < lastPhysContact);
 
 		// Find the average contact normal.
 		vec3AddVec3(&normal, &cmContact->normal);
 
 		++cmContact;
-		++pmSwap;
+		++pmContact;
+		++isPersistent;
 	} while(cmContact < lastContact);
 
 
@@ -320,7 +340,11 @@ void physManifoldPersist(
 	normalBasisFast(&normal, &physContactTangent(pm, 0), &physContactTangent(pm, 1));
 	physContactNormal(pm) = normal;
 
-	pm->friction = combineFriction(cA->friction, cB->friction);
+	#ifdef PHYSCONTACT_STABILISER_GAUSS_SEIDEL
+	quatRotateVec3InverseFastOut(bodyARot, &normal, &pm->normalA);
+	#endif
+
+	physContactFriction(pm) = combineFriction(cA->friction, cB->friction);
 	pm->restitution = combineRestitution(cA->restitution, cB->restitution);
 
 
@@ -352,7 +376,9 @@ void physManifoldPersist(
 		quatRotateVec3InverseFastOut(bodyARot, &cmContact->normal, &pmContact->normalLocal);
 		#endif
 
+		#ifdef PHYSCONTACT_STABILISER_BAUMGARTE
 		pmContact->separation = cmContact->separation;
+		#endif
 
 		// Contact point is not persistent, so we can reset its accumulators.
 		if(!(*isPersistent)){
@@ -365,7 +391,7 @@ void physManifoldPersist(
 
 		// If it is, we can warm start it!
 		}else{
-			//warmStartContactPoint(pm, pmContact, cA->owner, cB->owner);
+			warmStartContactPoint(pm, pmContact, cA->owner, cB->owner);
 		}
 
 		++cmContact;
@@ -382,7 +408,7 @@ void physManifoldPersist(
 	vec3SubtractVec3FromOut(&halfway, bodyACentroid, &pm->frictionJoint.rA);
 	vec3SubtractVec3FromOut(&halfway, bodyBCentroid, &pm->frictionJoint.rB);
 
-	//physJointFrictionWarmStart(&pm->frictionJoint, cA->owner, cB->owner);
+	physJointFrictionWarmStart(&pm->frictionJoint, cA->owner, cB->owner);
 	#endif
 }
 
@@ -406,13 +432,17 @@ void physManifoldPresolve(
 	const physicsContactPoint *const lastContact = &curContact[pm->numContacts];
 
 	for(; curContact < lastContact; ++curContact){
-		calculateEffectiveMass(pm, curContact, bodyA, bodyB);
+		calculateInverseEffectiveMass(pm, curContact, bodyA, bodyB);
 		#ifdef PHYSCONTACT_STABILISER_BAUMGARTE
 		calculateBias(pm, curContact, bodyA, bodyB, frequency);
 		#else
 		calculateBias(pm, curContact, bodyA, bodyB);
 		#endif
 	}
+
+	#ifdef PHYSCONTACT_USE_FRICTION_JOINT
+	physJointFrictionCalculateInverseEffectiveMass(&pm->frictionJoint, bodyA, bodyB);
+	#endif
 }
 
 /*
@@ -442,7 +472,7 @@ void physManifoldSolveVelocity(physicsManifold *const restrict pm, physicsRigidB
 	#ifdef PHYSCONTACT_USE_FRICTION_JOINT
 	// If we're using a joint to simulate friction, we'll need to
 	// solve its constraints after solving the contact constraints.
-	physJointFrictionSolveVelocity(&pm->frictionJoint, bodyA, bodyB, pm->friction * maxForce);
+	physJointFrictionSolveVelocity(&pm->frictionJoint, bodyA, bodyB, maxForce);
 	#endif
 }
 
@@ -459,7 +489,9 @@ float physManifoldSolvePosition(const physicsManifold *const restrict pm, physic
 	for(; curContact < lastContact; ++curContact){
 		const float newSeparation = solvePosition(pm, curContact, bodyA, bodyB);
 		// The maximum error is given by the most penetrating contact point.
-		separation = (separation < newSeparation) ? separation : newSeparation;
+		if(newSeparation < separation){
+			separation = newSeparation;
+		}
 	}
 
 	return(separation);
@@ -495,16 +527,16 @@ static void warmStartContactPoint(
 	vec3 impulse;
 	#ifndef PHYSCONTACT_USE_FRICTION_JOINT
 	vec3 accumulator;
+	#endif
 
 	// Warm start the contact point using the total
 	// accumulated normal and frictional impulses.
-	vec3MultiplySOut(&pm->normal, contact->normalImpulse, &impulse);
-	vec3MultiplySOut(&pm->tangents[0], contact->tangentImpulse[0], &accumulator);
+	vec3MultiplySOut(&physContactNormal(pm), contact->normalImpulse, &impulse);
+	#ifndef PHYSCONTACT_USE_FRICTION_JOINT
+	vec3MultiplySOut(&physContactTangent(pm, 0), contact->tangentImpulse[0], &accumulator);
 	vec3AddVec3(&impulse, &accumulator);
-	vec3MultiplySOut(&pm->tangents[1], contact->tangentImpulse[1], &accumulator);
+	vec3MultiplySOut(&physContactTangent(pm, 1), contact->tangentImpulse[1], &accumulator);
 	vec3AddVec3(&impulse, &accumulator);
-	#else
-	vec3MultiplySOut(&pm->frictionJoint.normal, contact->normalImpulse, &impulse);
 	#endif
 
 
@@ -514,13 +546,12 @@ static void warmStartContactPoint(
 }
 
 /*
-** Calculate the effective mass of the two colliding bodies, which
-** won't change between velocity iterations. We can just do it once
-** per update.
+** Calculate the effective mass. This function is used to
+** calculate it for the normal and both of the tangents.
 */
-static void calculateEffectiveMass(
-	const physicsManifold *const restrict pm, physicsContactPoint *const restrict contact,
-	const physicsRigidBody *const restrict bodyA, const physicsRigidBody *const restrict bodyB
+static float calculateEffectiveMass(
+	const vec3 *const restrict pointA, const vec3 *const restrict pointB, const vec3 *const restrict normal,
+	const mat3 *const restrict invInertiaA, const mat3 *const restrict invInertiaB, const float invMass
 ){
 
 	vec3 rnA;
@@ -528,46 +559,50 @@ static void calculateEffectiveMass(
 	vec3 rnB;
 	vec3 rnIB;
 
+	// (JM^(-1))J^T = mA^(-1) + mB^(-1) + (((rA X n) * IA^(-1)) . (rA X n)) + (((rB X n) * IB^(-1)) . (rB X n))
+	vec3CrossVec3Out(pointA, normal, &rnA);
+	mat3MultiplyByVec3Out(invInertiaA, &rnA, &rnIA);
+	vec3CrossVec3Out(pointB, normal, &rnB);
+	mat3MultiplyByVec3Out(invInertiaB, &rnB, &rnIB);
+	return(invMass + vec3DotVec3(&rnA, &rnIA) + vec3DotVec3(&rnB, &rnIB));
+}
+
+/*
+** Calculate the effective mass of the two colliding bodies, which
+** won't change between velocity iterations. We can just do it once
+** per update.
+*/
+static void calculateInverseEffectiveMass(
+	const physicsManifold *const restrict pm, physicsContactPoint *const restrict contact,
+	const physicsRigidBody *const restrict bodyA, const physicsRigidBody *const restrict bodyB
+){
+
 	const float invMass = bodyA->invMass + bodyB->invMass;
 	const mat3 *const invInertiaA = &bodyA->invInertiaGlobal;
 	const mat3 *const invInertiaB = &bodyB->invInertiaGlobal;
+	float effectiveMass;
 
-	// (JM^(-1))J^T = mA^(-1) + mB^(-1) + (((rA X n) * IA^(-1)) . (rA X n)) + (((rB X n) * IB^(-1)) . (rB X n))
-	vec3CrossVec3Out(&contact->rA, &physContactNormal(pm), &rnA);
-	mat3MultiplyByVec3Out(invInertiaA, &rnA, &rnIA);
-	vec3CrossVec3Out(&contact->rB, &physContactNormal(pm), &rnB);
-	mat3MultiplyByVec3Out(invInertiaB, &rnB, &rnIB);
 	// Calculate the inverse effective mass along the normal.
-	contact->normalEffectiveMass = 1.f / (
-		invMass +
-		vec3DotVec3(&rnA, &rnIA) +
-		vec3DotVec3(&rnB, &rnIB)
+	effectiveMass = calculateEffectiveMass(
+		&contact->rA, &contact->rB, &physContactNormal(pm),
+		invInertiaA, invInertiaB, invMass
 	);
+	contact->normalEffectiveMass = (effectiveMass > 0.f) ? 1.f/effectiveMass : 0.f;
 
 	#ifndef PHYSCONTACT_USE_FRICTION_JOINT
-	// (JM^(-1))J^T = mA^(-1) + mB^(-1) + (((rA X u1) * IA^(-1)) . (rA X u1)) + (((rB X u1) * IB^(-1)) . (rB X u1))
-	vec3CrossVec3Out(&contact->rA, &pm->tangents[0], &rnA);
-	mat3MultiplyByVec3Out(invInertiaA, &rnA, &rnIA);
-	vec3CrossVec3Out(&contact->rB, &pm->tangents[0], &rnB);
-	mat3MultiplyByVec3Out(invInertiaB, &rnB, &rnIB);
 	// Calculate the inverse effective mass along the first tangent.
-	contact->tangentEffectiveMass[0] = 1.f / (
-		invMass +
-		vec3DotVec3(&rnA, &rnIA) +
-		vec3DotVec3(&rnB, &rnIB)
+	effectiveMass = calculateEffectiveMass(
+		&contact->rA, &contact->rB, &physContactTangent(pm, 0),
+		invInertiaA, invInertiaB, invMass
 	);
+	contact->tangentEffectiveMass[0] = (effectiveMass > 0.f) ? 1.f/effectiveMass : 0.f;
 
-	// (JM^(-1))J^T = mA^(-1) + mB^(-1) + (((rA X u2) * IA^(-1)) . (rA X u2)) + (((rB X u2) * IB^(-1)) . (rB X u2))
-	vec3CrossVec3Out(&contact->rA, &pm->tangents[1], &rnA);
-	mat3MultiplyByVec3Out(invInertiaA, &rnA, &rnIA);
-	vec3CrossVec3Out(&contact->rB, &pm->tangents[1], &rnB);
-	mat3MultiplyByVec3Out(invInertiaB, &rnB, &rnIB);
 	// Calculate the inverse effective mass along the second tangent.
-	contact->tangentEffectiveMass[1] = 1.f / (
-		invMass +
-		vec3DotVec3(&rnA, &rnIA) +
-		vec3DotVec3(&rnB, &rnIB)
+	effectiveMass = calculateEffectiveMass(
+		&contact->rA, &contact->rB, &physContactTangent(pm, 1),
+		invInertiaA, invInertiaB, invMass
 	);
+	contact->tangentEffectiveMass[1] = (effectiveMass > 0.f) ? 1.f/effectiveMass : 0.f;
 	#endif
 }
 
@@ -593,10 +628,10 @@ static void calculateBias(
 	// Calculate the Baumgarte bias term.
 	#ifdef PHYSCONTACT_STABILISER_BAUMGARTE
 	// C(x) = (pB - pA) . n
-	tempBias = contact->separation - PHYSCONSTRAINT_LINEAR_SLOP;
+	tempBias = contact->separation + PHYSCONSTRAINT_LINEAR_SLOP;
 	// B = Baumgarte constant
 	// b_penetration = B/dt * C(x)
-	contact->bias = (tempBias > 0.f) ? (PHYSCONTACT_BAUMGARTE_BIAS * frequency * tempBias) : 0.f;
+	contact->bias = (tempBias < 0.f) ? (PHYSCONTACT_BAUMGARTE_BIAS * frequency * tempBias) : 0.f;
 	#endif
 
 
@@ -649,7 +684,7 @@ static void solveTangents(
 ){
 
 	float lambda;
-	const float maxFriction = pm->friction * contact->normalImpulse;
+	const float maxFriction = physContactFriction(pm) * contact->normalImpulse;
 	float oldImpulse;
 	float newImpulse;
 	vec3 temp;
@@ -673,7 +708,7 @@ static void solveTangents(
 
 	// lambda = -(JV + b)/((JM^(-1))J^T)
 	//        = -(v_relative . n)/K
-	lambda = -vec3DotVec3(&contactVelocity, &pm->tangents[0]) * contact->tangentEffectiveMass[0];
+	lambda = -vec3DotVec3(&contactVelocity, &physContactTangent(pm, 0)) * contact->tangentEffectiveMass[0];
 	oldImpulse = contact->tangentImpulse[0];
 	newImpulse = oldImpulse + lambda;
 
@@ -681,19 +716,19 @@ static void solveTangents(
 	// Clamp our accumulated impulse for the first tangent.
 	if(newImpulse < -maxFriction){
 		contact->tangentImpulse[0] = -maxFriction;
-		vec3MultiplySOut(&pm->tangents[0], -maxFriction - oldImpulse, &temp);
+		vec3MultiplySOut(&physContactTangent(pm, 0), -maxFriction - oldImpulse, &temp);
 	}else if(newImpulse > maxFriction){
 		contact->tangentImpulse[0] = maxFriction;
-		vec3MultiplySOut(&pm->tangents[0], maxFriction - oldImpulse, &temp);
+		vec3MultiplySOut(&physContactTangent(pm, 0), maxFriction - oldImpulse, &temp);
 	}else{
 		contact->tangentImpulse[0] = newImpulse;
-		vec3MultiplySOut(&pm->tangents[0], lambda, &temp);
+		vec3MultiplySOut(&physContactTangent(pm, 0), lambda, &temp);
 	}
 
 
 	// lambda = -(JV + b)/((JM^(-1))J^T)
 	//        = -(v_relative . n)/K
-	lambda = -vec3DotVec3(&contactVelocity, &pm->tangents[1]) * contact->tangentEffectiveMass[1];
+	lambda = -vec3DotVec3(&contactVelocity, &physContactTangent(pm, 1)) * contact->tangentEffectiveMass[1];
 	oldImpulse = contact->tangentImpulse[1];
 	newImpulse = oldImpulse + lambda;
 
@@ -701,13 +736,13 @@ static void solveTangents(
 	// Clamp our accumulated impulse for the second tangent.
 	if(newImpulse <= -maxFriction){
 		contact->tangentImpulse[1] = -maxFriction;
-		vec3MultiplySOut(&pm->tangents[1], -maxFriction - oldImpulse, &impulse);
+		vec3MultiplySOut(&physContactTangent(pm, 1), -maxFriction - oldImpulse, &impulse);
 	}else if(newImpulse > maxFriction){
 		contact->tangentImpulse[1] = maxFriction;
-		vec3MultiplySOut(&pm->tangents[1], maxFriction - oldImpulse, &impulse);
+		vec3MultiplySOut(&physContactTangent(pm, 1), maxFriction - oldImpulse, &impulse);
 	}else{
 		contact->tangentImpulse[1] = newImpulse;
-		vec3MultiplySOut(&pm->tangents[1], lambda, &impulse);
+		vec3MultiplySOut(&physContactTangent(pm, 1), lambda, &impulse);
 	}
 
 
@@ -785,37 +820,28 @@ float solvePosition(
 	vec3 rB;
 	vec3 normal;
 	float separation;
-
-	vec3 rnA;
-	vec3 rnIA;
-	vec3 rnB;
-	vec3 rnIB;
 	float constraint;
-	float effectiveMass;
 
 
 	// Update the contact points' positions using
 	// their new translations and orientations.
-	quatRotateVec3FastOut(&bodyA->transform.rot, &contact->rAlocal, &rA);
+	quatRotateVec3FastOut(&bodyA->state.rot, &contact->rAlocal, &rA);
 	vec3AddVec3(&rA, &bodyA->centroid);
-	quatRotateVec3FastOut(&bodyB->transform.rot, &contact->rBlocal, &rB);
+	quatRotateVec3FastOut(&bodyB->state.rot, &contact->rBlocal, &rB);
 	vec3AddVec3(&rB, &bodyB->centroid);
 	// We also need to update the normal.
-	quatRotateVec3FastOut(&bodyA->transform.rot, &physContactNormal(pm), &normal);
+	quatRotateVec3FastOut(&bodyA->state.rot, &pm->normalA, &normal);
 
 	// With the contact points now in global space,
 	// we can find the new separation between them.
-	vec3SubtractVec3FromOut(&rB, &rA, &rnA);
-	separation = vec3DotVec3(&rnA, &normal) - PHYSCONTACT_SEPARATION_BIAS_TOTAL;
+	vec3SubtractVec3From(&rB, &rA);
+	separation = vec3DotVec3(&rB, &normal) - PHYSCONTACT_SEPARATION_BIAS_TOTAL;
 
 	constraint = PHYSCONTACT_BAUMGARTE_BIAS * (separation + PHYSCONSTRAINT_LINEAR_SLOP);
 
 	// Clamp the constraint value.
 	if(constraint < 0.f){
-		if(constraint < -PHYSCONTACT_MAX_LINEAR_CORRECTION){
-			constraint = -PHYSCONTACT_MAX_LINEAR_CORRECTION;
-		}
-
+		float effectiveMass;
 
 		// Calculate the transformed contact points'
 		// offsets from their bodies' centres of mass.
@@ -830,16 +856,19 @@ float solvePosition(
 
 		// We use *full* non-linear Gauss-Seidel, which
 		// requires us to recompute the effective mass.
-		vec3CrossVec3Out(&rA, &normal, &rnA);
-		mat3MultiplyByVec3Out(&bodyA->invInertiaGlobal, &rnA, &rnIA);
-		vec3CrossVec3Out(&rB, &normal, &rnB);
-		mat3MultiplyByVec3Out(&bodyB->invInertiaGlobal, &rnB, &rnIB);
-		effectiveMass = bodyA->invMass + bodyB->invMass + vec3DotVec3(&rnA, &rnIA) + vec3DotVec3(&rnB, &rnIB);
+		effectiveMass = calculateEffectiveMass(
+			&rA, &rB, &normal,
+			&bodyA->invInertiaGlobal, &bodyB->invInertiaGlobal, bodyA->invMass + bodyB->invMass
+		);
 
 		// Make sure we don't apply invalid impulses. This also
 		// doubles as a check to ensure we don't divide by zero.
 		if(effectiveMass > 0.f){
-			vec3MultiplyS(&normal, -constraint / effectiveMass);
+			if(constraint < -PHYSCONSTRAINT_MAX_LINEAR_CORRECTION){
+				vec3MultiplyS(&normal, PHYSCONSTRAINT_MAX_LINEAR_CORRECTION/effectiveMass);
+			}else{
+				vec3MultiplyS(&normal, -constraint/effectiveMass);
+			}
 
 			// Apply the correctional impulse.
 			physRigidBodyApplyImpulsePositionInverse(bodyA, &rA, &normal);

@@ -22,7 +22,7 @@ void aabbTreeInit(aabbTree *const restrict tree){
 
 // Add the user's data to the tree.
 aabbNode *aabbTreeInsertNode(
-	aabbTree *const restrict tree, colliderAABB *const restrict aabb,
+	aabbTree *const restrict tree, const colliderAABB *const restrict aabb,
 	void *const restrict value, aabbNode *(*const allocate)()
 ){
 
@@ -57,7 +57,6 @@ aabbNode *aabbTreeInsertNode(
 /*
 ** If the node's axis-aligned bounding box is no longer completely
 ** enveloped by its old, fattened bounding box, we must reinsert it.
-** We assume that the node's bounding box has already been updated.
 */
 void aabbTreeUpdateNode(aabbTree *const restrict tree, aabbNode *const restrict node){
 	// We only need to reinsert the node if

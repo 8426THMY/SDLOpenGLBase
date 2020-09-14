@@ -8,6 +8,9 @@
 };
 
 
+#warning "In 'transformStateAppend' and 'transformStateToMat4', we rotate before scaling. I can't seem to get it to work well the correct way."
+
+
 void transformStateInit(transformState *trans){
 	*trans = g_transformIdentity;
 }
@@ -17,7 +20,7 @@ void transformStateInit(transformState *trans){
 void transformStateAppend(const transformState *const restrict trans1, const transformState *const restrict trans2, transformState *const restrict out){
 	vec3 pos;
 
-	vec3MultiplyVec3Out(&trans1->scale, &trans2->pos, &pos);
+	vec3MultiplyVec3Out(&trans2->pos, &trans1->scale, &pos);
 	quatRotateVec3Fast(&trans1->rot, &pos);
 	// Generate the new position!
 	vec3AddVec3Out(&trans1->pos, &pos, &out->pos);
@@ -29,6 +32,25 @@ void transformStateAppend(const transformState *const restrict trans1, const tra
 	vec3MultiplyVec3Out(&trans1->scale, &trans2->scale, &out->scale);
 }
 
+// Remove the effect of prepending "trans1" to "trans2".
+void transformStateUndoPrepend(const transformState *const restrict trans1, const transformState *const restrict trans2, transformState *const restrict out){
+	transformState inverse;
+	vec3DivideSByFastOut(&trans1->scale, 1.f, &inverse.scale);
+	quatConjugateOut(&trans1->rot, &inverse.rot);
+
+	// Recover the original position!
+	vec3SubtractVec3FromOut(&trans2->pos, &trans1->pos, &inverse.pos);
+	quatRotateVec3Fast(&inverse.rot, &inverse.pos);
+	vec3MultiplyVec3Out(&inverse.pos, &inverse.scale, &out->pos);
+
+	// Recover the original orientation!
+	quatMultiplyByQuatOut(inverse.rot, trans2->rot, &out->rot);
+	quatNormalizeQuatFast(&out->rot);
+
+	// Recover the original scale!
+	vec3MultiplyVec3Out(&trans2->scale, &inverse.scale, &out->scale);
+}
+
 // Interpolate between two states and store the result in "out"!
 void transformStateInterpSet(const transformState *const restrict trans1, const transformState *const restrict trans2, const float time, transformState *const restrict out){
 	vec3Lerp(&trans1->pos, &trans2->pos, time, &out->pos);
@@ -38,11 +60,7 @@ void transformStateInterpSet(const transformState *const restrict trans1, const 
 
 // Interpolate between two states and add the offsets to "out"!
 void transformStateInterpAdd(const transformState *const restrict trans1, const transformState *const restrict trans2, const float time, transformState *const restrict out){
-	union {
-		vec3 pos;
-		quat rot;
-		vec3 scale;
-	} interp;
+	transformState interp;
 
 	// Interpolate between "trans1" and "trans2", then
 	// add the resulting offsets to the "out" state!
@@ -73,9 +91,14 @@ void transformStateInvert(const transformState *const restrict trans, transformS
 
 // Convert a transformation state to a matrix.
 void transformStateToMat4(const transformState *const restrict trans, mat4 *const restrict out){
-	mat4InitTranslateVec3(out, &trans->pos);
-	mat4RotateQuat(out, &trans->rot);
+	// We translate, scale and then rotate:
+	//     *out = mat4RotateQuatR(mat4ScaleVec3R(mat4InitTranslateVec3R(trans->pos), trans->scale), trans->rot);
+	// It looks a bit weird because it's been optimized pretty heavily.
+	mat4InitRotateQuat(out, &trans->rot);
 	mat4ScaleVec3(out, &trans->scale);
+	out->m[3][0] = trans->pos.x;
+	out->m[3][1] = trans->pos.y;
+	out->m[3][2] = trans->pos.z;
 }
 
 

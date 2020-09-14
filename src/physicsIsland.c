@@ -191,17 +191,21 @@ static void insertColliders(physicsIsland *const restrict island, physicsRigidBo
 
 		// If the collider isn't already part of an island, add it to this one!
 		if(curCollider->node == NULL){
-			curCollider->node = aabbTreeInsertNode(&island->tree, &curCollider->aabb, (void *)curCollider, &modulePhysicsAABBNodeAlloc);
+			colliderAABB aabb;
+			// Pad the bounding box out a bit so we don't have to update the node as frequently.
+			colliderAABBExpandFloat(&curCollider->aabb, PHYSISLAND_AABBTREE_NODE_PADDING, &aabb);
+			#ifdef PHYSISLAND_AABBTREE_NODE_EXPAND_BY_VELOCITY
+			colliderAABBExpandVec3(&aabb, &curCollider->owner->linearVelocity, &aabb);
+			#endif
+			curCollider->node = aabbTreeInsertNode(&island->tree, &aabb, (void *)curCollider, &modulePhysicsAABBNodeAlloc);
 
 		// Otherwise, update its node!
 		}else if(!colliderAABBEnvelopsAABB(&curCollider->node->aabb, &curCollider->aabb)){
-			#ifdef PHYSISLAND_AABB_EXPAND_BY_VELOCITY
-			colliderAABBExpandVec3(&curCollider->aabb, &curCollider->owner->linearVelocity, &curCollider->node->aabb);
-			colliderAABBExpandFloat(&curCollider->node->aabb, PHYSISLAND_AABB_PADDING, &curCollider->node->aabb);
-			#else
-			colliderAABBExpandFloat(&curCollider->aabb, PHYSISLAND_AABB_PADDING, &curCollider->node->aabb);
+			// Pad the bounding box out a bit so we don't have to update the node as frequently.
+			colliderAABBExpandFloat(&curCollider->aabb, PHYSISLAND_AABBTREE_NODE_PADDING, &curCollider->node->aabb);
+			#ifdef PHYSISLAND_AABBTREE_NODE_EXPAND_BY_VELOCITY
+			colliderAABBExpandVec3(&curCollider->node->aabb, &curCollider->owner->linearVelocity, &curCollider->node->aabb);
 			#endif
-
 			aabbTreeUpdateNode(&island->tree, curCollider->node);
 		}
 	}
@@ -230,7 +234,7 @@ static void updateRigidBodies(physicsIsland *const restrict island, const float 
 			}
 
 		// Otherwise, we should remove them from the physics island.
-		}else{
+		}else if(flagsAreSet(curBody->flags, PHYSRIGIDBODY_COLLISION_MODIFIED)){
 			removeColliders(island, curBody);
 			flagsUnset(curBody->flags, PHYSRIGIDBODY_COLLISION_MODIFIED);
 		}
@@ -247,7 +251,7 @@ static void collisionCallback(void *const colliderA, void *const colliderB, void
 	// to collide before executing the narrowphase.
 	if(physColliderPermitCollision((physicsCollider *)colliderA, (physicsCollider *)colliderB)){
 		// We should only run the narrowphase if the broadphase succeeds.
-		if(colliderAABBCollidingAABB(&((physicsCollider *)colliderA)->aabb, &((physicsCollider *)colliderB)->aabb)){
+		if(colliderAABBCollidingAABB(&((physicsCollider *)colliderA)->node->aabb, &((physicsCollider *)colliderB)->node->aabb)){
 			// Used when searching for an
 			// existing contact or separation
 			// or when creating a new one.

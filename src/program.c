@@ -250,7 +250,7 @@ static void updatePhysics(program *const restrict prg){
 	#ifdef PHYSCONTACT_STABILISER_BAUMGARTE
 	physIslandUpdate(&island, prg->step.updateDelta, prg->step.updateRate);
 	#else
-	physIslandUpdate(&island);
+	physIslandUpdate(&island, prg->step.updateDelta);
 	#endif
 }
 
@@ -317,13 +317,13 @@ static void render(program *const restrict prg){
 
 	/** TEMPORARY PARTICLE RENDER STUFF! **/
 	glUseProgram(prg->spriteShader.programID);
-	particleSysDraw(&partSys, &prg->cam, &prg->spriteShader, prg->step.renderDelta);
+	//particleSysDraw(&partSys, &prg->cam, &prg->spriteShader, prg->step.renderDelta);
 
 	/** TEMPORARY GUI RENDER STUFF! **/
 	glUseProgram(prg->spriteShader.programID);
 	/** Do we need this? **/
 	glClear(GL_DEPTH_BUFFER_BIT);
-	guiElementDraw(&gui, prg->windowWidth, prg->windowHeight, &prg->spriteShader);
+	//guiElementDraw(&gui, prg->windowWidth, prg->windowHeight, &prg->spriteShader);
 
 
 	SDL_GL_SwapWindow(prg->window);
@@ -420,7 +420,7 @@ static return_t initResources(program *const restrict prg){
 
 
 	/** TEMPORARY OBJECT STUFF **/
-	/*model *mdl;
+	model *mdl;
 	renderableDef *renderDef = moduleRenderableDefAlloc();
 	objectDef *objDef = moduleObjectDefAlloc();
 	object *obj = moduleObjectAlloc();
@@ -434,9 +434,9 @@ static return_t initResources(program *const restrict prg){
 	objDef->renderables = renderDef;
 
 	objectInit(obj, objDef);
-	//obj->state.rot = quatInitEulerDegR(45.f, 0.f, 23.f);
-	#warning "Global scales don't seem to work correctly. We'll probably have to 'pre-scale' every bone by it or something. Try it with the matrices we send to the shader first."
-	//obj->state.scale.x = obj->state.scale.z = 1.5f;
+	obj->state.pos = vec3InitSetR(1.f, 2.f, 3.f);
+	obj->state.rot = quatInitEulerDegR(45.f, 10.f, 23.f);
+	obj->state.scale.z = 0.1f;
 	// Temporary object stuff.
 	//mdl = modelSMDLoad(mdl, "scout_reference.smd");
 	//skeleObjInit(&obj->skeleData, mdl->skele);
@@ -453,7 +453,9 @@ static return_t initResources(program *const restrict prg){
 	if(animDef != NULL){
 		obj->skeleData.anims = moduleSkeleAnimPrepend(&obj->skeleData.anims);
 		skeleAnimInit(obj->skeleData.anims, animDef, 0.5f);
-	}*/model *mdl;
+	}
+	#if 0
+	model *mdl;
 	renderableDef *renderDef;
 	objectDef *objDef;
 	object *obj;
@@ -496,8 +498,12 @@ static return_t initResources(program *const restrict prg){
 	obj->state.pos.y = -4.f;
 	obj->state.scale.x = obj->state.scale.z = 100.f;
 	physRigidBodySetScale(obj->physBodies, vec3InitSetR(20.f, 0.f, 20.f));
-	physRigidBodyIgnoreLinear(obj->physBodies);
+	physRigidBodyIgnoreLinear(obj->physBodies);//physRigidBodyIgnoreSimulation(obj->physBodies);
+	obj->physBodies->mass = 0.f;
+	//mat3InitZero(&obj->physBodies->invInertiaLocal);mat3InitZero(&obj->physBodies->invInertiaGlobal);
+	obj->physBodies->invMass = 0.f;
 	objectPreparePhysics(obj);
+	#endif
 
 
 	/** EVEN MORE TEMPORARY PARTICLE STUFF **/

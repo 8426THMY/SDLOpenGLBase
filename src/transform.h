@@ -18,6 +18,7 @@ void transformStateInit(transformState *const restrict trans);
 
 // All of these functions come from bones.
 void transformStateAppend(const transformState *const restrict trans1, const transformState *const restrict trans2, transformState *const restrict out);
+void transformStateUndoPrepend(const transformState *const restrict trans1, const transformState *const restrict trans2, transformState *const restrict out);
 void transformStateInterpSet(const transformState *const restrict trans1, const transformState *const restrict trans2, const float time, transformState *const restrict out);
 void transformStateInterpAdd(const transformState *const restrict trans1, const transformState *const restrict trans2, const float time, transformState *const restrict out);
 

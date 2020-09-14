@@ -494,7 +494,7 @@ void skeleObjGenerateBoneState(
 			}
 			// Set the animation's intensity by blending from the identity state.
 			transformStateInterpSet(&g_transformIdentity, &animState, curAnim->intensity, &animState);
-			transformStateAppend(&skeleData->bones[boneID], &animState, out);
+			transformStateAppend(out, &animState, out);
 		}
 
 		// Continue to the next animation in the list.

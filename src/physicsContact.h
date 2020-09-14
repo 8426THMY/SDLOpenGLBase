@@ -27,10 +27,10 @@
 #ifndef PHYSCONTACT_SEPARATION_BIAS
 	#define PHYSCONTACT_SEPARATION_BIAS 0.f
 #endif
-#define PHYSCONTACT_SEPARATION_BIAS_TOTAL (PHYSCONTACT_SEPARATION_BIAS + PHYSCONTACT_SEPARATION_BIAS)
+#define PHYSCONTACT_SEPARATION_BIAS_TOTAL (2.f * PHYSCONTACT_SEPARATION_BIAS)
 
 #ifndef PHYSCONTACT_BAUMGARTE_BIAS
-	#define PHYSCONTACT_BAUMGARTE_BIAS 0.4f
+	#define PHYSCONTACT_BAUMGARTE_BIAS 0.1f
 #endif
 #ifndef PHYSCONTACT_GAUSS_SEIDEL_NUM_ITERATIONS
 	#define PHYSCONTACT_GAUSS_SEIDEL_NUM_ITERATIONS 4
@@ -44,17 +44,14 @@
 // we store normals and tangents changes. It's highly recommended that
 // these macros be used so that the program works in both cases.
 
-// Get the contact's normal vector.
 #ifndef PHYSCONTACT_USE_FRICTION_JOINT
-#define physContactNormal(pm) (pm->normal)
+#define physContactNormal(pm) ((pm)->normal)
+#define physContactTangent(pm, num) ((pm)->tangents[num])
+#define physContactFriction(pm) ((pm)->friction)
 #else
-#define physContactNormal(pm) (pm->frictionJoint.normal)
-#endif
-// Get a specific contact tangent vector.
-#ifndef PHYSCONTACT_USE_FRICTION_JOINT
-#define physContactTangent(pm, num) (pm->tangents[num])
-#else
-#define physContactTangent(pm, num) (pm->frictionJoint.tangents[num])
+#define physContactNormal(pm) ((pm)->frictionJoint.normal)
+#define physContactTangent(pm, num) ((pm)->frictionJoint.tangents[num])
+#define physContactFriction(pm) ((pm)->frictionJoint.friction)
 #endif
 
 
@@ -74,9 +71,11 @@ typedef struct physicsContactPoint {
 	vec3 normalLocal;
 	#endif
 
+	#ifdef PHYSCONTACT_STABILISER_BAUMGARTE
 	// Separation between the contact points.
 	// Note that this is a negative quantity.
 	float separation;
+	#endif
 	// Used to uniquely identify the contact point.
 	contactKey key;
 
@@ -125,8 +124,15 @@ typedef struct physicsManifold {
 	physicsJointFriction frictionJoint;
 	#endif
 
-	// Combined friction and restitution scalars.
+	#ifdef PHYSCONTACT_STABILISER_GAUSS_SEIDEL
+	vec3 normalA;
+	#endif
+
+	#ifndef PHYSCONTACT_USE_FRICTION_JOINT
+	//Combined friction scalar;
 	float friction;
+	#endif
+	// Combined restitution scalar.
 	float restitution;
 } physicsManifold;
 
