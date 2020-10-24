@@ -39,6 +39,8 @@ How can we do this?
 #warning "This is because transformStates cannot represent every possible global bone state - we need matrices for that."
 #warning "Are matrices faster than transformStates using SIMD? Do they still work with physics objects?"
 
+#warning "Frame limiting logic seems very poor. We should be sleeping instead of busy-waiting, too. Investigate the _mm_pause instrinsic."
+
 /**
 Fix up the maths functions (use the R variants) in these files:
 

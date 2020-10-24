@@ -97,49 +97,35 @@ void aabbTreeTraverse(aabbTree *const restrict tree, void (*const callback)(aabb
 	aabbNode *node = tree->root;
 
 	if(node != NULL){
-		// Make sure our tree has more than one node.
-		if(!aabbNodeIsLeaf(node)){
-			for(;;){
-				aabbNode *parent;
+		aabbNode *parent;
 
-				// Find the left-most branch node of the current subtree.
-				while(!aabbNodeIsLastBranch(node)){
+		// Start on the left-most node.
+		while(!aabbNodeIsLeaf(node)){
+			node = node->data.children.left;
+		}
+
+		do {
+			// If we're at a branch, find the
+			// left-most node of its right subtree.
+			if(!aabbNodeIsLeaf(node)){
+				node = node->data.children.right;
+				while(!aabbNodeIsLeaf(node)){
 					node = node->data.children.left;
-				}
-				parent = node->parent;
-
-				// Run the callback function on the
-				// branch node and its two leaves.
-				(*callback)(node->data.children.left, args);
-				(*callback)(node->data.children.right, args);
-				(*callback)(node, args);
-
-				// Now that we've reached the end of the current branch,
-				// we'll need to keep climbing the tree until we reach
-				// a node whose right branch hasn't been explored.
-				for(;;){
-					// If we've reached the root node, we've
-					// searched the entire tree and can exit.
-					if(parent == NULL){
-						return;
-					}
-					// If our node is the left child of its parent,
-					// the right subtree has not yet been explored.
-					if(node == parent->data.children.left){
-						node = parent->data.children.right;
-						break;
-					}
-					(*callback)(node, args);
-					node = parent;
-					parent = node->parent;
 				}
 			}
 
-		// If the tree only has a single node,
-		// we can run the callback on it and exit.
-		}else{
+			// Continue climbing the tree
+			// while we're in a right subtree
+			while(
+				(parent = node->parent) != NULL &&
+				node == parent->data.children.right
+			){
+				(*callback)(node, args);
+				node = parent;
+			}
 			(*callback)(node, args);
-		}
+			node = parent;
+		} while(node != NULL);
 	}
 }
 

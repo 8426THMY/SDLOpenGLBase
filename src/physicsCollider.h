@@ -48,9 +48,8 @@ typedef struct physicsCollider {
 	// Colliders store linked lists of active contacts
 	// and separations. These lists are mostly sorted
 	// according to the addresses of the second collider
-	// involved in the contact or separation. I say
-	// "mostly" because only pairs where this collider
-	// is the first really need to be sorted.
+	// involved in the contact or separation. Check the
+	// explanation given in "physicsConstraintPair.h".
 	physicsContactPair *contacts;
 	physicsSeparationPair *separations;
 } physicsCollider;

@@ -159,18 +159,18 @@ void debugDrawColliderAABB(const colliderAABB *aabb, const debugDrawInfo info, c
 		{.x = aabb->min.x, .y = aabb->min.y, .z = aabb->max.z}
 	};
 	const size_t indices[36] = {
-		0, 1, 2,
-		2, 3, 0,
-		1, 0, 6,
-		6, 7, 1,
-		0, 3, 5,
-		5, 6, 0,
-		2, 1, 7,
-		7, 4, 2,
-		3, 2, 4,
-		4, 5, 3,
-		5, 4, 7,
-		7, 6, 5
+		2, 1, 0,
+		0, 3, 2,
+		6, 0, 1,
+		1, 7, 6,
+		5, 3, 0,
+		0, 6, 5,
+		7, 1, 2,
+		2, 4, 7,
+		4, 2, 3,
+		3, 5, 4,
+		7, 4, 5,
+		5, 6, 7
 	};
 	meshData.numIndices = 36;
 
@@ -333,11 +333,15 @@ static void debugMeshDrawBuffers(
 	const debugMesh *const restrict meshData, const debugDrawInfo *const restrict info, const mat4 *const restrict vpMatrix
 ){
 
+	// Disable culling so we can see the entire debug mesh.
+	glDisable(GL_CULL_FACE);
 	glPolygonMode(GL_FRONT_AND_BACK, info->fillMode);
 	glUniform3fv(debugDrawShader.colourID, 1, (GLfloat *)&info->colour);
 	glUniformMatrix4fv(debugDrawShader.vpMatrixID, 1, GL_FALSE, (GLfloat *)vpMatrix);
 	glDrawElements(meshData->drawMode, meshData->numIndices, GL_UNSIGNED_INT, NULL);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	// Enable culling again, as everything else uses it (for now).
+	glEnable(GL_CULL_FACE);
 }
 
 static void debugMeshDelete(const debugMesh *const restrict meshData){

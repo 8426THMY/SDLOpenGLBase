@@ -29,6 +29,14 @@ typedef struct physicsCollider physicsCollider;
 
 typedef uint_least8_t physPairTimestamp_t;
 
+/*
+** These pairs are stored in a very particular way.
+**     1. The address of collider A must always be greater than the address of collider B.
+**     2. Colliders store contacts they own before contacts they don't.
+**     3. Contacts owned by a particular collider are sorted by the address of collider B.
+** This makes lookups faster, though there is a slightly higher cost for creating pairs.
+*/
+
 #warning "The timestamps are also unused at the moment."
 typedef struct physicsContactPair physicsContactPair;
 // Stores the data required to represent

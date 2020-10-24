@@ -204,8 +204,8 @@ return_t physRigidBodyDefLoad(physicsRigidBodyDef **const restrict bodies, const
 		fclose(bodyFile);
 
 
-		// If we loaded at least one collider, add
-		// it to the beginning of the "bodies" array!
+		// If we loaded at least one collider, add the
+		// rigid body to the beginning of the "bodies" array!
 		if(success){
 			*bodies = modulePhysicsBodyDefPrepend(bodies);
 			if(*bodies == NULL){

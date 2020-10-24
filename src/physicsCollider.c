@@ -64,7 +64,7 @@ void physColliderUpdate(physicsCollider *const restrict collider){
 return_t physColliderPermitCollision(physicsCollider *const colliderA, physicsCollider *const colliderB){
 	// We only want to run the narrowphase on two colliders once,
 	// so we do it when "colliderA" has the lower address.
-	return(colliderA < colliderB && colliderA->owner != colliderB->owner);
+	return(colliderA > colliderB && colliderA->owner != colliderB->owner);
 }
 
 
@@ -87,6 +87,9 @@ physicsContactPair *physColliderFindContact(
 
 	// Iterate through the contacts until we find one where
 	// the second collider is less than or equal to "colliderB".
+	//
+	// That is, search for a matching contact or
+	// the first onethat "colliderA" doesn't own.
 	while(curPair != NULL && colliderB >= curPair->cB){
 		// If the pair we ended on involves our colliders, return it!
 		if(curPair->cB == colliderB){
@@ -123,6 +126,9 @@ physicsSeparationPair *physColliderFindSeparation(
 
 	// Iterate through the separations until we find one where
 	// the second collider is less than or equal to "colliderB".
+	//
+	// That is, search for a matching separation or
+	// the first onethat "colliderA" doesn't own.
 	while(curPair != NULL && colliderB >= curPair->cB){
 		// If the pair we ended on involves our colliders, return it!
 		if(curPair->cB == colliderB){

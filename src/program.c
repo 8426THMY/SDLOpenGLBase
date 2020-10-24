@@ -454,15 +454,35 @@ static return_t initResources(program *const restrict prg){
 		obj->skeleData.anims = moduleSkeleAnimPrepend(&obj->skeleData.anims);
 		skeleAnimInit(obj->skeleData.anims, animDef, 0.5f);
 	}
-	#if 0
-	model *mdl;
-	renderableDef *renderDef;
-	objectDef *objDef;
-	object *obj;
 
 
 	/** TEMPORARY PHYSICS STUFF **/
 	physIslandInit(&island);
+	objDef = moduleObjectDefAlloc();
+	objectDefInit(objDef);
+	physRigidBodyDefLoad(&objDef->physBodies, "cube.tdp", sizeof("cube.tdp"));
+	objDef->physBoneIDs = memoryManagerGlobalAlloc(sizeof(size_t));
+	*objDef->physBoneIDs = 0;
+	objDef->numBodies = 1;
+	renderDef = moduleRenderableDefAlloc();
+	renderableDefInit(renderDef, &g_mdlDefault);
+	objDef->renderables = renderDef;
+
+	obj = moduleObjectAlloc();
+	objectInit(obj, objDef);
+	physIslandInsertRigidBody(&island, obj->physBodies);//printf("Cube: %u\n", obj->physBodies);
+	obj->state.pos.y = -4.f;
+	obj->state.scale.x = obj->state.scale.z = 100.f;
+	physRigidBodySetScale(obj->physBodies, vec3InitSetR(20.f, 0.f, 20.f));
+	physRigidBodyIgnoreLinear(obj->physBodies);physRigidBodyIgnoreSimulation(obj->physBodies);
+	obj->physBodies->mass = 0.f;
+	mat3InitZero(&obj->physBodies->invInertiaLocal);mat3InitZero(&obj->physBodies->invInertiaGlobal);
+	obj->physBodies->invMass = 0.f;
+	objectPreparePhysics(obj);
+	printf("Ground: %u -> %u\n", obj->physBodies, obj->physBodies->colliders);
+
+	#if 0
+	/** MORE TEMPORARY PHYSICS STUFF **/
 	mdl = modelOBJLoad("cube.obj", sizeof("cube.obj"));
 	objDef = moduleObjectDefAlloc();
 	objectDefInit(objDef);
@@ -480,8 +500,10 @@ static return_t initResources(program *const restrict prg){
 	//obj->state.pos.y = -1.6952170133590698f;
 	//obj->physBodies->linearVelocity.y = -5.8055357933044434f;
 	objectPreparePhysics(obj);
+	#endif
 
-	/** MORE TEMPORARY PHYSICS STUFF **/
+	/** EVEN MORE TEMPORARY PHYSICS STUFF **/
+	mdl = modelOBJLoad("cubeQuads.obj", sizeof("cubeQuads.obj"));
 	objDef = moduleObjectDefAlloc();
 	objectDefInit(objDef);
 	physRigidBodyDefLoad(&objDef->physBodies, "cube.tdp", sizeof("cube.tdp"));
@@ -489,21 +511,19 @@ static return_t initResources(program *const restrict prg){
 	*objDef->physBoneIDs = 0;
 	objDef->numBodies = 1;
 	renderDef = moduleRenderableDefAlloc();
-	renderableDefInit(renderDef, &g_mdlDefault);
+	renderableDefInit(renderDef, mdl);
 	objDef->renderables = renderDef;
 
-	obj = moduleObjectAlloc();
-	objectInit(obj, objDef);
-	physIslandInsertRigidBody(&island, obj->physBodies);printf("Cube: %u\n", obj->physBodies);
-	obj->state.pos.y = -4.f;
-	obj->state.scale.x = obj->state.scale.z = 100.f;
-	physRigidBodySetScale(obj->physBodies, vec3InitSetR(20.f, 0.f, 20.f));
-	physRigidBodyIgnoreLinear(obj->physBodies);//physRigidBodyIgnoreSimulation(obj->physBodies);
-	obj->physBodies->mass = 0.f;
-	//mat3InitZero(&obj->physBodies->invInertiaLocal);mat3InitZero(&obj->physBodies->invInertiaGlobal);
-	obj->physBodies->invMass = 0.f;
-	objectPreparePhysics(obj);
-	#endif
+	size_t i;
+	for(i = 0; i < 4; ++i){
+		obj = moduleObjectAlloc();
+		objectInit(obj, objDef);
+		physIslandInsertRigidBody(&island, obj->physBodies);
+		obj->state.pos.y = ((float)i)*1.2f;
+		//obj->physBodies->linearVelocity.y = -5.8055357933044434f;
+		objectPreparePhysics(obj);
+		printf("Cube %u: %u -> %u\n", i, obj->physBodies, obj->physBodies->colliders);
+	}
 
 
 	/** EVEN MORE TEMPORARY PARTICLE STUFF **/

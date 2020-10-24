@@ -55,7 +55,7 @@ void physContactPairInit(
 	if(prev != NULL){
 		prev->nextA = pair;
 	}else{
-		cA->contacts = pair;
+		cB->contacts = pair;
 	}
 	// Make the next pair in collider B's
 	// linked list point to the new one.
@@ -117,7 +117,7 @@ void physSeparationPairInit(
 	if(prev != NULL){
 		prev->nextA = pair;
 	}else{
-		cA->separations = pair;
+		cB->separations = pair;
 	}
 	// Make the next pair in collider B's
 	// linked list point to the new one.
@@ -177,7 +177,7 @@ void physSeparationPairInit(
 	if(prev != NULL){
 		prev->nextA = pair;
 	}else{
-		cA->joints = pair;
+		cB->joints = pair;
 	}
 	// Make the next pair in collider B's
 	// linked list point to the new one.
@@ -211,11 +211,7 @@ void physContactPairDelete(physicsContactPair *const restrict pair){
 	// The previous pair in collider A's
 	// list should point to the next one.
 	if(prevPair != NULL){
-		if(prevPair->cA == pair->cA){
-			prevPair->nextA = nextPair;
-		}else{
-			prevPair->nextB = nextPair;
-		}
+		prevPair->nextA = nextPair;
 
 	// If it's the first pair in the list,
 	// update the collider's list pointer.
@@ -227,11 +223,7 @@ void physContactPairDelete(physicsContactPair *const restrict pair){
 	prevPair = pair->prevB;
 	// Do the same again but for collider B.
 	if(nextPair != NULL){
-		if(nextPair->cB == pair->cB){
-			nextPair->prevB = prevPair;
-		}else{
-			nextPair->prevA = prevPair;
-		}
+		nextPair->prevB = prevPair;
 	}
 	if(prevPair != NULL){
 		if(prevPair->cB == pair->cB){
@@ -264,11 +256,7 @@ void physSeparationPairDelete(physicsSeparationPair *const restrict pair){
 	// The previous pair in collider A's
 	// list should point to the next one.
 	if(prevPair != NULL){
-		if(prevPair->cA == pair->cA){
-			prevPair->nextA = nextPair;
-		}else{
-			prevPair->nextB = nextPair;
-		}
+		prevPair->nextA = nextPair;
 
 	// If it's the first pair in the list,
 	// update the collider's list pointer.
@@ -280,11 +268,7 @@ void physSeparationPairDelete(physicsSeparationPair *const restrict pair){
 	prevPair = pair->prevB;
 	// Do the same again but for collider B.
 	if(nextPair != NULL){
-		if(nextPair->cB == pair->cB){
-			nextPair->prevB = prevPair;
-		}else{
-			nextPair->prevA = prevPair;
-		}
+		nextPair->prevB = prevPair;
 	}
 	if(prevPair != NULL){
 		if(prevPair->cB == pair->cB){

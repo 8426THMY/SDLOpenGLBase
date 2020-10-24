@@ -26,7 +26,7 @@ return_t modulePhysicsSetup(){
 		memDoubleListInit(
 			&g_physContactPairManager,
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSCONTACTPAIR_MANAGER_SIZE)),
-			MODULE_PHYSCONTACTPAIR_MANAGER_SIZE, MODULE_PHYSCOLLIDER_ELEMENT_SIZE
+			MODULE_PHYSCONTACTPAIR_MANAGER_SIZE, MODULE_PHYSCONTACTPAIR_ELEMENT_SIZE
 		) != NULL &&
 		// physicsSeparationPair
 		memDoubleListInit(

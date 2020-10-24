@@ -81,12 +81,17 @@ void *memDoubleListPrepend(memoryDoubleList *const restrict doubleList, void **c
 		// Make sure the new block points
 		// to the start of the array list.
 		if(start != NULL){
-			*memDoubleListBlockUsedDataGetPrev(newBlock) = NULL;
 			*memDoubleListBlockUsedDataGetNext(newBlock) = *start;
+			*memDoubleListBlockUsedDataGetPrev(newBlock) = NULL;
+			// The block that used to be at the beginning
+			// should point back to the new starting block.
+			if(*start != NULL){
+				*memDoubleListBlockUsedDataGetPrev(*start) = newBlock;
+			}
 			*start = newBlock;
 		}else{
-			*memDoubleListBlockUsedDataGetPrev(newBlock) = NULL;
 			*memDoubleListBlockUsedDataGetNext(newBlock) = NULL;
+			*memDoubleListBlockUsedDataGetPrev(newBlock) = NULL;
 		}
 	}
 
