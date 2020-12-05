@@ -7,6 +7,12 @@
 #define AABBTREE_QUERY_STACK_SIZE 256
 
 
+/*
+** Based off Randy Gaul's dynamic AABB tree implementation:
+** https://github.com/RandyGaul/qu3e/blob/master/src/broadphase/q3DynamicAABBTree.cpp
+*/
+
+
 // Forward-declare any helper functions!
 static aabbNode *balanceNode(aabbTree *const restrict tree, aabbNode *const restrict node);
 static void balanceHierarchy(aabbTree *const restrict tree, aabbNode *const restrict node);
@@ -360,8 +366,8 @@ static aabbNode *balanceNode(aabbTree *const restrict tree, aabbNode *const rest
 				colliderAABBCombine(&left->aabb, &grandRight->aabb, &node->aabb);
 				colliderAABBCombine(&node->aabb, &grandLeft->aabb, &right->aabb);
 
-				node->height  = maxFloatFast(left->height, grandRight->height) + 1;
-				right->height = maxFloatFast(node->height, grandLeft->height) + 1;
+				node->height  = maxUintFast(left->height, grandRight->height) + 1;
+				right->height = maxUintFast(node->height, grandLeft->height) + 1;
 			}else{
 				right->data.children.right = grandRight;
 				node->data.children.right  = grandLeft;
@@ -370,8 +376,8 @@ static aabbNode *balanceNode(aabbTree *const restrict tree, aabbNode *const rest
 				colliderAABBCombine(&left->aabb, &grandLeft->aabb, &node->aabb);
 				colliderAABBCombine(&node->aabb, &grandRight->aabb, &right->aabb);
 
-				node->height  = maxFloatFast(left->height, grandLeft->height) + 1;
-				right->height = maxFloatFast(node->height, grandRight->height) + 1;
+				node->height  = maxUintFast(left->height, grandLeft->height) + 1;
+				right->height = maxUintFast(node->height, grandRight->height) + 1;
 			}
 
 
@@ -386,12 +392,12 @@ static aabbNode *balanceNode(aabbTree *const restrict tree, aabbNode *const rest
 			// Replace the node with its left child.
 			if(parent != NULL){
 				if(parent->data.children.left == node){
-					parent->data.children.left = right;
+					parent->data.children.left = left;
 				}else{
-					parent->data.children.right = right;
+					parent->data.children.right = left;
 				}
 			}else{
-				tree->root = right;
+				tree->root = left;
 			}
 			left->parent = parent;
 			left->data.children.right = node;
@@ -404,21 +410,21 @@ static aabbNode *balanceNode(aabbTree *const restrict tree, aabbNode *const rest
 				node->data.children.left = grandRight;
 				grandRight->parent = node;
 
-				colliderAABBCombine(&left->aabb, &grandRight->aabb, &node->aabb);
+				colliderAABBCombine(&right->aabb, &grandRight->aabb, &node->aabb);
 				colliderAABBCombine(&node->aabb, &grandLeft->aabb, &left->aabb);
 
-				node->height = maxFloatFast(left->height, grandRight->height) + 1;
-				left->height = maxFloatFast(node->height, grandLeft->height) + 1;
+				node->height = maxUintFast(right->height, grandRight->height) + 1;
+				left->height = maxUintFast(node->height, grandLeft->height) + 1;
 			}else{
 				left->data.children.left = grandRight;
 				node->data.children.left = grandLeft;
 				grandLeft->parent = node;
 
-				colliderAABBCombine(&left->aabb, &grandLeft->aabb, &node->aabb);
+				colliderAABBCombine(&right->aabb, &grandLeft->aabb, &node->aabb);
 				colliderAABBCombine(&node->aabb, &grandRight->aabb, &left->aabb);
 
-				node->height = maxFloatFast(left->height, grandLeft->height) + 1;
-				left->height = maxFloatFast(node->height, grandRight->height) + 1;
+				node->height = maxUintFast(right->height, grandLeft->height) + 1;
+				left->height = maxUintFast(node->height, grandRight->height) + 1;
 			}
 
 
@@ -435,12 +441,16 @@ static aabbNode *balanceNode(aabbTree *const restrict tree, aabbNode *const rest
 */
 static void balanceHierarchy(aabbTree *const restrict tree, aabbNode *node){
 	do {
-		aabbNode *const left = (node = balanceNode(tree, node), node->data.children.left);
-		aabbNode *const right = node->data.children.right;
+		aabbNode *left;
+		aabbNode *right;
+
+		node = balanceNode(tree, node);
+		left = node->data.children.left;
+		right = node->data.children.right;
 
 		// Fix up the node's properties to represent its new children.
 		colliderAABBCombine(&left->aabb, &right->aabb, &node->aabb);
-		node->height = maxFloatFast(left->height, right->height) + 1;
+		node->height = maxUintFast(left->height, right->height) + 1;
 
 		// Continue to the node's parent.
 		node = node->parent;

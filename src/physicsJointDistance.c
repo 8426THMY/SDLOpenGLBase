@@ -69,7 +69,7 @@
 **
 ** Evaluating this expression gives us:
 **
-** (JM^(-1))J^T = mA^(-1) + mB^(-1) + (((rA X d) * IA^(-1)) . (rA X d)) + (((rB X d) * IB^(-1)) . (rB X d)).
+** (JM^(-1))J^T = mA^(-1) + mB^(-1) + ((rA X d) . (IA^(-1) * (rA X d))) + ((rB X d) . (IB^(-1) * (rB X d))).
 **
 ** ----------------------------------------------------------------------
 */
@@ -129,6 +129,7 @@ void physJointDistanceInit(physicsJointDistance *const restrict joint, const flo
 ** we can make the constraint converge more quickly.
 ** Joints are always active so we always warm start.
 */
+#ifdef PHYSJOINTDISTANCE_WARM_START
 void physJointDistanceWarmStart(physicsJointDistance *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB){
 	vec3 impulse;
 
@@ -139,6 +140,7 @@ void physJointDistanceWarmStart(physicsJointDistance *const restrict joint, phys
 	physRigidBodyApplyImpulseInverse(bodyA, &joint->rA, &impulse);
 	physRigidBodyApplyImpulse(bodyB, &joint->rB, &impulse);
 }
+#endif
 
 /*
 ** Prepare the constraint for velocity solving. We need to
@@ -152,7 +154,9 @@ void physJointDistancePresolve(
 	updateConstraintData((physicsJointDistance *)joint, bodyA, bodyB);
 	calculateEffectiveMass((physicsJointDistance *)joint, bodyA, bodyB);
 	calculateBias((physicsJointDistance *)joint, bodyA, bodyB, dt);
+	#ifdef PHYSJOINTDISTANCE_WARM_START
 	physJointDistanceWarmStart((physicsJointDistance *)joint, bodyA, bodyB);
+	#endif
 }
 
 /*
@@ -303,7 +307,7 @@ static void calculateEffectiveMass(
 	vec3 rpB;
 	vec3 rpIB;
 
-	// (JM^(-1))J^T = mA^(-1) + mB^(-1) + (((rA X d) * IA^(-1)) . (rA X d)) + (((rB X d) * IB^(-1)) . (rB X d))
+	// (JM^(-1))J^T = mA^(-1) + mB^(-1) + ((rA X d) . (IA^(-1) * (rA X d))) + ((rB X d) . (IB^(-1) * (rB X d)))
 	vec3CrossVec3Out(&joint->rA, &joint->rAB, &rpA);
 	mat3MultiplyByVec3Out(&bodyA->invInertiaGlobal, &rpA, &rpIA);
 	vec3CrossVec3Out(&joint->rB, &joint->rAB, &rpB);

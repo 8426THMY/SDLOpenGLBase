@@ -248,7 +248,6 @@ static void updateRigidBodies(physicsIsland *const restrict island, const float 
 */
 static void collisionCallback(void *const colliderA, void *const colliderB, void *const restrict island){
 	// Make sure these colliders are actually allowed
-	// to collide before executing the narrowphase.
 	if(physColliderPermitCollision((physicsCollider *)colliderA, (physicsCollider *)colliderB)){
 		// We should only run the narrowphase if the broadphase succeeds.
 		if(colliderAABBCollidingAABB(&((physicsCollider *)colliderA)->node->aabb, &((physicsCollider *)colliderB)->node->aabb)){
@@ -555,7 +554,7 @@ static void solveConstraints(physicsIsland *const restrict island, const float d
 
 
 	// Iteratively solve joint and contact velocity constraints.
-	for(i = PHYSCONTACT_SOLVER_NUM_ITERATIONS; i > 0; --i){
+	for(i = PHYSICS_VELOCITY_SOLVER_NUM_ITERATIONS; i > 0; --i){
 		// Solve joint velocity constraints.
 		/**joint = island->joints;
 		while(joint != NULL){

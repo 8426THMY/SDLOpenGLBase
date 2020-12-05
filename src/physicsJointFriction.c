@@ -76,10 +76,10 @@
 ** J1*M^(-1) = [-u2 * mA^(-1), -(rA X u2) * IA^(-1), u2 * mB^(-1), (rB X u2) * IB^(-1)]
 **
 ** K = (J1*M^(-1))J1^T
-** [K]_00 = mA^(-1) + mB^(-1) + (((rA X u1) * IA^(-1)) . (rA X u1)) + (((rB X u1) * IB^(-1)) . (rB X u1)),
-** [K]_01 =                     (((rA X u1) * IA^(-1)) . (rA X u2)) + (((rB X u1) * IB^(-1)) . (rB X u2)),
-** [K]_10 =                     (((rA X u1) * IA^(-1)) . (rA X u2)) + (((rB X u1) * IB^(-1)) . (rB X u2)),
-** [K]_11 = mA^(-1) + mB^(-1) + (((rA X u2) * IA^(-1)) . (rA X u2)) + (((rB X u2) * IB^(-1)) . (rB X u2)).
+** [K]_00 = mA^(-1) + mB^(-1) + ((rA X u1) . (IA^(-1) * (rA X u1))) + ((rB X u1) . (IB^(-1) * (rB X u1))),
+** [K]_01 =                     ((rA X u1) . (IA^(-1) * (rA X u2))) + ((rB X u1) . (IB^(-1) * (rB X u2))),
+** [K]_10 =                     ((rA X u1) . (IA^(-1) * (rA X u2))) + ((rB X u1) . (IB^(-1) * (rB X u2))),
+** [K]_11 = mA^(-1) + mB^(-1) + ((rA X u2) . (IA^(-1) * (rA X u2))) + ((rB X u2) . (IB^(-1) * (rB X u2))).
 **
 ** It is also worth noting that in this case, J1V is not
 ** a scalar either. It is the following 2x1 matrix:
@@ -107,6 +107,7 @@
 ** By applying the impulse from the previous update,
 ** we can make the constraint converge more quickly.
 */
+#ifdef PHYSJOINTFRICTION_WARM_START
 void physJointFrictionWarmStart(const physicsJointFriction *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB){
 	vec3 linearImpulse;
 	vec3 angularImpulse;
@@ -124,6 +125,7 @@ void physJointFrictionWarmStart(const physicsJointFriction *const restrict joint
 	physRigidBodyApplyImpulseBoostInverse(bodyA, &joint->rA, &linearImpulse, &angularImpulse);
 	physRigidBodyApplyImpulseBoost(bodyB, &joint->rB, &linearImpulse, &angularImpulse);
 }
+#endif
 
 /*
 ** Calculate the effective mass of the constraint, which won't
@@ -154,10 +156,10 @@ void physJointFrictionCalculateInverseEffectiveMass(
 
 
 	// K = (JM^(-1))J^T
-	// [K]_00 = mA^(-1) + mB^(-1) + (((rA X u1) * IA^(-1)) . (rA X u1)) + (((rB X u1) * IB^(-1)) . (rB X u1))
-	// [K]_01 =                     (((rA X u1) * IA^(-1)) . (rA X u2)) + (((rB X u1) * IB^(-1)) . (rB X u2))
+	// [K]_00 = mA^(-1) + mB^(-1) + ((rA X u1) . (IA^(-1) * (rA X u1))) + ((rB X u1) . (IB^(-1) * (rB X u1)))
+	// [K]_01 =                     ((rA X u1) . (IA^(-1) * (rA X u2))) + ((rB X u1) . (IB^(-1) * (rB X u2)))
 	// [K]_10 = [K]_01
-	// [K]_11 = mA^(-1) + mB^(-1) + (((rA X u2) * IA^(-1)) . (rA X u2)) + (((rB X u2) * IB^(-1)) . (rB X u2))
+	// [K]_11 = mA^(-1) + mB^(-1) + ((rA X u2) . (IA^(-1) * (rA X u2))) + ((rB X u2) . (IB^(-1) * (rB X u2)))
 	vec3CrossVec3Out(&joint->rA, &joint->tangents[0], &rAu1);
 	vec3CrossVec3Out(&joint->rA, &joint->tangents[1], &rAu2);
 	vec3CrossVec3Out(&joint->rB, &joint->tangents[0], &rBu1);
@@ -176,7 +178,7 @@ void physJointFrictionCalculateInverseEffectiveMass(
 	mat2Invert(&joint->linearMass);
 
 
-	// (JM^(-1))J^T = ((IA^(-1) * n) . n) + ((IB^(-1) * n) . n)
+	// (JM^(-1))J^T = (n . (IA^(-1) * n)) + (n . (IB^(-1) * n))
 	mat3AddMat3Out(invInertiaA, invInertiaB, &totalInertia);
 	mat3MultiplyByVec3Out(&totalInertia, &joint->normal, &rAu1IA);
 	angularMass = vec3DotVec3(&rAu1IA, &joint->normal);
@@ -197,6 +199,7 @@ void physJointFrictionSolveVelocity(
 ){
 
 	vec2 lambda;
+	#warning "This is unused...?"
 	vec2 oldImpulse;
 	vec3 linearImpulse;
 	vec3 angularImpulse;
@@ -237,6 +240,7 @@ void physJointFrictionSolveVelocity(
 	if(impulseMagnitude > maxFriction * maxFriction){
 		// Normalize the vector and multiply by maxFriction at the same time.
 		vec2MultiplyS(&joint->linearImpulse, maxFriction * invSqrtFast(impulseMagnitude));
+		#warning "Why am I subtracting an uninitialized vec3 from a vec2????"
 		vec2SubtractVec2FromOut(&joint->linearImpulse, &angularImpulse, &lambda);
 	}
 

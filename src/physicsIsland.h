@@ -13,6 +13,13 @@
 	#define PHYSISLAND_AABBTREE_NODE_PADDING 0.2f
 #endif
 
+#ifndef PHYSICS_VELOCITY_SOLVER_NUM_ITERATIONS
+	#define PHYSICS_VELOCITY_SOLVER_NUM_ITERATIONS 4
+#endif
+#ifndef PHYSICS_POSITION_SOLVER_NUM_ITERATIONS
+	#define PHYSICS_POSITION_SOLVER_NUM_ITERATIONS 4
+#endif
+
 
 #warning "We should investigate how Randy Gaul and Erin Catto handle physics islands."
 

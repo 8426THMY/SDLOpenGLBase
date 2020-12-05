@@ -201,6 +201,8 @@ static void input(program *const restrict prg){
 	#warning "Selecting text in the console also causes crashes."
 }
 
+/** TEMPORARY PHYSICS STUFF!! **/
+physicsRigidBody *controlPhys;
 static void updateCameras(program *const restrict prg){
 	if(prg->keyStates[SDL_SCANCODE_LEFT]){
 		prg->cam.pos.x -= 10.f * prg->step.updateDelta;
@@ -222,13 +224,39 @@ static void updateCameras(program *const restrict prg){
 	if(prg->keyStates[SDL_SCANCODE_S]){
 		prg->cam.pos.z += 10.f * prg->step.updateDelta;
 	}
+
+
+
+
+	/** TEMPORARY PHYSICS STUFF! **/
+	if(prg->keyStates[SDL_SCANCODE_J]){
+		vec3 F = vec3InitSetR(-40.f * controlPhys->mass, 0.f, 0.f);
+		physRigidBodyApplyLinearForce(controlPhys, &F);
+	}
+	if(prg->keyStates[SDL_SCANCODE_L]){
+		vec3 F = vec3InitSetR(40.f * controlPhys->mass, 0.f, 0.f);
+		physRigidBodyApplyLinearForce(controlPhys, &F);
+	}
+	if(prg->keyStates[SDL_SCANCODE_I]){
+		vec3 F = vec3InitSetR(0.f, 40.f * controlPhys->mass, 0.f);
+		physRigidBodyApplyLinearForce(controlPhys, &F);
+	}
+	if(prg->keyStates[SDL_SCANCODE_K]){
+		vec3 F = vec3InitSetR(0.f, -40.f * controlPhys->mass, 0.f);
+		physRigidBodyApplyLinearForce(controlPhys, &F);
+	}
+	if(prg->keyStates[SDL_SCANCODE_U]){
+		vec3 F = vec3InitSetR(0.f, 0.f, -40.f * controlPhys->mass);
+		physRigidBodyApplyLinearForce(controlPhys, &F);
+	}
+	if(prg->keyStates[SDL_SCANCODE_O]){
+		vec3 F = vec3InitSetR(0.f, 0.f, 40.f * controlPhys->mass);
+		physRigidBodyApplyLinearForce(controlPhys, &F);
+	}
 }
 
 static void updateObjects(program *const restrict prg){
 	MEMSINGLELIST_LOOP_BEGIN(g_objectManager, curObj, object)
-		if(curObj->state.pos.y == -4.f){
-			//
-		}
 		objectUpdate(curObj, prg->step.updateTime);
 	MEMSINGLELIST_LOOP_END(g_objectManager, curObj)
 
@@ -401,7 +429,7 @@ static return_t initLibs(program *const restrict prg){
 static return_t initResources(program *const restrict prg){
 	const GLuint objVertexShaderID      = shaderLoad("./resource/shaders/vertexShader.gls",         GL_VERTEX_SHADER);
 	const GLuint spriteVertexShaderID   = shaderLoad("./resource/shaders/spriteVertexShader.gls",   GL_VERTEX_SHADER);
-	const GLuint objFragmentShaderID       = shaderLoad("./resource/shaders/fragmentShader.gls",       GL_FRAGMENT_SHADER);
+	const GLuint objFragmentShaderID    = shaderLoad("./resource/shaders/fragmentShader.gls",       GL_FRAGMENT_SHADER);
 	const GLuint spriteFragmentShaderID = shaderLoad("./resource/shaders/spriteFragmentShader.gls", GL_FRAGMENT_SHADER);
 	const GLuint objectProgramID        = shaderLoadProgram(objVertexShaderID, objFragmentShaderID);
 	const GLuint spriteProgramID        = shaderLoadProgram(spriteVertexShaderID, spriteFragmentShaderID);
@@ -434,9 +462,9 @@ static return_t initResources(program *const restrict prg){
 	objDef->renderables = renderDef;
 
 	objectInit(obj, objDef);
-	obj->state.pos = vec3InitSetR(1.f, 2.f, 3.f);
-	obj->state.rot = quatInitEulerDegR(45.f, 10.f, 23.f);
-	obj->state.scale.z = 0.1f;
+	//obj->state.pos = vec3InitSetR(1.f, 2.f, 3.f);
+	//obj->state.rot = quatInitEulerDegR(45.f, 10.f, 23.f);
+	//obj->state.scale.z = 0.1f;
 	// Temporary object stuff.
 	//mdl = modelSMDLoad(mdl, "scout_reference.smd");
 	//skeleObjInit(&obj->skeleData, mdl->skele);
@@ -458,6 +486,7 @@ static return_t initResources(program *const restrict prg){
 
 	/** TEMPORARY PHYSICS STUFF **/
 	physIslandInit(&island);
+	// Create the base physics object.
 	objDef = moduleObjectDefAlloc();
 	objectDefInit(objDef);
 	physRigidBodyDefLoad(&objDef->physBodies, "cube.tdp", sizeof("cube.tdp"));
@@ -468,6 +497,7 @@ static return_t initResources(program *const restrict prg){
 	renderableDefInit(renderDef, &g_mdlDefault);
 	objDef->renderables = renderDef;
 
+	// Set up an instance.
 	obj = moduleObjectAlloc();
 	objectInit(obj, objDef);
 	physIslandInsertRigidBody(&island, obj->physBodies);//printf("Cube: %u\n", obj->physBodies);
@@ -481,28 +511,8 @@ static return_t initResources(program *const restrict prg){
 	objectPreparePhysics(obj);
 	printf("Ground: %u -> %u\n", obj->physBodies, obj->physBodies->colliders);
 
-	#if 0
-	/** MORE TEMPORARY PHYSICS STUFF **/
-	mdl = modelOBJLoad("cube.obj", sizeof("cube.obj"));
-	objDef = moduleObjectDefAlloc();
-	objectDefInit(objDef);
-	physRigidBodyDefLoad(&objDef->physBodies, "egg.tdp", sizeof("egg.tdp"));
-	objDef->physBoneIDs = memoryManagerGlobalAlloc(sizeof(size_t));
-	*objDef->physBoneIDs = 0;
-	objDef->numBodies = 1;
-	renderDef = moduleRenderableDefAlloc();
-	renderableDefInit(renderDef, mdl);
-	objDef->renderables = renderDef;
-
-	obj = moduleObjectAlloc();
-	objectInit(obj, objDef);
-	physIslandInsertRigidBody(&island, obj->physBodies);printf("Egg: %u\n", obj->physBodies);
-	//obj->state.pos.y = -1.6952170133590698f;
-	//obj->physBodies->linearVelocity.y = -5.8055357933044434f;
-	objectPreparePhysics(obj);
-	#endif
-
 	/** EVEN MORE TEMPORARY PHYSICS STUFF **/
+	// Create the base physics object.
 	mdl = modelOBJLoad("cubeQuads.obj", sizeof("cubeQuads.obj"));
 	objDef = moduleObjectDefAlloc();
 	objectDefInit(objDef);
@@ -515,15 +525,52 @@ static return_t initResources(program *const restrict prg){
 	objDef->renderables = renderDef;
 
 	size_t i;
-	for(i = 0; i < 4; ++i){
+	// Set up instances.
+	for(i = 0; i < 3; ++i){
 		obj = moduleObjectAlloc();
 		objectInit(obj, objDef);
 		physIslandInsertRigidBody(&island, obj->physBodies);
-		obj->state.pos.y = ((float)i)*1.2f;
+		if(i == 0){
+			controlPhys = obj->physBodies;
+			physRigidBodyIgnoreAngular(obj->physBodies);
+		}
+		//obj->physBodies->mass = 0.f;
+		//mat3InitZero(&obj->physBodies->invInertiaLocal);mat3InitZero(&obj->physBodies->invInertiaGlobal);
+		//obj->physBodies->invMass = 0.f;
+		obj->state.pos.y = ((float)i)*2.f;
+		//obj->state.pos.x = 1.616000;obj->state.pos.y = 1.856002-3.f;
+		//obj->state.pos.x = -0.19200184941291809f;obj->state.pos.y = 0.8000030517578125f;obj->state.pos.z = 0.82400023937225342f;
 		//obj->physBodies->linearVelocity.y = -5.8055357933044434f;
 		objectPreparePhysics(obj);
 		printf("Cube %u: %u -> %u\n", i, obj->physBodies, obj->physBodies->colliders);
 	}
+
+	///#if 0
+	/** MORE TEMPORARY PHYSICS STUFF **/
+	// Create the base physics object.
+	objDef = moduleObjectDefAlloc();
+	objectDefInit(objDef);
+	physRigidBodyDefLoad(&objDef->physBodies, "egg.tdp", sizeof("egg.tdp"));
+	objDef->physBoneIDs = memoryManagerGlobalAlloc(sizeof(size_t));
+	*objDef->physBoneIDs = 0;
+	objDef->numBodies = 1;
+	renderDef = moduleRenderableDefAlloc();
+	renderableDefInit(renderDef, mdl);
+	objDef->renderables = renderDef;
+
+	// Set up an instance.
+	obj = moduleObjectAlloc();
+	objectInit(obj, objDef);
+	physIslandInsertRigidBody(&island, obj->physBodies);printf("Egg: %u -> %u\n", obj->physBodies, obj->physBodies->colliders);
+	obj->state.pos.y = 0.f;
+	/*obj->physBodies->mass = 0.f;
+	mat3InitZero(&obj->physBodies->invInertiaLocal);mat3InitZero(&obj->physBodies->invInertiaGlobal);
+	obj->physBodies->invMass = 0.f;*/
+	quatInitEulerDeg(&obj->state.rot, 0.f, 45.f, 45.f);
+	//obj->state.pos.y = -1.6952170133590698f;
+	//obj->physBodies->linearVelocity.y = -5.8055357933044434f;
+	objectPreparePhysics(obj);
+	///#endif
 
 
 	/** EVEN MORE TEMPORARY PARTICLE STUFF **/

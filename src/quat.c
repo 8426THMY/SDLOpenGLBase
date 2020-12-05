@@ -1566,12 +1566,12 @@ void quatSlerpFaster(quat *const restrict q1, const quat *const restrict q2, con
 	};
 
 	const float cD = d * (
-		1.0 + bD[0] * (1.0 + bD[1] * (1.0 + bD[2] * (1.0 + bD[3] * (
-		1.0 + bD[4] * (1.0 + bD[5] * (1.0 + bD[6] * (1.0 + bD[7])))))))
+		1.f + bD[0] * (1.f + bD[1] * (1.f + bD[2] * (1.f + bD[3] * (
+		1.f + bD[4] * (1.f + bD[5] * (1.f + bD[6] * (1.f + bD[7])))))))
 	);
 	const float cT = sign * time * (
-		1.0 + bT[0] * (1.0 + bT[1] * (1.0 + bT[2] * (1.0 + bT[3] * (
-		1.0 + bT[4] * (1.0 + bT[5] * (1.0 + bT[6] * (1.0 + bT[7])))))))
+		1.f + bT[0] * (1.f + bT[1] * (1.f + bT[2] * (1.f + bT[3] * (
+		1.f + bT[4] * (1.f + bT[5] * (1.f + bT[6] * (1.f + bT[7])))))))
 	);
 
 
@@ -1619,12 +1619,12 @@ void quatSlerpFasterOut(const quat *const restrict q1, const quat *const restric
 	};
 
 	const float cD = d * (
-		1.0 + bD[0] * (1.0 + bD[1] * (1.0 + bD[2] * (1.0 + bD[3] * (
-		1.0 + bD[4] * (1.0 + bD[5] * (1.0 + bD[6] * (1.0 + bD[7])))))))
+		1.f + bD[0] * (1.f + bD[1] * (1.f + bD[2] * (1.f + bD[3] * (
+		1.f + bD[4] * (1.f + bD[5] * (1.f + bD[6] * (1.f + bD[7])))))))
 	);
 	const float cT = sign * time * (
-		1.0 + bT[0] * (1.0 + bT[1] * (1.0 + bT[2] * (1.0 + bT[3] * (
-		1.0 + bT[4] * (1.0 + bT[5] * (1.0 + bT[6] * (1.0 + bT[7])))))))
+		1.f + bT[0] * (1.f + bT[1] * (1.f + bT[2] * (1.f + bT[3] * (
+		1.f + bT[4] * (1.f + bT[5] * (1.f + bT[6] * (1.f + bT[7])))))))
 	);
 
 
@@ -1668,12 +1668,12 @@ quat quatSlerpFasterR(quat q1, const quat q2, const float time){
 	};
 
 	const float cD = d * (
-		1.0 + bD[0] * (1.0 + bD[1] * (1.0 + bD[2] * (1.0 + bD[3] * (
-		1.0 + bD[4] * (1.0 + bD[5] * (1.0 + bD[6] * (1.0 + bD[7])))))))
+		1.f + bD[0] * (1.f + bD[1] * (1.f + bD[2] * (1.f + bD[3] * (
+		1.f + bD[4] * (1.f + bD[5] * (1.f + bD[6] * (1.f + bD[7])))))))
 	);
 	const float cT = sign * time * (
-		1.0 + bT[0] * (1.0 + bT[1] * (1.0 + bT[2] * (1.0 + bT[3] * (
-		1.0 + bT[4] * (1.0 + bT[5] * (1.0 + bT[6] * (1.0 + bT[7])))))))
+		1.f + bT[0] * (1.f + bT[1] * (1.f + bT[2] * (1.f + bT[3] * (
+		1.f + bT[4] * (1.f + bT[5] * (1.f + bT[6] * (1.f + bT[7])))))))
 	);
 
 
@@ -1901,12 +1901,12 @@ void quatScaleFaster(quat *const restrict q, const float time){
 	};
 
 	const float cD = d * (
-		1.0 + bD[0] * (1.0 + bD[1] * (1.0 + bD[2] * (1.0 + bD[3] * (
-		1.0 + bD[4] * (1.0 + bD[5] * (1.0 + bD[6] * (1.0 + bD[7])))))))
+		1.f + bD[0] * (1.f + bD[1] * (1.f + bD[2] * (1.f + bD[3] * (
+		1.f + bD[4] * (1.f + bD[5] * (1.f + bD[6] * (1.f + bD[7])))))))
 	);
 	const float cT = sign * time * (
-		1.0 + bT[0] * (1.0 + bT[1] * (1.0 + bT[2] * (1.0 + bT[3] * (
-		1.0 + bT[4] * (1.0 + bT[5] * (1.0 + bT[6] * (1.0 + bT[7])))))))
+		1.f + bT[0] * (1.f + bT[1] * (1.f + bT[2] * (1.f + bT[3] * (
+		1.f + bT[4] * (1.f + bT[5] * (1.f + bT[6] * (1.f + bT[7])))))))
 	);
 
 
@@ -1952,12 +1952,12 @@ void quatScaleFasterOut(const quat *const restrict q, const float time, quat *co
 	};
 
 	const float cD = d * (
-		1.0 + bD[0] * (1.0 + bD[1] * (1.0 + bD[2] * (1.0 + bD[3] * (
-		1.0 + bD[4] * (1.0 + bD[5] * (1.0 + bD[6] * (1.0 + bD[7])))))))
+		1.f + bD[0] * (1.f + bD[1] * (1.f + bD[2] * (1.f + bD[3] * (
+		1.f + bD[4] * (1.f + bD[5] * (1.f + bD[6] * (1.f + bD[7])))))))
 	);
 	const float cT = sign * time * (
-		1.0 + bT[0] * (1.0 + bT[1] * (1.0 + bT[2] * (1.0 + bT[3] * (
-		1.0 + bT[4] * (1.0 + bT[5] * (1.0 + bT[6] * (1.0 + bT[7])))))))
+		1.f + bT[0] * (1.f + bT[1] * (1.f + bT[2] * (1.f + bT[3] * (
+		1.f + bT[4] * (1.f + bT[5] * (1.f + bT[6] * (1.f + bT[7])))))))
 	);
 
 
@@ -1999,12 +1999,12 @@ quat quatScaleFasterR(quat q, const float time){
 	};
 
 	const float cD = d * (
-		1.0 + bD[0] * (1.0 + bD[1] * (1.0 + bD[2] * (1.0 + bD[3] * (
-		1.0 + bD[4] * (1.0 + bD[5] * (1.0 + bD[6] * (1.0 + bD[7])))))))
+		1.f + bD[0] * (1.f + bD[1] * (1.f + bD[2] * (1.f + bD[3] * (
+		1.f + bD[4] * (1.f + bD[5] * (1.f + bD[6] * (1.f + bD[7])))))))
 	);
 	const float cT = sign * time * (
-		1.0 + bT[0] * (1.0 + bT[1] * (1.0 + bT[2] * (1.0 + bT[3] * (
-		1.0 + bT[4] * (1.0 + bT[5] * (1.0 + bT[6] * (1.0 + bT[7])))))))
+		1.f + bT[0] * (1.f + bT[1] * (1.f + bT[2] * (1.f + bT[3] * (
+		1.f + bT[4] * (1.f + bT[5] * (1.f + bT[6] * (1.f + bT[7])))))))
 	);
 
 

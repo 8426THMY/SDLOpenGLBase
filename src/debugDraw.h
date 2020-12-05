@@ -11,6 +11,7 @@
 typedef struct debugDrawInfo {
 	unsigned int fillMode;
 	vec3 colour;
+	float size;
 } debugDrawInfo;
 
 
@@ -18,7 +19,7 @@ typedef struct skeletonObject skeletonObject;
 typedef struct colliderAABB colliderAABB;
 typedef struct colliderHull colliderHull;
 
-debugDrawInfo debugDrawInfoInit(const unsigned int fillMode, const vec3 colour);
+debugDrawInfo debugDrawInfoInit(const unsigned int fillMode, const vec3 colour, const float size);
 
 return_t debugDrawSetup();
 void debugDrawSkeleton(const skeletonObject *const restrict skeleData, const debugDrawInfo info, const mat4 *const restrict vpMatrix);

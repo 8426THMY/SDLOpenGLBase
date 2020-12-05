@@ -272,15 +272,15 @@ void objectDraw(
 
 	/** TEMPORARY DEBUG DRAW TEST **/
 	if(obj->skeleData.skele->numBones > 1){
-		debugDrawSkeleton(&obj->skeleData, debugDrawInfoInit(GL_LINE, vec3InitSetR(0.f, 1.f, 0.f)), &cam->viewProjectionMatrix);
+		debugDrawSkeleton(&obj->skeleData, debugDrawInfoInit(GL_LINE, vec3InitSetR(0.f, 1.f, 0.f), 1.f), &cam->viewProjectionMatrix);
 	}
 	#warning "Rigid body instances aren't storing colliders?"
 	#warning "I've forgotten what the above warning was about, although it seems like it's been fixed."
 	if(obj->physBodies != NULL){
 		if(obj->physBodies->colliders->node != NULL){
-			debugDrawColliderAABB(&(obj->physBodies->colliders->node->aabb), debugDrawInfoInit(GL_LINE, vec3InitSetR(1.f, 0.4f, 0.f)), &cam->viewProjectionMatrix);
+			//debugDrawColliderAABB(&(obj->physBodies->colliders->node->aabb), debugDrawInfoInit(GL_LINE, vec3InitSetR(1.f, 0.4f, 0.f), 1.f), &cam->viewProjectionMatrix);
 		}
-		debugDrawColliderHull(&(obj->physBodies->colliders->global.data.hull), debugDrawInfoInit(GL_LINE, vec3InitSetR(1.f, 0.4f, 0.f)), &cam->viewProjectionMatrix);
+		debugDrawColliderHull(&(obj->physBodies->colliders->global.data.hull), debugDrawInfoInit(GL_LINE, vec3InitSetR(1.f, 0.4f, 0.f), 1.f), &cam->viewProjectionMatrix);
 	}
 
 

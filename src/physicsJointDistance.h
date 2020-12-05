@@ -73,7 +73,9 @@ typedef struct physicsRigidBody physicsRigidBody;
 
 void physJointDistanceInit(physicsJointDistance *const restrict joint, const float frequency, const float dampingRatio);
 
+#ifdef PHYSJOINTDISTANCE_WARM_START
 void physJointDistanceWarmStart(physicsJointDistance *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB);
+#endif
 void physJointDistancePresolve(
 	void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB, const float dt
 );

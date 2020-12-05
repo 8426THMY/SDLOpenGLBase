@@ -44,7 +44,9 @@ typedef struct physicsJointFriction {
 
 typedef struct physicsRigidBody physicsRigidBody;
 
+#ifdef PHYSJOINTFRICTION_WARM_START
 void physJointFrictionWarmStart(const physicsJointFriction *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB);
+#endif
 void physJointFrictionCalculateInverseEffectiveMass(
 	physicsJointFriction *const restrict joint,
 	const physicsRigidBody *const restrict bodyA, const physicsRigidBody *const restrict bodyB

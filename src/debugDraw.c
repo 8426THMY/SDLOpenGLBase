@@ -47,10 +47,11 @@ static void debugMeshDrawBuffers(
 static void debugMeshDelete(const debugMesh *const restrict meshData);
 
 
-debugDrawInfo debugDrawInfoInit(const unsigned int fillMode, const vec3 colour){
+debugDrawInfo debugDrawInfoInit(const unsigned int fillMode, const vec3 colour, const float size){
 	const debugDrawInfo info = {
 		.fillMode = fillMode,
-		.colour = colour
+		.colour = colour,
+		.size = size
 	};
 	return(info);
 }
@@ -335,10 +336,31 @@ static void debugMeshDrawBuffers(
 
 	// Disable culling so we can see the entire debug mesh.
 	glDisable(GL_CULL_FACE);
+	// Set the draw mode of the debug mesh.
 	glPolygonMode(GL_FRONT_AND_BACK, info->fillMode);
+	// Change the size of the debug mesh's features.
+	switch(info->fillMode){
+		case GL_LINE:
+			glLineWidth(info->size);
+		break;
+		case GL_POINT:
+			glPointSize(info->size);
+		break;
+	}
+
 	glUniform3fv(debugDrawShader.colourID, 1, (GLfloat *)&info->colour);
 	glUniformMatrix4fv(debugDrawShader.vpMatrixID, 1, GL_FALSE, (GLfloat *)vpMatrix);
 	glDrawElements(meshData->drawMode, meshData->numIndices, GL_UNSIGNED_INT, NULL);
+
+	// Restore the default settings.
+	switch(info->fillMode){
+		case GL_LINE:
+			glLineWidth(1.f);
+		break;
+		case GL_POINT:
+			glPointSize(1.f);
+		break;
+	}
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	// Enable culling again, as everything else uses it (for now).
 	glEnable(GL_CULL_FACE);

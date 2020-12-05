@@ -75,7 +75,9 @@ typedef struct physicsRigidBody physicsRigidBody;
 
 void physJointPrismaticInit(physicsJointPrismatic *const restrict joint);
 
+#ifdef PHYSJOINTPRISMATIC_WARM_START
 void physJointPrismaticWarmStart(physicsJointPrismatic *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB);
+#endif
 void physJointPrismaticPresolve(
 	void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB, const float dt
 );

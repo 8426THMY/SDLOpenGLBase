@@ -87,10 +87,10 @@
 ** J1*M^(-1) = [-u2 * mA^(-1), -((rA + d) X u2) * IA^(-1), u2 * mB^(-1), (rB X u2) * IB^(-1)]
 **
 ** K = (J1*M^(-1))J1^T
-** [K]_00 = mA^(-1) + mB^(-1) + ((((rA + d) X u1) * IA^(-1)) . ((rA + d) X u1)) + (((rB X u1) * IB^(-1)) . (rB X u1)),
-** [K]_01 =                     ((((rA + d) X u1) * IA^(-1)) . ((rA + d) X u2)) + (((rB X u1) * IB^(-1)) . (rB X u2)),
-** [K]_10 =                     ((((rA + d) X u1) * IA^(-1)) . ((rA + d) X u2)) + (((rB X u1) * IB^(-1)) . (rB X u2)),
-** [K]_11 = mA^(-1) + mB^(-1) + ((((rA + d) X u2) * IA^(-1)) . ((rA + d) X u2)) + (((rB X u2) * IB^(-1)) . (rB X u2)).
+** [K]_00 = mA^(-1) + mB^(-1) + (((rA + d) X u1) . (IA^(-1) * ((rA + d) X u1))) + ((rB X u1) . (IB^(-1) * (rB X u1))),
+** [K]_01 =                     (((rA + d) X u1) . (IA^(-1) * ((rA + d) X u2))) + ((rB X u1) . (IB^(-1) * (rB X u2))),
+** [K]_10 =                     (((rA + d) X u1) . (IA^(-1) * ((rA + d) X u2))) + ((rB X u1) . (IB^(-1) * (rB X u2))),
+** [K]_11 = mA^(-1) + mB^(-1) + (((rA + d) X u2) . (IA^(-1) * ((rA + d) X u2))) + ((rB X u2) . (IB^(-1) * (rB X u2))).
 **
 ** It is also worth noting that in this case, J1V is not
 ** a scalar either. It is the following 2x1 matrix:
@@ -201,6 +201,7 @@ void physJointPrismaticInit(physicsJointPrismatic *const restrict joint){
 ** we can make the constraint converge more quickly.
 ** Joints are always active so we always warm start.
 */
+#ifdef PHYSJOINTPRISMATIC_WARM_START
 void physJointPrismaticWarmStart(physicsJointPrismatic *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB){
 	vec3 linearImpulse;
 	vec3 angularImpulseA;
@@ -235,6 +236,7 @@ void physJointPrismaticWarmStart(physicsJointPrismatic *const restrict joint, ph
 	physRigidBodyApplyLinearImpulse(bodyB, linearImpulse);
 	physRigidBodyApplyAngularImpulse(bodyB, angularImpulseB);
 }
+#endif
 
 /*
 ** Calculate any values required by collision resolution
@@ -247,7 +249,9 @@ void physJointPrismaticPresolve(
 
 	updateConstraintData((physicsJointPrismatic *)joint, bodyA, bodyB);
 	calculateEffectiveMass((physicsJointPrismatic *)joint, bodyA, bodyB);
+	#ifdef PHYSJOINTPRISMATIC_WARM_START
 	physJointPrismaticWarmStart((physicsJointPrismatic *)joint, bodyA, bodyB);
+	#endif
 }
 
 /*
@@ -355,7 +359,7 @@ static void calculateEffectiveMass(
 	vec3 rBu2IB;
 
 
-	// (JM^(-1))J^T = mA^(-1) + mB^(-1) + (((rA + d) X a) * IA^(-1)) . ((rA + d) X a) + (((rB X a) * IB^(-1)) . (rB X a))
+	// (JM^(-1))J^T = mA^(-1) + mB^(-1) + (((rA + d) X a) . (IA^(-1) * ((rA + d) X a))) + ((rB X a) . (IB^(-1) * (rB X a)))
 	mat3MultiplyByVec3Out(invInertiaA, rAa, &rAu1IA);
 	mat3MultiplyByVec3Out(invInertiaB, rBa, &rBu1IB);
 
@@ -365,10 +369,10 @@ static void calculateEffectiveMass(
 
 
 	// K = (JM^(-1))J^T
-	// [K]_00 = mA^(-1) + mB^(-1) + ((((rA + d) X u1) * IA^(-1)) . ((rA + d) X u1)) + (((rB X u1) * IB^(-1)) . (rB X u1))
-	// [K]_01 =                     ((((rA + d) X u1) * IA^(-1)) . ((rA + d) X u2)) + (((rB X u1) * IB^(-1)) . (rB X u2))
+	// [K]_00 = mA^(-1) + mB^(-1) + (((rA + d) X u1) . (IA^(-1) * ((rA + d) X u1))) + ((rB X u1) . (IB^(-1) * (rB X u1)))
+	// [K]_01 =                     (((rA + d) X u1) . (IA^(-1) * ((rA + d) X u2))) + ((rB X u1) . (IB^(-1) * (rB X u2)))
 	// [K]_10 = [K]_01
-	// [K]_11 = mA^(-1) + mB^(-1) + ((((rA + d) X u2) * IA^(-1)) . ((rA + d) X u2)) + (((rB X u2) * IB^(-1)) . (rB X u2))
+	// [K]_11 = mA^(-1) + mB^(-1) + (((rA + d) X u2) . (IA^(-1) * ((rA + d) X u2))) + ((rB X u2) . (IB^(-1) * (rB X u2)))
 	mat3MultiplyByVec3Out(invInertiaA, rAu1, &rAu1IA);
 	mat3MultiplyByVec3Out(invInertiaA, rAu2, &rAu2IA);
 	mat3MultiplyByVec3Out(invInertiaB, rBu1, &rBu1IB);
