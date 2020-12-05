@@ -1518,7 +1518,6 @@ static void clipFaceContact(
 	startEdge = curEdge;
 	inEdgeIndex = refIndex;
 
-	#if 0
 	// For each face surrounding the reference face,
 	// clip each incident vertex against its normal.
 	do {
@@ -1545,7 +1544,7 @@ static void clipFaceContact(
 		curDist = pointPlaneDist(&prevVertex->v, refVertex, adjNormal);
 		// For each edge on the incident face, clip
 		// it against the current reference face.
-		while(curVertex <= lastVertex){
+		do {
 			const float nextDist = pointPlaneDist(&curVertex->v, refVertex, adjNormal);
 			// The starting vertex is inside the clipping
 			// region, so we will have to keep it.
@@ -1565,6 +1564,8 @@ static void clipFaceContact(
 					   |         |
 					   |_________|
 				*/
+				*clipVertex.v = *prevVertex;
+				++clipVertex.v;
 
 				// The edge leaves the clipping region, so we
 				// need to find and keep the intersection point.
@@ -1595,10 +1596,8 @@ static void clipFaceContact(
 					clipVertex.v->key.inEdgeB  = curVertex->key.inEdgeB;
 					clipVertex.v->key.outEdgeB = CONTACT_KEY_INVALID_EDGE;
 					#endif
-				}else{
-					*clipVertex.v = *curVertex;
+					++clipVertex.v;
 				}
-				++clipVertex.v;
 
 			// If the previous vertex is outside the clipping
 			// region and the current vertex is inside it, we
@@ -1630,20 +1629,12 @@ static void clipFaceContact(
 				clipVertex.v->key.outEdgeB = curVertex->key.outEdgeB;
 				#endif
 				++clipVertex.v;
-				*clipVertex.v = *curVertex;
-				++clipVertex.v;
 			}
 
 			prevVertex = curVertex;
 			curDist = nextDist;
 			++curVertex;
-		}
-
-		// The variable "clipVertex" will point to the vertex after the
-		// last one that was set, so we need to get the one before it.
-		// In very rare circumstances, the incident face may not intersect
-		// the reference face: this will prevent us from entering any loops.
-		lastVertex = &clipVertex.v[-1];
+		} while(curVertex <= lastVertex);
 
 		// After clipping the face, we need to swap the "loop" array
 		// with the "clip" array. This will allow us to loop through
@@ -1652,137 +1643,6 @@ static void clipFaceContact(
 		clipVertices.v = loopVertices;
 		loopVertices = curVertex;
 
-		inEdgeIndex = outEdgeIndex;
-	} while(curEdge != startEdge);
-	#endif
-	// We only do this so "nextVertex" is set correctly inside this loop.
-	curVertex = loopVertices;
-	// For each face surrounding the reference face,
-	// clip each incident vertex against its normal.
-	do {
-		vertexClip *nextVertex;
-		const vec3 *adjNormal;
-
-		refVertex = &hullA->vertices[curEdge->startVertexIndex];
-		// Edges are shared by both faces that use
-		// them, so we need to check whether or not
-		// the reference face is this edge's twin
-		// face to make sure we get the right data.
-		if(curEdge->faceIndex == refIndex){
-			adjNormal = &hullA->normals[curEdge->twinFaceIndex];
-			outEdgeIndex = curEdge->nextIndex;
-		}else{
-			adjNormal = &hullA->normals[curEdge->faceIndex];
-			outEdgeIndex = curEdge->twinNextIndex;
-		}
-		curEdge = &hullA->edges[outEdgeIndex];
-
-		nextVertex = curVertex;
-		curVertex = lastVertex;
-		curDist = pointPlaneDist(&curVertex->v, refVertex, adjNormal);
-		clipVertex.v = clipVertices.v;
-		// For each edge on the incident face, clip
-		// it against the current reference face.
-		do {
-			const float nextDist = pointPlaneDist(&nextVertex->v, refVertex, adjNormal);
-			// The current vertex is inside the clipping
-			// region, so we will have to keep it.
-			if(curDist <= 0.f){
-				/*
-				The current incident vertex Ic is behind the plane,
-				but there may or may not be an intersection. Regardless,
-				its in-edge and out-edge need not be changed.
-
-				   ___________________
-				  |                   |
-				  |                   |
-				  |  In _________ Ic  |
-				  |    |         |    |
-				  |____|_________|____|
-				R1     |         |     R2
-				       |         |
-				       |_________|
-				*/
-				*clipVertex.v = *curVertex;
-				++clipVertex.v;
-
-				// The edge leaves the clipping region, so we
-				// need to find and keep the intersection point.
-				if(nextDist > 0.f){
-					/*
-					An intersection between incident edge I (Ic, In)
-					and reference edge R (R1, R2) exists. The in-edge
-					for the clipped vertex is I and the out-edge is R.
-
-					   _________
-					  |         |
-					  |         |
-					  |  Ic ____|____
-					  |    |    |    |
-					  |____|____|    |
-					R1     |     R2  |
-					       |         |
-					       |_________|
-					     In
-					*/
-					vec3Lerp(&curVertex->v, &nextVertex->v, curDist / (curDist - nextDist), &clipVertex.v->v);
-					#ifdef CONTACT_MANIFOLD_SIMPLE_KEYS
-					clipVertex.v->key.edgeA = nextVertex->key.edgeA;
-					clipVertex.v->key.edgeB = inEdgeIndex;
-					#else
-					clipVertex.v->key.inEdgeA  = CONTACT_KEY_INVALID_EDGE;
-					clipVertex.v->key.outEdgeA = inEdgeIndex;
-					clipVertex.v->key.inEdgeB  = nextVertex->key.inEdgeB;
-					clipVertex.v->key.outEdgeB = CONTACT_KEY_INVALID_EDGE;
-					#endif
-					++clipVertex.v;
-				}
-
-			// If the starting vertex is outside the clipping
-			// region and the ending vertex is inside it, we
-			// need to find and keep the intersection point.
-			}else if(nextDist <= 0.f){
-				/*
-				An intersection between incident edge I (Ic, In)
-				and reference edge R (R1, R2) exists. The in-edge
-				for the clipped vertex is R and the out-edge is I.
-
-				 _________ R2
-				|         |
-				|         |
-				|  In ____|____ Ic
-				|    |    |    |
-				|____|____|    |
-				     |     R1  |
-				     |         |
-				     |_________|
-				*/
-				vec3Lerp(&curVertex->v, &nextVertex->v, curDist / (curDist - nextDist), &clipVertex.v->v);
-				#ifdef CONTACT_MANIFOLD_SIMPLE_KEYS
-				clipVertex.v->key.edgeA = inEdgeIndex;
-				clipVertex.v->key.edgeB = curVertex->key.edgeB;
-				#else
-				clipVertex.v->key.inEdgeA  = inEdgeIndex;
-				clipVertex.v->key.outEdgeA = CONTACT_KEY_INVALID_EDGE;
-				clipVertex.v->key.inEdgeB  = CONTACT_KEY_INVALID_EDGE;
-				clipVertex.v->key.outEdgeB = nextVertex->key.outEdgeB;
-				#endif
-				++clipVertex.v;
-			}
-
-			// We already know the next vertex and its
-			// distance, so set the current vertex to it.
-			curVertex = nextVertex;
-			curDist = nextDist;
-			++nextVertex;
-		} while(curVertex != lastVertex);
-
-		// After clipping the face, we need to swap the "loop" array
-		// with the "clip" array. This will allow us to loop through
-		// the newly clipped vertices on the next iteration.
-		curVertex = clipVertices.v;
-		clipVertices.v = loopVertices;
-		loopVertices = curVertex;
 		// The variable "clipVertex" will point to the vertex after the
 		// last one that was set, so we need to get the one before it.
 		lastVertex = &clipVertex.v[-1];
@@ -1797,7 +1657,9 @@ static void clipFaceContact(
 
 	loopVertex = loopVertices;
 	clipVertex.p = clipVertices.p;
-	curVertex = loopVertices;
+	// We don't really need to set "curVertex" to
+	// "loopVertices" as we do it in the loop above.
+
 	// We haven't found any contact points yet.
 	cm->numContacts = 0;
 	// Keep any points below the reference face and project them
