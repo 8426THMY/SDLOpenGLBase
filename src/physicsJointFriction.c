@@ -146,10 +146,10 @@ void physJointFrictionCalculateInverseEffectiveMass(
 	vec3 rBu1;
 	vec3 rBu2;
 
-	vec3 rAu1IA;
-	vec3 rAu2IA;
-	vec3 rBu1IB;
-	vec3 rBu2IB;
+	vec3 IArAu1;
+	vec3 IArAu2;
+	vec3 IBrBu1;
+	vec3 IBrBu2;
 
 	mat3 totalInertia;
 	float angularMass;
@@ -165,23 +165,23 @@ void physJointFrictionCalculateInverseEffectiveMass(
 	vec3CrossVec3Out(&joint->rB, &joint->tangents[0], &rBu1);
 	vec3CrossVec3Out(&joint->rB, &joint->tangents[1], &rBu2);
 
-	mat3MultiplyByVec3Out(invInertiaA, &rAu1, &rAu1IA);
-	mat3MultiplyByVec3Out(invInertiaA, &rAu2, &rAu2IA);
-	mat3MultiplyByVec3Out(invInertiaB, &rBu1, &rBu1IB);
-	mat3MultiplyByVec3Out(invInertiaB, &rBu2, &rBu2IB);
+	mat3MultiplyByVec3Out(invInertiaA, &rAu1, &IArAu1);
+	mat3MultiplyByVec3Out(invInertiaA, &rAu2, &IArAu2);
+	mat3MultiplyByVec3Out(invInertiaB, &rBu1, &IBrBu1);
+	mat3MultiplyByVec3Out(invInertiaB, &rBu2, &IBrBu2);
 
 	// Calculate the inverse linear effective mass.
-	joint->linearMass.m[0][0] = invMass + vec3DotVec3(&rAu1IA, &rAu1) + vec3DotVec3(&rBu1IB, &rBu1);
+	joint->linearMass.m[0][0] = invMass + vec3DotVec3(&IArAu1, &rAu1) + vec3DotVec3(&IBrBu1, &rBu1);
 	joint->linearMass.m[0][1] =
-	joint->linearMass.m[1][0] = vec3DotVec3(&rAu1IA, &rAu2) + vec3DotVec3(&rBu1IB, &rBu2);
-	joint->linearMass.m[1][1] = invMass + vec3DotVec3(&rAu2IA, &rAu2) + vec3DotVec3(&rBu2IB, &rBu2);
+	joint->linearMass.m[1][0] = vec3DotVec3(&IArAu1, &rAu2) + vec3DotVec3(&IBrBu1, &rBu2);
+	joint->linearMass.m[1][1] = invMass + vec3DotVec3(&IArAu2, &rAu2) + vec3DotVec3(&IBrBu2, &rBu2);
 	mat2Invert(&joint->linearMass);
 
 
 	// (JM^(-1))J^T = (n . (IA^(-1) * n)) + (n . (IB^(-1) * n))
 	mat3AddMat3Out(invInertiaA, invInertiaB, &totalInertia);
-	mat3MultiplyByVec3Out(&totalInertia, &joint->normal, &rAu1IA);
-	angularMass = vec3DotVec3(&rAu1IA, &joint->normal);
+	mat3MultiplyByVec3Out(&totalInertia, &joint->normal, &IArAu1);
+	angularMass = vec3DotVec3(&IArAu1, &joint->normal);
 
 	// Calculate the inverse angular effective mass.
 	joint->angularMass = (angularMass > 0.f) ? 1.f/angularMass : 0.f;
@@ -199,7 +199,6 @@ void physJointFrictionSolveVelocity(
 ){
 
 	vec2 lambda;
-	#warning "This is unused...?"
 	vec2 oldImpulse;
 	vec3 linearImpulse;
 	vec3 angularImpulse;
@@ -240,8 +239,7 @@ void physJointFrictionSolveVelocity(
 	if(impulseMagnitude > maxFriction * maxFriction){
 		// Normalize the vector and multiply by maxFriction at the same time.
 		vec2MultiplyS(&joint->linearImpulse, maxFriction * invSqrtFast(impulseMagnitude));
-		#warning "Why am I subtracting an uninitialized vec3 from a vec2????"
-		vec2SubtractVec2FromOut(&joint->linearImpulse, &angularImpulse, &lambda);
+		vec2SubtractVec2FromOut(&joint->linearImpulse, &oldImpulse, &lambda);
 	}
 
 	// Add the impulse magnitudes for both tangent directions.
@@ -253,8 +251,8 @@ void physJointFrictionSolveVelocity(
 	// lambda = -JV/((JM^(-1))J^T)
 	//        = -((wB - wA) . n)/K
 	// Calculate the magnitude for the angular impulse.
-	vec3SubtractVec3FromOut(&bodyB->angularVelocity, &bodyA->angularVelocity, &relativeVelocity);
-	lambda.x = -vec3DotVec3(&relativeVelocity, &joint->normal) * joint->angularMass;
+	vec3SubtractVec3FromOut(&bodyA->angularVelocity, &bodyB->angularVelocity, &relativeVelocity);
+	lambda.x = vec3DotVec3(&relativeVelocity, &joint->normal) * joint->angularMass;
 	lambda.y = joint->angularImpulse;
 	impulseMagnitude = joint->angularImpulse + lambda.x;
 

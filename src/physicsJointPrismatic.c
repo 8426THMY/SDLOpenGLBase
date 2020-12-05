@@ -353,19 +353,19 @@ static void calculateEffectiveMass(
 	vec3 *rBu1 = &joint->rBu1;
 	vec3 *rBu2 = &joint->rBu2;
 
-	vec3 rAu1IA;
-	vec3 rAu2IA;
-	vec3 rBu1IB;
-	vec3 rBu2IB;
+	vec3 IArAu1;
+	vec3 IArAu2;
+	vec3 IBrBu1;
+	vec3 IBrBu2;
 
 
 	// (JM^(-1))J^T = mA^(-1) + mB^(-1) + (((rA + d) X a) . (IA^(-1) * ((rA + d) X a))) + ((rB X a) . (IB^(-1) * (rB X a)))
-	mat3MultiplyByVec3Out(invInertiaA, rAa, &rAu1IA);
-	mat3MultiplyByVec3Out(invInertiaB, rBa, &rBu1IB);
+	mat3MultiplyByVec3Out(invInertiaA, rAa, &IArAu1);
+	mat3MultiplyByVec3Out(invInertiaB, rBa, &IBrBu1);
 
 	// Calculate the inverse limit and motor effective mass.
 	// The motor and both limits have the same effective mass.
-	joint->limitMotorMass = 1.f / (invMass + vec3DotVec3(&rAu1IA, rAa) + vec3DotVec3(&rBu1IB, rBa));
+	joint->limitMotorMass = 1.f / (invMass + vec3DotVec3(&IArAu1, rAa) + vec3DotVec3(&IBrBu1, rBa));
 
 
 	// K = (JM^(-1))J^T
@@ -373,16 +373,16 @@ static void calculateEffectiveMass(
 	// [K]_01 =                     (((rA + d) X u1) . (IA^(-1) * ((rA + d) X u2))) + ((rB X u1) . (IB^(-1) * (rB X u2)))
 	// [K]_10 = [K]_01
 	// [K]_11 = mA^(-1) + mB^(-1) + (((rA + d) X u2) . (IA^(-1) * ((rA + d) X u2))) + ((rB X u2) . (IB^(-1) * (rB X u2)))
-	mat3MultiplyByVec3Out(invInertiaA, rAu1, &rAu1IA);
-	mat3MultiplyByVec3Out(invInertiaA, rAu2, &rAu2IA);
-	mat3MultiplyByVec3Out(invInertiaB, rBu1, &rBu1IB);
-	mat3MultiplyByVec3Out(invInertiaB, rBu2, &rBu2IB);
+	mat3MultiplyByVec3Out(invInertiaA, rAu1, &IArAu1);
+	mat3MultiplyByVec3Out(invInertiaA, rAu2, &IArAu2);
+	mat3MultiplyByVec3Out(invInertiaB, rBu1, &IBrBu1);
+	mat3MultiplyByVec3Out(invInertiaB, rBu2, &IBrBu2);
 
 	// Calculate the inverse linear effective mass.
-	joint->linearMass.m[0][0] = invMass + vec3DotVec3(&rAu1IA, rAu1) + vec3DotVec3(&rBu1IB, rBu1);
+	joint->linearMass.m[0][0] = invMass + vec3DotVec3(&IArAu1, rAu1) + vec3DotVec3(&IBrBu1, rBu1);
 	joint->linearMass.m[0][1] =
-	joint->linearMass.m[1][0] = vec3DotVec3(&rAu1IA, rAu2) + vec3DotVec3(&rBu1IB, rBu2);
-	joint->linearMass.m[1][1] = invMass + vec3DotVec3(&rAu2IA, rAu2) + vec3DotVec3(&rBu2IB, rBu2);
+	joint->linearMass.m[1][0] = vec3DotVec3(&IArAu1, rAu2) + vec3DotVec3(&IBrBu1, rBu2);
+	joint->linearMass.m[1][1] = invMass + vec3DotVec3(&IArAu2, rAu2) + vec3DotVec3(&IBrBu2, rBu2);
 	mat2Invert(&joint->linearMass);
 
 

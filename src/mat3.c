@@ -728,24 +728,24 @@ void quatToMat3(const quat *const restrict q, mat3 *const restrict out){
 	float temp1;
 	float temp2;
 
-	out->m[0][0] = 1 - 2*(yy + zz);
-	out->m[1][1] = 1 - 2*(xx - zz);
-	out->m[2][2] = 1 - 2*(xx - yy);
+	out->m[0][0] = 1.f - 2.f*(yy + zz);
+	out->m[1][1] = 1.f - 2.f*(xx + zz);
+	out->m[2][2] = 1.f - 2.f*(xx + yy);
 
 	temp1 = q->x*q->y;
-	temp2 = q->w*q->z;
-	out->m[0][1] = 2*(temp1 - temp2);
-	out->m[1][0] = 2*(temp1 + temp2);
+	temp2 = q->z*q->w;
+	out->m[0][1] = 2.f*(temp1 + temp2);
+	out->m[1][0] = 2.f*(temp1 - temp2);
 
 	temp1 = q->x*q->z;
-	temp2 = q->w*q->y;
-	out->m[0][2] = 2*(temp1 + temp2);
-	out->m[2][0] = 2*(temp1 - temp2);
+	temp2 = q->y*q->w;
+	out->m[0][2] = 2.f*(temp1 - temp2);
+	out->m[2][0] = 2.f*(temp1 + temp2);
 
 	temp1 = q->y*q->z;
-	temp2 = q->w*q->x;
-	out->m[1][2] = 2*(temp1 - temp2);
-	out->m[2][1] = 2*(temp1 + temp2);
+	temp2 = q->x*q->w;
+	out->m[1][2] = 2.f*(temp1 + temp2);
+	out->m[2][1] = 2.f*(temp1 - temp2);
 }
 
 // Convert a quaternion to a 3x3 matrix!
@@ -757,24 +757,24 @@ mat3 quatToMat3R(const quat q){
 	float temp2;
 	mat3 out;
 
-	out.m[0][0] = 1 - 2*(yy + zz);
-	out.m[1][1] = 1 - 2*(xx - zz);
-	out.m[2][2] = 1 - 2*(xx - yy);
+	out.m[0][0] = 1.f - 2.f*(yy + zz);
+	out.m[1][1] = 1.f - 2.f*(xx + zz);
+	out.m[2][2] = 1.f - 2.f*(xx + yy);
 
 	temp1 = q.x*q.y;
-	temp2 = q.w*q.z;
-	out.m[0][1] = 2*(temp1 - temp2);
-	out.m[1][0] = 2*(temp1 + temp2);
+	temp2 = q.z*q.w;
+	out.m[0][1] = 2.f*(temp1 + temp2);
+	out.m[1][0] = 2.f*(temp1 - temp2);
 
 	temp1 = q.x*q.z;
-	temp2 = q.w*q.y;
-	out.m[0][2] = 2*(temp1 + temp2);
-	out.m[2][0] = 2*(temp1 - temp2);
+	temp2 = q.y*q.w;
+	out.m[0][2] = 2.f*(temp1 - temp2);
+	out.m[2][0] = 2.f*(temp1 + temp2);
 
 	temp1 = q.y*q.z;
-	temp2 = q.w*q.x;
-	out.m[1][2] = 2*(temp1 - temp2);
-	out.m[2][1] = 2*(temp1 + temp2);
+	temp2 = q.x*q.w;
+	out.m[1][2] = 2.f*(temp1 + temp2);
+	out.m[2][1] = 2.f*(temp1 - temp2);
 
 	return(out);
 }

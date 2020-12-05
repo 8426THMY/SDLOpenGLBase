@@ -532,7 +532,7 @@ void physRigidBodyApplyImpulsePosition(physicsRigidBody *const restrict body, co
 	}
 
 	// Orientation.
-	if(flagsSet(body->flags, PHYSRIGIDBODY_SIMULATE_ANGULAR)){
+	if(flagsAreSet(body->flags, PHYSRIGIDBODY_SIMULATE_ANGULAR)){
 		vec3 impulse;
 		quat tempRot;
 		vec3CrossVec3Out(r, p, &impulse);
@@ -555,7 +555,7 @@ void physRigidBodyApplyImpulsePositionInverse(physicsRigidBody *const restrict b
 	}
 
 	// Orientation.
-	if(flagsSet(body->flags, PHYSRIGIDBODY_SIMULATE_ANGULAR)){
+	if(flagsAreSet(body->flags, PHYSRIGIDBODY_SIMULATE_ANGULAR)){
 		vec3 impulse;
 		quat tempRot;
 		vec3CrossVec3Out(r, p, &impulse);

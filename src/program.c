@@ -202,7 +202,7 @@ static void input(program *const restrict prg){
 }
 
 /** TEMPORARY PHYSICS STUFF!! **/
-physicsRigidBody *controlPhys;
+physicsRigidBody *controlPhys = NULL;
 static void updateCameras(program *const restrict prg){
 	if(prg->keyStates[SDL_SCANCODE_LEFT]){
 		prg->cam.pos.x -= 10.f * prg->step.updateDelta;
@@ -229,29 +229,31 @@ static void updateCameras(program *const restrict prg){
 
 
 	/** TEMPORARY PHYSICS STUFF! **/
-	if(prg->keyStates[SDL_SCANCODE_J]){
-		vec3 F = vec3InitSetR(-40.f * controlPhys->mass, 0.f, 0.f);
-		physRigidBodyApplyLinearForce(controlPhys, &F);
-	}
-	if(prg->keyStates[SDL_SCANCODE_L]){
-		vec3 F = vec3InitSetR(40.f * controlPhys->mass, 0.f, 0.f);
-		physRigidBodyApplyLinearForce(controlPhys, &F);
-	}
-	if(prg->keyStates[SDL_SCANCODE_I]){
-		vec3 F = vec3InitSetR(0.f, 40.f * controlPhys->mass, 0.f);
-		physRigidBodyApplyLinearForce(controlPhys, &F);
-	}
-	if(prg->keyStates[SDL_SCANCODE_K]){
-		vec3 F = vec3InitSetR(0.f, -40.f * controlPhys->mass, 0.f);
-		physRigidBodyApplyLinearForce(controlPhys, &F);
-	}
-	if(prg->keyStates[SDL_SCANCODE_U]){
-		vec3 F = vec3InitSetR(0.f, 0.f, -40.f * controlPhys->mass);
-		physRigidBodyApplyLinearForce(controlPhys, &F);
-	}
-	if(prg->keyStates[SDL_SCANCODE_O]){
-		vec3 F = vec3InitSetR(0.f, 0.f, 40.f * controlPhys->mass);
-		physRigidBodyApplyLinearForce(controlPhys, &F);
+	if(controlPhys != NULL){
+		if(prg->keyStates[SDL_SCANCODE_J]){
+			vec3 F = vec3InitSetR(-40.f * controlPhys->mass, 0.f, 0.f);
+			physRigidBodyApplyLinearForce(controlPhys, &F);
+		}
+		if(prg->keyStates[SDL_SCANCODE_L]){
+			vec3 F = vec3InitSetR(40.f * controlPhys->mass, 0.f, 0.f);
+			physRigidBodyApplyLinearForce(controlPhys, &F);
+		}
+		if(prg->keyStates[SDL_SCANCODE_I]){
+			vec3 F = vec3InitSetR(0.f, 40.f * controlPhys->mass, 0.f);
+			physRigidBodyApplyLinearForce(controlPhys, &F);
+		}
+		if(prg->keyStates[SDL_SCANCODE_K]){
+			vec3 F = vec3InitSetR(0.f, -40.f * controlPhys->mass, 0.f);
+			physRigidBodyApplyLinearForce(controlPhys, &F);
+		}
+		if(prg->keyStates[SDL_SCANCODE_U]){
+			vec3 F = vec3InitSetR(0.f, 0.f, -40.f * controlPhys->mass);
+			physRigidBodyApplyLinearForce(controlPhys, &F);
+		}
+		if(prg->keyStates[SDL_SCANCODE_O]){
+			vec3 F = vec3InitSetR(0.f, 0.f, 40.f * controlPhys->mass);
+			physRigidBodyApplyLinearForce(controlPhys, &F);
+		}
 	}
 }
 
@@ -530,7 +532,7 @@ static return_t initResources(program *const restrict prg){
 		obj = moduleObjectAlloc();
 		objectInit(obj, objDef);
 		physIslandInsertRigidBody(&island, obj->physBodies);
-		if(i == 0){
+		if(i == 90){
 			controlPhys = obj->physBodies;
 			physRigidBodyIgnoreAngular(obj->physBodies);
 		}
@@ -562,7 +564,7 @@ static return_t initResources(program *const restrict prg){
 	obj = moduleObjectAlloc();
 	objectInit(obj, objDef);
 	physIslandInsertRigidBody(&island, obj->physBodies);printf("Egg: %u -> %u\n", obj->physBodies, obj->physBodies->colliders);
-	obj->state.pos.y = 0.f;
+	obj->state.pos.y = 0.f;obj->state.pos.z = -2.f;
 	/*obj->physBodies->mass = 0.f;
 	mat3InitZero(&obj->physBodies->invInertiaLocal);mat3InitZero(&obj->physBodies->invInertiaGlobal);
 	obj->physBodies->invMass = 0.f;*/
