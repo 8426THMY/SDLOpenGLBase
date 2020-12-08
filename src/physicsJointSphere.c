@@ -31,6 +31,8 @@ void physJointSphereSolveVelocity(void *const restrict joint, physicsRigidBody *
 ** This may also be called multiple times, but by returning
 ** the amount of error we'll know when to stop.
 */
-float physJointSphereSolvePosition(void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB){
-	return(0.f);
+#ifdef PHYSJOINTSPHERE_STABILISER_GAUSS_SEIDEL
+return_t physJointSphereSolvePosition(void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB){
+	return(1);
 }
+#endif

@@ -33,7 +33,7 @@ typedef struct physicsIsland {
 	physicsRigidBody *bodies;
 	physicsContactPair *contacts;
 	physicsSeparationPair *separations;
-	//physicsJointPair *joints;
+	physicsJointPair *joints;
 } physicsIsland;
 
 

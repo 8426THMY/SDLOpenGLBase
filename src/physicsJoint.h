@@ -6,6 +6,8 @@
 
 #include "settingsPhysics.h"
 
+#include "utilTypes.h"
+
 #include "physicsJointDistance.h"
 #include "physicsJointFixed.h"
 #include "physicsJointRevolute.h"
@@ -76,7 +78,7 @@ void physJointPresolve(
 	physicsJoint *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB, const float dt
 );
 void physJointSolveVelocity(physicsJoint *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB);
-void physJointSolvePosition(physicsJoint *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB);
+return_t physJointSolvePosition(physicsJoint *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB);
 
 
 extern void (*const physJointPresolveTable[PHYSJOINT_NUM_TYPES])(
@@ -85,7 +87,7 @@ extern void (*const physJointPresolveTable[PHYSJOINT_NUM_TYPES])(
 extern void (*const physJointSolveVelocityTable[PHYSJOINT_NUM_TYPES])(
 	void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB
 );
-extern float (*const physJointSolvePositionTable[PHYSJOINT_NUM_TYPES])(
+extern return_t (*const physJointSolvePositionTable[PHYSJOINT_NUM_TYPES])(
 	void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB
 );
 

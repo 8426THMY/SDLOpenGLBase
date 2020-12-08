@@ -18,7 +18,7 @@ void mat2InitZero(mat2 *const restrict m){
 }
 
 // Initialize the matrix's values to 0!
-mat2 mat2InitZeroR(){
+mat2 mat2InitZeroC(){
 	mat2 m;
 	memset(&m, 0.f, sizeof(m));
 
@@ -31,7 +31,7 @@ void mat2InitIdentity(mat2 *const restrict m){
 }
 
 // Initialize the matrix to an identity matrix!
-mat2 mat2InitIdentityR(){
+mat2 mat2InitIdentityC(){
 	return(g_mat2Identity);
 }
 
@@ -55,7 +55,7 @@ void mat2AddMat2Out(const mat2 *const restrict m1, const mat2 *const restrict m2
 }
 
 // Add the matrix "m2" to "m1" and return the result!
-mat2 mat2AddMat2R(const mat2 m1, const mat2 m2){
+mat2 mat2AddMat2C(const mat2 m1, const mat2 m2){
 	const mat2 out = {
 		.m[0][0] = m1.m[0][0] + m2.m[0][0],
 		.m[0][1] = m1.m[0][1] + m2.m[0][1],
@@ -83,7 +83,7 @@ void mat2MultiplyByVec2Out(const mat2 *const restrict m, const vec2 *const restr
 }
 
 // Multiply a matrix by a vec2!
-vec2 mat2MultiplyByVec2R(const mat2 m, const vec2 v){
+vec2 mat2MultiplyByVec2C(const mat2 m, const vec2 v){
 	const vec2 out = {
 		.x = m.m[0][0] * v.x + m.m[1][0] * v.y,
 		.y = m.m[0][1] * v.x + m.m[1][1] * v.y
@@ -113,7 +113,7 @@ void mat2MultiplyVec2ByOut(const mat2 m, const vec2 *const restrict v, mat2 *con
 }
 
 // Multiply a vec2 by a matrix!
-mat2 mat2MultiplyVec2ByR(const mat2 m, const vec2 v){
+mat2 mat2MultiplyVec2ByC(const mat2 m, const vec2 v){
 	mat2 out;
 
 	out.m[0][0] =
@@ -157,7 +157,7 @@ void mat2MultiplyByMat2Out(const mat2 m1, const mat2 m2, mat2 *const restrict ou
 }
 
 // Right-multiply "m1" by "m2"!
-mat2 mat2MultiplyByMat2R(const mat2 m1, const mat2 m2){
+mat2 mat2MultiplyByMat2C(const mat2 m1, const mat2 m2){
 	const mat2 out = {
 		.m[0][0] = m1.m[0][0] * m2.m[0][0] + m1.m[1][0] * m2.m[0][1],
 		.m[0][1] = m1.m[0][1] * m2.m[0][0] + m1.m[1][1] * m2.m[0][1],
@@ -200,7 +200,7 @@ void mat2TransposeOut(const mat2 m, mat2 *const restrict out){
 ** Find the transpose of a matrix! For column-major matrices, this effectively
 ** translates it to a row-major matrix. The reverse is true for row-major matrices.
 */
-mat2 mat2TransposeR(const mat2 m){
+mat2 mat2TransposeC(const mat2 m){
 	const mat2 out = {
 		.m[0][0] = m.m[0][0],
 		.m[0][1] = m.m[1][0],
@@ -247,7 +247,7 @@ void mat2InvertOut(const mat2 m, mat2 *const restrict out){
 }
 
 // Invert a matrix!
-mat2 mat2InvertR(const mat2 m){
+mat2 mat2InvertC(const mat2 m){
 	// Find the determinant of the matrix!
 	float invDet = m.m[0][0] * m.m[1][1] - m.m[1][0] * m.m[0][1];
 

@@ -49,7 +49,7 @@ void quatInitZero(quat *const restrict q){
 }
 
 // Initialize the quaternion's values to 0!
-quat quatInitZeroR(){
+quat quatInitZeroC(){
 	quat q;
 	memset(&q, 0.f, sizeof(q));
 
@@ -62,7 +62,7 @@ void quatInitIdentity(quat *const restrict q){
 }
 
 // Initialize the quaternion to an identity quaternion!
-quat quatInitIdentityR(){
+quat quatInitIdentityC(){
 	return(g_quatIdentity);
 }
 
@@ -75,7 +75,7 @@ void quatInitSet(quat *const restrict q, const float x, const float y, const flo
 }
 
 // Initialize the quaternion's values to the ones specified!
-quat quatInitSetR(const float x, const float y, const float z, const float w){
+quat quatInitSetC(const float x, const float y, const float z, const float w){
 	quat q;
 
 	q.x = x;
@@ -111,7 +111,7 @@ void quatInitEulerRad(quat *const restrict q, const float x, const float y, cons
 ** Initialize the quaternion's values to the Euler angles specified (in radians)!
 ** The order of rotations is ZYX.
 */
-quat quatInitEulerRadR(const float x, const float y, const float z){
+quat quatInitEulerRadC(const float x, const float y, const float z){
 	const float hx = x * 0.5f;
 	const float hy = y * 0.5f;
 	const float hz = z * 0.5f;
@@ -143,8 +143,8 @@ void quatInitEulerDeg(quat *const restrict q, const float x, const float y, cons
 ** Initialize the quaternion's values to the Euler angles specified (in radians)!
 ** The order of rotations is ZYX.
 */
-quat quatInitEulerDegR(const float x, const float y, const float z){
-	return(quatInitEulerRadR(x * DEG_TO_RAD, y * DEG_TO_RAD, z * DEG_TO_RAD));
+quat quatInitEulerDegC(const float x, const float y, const float z){
+	return(quatInitEulerRadC(x * DEG_TO_RAD, y * DEG_TO_RAD, z * DEG_TO_RAD));
 }
 
 /*
@@ -159,8 +159,8 @@ void quatInitEulerVec3Rad(quat *const restrict q, const vec3 *const restrict v){
 ** Initialize the quaternion's values to the Euler angles specified in "v" (in radians)!
 ** The order of rotations is ZYX.
 */
-quat quatInitEulerVec3RadR(const vec3 v){
-	return(quatInitEulerRadR(v.x, v.y, v.z));
+quat quatInitEulerVec3RadC(const vec3 v){
+	return(quatInitEulerRadC(v.x, v.y, v.z));
 }
 
 /*
@@ -175,8 +175,8 @@ void quatInitEulerVec3Deg(quat *const restrict q, const vec3 *const restrict v){
 ** Initialize the quaternion's values to the Euler angles specified in "v" (in radians)!
 ** The order of rotations is ZYX.
 */
-quat quatInitEulerVec3DegR(const vec3 v){
-	return(quatInitEulerRadR(v.x * DEG_TO_RAD, v.y * DEG_TO_RAD, v.z * DEG_TO_RAD));
+quat quatInitEulerVec3DegC(const vec3 v){
+	return(quatInitEulerRadC(v.x * DEG_TO_RAD, v.y * DEG_TO_RAD, v.z * DEG_TO_RAD));
 }
 
 
@@ -197,7 +197,7 @@ void quatAddOut(const quat *const restrict q, const float x, const float y, cons
 }
 
 // Add a quat stored as four floats to "q"!
-quat quatAddR(quat q, const float x, const float y, const float z, const float w){
+quat quatAddC(quat q, const float x, const float y, const float z, const float w){
 	q.x += x;
 	q.y += y;
 	q.z += z;
@@ -223,7 +223,7 @@ void quatAddSOut(const quat *const restrict q, const float x, quat *const restri
 }
 
 // Add "x" to "q"!
-quat quatAddSR(quat q, const float x){
+quat quatAddSC(quat q, const float x){
 	q.x += x;
 	q.y += x;
 	q.z += x;
@@ -249,7 +249,7 @@ void quatAddQuatOut(const quat *const restrict q, const vec4 *const restrict v, 
 }
 
 // Add "v" to "q"!
-quat quatAddQuatR(quat q, const vec4 v){
+quat quatAddQuatC(quat q, const vec4 v){
 	q.x += v.x;
 	q.y += v.y;
 	q.z += v.z;
@@ -275,7 +275,7 @@ void quatSubtractOut(const quat *const restrict q, const float x, const float y,
 }
 
 // Subtract a quat stored as four floats from "q"!
-quat quatSubtractR(quat q, const float x, const float y, const float z, const float w){
+quat quatSubtractC(quat q, const float x, const float y, const float z, const float w){
 	q.x -= x;
 	q.y -= y;
 	q.z -= z;
@@ -301,7 +301,7 @@ void quatSubtractFromOut(const quat *const restrict q, const float x, const floa
 }
 
 // Subtract "q" from a quat stored as four floats!
-quat quatSubtractFromR(quat q, const float x, const float y, const float z, const float w){
+quat quatSubtractFromC(quat q, const float x, const float y, const float z, const float w){
 	q.x = x - q.x;
 	q.y = y - q.y;
 	q.z = z - q.z;
@@ -327,7 +327,7 @@ void quatSubtractSFromOut(const quat *const restrict q, const float x, quat *con
 }
 
 // Subtract "x" from "q"!
-quat quatSubtractSFromR(quat q, const float x){
+quat quatSubtractSFromC(quat q, const float x){
 	q.x -= x;
 	q.y -= x;
 	q.z -= x;
@@ -353,7 +353,7 @@ void quatSubtractFromSOut(const quat *const restrict q, const float x, quat *con
 }
 
 // Subtract "q" from "x"!
-quat quatSubtractFromSR(quat q, const float x){
+quat quatSubtractFromSC(quat q, const float x){
 	q.x = x - q.x;
 	q.y = x - q.y;
 	q.z = x - q.z;
@@ -387,7 +387,7 @@ void quatSubtractQuatFromOut(const quat *const restrict q, const vec4 *const res
 }
 
 // Subtract "v" from "q"!
-quat quatSubtractQuatFromR(quat q, const vec4 v){
+quat quatSubtractQuatFromC(quat q, const vec4 v){
 	q.x -= v.x;
 	q.y -= v.y;
 	q.z -= v.z;
@@ -414,7 +414,7 @@ void quatMultiplySOut(const quat *const restrict q, const float x, quat *const r
 }
 
 // Multiply "q" by "x"!
-quat quatMultiplySR(quat q, const float x){
+quat quatMultiplySC(quat q, const float x){
 	q.x *= x;
 	q.y *= x;
 	q.z *= x;
@@ -440,7 +440,7 @@ void quatMultiplyVec4Out(const quat *const restrict q, const vec4 *const restric
 }
 
 // Multiply "q" by "v"!
-quat quatMultiplyVec4R(quat q, const vec4 v){
+quat quatMultiplyVec4C(quat q, const vec4 v){
 	q.x *= v.x;
 	q.y *= v.y;
 	q.z *= v.z;
@@ -470,7 +470,7 @@ void quatDivideBySOut(const quat *const restrict q, const float x, quat *const r
 }
 
 // Divide "q" by "x"!
-quat quatDivideBySR(quat q, const float x){
+quat quatDivideBySC(quat q, const float x){
 	const float invX = 1.f / x;
 
 	q.x *= invX;
@@ -498,7 +498,7 @@ void quatDivideSByOut(const quat *const restrict q, const float x, quat *const r
 }
 
 // Divide "x" by "q"!
-quat quatDivideSByR(quat q, const float x){
+quat quatDivideSByC(quat q, const float x){
 	q.x = (q.x != 0.f) ? x / q.x : 0.f;
 	q.y = (q.y != 0.f) ? x / q.y : 0.f;
 	q.z = (q.z != 0.f) ? x / q.z : 0.f;
@@ -534,7 +534,7 @@ void quatDivideSByFastOut(const quat *const restrict q, const float x, quat *con
 ** Divide "x" by "q"! Unlike the regular version, this
 ** does not check to prevent against divide-by-zero errors.
 */
-quat quatDivideSByFastR(quat q, const float x){
+quat quatDivideSByFastC(quat q, const float x){
 	q.x = x / q.x;
 	q.y = x / q.y;
 	q.z = x / q.z;
@@ -560,7 +560,7 @@ void quatDivideByVec4Out(const quat *const restrict q, const vec4 *const restric
 }
 
 // Divide "q" by "v"!
-quat quatDivideByVec4R(quat q, const vec4 v){
+quat quatDivideByVec4C(quat q, const vec4 v){
 	q.x = (v.x != 0.f) ? q.x / v.x : 0.f;
 	q.y = (v.y != 0.f) ? q.y / v.y : 0.f;
 	q.z = (v.z != 0.f) ? q.z / v.z : 0.f;
@@ -586,7 +586,7 @@ void quatDivideVec4ByOut(const quat *const restrict q, const vec4 *const restric
 }
 
 // Divide "v" by "q"!
-quat quatDivideVec4ByR(quat q, const vec4 v){
+quat quatDivideVec4ByC(quat q, const vec4 v){
 	q.x = (q.x != 0.f) ? v.x / q.x : 0.f;
 	q.y = (q.y != 0.f) ? v.y / q.y : 0.f;
 	q.z = (q.z != 0.f) ? v.z / q.z : 0.f;
@@ -622,7 +622,7 @@ void quatDivideByVec4FastOut(const quat *const restrict q, const vec4 *const res
 ** Divide "q" by "v"! Unlike the regular version, this
 ** does not check to prevent against divide-by-zero errors.
 */
-quat quatDivideByVec4FastR(quat q, const vec4 v){
+quat quatDivideByVec4FastC(quat q, const vec4 v){
 	q.x /= v.x;
 	q.y /= v.y;
 	q.z /= v.z;
@@ -658,7 +658,7 @@ void quatDivideVec4ByFastOut(const quat *const restrict q, const vec4 *const res
 ** Divide "v" by "q"! Unlike the regular version, this
 ** does not check to prevent against divide-by-zero errors.
 */
-quat quatDivideVec4ByFastR(quat q, const vec4 v){
+quat quatDivideVec4ByFastC(quat q, const vec4 v){
 	q.x = v.x / q.x;
 	q.y = v.y / q.y;
 	q.z = v.z / q.z;
@@ -705,7 +705,7 @@ void quatMultiplyByQuatFastOut(const quat *const restrict q1, const quat *const 
 }
 
 // Multiply "q1" by "q2" (apply a rotation of "q1" to "q2")!
-quat quatMultiplyByQuatR(const quat q1, const quat q2){
+quat quatMultiplyByQuatC(const quat q1, const quat q2){
 	quat out;
 
 	out.x = q1.w * q2.x + q1.x * q2.w + q1.y * q2.z - q1.z * q2.y;
@@ -748,10 +748,10 @@ void quatRotateVec3Out(const quat *const restrict q, const vec3 *const restrict 
 }
 
 // Apply a quaternion rotation to a vec3!
-vec3 quatRotateVec3R(const quat q, vec3 v){
-	float qvDot = vec3DotVec3FloatR(v, q.x, q.y, q.z);
+vec3 quatRotateVec3C(const quat q, vec3 v){
+	float qvDot = vec3DotVec3FloatC(v, q.x, q.y, q.z);
 	const float qNorm = q.w * q.w - vec3Norm(q.x, q.y, q.z);
-	const vec3 qvCross = vec3MultiplySR(vec3CrossFloatVec3R(q.x, q.y, q.z, v), q.w + q.w);
+	const vec3 qvCross = vec3MultiplySC(vec3CrossFloatVec3C(q.x, q.y, q.z, v), q.w + q.w);
 	qvDot += qvDot;
 
 	v.x = qvDot * q.x + qNorm * v.x + qvCross.x;
@@ -792,10 +792,10 @@ void quatRotateVec3InverseOut(const quat *const restrict q, const vec3 *const re
 }
 
 // Undo a quaternion rotation on a vec3!
-vec3 quatRotateVec3InverseR(const quat q, vec3 v){
-	float qvDot = vec3DotVec3FloatR(v, q.x, q.y, q.z);
+vec3 quatRotateVec3InverseC(const quat q, vec3 v){
+	float qvDot = vec3DotVec3FloatC(v, q.x, q.y, q.z);
 	const float qNorm = q.w * q.w - vec3Norm(q.x, q.y, q.z);
-	const vec3 qvCross = vec3MultiplySR(vec3CrossFloatVec3R(q.x, q.y, q.z, v), -q.w - q.w);
+	const vec3 qvCross = vec3MultiplySC(vec3CrossFloatVec3C(q.x, q.y, q.z, v), -q.w - q.w);
 	qvDot += qvDot;
 
 	v.x = qvDot * q.x + qNorm * v.x + qvCross.x;
@@ -838,12 +838,12 @@ void quatRotateVec3FastOut(const quat *const restrict q, const vec3 *const restr
 }
 
 // Apply a quaternion rotation to a vec3!
-vec3 quatRotateVec3FastR(const quat q, vec3 v){
-	vec3 qvCross = vec3CrossFloatVec3R(q.x, q.y, q.z, v);
+vec3 quatRotateVec3FastC(const quat q, vec3 v){
+	vec3 qvCross = vec3CrossFloatVec3C(q.x, q.y, q.z, v);
 	qvCross.x += q.w * v.x;
 	qvCross.y += q.w * v.y;
 	qvCross.z += q.w * v.z;
-	qvCross = vec3CrossFloatVec3R(q.x, q.y, q.z, qvCross);
+	qvCross = vec3CrossFloatVec3C(q.x, q.y, q.z, qvCross);
 
 	v.x = qvCross.x + qvCross.x + v.x;
 	v.y = qvCross.y + qvCross.y + v.y;
@@ -881,12 +881,12 @@ void quatRotateVec3InverseFastOut(const quat *const restrict q, const vec3 *cons
 }
 
 // Undo a quaternion rotation on a vec3!
-vec3 quatRotateVec3InverseFastR(const quat q, vec3 v){
-	vec3 qvCross = vec3CrossFloatVec3R(q.x, q.y, q.z, v);
+vec3 quatRotateVec3InverseFastC(const quat q, vec3 v){
+	vec3 qvCross = vec3CrossFloatVec3C(q.x, q.y, q.z, v);
 	qvCross.x -= q.w * v.x;
 	qvCross.y -= q.w * v.y;
 	qvCross.z -= q.w * v.z;
-	qvCross = vec3CrossR(q.x, q.y, q.z, qvCross.x, qvCross.y, qvCross.z);
+	qvCross = vec3CrossC(q.x, q.y, q.z, qvCross.x, qvCross.y, qvCross.z);
 
 	v.x = qvCross.x + qvCross.x + v.x;
 	v.y = qvCross.y + qvCross.y + v.y;
@@ -907,8 +907,8 @@ float quatMagnitudeQuat(const quat *const restrict q){
 }
 
 // Find the magnitude (length) of a quaternion!
-float quatMagnitudeQuatR(const quat q){
-	return(sqrtf(quatNormQuatR(q)));
+float quatMagnitudeQuatC(const quat q){
+	return(sqrtf(quatNormQuatC(q)));
 }
 
 
@@ -923,7 +923,7 @@ float quatDotQuatFloat(const quat *const restrict q, const float x, const float 
 }
 
 // Find the dot product of a quat and a vec4 stored as four floats!
-float quatDotQuatFloatR(const quat q, const float x, const float y, const float z, const float w){
+float quatDotQuatFloatC(const quat q, const float x, const float y, const float z, const float w){
 	return(q.x * x + q.y * y + q.z * z + q.w * w);
 }
 
@@ -933,7 +933,7 @@ float quatDotQuat(const quat *const restrict q1, const quat *const restrict q2){
 }
 
 // Find the dot product of two vec4s!
-float quatDotQuatR(const quat q1, const quat q2){
+float quatDotQuatC(const quat q1, const quat q2){
 	return(q1.x * q2.x + q1.y * q2.y + q1.z * q2.z + q1.w * q2.w);
 }
 
@@ -948,7 +948,7 @@ float quatNormQuat(const quat *const restrict q){
 }
 
 // Find the norm of a quaternion!
-float quatNormQuatR(const quat q){
+float quatNormQuatC(const quat q){
 	return(q.x * q.x + q.y * q.y + q.z * q.z + q.w * q.w);
 }
 
@@ -974,7 +974,7 @@ void quatNormalizeFast(const float x, const float y, const float z, const float 
 }
 
 // Normalize a quaternion stored as four floats!
-quat quatNormalizeR(const float x, const float y, const float z, const float w){
+quat quatNormalizeC(const float x, const float y, const float z, const float w){
 	const float magnitude = invSqrt(x * x + y * y + z * z + w * w);
 	quat q;
 
@@ -987,7 +987,7 @@ quat quatNormalizeR(const float x, const float y, const float z, const float w){
 }
 
 // Normalize a quaternion stored as four floats!
-quat quatNormalizeFastR(const float x, const float y, const float z, const float w){
+quat quatNormalizeFastC(const float x, const float y, const float z, const float w){
 	const float magnitude = invSqrtFast(x * x + y * y + z * z + w * w);
 	quat q;
 
@@ -1040,7 +1040,7 @@ void quatNormalizeQuatFastOut(const quat *const restrict q, quat *const restrict
 }
 
 // Normalize a quaternion!
-quat quatNormalizeQuatR(quat q){
+quat quatNormalizeQuatC(quat q){
 	const float magnitude = invSqrt(q.x * q.x + q.y * q.y + q.z * q.z + q.w * q.w);
 
 	q.x *= magnitude;
@@ -1052,7 +1052,7 @@ quat quatNormalizeQuatR(quat q){
 }
 
 // Normalize a quaternion!
-quat quatNormalizeQuatFastR(quat q){
+quat quatNormalizeQuatFastC(quat q){
 	const float magnitude = invSqrtFast(q.x * q.x + q.y * q.y + q.z * q.z + q.w * q.w);
 
 	q.x *= magnitude;
@@ -1083,7 +1083,7 @@ void quatConjugateOut(const quat *const restrict q, quat *const restrict out){
 }
 
 // Find the conjugate of a quaternion!
-quat quatConjugateR(quat q){
+quat quatConjugateC(quat q){
 	q.x = -q.x;
 	q.y = -q.y;
 	q.z = -q.z;
@@ -1107,7 +1107,7 @@ void quatConjugateFastOut(const quat *const restrict q, quat *const restrict out
 }
 
 // Find the conjugate of a quaternion!
-quat quatConjugateFastR(quat q){
+quat quatConjugateFastC(quat q){
 	q.w = -q.w;
 
 	return(q);
@@ -1133,7 +1133,7 @@ void quatNegateOut(const quat *const restrict q, quat *const restrict out){
 }
 
 // Negative every component of a quaternion!
-quat quatNegateR(quat q){
+quat quatNegateC(quat q){
 	q.x = -q.x;
 	q.y = -q.y;
 	q.z = -q.z;
@@ -1177,7 +1177,7 @@ void quatToAxisAngleFast(const quat *const restrict q, vec4 *const restrict out)
 }
 
 // Convert a quaternion to an axis and an angle!
-vec4 quatToAxisAngleR(const quat q){
+vec4 quatToAxisAngleC(const quat q){
 	vec4 v;
 
 	if(q.w > -1.f && q.w < 1.f){
@@ -1197,7 +1197,7 @@ vec4 quatToAxisAngleR(const quat q){
 }
 
 // Convert a quaternion to an axis and an angle!
-vec4 quatToAxisAngleFastR(const quat q){
+vec4 quatToAxisAngleFastC(const quat q){
 	vec4 v;
 
 	if(q.w > -1.f && q.w < 1.f){
@@ -1225,8 +1225,8 @@ void quatRotateByRad(quat *const restrict q, const float x, const float y, const
 }
 
 // Rotate a quaternion (in radians)!
-quat quatRotateByRadR(const quat q, const float x, const float y, const float z){
-	return(quatMultiplyByQuatR(quatInitEulerRadR(x, y, z), q));
+quat quatRotateByRadC(const quat q, const float x, const float y, const float z){
+	return(quatMultiplyByQuatC(quatInitEulerRadC(x, y, z), q));
 }
 
 // Rotate a quaternion (in degrees)!
@@ -1235,8 +1235,8 @@ void quatRotateByDeg(quat *const restrict q, const float x, const float y, const
 }
 
 // Rotate a quaternion (in degrees)!
-quat quatRotateByDegR(const quat q, const float x, const float y, const float z){
-	return(quatRotateByRadR(q, x * DEG_TO_RAD, y * DEG_TO_RAD, z * DEG_TO_RAD));
+quat quatRotateByDegC(const quat q, const float x, const float y, const float z){
+	return(quatRotateByRadC(q, x * DEG_TO_RAD, y * DEG_TO_RAD, z * DEG_TO_RAD));
 }
 
 // Rotate a quaternion by a vec3 (in radians)!
@@ -1245,8 +1245,8 @@ void quatRotateByVec3Rad(quat *const restrict q, const vec3 *const restrict v){
 }
 
 // Rotate a quaternion by a vec3 (in radians)!
-quat quatRotateByVec3RadR(const quat q, const vec3 v){
-	return(quatRotateByRadR(q, v.x, v.y, v.z));
+quat quatRotateByVec3RadC(const quat q, const vec3 v){
+	return(quatRotateByRadC(q, v.x, v.y, v.z));
 }
 
 // Rotate a quaternion by a vec3 (in degrees)!
@@ -1255,8 +1255,8 @@ void quatRotateByVec3Deg(quat *const restrict q, const vec3 *const restrict v){
 }
 
 // Rotate a quaternion by a vec3 (in degrees)!
-quat quatRotateByVec3DegR(const quat q, const vec3 v){
-	return(quatRotateByRadR(q, v.x * DEG_TO_RAD, v.y * DEG_TO_RAD, v.z * DEG_TO_RAD));
+quat quatRotateByVec3DegC(const quat q, const vec3 v){
+	return(quatRotateByRadC(q, v.x * DEG_TO_RAD, v.y * DEG_TO_RAD, v.z * DEG_TO_RAD));
 }
 
 
@@ -1283,14 +1283,14 @@ void quatLerpOut(const quat *const restrict q1, const quat *const restrict q2, c
 }
 
 // Perform linear interpolation between two quaternions!
-quat quatLerpR(quat q1, const quat q2, const float time){
+quat quatLerpC(quat q1, const quat q2, const float time){
 	q1.x = lerpFloatFast(q1.x, q2.x, time);
 	q1.y = lerpFloatFast(q1.y, q2.y, time);
 	q1.z = lerpFloatFast(q1.z, q2.z, time);
 	q1.w = lerpFloatFast(q1.w, q2.w, time);
 
 	// It's nice to be safe... but it isn't very fast.
-	return(quatNormalizeQuatR(q1));
+	return(quatNormalizeQuatC(q1));
 }
 
 /*
@@ -1298,7 +1298,7 @@ quat quatLerpR(quat q1, const quat q2, const float time){
 ** Instead of entering the two vectors to interpolate between, this function accepts
 ** the starting orientation and the difference between it and the ending orientation.
 */
-void quatLerpFast(quat *const restrict q, const quat *const restrict offset, const float time){
+void quatLerpDiff(quat *const restrict q, const quat *const restrict offset, const float time){
 	q->x = lerpDiffFast(q->x, offset->x, time);
 	q->y = lerpDiffFast(q->y, offset->y, time);
 	q->z = lerpDiffFast(q->z, offset->z, time);
@@ -1313,7 +1313,7 @@ void quatLerpFast(quat *const restrict q, const quat *const restrict offset, con
 ** Instead of entering the two vectors to interpolate between, this function accepts
 ** the starting orientation and the difference between it and the ending orientation.
 */
-void quatLerpFastOut(const quat *const restrict q, const quat *const restrict offset, const float time, quat *const restrict out){
+void quatLerpDiffOut(const quat *const restrict q, const quat *const restrict offset, const float time, quat *const restrict out){
 	out->x = lerpDiffFast(q->x, offset->x, time);
 	out->y = lerpDiffFast(q->y, offset->y, time);
 	out->z = lerpDiffFast(q->z, offset->z, time);
@@ -1328,14 +1328,14 @@ void quatLerpFastOut(const quat *const restrict q, const quat *const restrict of
 ** Instead of entering the two vectors to interpolate between, this function accepts
 ** the starting orientation and the difference between it and the ending orientation.
 */
-quat quatLerpFastR(quat q, const quat offset, const float time){
+quat quatLerpDiffC(quat q, const quat offset, const float time){
 	q.x = lerpDiffFast(q.x, offset.x, time);
 	q.y = lerpDiffFast(q.y, offset.y, time);
 	q.z = lerpDiffFast(q.z, offset.z, time);
 	q.w = lerpDiffFast(q.w, offset.w, time);
 
 	// It's nice to be safe... but it isn't very fast.
-	return(quatNormalizeQuatR(q));
+	return(quatNormalizeQuatC(q));
 }
 
 // Perform spherical linear interpolation between two quaternions!
@@ -1402,19 +1402,19 @@ void quatSlerpOut(const quat *const restrict q1, quat q2, const float time, quat
 }
 
 // Perform spherical linear interpolation between two quaternions!
-quat quatSlerpR(quat q1, quat q2, const float time){
-	float cosTheta = quatDotQuatR(q1, q2);
+quat quatSlerpC(quat q1, quat q2, const float time){
+	float cosTheta = quatDotQuatC(q1, q2);
 
 	// Prevent the interpolation from taking the longer path.
 	if(cosTheta < 0.f){
 		cosTheta = -cosTheta;
-		q2 = quatNegateR(q2);
+		q2 = quatNegateC(q2);
 	}
 
 	// We can perform linear interpolation if the angle is
 	// small enough (in this case, less than half a degree).
 	if(cosTheta > QUAT_LERP_THRESHOLD){
-		return(quatLerpR(q1, q2, time));
+		return(quatLerpC(q1, q2, time));
 	}else{
 		const float theta = acosf(cosTheta);
 		const float invSinTheta = 1.f / sinf(theta);
@@ -1427,7 +1427,7 @@ quat quatSlerpR(quat q1, quat q2, const float time){
 		q1.w = q1.w * sinThetaInvT + q2.w * sinThetaT;
 
 		// It's nice to be safe... but it isn't very fast.
-		return(quatNormalizeQuatR(q1));
+		return(quatNormalizeQuatC(q1));
 	}
 }
 
@@ -1501,19 +1501,19 @@ void quatSlerpFastOut(const quat *const restrict q1, quat q2, const float time, 
 }
 
 // Slerp two quaternions using an optimized algorithm!
-quat quatSlerpFastR(quat q1, quat q2, const float time){
-	float cosTheta = quatDotQuatR(q1, q2);
+quat quatSlerpFastC(quat q1, quat q2, const float time){
+	float cosTheta = quatDotQuatC(q1, q2);
 
 	// Prevent the interpolation from taking the longer path.
 	if(cosTheta < 0.f){
 		cosTheta = -cosTheta;
-		q2 = quatNegateR(q2);
+		q2 = quatNegateC(q2);
 	}
 
 	// We can perform linear interpolation if the angle is
 	// small enough (in this case, less than half a degree).
 	if(cosTheta > QUAT_LERP_THRESHOLD){
-		return(quatLerpR(q1, q2, time));
+		return(quatLerpC(q1, q2, time));
 	}else{
 		const float theta = acosf(cosTheta);
 		const float sinTheta = invSqrtFast(1.f - cosTheta * cosTheta);
@@ -1526,7 +1526,7 @@ quat quatSlerpFastR(quat q1, quat q2, const float time){
 		q1.w = q1.w * sinThetaInvT + q2.w * sinThetaT;
 
 		// It's nice to be safe... but it isn't very fast.
-		return(quatNormalizeQuatFastR(q1));
+		return(quatNormalizeQuatFastC(q1));
 	}
 }
 
@@ -1637,8 +1637,8 @@ void quatSlerpFasterOut(const quat *const restrict q1, const quat *const restric
 }
 
 // Slerp two quaternions using an even more optimized algorithm!
-quat quatSlerpFasterR(quat q1, const quat q2, const float time){
-	float x = quatDotQuatR(q1, q2);
+quat quatSlerpFasterC(quat q1, const quat q2, const float time){
+	float x = quatDotQuatC(q1, q2);
 	const float sign = (x >= 0.f) ? 1.f : (x = -x, -1.f);
 
 	const float xm1 = x - 1.f;
@@ -1682,7 +1682,7 @@ quat quatSlerpFasterR(quat q1, const quat q2, const float time){
 	q1.z = q1.z * cD + q2.z * cT;
 	q1.w = q1.w * cD + q2.w * cT;
 
-	return(quatNormalizeQuatFastR(q1));
+	return(quatNormalizeQuatFastC(q1));
 }
 
 
@@ -1751,16 +1751,16 @@ void quatScaleOut(const quat *const restrict q, const float x, quat *const restr
 ** Scale a quaternion by slerping between
 ** it and the identity quaternion!
 */
-quat quatScaleR(quat q, const float x){
+quat quatScaleC(quat q, const float x){
 	const float absCosTheta = fabsf(q.w);
 	// We can perform linear interpolation if the angle is
 	// small enough (in this case, less than half a degree).
 	if(absCosTheta > QUAT_LERP_THRESHOLD){
 		// Prevent the interpolation from taking the longer path.
 		if(q.w < 0.f){
-			return(quatMultiplySR(q, -x));
+			return(quatMultiplySC(q, -x));
 		}
-		return(quatMultiplySR(q, x));
+		return(quatMultiplySC(q, x));
 	}else{
 		const float theta = acosf(absCosTheta);
 		const float invSinTheta = 1.f / sinf(theta);
@@ -1768,11 +1768,11 @@ quat quatScaleR(quat q, const float x){
 		// Prevent the interpolation from taking the longer path.
 		const float sinThetaT = (q.w >= 0.f) ? sinf(theta * x) * invSinTheta : -(sinf(theta * x) * invSinTheta);
 
-		q = quatMultiplySR(q, sinThetaT);
+		q = quatMultiplySC(q, sinThetaT);
 		q.w += sinThetaInvT;
 
 		// It's nice to be safe... but it isn't very fast.
-		return(quatNormalizeQuatR(q));
+		return(quatNormalizeQuatC(q));
 	}
 }
 
@@ -1840,16 +1840,16 @@ void quatScaleFastOut(const quat *const restrict q, const float x, quat *const r
 }
 
 // Scale a quaternion using an optimized algorithm!
-quat quatScaleFastR(quat q, const float x){
+quat quatScaleFastC(quat q, const float x){
 	const float absCosTheta = fabsf(q.w);
 	// We can perform linear interpolation if the angle is
 	// small enough (in this case, less than half a degree).
 	if(absCosTheta > QUAT_LERP_THRESHOLD){
 		// Prevent the interpolation from taking the longer path.
 		if(q.w < 0.f){
-			return(quatMultiplySR(q, -x));
+			return(quatMultiplySC(q, -x));
 		}
-		return(quatMultiplySR(q, x));
+		return(quatMultiplySC(q, x));
 	}else{
 		const float theta = acosf(absCosTheta);
 		const float sinTheta = invSqrtFast(1.f - absCosTheta * absCosTheta);
@@ -1857,11 +1857,11 @@ quat quatScaleFastR(quat q, const float x){
 		// Prevent the interpolation from taking the longer path.
 		const float sinThetaT = (q.w >= 0.f) ? sinf(theta * x) * sinTheta : -(sinf(theta * x) * sinTheta);
 
-		q = quatMultiplySR(q, sinThetaT);
+		q = quatMultiplySC(q, sinThetaT);
 		q.w += sinThetaInvT;
 
 		// It's nice to be safe... but it isn't very fast.
-		return(quatNormalizeQuatFastR(q));
+		return(quatNormalizeQuatFastC(q));
 	}
 }
 
@@ -1968,7 +1968,7 @@ void quatScaleFasterOut(const quat *const restrict q, const float time, quat *co
 }
 
 // Scale a quaternion using an even more optimized algorithm!
-quat quatScaleFasterR(quat q, const float time){
+quat quatScaleFasterC(quat q, const float time){
 	float x = q.w;
 	const float sign = (x >= 0.f) ? 1.f : (x = -x, -1.f);
 
@@ -2008,10 +2008,10 @@ quat quatScaleFasterR(quat q, const float time){
 	);
 
 
-	q = quatMultiplySR(q, cD);
+	q = quatMultiplySC(q, cD);
 	q.w += cT;
 
-	return(quatNormalizeQuatFastR(q));
+	return(quatNormalizeQuatFastC(q));
 }
 
 
@@ -2055,7 +2055,7 @@ void quatDifferentiateOut(const quat *const restrict q, const vec3 *const restri
 **
 ** dq/dt = 0.5f * quat(w.xyz, 0.f) * q
 */
-quat quatDifferentiateR(const quat q, const vec3 w){
+quat quatDifferentiateC(const quat q, const vec3 w){
 	const quat spin = {
 		.x = w.x * 0.5f,
 		.y = w.y * 0.5f,
@@ -2063,7 +2063,7 @@ quat quatDifferentiateR(const quat q, const vec3 w){
 		.w = 0.f
 	};
 
-	return(quatMultiplyByQuatR(spin, q));
+	return(quatMultiplyByQuatC(spin, q));
 }
 
 /*
@@ -2108,9 +2108,9 @@ void quatIntegrateOut(const quat *const restrict q, const vec3 *const restrict w
 **
 ** q_(n + 1) = q_n + dq/dt * dt
 */
-quat quatIntegrateR(const quat q, const vec3 w, float dt){
+quat quatIntegrateC(const quat q, const vec3 w, float dt){
 	dt *= 0.5f;
 	// Multiply by half the timestep to
 	// save multiplications later on.
-	return(quatAddQuatR(q, quatMultiplyByQuatR(quatInitSetR(w.x * dt, w.y * dt, w.z * dt, 0.f), q)));
+	return(quatAddQuatC(q, quatMultiplyByQuatC(quatInitSetC(w.x * dt, w.y * dt, w.z * dt, 0.f), q)));
 }

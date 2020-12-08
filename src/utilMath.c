@@ -4,6 +4,9 @@
 #define SQRT_ONE_THIRD 0.57735026f
 
 
+#warning "We initialize a lot of vectors to a difference here. It'd be better to do it using the function for when we add SSE support. Check colliderHull.c for more details."
+
+
 float minFloat(const float x, const float y){
 	return(x < y ? x : y);
 }
@@ -241,9 +244,9 @@ void segmentClosestPoints(
 	const float m2 = (d23 + d31 * m1) / d33;
 
 	// Find the closest point on the first line.
-	vec3LerpFast(s1, &v1, m1, p1);
+	vec3LerpDiff(s1, &v1, m1, p1);
 	// Find the closest point on the second line.
-	vec3LerpFast(s2, &v2, m2, p2);
+	vec3LerpDiff(s2, &v2, m2, p2);
 }
 
 

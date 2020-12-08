@@ -25,6 +25,7 @@
 #define physConstraintPairIsNew(pair)      ((pair)->inactive == 0)
 
 
+typedef struct physicsRigidBody physicsRigidBody;
 typedef struct physicsCollider physicsCollider;
 
 typedef uint_least8_t physPairTimestamp_t;
@@ -34,6 +35,7 @@ typedef uint_least8_t physPairTimestamp_t;
 **     1. The address of collider A must always be greater than the address of collider B.
 **     2. Colliders store contacts they own before contacts they don't.
 **     3. Contacts owned by a particular collider are sorted by the address of collider B.
+**     4. Pairs are in general allocated by islands: colliders and rigid bodies just store pointers to particular elements.
 ** This makes lookups faster, though there is a slightly higher cost for creating pairs.
 */
 
@@ -74,15 +76,14 @@ typedef struct physicsSeparationPair {
 	physicsSeparationPair *nextB;
 } physicsSeparationPair;
 
-#warning "Maybe move this somewhere else or remove it entirely?"
-/*typedef struct physicsJointPair physicsJointPair;
+typedef struct physicsJointPair physicsJointPair;
 // Stores the data required to represent
 // a joint between two rigid bodies.
 typedef struct physicsJointPair {
 	physicsJoint joint;
 
-	physicsCollider *cA;
-	physicsCollider *cB;
+	physicsRigidBody *bodyA;
+	physicsRigidBody *bodyB;
 
 	// Each joint pair is a member of two doubly linked
 	// lists, one for both bodies involved in the pair.
@@ -90,7 +91,7 @@ typedef struct physicsJointPair {
 	physicsJointPair *nextA;
 	physicsJointPair *prevB;
 	physicsJointPair *nextB;
-} physicsJointPair;*/
+} physicsJointPair;
 
 
 void physContactPairInit(
@@ -103,15 +104,15 @@ void physSeparationPairInit(
 	physicsCollider *const restrict cA, physicsCollider *const restrict cB,
 	physicsSeparationPair *prev, physicsSeparationPair *next
 );
-/*void physJointPairInit(
+void physJointPairInit(
 	physicsJointPair *const restrict pair,
-	physicsCollider *const restrict cA, physicsCollider *const restrict cB,
+	physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB,
 	physicsJointPair *prev, physicsJointPair *next
-);*/
+);
 
 void physContactPairDelete(physicsContactPair *const restrict pair);
 void physSeparationPairDelete(physicsSeparationPair *const restrict pair);
-//void physJointPairDelete(physicsJointPair *const restrict pair);
+void physJointPairDelete(physicsJointPair *const restrict pair);
 
 
 #endif

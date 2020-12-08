@@ -4,6 +4,7 @@
 
 #include "settingsPhysics.h"
 
+#include "utilTypes.h"
 #include "vec3.h"
 
 
@@ -81,7 +82,7 @@ void physJointDistancePresolve(
 );
 void physJointDistanceSolveVelocity(void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB);
 #ifdef PHYSJOINTDISTANCE_STABILISER_GAUSS_SEIDEL
-float physJointDistanceSolvePosition(void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB);
+return_t physJointDistanceSolvePosition(void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB);
 #endif
 
 

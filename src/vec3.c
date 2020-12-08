@@ -13,7 +13,7 @@ void vec3InitZero(vec3 *const restrict v){
 }
 
 // Initialize the vec3's values to 0!
-vec3 vec3InitZeroR(){
+vec3 vec3InitZeroC(){
 	vec3 v;
 	memset(&v, 0.f, sizeof(v));
 
@@ -28,7 +28,7 @@ void vec3InitSet(vec3 *const restrict v, const float x, const float y, const flo
 }
 
 // Initialize the vec3's values to the ones specified!
-vec3 vec3InitSetR(const float x, const float y, const float z){
+vec3 vec3InitSetC(const float x, const float y, const float z){
 	vec3 v = {
 		.x = x,
 		.y = y,
@@ -54,7 +54,7 @@ void vec3AddOut(const vec3 *const restrict v, const float x, const float y, cons
 }
 
 // Add a vec3 stored as three floats to "v"!
-vec3 vec3AddR(vec3 v, const float x, const float y, const float z){
+vec3 vec3AddC(vec3 v, const float x, const float y, const float z){
 	v.x += x;
 	v.y += y;
 	v.z += z;
@@ -77,7 +77,7 @@ void vec3AddSOut(const vec3 *const restrict v, const float x, vec3 *const restri
 }
 
 // Add "x" to "v"!
-vec3 vec3AddSR(vec3 v, const float x){
+vec3 vec3AddSC(vec3 v, const float x){
 	v.x += x;
 	v.y += x;
 	v.z += x;
@@ -100,7 +100,7 @@ void vec3AddVec3Out(const vec3 *const restrict v1, const vec3 *const restrict v2
 }
 
 // Add "v2" to "v1"!
-vec3 vec3AddVec3R(vec3 v1, const vec3 v2){
+vec3 vec3AddVec3C(vec3 v1, const vec3 v2){
 	v1.x += v2.x;
 	v1.y += v2.y;
 	v1.z += v2.z;
@@ -123,7 +123,7 @@ void vec3SubtractOut(const vec3 *const restrict v, const float x, const float y,
 }
 
 // Subtract a vec3 stored as three floats from "v"!
-vec3 vec3SubtractR(vec3 v, const float x, const float y, const float z){
+vec3 vec3SubtractC(vec3 v, const float x, const float y, const float z){
 	v.x -= x;
 	v.y -= y;
 	v.z -= z;
@@ -146,7 +146,7 @@ void vec3SubtractFromOut(const vec3 *const restrict v, const float x, const floa
 }
 
 // Subtract "v" from a vec3 stored as three floats!
-vec3 vec3SubtractFromR(vec3 v, const float x, const float y, const float z){
+vec3 vec3SubtractFromC(vec3 v, const float x, const float y, const float z){
 	v.x = x - v.x;
 	v.y = y - v.y;
 	v.z = z - v.z;
@@ -169,7 +169,7 @@ void vec3SubtractSFromOut(const vec3 *const restrict v, const float x, vec3 *con
 }
 
 // Subtract "x" from "v"!
-vec3 vec3SubtractSFromR(vec3 v, const float x){
+vec3 vec3SubtractSFromC(vec3 v, const float x){
 	v.x -= x;
 	v.y -= x;
 	v.z -= x;
@@ -192,7 +192,7 @@ void vec3SubtractFromSOut(const vec3 *const restrict v, const float x, vec3 *con
 }
 
 // Subtract "v" from "x"!
-vec3 vec3SubtractFromSR(vec3 v, const float x){
+vec3 vec3SubtractFromSC(vec3 v, const float x){
 	v.x = x - v.x;
 	v.y = x - v.y;
 	v.z = x - v.z;
@@ -222,7 +222,7 @@ void vec3SubtractVec3FromOut(const vec3 *const restrict v1, const vec3 *const re
 }
 
 // Subtract "v2" from "v1"!
-vec3 vec3SubtractVec3FromR(vec3 v1, const vec3 v2){
+vec3 vec3SubtractVec3FromC(vec3 v1, const vec3 v2){
 	v1.x -= v2.x;
 	v1.y -= v2.y;
 	v1.z -= v2.z;
@@ -246,7 +246,7 @@ void vec3MultiplySOut(const vec3 *const restrict v, const float x, vec3 *const r
 }
 
 // Multiply "v" by "x"!
-vec3 vec3MultiplySR(vec3 v, const float x){
+vec3 vec3MultiplySC(vec3 v, const float x){
 	v.x *= x;
 	v.y *= x;
 	v.z *= x;
@@ -269,7 +269,7 @@ void vec3MultiplyVec3Out(const vec3 *const restrict v1, const vec3 *const restri
 }
 
 // Multiply "v1" by "v2"!
-vec3 vec3MultiplyVec3R(vec3 v1, const vec3 v2){
+vec3 vec3MultiplyVec3C(vec3 v1, const vec3 v2){
 	v1.x *= v2.x;
 	v1.y *= v2.y;
 	v1.z *= v2.z;
@@ -296,7 +296,7 @@ void vec3DivideBySOut(const vec3 *const restrict v, const float x, vec3 *const r
 }
 
 // Divide "v" by "x"!
-vec3 vec3DivideBySR(vec3 v, const float x){
+vec3 vec3DivideBySC(vec3 v, const float x){
 	const float invX = 1.f / x;
 
 	v.x *= invX;
@@ -321,7 +321,7 @@ void vec3DivideSByOut(const vec3 *const restrict v, const float x, vec3 *const r
 }
 
 // Divide "x" by "v"!
-vec3 vec3DivideSByR(vec3 v, const float x){
+vec3 vec3DivideSByC(vec3 v, const float x){
 	v.x = (v.x != 0.f) ? x / v.x : 0.f;
 	v.y = (v.y != 0.f) ? x / v.y : 0.f;
 	v.z = (v.z != 0.f) ? x / v.z : 0.f;
@@ -354,7 +354,7 @@ void vec3DivideSByFastOut(const vec3 *const restrict v, const float x, vec3 *con
 ** Divide "x" by "v"! Unlike the regular version, this
 ** does not check to prevent against divide-by-zero errors.
 */
-vec3 vec3DivideSByFastR(vec3 v, const float x){
+vec3 vec3DivideSByFastC(vec3 v, const float x){
 	v.x = x / v.x;
 	v.y = x / v.y;
 	v.z = x / v.z;
@@ -384,7 +384,7 @@ void vec3DivideByVec3Out(const vec3 *const restrict v1, const vec3 *const restri
 }
 
 // Divide "v1" by "v2"!
-vec3 vec3DivideByVec3R(vec3 v1, const vec3 v2){
+vec3 vec3DivideByVec3C(vec3 v1, const vec3 v2){
 	v1.x = (v2.x != 0.f) ? v1.x / v2.x : 0.f;
 	v1.y = (v2.y != 0.f) ? v1.y / v2.y : 0.f;
 	v1.z = (v2.z != 0.f) ? v1.z / v2.z : 0.f;
@@ -427,7 +427,7 @@ void vec3DivideByVec3FastOut(const vec3 *const restrict v1, const vec3 *const re
 ** Divide "v1" by "v2"! Unlike the regular version, this
 ** does not check to prevent against divide-by-zero errors.
 */
-vec3 vec3DivideByVec3FastR(vec3 v1, const vec3 v2){
+vec3 vec3DivideByVec3FastC(vec3 v1, const vec3 v2){
 	v1.x /= v2.x;
 	v1.y /= v2.y;
 	v1.z /= v2.z;
@@ -447,8 +447,8 @@ float vec3MagnitudeVec3(const vec3 *const restrict v){
 }
 
 // Find the magnitude (length) of a vec3!
-float vec3MagnitudeVec3R(const vec3 v){
-	return(sqrtf(vec3NormVec3R(v)));
+float vec3MagnitudeVec3C(const vec3 v){
+	return(sqrtf(vec3NormVec3C(v)));
 }
 
 // Find the distance between a vec3 and one stored as three floats!
@@ -459,9 +459,9 @@ float vec3DistanceSquared(const vec3 *const restrict v, const float x, const flo
 }
 
 // Find the distance between a vec3 and one stored as three floats!
-float vec3DistanceSquaredR(const vec3 v, const float x, const float y, const float z){
-	const vec3 dist = vec3SubtractFromR(v, x, y, z);
-	return(vec3NormVec3R(dist));
+float vec3DistanceSquaredC(const vec3 v, const float x, const float y, const float z){
+	const vec3 dist = vec3SubtractFromC(v, x, y, z);
+	return(vec3NormVec3C(dist));
 }
 
 // Find the distance between two vec3s!
@@ -472,9 +472,9 @@ float vec3DistanceSquaredVec3(const vec3 *const restrict v1, const vec3 *const r
 }
 
 // Find the distance between two vec3s!
-float vec3DistanceSquaredVec3R(const vec3 v1, const vec3 v2){
-	const vec3 dist = vec3SubtractVec3FromR(v1, v2);
-	return(vec3NormVec3R(dist));
+float vec3DistanceSquaredVec3C(const vec3 v1, const vec3 v2){
+	const vec3 dist = vec3SubtractVec3FromC(v1, v2);
+	return(vec3NormVec3C(dist));
 }
 
 
@@ -489,7 +489,7 @@ float vec3DotVec3Float(const vec3 *const restrict v, const float x, const float 
 }
 
 // Find the dot product of a vec3 and one stored as three floats!
-float vec3DotVec3FloatR(const vec3 v, const float x, const float y, const float z){
+float vec3DotVec3FloatC(const vec3 v, const float x, const float y, const float z){
 	return(v.x * x + v.y * y + v.z * z);
 }
 
@@ -499,7 +499,7 @@ float vec3DotVec3(const vec3 *const restrict v1, const vec3 *const restrict v2){
 }
 
 // Find the dot product of two vec3s!
-float vec3DotVec3R(const vec3 v1, const vec3 v2){
+float vec3DotVec3C(const vec3 v1, const vec3 v2){
 	return(v1.x * v2.x + v1.y * v2.y + v1.z * v2.z);
 }
 
@@ -514,7 +514,7 @@ float vec3NormVec3(const vec3 *const restrict v){
 }
 
 // Find the norm of a vec3!
-float vec3NormVec3R(const vec3 v){
+float vec3NormVec3C(const vec3 v){
 	return(v.x * v.x + v.y * v.y + v.z * v.z);
 }
 
@@ -527,7 +527,7 @@ void vec3Cross(const float x1, const float y1, const float z1, const float x2, c
 }
 
 // Find the cross product of two vec3s stored as three floats!
-vec3 vec3CrossR(const float x1, const float y1, const float z1, const float x2, const float y2, const float z2){
+vec3 vec3CrossC(const float x1, const float y1, const float z1, const float x2, const float y2, const float z2){
 	vec3 v;
 	v.x = y1 * z2 - z1 * y2;
 	v.y = z1 * x2 - x1 * z2;
@@ -544,7 +544,7 @@ void vec3CrossVec3Float(const vec3 *const restrict v, const float x, const float
 }
 
 // Find the cross product of a vec3 and one stored as three floats!
-vec3 vec3CrossVec3FloatR(const vec3 v, const float x, const float y, const float z){
+vec3 vec3CrossVec3FloatC(const vec3 v, const float x, const float y, const float z){
 	vec3 out;
 
 	out.x = v.y * z - v.z * y;
@@ -562,7 +562,7 @@ void vec3CrossFloatVec3(const float x, const float y, const float z, const vec3 
 }
 
 // Find the cross product of a vec3 stored as three floats and a normal one!
-vec3 vec3CrossFloatVec3R(const float x, const float y, const float z, const vec3 v){
+vec3 vec3CrossFloatVec3C(const float x, const float y, const float z, const vec3 v){
 	vec3 out;
 
 	out.x = y * v.z - z * v.y;
@@ -598,7 +598,7 @@ void vec3CrossVec3Out(const vec3 *const restrict v1, const vec3 *const restrict 
 }
 
 // Find the cross product of two vec3s!
-vec3 vec3CrossVec3R(const vec3 v1, const vec3 v2){
+vec3 vec3CrossVec3C(const vec3 v1, const vec3 v2){
 	vec3 out;
 
 	out.x = v1.y * v2.z - v1.z * v2.y;
@@ -628,7 +628,7 @@ void vec3NormalizeFast(const float x, const float y, const float z, vec3 *const 
 }
 
 // Normalize a vec3 stored as three floats and store the result in "out"!
-vec3 vec3NormalizeR(const float x, const float y, const float z){
+vec3 vec3NormalizeC(const float x, const float y, const float z){
 	const float magnitude = invSqrt(x * x + y * y + z * z);
 	vec3 v;
 
@@ -640,7 +640,7 @@ vec3 vec3NormalizeR(const float x, const float y, const float z){
 }
 
 // Normalize a vec3 stored as three floats and store the result in "out"!
-vec3 vec3NormalizeFastR(const float x, const float y, const float z){
+vec3 vec3NormalizeFastC(const float x, const float y, const float z){
 	const float magnitude = invSqrtFast(x * x + y * y + z * z);
 	vec3 v;
 
@@ -688,7 +688,7 @@ void vec3NormalizeVec3FastOut(const vec3 *const restrict v, vec3 *const restrict
 }
 
 // Normalize a vec3!
-vec3 vec3NormalizeVec3R(vec3 v){
+vec3 vec3NormalizeVec3C(vec3 v){
 	const float magnitude = invSqrt(v.x * v.x + v.y * v.y + v.z * v.z);
 
 	v.x *= magnitude;
@@ -699,7 +699,7 @@ vec3 vec3NormalizeVec3R(vec3 v){
 }
 
 // Normalize a vec3!
-vec3 vec3NormalizeVec3FastR(vec3 v){
+vec3 vec3NormalizeVec3FastC(vec3 v){
 	const float magnitude = invSqrtFast(v.x * v.x + v.y * v.y + v.z * v.z);
 
 	v.x *= magnitude;
@@ -724,7 +724,7 @@ void vec3NegateOut(const vec3 *const restrict v, vec3 *const restrict out){
 }
 
 // Negate the values of a vec3!
-vec3 vec3NegateR(vec3 v){
+vec3 vec3NegateC(vec3 v){
 	v.x = -v.x;
 	v.y = -v.y;
 	v.z = -v.z;
@@ -756,7 +756,7 @@ void vec3Lerp(const vec3 *const restrict v1, const vec3 *const restrict v2, cons
 }
 
 // Perform linear interpolation between two vec3s!
-vec3 vec3LerpR(vec3 v1, const vec3 v2, const float time){
+vec3 vec3LerpC(vec3 v1, const vec3 v2, const float time){
 	v1.x = lerpFloatFast(v1.x, v2.x, time);
 	v1.y = lerpFloatFast(v1.y, v2.y, time);
 	v1.z = lerpFloatFast(v1.z, v2.z, time);
@@ -769,7 +769,7 @@ vec3 vec3LerpR(vec3 v1, const vec3 v2, const float time){
 ** Instead of entering the two vectors to interpolate between, this function
 ** accepts the starting point and the difference between it and the ending point.
 */
-void vec3LerpFast(const vec3 *const restrict v, const vec3 *offset, const float time, vec3 *const restrict out){
+void vec3LerpDiff(const vec3 *const restrict v, const vec3 *offset, const float time, vec3 *const restrict out){
 	out->x = lerpDiffFast(v->x, offset->x, time);
 	out->y = lerpDiffFast(v->y, offset->y, time);
 	out->z = lerpDiffFast(v->z, offset->z, time);
@@ -780,7 +780,7 @@ void vec3LerpFast(const vec3 *const restrict v, const vec3 *offset, const float 
 ** Instead of entering the two vectors to interpolate between, this function
 ** accepts the starting point and the difference between it and the ending point.
 */
-vec3 vec3LerpFastR(vec3 v, const vec3 offset, const float time){
+vec3 vec3LerpDiffC(vec3 v, const vec3 offset, const float time){
 	v.x = lerpDiffFast(v.x, offset.x, time);
 	v.y = lerpDiffFast(v.y, offset.y, time);
 	v.z = lerpDiffFast(v.z, offset.z, time);
@@ -803,7 +803,7 @@ void vec3Min(const vec3 *const restrict v1, const vec3 *const restrict v2, vec3 
 ** Compare two vec3s to find the minimum value per
 ** axis and return a vec3 composed of these minima.
 */
-vec3 vec3MinR(vec3 v1, const vec3 v2){
+vec3 vec3MinC(vec3 v1, const vec3 v2){
 	v1.x = minFloatFast(v1.x, v2.x);
 	v1.y = minFloatFast(v1.y, v2.y);
 	v1.z = minFloatFast(v1.z, v2.z);
@@ -825,7 +825,7 @@ void vec3Max(const vec3 *const restrict v1, const vec3 *const restrict v2, vec3 
 ** Compare two vec3s to find the maximum value per
 ** axis and return a vec3 composed of these maxima.
 */
-vec3 vec3MaxR(vec3 v1, const vec3 v2){
+vec3 vec3MaxC(vec3 v1, const vec3 v2){
 	v1.x = maxFloatFast(v1.x, v2.x);
 	v1.y = maxFloatFast(v1.y, v2.y);
 	v1.z = maxFloatFast(v1.z, v2.z);

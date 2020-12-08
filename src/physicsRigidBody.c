@@ -340,6 +340,43 @@ void physRigidBodyIgnoreCollisions(physicsRigidBody *const restrict body){
 
 
 /*
+** Check whether two rigid bodies are allowed to collide.
+** The only time we don't allow collision is if both bodies
+** are the same or there exists a joint between them that
+** does not allow collision.
+*/
+return_t physRigidBodyPermitCollision(const physicsRigidBody *bodyA, const physicsRigidBody *bodyB){
+	if(bodyA < bodyB){
+		const physicsJointPair *curJoint = bodyA->joints;
+		while(curJoint != NULL && bodyB >= curJoint->bodyB){
+			// We only allow these bodies to collide if
+			// every single joint they share allows collision.
+			if(bodyB == curJoint->bodyB /*&& curJoint->flags == PHYSJOINT_ALLOW_COLLISION*/){
+				//return(0);
+			}
+			curJoint = curJoint->nextA;
+		}
+
+		return(1);
+	}else if(bodyA > bodyB){
+		const physicsJointPair *curJoint = bodyB->joints;
+		while(curJoint != NULL && bodyA >= curJoint->bodyB){
+			// We only allow these bodies to collide if
+			// every single joint they share allows collision.
+			if(bodyA == curJoint->bodyB /*&& curJoint->flags == PHYSJOINT_ALLOW_COLLISION*/){
+				//return(0);
+			}
+			curJoint = curJoint->nextA;
+		}
+
+		return(1);
+	}
+
+	return(0);
+}
+
+
+/*
 ** Calculate the body's increase in velocity for
 ** the current timestep using symplectic Euler.
 **

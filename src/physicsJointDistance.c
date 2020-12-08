@@ -203,7 +203,7 @@ void physJointDistanceSolveVelocity(void *const restrict joint, physicsRigidBody
 ** the amount of error we'll know when to stop.
 */
 #ifdef PHYSJOINTDISTANCE_STABILISER_GAUSS_SEIDEL
-float physJointDistanceSolvePosition(void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB){
+return_t physJointDistanceSolvePosition(void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB){
 	// If we're not using soft constraints, we can perform positional correction.
 	if(((physicsJointDistance *)joint)->angularFrequency <= 0.f){
 		vec3 rA;
@@ -243,11 +243,11 @@ float physJointDistanceSolvePosition(void *const restrict joint, physicsRigidBod
 		physRigidBodyApplyImpulsePosition(bodyB, &rB, &rAB);
 
 
-		return(constraint);
+		return(1);//return(constraint);
 	}
 
 
-	return(0.f);
+	return(0);
 }
 #endif
 
@@ -328,14 +328,18 @@ static void calculateBias(
 ){
 
 	// Only use soft constraints if the frequency is greater than 0.
-	if(joint->angularFrequency > 0.f){
+	if(joint->angularFrequency <= 0.f){
+		joint->gamma = 0.f;
+		joint->bias = 0.f;
+	}else{
 		const float invEffectiveMass = 1.f / joint->effectiveMass;
 		// k = K * w^2
 		const float stiffness = invEffectiveMass * joint->angularFrequency * joint->angularFrequency;
 
 		// c = K * damp
 		// gamma = 1/(c + hk) = 1/(hk + K * damp)
-		joint->gamma = 1.f / (dt * (invEffectiveMass * joint->damping + dt * stiffness));
+		joint->gamma = dt * (invEffectiveMass * joint->damping + dt * stiffness);
+		joint->gamma = (joint->gamma != 0.f) ? 1.f / joint->gamma : 0.f;
 		// beta = hk/(c + hk) = hk * gamma
 		// bias = beta/h * C(x) = k * gamma * C(x)
 		// Note that bias is already set to C(x).
@@ -349,9 +353,6 @@ static void calculateBias(
 		// lambda = -((v_relative . d) + b)/K(1 + gamma/K)
 		//        = -((v_relative . d) + b)/(K + gamma)
 		joint->effectiveMass += joint->gamma;
-	}else{
-		joint->gamma = 0.f;
-		joint->bias = 0.f;
 	}
 
 	joint->effectiveMass = 1.f / joint->effectiveMass;

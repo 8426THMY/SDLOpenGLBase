@@ -19,7 +19,7 @@ void mat3InitZero(mat3 *const restrict m){
 }
 
 // Initialize the matrix's values to 0!
-mat3 mat3InitZeroR(){
+mat3 mat3InitZeroC(){
 	mat3 m;
 	memset(&m, 0.f, sizeof(m));
 
@@ -32,7 +32,7 @@ void mat3InitIdentity(mat3 *const restrict m){
 }
 
 // Initialize the matrix to an identity matrix!
-mat3 mat3InitIdentityR(){
+mat3 mat3InitIdentityC(){
 	return(g_mat3Identity);
 }
 
@@ -52,7 +52,7 @@ void mat3InitDiagonal(mat3 *const restrict m, const float x){
 }
 
 // Initialize the matrix to a uniform scale matrix!
-mat3 mat3InitDiagonalR(const float x){
+mat3 mat3InitDiagonalC(const float x){
 	const mat3 out = {
 		.m[0][0] = x,
 		.m[0][1] = 0.f,
@@ -86,7 +86,7 @@ void mat3InitSkew(mat3 *const restrict m, const vec3 *const restrict v){
 }
 
 // Initialize the matrix to a skew-symmetric cross product matrix!
-mat3 mat3InitSkewR(const vec3 v){
+mat3 mat3InitSkewC(const vec3 v){
 	const mat3 out = {
 		.m[0][0] = 0.f,
 		.m[0][1] = v.z,
@@ -136,7 +136,7 @@ void mat3AddMat3Out(const mat3 *const restrict m1, const mat3 *const restrict m2
 }
 
 // Add the matrix "m2" to "m1" and return the result!
-mat3 mat3AddMat3R(const mat3 m1, const mat3 m2){
+mat3 mat3AddMat3C(const mat3 m1, const mat3 m2){
 	const mat3 out = {
 		.m[0][0] = m1.m[0][0] + m2.m[0][0],
 		.m[0][1] = m1.m[0][1] + m2.m[0][1],
@@ -172,7 +172,7 @@ void mat3MultiplyByVec3Out(const mat3 *const restrict m, const vec3 *const restr
 }
 
 // Multiply a matrix by a vec3!
-vec3 mat3MultiplyByVec3R(const mat3 m, const vec3 v){
+vec3 mat3MultiplyByVec3C(const mat3 m, const vec3 v){
 	const vec3 out = {
 		.x = m.m[0][0] * v.x + m.m[1][0] * v.y + m.m[2][0] * v.z,
 		.y = m.m[0][1] * v.x + m.m[1][1] * v.y + m.m[2][1] * v.z,
@@ -215,7 +215,7 @@ void mat3MultiplyVec3ByOut(const mat3 m, const vec3 *const restrict v, mat3 *con
 }
 
 // Multiply a vec3 by a matrix!
-mat3 mat3MultiplyVec3ByR(const mat3 m, const vec3 v){
+mat3 mat3MultiplyVec3ByC(const mat3 m, const vec3 v){
 	mat3 out;
 
 	out.m[0][0] =
@@ -283,7 +283,7 @@ void mat3MultiplyByMat3Out(const mat3 m1, const mat3 m2, mat3 *const restrict ou
 }
 
 // Right-multiply "m1" by "m2"!
-mat3 mat3MultiplyByMat3R(const mat3 m1, const mat3 m2){
+mat3 mat3MultiplyByMat3C(const mat3 m1, const mat3 m2){
 	const mat3 out = {
 		.m[0][0] = m1.m[0][0] * m2.m[0][0] + m1.m[1][0] * m2.m[0][1] + m1.m[2][0] * m2.m[0][2],
 		.m[0][1] = m1.m[0][1] * m2.m[0][0] + m1.m[1][1] * m2.m[0][1] + m1.m[2][1] * m2.m[0][2],
@@ -318,7 +318,7 @@ void mat3ScalePre(mat3 *const restrict m, const float x, const float y, const fl
 }
 
 // Left-multiply a matrix by a scale matrix stored as three floats!
-mat3 mat3ScalePreR(mat3 m, const float x, const float y, const float z){
+mat3 mat3ScalePreC(mat3 m, const float x, const float y, const float z){
 	m.m[0][0] *= x;
 	m.m[0][1] *= y;
 	m.m[0][2] *= z;
@@ -340,8 +340,8 @@ void mat3ScalePreVec3(mat3 *const restrict m, const vec3 *const restrict v){
 }
 
 // Left-multiply a matrix by a scale matrix stored as a vec3!
-mat3 mat3ScalePreVec3R(mat3 m, const vec3 v){
-	return(mat3ScalePreR(m, v.x, v.y, v.z));
+mat3 mat3ScalePreVec3C(mat3 m, const vec3 v){
+	return(mat3ScalePreC(m, v.x, v.y, v.z));
 }
 
 // Right-multiply a matrix by a scale matrix stored as three floats!
@@ -360,7 +360,7 @@ void mat3Scale(mat3 *const restrict m, const float x, const float y, const float
 }
 
 // Right-multiply a matrix by a scale matrix stored as three floats!
-mat3 mat3ScaleR(mat3 m, const float x, const float y, const float z){
+mat3 mat3ScaleC(mat3 m, const float x, const float y, const float z){
 	m.m[0][0] *= x;
 	m.m[0][1] *= x;
 	m.m[0][2] *= x;
@@ -382,8 +382,8 @@ void mat3ScaleVec3(mat3 *const restrict m, const vec3 *const restrict v){
 }
 
 // Right-multiply a matrix by a scale matrix stored as a vec3!
-mat3 mat3ScaleVec3R(mat3 m, const vec3 v){
-	return(mat3ScaleR(m, v.x, v.y, v.z));
+mat3 mat3ScaleVec3C(mat3 m, const vec3 v){
+	return(mat3ScaleC(m, v.x, v.y, v.z));
 }
 
 
@@ -429,7 +429,7 @@ void mat3TransposeOut(const mat3 m, mat3 *const restrict out){
 ** Find the transpose of a matrix! For column-major matrices, this effectively
 ** translates it to a row-major matrix. The reverse is true for row-major matrices.
 */
-mat3 mat3TransposeR(const mat3 m){
+mat3 mat3TransposeC(const mat3 m){
 	const mat3 out = {
 		.m[0][0] = m.m[0][0],
 		.m[0][1] = m.m[1][0],
@@ -506,7 +506,7 @@ void mat3InvertOut(const mat3 m, mat3 *const restrict out){
 }
 
 // Invert a matrix!
-mat3 mat3InvertR(const mat3 m){
+mat3 mat3InvertC(const mat3 m){
 	// We need to use these values twice, but we only need to calculate them once.
 	const float f0 = m.m[1][1] * m.m[2][2] - m.m[1][2] * m.m[2][1];
 	const float f1 = m.m[2][1] * m.m[0][2] - m.m[0][1] * m.m[2][2];
@@ -657,7 +657,7 @@ void mat3ToQuat(const mat3 *const restrict m, quat *const restrict out){
 }
 
 // Convert a 3x3 matrix to a quaternion!
-quat mat3ToQuatR(const mat3 m){
+quat mat3ToQuatC(const mat3 m){
 	const float trace = m.m[0][0] + m.m[1][1] + m.m[2][2];
 
 	if(trace > 0){
@@ -710,7 +710,7 @@ void mat3ToQuatAlt(const mat3 *const restrict m, quat *const restrict out){
 	out->w = 0.5f * sqrtf(m->m[0][0] + m->m[1][1] + m->m[2][2] + 1.f);
 }
 
-quat mat3ToQuatAltR(const mat3 m){
+quat mat3ToQuatAltC(const mat3 m){
 	const quat q = {
 		.x = copySignZero(0.5f * sqrtf( m.m[0][0] - m.m[1][1] - m.m[2][2] + 1.f), m.m[1][2] - m.m[2][1]),
 		.y = copySignZero(0.5f * sqrtf(-m.m[0][0] + m.m[1][1] - m.m[2][2] + 1.f), m.m[2][0] - m.m[0][2]),
@@ -749,7 +749,7 @@ void quatToMat3(const quat *const restrict q, mat3 *const restrict out){
 }
 
 // Convert a quaternion to a 3x3 matrix!
-mat3 quatToMat3R(const quat q){
+mat3 quatToMat3C(const quat q){
 	const float xx = q.x*q.x;
 	const float yy = q.y*q.y;
 	const float zz = q.z*q.z;

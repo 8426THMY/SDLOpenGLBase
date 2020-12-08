@@ -10,7 +10,7 @@
 #include "transform.h"
 
 #include "physicsCollider.h"
-#include "physicsJoint.h"
+#include "physicsConstraintPair.h"
 
 #include "utilTypes.h"
 
@@ -99,10 +99,14 @@ typedef struct physicsRigidBody {
 	vec3 netForce;
 	vec3 netTorque;
 
-	// They also store a quad-list of joints
-	// that they are a part of. These behave
-	// similarly to the previous linked lists.
-	physicsJoint *joints;
+	// Rigid bodies store doubly linked lists of active joints.
+	// These lists are mostly sorted according to the addresses
+	// of the second rigid body involved in the joint. Check the
+	// explanation given in "physicsConstraintPair.h".
+	//
+	// Note that the list is actually allocated and managed by the
+	// island, this just stores a pointer to the body's first joint.
+	physicsJointPair *joints;
 
 	flags_t flags;
 } physicsRigidBody;
@@ -120,6 +124,8 @@ void physRigidBodyDefAddCollider(
 
 void physRigidBodySimulateCollisions(physicsRigidBody *const restrict body);
 void physRigidBodyIgnoreCollisions(physicsRigidBody *const restrict body);
+
+return_t physRigidBodyPermitCollision(const physicsRigidBody *bodyA, const physicsRigidBody *bodyB);
 
 void physRigidBodyIntegrateVelocity(physicsRigidBody *const restrict body, const float dt);
 void physRigidBodyResetAccumulators(physicsRigidBody *const restrict body);

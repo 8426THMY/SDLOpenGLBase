@@ -1747,14 +1747,15 @@ static void clipEdgeContact(
 	const hullEdgeData *const restrict edgeData, contactManifold *const restrict cm
 ){
 
+	#warning "It'd be better to initialize the vectors using functions for when we add SSE support."
 	const colliderHullEdge *const refEdge = &hullA->edges[edgeData->edgeA];
 	const vec3 *const refStart = &hullA->vertices[refEdge->startVertexIndex];
 	const vec3 *const refEnd   = &hullA->vertices[refEdge->endVertexIndex];
-	const vec3 ref = {
+	vec3 ref = {
 		.x = refEnd->x - refStart->x,
 		.y = refEnd->y - refStart->y,
 		.z = refEnd->z - refStart->z
-	};
+	};//*vec3SubtractVec3FromP(refEnd, refStart, &ref);
 
 	const colliderHullEdge *const incEdge = &hullB->edges[edgeData->edgeB];
 	const vec3 *const incStart = &hullB->vertices[incEdge->startVertexIndex];
@@ -1763,18 +1764,18 @@ static void clipEdgeContact(
 		.x = incEnd->x - incStart->x,
 		.y = incEnd->y - incStart->y,
 		.z = incEnd->z - incStart->z
-	};
+	};//*vec3SubtractVec3FromP(incEnd, incStart, &inc);
 
 	const vec3 offset = {
 		.x = refStart->x - incStart->x,
 		.y = refStart->y - incStart->y,
 		.z = refStart->z - incStart->z
-	};
+	};//*vec3SubtractVec3FromP(refStart, incStart, &offset);
 	const vec3 normalDir = {
 		.x = refStart->x - hullA->centroid.x,
 		.y = refStart->y - hullA->centroid.y,
 		.z = refStart->z - hullA->centroid.z
-	};
+	};//*vec3SubtractVec3FromP(refStart, &hullA->centroid, &normalDir);
 
 	contactPoint *const contact = &cm->contacts[0];
 	vec3 normal;
@@ -1796,9 +1797,9 @@ static void clipEdgeContact(
 
 
 	// Find the closest point on the first line.
-	vec3LerpFast(refStart, &ref, m1, &contact->pA);
+	vec3LerpDiff(refStart, &ref, m1, &contact->pA);
 	// Find the closest point on the second line.
-	vec3LerpFast(incStart, &inc, m2, &contact->pB);
+	vec3LerpDiff(incStart, &inc, m2, &contact->pB);
 
 	// Find the collision's normal. We use the
 	// cross product of the two intersecting edges.

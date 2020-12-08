@@ -23,7 +23,7 @@ void mat4InitZero(mat4 *const restrict m){
 }
 
 // Initialize the matrix's values to 0!
-mat4 mat4InitZeroR(){
+mat4 mat4InitZeroC(){
 	mat4 m;
 	memset(&m, 0.f, sizeof(m));
 
@@ -36,7 +36,7 @@ void mat4InitIdentity(mat4 *const restrict m){
 }
 
 // Initialize the matrix to an identity matrix!
-mat4 mat4InitIdentityR(){
+mat4 mat4InitIdentityC(){
 	return(g_mat4Identity);
 }
 
@@ -64,7 +64,7 @@ void mat4InitTranslate(mat4 *const restrict m, const float x, const float y, con
 }
 
 // Initialise a matrix to a translation matrix!
-mat4 mat4InitTranslateR(const float x, const float y, const float z){
+mat4 mat4InitTranslateC(const float x, const float y, const float z){
 	const mat4 m = {
 		.m[0][0] = 1.f,
 		.m[0][1] = 0.f,
@@ -114,7 +114,7 @@ void mat4InitTranslate4(mat4 *const restrict m, const float x, const float y, co
 }
 
 // Initialise a matrix to a translation matrix!
-mat4 mat4InitTranslate4R(const float x, const float y, const float z, const float w){
+mat4 mat4InitTranslate4C(const float x, const float y, const float z, const float w){
 	const mat4 m = {
 		.m[0][0] = 1.f,
 		.m[0][1] = 0.f,
@@ -146,8 +146,8 @@ void mat4InitTranslateVec3(mat4 *const restrict m, const vec3 *const restrict v)
 }
 
 // Initialise a matrix to a translation matrix using a vec3!
-mat4 mat4InitTranslateVec3R(const vec3 v){
-	return(mat4InitTranslateR(v.x, v.y, v.z));
+mat4 mat4InitTranslateVec3C(const vec3 v){
+	return(mat4InitTranslateC(v.x, v.y, v.z));
 }
 
 // Initialise a matrix to a translation matrix using a vec4!
@@ -156,8 +156,8 @@ void mat4InitTranslateVec4(mat4 *const restrict m, const vec4 *const restrict v)
 }
 
 // Initialise a matrix to a translation matrix using a vec4!
-mat4 mat4InitTranslateVec4R(const vec4 v){
-	return(mat4InitTranslate4R(v.x, v.y, v.z, v.w));
+mat4 mat4InitTranslateVec4C(const vec4 v){
+	return(mat4InitTranslate4C(v.x, v.y, v.z, v.w));
 }
 
 // Initialise a matrix to a rotation matrix!
@@ -195,7 +195,7 @@ void mat4InitRotateQuat(mat4 *const restrict m, const quat *const restrict q){
 }
 
 // Initialise a matrix to a rotation matrix!
-mat4 mat4InitRotateQuatR(const quat q){
+mat4 mat4InitRotateQuatC(const quat q){
 	const float xx = q.x * q.x;
 	const float xy = q.x * q.y;
 	const float xz = q.x * q.z;
@@ -257,7 +257,7 @@ void mat4InitScale(mat4 *const restrict m, const float x, const float y, const f
 }
 
 // Initialise a matrix to a scale matrix!
-mat4 mat4InitScaleR(const float x, const float y, const float z){
+mat4 mat4InitScaleC(const float x, const float y, const float z){
 	const mat4 m = {
 		.m[0][0] = x,
 		.m[0][1] = 0.f,
@@ -307,7 +307,7 @@ void mat4InitScale4(mat4 *const restrict m, const float x, const float y, const 
 }
 
 // Initialise a matrix to a scale matrix!
-mat4 mat4InitScale4R(const float x, const float y, const float z, const float w){
+mat4 mat4InitScale4C(const float x, const float y, const float z, const float w){
 	const mat4 m = {
 		.m[0][0] = x,
 		.m[0][1] = 0.f,
@@ -339,8 +339,8 @@ void mat4InitScaleVec3(mat4 *const restrict m, const vec3 *const restrict v){
 }
 
 // Initialise a matrix to a scale matrix using a vec3!
-mat4 mat4InitScaleVec3R(const vec3 v){
-	return(mat4InitScaleR(v.x, v.y, v.z));
+mat4 mat4InitScaleVec3C(const vec3 v){
+	return(mat4InitScaleC(v.x, v.y, v.z));
 }
 
 // Initialise a matrix to a scale matrix using a vec4!
@@ -349,8 +349,8 @@ void mat4InitScaleVec4(mat4 *const restrict m, const vec4 *const restrict v){
 }
 
 // Initialise a matrix to a scale matrix using a vec4!
-mat4 mat4InitScaleVec4R(const vec4 v){
-	return(mat4InitScale4R(v.x, v.y, v.z, v.w));
+mat4 mat4InitScaleVec4C(const vec4 v){
+	return(mat4InitScale4C(v.x, v.y, v.z, v.w));
 }
 
 
@@ -401,7 +401,7 @@ void mat4AddMat4Out(const mat4 *const restrict m1, const mat4 *const restrict m2
 }
 
 // Add the matrix "m2" to "m1" and return the result!
-mat4 mat4AddMat4R(const mat4 m1, const mat4 m2){
+mat4 mat4AddMat4C(const mat4 m1, const mat4 m2){
 	const mat4 out = {
 		.m[0][0] = m1.m[0][0] + m2.m[0][0],
 		.m[0][1] = m1.m[0][1] + m2.m[0][1],
@@ -445,7 +445,7 @@ void mat4MultiplyByVec3Out(const mat4 *const restrict m, const vec3 *const restr
 }
 
 // Multiply a matrix by a vec3!
-vec3 mat4MultiplyByVec3R(const mat4 m, const vec3 v){
+vec3 mat4MultiplyByVec3C(const mat4 m, const vec3 v){
 	const vec3 out = {
 		.x = m.m[0][0] * v.x + m.m[1][0] * v.y + m.m[2][0] * v.z + m.m[3][0],
 		.y = m.m[0][1] * v.x + m.m[1][1] * v.y + m.m[2][1] * v.z + m.m[3][1],
@@ -504,7 +504,7 @@ void mat4MultiplyVec4ByOut(const mat4 m, const vec4 *const restrict v, mat4 *con
 }
 
 // Multiply a vec4 by a matrix!
-mat4 mat4MultiplyVec4ByR(const mat4 m, const vec4 v){
+mat4 mat4MultiplyVec4ByC(const mat4 m, const vec4 v){
 	mat4 out;
 
 	out.m[0][0] =
@@ -549,7 +549,7 @@ void mat4MultiplyByVec4Out(const mat4 *const restrict m, const vec4 *const restr
 }
 
 // Multiply a matrix by a vec4!
-vec4 mat4MultiplyByVec4R(const mat4 m, const vec4 v){
+vec4 mat4MultiplyByVec4C(const mat4 m, const vec4 v){
 	const vec4 out = {
 		.x = m.m[0][0] * v.x + m.m[1][0] * v.y + m.m[2][0] * v.z + m.m[3][0] * v.w,
 		.y = m.m[0][1] * v.x + m.m[1][1] * v.y + m.m[2][1] * v.z + m.m[3][1] * v.w,
@@ -634,7 +634,7 @@ void mat4MultiplyByMat4Out(const mat4 m1, const mat4 m2, mat4 *const restrict ou
 }
 
 // Right-multiply "m1" by "m2" and return the result!
-mat4 mat4MultiplyByMat4R(const mat4 m1, const mat4 m2){
+mat4 mat4MultiplyByMat4C(const mat4 m1, const mat4 m2){
 	const mat4 out = {
 		.m[0][0] = m1.m[0][0] * m2.m[0][0] + m1.m[1][0] * m2.m[0][1] + m1.m[2][0] * m2.m[0][2] + m1.m[3][0] * m2.m[0][3],
 		.m[0][1] = m1.m[0][1] * m2.m[0][0] + m1.m[1][1] * m2.m[0][1] + m1.m[2][1] * m2.m[0][2] + m1.m[3][1] * m2.m[0][3],
@@ -681,7 +681,7 @@ void mat4TranslatePre(mat4 *const restrict m, const float x, const float y, cons
 }
 
 // Translate a matrix!
-mat4 mat4TranslatePreR(mat4 m, const float x, const float y, const float z){
+mat4 mat4TranslatePreC(mat4 m, const float x, const float y, const float z){
 	m.m[0][0] += m.m[0][3] * x;
 	m.m[0][1] += m.m[0][3] * y;
 	m.m[0][2] += m.m[0][3] * z;
@@ -725,7 +725,7 @@ void mat4TranslatePre4(mat4 *const restrict m, const float x, const float y, con
 }
 
 // Translate a matrix!
-mat4 mat4TranslatePre4R(mat4 m, const float x, const float y, const float z, const float w){
+mat4 mat4TranslatePre4C(mat4 m, const float x, const float y, const float z, const float w){
 	m.m[0][0] += m.m[0][3] * x;
 	m.m[0][1] += m.m[0][3] * y;
 	m.m[0][2] += m.m[0][3] * z;
@@ -755,8 +755,8 @@ void mat4TranslatePreVec3(mat4 *const restrict m, const vec3 *const restrict v){
 }
 
 // Translate a matrix by a vec3!
-mat4 mat4TranslatePreVec3R(const mat4 m, const vec3 v){
-	return(mat4TranslatePreR(m, v.x, v.y, v.z));
+mat4 mat4TranslatePreVec3C(const mat4 m, const vec3 v){
+	return(mat4TranslatePreC(m, v.x, v.y, v.z));
 }
 
 // Translate a matrix by a vec4!
@@ -765,8 +765,8 @@ void mat4TranslatePreVec4(mat4 *const restrict m, const vec4 *const restrict v){
 }
 
 // Translate a matrix by a vec4!
-mat4 mat4TranslatePreVec4R(const mat4 m, const vec4 v){
-	return(mat4TranslatePre4R(m, v.x, v.y, v.z, v.w));
+mat4 mat4TranslatePreVec4C(const mat4 m, const vec4 v){
+	return(mat4TranslatePre4C(m, v.x, v.y, v.z, v.w));
 }
 
 // Translate a matrix!
@@ -778,7 +778,7 @@ void mat4Translate(mat4 *const restrict m, const float x, const float y, const f
 }
 
 // Translate a matrix!
-mat4 mat4TranslateR(mat4 m, const float x, const float y, const float z){
+mat4 mat4TranslateC(mat4 m, const float x, const float y, const float z){
 	m.m[3][0] = m.m[0][0] * x + m.m[1][0] * y + m.m[2][0] * z + m.m[3][0];
 	m.m[3][1] = m.m[0][1] * x + m.m[1][1] * y + m.m[2][1] * z + m.m[3][1];
 	m.m[3][2] = m.m[0][2] * x + m.m[1][2] * y + m.m[2][2] * z + m.m[3][2];
@@ -796,7 +796,7 @@ void mat4Translate4(mat4 *const restrict m, const float x, const float y, const 
 }
 
 // Translate a matrix!
-mat4 mat4Translate4R(mat4 m, const float x, const float y, const float z, const float w){
+mat4 mat4Translate4C(mat4 m, const float x, const float y, const float z, const float w){
 	m.m[3][0] = m.m[0][0] * x + m.m[1][0] * y + m.m[2][0] * z + m.m[3][0] * w;
 	m.m[3][1] = m.m[0][1] * x + m.m[1][1] * y + m.m[2][1] * z + m.m[3][1] * w;
 	m.m[3][2] = m.m[0][2] * x + m.m[1][2] * y + m.m[2][2] * z + m.m[3][2] * w;
@@ -811,8 +811,8 @@ void mat4TranslateVec3(mat4 *const restrict m, const vec3 *const restrict v){
 }
 
 // Translate a matrix by a vec3!
-mat4 mat4TranslateVec3R(const mat4 m, const vec3 v){
-	return(mat4TranslateR(m, v.x, v.y, v.z));
+mat4 mat4TranslateVec3C(const mat4 m, const vec3 v){
+	return(mat4TranslateC(m, v.x, v.y, v.z));
 }
 
 // Translate a matrix by a vec4!
@@ -821,8 +821,8 @@ void mat4TranslateVec4(mat4 *const restrict m, const vec4 *const restrict v){
 }
 
 // Translate a matrix by a vec4!
-mat4 mat4TranslateVec4R(const mat4 m, const vec4 v){
-	return(mat4Translate4R(m, v.x, v.y, v.z, v.w));
+mat4 mat4TranslateVec4C(const mat4 m, const vec4 v){
+	return(mat4Translate4C(m, v.x, v.y, v.z, v.w));
 }
 
 
@@ -861,7 +861,7 @@ void mat4RotateRad(mat4 *const restrict m, const float x, const float y, const f
 
 // Rotate a matrix!
 // The order of rotations is ZYX.
-mat4 mat4RotateRadR(const mat4 m, const float x, const float y, const float z){
+mat4 mat4RotateRadC(const mat4 m, const float x, const float y, const float z){
 	const float cx = cosf(x);
 	const float sx = sinf(x);
 	const float cy = cosf(y);
@@ -911,8 +911,8 @@ void mat4RotateDeg(mat4 *const restrict m, const float x, const float y, const f
 ** Convert the rotation from degrees to radians!
 ** The order of rotations is ZYX.
 */
-mat4 mat4RotateDegR(const mat4 m, const float x, const float y, const float z){
-	return(mat4RotateRadR(m, x * DEG_TO_RAD, y * DEG_TO_RAD, z * DEG_TO_RAD));
+mat4 mat4RotateDegC(const mat4 m, const float x, const float y, const float z){
+	return(mat4RotateRadC(m, x * DEG_TO_RAD, y * DEG_TO_RAD, z * DEG_TO_RAD));
 }
 
 /*
@@ -927,8 +927,8 @@ void mat4RotateByVec3Rad(mat4 *const restrict m, const vec3 *const restrict v){
 ** Rotate a matrix by a vec3 (using radians)!
 ** The order of rotations is ZYX.
 */
-mat4 mat4RotateByVec3RadR(const mat4 m, const vec3 v){
-	return(mat4RotateRadR(m, v.x, v.y, v.z));
+mat4 mat4RotateByVec3RadC(const mat4 m, const vec3 v){
+	return(mat4RotateRadC(m, v.x, v.y, v.z));
 }
 
 /*
@@ -943,8 +943,8 @@ void mat4RotateByVec3Deg(mat4 *const restrict m, const vec3 *const restrict v){
 ** Rotate a matrix by a vec3 (using degrees)!
 ** The order of rotations is ZYX.
 */
-mat4 mat4RotateByVec3DegR(const mat4 m, const vec3 v){
-	return(mat4RotateRadR(m, v.x * DEG_TO_RAD, v.y * DEG_TO_RAD, v.z * DEG_TO_RAD));
+mat4 mat4RotateByVec3DegC(const mat4 m, const vec3 v){
+	return(mat4RotateRadC(m, v.x * DEG_TO_RAD, v.y * DEG_TO_RAD, v.z * DEG_TO_RAD));
 }
 
 // Rotate a matrix by an axis and an angle!
@@ -994,14 +994,14 @@ void mat4RotateAxisAngle(mat4 *const restrict m, const vec4 *const restrict v){
 }
 
 // Rotate a matrix by an axis and an angle!
-mat4 mat4RotateAxisAngleR(const mat4 m, const vec4 v){
+mat4 mat4RotateAxisAngleC(const mat4 m, const vec4 v){
 	const float c = cosf(v.w);
 	const float s = sinf(v.w);
 	const float t = 1.f - c;
 
 	// Normalize the axis!
-	const vec3 normalAxis = vec3NormalizeFastR(v.x, v.y, v.z);
-	const vec3 tempAxis = vec3MultiplySR(normalAxis, t);
+	const vec3 normalAxis = vec3NormalizeFastC(v.x, v.y, v.z);
+	const vec3 tempAxis = vec3MultiplySC(normalAxis, t);
 
 	// Convert the axis angle to a rotation matrix! Note that this is
 	// a row-major matrix as opposed to our usual column-major format.
@@ -1092,7 +1092,7 @@ void mat4RotateQuat(mat4 *const restrict m, const quat *const restrict q){
 }
 
 // Rotate a matrix by a quaternion!
-mat4 mat4RotateQuatR(const mat4 m, const quat q){
+mat4 mat4RotateQuatC(const mat4 m, const quat q){
 	const float xx = q.x * q.x;
 	const float xy = q.x * q.y;
 	const float xz = q.x * q.z;
@@ -1163,7 +1163,7 @@ void mat4RotateXRad(mat4 *const restrict m, const float x){
 }
 
 // Rotate a matrix on the X axis!
-mat4 mat4RotateXRadR(const mat4 m, const float x){
+mat4 mat4RotateXRadC(const mat4 m, const float x){
 	const float a = cosf(x);
 	const float b = sinf(x);
 
@@ -1198,8 +1198,8 @@ void mat4RotateXDeg(mat4 *const restrict m, const float x){
 }
 
 // Convert the X rotation from degrees to radians!
-mat4 mat4RotateXDegR(const mat4 m, const float x){
-	return(mat4RotateXRadR(m, x * DEG_TO_RAD));
+mat4 mat4RotateXDegC(const mat4 m, const float x){
+	return(mat4RotateXRadC(m, x * DEG_TO_RAD));
 }
 
 // Rotate a matrix on the Y axis!
@@ -1220,7 +1220,7 @@ void mat4RotateYRad(mat4 *const restrict m, const float y){
 }
 
 // Rotate a matrix on the Y axis!
-mat4 mat4RotateYRadR(const mat4 m, const float y){
+mat4 mat4RotateYRadC(const mat4 m, const float y){
 	const float c = cosf(y);
 	const float d = sinf(y);
 
@@ -1255,8 +1255,8 @@ void mat4RotateYDeg(mat4 *const restrict m, const float y){
 }
 
 // Convert the Y rotation from degrees to radians!
-mat4 mat4RotateYDegR(const mat4 m, const float y){
-	return(mat4RotateYRadR(m, y * DEG_TO_RAD));
+mat4 mat4RotateYDegC(const mat4 m, const float y){
+	return(mat4RotateYRadC(m, y * DEG_TO_RAD));
 }
 
 // Rotate a matrix on the Z axis!
@@ -1277,7 +1277,7 @@ void mat4RotateZRad(mat4 *const restrict m, const float z){
 }
 
 // Rotate a matrix on the Z axis!
-mat4 mat4RotateZRadR(const mat4 m, const float z){
+mat4 mat4RotateZRadC(const mat4 m, const float z){
 	const float e = cosf(z);
 	const float f = sinf(z);
 
@@ -1312,8 +1312,8 @@ void mat4RotateZDeg(mat4 *const restrict m, const float z){
 }
 
 // Convert the Z rotation from degrees to radians!
-mat4 mat4RotateZDegR(const mat4 m, const float z){
-	return(mat4RotateZRadR(m, z * DEG_TO_RAD));
+mat4 mat4RotateZDegC(const mat4 m, const float z){
+	return(mat4RotateZRadC(m, z * DEG_TO_RAD));
 }
 
 
@@ -1337,7 +1337,7 @@ void mat4ScalePre(mat4 *const restrict m, const float x, const float y, const fl
 }
 
 // Left-multiply a matrix by a scale matrix stored as three floats!
-mat4 mat4ScalePreR(mat4 m, const float x, const float y, const float z){
+mat4 mat4ScalePreC(mat4 m, const float x, const float y, const float z){
 	m.m[0][0] *= x;
 	m.m[0][1] *= y;
 	m.m[0][2] *= z;
@@ -1381,7 +1381,7 @@ void mat4ScalePre4(mat4 *const restrict m, const float x, const float y, const f
 }
 
 // Left-multiply a matrix by a scale matrix stored as four floats!
-mat4 mat4ScalePre4R(mat4 m, const float x, const float y, const float z, const float w){
+mat4 mat4ScalePre4C(mat4 m, const float x, const float y, const float z, const float w){
 	m.m[0][0] *= x;
 	m.m[0][1] *= y;
 	m.m[0][2] *= z;
@@ -1411,8 +1411,8 @@ void mat4ScalePreVec3(mat4 *const restrict m, const vec3 *const restrict v){
 }
 
 // Left-multiply a matrix by a scale matrix stored as a vec3!
-mat4 mat4ScalePreVec3R(mat4 m, const vec3 v){
-	return(mat4ScalePreR(m, v.x, v.y, v.z));
+mat4 mat4ScalePreVec3C(mat4 m, const vec3 v){
+	return(mat4ScalePreC(m, v.x, v.y, v.z));
 }
 
 // Left-multiply a matrix by a scale matrix stored as a vec4!
@@ -1421,8 +1421,8 @@ void mat4ScalePreVec4(mat4 *const restrict m, const vec4 *const restrict v){
 }
 
 // Left-multiply a matrix by a scale matrix stored as a vec4!
-mat4 mat4ScalePreVec4R(mat4 m, const vec4 v){
-	return(mat4ScalePre4R(m, v.x, v.y, v.z, v.w));
+mat4 mat4ScalePreVec4C(mat4 m, const vec4 v){
+	return(mat4ScalePre4C(m, v.x, v.y, v.z, v.w));
 }
 
 // Right-multiply a matrix by a scale matrix stored as three floats!
@@ -1444,7 +1444,7 @@ void mat4Scale(mat4 *const restrict m, const float x, const float y, const float
 }
 
 // Right-multiply a matrix by a scale matrix stored as three floats!
-mat4 mat4ScaleR(mat4 m, const float x, const float y, const float z){
+mat4 mat4ScaleC(mat4 m, const float x, const float y, const float z){
 	m.m[0][0] *= x;
 	m.m[0][1] *= x;
 	m.m[0][2] *= x;
@@ -1487,7 +1487,7 @@ void mat4Scale4(mat4 *const restrict m, const float x, const float y, const floa
 }
 
 // Right-multiply a matrix by a scale matrix stored as four floats!
-mat4 mat4Scale4R(mat4 m, const float x, const float y, const float z, const float w){
+mat4 mat4Scale4C(mat4 m, const float x, const float y, const float z, const float w){
 	m.m[0][0] *= x;
 	m.m[0][1] *= x;
 	m.m[0][2] *= x;
@@ -1517,8 +1517,8 @@ void mat4ScaleVec3(mat4 *const restrict m, const vec3 *const restrict v){
 }
 
 // Right-multiply a matrix by a scale matrix stored as a vec3!
-mat4 mat4ScaleVec3R(mat4 m, const vec3 v){
-	return(mat4ScaleR(m, v.x, v.y, v.z));
+mat4 mat4ScaleVec3C(mat4 m, const vec3 v){
+	return(mat4ScaleC(m, v.x, v.y, v.z));
 }
 
 // Right-multiply a matrix by a scale matrix stored as a vec4!
@@ -1527,8 +1527,8 @@ void mat4ScaleVec4(mat4 *const restrict m, const vec4 *const restrict v){
 }
 
 // Right-multiply a matrix by a scale matrix stored as a vec4!
-mat4 mat4ScaleVec4R(mat4 m, const vec4 v){
-	return(mat4Scale4R(m, v.x, v.y, v.z, v.w));
+mat4 mat4ScaleVec4C(mat4 m, const vec4 v){
+	return(mat4Scale4C(m, v.x, v.y, v.z, v.w));
 }
 
 
@@ -1590,7 +1590,7 @@ void mat4TransposeOut(const mat4 m, mat4 *const restrict out){
 ** Find the transpose of a matrix! For column-major matrices, this effectively
 ** translates it to a row-major matrix. The reverse is true for row-major matrices.
 */
-mat4 mat4TransposeR(const mat4 m){
+mat4 mat4TransposeC(const mat4 m){
 	const mat4 out = {
 		.m[0][0] = m.m[0][0],
 		.m[0][1] = m.m[1][0],
@@ -1751,7 +1751,7 @@ void mat4InvertOut(const mat4 m, mat4 *const restrict out){
 }
 
 // Invert a matrix!
-mat4 mat4InvertR(const mat4 m){
+mat4 mat4InvertC(const mat4 m){
 	// We need to use these values twice, but we only need to calculate them once.
 	const float f0 =  m.m[1][1] * m.m[2][2] * m.m[3][3] - m.m[1][1] * m.m[2][3] * m.m[3][2] -
 	                  m.m[2][1] * m.m[1][2] * m.m[3][3] + m.m[2][1] * m.m[1][3] * m.m[3][2] +
@@ -1999,7 +1999,7 @@ void mat4Orthographic(mat4 *const restrict m, const float right, const float lef
 }
 
 // Generate an orthographic matrix!
-mat4 mat4OrthographicR(const float right, const float left, const float top, const float bottom, const float near, const float far){
+mat4 mat4OrthographicC(const float right, const float left, const float top, const float bottom, const float near, const float far){
 	const float invRightMinLeft = 1.f/(right - left);
 	const float invTopMinBottom = 1.f/(top - bottom);
 	const float invNearMinFar   = 1.f/(near - far);
@@ -2040,7 +2040,7 @@ void mat4Perspective(mat4 *const restrict m, const float fov, const float aspect
 }
 
 // Generate a perspective matrix!
-mat4 mat4PerspectiveR(const float fov, const float aspectRatio, const float near, const float far){
+mat4 mat4PerspectiveC(const float fov, const float aspectRatio, const float near, const float far){
 	const float invScale = 1.f/tan(fov * 0.5f);
 	const float invNearMinFar = 1.f/(near - far);
 	const mat4 m = {
@@ -2083,7 +2083,7 @@ void mat4PerspectiveOld(mat4 *const restrict m, const float fov, const float asp
 }
 
 // Generate a perspective matrix using the plain, unoptimized method!
-mat4 mat4PerspectiveOldR(const float fov, const float aspectRatio, const float near, const float far){
+mat4 mat4PerspectiveOldC(const float fov, const float aspectRatio, const float near, const float far){
 	const float top    = near * tanf(fov * 0.5f);
 	const float right  = top * aspectRatio;
 	const float invRightMinLeft = 1.f/(right + right);
@@ -2135,10 +2135,10 @@ void mat4RotateToFace(mat4 *const restrict m, const vec3 *const restrict eye, co
 }
 
 // Generate a rotation matrix that faces a target!
-mat4 mat4RotateToFaceR(const vec3 eye, const vec3 target, const vec3 worldUp){
-	const vec3 forward = vec3NormalizeVec3FastR(vec3SubtractVec3FromR(target, eye));
-	const vec3 right   = vec3NormalizeVec3FastR(vec3CrossVec3R(worldUp, forward));
-	const vec3 up      = vec3NormalizeVec3FastR(vec3CrossVec3R(forward, right));
+mat4 mat4RotateToFaceC(const vec3 eye, const vec3 target, const vec3 worldUp){
+	const vec3 forward = vec3NormalizeVec3FastC(vec3SubtractVec3FromC(target, eye));
+	const vec3 right   = vec3NormalizeVec3FastC(vec3CrossVec3C(worldUp, forward));
+	const vec3 up      = vec3NormalizeVec3FastC(vec3CrossVec3C(forward, right));
 	// Rotate the matrix to look at "target"!
 	const mat4 m = {
 		.m[0][0] = right.x,   .m[0][1] = right.y,   .m[0][2] = right.z,   .m[0][3] = 0.f,
@@ -2186,16 +2186,16 @@ void mat4LookAt(mat4 *const restrict m, const vec3 *const restrict eye, const ve
 }
 
 // Generate a look-at matrix!
-mat4 mat4LookAtR(const vec3 eye, const vec3 target, const vec3 worldUp){
-	const vec3 forward = vec3NormalizeVec3FastR(vec3SubtractVec3FromR(eye, target));
-	const vec3 right   = vec3NormalizeVec3FastR(vec3CrossVec3R(worldUp, forward));
-	const vec3 up      = vec3NormalizeVec3FastR(vec3CrossVec3R(forward, right));
+mat4 mat4LookAtC(const vec3 eye, const vec3 target, const vec3 worldUp){
+	const vec3 forward = vec3NormalizeVec3FastC(vec3SubtractVec3FromC(eye, target));
+	const vec3 right   = vec3NormalizeVec3FastC(vec3CrossVec3C(worldUp, forward));
+	const vec3 up      = vec3NormalizeVec3FastC(vec3CrossVec3C(forward, right));
 	// Translate the matrix to "eye" and make it look at "target"!
 	const mat4 m = {
 		.m[0][0] = right.x,                   .m[0][1] = up.x,                   .m[0][2] = forward.z,                   .m[0][3] = 0.f,
 		.m[1][0] = right.y,                   .m[1][1] = up.y,                   .m[1][2] = forward.y,                   .m[1][3] = 0.f,
 		.m[2][0] = right.z,                   .m[2][1] = up.z,                   .m[2][2] = forward.z,                   .m[2][3] = 0.f,
-		.m[3][0] = -vec3DotVec3R(right, eye), .m[3][1] = -vec3DotVec3R(up, eye), .m[3][2] = -vec3DotVec3R(forward, eye), .m[3][3] = 1.f
+		.m[3][0] = -vec3DotVec3C(right, eye), .m[3][1] = -vec3DotVec3C(up, eye), .m[3][2] = -vec3DotVec3C(forward, eye), .m[3][3] = 1.f
 	};
 
 	return(m);
@@ -2245,7 +2245,7 @@ void mat4ToQuat(const mat4 *const restrict m, quat *const restrict out){
 }
 
 // Convert a 4x4 matrix to a quaternion!
-quat mat4ToQuatR(const mat4 m){
+quat mat4ToQuatC(const mat4 m){
 	const float trace = m.m[0][0] + m.m[1][1] + m.m[2][2];
 
 	if(trace > 0){
@@ -2298,7 +2298,7 @@ void mat4ToQuatAlt(const mat4 *const restrict m, quat *const restrict out){
 	out->w = 0.5f * sqrtf(m->m[0][0] + m->m[1][1] + m->m[2][2] + 1.f);
 }
 
-quat mat4ToQuatAltR(const mat4 m){
+quat mat4ToQuatAltC(const mat4 m){
 	const quat q = {
 		.x = copySignZero(0.5f * sqrtf( m.m[0][0] - m.m[1][1] - m.m[2][2] + 1.f), m.m[1][2] - m.m[2][1]),
 		.y = copySignZero(0.5f * sqrtf(-m.m[0][0] + m.m[1][1] - m.m[2][2] + 1.f), m.m[2][0] - m.m[0][2]),
@@ -2345,7 +2345,7 @@ void quatToMat4(const quat *const restrict q, mat4 *const restrict out){
 }
 
 // Convert a quaternion to a 4x4 matrix!
-mat4 quatToMat4R(const quat q){
+mat4 quatToMat4C(const quat q){
 	const float xx = q.x*q.x;
 	const float yy = q.y*q.y;
 	const float zz = q.z*q.z;

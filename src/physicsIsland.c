@@ -37,6 +37,7 @@ void physIslandInit(physicsIsland *const restrict island){
 	island->bodies = NULL;
 	island->contacts = NULL;
 	island->separations = NULL;
+	island->joints = NULL;
 }
 
 
@@ -247,13 +248,15 @@ static void updateRigidBodies(physicsIsland *const restrict island, const float 
 ** for collision with the narrowphase and create a collision pair for them.
 */
 static void collisionCallback(void *const colliderA, void *const colliderB, void *const restrict island){
-	// Make sure these colliders are actually allowed
-	if(physColliderPermitCollision((physicsCollider *)colliderA, (physicsCollider *)colliderB)){
+	// Make sure these colliders and rigid bodies are actually allowed to collide.
+	if(
+		physColliderPermitCollision((physicsCollider *)colliderA, (physicsCollider *)colliderB) &&
+		physRigidBodyPermitCollision(((physicsCollider *)colliderA)->owner, ((physicsCollider *)colliderB)->owner)
+	){
 		// We should only run the narrowphase if the broadphase succeeds.
 		if(colliderAABBCollidingAABB(&((physicsCollider *)colliderA)->node->aabb, &((physicsCollider *)colliderB)->node->aabb)){
-			// Used when searching for an
-			// existing contact or separation
-			// or when creating a new one.
+			// Used when searching for an existing contact
+			// or separation or when creating a new one.
 			void *prevPair;
 			void *nextPair;
 			void *sharedPair;
@@ -541,32 +544,32 @@ static void updateColliderSeparations(physicsIsland *const restrict island, phys
 static void solveConstraints(physicsIsland *const restrict island, const float dt){
 	size_t i;
 	physicsRigidBody *body;
-	physicsJoint *joint;
-	physicsContactPair *contact;
+	physicsJointPair *jointPair;
+	physicsContactPair *contactPair;
 
 
 	// Presolve joints.
-	/**joint = island->joints;
-	for(joint != NULL){
-		physJointPresolveConstraints(joint, dt);
-		joint = (physicsJoint *)memDoubleListNext(joint);
-	}**/
+	jointPair = island->joints;
+	while(jointPair != NULL){
+		physJointPresolve(&jointPair->joint, jointPair->bodyA, jointPair->bodyB, dt);
+		jointPair = (physicsJointPair *)memDoubleListNext(jointPair);
+	}
 
 
 	// Iteratively solve joint and contact velocity constraints.
 	for(i = PHYSICS_VELOCITY_SOLVER_NUM_ITERATIONS; i > 0; --i){
 		// Solve joint velocity constraints.
-		/**joint = island->joints;
-		while(joint != NULL){
-			physJointSolveVelocityConstraints(joint);
-			joint = (physicsJoint *)memDoubleListNext(joint);
-		}**/
+		jointPair = island->joints;
+		while(jointPair != NULL){
+			physJointSolveVelocity(&jointPair->joint, jointPair->bodyA, jointPair->bodyB);
+			jointPair = (physicsJointPair *)memDoubleListNext(jointPair);
+		}
 
 		// Solve contact velocity constraints.
-		contact = island->contacts;
-		while(contact != NULL){
-			physManifoldSolveVelocity(&contact->manifold, contact->cA->owner, contact->cB->owner);
-			contact = (physicsContactPair *)memDoubleListNext(contact);
+		contactPair = island->contacts;
+		while(contactPair != NULL){
+			physManifoldSolveVelocity(&contactPair->manifold, contactPair->cA->owner, contactPair->cB->owner);
+			contactPair = (physicsContactPair *)memDoubleListNext(contactPair);
 		}
 	}
 
@@ -587,19 +590,19 @@ static void solveConstraints(physicsIsland *const restrict island, const float d
 
 		#ifdef PHYSJOINT_USE_POSITIONAL_CORRECTION
 		// Solve joint configuration constraints.
-		/**joint = island->joints;
-		while(joint != NULL){
-			solved &= physJointSolveConfigurationConstraints(joint);
-			joint = (physicsJoint *)memDoubleListNext(joint);
-		}**/
+		jointPair = island->joints;
+		while(jointPair != NULL){
+			solved &= physJointSolvePosition(&jointPair->joint, jointPair->bodyA, jointPair->bodyB);
+			jointPair = (physicsJointPair *)memDoubleListNext(jointPair);
+		}
 		#endif
 
 		#ifdef PHYSCONTACT_STABILISER_GAUSS_SEIDEL
 		// Solve contact configuration constraints.
-		contact = island->contacts;
-		while(contact != NULL){
-			separation = physManifoldSolvePosition(&contact->manifold, contact->cA->owner, contact->cB->owner, separation);
-			contact = (physicsContactPair *)memDoubleListNext(contact);
+		contactPair = island->contacts;
+		while(contactPair != NULL){
+			separation = physManifoldSolvePosition(&contactPair->manifold, contactPair->cA->owner, contactPair->cB->owner, separation);
+			contactPair = (physicsContactPair *)memDoubleListNext(contactPair);
 		}
 		#endif
 

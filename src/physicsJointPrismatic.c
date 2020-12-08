@@ -270,9 +270,9 @@ void physJointPrismaticSolveVelocity(void *const restrict joint, physicsRigidBod
 ** This may also be called multiple times, but by returning
 ** the amount of error we'll know when to stop.
 */
-#ifdef PHYSJOINTDISTANCE_STABILISER_GAUSS_SEIDEL
-float physJointPrismaticSolvePosition(void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB){
-	return(0.f);
+#ifdef PHYSJOINTPRISMATIC_STABILISER_GAUSS_SEIDEL
+return_t physJointPrismaticSolvePosition(void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB){
+	return(1);
 }
 #endif
 

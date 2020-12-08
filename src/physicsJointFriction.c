@@ -12,10 +12,10 @@
 /*
 ** ----------------------------------------------------------------------
 **
-** Distance constraints ensure that the two points specified, one on
-** each rigid body, are always a certain distance from each other.
-** We allow develoeprs to set how rigidly this constraint should be
-** satisfied, which controls how spring-like it should behave.
+** Friction joints are special types of motor joints that simulate the
+** effects of friction on a specified plane. They are currently only
+** intended to be used by contacts when "PHYSCONTACT_USE_FRICTION_JOINT"
+** is defined.
 **
 ** ----------------------------------------------------------------------
 **
@@ -102,7 +102,6 @@
 */
 
 
-#warning "This is incomplete."
 /*
 ** By applying the impulse from the previous update,
 ** we can make the constraint converge more quickly.
@@ -198,8 +197,6 @@ void physJointFrictionSolveVelocity(
 	const float maxForce
 ){
 
-	vec2 lambda;
-	vec2 oldImpulse;
 	vec3 linearImpulse;
 	vec3 angularImpulse;
 	vec3 relativeVelocity;
@@ -221,51 +218,61 @@ void physJointFrictionSolveVelocity(
 	vec3SubtractVec3From(&relativeVelocity, &linearImpulse);
 
 
-	// lambda    = -JV/((JM^(-1))J^T)
-	// lambda[0] = -(v_relative . u1)/K
-	// lambda[1] = -(v_relative . u2)/K
-	// Calculate the magnitudes for the linear impulses.
-	lambda.x = -vec3DotVec3(&relativeVelocity, &joint->tangents[0]);
-	lambda.y = -vec3DotVec3(&relativeVelocity, &joint->tangents[1]);
-	mat2MultiplyByVec2(&joint->linearMass, &lambda);
+	{
+		// lambda    = -JV/((JM^(-1))J^T)
+		// lambda[0] = -(v_relative . u1)/K
+		// lambda[1] = -(v_relative . u2)/K
+		// Calculate the magnitudes for the linear impulses.
+		vec2 lambda = {
+			.x = -vec3DotVec3(&relativeVelocity, &joint->tangents[0]),
+			.y = -vec3DotVec3(&relativeVelocity, &joint->tangents[1])
+		};
+		const vec2 oldImpulse = joint->linearImpulse;
+		vec3 temp;
 
-	oldImpulse = joint->linearImpulse;
-	vec2AddVec2(&joint->linearImpulse, &lambda);
+		mat2MultiplyByVec2(&joint->linearMass, &lambda);
+		vec2AddVec2(&joint->linearImpulse, &lambda);
 
-	// C' <= maxFriction
-	// If our accumulated impulse magnitude is larger than the
-	// total force friction is allowed to apply, we need to clamp it.
-	impulseMagnitude = vec2DotVec2(&joint->linearImpulse, &joint->linearImpulse);
-	if(impulseMagnitude > maxFriction * maxFriction){
-		// Normalize the vector and multiply by maxFriction at the same time.
-		vec2MultiplyS(&joint->linearImpulse, maxFriction * invSqrtFast(impulseMagnitude));
-		vec2SubtractVec2FromOut(&joint->linearImpulse, &oldImpulse, &lambda);
+		// C' <= maxFriction
+		// If our accumulated impulse magnitude is larger than the
+		// total force friction is allowed to apply, we need to clamp it.
+		impulseMagnitude = vec2DotVec2(&joint->linearImpulse, &joint->linearImpulse);
+		if(impulseMagnitude > maxFriction * maxFriction){
+			// Normalize the vector and multiply by maxFriction at the same time.
+			vec2MultiplyS(&joint->linearImpulse, maxFriction * invSqrtFast(impulseMagnitude));
+			vec2SubtractVec2FromOut(&joint->linearImpulse, &oldImpulse, &lambda);
+		}
+
+		// Add the impulse magnitudes for both tangent directions.
+		vec3MultiplySOut(&joint->tangents[0], lambda.x, &linearImpulse);
+		vec3MultiplySOut(&joint->tangents[1], lambda.y, &temp);
+		vec3AddVec3(&linearImpulse, &temp);
 	}
 
-	// Add the impulse magnitudes for both tangent directions.
-	vec3MultiplySOut(&joint->tangents[0], lambda.x, &relativeVelocity);
-	vec3MultiplySOut(&joint->tangents[1], lambda.y, &linearImpulse);
-	vec3AddVec3(&linearImpulse, &relativeVelocity);
 
+	{
+		vec3 dC;
+		float lambda;
+		const float oldImpulse = joint->angularImpulse;
 
-	// lambda = -JV/((JM^(-1))J^T)
-	//        = -((wB - wA) . n)/K
-	// Calculate the magnitude for the angular impulse.
-	vec3SubtractVec3FromOut(&bodyA->angularVelocity, &bodyB->angularVelocity, &relativeVelocity);
-	lambda.x = vec3DotVec3(&relativeVelocity, &joint->normal) * joint->angularMass;
-	lambda.y = joint->angularImpulse;
-	impulseMagnitude = joint->angularImpulse + lambda.x;
+		// lambda = -JV/((JM^(-1))J^T)
+		//        = -((wB - wA) . n)/K
+		// Calculate the magnitude for the angular impulse.
+		vec3SubtractVec3FromOut(&bodyA->angularVelocity, &bodyB->angularVelocity, &dC);
+		lambda = vec3DotVec3(&dC, &joint->normal) * joint->angularMass;
 
-	// Clamp our accumulated impulse for the angular constraint.
-	if(impulseMagnitude <= -maxFriction){
-		joint->angularImpulse = -maxFriction;
-		vec3MultiplySOut(&joint->normal, -maxFriction - lambda.y, &angularImpulse);
-	}else if(impulseMagnitude > maxFriction){
-		joint->angularImpulse = maxFriction;
-		vec3MultiplySOut(&joint->normal, maxFriction - lambda.y, &angularImpulse);
-	}else{
-		joint->angularImpulse = impulseMagnitude;
-		vec3MultiplySOut(&joint->normal, lambda.x, &angularImpulse);
+		// Clamp our accumulated impulse for the angular constraint.
+		impulseMagnitude = joint->angularImpulse + lambda;
+		if(impulseMagnitude <= -maxFriction){
+			joint->angularImpulse = -maxFriction;
+			vec3MultiplySOut(&joint->normal, -maxFriction - oldImpulse, &angularImpulse);
+		}else if(impulseMagnitude > maxFriction){
+			joint->angularImpulse = maxFriction;
+			vec3MultiplySOut(&joint->normal, maxFriction - oldImpulse, &angularImpulse);
+		}else{
+			joint->angularImpulse = impulseMagnitude;
+			vec3MultiplySOut(&joint->normal, lambda, &angularImpulse);
+		}
 	}
 
 	physRigidBodyApplyImpulseBoostInverse(bodyA, &joint->rA, &linearImpulse, &angularImpulse);

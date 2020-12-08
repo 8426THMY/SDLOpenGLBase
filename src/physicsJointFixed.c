@@ -34,6 +34,8 @@ void physJointFixedSolveVelocity(void *const restrict joint, physicsRigidBody *c
 ** This may also be called multiple times, but by returning
 ** the amount of error we'll know when to stop.
 */
-float physJointFixedSolvePosition(void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB){
-	return(0.f);
+#ifdef PHYSJOINTFIXED_STABILISER_GAUSS_SEIDEL
+return_t physJointFixedSolvePosition(void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB){
+	return(1);
 }
+#endif

@@ -24,6 +24,7 @@ How can we do this?
 
 #warning "Add more matrix functions for left- and right-multiplying vectors by matrices. We need bra and ket functions that produce a vector on left-multiplication."
 #warning "Should we use our 'R' math functions? It would also be a good idea to stop passing so many things by pointer."
+#warning "We can't be naive about it though, in some situations (such as adding one vector to another) it's better to use the pointer functions rather than doing an extra copy."
 
 #warning "Texture group animation needs a rewrite. It's messy and we can't do diagonal scrolling effects."
 #warning "Model loading also needs a rewrite, but it's not really important since we won't need it when we have a binary format."

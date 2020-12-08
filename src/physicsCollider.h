@@ -45,11 +45,13 @@ typedef struct physicsCollider {
 	physicsRigidBody *owner;
 	aabbNode *node;
 
-	// Colliders store linked lists of active contacts
-	// and separations. These lists are mostly sorted
-	// according to the addresses of the second collider
-	// involved in the contact or separation. Check the
-	// explanation given in "physicsConstraintPair.h".
+	// Colliders store doubly linked lists of active contacts and
+	// separations. These lists are mostly sorted according to the
+	// addresses of the second collider involved in the contact or
+	// separation. Check the explanation given in "physicsConstraintPair.h".
+	//
+	// Note that the list is actually allocated and managed by the
+	// island, this just stores a pointer to the collider's first joint.
 	physicsContactPair *contacts;
 	physicsSeparationPair *separations;
 } physicsCollider;

@@ -92,7 +92,7 @@ void transformStateInvert(const transformState *const restrict trans, transformS
 // Convert a transformation state to a matrix.
 void transformStateToMat4(const transformState *const restrict trans, mat4 *const restrict out){
 	// We translate, scale and then rotate:
-	//     *out = mat4RotateQuatR(mat4ScaleVec3R(mat4InitTranslateVec3R(trans->pos), trans->scale), trans->rot);
+	//     *out = mat4RotateQuatC(mat4ScaleVec3C(mat4InitTranslateVec3C(trans->pos), trans->scale), trans->rot);
 	// It looks a bit weird because it's been optimized pretty heavily.
 	mat4InitRotateQuat(out, &trans->rot);
 	mat4ScaleVec3(out, &trans->scale);

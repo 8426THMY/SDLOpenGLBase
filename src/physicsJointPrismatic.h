@@ -2,6 +2,7 @@
 #define physicsJointPrismatic_h
 
 
+#include "utilTypes.h"
 #include "vec3.h"
 #include "mat2.h"
 #include "mat3.h"
@@ -82,8 +83,8 @@ void physJointPrismaticPresolve(
 	void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB, const float dt
 );
 void physJointPrismaticSolveVelocity(void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB);
-#ifdef PHYSJOINTDISTANCE_STABILISER_GAUSS_SEIDEL
-float physJointPrismaticSolvePosition(void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB);
+#ifdef PHYSJOINTPRISMATIC_STABILISER_GAUSS_SEIDEL
+return_t physJointPrismaticSolvePosition(void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB);
 #endif
 
 

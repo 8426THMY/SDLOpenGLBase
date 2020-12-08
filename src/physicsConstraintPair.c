@@ -3,6 +3,7 @@
 
 #include <stddef.h>
 
+#include "physicsRigidBody.h"
 #include "physicsCollider.h"
 
 
@@ -131,64 +132,64 @@ void physSeparationPairInit(
 }
 
 // Initialise a joint pair from a joint.
-/*void physJointPairInit(
+void physJointPairInit(
 	physicsJointPair *const restrict pair,
-	physicsCollider *const restrict cA, physicsCollider *const restrict cB,
+	physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB,
 	physicsJointPair *prev, physicsJointPair *next
 ){
 
-	pair->cA = cA;
-	pair->cB = cB;
+	pair->bodyA = bodyA;
+	pair->bodyB = bodyB;
 
-	// Make the previous pair in collider A's
+	// Make the previous pair in body A's
 	// linked list point to the new one.
 	if(prev != NULL){
 		prev->nextA = pair;
 	}else{
-		cA->joints = pair;
+		bodyA->joints = pair;
 	}
-	// Make the next pair in collider A's
+	// Make the next pair in body A's
 	// linked list point to the new one.
 	if(next != NULL){
-		if(cA == next->cA){
+		if(bodyA == next->bodyA){
 			next->prevA = pair;
 		}else{
 			next->prevB = pair;
 		}
 	}
 	// Set the new pair's list
-	// pointers for collider A.
+	// pointers for body A.
 	pair->prevA = prev;
 	pair->nextA = next;
 
 	prev = NULL;
-	next = cB->joints;
-	// Find the position in collider B's list
+	next = bodyB->joints;
+	// Find the position in body B's list
 	// where this pair should be inserted.
 	// We insert it after the last pair
-	// whose first collider is collider B.
-	while(next != NULL && cB == next->cA){
+	// whose first rigid body is body B.
+	while(next != NULL && bodyB == next->bodyA){
 		prev = next;
 		next = next->nextA;
 	}
 
-	// Make the previous pair in collider B's
+	// Make the previous pair in body B's
 	// linked list point to the new one.
 	if(prev != NULL){
 		prev->nextA = pair;
 	}else{
-		cB->joints = pair;
+		bodyB->joints = pair;
 	}
-	// Make the next pair in collider B's
+	// Make the next pair in body B's
 	// linked list point to the new one.
 	if(next != NULL){
 		next->prevB = pair;
 	}
 	// Set the new pair's list
-	// pointers for collider B.
+	// pointers for body B.
 	pair->prevB = prev;
 	pair->nextB = next;
-}*/
+}
 
 
 /*
@@ -285,51 +286,51 @@ void physSeparationPairDelete(physicsSeparationPair *const restrict pair){
 ** Delete a joint pair and remove it from the linked
 ** lists of both colliders involved in the joint.
 */
-/*void physJointPairDelete(physicsJointPair *const restrict pair){
+void physJointPairDelete(physicsJointPair *const restrict pair){
 	physicsJointPair *nextPair = pair->nextA;
 	physicsJointPair *prevPair = pair->prevA;
-	// The next pair in collider A's list
+	// The next pair in body A's list
 	// should point to the previous one.
 	if(nextPair != NULL){
 		// Make sure we set the right pointer.
-		if(nextPair->cA == pair->cA){
+		if(nextPair->bodyA == pair->bodyA){
 			nextPair->prevA = prevPair;
 		}else{
 			nextPair->prevB = prevPair;
 		}
 	}
-	// The previous pair in collider A's
+	// The previous pair in body A's
 	// list should point to the next one.
 	if(prevPair != NULL){
-		if(prevPair->cA == pair->cA){
+		if(prevPair->bodyA == pair->bodyA){
 			prevPair->nextA = nextPair;
 		}else{
 			prevPair->nextB = nextPair;
 		}
 
 	// If it's the first pair in the list,
-	// update the collider's list pointer.
+	// update the rigid body's list pointer.
 	}else{
-		pair->cA->joints = nextPair;
+		pair->bodyA->joints = nextPair;
 	}
 
 	nextPair = pair->nextB;
 	prevPair = pair->prevB;
-	// Do the same again but for collider B.
+	// Do the same again but for body B.
 	if(nextPair != NULL){
-		if(nextPair->cB == pair->cB){
+		if(nextPair->bodyB == pair->bodyB){
 			nextPair->prevB = prevPair;
 		}else{
 			nextPair->prevA = prevPair;
 		}
 	}
 	if(prevPair != NULL){
-		if(prevPair->cB == pair->cB){
+		if(prevPair->bodyB == pair->bodyB){
 			prevPair->nextB = nextPair;
 		}else{
 			prevPair->nextA = nextPair;
 		}
 	}else{
-		pair->cB->joints = nextPair;
+		pair->bodyB->joints = nextPair;
 	}
-}*/
+}

@@ -13,7 +13,7 @@ void vec2InitZero(vec2 *const restrict v){
 }
 
 // Initialize the vec2's values to 0!
-vec2 vec2InitZeroR(){
+vec2 vec2InitZeroC(){
 	vec2 v;
 	memset(&v, 0.f, sizeof(v));
 
@@ -27,7 +27,7 @@ void vec2InitSet(vec2 *const restrict v, const float x, const float y){
 }
 
 // Initialize the vec2's values to the ones specified!
-vec2 vec2InitSetR(vec2 v, const float x, const float y){
+vec2 vec2InitSetC(vec2 v, const float x, const float y){
 	v.x = x;
 	v.y = y;
 
@@ -48,7 +48,7 @@ void vec2AddOut(const vec2 *const restrict v, const float x, const float y, vec2
 }
 
 // Add a vec2 stored as two floats to "v"!
-vec2 vec2AddR(vec2 v, const float x, const float y){
+vec2 vec2AddC(vec2 v, const float x, const float y){
 	v.x += x;
 	v.y += y;
 
@@ -68,7 +68,7 @@ void vec2AddSOut(const vec2 *const restrict v, const float x, vec2 *const restri
 }
 
 // Add "x" to "v"!
-vec2 vec2AddSR(vec2 v, const float x){
+vec2 vec2AddSC(vec2 v, const float x){
 	v.x += x;
 	v.y += x;
 
@@ -88,7 +88,7 @@ void vec2AddVec2Out(const vec2 *const restrict v1, const vec2 *const restrict v2
 }
 
 // Add "v2" to "v1"!
-vec2 vec2AddVec2R(vec2 v1, const vec2 v2){
+vec2 vec2AddVec2C(vec2 v1, const vec2 v2){
 	v1.x += v2.x;
 	v1.y += v2.y;
 
@@ -108,7 +108,7 @@ void vec2SubtractOut(const vec2 *const restrict v, const float x, const float y,
 }
 
 // Subtract a vec2 stored as two floats from "v"!
-vec2 vec2SubtractR(vec2 v, const float x, const float y){
+vec2 vec2SubtractC(vec2 v, const float x, const float y){
 	v.x -= x;
 	v.y -= y;
 
@@ -128,7 +128,7 @@ void vec2SubtractFromOut(const vec2 *const restrict v, const float x, const floa
 }
 
 // Subtract "v" from a vec2 stored as two floats!
-vec2 vec2SubtractFromR(vec2 v, const float x, const float y){
+vec2 vec2SubtractFromC(vec2 v, const float x, const float y){
 	v.x = x - v.x;
 	v.y = y - v.y;
 
@@ -148,7 +148,7 @@ void vec2SubtractSFromOut(const vec2 *const restrict v, const float x, vec2 *con
 }
 
 // Subtract "x" from "v"!
-vec2 vec2SubtractSFromR(vec2 v, const float x){
+vec2 vec2SubtractSFromC(vec2 v, const float x){
 	v.x -= x;
 	v.y -= x;
 
@@ -168,7 +168,7 @@ void vec2SubtractFromSOut(const vec2 *const restrict v, const float x, vec2 *con
 }
 
 // Subtract "v" from "x"!
-vec2 vec2SubtractFromSR(vec2 v, const float x){
+vec2 vec2SubtractFromSC(vec2 v, const float x){
 	v.x = x - v.x;
 	v.y = x - v.y;
 
@@ -194,7 +194,7 @@ void vec2SubtractVec2FromOut(const vec2 *const restrict v1, const vec2 *const re
 }
 
 // Subtract "v2" from "v1"!
-vec2 vec2SubtractVec2FromR(vec2 v1, const vec2 v2){
+vec2 vec2SubtractVec2FromC(vec2 v1, const vec2 v2){
 	v1.x -= v2.x;
 	v1.y -= v2.y;
 
@@ -215,7 +215,7 @@ void vec2MultiplySOut(const vec2 *const restrict v, const float x, vec2 *const r
 }
 
 // Multiply "v" by "x"!
-vec2 vec2MultiplySR(vec2 v, const float x){
+vec2 vec2MultiplySC(vec2 v, const float x){
 	v.x *= x;
 	v.y *= x;
 
@@ -235,7 +235,7 @@ void vec2MultiplyVec2Out(const vec2 *const restrict v1, const vec2 *const restri
 }
 
 // Multiply "v1" by "v2"!
-vec2 vec2MultiplyVec2R(vec2 v1, const vec2 v2){
+vec2 vec2MultiplyVec2C(vec2 v1, const vec2 v2){
 	v1.x *= v2.x;
 	v1.y *= v2.y;
 
@@ -259,7 +259,7 @@ void vec2DivideBySOut(const vec2 *const restrict v, const float x, vec2 *const r
 }
 
 // Divide "v" by "x"!
-vec2 vec2DivideBySR(vec2 v, const float x){
+vec2 vec2DivideBySC(vec2 v, const float x){
 	const float invX = 1.f / x;
 
 	v.x *= invX;
@@ -281,7 +281,7 @@ void vec2DivideSByOut(const vec2 *const restrict v, const float x, vec2 *const r
 }
 
 // Divide "x" by "v"!
-vec2 vec2DivideSByR(vec2 v, const float x){
+vec2 vec2DivideSByC(vec2 v, const float x){
 	v.x = (v.x != 0.f) ? x / v.x : 0.f;
 	v.y = (v.y != 0.f) ? x / v.y : 0.f;
 
@@ -311,7 +311,7 @@ void vec2DivideSByFastOut(const vec2 *const restrict v, const float x, vec2 *con
 ** Divide "x" by "v"! Unlike the regular version, this
 ** does not check to prevent against divide-by-zero errors.
 */
-vec2 vec2DivideSByFastR(vec2 v, const float x){
+vec2 vec2DivideSByFastC(vec2 v, const float x){
 	v.x = x / v.x;
 	v.y = x / v.y;
 
@@ -337,7 +337,7 @@ void vec2DivideByVec2Out(const vec2 *const restrict v1, const vec2 *const restri
 }
 
 // Divide "v1" by "v2"!
-vec2 vec2DivideByVec2R(vec2 v1, const vec2 v2){
+vec2 vec2DivideByVec2C(vec2 v1, const vec2 v2){
 	v1.x = (v2.x != 0.f) ? v1.x / v2.x : 0.f;
 	v1.y = (v2.y != 0.f) ? v1.y / v2.y : 0.f;
 
@@ -376,7 +376,7 @@ void vec2DivideByVec2FastOut(const vec2 *const restrict v1, const vec2 *const re
 ** Divide "v1" by "v2"! Unlike the regular version, this
 ** does not check to prevent against divide-by-zero errors.
 */
-vec2 vec2DivideByVec2FastR(vec2 v1, const vec2 v2){
+vec2 vec2DivideByVec2FastC(vec2 v1, const vec2 v2){
 	v1.x = v1.x / v2.x;
 	v1.y = v1.y / v2.y;
 
@@ -395,8 +395,8 @@ float vec2MagnitudeVec2(const vec2 *const restrict v){
 }
 
 // Find the magnitude (length) of a vec2!
-float vec2MagnitudeVec2R(const vec2 v){
-	return(sqrtf(vec2NormVec2R(v)));
+float vec2MagnitudeVec2C(const vec2 v){
+	return(sqrtf(vec2NormVec2C(v)));
 }
 
 // Find the distance between a vec2 and one stored as two floats!
@@ -407,9 +407,9 @@ float vec2DistanceSquared(const vec2 *const restrict v, const float x, const flo
 }
 
 // Find the distance between a vec2 and one stored as two floats!
-float vec2DistanceSquaredR(const vec2 v, const float x, const float y){
-	const vec2 dist = vec2SubtractFromR(v, x, y);
-	return(vec2NormVec2R(dist));
+float vec2DistanceSquaredC(const vec2 v, const float x, const float y){
+	const vec2 dist = vec2SubtractFromC(v, x, y);
+	return(vec2NormVec2C(dist));
 }
 
 // Find the distance between two vec2s!
@@ -420,9 +420,9 @@ float vec2DistanceSquaredVec2(const vec2 *const restrict v1, const vec2 *const r
 }
 
 // Find the distance between two vec2s!
-float vec2DistanceSquaredVec2R(const vec2 v1, const vec2 v2){
-	const vec2 dist = vec2SubtractVec2FromR(v1, v2);
-	return(vec2NormVec2R(dist));
+float vec2DistanceSquaredVec2C(const vec2 v1, const vec2 v2){
+	const vec2 dist = vec2SubtractVec2FromC(v1, v2);
+	return(vec2NormVec2C(dist));
 }
 
 
@@ -437,7 +437,7 @@ float vec2DotVec2Float(const vec2 *const restrict v, const float x, const float 
 }
 
 // Find the dot product of a vec2 and one stored as two floats!
-float vec2DotVec2FloatR(const vec2 v, const float x, const float y){
+float vec2DotVec2FloatC(const vec2 v, const float x, const float y){
 	return(v.x * x + v.y * y);
 }
 
@@ -447,7 +447,7 @@ float vec2DotVec2(const vec2 *const restrict v1, const vec2 *const restrict v2){
 }
 
 // Find the dot product of two vec2s!
-float vec2DotVec2R(const vec2 v1, const vec2 v2){
+float vec2DotVec2C(const vec2 v1, const vec2 v2){
 	return(v1.x * v2.x + v1.y * v2.y);
 }
 
@@ -462,7 +462,7 @@ float vec2NormVec2(const vec2 *const restrict v){
 }
 
 // Find the norm of a vec2!
-float vec2NormVec2R(const vec2 v){
+float vec2NormVec2C(const vec2 v){
 	return(v.x * v.x + v.y * v.y);
 }
 
@@ -484,7 +484,7 @@ void vec2NormalizeFast(const float x, const float y, vec2 *const restrict out){
 }
 
 // Normalize a vec2 stored as two floats!
-vec2 vec2NormalizeR(const float x, const float y){
+vec2 vec2NormalizeC(const float x, const float y){
 	const float magnitude = invSqrt(x * x + y * y);
 	vec2 v;
 
@@ -495,7 +495,7 @@ vec2 vec2NormalizeR(const float x, const float y){
 }
 
 // Normalize a vec2 stored as two floats!
-vec2 vec2NormalizeFastR(const float x, const float y){
+vec2 vec2NormalizeFastC(const float x, const float y){
 	const float magnitude = invSqrtFast(x * x + y * y);
 	vec2 v;
 
@@ -538,7 +538,7 @@ void vec2NormalizeVec2FastOut(const vec2 *const restrict v, vec2 *const restrict
 }
 
 // Normalize a vec2!
-vec2 vec2NormalizeVec2R(vec2 v){
+vec2 vec2NormalizeVec2C(vec2 v){
 	const float magnitude = invSqrt(v.x * v.x + v.y * v.y);
 
 	v.x *= magnitude;
@@ -548,7 +548,7 @@ vec2 vec2NormalizeVec2R(vec2 v){
 }
 
 // Normalize a vec2!
-vec2 vec2NormalizeVec2FastR(vec2 v){
+vec2 vec2NormalizeVec2FastC(vec2 v){
 	const float magnitude = invSqrtFast(v.x * v.x + v.y * v.y);
 
 	v.x *= magnitude;
@@ -570,7 +570,7 @@ void vec2NegateOut(const vec2 *const restrict v, vec2 *const restrict out){
 }
 
 // Negate the values of a vec2!
-vec2 vec2NegateR(vec2 v){
+vec2 vec2NegateC(vec2 v){
 	v.x = -v.x;
 	v.y = -v.y;
 
@@ -598,7 +598,7 @@ void vec2Lerp(const vec2 *const restrict v1, const vec2 *const restrict v2, cons
 }
 
 // Perform linear interpolation between two vec2s!
-vec2 vec2LerpR(vec2 v1, const vec2 v2, const float time){
+vec2 vec2LerpC(vec2 v1, const vec2 v2, const float time){
 	v1.x = lerpFloatFast(v1.x, v2.x, time);
 	v1.y = lerpFloatFast(v1.y, v2.y, time);
 
@@ -610,7 +610,7 @@ vec2 vec2LerpR(vec2 v1, const vec2 v2, const float time){
 ** Instead of entering the two vectors to interpolate between, this function
 ** accepts the starting point and the difference between it and the ending point.
 */
-void vec2LerpFast(const vec2 *const restrict v, const vec2 *offset, const float time, vec2 *const restrict out){
+void vec2LerpDiff(const vec2 *const restrict v, const vec2 *offset, const float time, vec2 *const restrict out){
 	out->x = lerpDiffFast(v->x, offset->x, time);
 	out->y = lerpDiffFast(v->y, offset->y, time);
 }
@@ -620,7 +620,7 @@ void vec2LerpFast(const vec2 *const restrict v, const vec2 *offset, const float 
 ** Instead of entering the two vectors to interpolate between, this function
 ** accepts the starting point and the difference between it and the ending point.
 */
-vec2 vec2LerpFastR(vec2 v, const vec2 offset, const float time){
+vec2 vec2LerpDiffC(vec2 v, const vec2 offset, const float time){
 	v.x = lerpDiffFast(v.x, offset.x, time);
 	v.y = lerpDiffFast(v.y, offset.y, time);
 
@@ -641,7 +641,7 @@ void vec2Min(const vec2 *const restrict v1, const vec2 *const restrict v2, vec2 
 ** Compare two vec2s to find the minimum value per
 ** axis and return a vec2 composed of these minima.
 */
-vec2 vec2MinR(vec2 v1, const vec2 v2){
+vec2 vec2MinC(vec2 v1, const vec2 v2){
 	v1.x = minFloatFast(v1.x, v2.x);
 	v1.y = minFloatFast(v1.y, v2.y);
 
@@ -661,7 +661,7 @@ void vec2Max(const vec2 *const restrict v1, const vec2 *const restrict v2, vec2 
 ** Compare two vec2s to find the maximum value per
 ** axis and return a vec2 composed of these maxima.
 */
-vec2 vec2MaxR(vec2 v1, const vec2 v2){
+vec2 vec2MaxC(vec2 v1, const vec2 v2){
 	v1.x = maxFloatFast(v1.x, v2.x);
 	v1.y = maxFloatFast(v1.y, v2.y);
 
