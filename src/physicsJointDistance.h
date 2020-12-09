@@ -27,7 +27,7 @@ typedef struct physicsJointDistanceDef {
 	float distance;
 	// The natural (angular) frequency of the mass-spring-damper
 	// system in radians per second. When set to 0, the joint
-	// will not exhibit simple harmonic motion.
+	// will not use ODE's soft, spring constraints.
 	//
 	// w = 2pi * f
 	float angularFrequency;
