@@ -8,7 +8,7 @@
 #include "texture.h"
 
 #include "textGlyph.h"
-#include "textCMap.h"
+#include "textCmap.h"
 
 
 typedef uint_least8_t textFontType_t;

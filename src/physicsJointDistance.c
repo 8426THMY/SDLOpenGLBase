@@ -230,11 +230,11 @@ return_t physJointDistanceSolvePosition(void *const restrict joint, physicsRigid
 		vec3SubtractVec3From(&rAB, &rA);
 
 		{
-			const float distance = vec3MagnitudeVec3(&rAB);
-			const float constraint = distance - ((physicsJointDistance *)joint)->distance;
 			const float effectiveMass = calculateEffectiveMass(
 				(physicsJointDistance *)joint, bodyA, bodyB
 			);
+			const float distance = vec3MagnitudeVec3(&rAB);
+			float constraint = distance - ((physicsJointDistance *)joint)->distance;
 			// Clamp the constraint value.
 			if(constraint <= -PHYSCONSTRAINT_MAX_LINEAR_CORRECTION){
 				constraint = -PHYSCONSTRAINT_MAX_LINEAR_CORRECTION;

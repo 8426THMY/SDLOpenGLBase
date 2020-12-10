@@ -1,5 +1,5 @@
-#ifndef textCMap_h
-#define textCMap_h
+#ifndef textCmap_h
+#define textCmap_h
 
 
 #include <stdint.h>

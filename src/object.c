@@ -199,7 +199,7 @@ void objectUpdate(object *const restrict obj, const float time){
 	// Update which frame each animation is currently on!
 	while(curAnim != NULL){
 		skeleAnimUpdate(curAnim, time);
-		curAnim = moduleSkeleAnimNext(curAnim);
+		curAnim = moduleSkeletonAnimNext(curAnim);
 	}
 
 	updateBones(obj, time);

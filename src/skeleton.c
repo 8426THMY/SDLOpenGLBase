@@ -144,7 +144,7 @@ skeletonAnimDef *skeleAnimSMDLoad(const char *const restrict skeleAnimPath, cons
 
 	#ifdef TEMP_MODULE_FIND
 	// If the animation has already been loaded, return a pointer to it!
-	if((animDef = moduleSkeleAnimDefFind(mdlPath)) != NULL){
+	if((animDef = moduleSkeletonAnimDefFind(mdlPath)) != NULL){
 		return(animDef);
 	}
 	#else
@@ -396,7 +396,7 @@ skeletonAnimDef *skeleAnimSMDLoad(const char *const restrict skeleAnimPath, cons
 			char **curName;
 
 
-			animDef = moduleSkeleAnimDefAlloc();
+			animDef = moduleSkeletonAnimDefAlloc();
 			if(animDef == NULL){
 				/** MALLOC FAILED **/
 			}
@@ -498,7 +498,7 @@ void skeleObjGenerateBoneState(
 		}
 
 		// Continue to the next animation in the list.
-		curAnim = moduleSkeleAnimNext(curAnim);
+		curAnim = moduleSkeletonAnimNext(curAnim);
 	}
 }
 
@@ -594,7 +594,7 @@ void skeleAnimDefDelete(skeletonAnimDef *const restrict animDef){
 }
 
 void skeleObjDelete(skeletonObject *const restrict skeleObj){
-	moduleSkeleAnimFreeArray(&skeleObj->anims);
+	moduleSkeletonAnimFreeArray(&skeleObj->anims);
 	if(skeleObj->bones != NULL){
 		memoryManagerGlobalFree(skeleObj->bones);
 	}

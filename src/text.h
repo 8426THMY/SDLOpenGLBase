@@ -4,7 +4,7 @@
 
 #include <stddef.h>
 
-#include "textCMap.h"
+#include "textCmap.h"
 #include "utilTypes.h"
 
 

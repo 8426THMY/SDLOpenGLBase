@@ -21,7 +21,7 @@ typedef struct vertex {
 	vec2 uv;
 	vec3 normal;
 
-	size_t boneIDs[VERTEX_MAX_WEIGHTS];
+	unsigned int boneIDs[VERTEX_MAX_WEIGHTS];
 	float boneWeights[VERTEX_MAX_WEIGHTS];
 } vertex;
 

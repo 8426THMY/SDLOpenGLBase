@@ -475,13 +475,13 @@ static return_t initResources(program *const restrict prg){
 	#warning "Playing 'soldier_animations_anims_old/a_runN_LOSER.smd' on the Scout makes his left arm flip."
 	animDef = skeleAnimSMDLoad("soldier_animations_anims_old/a_runN_MELEE.smd", sizeof("soldier_animations_anims_old/a_runN_MELEE.smd"));
 	if(animDef != NULL){
-		obj->skeleData.anims = moduleSkeleAnimPrepend(&obj->skeleData.anims);
+		obj->skeleData.anims = moduleSkeletonAnimPrepend(&obj->skeleData.anims);
 		skeleAnimInit(obj->skeleData.anims, animDef, 0.5f);
 	}
 
 	animDef = skeleAnimSMDLoad("soldier_animations_anims_old/stand_MELEE.smd", sizeof("soldier_animations_anims_old/stand_MELEE.smd"));
 	if(animDef != NULL){
-		obj->skeleData.anims = moduleSkeleAnimPrepend(&obj->skeleData.anims);
+		obj->skeleData.anims = moduleSkeletonAnimPrepend(&obj->skeleData.anims);
 		skeleAnimInit(obj->skeleData.anims, animDef, 0.5f);
 	}
 
