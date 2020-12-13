@@ -15,7 +15,7 @@ all: bin/NewSDLOpenGLBase
 $(EXE): $(OBJ)
 	$(CC) $(CFLAGS) $(OBJ) -o $@ $(LIBS)
 
-$(OBJ): obj/%.o : src/%.o
+$(OBJ): obj/%.o : src/%.c
 	$(CC) $(CFLAGS) -c $< $(LIBS) -o $@
 
 

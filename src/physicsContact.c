@@ -230,7 +230,7 @@ void physManifoldInit(
 	#else
 	// Set the tangent vectors such that they form an
 	// orthonormal basis together with the contact normal.
-	normalBasisFast(&normal, &physContactTangent(pm, 0), &physContactTangent(pm, 1));
+	normalBasisFaster(&normal, &physContactTangent(pm, 0), &physContactTangent(pm, 1));
 	#endif
 
 	// If we're using a friction join, we initialize it here.
@@ -337,7 +337,7 @@ void physManifoldPersist(
 	vec3NormalizeVec3Fast(&normal);
 	// Set the tangent vectors such that they form an
 	// orthonormal basis together with the contact normal.
-	normalBasisFast(&normal, &physContactTangent(pm, 0), &physContactTangent(pm, 1));
+	normalBasisFaster(&normal, &physContactTangent(pm, 0), &physContactTangent(pm, 1));
 	physContactNormal(pm) = normal;
 
 	#ifdef PHYSCONTACT_STABILISER_GAUSS_SEIDEL
@@ -558,17 +558,17 @@ static float calculateEffectiveMass(
 	const mat3 *const restrict invInertiaA, const mat3 *const restrict invInertiaB, const float invMass
 ){
 
-	vec3 rnA;
-	vec3 rnIA;
-	vec3 rnB;
-	vec3 rnIB;
+	vec3 rAn;
+	vec3 IArAn;
+	vec3 rBn;
+	vec3 IBrBn;
 
 	// (JM^(-1))J^T = mA^(-1) + mB^(-1) + ((rA X n) . (IA^(-1) * (rA X n))) + ((rB X n) . (IB^(-1) * (rB X n)))
-	vec3CrossVec3Out(pointA, normal, &rnA);
-	mat3MultiplyByVec3Out(invInertiaA, &rnA, &rnIA);
-	vec3CrossVec3Out(pointB, normal, &rnB);
-	mat3MultiplyByVec3Out(invInertiaB, &rnB, &rnIB);
-	return(invMass + vec3DotVec3(&rnA, &rnIA) + vec3DotVec3(&rnB, &rnIB));
+	vec3CrossVec3Out(pointA, normal, &rAn);
+	mat3MultiplyByVec3Out(invInertiaA, &rAn, &IArAn);
+	vec3CrossVec3Out(pointB, normal, &rBn);
+	mat3MultiplyByVec3Out(invInertiaB, &rBn, &IBrBn);
+	return(invMass + vec3DotVec3(&rAn, &IArAn) + vec3DotVec3(&rBn, &IBrBn));
 }
 
 /*

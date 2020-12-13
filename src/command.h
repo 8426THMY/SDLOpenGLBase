@@ -4,6 +4,8 @@
 
 #include <stdio.h>
 
+#include "utilTypes.h"
+
 
 /*
 ** Creating console variables:
@@ -44,47 +46,52 @@ typedef void (*commandFunction)(const size_t argc, const commandArgument *const 
 
 typedef size_t commandNodeIndex_t;
 
-// Registered commands are stored in a trie.
 typedef struct commandNode commandNode;
 typedef struct commandNode {
+	char value;
 	commandNode *children;
 	commandNodeIndex_t numChildren;
 	// This will be a NULL pointer if
 	// no command ends at this node.
 	commandFunction func;
-	char value;
-} commandNode, commandTrie;
+} commandNode, commandSystem;
+
+
+void cmdSysInit(commandSystem *const restrict cmdSys);
+return_t cmdSysAdd(commandSystem *node, const char *restrict name, commandFunction func);
+return_t cmdSysRemove(commandSystem *const node, const char *restrict name);
+const commandFunction cmdSysFind(commandSystem *const node, const char *restrict name);
 
 
 /**
- ** We might have to store aliases similarly to Quake/Source.
- ** They use a linked list of name and command string pairs,
- ** which might be better than using another trie as we probably
- ** won't have that many aliases existing simultaneously.
- **/
+*** We might have to store aliases similarly to Quake/Source.
+*** They use a linked list of name and command string pairs,
+*** which might be better than using another trie as we probably
+*** won't have that many aliases existing simultaneously.
+**/
 
 
 /**
- ** The main problem with storing command arguments as strings is that we have
- ** to reparse them every time we want to execute the command - this is most
- ** notably an issue with keybinds and aliases. The reason we use strings is
- ** because we have no way of knowing ahead of time how to actually parse the
- ** inputs for a particular command.
- **
- ** One solution might be to store the type to parse inputs as in the trie node.
- ** This would significantly improve efficiency for commands that don't have
- ** mixed types. Of course, commands with mixed types (like keybinds, the main
- ** reason for doing this) don't benefit from this, as they'll usually have to
- ** use strings.
- **
- ** The only place I can think of where this would matter is keybinds, so we
- ** could probably have a special keybind type that says to treat the first
- ** input as a string and the second as a command vector.
- **
- ** Now that I think about it, this probably wouldn't help. I'm not sure how
- ** to approach aliases at the moment, and that seems to be the only other
- ** case where the difference is significant.
- **/
+*** The main problem with storing command arguments as strings is that we have
+*** to reparse them every time we want to execute the command - this is most
+*** notably an issue with keybinds and aliases. The reason we use strings is
+*** because we have no way of knowing ahead of time how to actually parse the
+*** inputs for a particular command.
+***
+*** One solution might be to store the type to parse inputs as in the trie node.
+*** This would significantly improve efficiency for commands that don't have
+*** mixed types. Of course, commands with mixed types (like keybinds, the main
+*** reason for doing this) don't benefit from this, as they'll usually have to
+*** use strings.
+***
+*** The only place I can think of where this would matter is keybinds, so we
+*** could probably have a special keybind type that says to treat the first
+*** input as a string and the second as a command vector.
+***
+*** Now that I think about it, this probably wouldn't help. I'm not sure how
+*** to approach aliases at the moment, and that seems to be the only other
+*** case where the difference is significant.
+**/
 
 
 #endif

@@ -53,8 +53,9 @@ float lerpDiff(const float x, const float y, const float t){
 
 // Return a number that uses the magnitude of x and the sign of y.
 float copySign(const float x, const float y){
-	const bitFloat i = {.f = x}, j = {.f = y};
-	bitFloat k = {.l = (i.l & 0x7FFFFFFF) | (j.l & 0x80000000)};
+	const bitFloat i = {.f = x};
+	const bitFloat j = {.f = y};
+	const bitFloat k = {.l = (i.l & 0x7FFFFFFF) | (j.l & 0x80000000)};
 	return(k.f);
 }
 
@@ -64,8 +65,9 @@ float copySign(const float x, const float y){
 */
 float copySignZero(const float x, const float y){
 	if(y != 0.f){
-		const bitFloat i = {.f = x}, j = {.f = y};
-		bitFloat k = {.l = (i.l & 0x7FFFFFFF) | (j.l & 0x80000000)};
+		const bitFloat i = {.f = x};
+		const bitFloat j = {.f = y};
+		const bitFloat k = {.l = (i.l & 0x7FFFFFFF) | (j.l & 0x80000000)};
 		return(k.f);
 	}
 	return(0.f);
@@ -165,43 +167,59 @@ void pointBarycentric(
 
 /*
 ** Compute an orthonormal basis from the normalised vector
-** "a" and store the other two vectors in "b" and "c".
+** "v1" and store the other two vectors in "v2" and "v3".
 **
 ** Special thanks to Erin Catto for this implementation!
 */
-void normalBasis(const vec3 *const restrict a, vec3 *const restrict b, vec3 *const restrict c){
+void normalBasis(const vec3 *const restrict v1, vec3 *const restrict v2, vec3 *const restrict v3){
 	// The magic number "0x3F13CD3A" is approximately equivalent to the
 	// square root of 1 over 3. In three dimensions, at least one component
 	// of any unit vector must be greater than or equal to this number.
-	if(fabsf(a->x) >= SQRT_ONE_THIRD){
-		vec3InitSet(b, a->y, -a->x, 0.f);
+	if(fabsf(v1->x) >= SQRT_ONE_THIRD){
+		vec3InitSet(v2, v1->y, -v1->x, 0.f);
 	}else{
-		vec3InitSet(b, 0.f, a->z, -a->y);
+		vec3InitSet(v2, 0.f, v1->z, -v1->y);
 	}
 
-	vec3NormalizeVec3(b);
-	vec3CrossVec3Out(a, b, c);
+	vec3NormalizeVec3(v2);
+	vec3CrossVec3Out(v1, v2, v3);
 }
 
 /*
 ** Compute an orthonormal basis from the normalised vector
-** "a" and store the other two vectors in "b" and "c".
+** "v1" and store the other two vectors in "v2" and "v3".
 **
 ** Special thanks to Erin Catto for this implementation!
 */
-void normalBasisFast(const vec3 *const restrict a, vec3 *const restrict b, vec3 *const restrict c){
+void normalBasisFast(const vec3 *const restrict v1, vec3 *const restrict v2, vec3 *const restrict v3){
 	// The magic number "0x3F13CD3A" is approximately equivalent to the
 	// square root of 1 over 3. In three dimensions, at least one component
 	// of any unit vector must be greater than or equal to this number.
-	if(fabsf(a->x) >= SQRT_ONE_THIRD){
-		vec3InitSet(b, a->y, -a->x, 0.f);
+	if(fabsf(v1->x) >= SQRT_ONE_THIRD){
+		vec3InitSet(v2, v1->y, -v1->x, 0.f);
 	}else{
-		vec3InitSet(b, 0.f, a->z, -a->y);
+		vec3InitSet(v2, 0.f, v1->z, -v1->y);
 	}
 
-	vec3NormalizeVec3Fast(b);
-	vec3CrossVec3Out(a, b, c);
+	vec3NormalizeVec3Fast(v2);
+	vec3CrossVec3Out(v1, v2, v3);
 }
+
+/*
+** Compute an orthonormal basis from the normalised vector
+** "v1" and store the other two vectors in "v2" and "v3".
+**
+** Special thanks to Pixar for this implementation!
+** https://graphics.pixar.com/library/OrthonormalB/paper.pdf
+*/
+void normalBasisFaster(const vec3 *const restrict v1, vec3 *const restrict v2, vec3 *const restrict v3){
+	const float sign = copySign(1.f, v1->z);
+	const float a = -1.f/(sign + v1->z);
+	const float b = v1->x*v1->y*a;
+	vec3InitSet(v2, 1.f + sign*v1->x*v1->x*a, sign*b, -sign*v1->x);
+	vec3InitSet(v3, b, sign + v1->y*v1->y*a, -v1->y);
+}
+
 
 /*
 ** Find the two closest points on two line segments,

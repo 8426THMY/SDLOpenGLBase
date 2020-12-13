@@ -323,15 +323,17 @@ void *memTreeResize(memoryTree *const restrict tree, void *const restrict block,
 
 	// If the block is still too small, we've done all the merging we
 	// normally do when freeing a block, so we can allocate a new one.
-	newBlock->prevSize = listNodeRemoveActive(newBlock->prevSize);
 
 	// We need to allocate a new block first so we don't overwrite
 	// the user's data with any of the free block header information.
 	tempBlock = memTreeAlloc(tree, blockSize);
-	memcpy(tempBlock, block, oldSize);
+	if(tempBlock != NULL){
+		memcpy(tempBlock, block, oldSize);
 
-	// Now we can add the old block back to the tree.
-	treeInsert(tree, listNodeGetTree(newBlock), newSize);
+		// Now we can add the old block back to the tree.
+		newBlock->prevSize = listNodeRemoveActive(newBlock->prevSize);
+		treeInsert(tree, listNodeGetTree(newBlock), newSize);
+	}
 
 
 	return(tempBlock);
@@ -432,15 +434,17 @@ void *memTreeRealloc(memoryTree *const restrict tree, void *const restrict block
 
 		// If the block is still too small, we've done all the merging we
 		// normally do when freeing a block, so we can allocate a new one.
-		newBlock->prevSize = listNodeRemoveActive(newBlock->prevSize);
 
 		// We need to allocate a new block first so we don't overwrite
 		// the user's data with any of the free block header information.
 		tempBlock = memTreeAlloc(tree, blockSize);
-		memcpy(tempBlock, block, oldSize);
+		if(tempBlock != NULL){
+			memcpy(tempBlock, block, oldSize);
 
-		// Now we can add the old block back to the tree.
-		treeInsert(tree, listNodeGetTree(newBlock), newSize);
+			// Now we can add the old block back to the tree.
+			newBlock->prevSize = listNodeRemoveActive(newBlock->prevSize);
+			treeInsert(tree, listNodeGetTree(newBlock), newSize);
+		}
 
 
 		return(tempBlock);

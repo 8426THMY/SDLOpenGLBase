@@ -76,8 +76,10 @@ void pointBarycentric(
 	vec3 *const restrict out
 );
 
-void normalBasis(const vec3 *const restrict a, vec3 *const restrict b, vec3 *const restrict c);
-void normalBasisFast(const vec3 *const restrict a, vec3 *const restrict b, vec3 *const restrict c);
+void normalBasis(const vec3 *const restrict v1, vec3 *const restrict v2, vec3 *const restrict v3);
+void normalBasisFast(const vec3 *const restrict v1, vec3 *const restrict v2, vec3 *const restrict v3);
+void normalBasisFaster(const vec3 *const restrict v1, vec3 *const restrict v2, vec3 *const restrict v3);
+
 void segmentClosestPoints(
 	const vec3 *const restrict s1, const vec3 *const restrict e1, const vec3 *const restrict s2,
 	const vec3 *const restrict e2, vec3 *const restrict p1, vec3 *const restrict p2
