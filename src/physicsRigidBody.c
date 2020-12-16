@@ -82,10 +82,10 @@ return_t physRigidBodyDefLoad(physicsRigidBodyDef **const restrict bodies, const
 
 		physicsRigidBodyDef bodyDef;
 		physicsCollider *curCollider = NULL;
-		float curMass;
+		float curMass = 0.f;
 		vec3 curCentroid;
 		mat3 curInertia;
-		byte_t colliderLoaded;
+		byte_t colliderLoaded = 0;
 
 		char *tokPos;
 

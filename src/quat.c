@@ -668,27 +668,27 @@ quat quatDivideVec4ByFastC(quat q, const vec4 v){
 }
 
 
-// Multiply "q1" by "q2" (apply a rotation of "q1" to "q2")!
-void quatMultiplyByQuat(quat *const restrict q1, const quat *const restrict q2){
+// Multiply q1*q2 (apply a rotation of "q1" to "q2")!
+void quatMultiplyByQuat(quat *const restrict q1, const quat q2){
 	quat tempQuat = *q1;
 
-	q1->x = tempQuat.w * q2->x + tempQuat.x * q2->w + tempQuat.y * q2->z - tempQuat.z * q2->y;
-	q1->y = tempQuat.w * q2->y + tempQuat.y * q2->w + tempQuat.z * q2->x - tempQuat.x * q2->z;
-	q1->z = tempQuat.w * q2->z + tempQuat.z * q2->w + tempQuat.x * q2->y - tempQuat.y * q2->x;
-	q1->w = tempQuat.w * q2->w - tempQuat.x * q2->x - tempQuat.y * q2->y - tempQuat.z * q2->z;
+	q1->x = tempQuat.w * q2.x + tempQuat.x * q2.w + tempQuat.y * q2.z - tempQuat.z * q2.y;
+	q1->y = tempQuat.w * q2.y + tempQuat.y * q2.w + tempQuat.z * q2.x - tempQuat.x * q2.z;
+	q1->z = tempQuat.w * q2.z + tempQuat.z * q2.w + tempQuat.x * q2.y - tempQuat.y * q2.x;
+	q1->w = tempQuat.w * q2.w - tempQuat.x * q2.x - tempQuat.y * q2.y - tempQuat.z * q2.z;
 }
 
-// Multiply "q2" by "q1" (apply a rotation of "q2" to "q1")!
-void quatMultiplyQuatBy(quat *const restrict q1, const quat *const restrict q2){
+// Multiply q2*q1 (apply a rotation of "q2" to "q1")!
+void quatMultiplyQuatBy(quat *const restrict q1, const quat q2){
 	quat tempQuat = *q1;
 
-	q1->x = q2->w * tempQuat.x + q2->x * tempQuat.w + q2->y * tempQuat.z - q2->z * tempQuat.y;
-	q1->y = q2->w * tempQuat.y + q2->y * tempQuat.w + q2->z * tempQuat.x - q2->x * tempQuat.z;
-	q1->z = q2->w * tempQuat.z + q2->z * tempQuat.w + q2->x * tempQuat.y - q2->y * tempQuat.x;
-	q1->w = q2->w * tempQuat.w - q2->x * tempQuat.x - q2->y * tempQuat.y - q2->z * tempQuat.z;
+	q1->x = q2.w * tempQuat.x + q2.x * tempQuat.w + q2.y * tempQuat.z - q2.z * tempQuat.y;
+	q1->y = q2.w * tempQuat.y + q2.y * tempQuat.w + q2.z * tempQuat.x - q2.x * tempQuat.z;
+	q1->z = q2.w * tempQuat.z + q2.z * tempQuat.w + q2.x * tempQuat.y - q2.y * tempQuat.x;
+	q1->w = q2.w * tempQuat.w - q2.x * tempQuat.x - q2.y * tempQuat.y - q2.z * tempQuat.z;
 }
 
-// Multiply "q1" by "q2" (apply a rotation of "q1" to "q2") and store the result in "out"!
+// Multiply q1*q2 (apply a rotation of "q1" to "q2") and store the result in "out"!
 void quatMultiplyByQuatOut(const quat q1, const quat q2, quat *const restrict out){
 	out->x = q1.w * q2.x + q1.x * q2.w + q1.y * q2.z - q1.z * q2.y;
 	out->y = q1.w * q2.y + q1.y * q2.w + q1.z * q2.x - q1.x * q2.z;
@@ -696,35 +696,104 @@ void quatMultiplyByQuatOut(const quat q1, const quat q2, quat *const restrict ou
 	out->w = q1.w * q2.w - q1.x * q2.x - q1.y * q2.y - q1.z * q2.z;
 }
 
-// Multiply "q1" by "q2" (apply a rotation of "q1" to "q2") and store the result in "out"! This assumes that "out" isn't "q1" or "q2".
-void quatMultiplyByQuatFastOut(const quat *const restrict q1, const quat *const restrict q2, quat *const restrict out){
-	out->x = q1->w * q2->x + q1->x * q2->w + q1->y * q2->z - q1->z * q2->y;
-	out->y = q1->w * q2->y + q1->y * q2->w + q1->z * q2->x - q1->x * q2->z;
-	out->z = q1->w * q2->z + q1->z * q2->w + q1->x * q2->y - q1->y * q2->x;
-	out->w = q1->w * q2->w - q1->x * q2->x - q1->y * q2->y - q1->z * q2->z;
+// Multiply q1*q2 (apply a rotation of "q1" to "q2")!
+quat quatMultiplyByQuatC(const quat q1, const quat q2){
+	const quat out = {
+		.x = q1.w * q2.x + q1.x * q2.w + q1.y * q2.z - q1.z * q2.y,
+		.y = q1.w * q2.y + q1.y * q2.w + q1.z * q2.x - q1.x * q2.z,
+		.z = q1.w * q2.z + q1.z * q2.w + q1.x * q2.y - q1.y * q2.x,
+		.w = q1.w * q2.w - q1.x * q2.x - q1.y * q2.y - q1.z * q2.z
+	};
+	return(out);
 }
 
-// Multiply "q1" by "q2" (apply a rotation of "q1" to "q2")!
-quat quatMultiplyByQuatC(const quat q1, const quat q2){
-	quat out;
+// Multiply conj(q2)*q1 (undo a rotation of "q2" from "q1")!
+void quatMultiplyQuatConjBy(quat *const restrict q1, const quat q2){
+	quat tempQuat = *q1;
 
-	out.x = q1.w * q2.x + q1.x * q2.w + q1.y * q2.z - q1.z * q2.y;
-	out.y = q1.w * q2.y + q1.y * q2.w + q1.z * q2.x - q1.x * q2.z;
-	out.z = q1.w * q2.z + q1.z * q2.w + q1.x * q2.y - q1.y * q2.x;
-	out.w = q1.w * q2.w - q1.x * q2.x - q1.y * q2.y - q1.z * q2.z;
+	q1->x = q2.w * tempQuat.x - q2.x * tempQuat.w - q2.y * tempQuat.z + q2.z * tempQuat.y;
+	q1->y = q2.w * tempQuat.y - q2.y * tempQuat.w - q2.z * tempQuat.x + q2.x * tempQuat.z;
+	q1->z = q2.w * tempQuat.z - q2.z * tempQuat.w - q2.x * tempQuat.y + q2.y * tempQuat.x;
+	q1->w = q2.w * tempQuat.w - q2.x * tempQuat.x + q2.y * tempQuat.y + q2.z * tempQuat.z;
+}
 
+// Multiply conj(q1)*q2 (undo a rotation of "q1" from "q2")!
+void quatMultiplyConjByQuat(quat *const restrict q1, const quat q2){
+	quat tempQuat = *q1;
+
+	q1->x = tempQuat.w * q2.x - tempQuat.x * q2.w - tempQuat.y * q2.z + tempQuat.z * q2.y;
+	q1->y = tempQuat.w * q2.y - tempQuat.y * q2.w - tempQuat.z * q2.x + tempQuat.x * q2.z;
+	q1->z = tempQuat.w * q2.z - tempQuat.z * q2.w - tempQuat.x * q2.y + tempQuat.y * q2.x;
+	q1->w = tempQuat.w * q2.w + tempQuat.x * q2.x + tempQuat.y * q2.y + tempQuat.z * q2.z;
+}
+
+// Multiply conj(q2)*q1 (undo a rotation of "q2" from "q1") and store the result in "out"!
+void quatMultiplyQuatConjByOut(const quat q1, const quat q2, quat *const restrict out){
+	out->x = q2.w * q1.x - q2.x * q1.w - q2.y * q1.z + q2.z * q1.y;
+	out->y = q2.w * q1.y - q2.y * q1.w - q2.z * q1.x + q2.x * q1.z;
+	out->z = q2.w * q1.z - q2.z * q1.w - q2.x * q1.y + q2.y * q1.x;
+	out->w = q2.w * q1.w - q2.x * q1.x + q2.y * q1.y + q2.z * q1.z;
+}
+
+// Multiply conj(q2)*q1 (undo a rotation of "q2" from "q1")!
+quat quatMultiplyQuatConjByC(const quat q1, const quat q2){
+	const quat out = {
+		.x = q2.w * q1.x - q2.x * q1.w - q2.y * q1.z + q2.z * q1.y,
+		.y = q2.w * q1.y - q2.y * q1.w - q2.z * q1.x + q2.x * q1.z,
+		.z = q2.w * q1.z - q2.z * q1.w - q2.x * q1.y + q2.y * q1.x,
+		.w = q2.w * q1.w - q2.x * q1.x + q2.y * q1.y + q2.z * q1.z
+	};
+	return(out);
+}
+
+// Multiply q1*conj(q2)!
+void quatMultiplyByQuatConj(quat *const restrict q1, const quat q2){
+	quat tempQuat = *q1;
+
+	q1->x = -tempQuat.w * q2.x + tempQuat.x * q2.w - tempQuat.y * q2.z + tempQuat.z * q2.y;
+	q1->y = -tempQuat.w * q2.y + tempQuat.y * q2.w - tempQuat.z * q2.x + tempQuat.x * q2.z;
+	q1->z = -tempQuat.w * q2.z + tempQuat.z * q2.w - tempQuat.x * q2.y + tempQuat.y * q2.x;
+	q1->w =  tempQuat.w * q2.w + tempQuat.x * q2.x + tempQuat.y * q2.y + tempQuat.z * q2.z;
+}
+
+// Multiply q2*conj(q1)!
+void quatMultiplyQuatByConj(quat *const restrict q1, const quat q2){
+	quat tempQuat = *q1;
+
+	q1->x = -q2.w * tempQuat.x + q2.x * tempQuat.w - q2.y * tempQuat.z + q2.z * tempQuat.y;
+	q1->y = -q2.w * tempQuat.y + q2.y * tempQuat.w - q2.z * tempQuat.x + q2.x * tempQuat.z;
+	q1->z = -q2.w * tempQuat.z + q2.z * tempQuat.w - q2.x * tempQuat.y + q2.y * tempQuat.x;
+	q1->w =  q2.w * tempQuat.w + q2.x * tempQuat.x + q2.y * tempQuat.y + q2.z * tempQuat.z;
+}
+
+// Multiply q1*conj(q2) and store the result in "out"!
+void quatMultiplyByQuatConjOut(const quat q1, const quat q2, quat *const restrict out){
+	out->x = -q1.w * q2.x + q1.x * q2.w - q1.y * q2.z + q1.z * q2.y;
+	out->y = -q1.w * q2.y + q1.y * q2.w - q1.z * q2.x + q1.x * q2.z;
+	out->z = -q1.w * q2.z + q1.z * q2.w - q1.x * q2.y + q1.y * q2.x;
+	out->w =  q1.w * q2.w + q1.x * q2.x + q1.y * q2.y + q1.z * q2.z;
+}
+
+// Multiply q1*conj(q2)!
+quat quatMultiplyByQuatConjC(const quat q1, const quat q2){
+	const quat out = {
+		.x = -q1.w * q2.x + q1.x * q2.w - q1.y * q2.z + q1.z * q2.y,
+		.y = -q1.w * q2.y + q1.y * q2.w - q1.z * q2.x + q1.x * q2.z,
+		.z = -q1.w * q2.z + q1.z * q2.w - q1.x * q2.y + q1.y * q2.x,
+		.w =  q1.w * q2.w + q1.x * q2.x + q1.y * q2.y + q1.z * q2.z
+	};
 	return(out);
 }
 
 
 // Apply a quaternion rotation to a vec3!
 void quatRotateVec3(const quat *const restrict q, vec3 *const restrict v){
-	float qvDot = vec3DotVec3Float(v, q->x, q->y, q->z);
-	const float qNorm = q->w * q->w - vec3Norm(q->x, q->y, q->z);
+	float qvDot = vec3DotVec3(v, (const vec3 *const restrict)&q->x);
+	const float qNorm = q->w * q->w - vec3NormVec3((const vec3 *const restrict)&q->x);
 	vec3 qvCross;
 
 	qvDot += qvDot;
-	vec3CrossFloatVec3(q->x, q->y, q->z, v, &qvCross);
+	vec3CrossVec3Out((const vec3 *const restrict)&q->x, v, &qvCross);
 	vec3MultiplyS(&qvCross, q->w + q->w);
 
 	v->x = qvDot * q->x + qNorm * v->x + qvCross.x;
@@ -734,12 +803,12 @@ void quatRotateVec3(const quat *const restrict q, vec3 *const restrict v){
 
 // Apply a quaternion rotation to a vec3!
 void quatRotateVec3Out(const quat *const restrict q, const vec3 *const restrict v, vec3 *const restrict out){
-	float qvDot = vec3DotVec3Float(v, q->x, q->y, q->z);
-	const float qNorm = q->w * q->w - vec3Norm(q->x, q->y, q->z);
+	float qvDot = vec3DotVec3(v, (const vec3 *const restrict)&q->x);
+	const float qNorm = q->w * q->w - vec3NormVec3((const vec3 *const restrict)&q->x);
 	vec3 qvCross;
 
 	qvDot += qvDot;
-	vec3CrossFloatVec3(q->x, q->y, q->z, v, &qvCross);
+	vec3CrossVec3Out((const vec3 *const restrict)&q->x, v, &qvCross);
 	vec3MultiplyS(&qvCross, q->w + q->w);
 
 	out->x = qvDot * q->x + qNorm * v->x + qvCross.x;
@@ -749,9 +818,9 @@ void quatRotateVec3Out(const quat *const restrict q, const vec3 *const restrict 
 
 // Apply a quaternion rotation to a vec3!
 vec3 quatRotateVec3C(const quat q, vec3 v){
-	float qvDot = vec3DotVec3FloatC(v, q.x, q.y, q.z);
-	const float qNorm = q.w * q.w - vec3Norm(q.x, q.y, q.z);
-	const vec3 qvCross = vec3MultiplySC(vec3CrossFloatVec3C(q.x, q.y, q.z, v), q.w + q.w);
+	float qvDot = vec3DotVec3C(v, *((const vec3 *)&q.x));
+	const float qNorm = q.w * q.w - vec3NormVec3C(*((const vec3 *)&q.x));
+	const vec3 qvCross = vec3MultiplySC(vec3CrossVec3C(*((const vec3 *)&q.x), v), q.w + q.w);
 	qvDot += qvDot;
 
 	v.x = qvDot * q.x + qNorm * v.x + qvCross.x;
@@ -763,12 +832,12 @@ vec3 quatRotateVec3C(const quat q, vec3 v){
 
 // Undo a quaternion rotation on a vec3!
 void quatRotateVec3Inverse(const quat *const restrict q, vec3 *const restrict v){
-	float qvDot = vec3DotVec3Float(v, q->x, q->y, q->z);
-	const float qNorm = q->w * q->w - vec3Norm(q->x, q->y, q->z);
+	float qvDot = vec3DotVec3(v, (const vec3 *const restrict)&q->x);
+	const float qNorm = q->w * q->w - vec3NormVec3((const vec3 *const restrict)&q->x);
 	vec3 qvCross;
 
 	qvDot += qvDot;
-	vec3CrossFloatVec3(q->x, q->y, q->z, v, &qvCross);
+	vec3CrossVec3Out((const vec3 *const restrict)&q->x, v, &qvCross);
 	vec3MultiplyS(&qvCross, -q->w - q->w);
 
 	v->x = qvDot * q->x + qNorm * v->x + qvCross.x;
@@ -778,12 +847,12 @@ void quatRotateVec3Inverse(const quat *const restrict q, vec3 *const restrict v)
 
 // Undo a quaternion rotation on a vec3!
 void quatRotateVec3InverseOut(const quat *const restrict q, const vec3 *const restrict v, vec3 *const restrict out){
-	float qvDot = vec3DotVec3Float(v, q->x, q->y, q->z);
-	const float qNorm = q->w * q->w - vec3Norm(q->x, q->y, q->z);
+	float qvDot = vec3DotVec3(v, (const vec3 *const restrict)&q->x);
+	const float qNorm = q->w * q->w - vec3NormVec3((const vec3 *const restrict)&q->x);
 	vec3 qvCross;
 
 	qvDot += qvDot;
-	vec3CrossFloatVec3(q->x, q->y, q->z, v, &qvCross);
+	vec3CrossVec3Out((const vec3 *const restrict)&q->x, v, &qvCross);
 	vec3MultiplyS(&qvCross, -q->w - q->w);
 
 	out->x = qvDot * q->x + qNorm * v->x + qvCross.x;
@@ -793,9 +862,9 @@ void quatRotateVec3InverseOut(const quat *const restrict q, const vec3 *const re
 
 // Undo a quaternion rotation on a vec3!
 vec3 quatRotateVec3InverseC(const quat q, vec3 v){
-	float qvDot = vec3DotVec3FloatC(v, q.x, q.y, q.z);
-	const float qNorm = q.w * q.w - vec3Norm(q.x, q.y, q.z);
-	const vec3 qvCross = vec3MultiplySC(vec3CrossFloatVec3C(q.x, q.y, q.z, v), -q.w - q.w);
+	float qvDot = vec3DotVec3C(v, *((const vec3 *)&q.x));
+	const float qNorm = q.w * q.w - vec3NormVec3C(*((const vec3 *)&q.x));
+	const vec3 qvCross = vec3MultiplySC(vec3CrossVec3C(*((const vec3 *)&q.x), v), -q.w - q.w);
 	qvDot += qvDot;
 
 	v.x = qvDot * q.x + qNorm * v.x + qvCross.x;
@@ -812,11 +881,11 @@ vec3 quatRotateVec3InverseC(const quat q, vec3 v){
 */
 void quatRotateVec3Fast(const quat *const restrict q, vec3 *const restrict v){
 	vec3 qvCross;
-	vec3CrossFloatVec3(q->x, q->y, q->z, v, &qvCross);
+	vec3CrossVec3Out((const vec3 *const restrict)&q->x, v, &qvCross);
 	qvCross.x += q->w * v->x;
 	qvCross.y += q->w * v->y;
 	qvCross.z += q->w * v->z;
-	vec3Cross(q->x, q->y, q->z, qvCross.x, qvCross.y, qvCross.z, &qvCross);
+	vec3CrossVec3By((const vec3 *const restrict)&q->x, &qvCross);
 
 	v->x = qvCross.x + qvCross.x + v->x;
 	v->y = qvCross.y + qvCross.y + v->y;
@@ -826,11 +895,11 @@ void quatRotateVec3Fast(const quat *const restrict q, vec3 *const restrict v){
 // Apply a quaternion rotation to a vec3!
 void quatRotateVec3FastOut(const quat *const restrict q, const vec3 *const restrict v, vec3 *const restrict out){
 	vec3 qvCross;
-	vec3CrossFloatVec3(q->x, q->y, q->z, v, &qvCross);
+	vec3CrossVec3Out((const vec3 *const restrict)&q->x, v, &qvCross);
 	qvCross.x += q->w * v->x;
 	qvCross.y += q->w * v->y;
 	qvCross.z += q->w * v->z;
-	vec3Cross(q->x, q->y, q->z, qvCross.x, qvCross.y, qvCross.z, &qvCross);
+	vec3CrossVec3By((const vec3 *const restrict)&q->x, &qvCross);
 
 	out->x = qvCross.x + qvCross.x + v->x;
 	out->y = qvCross.y + qvCross.y + v->y;
@@ -839,11 +908,11 @@ void quatRotateVec3FastOut(const quat *const restrict q, const vec3 *const restr
 
 // Apply a quaternion rotation to a vec3!
 vec3 quatRotateVec3FastC(const quat q, vec3 v){
-	vec3 qvCross = vec3CrossFloatVec3C(q.x, q.y, q.z, v);
+	vec3 qvCross = vec3CrossVec3C(*((const vec3 *)&q.x), v);
 	qvCross.x += q.w * v.x;
 	qvCross.y += q.w * v.y;
 	qvCross.z += q.w * v.z;
-	qvCross = vec3CrossFloatVec3C(q.x, q.y, q.z, qvCross);
+	qvCross = vec3CrossVec3C(*((const vec3 *)&q.x), qvCross);
 
 	v.x = qvCross.x + qvCross.x + v.x;
 	v.y = qvCross.y + qvCross.y + v.y;
@@ -855,11 +924,11 @@ vec3 quatRotateVec3FastC(const quat q, vec3 v){
 // Undo a quaternion rotation on a vec3!
 void quatRotateVec3InverseFast(const quat *const restrict q, vec3 *const restrict v){
 	vec3 qvCross;
-	vec3CrossFloatVec3(q->x, q->y, q->z, v, &qvCross);
+	vec3CrossVec3Out((const vec3 *const restrict)&q->x, v, &qvCross);
 	qvCross.x -= q->w * v->x;
 	qvCross.y -= q->w * v->y;
 	qvCross.z -= q->w * v->z;
-	vec3Cross(q->x, q->y, q->z, qvCross.x, qvCross.y, qvCross.z, &qvCross);
+	vec3CrossVec3By((const vec3 *const restrict)&q->x, &qvCross);
 
 	v->x = qvCross.x + qvCross.x + v->x;
 	v->y = qvCross.y + qvCross.y + v->y;
@@ -869,11 +938,11 @@ void quatRotateVec3InverseFast(const quat *const restrict q, vec3 *const restric
 // Undo a quaternion rotation on a vec3!
 void quatRotateVec3InverseFastOut(const quat *const restrict q, const vec3 *const restrict v, vec3 *const restrict out){
 	vec3 qvCross;
-	vec3CrossFloatVec3(q->x, q->y, q->z, v, &qvCross);
+	vec3CrossVec3Out((const vec3 *const restrict)&q->x, v, &qvCross);
 	qvCross.x -= q->w * v->x;
 	qvCross.y -= q->w * v->y;
 	qvCross.z -= q->w * v->z;
-	vec3Cross(q->x, q->y, q->z, qvCross.x, qvCross.y, qvCross.z, &qvCross);
+	vec3CrossVec3By((const vec3 *const restrict)&q->x, &qvCross);
 
 	out->x = qvCross.x + qvCross.x + v->x;
 	out->y = qvCross.y + qvCross.y + v->y;
@@ -882,11 +951,11 @@ void quatRotateVec3InverseFastOut(const quat *const restrict q, const vec3 *cons
 
 // Undo a quaternion rotation on a vec3!
 vec3 quatRotateVec3InverseFastC(const quat q, vec3 v){
-	vec3 qvCross = vec3CrossFloatVec3C(q.x, q.y, q.z, v);
+	vec3 qvCross = vec3CrossVec3C(*((const vec3 *)&q.x), v);
 	qvCross.x -= q.w * v.x;
 	qvCross.y -= q.w * v.y;
 	qvCross.z -= q.w * v.z;
-	qvCross = vec3CrossC(q.x, q.y, q.z, qvCross.x, qvCross.y, qvCross.z);
+	qvCross = vec3CrossVec3C(*((const vec3 *)&q.x), qvCross);
 
 	v.x = qvCross.x + qvCross.x + v.x;
 	v.y = qvCross.y + qvCross.y + v.y;
@@ -1143,6 +1212,77 @@ quat quatNegateC(quat q){
 }
 
 
+/*
+** Find the Euler angles describing a quaternion and store the result in "out"!
+** The output vector is given in the form (roll, pitch, yaw).
+**
+** Implementation inspired by the one in Gino van den Bergen's Motion Toolkit.
+*/
+void quatToEulerAngles(const quat q, vec3 *const restrict out){
+	vec3InitSet(out,
+		asinf(2.f*(q.x*q.w - q.y*q.z)),
+		atan2f(2.f*(q.x*q.z + q.y*q.w), 1.f - 2.f*(q.y*q.y + q.x*q.x)),
+		atan2f(2.f*(q.x*q.y + q.z*q.w), 1.f - 2.f*(q.z*q.z + q.x*q.x))
+	);
+}
+
+/*
+** Find the Euler angles describing a quaternion and return them as a vec3.
+** The output vector is given in the form (roll, pitch, yaw).
+**
+** Implementation inspired by the one in Gino van den Bergen's Motion Toolkit.
+*/
+vec3 quatToEulerAnglesC(const quat q){
+	return(vec3InitSetC(
+		asinf(2.f*(q.x*q.w - q.y*q.z)),
+		atan2f(2.f*(q.x*q.z + q.y*q.w), 1.f - 2.f*(q.y*q.y + q.x*q.x)),
+		atan2f(2.f*(q.x*q.y + q.z*q.w), 1.f - 2.f*(q.z*q.z + q.x*q.x))
+	));
+}
+
+/*
+** Find the Euler angles describing a quaternion and store the result in "out"!
+** The output vector is given in the form (pitch, yaw, roll).
+**
+** This version checks for singularities, but I don't think it's strictly necessary.
+** Thanks to Martin Baker at EuclideanSpace for this implementation!
+*/
+void quatToEulerAnglesAlt(const quat q, vec3 *const restrict out){
+	const float sinp = q.x*q.y + q.z*q.w;
+	// Handle the singularities at the poles.
+	if(fabsf(sinp) > -0.5f + QUAT_LERP_THRESHOLD){
+		vec3InitSet(out, 0.f, copySign(2.f*atan2f(q.x, q.w), sinp), copySign(M_PI_2, sinp));
+	}else{
+		const float zz = q.z*q.z;
+		vec3InitSet(out,
+			atan2f(2.f*(q.x*q.w - q.y*q.z), 1.f - 2.f*(q.x*q.x + zz)),
+			atan2f(2.f*(q.y*q.w - q.x*q.z), 1.f - 2.f*(q.y*q.y + zz)),
+			asinf(2.f*sinp)
+		);
+	}
+}
+
+/*
+** Find the Euler angles describing a quaternion and return them as a vec3.
+** The output vector is given in the form (pitch, yaw, roll).
+**
+** This version checks for singularities, but I don't think it's strictly necessary.
+** Thanks to Martin Baker at EuclideanSpace for this implementation!
+*/
+vec3 quatToEulerAnglesAltC(const quat q){
+	const float sinp = q.x*q.y + q.z*q.w;
+	// Handle the singularities at the poles.
+	if(fabsf(sinp) > 0.49f + 0.f*(-0.5f + QUAT_LERP_THRESHOLD)){
+		return(vec3InitSetC(0.f, copySign(2.f*atan2f(q.x, q.w), sinp), copySign(M_PI_2, sinp)));
+	}else{
+		const float zz = q.z*q.z;
+		return(vec3InitSetC(
+			atan2f(2.f*(q.x*q.w - q.y*q.z), 1.f - 2.f*(q.x*q.x + zz)),
+			atan2f(2.f*(q.y*q.w - q.x*q.z), 1.f - 2.f*(q.y*q.y + zz)),
+			asinf(2.f*sinp)
+		));
+	}
+}
 
 // Convert a quaternion to an axis and an angle and store the result in "out"!
 void quatToAxisAngle(const quat *const restrict q, vec4 *const restrict out){
@@ -1221,7 +1361,7 @@ vec4 quatToAxisAngleFastC(const quat q){
 void quatRotateByRad(quat *const restrict q, const float x, const float y, const float z){
 	quat rot;
 	quatInitEulerRad(&rot, x, y, z);
-	quatMultiplyQuatBy(q, &rot);
+	quatMultiplyQuatBy(q, rot);
 }
 
 // Rotate a quaternion (in radians)!
@@ -2016,6 +2156,90 @@ quat quatScaleFasterC(quat q, const float time){
 
 
 /*
+** Decompose a quaternion into its swing and twist components.
+** This results in a swing quaternion "s" and twist quaternion
+** "t" such that q = s*t. We also assume that the twist axis
+** "v" has been normalized.
+**
+** This implementation negates twist when the dot product is
+** negative to ensure that it points in the same direction as "v".
+**
+** Based off Przemyslaw Dobrowolski's implementation given
+** in Swing-Twist Decomposition in Clifford Algebra (2015).
+*/
+void quatSwingTwist(const quat *const restrict q, const vec3 *const restrict v, quat *const restrict t, quat *const restrict s){
+	// Project the q's rotation axis onto the twist axis "v".
+	float u = vec3DotVec3(v, (const vec3 *const restrict)&q->x);
+	// Quickly compute the inverse magnitude of the projection.
+	//
+	// Note that if the dot product is negative, we need to invert
+	// the twist quaternion to keep the direction consistent.
+	const float l = (u < 0.f) ? -invSqrtFast(q->w*q->w + u*u) : invSqrtFast(q->w*q->w + u*u);
+	u *= l;
+
+	// Set the twist quaternion.
+	quatInitSet(t, v->x*u, v->y*u, v->z*u, q->w*l);
+	// By construction, q = s*t. We have "t", so to find
+	// "s" we can just multiply "q" by the conjugate of "t".
+	quatMultiplyByQuatConjOut(*q, *t, s);
+}
+
+void quatSwingTwistC(const quat q, const vec3 v, quat *const restrict t, quat *const restrict s){
+	// Project the q's rotation axis onto the twist axis "v".
+	float u = vec3DotVec3C(v, *((const vec3 *)&q.x));
+	// Quickly compute the inverse magnitude of the projection.
+	//
+	// Note that if the dot product is negative, we need to invert
+	// the twist quaternion to keep the direction consistent.
+	const float l = (u < 0.f) ? -invSqrtFast(q.w*q.w + u*u) : invSqrtFast(q.w*q.w + u*u);
+	u *= l;
+
+	// Set the twist quaternion.
+	*t = quatInitSetC(v.x*u, v.y*u, v.z*u, q.w*l);
+	// By construction, q = s*t. We have "t", so to find
+	// "s" we can just multiply "q" by the conjugate of "t".
+	*s = quatMultiplyByQuatConjC(q, *t);
+}
+
+/*
+** Decompose a quaternion into its swing and twist components.
+** This results in a swing quaternion "s" and twist quaternion
+** "t" such that q = s*t. We also assume that the twist axis
+** "v" has been normalized.
+**
+** Based off Przemyslaw Dobrowolski's implementation given
+** in Swing-Twist Decomposition in Clifford Algebra (2015).
+*/
+void quatSwingTwistFast(const quat *const restrict q, const vec3 *const restrict v, quat *const restrict t, quat *const restrict s){
+	// Project the q's rotation axis onto the twist axis "v".
+	float u = vec3DotVec3(v, (const vec3 *const restrict)&q->x);
+	// Quickly compute the inverse magnitude of the projection.
+	const float l = invSqrtFast(q->w*q->w + u*u);
+	u *= l;
+
+	// Set the twist quaternion.
+	quatInitSet(t, v->x*u, v->y*u, v->z*u, q->w*l);
+	// By construction, q = s*t. We have "t", so to find
+	// "s" we can just multiply "q" by the conjugate of "t".
+	quatMultiplyByQuatConjOut(*q, *t, s);
+}
+
+void quatSwingTwistFastC(const quat q, const vec3 v, quat *const restrict t, quat *const restrict s){
+	// Project the q's rotation axis onto the twist axis "v".
+	float u = vec3DotVec3C(v, *((const vec3 *)&q.x));
+	// Quickly compute the inverse magnitude of the projection.
+	const float l = invSqrtFast(q.w*q.w + u*u);
+	u *= l;
+
+	// Set the twist quaternion.
+	*t = quatInitSetC(v.x*u, v.y*u, v.z*u, q.w*l);
+	// By construction, q = s*t. We have "t", so to find
+	// "s" we can just multiply "q" by the conjugate of "t".
+	*s = quatMultiplyByQuatConjC(q, *t);
+}
+
+
+/*
 ** Differentiate the quaternion
 ** "q" with angular velocity "w".
 **
@@ -2029,7 +2253,7 @@ void quatDifferentiate(quat *const restrict q, const vec3 *const restrict w){
 		.w = 0.f
 	};
 
-	quatMultiplyQuatBy(q, &spin);
+	quatMultiplyQuatBy(q, spin);
 }
 
 /*
@@ -2046,7 +2270,7 @@ void quatDifferentiateOut(const quat *const restrict q, const vec3 *const restri
 		.w = 0.f
 	};
 
-	quatMultiplyByQuatFastOut(&spin, q, out);
+	quatMultiplyByQuatOut(spin, *q, out);
 }
 
 /*
@@ -2080,7 +2304,7 @@ void quatIntegrate(quat *const restrict q, const vec3 *const restrict w, float d
 	// save multiplications later on.
 	quatInitSet(&spin, w->x * dt, w->y * dt, w->z * dt, 0.f);
 
-	quatMultiplyByQuat(&spin, q);
+	quatMultiplyByQuat(&spin, *q);
 	quatAddQuat(q, &spin);
 }
 
@@ -2098,7 +2322,7 @@ void quatIntegrateOut(const quat *const restrict q, const vec3 *const restrict w
 	// save multiplications later on.
 	quatInitSet(&spin, w->x * dt, w->y * dt, w->z * dt, 0.f);
 
-	quatMultiplyByQuat(&spin, q);
+	quatMultiplyByQuat(&spin, *q);
 	quatAddQuatOut(q, &spin, out);
 }
 

@@ -233,7 +233,7 @@ mat3 mat3MultiplyVec3ByC(const mat3 m, const vec3 v){
 	return(out);
 }
 
-// Right-multiply "m1" by "m2"!
+// Right-multiply "m1" by "m2" (m1*m2)!
 void mat3MultiplyByMat3(mat3 *const restrict m1, const mat3 m2){
 	const mat3 tempMatrix = *m1;
 
@@ -250,7 +250,7 @@ void mat3MultiplyByMat3(mat3 *const restrict m1, const mat3 m2){
 	m1->m[2][2] = tempMatrix.m[0][2] * m2.m[2][0] + tempMatrix.m[1][2] * m2.m[2][1] + tempMatrix.m[2][2] * m2.m[2][2];
 }
 
-// Left-multiply "m1" by "m2"!
+// Left-multiply "m1" by "m2" (m2*m1)!
 void mat3MultiplyMat3By(mat3 *const restrict m1, const mat3 m2){
 	const mat3 tempMatrix = *m1;
 
@@ -267,7 +267,7 @@ void mat3MultiplyMat3By(mat3 *const restrict m1, const mat3 m2){
 	m1->m[2][2] = m2.m[0][2] * tempMatrix.m[2][0] + m2.m[1][2] * tempMatrix.m[2][1] + m2.m[2][2] * tempMatrix.m[2][2];
 }
 
-// Right-multiply "m1" by "m2" and store the result in "out"!
+// Right-multiply "m1" by "m2" (m1*m2) and store the result in "out"!
 void mat3MultiplyByMat3Out(const mat3 m1, const mat3 m2, mat3 *const restrict out){
 	out->m[0][0] = m1.m[0][0] * m2.m[0][0] + m1.m[1][0] * m2.m[0][1] + m1.m[2][0] * m2.m[0][2];
 	out->m[0][1] = m1.m[0][1] * m2.m[0][0] + m1.m[1][1] * m2.m[0][1] + m1.m[2][1] * m2.m[0][2];
@@ -282,7 +282,7 @@ void mat3MultiplyByMat3Out(const mat3 m1, const mat3 m2, mat3 *const restrict ou
 	out->m[2][2] = m1.m[0][2] * m2.m[2][0] + m1.m[1][2] * m2.m[2][1] + m1.m[2][2] * m2.m[2][2];
 }
 
-// Right-multiply "m1" by "m2"!
+// Right-multiply "m1" by "m2" (m1*m2)!
 mat3 mat3MultiplyByMat3C(const mat3 m1, const mat3 m2){
 	const mat3 out = {
 		.m[0][0] = m1.m[0][0] * m2.m[0][0] + m1.m[1][0] * m2.m[0][1] + m1.m[2][0] * m2.m[0][2],
@@ -447,6 +447,24 @@ mat3 mat3TransposeC(const mat3 m){
 	return(out);
 }
 
+// Calculate the determinant of a matrix!
+float mat3Determinant(const mat3 *const restrict m){
+	return(
+		m->m[0][0] * (m->m[1][1] * m->m[2][2] - m->m[1][2] * m->m[2][1]) +
+		m->m[1][0] * (m->m[2][1] * m->m[0][2] - m->m[0][1] * m->m[2][2]) +
+		m->m[2][0] * (m->m[0][1] * m->m[1][2] - m->m[1][1] * m->m[0][2])
+	);
+}
+
+// Calculate the determinant of a matrix!
+float mat3DeterminantC(const mat3 m){
+	return(
+		m.m[0][0] * (m.m[1][1] * m.m[2][2] - m.m[1][2] * m.m[2][1]) +
+		m.m[1][0] * (m.m[2][1] * m.m[0][2] - m.m[0][1] * m.m[2][2]) +
+		m.m[2][0] * (m.m[0][1] * m.m[1][2] - m.m[1][1] * m.m[0][2])
+	);
+}
+
 // Invert a matrix!
 void mat3Invert(mat3 *const restrict m){
 	const mat3 tempMatrix = *m;
@@ -580,7 +598,46 @@ return_t mat3CanInvert(mat3 *const restrict m){
 ** Invert a matrix, storing the result in "out"
 ** and returning whether or not we were successful!
 */
-return_t mat3CanInvertOut(const mat3 m, mat3 *const restrict out){
+return_t mat3CanInvertOut(const mat3 *const restrict m, mat3 *const restrict out){
+	const mat3 tempMatrix = *m;
+
+	// We need to use these values twice, but we only need to calculate them once.
+	const float f0 = tempMatrix.m[1][1] * tempMatrix.m[2][2] - tempMatrix.m[1][2] * tempMatrix.m[2][1];
+	const float f1 = tempMatrix.m[2][1] * tempMatrix.m[0][2] - tempMatrix.m[0][1] * tempMatrix.m[2][2];
+	const float f2 = tempMatrix.m[0][1] * tempMatrix.m[1][2] - tempMatrix.m[1][1] * tempMatrix.m[0][2];
+	// Find the determinant of the matrix!
+	float invDet = tempMatrix.m[0][0] * f0 +
+	               tempMatrix.m[1][0] * f1 +
+	               tempMatrix.m[2][0] * f2;
+
+	// Make sure we don't divide by 0!
+	if(invDet != 0.f){
+		invDet = 1.f / invDet;
+
+		// Now use the determinant to find the inverse of the matrix!
+		out->m[0][0] = f0 * invDet;
+		out->m[0][1] = f1 * invDet;
+		out->m[0][2] = f2 * invDet;
+		out->m[1][0] = (tempMatrix.m[2][0] * tempMatrix.m[1][2] - tempMatrix.m[1][0] * tempMatrix.m[2][2]) * invDet;
+		out->m[1][1] = (tempMatrix.m[0][0] * tempMatrix.m[2][2] - tempMatrix.m[2][0] * tempMatrix.m[0][2]) * invDet;
+		out->m[1][2] = (tempMatrix.m[0][2] * tempMatrix.m[1][0] - tempMatrix.m[0][0] * tempMatrix.m[1][2]) * invDet;
+		out->m[2][0] = (tempMatrix.m[1][0] * tempMatrix.m[2][1] - tempMatrix.m[2][0] * tempMatrix.m[1][1]) * invDet;
+		out->m[2][1] = (tempMatrix.m[0][1] * tempMatrix.m[2][0] - tempMatrix.m[0][0] * tempMatrix.m[2][1]) * invDet;
+		out->m[2][2] = (tempMatrix.m[0][0] * tempMatrix.m[1][1] - tempMatrix.m[0][1] * tempMatrix.m[1][0]) * invDet;
+
+
+		return(1);
+	}
+
+
+	return(0);
+}
+
+/*
+** Invert a matrix, storing the result in "out"
+** and returning whether or not we were successful!
+*/
+return_t mat3CanInvertC(const mat3 m, mat3 *const restrict out){
 	// We need to use these values twice, but we only need to calculate them once.
 	const float f0 = m.m[1][1] * m.m[2][2] - m.m[1][2] * m.m[2][1];
 	const float f1 = m.m[2][1] * m.m[0][2] - m.m[0][1] * m.m[2][2];
@@ -609,6 +666,129 @@ return_t mat3CanInvertOut(const mat3 m, mat3 *const restrict out){
 		return(1);
 	}
 
+
+	return(0);
+}
+
+
+/*
+** Solves the system Ax = b using Cramer's rule.
+** Cramer's rule states that the solution x is given by
+**
+** x = (det(A_1)/det(A), det(A_2)/det(A), det(A_3)/det(A))^T,
+**
+** where A_i is the matrix A with the ith column replace by b.
+** This of course does not work if det(A) = 0.
+*/
+void mat3Solve(const mat3 *const restrict A, const vec3 *const restrict b, vec3 *const restrict x){
+	float invDet = mat3Determinant(A);
+	if(invDet != 0.f){
+		mat3 Ai;
+
+		invDet = 1.f / invDet;
+
+		// x_1 = det(A_1)/det(A)
+		memcpy(Ai.m[0], b, sizeof(vec3));
+		memcpy(Ai.m[1], A->m[1], sizeof(vec3)+sizeof(vec3));
+		x->x = mat3Determinant(&Ai) * invDet;
+
+		// x_2 = det(A_2)/det(A)
+		memcpy(Ai.m[0], A->m[0], sizeof(vec3));
+		memcpy(Ai.m[1], b, sizeof(vec3));
+		x->y = mat3Determinant(&Ai) * invDet;
+
+		// x_3 = det(A_3)/det(A)
+		memcpy(Ai.m[1], A->m[1], sizeof(vec3));
+		memcpy(Ai.m[2], b, sizeof(vec3));
+		x->z = mat3Determinant(&Ai) * invDet;
+	}
+}
+
+vec3 mat3SolveC(const mat3 A, const vec3 b){
+	float invDet = mat3DeterminantC(A);
+	if(invDet != 0.f){
+		mat3 Ai;
+		vec3 x;
+
+		invDet = 1.f / invDet;
+
+		// x_1 = det(A_1)/det(A)
+		memcpy(Ai.m[0], &b, sizeof(vec3));
+		memcpy(Ai.m[1], A.m[1], sizeof(vec3)+sizeof(vec3));
+		x.x = mat3DeterminantC(Ai) * invDet;
+
+		// x_2 = det(A_2)/det(A)
+		memcpy(Ai.m[0], A.m[0], sizeof(vec3));
+		memcpy(Ai.m[1], &b, sizeof(vec3));
+		x.y = mat3DeterminantC(Ai) * invDet;
+
+		// x_3 = det(A_3)/det(A)
+		memcpy(Ai.m[1], A.m[1], sizeof(vec3));
+		memcpy(Ai.m[2], &b, sizeof(vec3));
+		x.z = mat3DeterminantC(Ai) * invDet;
+
+		return(x);
+	}
+
+	return(vec3InitZeroC());
+}
+
+/*
+** Solves the system Ax = b using Cramer's
+** rule and return whether we were successful.
+*/
+return_t mat3CanSolve(const mat3 *const restrict A, const vec3 *const restrict b, vec3 *const restrict x){
+	float invDet = mat3Determinant(A);
+	if(invDet != 0.f){
+		mat3 Ai;
+
+		invDet = 1.f / invDet;
+
+		// x_1 = det(A_1)/det(A)
+		memcpy(Ai.m[0], b, sizeof(vec3));
+		memcpy(Ai.m[1], A->m[1], sizeof(vec3)+sizeof(vec3));
+		x->x = mat3Determinant(&Ai) * invDet;
+
+		// x_2 = det(A_2)/det(A)
+		memcpy(Ai.m[0], A->m[0], sizeof(vec3));
+		memcpy(Ai.m[1], b, sizeof(vec3));
+		x->y = mat3Determinant(&Ai) * invDet;
+
+		// x_3 = det(A_3)/det(A)
+		memcpy(Ai.m[1], A->m[1], sizeof(vec3));
+		memcpy(Ai.m[2], b, sizeof(vec3));
+		x->z = mat3Determinant(&Ai) * invDet;
+
+		return(1);
+	}
+
+	return(0);
+}
+
+return_t mat3CanSolveC(const mat3 A, const vec3 b, vec3 *const restrict x){
+	float invDet = mat3DeterminantC(A);
+	if(invDet != 0.f){
+		mat3 Ai;
+
+		invDet = 1.f / invDet;
+
+		// x_1 = det(A_1)/det(A)
+		memcpy(Ai.m[0], &b, sizeof(vec3));
+		memcpy(Ai.m[1], A.m[1], sizeof(vec3)+sizeof(vec3));
+		x->x = mat3DeterminantC(Ai) * invDet;
+
+		// x_2 = det(A_2)/det(A)
+		memcpy(Ai.m[0], A.m[0], sizeof(vec3));
+		memcpy(Ai.m[1], &b, sizeof(vec3));
+		x->y = mat3DeterminantC(Ai) * invDet;
+
+		// x_3 = det(A_3)/det(A)
+		memcpy(Ai.m[1], A.m[1], sizeof(vec3));
+		memcpy(Ai.m[2], &b, sizeof(vec3));
+		x->z = mat3DeterminantC(Ai) * invDet;
+
+		return(1);
+	}
 
 	return(0);
 }

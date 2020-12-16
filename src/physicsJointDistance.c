@@ -6,6 +6,8 @@
 #include "physicsJoint.h"
 #include "physicsRigidBody.h"
 
+#include "utilMath.h"
+
 
 /*
 ** ----------------------------------------------------------------------
@@ -153,12 +155,12 @@ void physJointDistancePresolve(
 
 	updateConstraintData((physicsJointDistance *)joint, bodyA, bodyB);
 	// We don't invert the effective mass just yet, as we need it for the bias.
-	((physicsJointDistance *)joint)->effectiveMass = calculateEffectiveMass(
+	((physicsJointDistance *)joint)->invEffectiveMass = calculateEffectiveMass(
 		(physicsJointDistance *)joint, bodyA, bodyB
 	);
 	calculateBias((physicsJointDistance *)joint, bodyA, bodyB, dt);
 	// Now we can invert it.
-	((physicsJointDistance *)joint)->effectiveMass = 1.f/((physicsJointDistance *)joint)->effectiveMass;
+	((physicsJointDistance *)joint)->invEffectiveMass = 1.f/((physicsJointDistance *)joint)->invEffectiveMass;
 	#ifdef PHYSJOINTDISTANCE_WARM_START
 	physJointDistanceWarmStart((physicsJointDistance *)joint, bodyA, bodyB);
 	#endif
@@ -192,7 +194,7 @@ void physJointDistanceSolveVelocity(void *const restrict joint, physicsRigidBody
 	// lambda = -(JV + b)/((JM^(-1))J^T)
 	//        = -((v_relative . d) + b)/K
 	lambda = -(vec3DotVec3(&relativeVelocity, &((physicsJointDistance *)joint)->rAB) + ((physicsJointDistance *)joint)->bias +
-	         ((physicsJointDistance *)joint)->gamma * ((physicsJointDistance *)joint)->impulse) * ((physicsJointDistance *)joint)->effectiveMass;
+	         ((physicsJointDistance *)joint)->gamma * ((physicsJointDistance *)joint)->impulse) * ((physicsJointDistance *)joint)->invEffectiveMass;
 	((physicsJointDistance *)joint)->impulse += lambda;
 	vec3MultiplySOut(&((physicsJointDistance *)joint)->rAB, lambda, &impulse);
 
@@ -234,13 +236,12 @@ return_t physJointDistanceSolvePosition(void *const restrict joint, physicsRigid
 				(physicsJointDistance *)joint, bodyA, bodyB
 			);
 			const float distance = vec3MagnitudeVec3(&rAB);
-			float constraint = distance - ((physicsJointDistance *)joint)->distance;
 			// Clamp the constraint value.
-			if(constraint <= -PHYSCONSTRAINT_MAX_LINEAR_CORRECTION){
-				constraint = -PHYSCONSTRAINT_MAX_LINEAR_CORRECTION;
-			}else if(constraint > PHYSCONSTRAINT_MAX_LINEAR_CORRECTION){
-				constraint = PHYSCONSTRAINT_MAX_LINEAR_CORRECTION;
-			}
+			const float constraint = clampFloat(
+				distance - ((physicsJointDistance *)joint)->distance,
+				-PHYSCONSTRAINT_MAX_LINEAR_CORRECTION,
+				PHYSCONSTRAINT_MAX_LINEAR_CORRECTION
+			);
 
 			if(effectiveMass > 0.f){
 				vec3MultiplyS(&rAB, -constraint * effectiveMass);
@@ -340,7 +341,7 @@ static void calculateBias(
 		joint->gamma = 0.f;
 		joint->bias = 0.f;
 	}else{
-		const float invEffectiveMass = 1.f / joint->effectiveMass;
+		const float invEffectiveMass = 1.f / joint->invEffectiveMass;
 		// k = K * w^2
 		const float stiffness = invEffectiveMass * joint->angularFrequency * joint->angularFrequency;
 
@@ -360,6 +361,6 @@ static void calculateBias(
 		//
 		// lambda = -((v_relative . d) + b)/K(1 + gamma/K)
 		//        = -((v_relative . d) + b)/(K + gamma)
-		joint->effectiveMass += joint->gamma;
+		joint->invEffectiveMass += joint->gamma;
 	}
 }

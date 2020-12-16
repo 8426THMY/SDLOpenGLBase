@@ -88,11 +88,11 @@ typedef struct physicsContactPoint {
 	// to the inverse denominator of the impulse equation)
 	// prior to collision response, as it only needs to be
 	// calculated once.
-	float normalEffectiveMass;
+	float invNormalMass;
 	#ifndef PHYSCONTACT_USE_FRICTION_JOINT
-	// Similar to "normalEffectiveMass", but uses the
-	// tangent vectors. These values are used for friction.
-	float tangentEffectiveMass[2];
+	// Same as "invNormalMass", but for tangents.
+	// These values are used for friction.
+	float invTangentMass[2];
 	#endif
 } physicsContactPoint;
 

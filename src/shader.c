@@ -131,7 +131,7 @@ static void printShaderError(const GLuint shaderID){
 	// If the compilation was unsuccessful, try to print the error message!
 	glGetShaderiv(shaderID, GL_INFO_LOG_LENGTH, &infoLogLength);
 	// According to the documentation, the length should be 0
-	// if there is no error despite normally counting the null
+	// if there is no error despite normally counting the NUL
 	// terminator. When using Intel integrated graphics, however,
 	// I've found that the size is 1 when there is no error.
 	if(infoLogLength > 1){
@@ -152,7 +152,7 @@ static void printProgramError(const GLuint shaderID){
 	// If the compilation was unsuccessful, try to print the error message!
 	glGetProgramiv(shaderID, GL_INFO_LOG_LENGTH, &infoLogLength);
 	// According to the documentation, the length should be 0
-	// if there is no error despite normally counting the null
+	// if there is no error despite normally counting the NUL
 	// terminator. When using Intel integrated graphics, however,
 	// I've found that the size is 1 when there is no error.
 	if(infoLogLength > 1){

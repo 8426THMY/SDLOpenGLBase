@@ -23,7 +23,6 @@
 ** axis, qA and qB are the orientations of the two bodies and qI
 ** is the initial offset in their orientations.
 **
-**
 ** Differentiate with respect to time to get velocity constraints:
 **
 ** C1' : ((vB + wB X rB) - (vA + wA X rA)) . u1 + d . (wA X u1) = 0,
@@ -383,11 +382,13 @@ static void calculateEffectiveMass(
 	joint->linearMass.m[0][1] =
 	joint->linearMass.m[1][0] = vec3DotVec3(&IArAu1, rAu2) + vec3DotVec3(&IBrBu1, rBu2);
 	joint->linearMass.m[1][1] = invMass + vec3DotVec3(&IArAu2, rAu2) + vec3DotVec3(&IBrBu2, rBu2);
-	mat2Invert(&joint->linearMass);
+	#warning "Don't invert the effective mass here. It's faster to instead use Cramer's rule or something later."
+	///mat2Invert(&joint->linearMass);
 
 
 	// (JM^(-1))J^T = IA^(-1) + IB^(-1)
 	// Calculate the inverse angular effective mass.
     mat3AddMat3Out(invInertiaA, invInertiaB, &joint->angularMass);
-	mat3Invert(&joint->angularMass);
+	#warning "Don't invert the effective mass here. It's faster to instead use Cramer's rule or something later."
+	///mat3Invert(&joint->angularMass);
 }

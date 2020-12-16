@@ -4,8 +4,8 @@
 
 #include "settingsPhysics.h"
 
-#include "utilTypes.h"
 #include "vec3.h"
+#include "utilTypes.h"
 
 
 #define PHYSJOINT_TYPE_DISTANCE 0
@@ -64,7 +64,7 @@ typedef struct physicsJointDistance {
 	vec3 rB;
 	vec3 rAB;
 
-	float effectiveMass;
+	float invEffectiveMass;
 	// Accumulated impulse used for warm starting.
 	float impulse;
 } physicsJointDistance;

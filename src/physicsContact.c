@@ -28,7 +28,6 @@
 ** where pA and pB are the global positions of the
 ** contact points and n is the contact normal.
 **
-**
 ** Differentiate with respect to time to get a velocity constraint:
 **
 ** C' : (((wB X rB) + vB) - ((wA X rA) + vA)) . n >= 0.
@@ -68,9 +67,8 @@
 ** F_C is the constraint force and dt is the timestep.
 **
 **
-** Using F_C = J^T * lambda and lambda' = dt * lambda, we can
-** solve for the impulse magnitude (constraint Lagrange
-** multiplier) lambda':
+** Using F_C = J^T * lambda and lambda' = dt * lambda, we can solve
+** for the impulse magnitude (constraint Lagrange multiplier) lambda':
 **
 ** JV_f + b = 0
 ** J(V + dt * M^(-1) * F_C) + b = 0
@@ -591,7 +589,7 @@ static void calculateInverseEffectiveMass(
 		&contact->rA, &contact->rB, &physContactNormal(pm),
 		invInertiaA, invInertiaB, invMass
 	);
-	contact->normalEffectiveMass = (effectiveMass > 0.f) ? 1.f/effectiveMass : 0.f;
+	contact->invNormalMass = (effectiveMass > 0.f) ? 1.f/effectiveMass : 0.f;
 
 	#ifndef PHYSCONTACT_USE_FRICTION_JOINT
 	// Calculate the inverse effective mass along the first tangent.
@@ -599,14 +597,14 @@ static void calculateInverseEffectiveMass(
 		&contact->rA, &contact->rB, &physContactTangent(pm, 0),
 		invInertiaA, invInertiaB, invMass
 	);
-	contact->tangentEffectiveMass[0] = (effectiveMass > 0.f) ? 1.f/effectiveMass : 0.f;
+	contact->invTangentMass[0] = (effectiveMass > 0.f) ? 1.f/effectiveMass : 0.f;
 
 	// Calculate the inverse effective mass along the second tangent.
 	effectiveMass = calculateEffectiveMass(
 		&contact->rA, &contact->rB, &physContactTangent(pm, 1),
 		invInertiaA, invInertiaB, invMass
 	);
-	contact->tangentEffectiveMass[1] = (effectiveMass > 0.f) ? 1.f/effectiveMass : 0.f;
+	contact->invTangentMass[1] = (effectiveMass > 0.f) ? 1.f/effectiveMass : 0.f;
 	#endif
 }
 
@@ -690,7 +688,6 @@ static void solveTangents(
 	float lambda;
 	const float maxFriction = physContactFriction(pm) * contact->normalImpulse;
 	float oldImpulse;
-	float newImpulse;
 	vec3 temp;
 	vec3 contactVelocity;
 	vec3 impulse;
@@ -712,42 +709,24 @@ static void solveTangents(
 
 	// lambda = -(JV + b)/((JM^(-1))J^T)
 	//        = -(v_relative . n)/K
-	lambda = -vec3DotVec3(&contactVelocity, &physContactTangent(pm, 0)) * contact->tangentEffectiveMass[0];
+	lambda = -vec3DotVec3(&contactVelocity, &physContactTangent(pm, 0)) * contact->invTangentMass[0];
 	oldImpulse = contact->tangentImpulse[0];
-	newImpulse = oldImpulse + lambda;
 
 	// -f < lambda < f
 	// Clamp our accumulated impulse for the first tangent.
-	if(newImpulse < -maxFriction){
-		contact->tangentImpulse[0] = -maxFriction;
-		vec3MultiplySOut(&physContactTangent(pm, 0), -maxFriction - oldImpulse, &temp);
-	}else if(newImpulse > maxFriction){
-		contact->tangentImpulse[0] = maxFriction;
-		vec3MultiplySOut(&physContactTangent(pm, 0), maxFriction - oldImpulse, &temp);
-	}else{
-		contact->tangentImpulse[0] = newImpulse;
-		vec3MultiplySOut(&physContactTangent(pm, 0), lambda, &temp);
-	}
+	contact->tangentImpulse[0] = clampFloat(oldImpulse + lambda, -maxFriction, maxFriction);
+	vec3MultiplySOut(&physContactTangent(pm, 0), contact->tangentImpulse[0] - oldImpulse, &temp);
 
 
 	// lambda = -(JV + b)/((JM^(-1))J^T)
 	//        = -(v_relative . n)/K
-	lambda = -vec3DotVec3(&contactVelocity, &physContactTangent(pm, 1)) * contact->tangentEffectiveMass[1];
+	lambda = -vec3DotVec3(&contactVelocity, &physContactTangent(pm, 1)) * contact->invTangentMass[1];
 	oldImpulse = contact->tangentImpulse[1];
-	newImpulse = oldImpulse + lambda;
 
 	// -f < lambda < f
 	// Clamp our accumulated impulse for the second tangent.
-	if(newImpulse < -maxFriction){
-		contact->tangentImpulse[1] = -maxFriction;
-		vec3MultiplySOut(&physContactTangent(pm, 1), -maxFriction - oldImpulse, &impulse);
-	}else if(newImpulse > maxFriction){
-		contact->tangentImpulse[1] = maxFriction;
-		vec3MultiplySOut(&physContactTangent(pm, 1), maxFriction - oldImpulse, &impulse);
-	}else{
-		contact->tangentImpulse[1] = newImpulse;
-		vec3MultiplySOut(&physContactTangent(pm, 1), lambda, &impulse);
-	}
+	contact->tangentImpulse[1] = clampFloat(oldImpulse + lambda, -maxFriction, maxFriction);
+	vec3MultiplySOut(&physContactTangent(pm, 1), contact->tangentImpulse[1] - oldImpulse, &impulse);
 
 
 	// Sum the two tangential impulses.
@@ -787,21 +766,13 @@ static void solveNormal(
 
 	// lambda = -(JV + b)/((JM^(-1))J^T)
 	//        = -((v_relative . n) + b)/K
-	lambda = -(vec3DotVec3(&contactVelocity, &physContactNormal(pm)) + contact->bias) * contact->normalEffectiveMass;
-	newImpulse = contact->normalImpulse + lambda;
+	lambda = -(vec3DotVec3(&contactVelocity, &physContactNormal(pm)) + contact->bias) * contact->invNormalMass;
 
 	// C' >= 0
-	// If our impulse magnitude is valid, multiply it
-	// by the direction so we can apply the impulse.
-	if(newImpulse > 0.f){
-		vec3MultiplySOut(&physContactNormal(pm), lambda, &impulse);
-		contact->normalImpulse = newImpulse;
-
-	// Otherwise, clamp our accumulated impulse so it doesn't become negative.
-	}else{
-		vec3MultiplySOut(&physContactNormal(pm), -contact->normalImpulse, &impulse);
-		contact->normalImpulse = 0.f;
-	}
+	// Clamp our accumulated impulse in the normal direction.
+	newImpulse = maxFloat(0.f, contact->normalImpulse + lambda);
+	vec3MultiplySOut(&physContactNormal(pm), newImpulse - contact->normalImpulse, &impulse);
+	contact->normalImpulse = newImpulse;
 
 	// Apply the correctional impulse.
 	physRigidBodyApplyImpulseInverse(bodyA, &contact->rA, &impulse);
@@ -841,10 +812,10 @@ float solvePosition(
 	vec3SubtractVec3From(&rB, &rA);
 	separation = vec3DotVec3(&rB, &normal) - PHYSCONTACT_SEPARATION_BIAS_TOTAL;
 
-	constraint = PHYSCONTACT_BAUMGARTE_BIAS * (separation + PHYSCONSTRAINT_LINEAR_SLOP);
+	constraint = -PHYSCONTACT_BAUMGARTE_BIAS * (separation + PHYSCONSTRAINT_LINEAR_SLOP);
 
 	// Clamp the constraint value.
-	if(constraint < 0.f){
+	if(constraint > 0.f){
 		float effectiveMass;
 
 		// Calculate the transformed contact points'
@@ -868,11 +839,8 @@ float solvePosition(
 		// Make sure we don't apply invalid impulses. This also
 		// doubles as a check to ensure we don't divide by zero.
 		if(effectiveMass > 0.f){
-			if(constraint < -PHYSCONSTRAINT_MAX_LINEAR_CORRECTION){
-				vec3MultiplyS(&normal, PHYSCONSTRAINT_MAX_LINEAR_CORRECTION/effectiveMass);
-			}else{
-				vec3MultiplyS(&normal, -constraint/effectiveMass);
-			}
+			// Finish clamping the constraint value.
+			vec3MultiplyS(&normal, minFloat(constraint, PHYSCONSTRAINT_MAX_LINEAR_CORRECTION)/effectiveMass);
 
 			// Apply the correctional impulse.
 			physRigidBodyApplyImpulsePositionInverse(bodyA, &rA, &normal);

@@ -10,6 +10,7 @@ static void cmdNodeInit(commandNode *const restrict cmdNode, const char value);
 static return_t cmdNodeValid(const char *const restrict name, commandFunction func);
 static commandNodeIndex_t cmdNodeNext(commandNode **const restrict node, const char c);
 static void cmdNodeAddChild(commandNode **const restrict node, const char c);
+static void cmdNodeRemoveChild(commandNode *const node, const commandNodeIndex_t index);
 
 
 void cmdSysInit(commandSystem *const restrict cmdSys){
@@ -39,12 +40,47 @@ return_t cmdSysAdd(commandSystem *node, const char *restrict name, const command
 	return(0);
 }
 
-return_t cmdSysRemove(commandSystem *const node, const char *restrict name){
-	return(0);
+void cmdSysRemove(commandSystem *node, const char *restrict name){
+	commandNodeIndex_t curIndex = 0;
+	commandNodeIndex_t lastIndex = 0;
+	commandNode *lastNode = node;
+	// Search down the trie until we find the node we want to remove.
+	while(!valueIsInvalid(curIndex = cmdNodeNext(&node, *name), commandNodeIndex_t)){
+		// On the way, record the deepest node with more than one child.
+		// This will tell us where we should begin when deleting now-unused nodes.
+		if(node->numChildren > 1){
+			lastIndex = curIndex;
+			lastNode = node;
+		}
+		++name;
+	}
+
+	// If the node we're removing is the last in a branch, remove
+	// it and all the ones before it that aren't otherwise in use.
+	if(node->numChildren == 0){
+		node = lastNode->children[lastIndex].children;
+		// Every node below "node" will only have at most one child.
+		while(node != NULL){
+			commandNode *const nextNode = node->children;
+			memoryManagerGlobalFree(node);
+			node = nextNode;
+		}
+		// Note that if the trie had more than one command listed in it,
+		// "lastNode" is guaranteed to have more than one child, so we
+		// need to shift its children to the left to cover the hole.
+		cmdNodeRemoveChild(lastNode, lastIndex);
+	}
 }
 
-const commandFunction cmdSysFind(commandSystem *const node, const char *restrict name){
-	return(NULL);
+const commandFunction cmdSysFind(commandSystem *node, const char *restrict name){
+	// Search the trie for each character of the command name. This will stop
+	// when we can no longer continue or we start looking for the NUL terminator.
+	while(!valueIsInvalid(cmdNodeNext(&node, *name), commandNodeIndex_t)){
+		++name;
+	}
+	// If a valid ending node could not be found, this will be a NULL pointer.
+	// As long as the root node is valid, this one should always be valid too.
+	return(node->func);
 }
 
 
@@ -137,5 +173,34 @@ static void cmdNodeAddChild(commandNode **const restrict node, const char c){
 		}
 		cmdNodeInit(curChild, c);
 		*node = curChild;
+	}
+}
+
+static void cmdNodeRemoveChild(commandNode *const restrict node, const commandNodeIndex_t index){
+	--node->numChildren;
+
+	// This should only be the case when the trie is now empty.
+	if(node->numChildren == 0){
+		memoryManagerGlobalFree(node->children);
+		node->children = NULL;
+
+	// Otherwise, we should shift its remaining children over to fill the hole.
+	}else{
+		if(index < node->numChildren){
+			memmove(
+				&node->children[index] + 1,
+				&node->children[index],
+				node->numChildren*sizeof(commandNode)
+			);
+		}
+		{
+			commandNode *const tempBuffer = memoryManagerGlobalRealloc(
+				node->children, node->numChildren*sizeof(commandNode)
+			);
+			if(tempBuffer == NULL){
+				/** REALLOC FAILED **/
+			}
+			node->children = tempBuffer;
+		}
 	}
 }

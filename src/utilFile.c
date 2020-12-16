@@ -22,7 +22,7 @@
 return_t fileSetWorkingDirectory(char *const restrict dir, size_t *const restrict pathLength){
 	char *const lastDelim = strrchr(dir, FILE_PATH_DELIMITER) + 1;
 	const char lastChar = *lastDelim;
-	// Add a null-terminator to cut off the executable name
+	// Add a NUL terminator to cut off the executable name
 	// and try to change the current working directory.
 	const return_t success = (*lastDelim = '\0', chdir(dir));
 

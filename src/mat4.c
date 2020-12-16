@@ -560,7 +560,7 @@ vec4 mat4MultiplyByVec4C(const mat4 m, const vec4 v){
 	return(out);
 }
 
-// Right-multiply "m1" by "m2"!
+// Right-multiply "m1" by "m2" (m1*m2)!
 void mat4MultiplyByMat4(mat4 *const restrict m1, const mat4 m2){
 	const mat4 tempMatrix1 = *m1;
 
@@ -585,7 +585,7 @@ void mat4MultiplyByMat4(mat4 *const restrict m1, const mat4 m2){
 	m1->m[3][3] = tempMatrix1.m[0][3] * m2.m[3][0] + tempMatrix1.m[1][3] * m2.m[3][1] + tempMatrix1.m[2][3] * m2.m[3][2] + tempMatrix1.m[3][3] * m2.m[3][3];
 }
 
-// Left-multiply "m1" by "m2"!
+// Left-multiply "m1" by "m2" (m2*m1)!
 void mat4MultiplyMat4By(mat4 *const restrict m1, const mat4 m2){
 	const mat4 tempMatrix1 = *m1;
 
@@ -610,7 +610,7 @@ void mat4MultiplyMat4By(mat4 *const restrict m1, const mat4 m2){
 	m1->m[3][3] = m2.m[0][3] * tempMatrix1.m[3][0] + m2.m[1][3] * tempMatrix1.m[3][1] + m2.m[2][3] * tempMatrix1.m[3][2] + m2.m[3][3] * tempMatrix1.m[3][3];
 }
 
-// Right-multiply "m1" by "m2" and store the result in "out"! This assumes that "out" isn't "m1" or "m2".
+// Right-multiply "m1" by "m2" (m1*m2) and store the result in "out"! This assumes that "out" isn't "m1" or "m2".
 void mat4MultiplyByMat4Out(const mat4 m1, const mat4 m2, mat4 *const restrict out){
 	out->m[0][0] = m1.m[0][0] * m2.m[0][0] + m1.m[1][0] * m2.m[0][1] + m1.m[2][0] * m2.m[0][2] + m1.m[3][0] * m2.m[0][3];
 	out->m[0][1] = m1.m[0][1] * m2.m[0][0] + m1.m[1][1] * m2.m[0][1] + m1.m[2][1] * m2.m[0][2] + m1.m[3][1] * m2.m[0][3];
@@ -633,7 +633,7 @@ void mat4MultiplyByMat4Out(const mat4 m1, const mat4 m2, mat4 *const restrict ou
 	out->m[3][3] = m1.m[0][3] * m2.m[3][0] + m1.m[1][3] * m2.m[3][1] + m1.m[2][3] * m2.m[3][2] + m1.m[3][3] * m2.m[3][3];
 }
 
-// Right-multiply "m1" by "m2" and return the result!
+// Right-multiply "m1" by "m2" (m1*m2) and return the result!
 mat4 mat4MultiplyByMat4C(const mat4 m1, const mat4 m2){
 	const mat4 out = {
 		.m[0][0] = m1.m[0][0] * m2.m[0][0] + m1.m[1][0] * m2.m[0][1] + m1.m[2][0] * m2.m[0][2] + m1.m[3][0] * m2.m[0][3],
@@ -1145,7 +1145,7 @@ mat4 mat4RotateQuatC(const mat4 m, const quat q){
 	return(out);
 }
 
-// Rotate a matrix on the X axis!
+// Rotate a matrix on the x-axis!
 void mat4RotateXRad(mat4 *const restrict m, const float x){
 	const float a = cosf(x);
 	const float b = sinf(x);
@@ -1162,7 +1162,7 @@ void mat4RotateXRad(mat4 *const restrict m, const float x){
 	m->m[2][3] = a * tempMatrix.m[2][3] - b * tempMatrix.m[1][3];
 }
 
-// Rotate a matrix on the X axis!
+// Rotate a matrix on the x-axis!
 mat4 mat4RotateXRadC(const mat4 m, const float x){
 	const float a = cosf(x);
 	const float b = sinf(x);
@@ -1192,17 +1192,17 @@ mat4 mat4RotateXRadC(const mat4 m, const float x){
 	return(out);
 }
 
-// Convert the X rotation from degrees to radians!
+// Convert the x rotation from degrees to radians!
 void mat4RotateXDeg(mat4 *const restrict m, const float x){
 	mat4RotateXRad(m, x * DEG_TO_RAD);
 }
 
-// Convert the X rotation from degrees to radians!
+// Convert the x rotation from degrees to radians!
 mat4 mat4RotateXDegC(const mat4 m, const float x){
 	return(mat4RotateXRadC(m, x * DEG_TO_RAD));
 }
 
-// Rotate a matrix on the Y axis!
+// Rotate a matrix on the y-axis!
 void mat4RotateYRad(mat4 *const restrict m, const float y){
 	const float c = cosf(y);
 	const float d = sinf(y);
@@ -1219,7 +1219,7 @@ void mat4RotateYRad(mat4 *const restrict m, const float y){
 	m->m[2][3] = d * tempMatrix.m[0][3] + c * tempMatrix.m[2][3];
 }
 
-// Rotate a matrix on the Y axis!
+// Rotate a matrix on the y-axis!
 mat4 mat4RotateYRadC(const mat4 m, const float y){
 	const float c = cosf(y);
 	const float d = sinf(y);
@@ -1249,17 +1249,17 @@ mat4 mat4RotateYRadC(const mat4 m, const float y){
 	return(out);
 }
 
-// Convert the Y rotation from degrees to radians!
+// Convert the y rotation from degrees to radians!
 void mat4RotateYDeg(mat4 *const restrict m, const float y){
 	mat4RotateYRad(m, y * DEG_TO_RAD);
 }
 
-// Convert the Y rotation from degrees to radians!
+// Convert the y rotation from degrees to radians!
 mat4 mat4RotateYDegC(const mat4 m, const float y){
 	return(mat4RotateYRadC(m, y * DEG_TO_RAD));
 }
 
-// Rotate a matrix on the Z axis!
+// Rotate a matrix on the z-axis!
 void mat4RotateZRad(mat4 *const restrict m, const float z){
 	const float e = cosf(z);
 	const float f = sinf(z);
@@ -1276,7 +1276,7 @@ void mat4RotateZRad(mat4 *const restrict m, const float z){
 	m->m[1][3] = e * tempMatrix.m[1][3] - f * tempMatrix.m[0][3];
 }
 
-// Rotate a matrix on the Z axis!
+// Rotate a matrix on the z-axis!
 mat4 mat4RotateZRadC(const mat4 m, const float z){
 	const float e = cosf(z);
 	const float f = sinf(z);
@@ -1306,12 +1306,12 @@ mat4 mat4RotateZRadC(const mat4 m, const float z){
 	return(out);
 }
 
-// Convert the Z rotation from degrees to radians!
+// Convert the z rotation from degrees to radians!
 void mat4RotateZDeg(mat4 *const restrict m, const float z){
 	mat4RotateZRad(m, z * DEG_TO_RAD);
 }
 
-// Convert the Z rotation from degrees to radians!
+// Convert the z rotation from degrees to radians!
 mat4 mat4RotateZDegC(const mat4 m, const float z){
 	return(mat4RotateZRadC(m, z * DEG_TO_RAD));
 }
@@ -2192,7 +2192,7 @@ mat4 mat4LookAtC(const vec3 eye, const vec3 target, const vec3 worldUp){
 	const vec3 up      = vec3NormalizeVec3FastC(vec3CrossVec3C(forward, right));
 	// Translate the matrix to "eye" and make it look at "target"!
 	const mat4 m = {
-		.m[0][0] = right.x,                   .m[0][1] = up.x,                   .m[0][2] = forward.z,                   .m[0][3] = 0.f,
+		.m[0][0] = right.x,                   .m[0][1] = up.x,                   .m[0][2] = forward.x,                   .m[0][3] = 0.f,
 		.m[1][0] = right.y,                   .m[1][1] = up.y,                   .m[1][2] = forward.y,                   .m[1][3] = 0.f,
 		.m[2][0] = right.z,                   .m[2][1] = up.z,                   .m[2][2] = forward.z,                   .m[2][3] = 0.f,
 		.m[3][0] = -vec3DotVec3C(right, eye), .m[3][1] = -vec3DotVec3C(up, eye), .m[3][2] = -vec3DotVec3C(forward, eye), .m[3][3] = 1.f
@@ -2205,86 +2205,55 @@ mat4 mat4LookAtC(const vec3 eye, const vec3 target, const vec3 worldUp){
 /*
 ** Convert a 4x4 matrix to a quaternion and store the result in "out"!
 ** For this to work, we assume that "m" is a special orthogonal matrix.
+** Implementation derived by Mike Day in Converting a Rotation Matrix to a Quaternion.
 */
 void mat4ToQuat(const mat4 *const restrict m, quat *const restrict out){
-	const float trace = m->m[0][0] + m->m[1][1] + m->m[2][2];
-
-	if(trace > 0){
-		const float S = 0.5f * invSqrtFast(trace + 1.f);
-		quatInitSet(out,
-			(m->m[1][2] - m->m[2][1]) * S,
-			(m->m[2][0] - m->m[0][2]) * S,
-			(m->m[0][1] - m->m[1][0]) * S,
-			0.25f / S
-		);
-	}else if(m->m[0][0] > m->m[1][1] && m->m[0][0] > m->m[2][2]){
-		const float S = 0.5f * invSqrtFast(m->m[0][0] - m->m[1][1] - m->m[2][2] + 1.f);
-		quatInitSet(out,
-			0.25f / S,
-			(m->m[0][1] + m->m[1][0]) * S,
-			(m->m[2][0] + m->m[0][2]) * S,
-			(m->m[1][2] - m->m[2][1]) * S
-		);
-	}else if(m->m[1][1] > m->m[2][2]){
-		const float S = 0.5f * invSqrtFast(-m->m[0][0] + m->m[1][1] - m->m[2][2] + 1.f);
-		quatInitSet(out,
-			(m->m[0][1] + m->m[1][0]) * S,
-			0.25f / S,
-			(m->m[1][2] - m->m[2][1]) * S,
-			(m->m[2][0] + m->m[0][2]) * S
-		);
+	float t;
+	if(m->m[2][2] < 0.f){
+		if(m->m[0][0] > m->m[1][1]){
+			t = m->m[0][0] - m->m[1][1] - m->m[2][2] + 1.f;
+			quatInitSet(out, t, m->m[0][1] + m->m[1][0], m->m[2][0] + m->m[0][2], m->m[1][2] - m->m[2][1]);
+		}else{
+			t = -m->m[0][0] + m->m[1][1] - m->m[2][2] + 1.f;
+			quatInitSet(out, m->m[0][1] + m->m[1][0], t, m->m[1][2] + m->m[2][1], m->m[2][0] - m->m[0][2]);
+		}
 	}else{
-		const float S = 0.5f * invSqrtFast(-m->m[0][0] - m->m[1][1] + m->m[2][2] + 1.f);
-		quatInitSet(out,
-			(m->m[2][0] + m->m[0][2]) * S,
-			(m->m[1][2] - m->m[2][1]) * S,
-			0.25f / S,
-			(m->m[0][1] + m->m[1][0]) * S
-		);
+		if(m->m[0][0] < -m->m[1][1]){
+			t = -m->m[0][0] - m->m[1][1] + m->m[2][2] + 1.f;
+			quatInitSet(out, m->m[2][0] + m->m[0][2], m->m[1][2] + m->m[2][1], t, m->m[0][1] - m->m[1][0]);
+		}else{
+			t = m->m[0][0] + m->m[1][1] + m->m[2][2] + 1.f;
+			quatInitSet(out, m->m[1][2] - m->m[2][1], m->m[2][0] - m->m[0][2], m->m[0][1] - m->m[1][0], t);
+		}
 	}
+	quatMultiplyS(out, 0.5f*invSqrtFast(t));
 }
 
-// Convert a 4x4 matrix to a quaternion!
+/*
+** Convert a 4x4 matrix to a quaternion!
+** Implementation derived by Mike Day in Converting a Rotation Matrix to a Quaternion.
+*/
 quat mat4ToQuatC(const mat4 m){
-	const float trace = m.m[0][0] + m.m[1][1] + m.m[2][2];
-
-	if(trace > 0){
-		const float S = 0.5f * invSqrtFast(trace + 1.f);
-		const quat q = {
-			.x = (m.m[1][2] - m.m[2][1]) * S,
-			.y = (m.m[2][0] - m.m[0][2]) * S,
-			.z = (m.m[0][1] - m.m[1][0]) * S,
-			.w = 0.25f / S
-		};
-		return(q);
-	}else if(m.m[0][0] > m.m[1][1] && m.m[0][0] > m.m[2][2]){
-		const float S = 0.5f * invSqrtFast(m.m[0][0] - m.m[1][1] - m.m[2][2] + 1.f);
-		const quat q = {
-			.x = 0.25f / S,
-			.y = (m.m[0][1] + m.m[1][0]) * S,
-			.z = (m.m[2][0] + m.m[0][2]) * S,
-			.w = (m.m[1][2] - m.m[2][1]) * S
-		};
-		return(q);
-	}else if(m.m[1][1] > m.m[2][2]){
-		const float S = 0.5f * invSqrtFast(-m.m[0][0] + m.m[1][1] - m.m[2][2] + 1.f);
-		const quat q = {
-			.x = (m.m[0][1] + m.m[1][0]) * S,
-			.y = 0.25f / S,
-			.z = (m.m[1][2] - m.m[2][1]) * S,
-			.w = (m.m[2][0] + m.m[0][2]) * S
-		};
-		return(q);
+	float t;
+	quat q;
+	if(m.m[2][2] < 0.f){
+		if(m.m[0][0] > m.m[1][1]){
+			t = m.m[0][0] - m.m[1][1] - m.m[2][2] + 1.f;
+			q = quatInitSetC(t, m.m[0][1] + m.m[1][0], m.m[2][0] + m.m[0][2], m.m[1][2] - m.m[2][1]);
+		}else{
+			t = -m.m[0][0] + m.m[1][1] - m.m[2][2] + 1.f;
+			q = quatInitSetC(m.m[0][1] + m.m[1][0], t, m.m[1][2] + m.m[2][1], m.m[2][0] - m.m[0][2]);
+		}
 	}else{
-		const float S = 0.5f * invSqrtFast(-m.m[0][0] - m.m[1][1] + m.m[2][2] + 1.f);
-		const quat q = {
-			.x = (m.m[2][0] + m.m[0][2]) * S,
-			.y = (m.m[1][2] - m.m[2][1]) * S,
-			.z = 0.25f / S,
-			.w = (m.m[0][1] + m.m[1][0]) * S
-		};
-		return(q);
+		if(m.m[0][0] < -m.m[1][1]){
+			t = -m.m[0][0] - m.m[1][1] + m.m[2][2] + 1.f;
+			q = quatInitSetC(m.m[2][0] + m.m[0][2], m.m[1][2] + m.m[2][1], t, m.m[0][1] - m.m[1][0]);
+		}else{
+			t = m.m[0][0] + m.m[1][1] + m.m[2][2] + 1.f;
+			q = quatInitSetC(m.m[1][2] - m.m[2][1], m.m[2][0] - m.m[0][2], m.m[0][1] - m.m[1][0], t);
+		}
 	}
+	return(quatMultiplySC(q, 0.5f*invSqrtFast(t)));
 }
 
 /*

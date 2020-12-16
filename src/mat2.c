@@ -125,7 +125,7 @@ mat2 mat2MultiplyVec2ByC(const mat2 m, const vec2 v){
 	return(out);
 }
 
-// Right-multiply "m1" by "m2"!
+// Right-multiply "m1" by "m2" (m1*m2)!
 void mat2MultiplyByMat2(mat2 *const restrict m1, const mat2 m2){
 	const mat2 tempMatrix = *m1;
 
@@ -136,7 +136,7 @@ void mat2MultiplyByMat2(mat2 *const restrict m1, const mat2 m2){
 	m1->m[1][1] = tempMatrix.m[0][1] * m2.m[1][0] + tempMatrix.m[1][1] * m2.m[1][1];
 }
 
-// Left-multiply "m1" by "m2"!
+// Left-multiply "m1" by "m2" (m2*m1)!
 void mat2MultiplyMat2By(mat2 *const restrict m1, const mat2 m2){
 	const mat2 tempMatrix = *m1;
 
@@ -147,7 +147,7 @@ void mat2MultiplyMat2By(mat2 *const restrict m1, const mat2 m2){
 	m1->m[1][1] = m2.m[0][1] * tempMatrix.m[1][0] + m2.m[1][1] * tempMatrix.m[1][1];
 }
 
-// Right-multiply "m1" by "m2" and store the result in "out"!
+// Right-multiply "m1" by "m2" (m1*m2) and store the result in "out"!
 void mat2MultiplyByMat2Out(const mat2 m1, const mat2 m2, mat2 *const restrict out){
 	out->m[0][0] = m1.m[0][0] * m2.m[0][0] + m1.m[1][0] * m2.m[0][1];
 	out->m[0][1] = m1.m[0][1] * m2.m[0][0] + m1.m[1][1] * m2.m[0][1];
@@ -156,7 +156,7 @@ void mat2MultiplyByMat2Out(const mat2 m1, const mat2 m2, mat2 *const restrict ou
 	out->m[1][1] = m1.m[0][1] * m2.m[1][0] + m1.m[1][1] * m2.m[1][1];
 }
 
-// Right-multiply "m1" by "m2"!
+// Right-multiply "m1" by "m2" (m1*m2)!
 mat2 mat2MultiplyByMat2C(const mat2 m1, const mat2 m2){
 	const mat2 out = {
 		.m[0][0] = m1.m[0][0] * m2.m[0][0] + m1.m[1][0] * m2.m[0][1],
@@ -210,6 +210,16 @@ mat2 mat2TransposeC(const mat2 m){
 	};
 
 	return(out);
+}
+
+// Calculate the determinant of a matrix!
+float mat2Determinant(const mat2 *const restrict m){
+	return(m->m[0][0]*m->m[1][1] - m->m[1][0]*m->m[0][1]);
+}
+
+// Calculate the determinant of a matrix!
+float mat2DeterminantC(const mat2 m){
+	return(m.m[0][0]*m.m[1][1] - m.m[1][0]*m.m[0][1]);
 }
 
 // Invert a matrix!
@@ -314,6 +324,109 @@ return_t mat2CanInvertOut(const mat2 m, mat2 *const restrict out){
 		return(1);
 	}
 
+
+	return(0);
+}
+
+
+/*
+** Solves the system Ax = b using Cramer's rule.
+** Cramer's rule states that the solution x is given by
+**
+** x = (det(A_1)/det(A), det(A_2)/det(A))^T,
+**
+** where A_i is the matrix A with the ith column replace by b.
+** This of course does not work if det(A) = 0.
+*/
+void mat2Solve(const mat2 *const restrict A, const vec2 *const restrict b, vec2 *const restrict x){
+	float invDet = mat2Determinant(A);
+	if(invDet != 0.f){
+		mat2 Ai;
+
+		invDet = 1.f / invDet;
+
+		// x_1 = det(A_1)/det(A)
+		memcpy(Ai.m[0], b, sizeof(vec2));
+		memcpy(Ai.m[1], A->m[1], sizeof(vec2));
+		x->x = mat2Determinant(&Ai) * invDet;
+
+		// x_2 = det(A_2)/det(A)
+		memcpy(Ai.m[0], A->m[0], sizeof(vec2));
+		memcpy(Ai.m[1], b, sizeof(vec2));
+		x->y = mat2Determinant(&Ai) * invDet;
+	}
+}
+
+vec2 mat2SolveC(const mat2 A, const vec2 b){
+	float invDet = mat2DeterminantC(A);
+	if(invDet != 0.f){
+		mat2 Ai;
+		vec2 x;
+
+		invDet = 1.f / invDet;
+
+		// x_1 = det(A_1)/det(A)
+		memcpy(Ai.m[0], &b, sizeof(vec2));
+		memcpy(Ai.m[1], A.m[1], sizeof(vec2));
+		x.x = mat2Determinant(&Ai) * invDet;
+
+		// x_2 = det(A_2)/det(A)
+		memcpy(Ai.m[0], A.m[0], sizeof(vec2));
+		memcpy(Ai.m[1], &b, sizeof(vec2));
+		x.y = mat2Determinant(&Ai) * invDet;
+
+		return(x);
+	}
+
+	return(vec2InitZeroC());
+}
+
+/*
+** Solves the system Ax = b using Cramer's
+** rule and return whether we were successful.
+*/
+return_t mat2CanSolve(const mat2 *const restrict A, const vec2 *const restrict b, vec2 *const restrict x){
+	float invDet = mat2Determinant(A);
+	if(invDet != 0.f){
+		mat2 Ai;
+
+		invDet = 1.f / invDet;
+
+		// x_1 = det(A_1)/det(A)
+		memcpy(Ai.m[0], b, sizeof(vec2));
+		memcpy(Ai.m[1], A->m[1], sizeof(vec2));
+		x->x = mat2Determinant(&Ai) * invDet;
+
+		// x_2 = det(A_2)/det(A)
+		memcpy(Ai.m[0], A->m[0], sizeof(vec2));
+		memcpy(Ai.m[1], b, sizeof(vec2));
+		x->y = mat2Determinant(&Ai) * invDet;
+
+		return(1);
+	}
+
+	return(0);
+}
+
+return_t mat2CanSolveC(const mat2 A, const vec2 b, vec2 *const restrict x){
+	float invDet = mat2DeterminantC(A);
+	if(invDet != 0.f){
+		mat2 Ai;
+
+		invDet = 1.f / invDet;
+
+		// x_1 = det(A_1)/det(A)
+		memcpy(Ai.m[0], &b, sizeof(vec2));
+		memcpy(Ai.m[1], A.m[1], sizeof(vec2));
+		x->x = mat2Determinant(&Ai) * invDet;
+
+		// x_2 = det(A_2)/det(A)
+		memcpy(Ai.m[0], A.m[0], sizeof(vec2));
+		memcpy(Ai.m[1], &b, sizeof(vec2));
+		x->y = mat2Determinant(&Ai) * invDet;
+
+		return(1);
+	}
 
 	return(0);
 }

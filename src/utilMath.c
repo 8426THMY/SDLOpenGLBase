@@ -209,8 +209,8 @@ void normalBasisFast(const vec3 *const restrict v1, vec3 *const restrict v2, vec
 ** Compute an orthonormal basis from the normalised vector
 ** "v1" and store the other two vectors in "v2" and "v3".
 **
-** Special thanks to Pixar for this implementation!
-** https://graphics.pixar.com/library/OrthonormalB/paper.pdf
+** Special thanks to Pixar for this implementation, which was
+** given in Building an Orthonormal Basis, Revisited (2017).
 */
 void normalBasisFaster(const vec3 *const restrict v1, vec3 *const restrict v2, vec3 *const restrict v3){
 	const float sign = copySign(1.f, v1->z);

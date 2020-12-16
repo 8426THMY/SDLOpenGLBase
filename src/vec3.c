@@ -519,14 +519,14 @@ float vec3NormVec3C(const vec3 v){
 }
 
 
-// Find the cross product of two vec3s stored as three floats and store the result in "out"!
+// Find the cross product of two vec3s (f1 x f2) stored as three floats and store the result in "out"!
 void vec3Cross(const float x1, const float y1, const float z1, const float x2, const float y2, const float z2, vec3 *const restrict out){
 	out->x = y1 * z2 - z1 * y2;
 	out->y = z1 * x2 - x1 * z2;
 	out->z = x1 * y2 - y1 * x2;
 }
 
-// Find the cross product of two vec3s stored as three floats!
+// Find the cross product of two vec3s (f1 x f2) stored as three floats!
 vec3 vec3CrossC(const float x1, const float y1, const float z1, const float x2, const float y2, const float z2){
 	vec3 v;
 	v.x = y1 * z2 - z1 * y2;
@@ -536,14 +536,14 @@ vec3 vec3CrossC(const float x1, const float y1, const float z1, const float x2, 
 	return(v);
 }
 
-// Find the cross product of a vec3 and one stored as three floats and store the result in "out"!
+// Find the cross product of a vec3 and one stored as three floats (v x f) and store the result in "out"!
 void vec3CrossVec3Float(const vec3 *const restrict v, const float x, const float y, const float z, vec3 *const restrict out){
 	out->x = v->y * z - v->z * y;
 	out->y = v->z * x - v->x * z;
 	out->z = v->x * y - v->y * x;
 }
 
-// Find the cross product of a vec3 and one stored as three floats!
+// Find the cross product of a vec3 and one stored as three floats (v x f)!
 vec3 vec3CrossVec3FloatC(const vec3 v, const float x, const float y, const float z){
 	vec3 out;
 
@@ -554,14 +554,14 @@ vec3 vec3CrossVec3FloatC(const vec3 v, const float x, const float y, const float
 	return(out);
 }
 
-// Find the cross product of a vec3 stored as three floats and a normal one and store the result in "out"!
+// Find the cross product of a vec3 stored as three floats and a normal one (f x v) and store the result in "out"!
 void vec3CrossFloatVec3(const float x, const float y, const float z, const vec3 *const restrict v, vec3 *const restrict out){
 	out->x = y * v->z - z * v->y;
 	out->y = z * v->x - x * v->z;
 	out->z = x * v->y - y * v->x;
 }
 
-// Find the cross product of a vec3 stored as three floats and a normal one!
+// Find the cross product of a vec3 stored as three floats and a normal one (f x v)!
 vec3 vec3CrossFloatVec3C(const float x, const float y, const float z, const vec3 v){
 	vec3 out;
 
@@ -572,7 +572,7 @@ vec3 vec3CrossFloatVec3C(const float x, const float y, const float z, const vec3
 	return(out);
 }
 
-// Find the cross product of two vec3s and store the result in "v1"!
+// Find the cross product of two vec3s (v1 x v2) and store the result in "v1"!
 void vec3CrossByVec3(vec3 *const restrict v1, const vec3 *const restrict v2){
 	vec3 temp = *v1;
 
@@ -581,7 +581,7 @@ void vec3CrossByVec3(vec3 *const restrict v1, const vec3 *const restrict v2){
 	v1->z = temp.x * v2->y - temp.y * v2->x;
 }
 
-// Find the cross product of two vec3s and store the result in "v2"!
+// Find the cross product of two vec3s (v1 x v2) and store the result in "v2"!
 void vec3CrossVec3By(const vec3 *const restrict v1, vec3 *const restrict v2){
 	vec3 temp = *v2;
 
@@ -590,14 +590,14 @@ void vec3CrossVec3By(const vec3 *const restrict v1, vec3 *const restrict v2){
 	v2->z = v1->x * temp.y - v1->y * temp.x;
 }
 
-// Find the cross product of two vec3s and store the result in "out"!
+// Find the cross product of two vec3s (v1 x v2) and store the result in "out"!
 void vec3CrossVec3Out(const vec3 *const restrict v1, const vec3 *const restrict v2, vec3 *const restrict out){
 	out->x = v1->y * v2->z - v1->z * v2->y;
 	out->y = v1->z * v2->x - v1->x * v2->z;
 	out->z = v1->x * v2->y - v1->y * v2->x;
 }
 
-// Find the cross product of two vec3s!
+// Find the cross product of two vec3s (v1 x v2)!
 vec3 vec3CrossVec3C(const vec3 v1, const vec3 v2){
 	vec3 out;
 

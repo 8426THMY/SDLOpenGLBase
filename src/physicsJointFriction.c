@@ -81,7 +81,7 @@
 ** [K]_10 =                     ((rA X u1) . (IA^(-1) * (rA X u2))) + ((rB X u1) . (IB^(-1) * (rB X u2))),
 ** [K]_11 = mA^(-1) + mB^(-1) + ((rA X u2) . (IA^(-1) * (rA X u2))) + ((rB X u2) . (IB^(-1) * (rB X u2))).
 **
-** It is also worth noting that in this case, J1V is not
+** It is also worth noting that in this case, J1*V is not
 ** a scalar either. It is the following 2x1 matrix:
 **
 **        [((vB + wB X rB) - (vA + wA X rA)) . u1]
@@ -174,6 +174,7 @@ void physJointFrictionCalculateInverseEffectiveMass(
 	joint->linearMass.m[0][1] =
 	joint->linearMass.m[1][0] = vec3DotVec3(&IArAu1, &rAu2) + vec3DotVec3(&IBrBu1, &rBu2);
 	joint->linearMass.m[1][1] = invMass + vec3DotVec3(&IArAu2, &rAu2) + vec3DotVec3(&IBrBu2, &rBu2);
+	#warning "Don't invert the effective mass here. It's faster to instead use Cramer's rule or something later."
 	mat2Invert(&joint->linearMass);
 
 
@@ -183,7 +184,7 @@ void physJointFrictionCalculateInverseEffectiveMass(
 	angularMass = vec3DotVec3(&IArAu1, &joint->normal);
 
 	// Calculate the inverse angular effective mass.
-	joint->angularMass = (angularMass > 0.f) ? 1.f/angularMass : 0.f;
+	joint->invAngularMass = (angularMass > 0.f) ? 1.f/angularMass : 0.f;
 }
 
 /*
@@ -200,7 +201,6 @@ void physJointFrictionSolveVelocity(
 	vec3 linearImpulse;
 	vec3 angularImpulse;
 	vec3 relativeVelocity;
-	float impulseMagnitude;
 	const float maxFriction = joint->friction * maxForce;
 
 
@@ -228,6 +228,7 @@ void physJointFrictionSolveVelocity(
 			.y = -vec3DotVec3(&relativeVelocity, &joint->tangents[1])
 		};
 		const vec2 oldImpulse = joint->linearImpulse;
+		float impulseMagnitude;
 		vec3 temp;
 
 		mat2MultiplyByVec2(&joint->linearMass, &lambda);
@@ -259,20 +260,11 @@ void physJointFrictionSolveVelocity(
 		//        = -((wB - wA) . n)/K
 		// Calculate the magnitude for the angular impulse.
 		vec3SubtractVec3FromOut(&bodyA->angularVelocity, &bodyB->angularVelocity, &dC);
-		lambda = vec3DotVec3(&dC, &joint->normal) * joint->angularMass;
+		lambda = vec3DotVec3(&dC, &joint->normal) * joint->invAngularMass;
 
 		// Clamp our accumulated impulse for the angular constraint.
-		impulseMagnitude = joint->angularImpulse + lambda;
-		if(impulseMagnitude <= -maxFriction){
-			joint->angularImpulse = -maxFriction;
-			vec3MultiplySOut(&joint->normal, -maxFriction - oldImpulse, &angularImpulse);
-		}else if(impulseMagnitude > maxFriction){
-			joint->angularImpulse = maxFriction;
-			vec3MultiplySOut(&joint->normal, maxFriction - oldImpulse, &angularImpulse);
-		}else{
-			joint->angularImpulse = impulseMagnitude;
-			vec3MultiplySOut(&joint->normal, lambda, &angularImpulse);
-		}
+		joint->angularImpulse = clampFloat(joint->angularImpulse + lambda, -maxFriction, maxFriction);
+		vec3MultiplySOut(&joint->normal, joint->angularImpulse - oldImpulse, &angularImpulse);
 	}
 
 	physRigidBodyApplyImpulseBoostInverse(bodyA, &joint->rA, &linearImpulse, &angularImpulse);

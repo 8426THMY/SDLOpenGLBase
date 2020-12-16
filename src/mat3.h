@@ -50,11 +50,19 @@ mat3 mat3ScaleVec3C(mat3 m, const vec3 v);
 void mat3Transpose(mat3 *const restrict m);
 void mat3TransposeOut(const mat3 m, mat3 *const restrict out);
 mat3 mat3TransposeC(const mat3 m);
+float mat3Determinant(const mat3 *const restrict m);
+float mat3DeterminantC(const mat3 m);
 void mat3Invert(mat3 *const restrict m);
 void mat3InvertOut(const mat3 m, mat3 *const restrict out);
 mat3 mat3InvertC(const mat3 m);
 return_t mat3CanInvert(mat3 *const restrict m);
-return_t mat3CanInvertOut(const mat3 m, mat3 *const restrict out);
+return_t mat3CanInvertOut(const mat3 *const restrict m, mat3 *const restrict out);
+return_t mat3CanInvertC(const mat3 m, mat3 *const restrict out);
+
+void mat3Solve(const mat3 *const restrict A, const vec3 *const restrict b, vec3 *const restrict x);
+vec3 mat3SolveC(const mat3 A, const vec3 b);
+return_t mat3CanSolve(const mat3 *const restrict A, const vec3 *const restrict b, vec3 *const restrict x);
+return_t mat3CanSolveC(const mat3 A, const vec3 b, vec3 *const restrict x);
 
 void mat3ToQuat(const mat3 *const restrict m, quat *const restrict out);
 quat mat3ToQuatC(const mat3 m);

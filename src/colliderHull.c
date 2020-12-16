@@ -314,14 +314,14 @@ return_t colliderHullLoad(
 			// so we can make the last edge point to it.
 			colliderEdgeIndex_t firstIndex = valueInvalid(colliderEdgeIndex_t);
 			// Keep the index of the last edge.
-			colliderEdgeIndex_t prevIndex;
+			colliderEdgeIndex_t prevIndex = 0;
 			// This is the value of the first edge's start vertex.
 			// We can't just use the pointer above, as we don't
 			// know whether or not the first edge was a twin.
-			colliderVertexIndex_t firstEdgeStartIndex;
+			colliderVertexIndex_t firstEdgeStartIndex = 0;
 			// We use these when calculating the normal.
-			colliderVertexIndex_t lastEdgeStartIndex;
-			colliderVertexIndex_t firstEdgeEndIndex;
+			colliderVertexIndex_t lastEdgeStartIndex = 0;
+			colliderVertexIndex_t firstEdgeEndIndex = 0;
 
 			vec3 *A;
 			vec3 AB;
@@ -668,8 +668,9 @@ return_t colliderHullSeparated(
 /*
 ** Return whether or not two hulls are colliding using
 ** the Separating Axis Theorem. Special thanks to Dirk
-** Gregorius for his GDC 2013 presentation on utilising
-** Gauss map and Minkowski space to optimise this!
+** Gregorius for his GDC 2013 presentation The Separating
+** Axis Test between Convex Polyhedra, which utilizes
+** Gauss maps and Minkowski space to optimise this!
 */
 return_t colliderHullCollidingSAT(
 	const void *const restrict hullA, const void *const restrict hullB,

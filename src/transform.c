@@ -68,7 +68,7 @@ void transformStateInterpAdd(const transformState *const restrict trans1, const 
 	vec3AddVec3(&out->pos, &interp.pos);
 
 	quatSlerpFasterOut(&trans1->rot, &trans2->rot, time, &interp.rot);
-	quatMultiplyByQuat(&out->rot, &interp.rot);
+	quatMultiplyByQuat(&out->rot, interp.rot);
 	quatNormalizeQuat(&out->rot);
 
 	vec3Lerp(&trans1->scale, &trans2->scale, time, &interp.scale);

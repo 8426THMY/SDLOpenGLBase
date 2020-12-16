@@ -202,7 +202,9 @@ static void input(program *const restrict prg){
 }
 
 /** TEMPORARY PHYSICS STUFF!! **/
+object *controlObj = NULL;
 physicsRigidBody *controlPhys = NULL;
+#include "utilMath.h"
 static void updateCameras(program *const restrict prg){
 	if(prg->keyStates[SDL_SCANCODE_LEFT]){
 		prg->cam.pos.x -= 10.f * prg->step.updateDelta;
@@ -228,6 +230,22 @@ static void updateCameras(program *const restrict prg){
 
 
 
+	/** TEMPORARY TESTING STUFF! **/
+	if(controlObj != NULL){
+		quat rot = quatNormalizeQuatC(mat4ToQuatC(mat4RotateToFaceC(controlObj->state.pos, prg->cam.pos, vec3InitSetC(0.f, 1.f, 0.f))));
+		vec3 angles = quatToEulerAnglesC(rot);
+
+
+		angles.x = clampFloat(angles.x, -M_PI_4, M_PI_4);
+		angles.y = clampFloat(angles.y, -M_PI_4, M_PI_4);
+		angles.z = clampFloat(angles.z, 0.f, 0.f);
+
+		rot = quatInitEulerVec3RadC(angles);
+		rot.w = fabsf(rot.w);
+
+
+		controlObj->state.rot = rot;
+	}
 	/** TEMPORARY PHYSICS STUFF! **/
 	if(controlPhys != NULL){
 		if(prg->keyStates[SDL_SCANCODE_J]){
@@ -347,13 +365,13 @@ static void render(program *const restrict prg){
 
 	/** TEMPORARY PARTICLE RENDER STUFF! **/
 	glUseProgram(prg->spriteShader.programID);
-	//particleSysDraw(&partSys, &prg->cam, &prg->spriteShader, prg->step.renderDelta);
+	particleSysDraw(&partSys, &prg->cam, &prg->spriteShader, prg->step.renderDelta);
 
 	/** TEMPORARY GUI RENDER STUFF! **/
 	glUseProgram(prg->spriteShader.programID);
 	/** Do we need this? **/
 	glClear(GL_DEPTH_BUFFER_BIT);
-	//guiElementDraw(&gui, prg->windowWidth, prg->windowHeight, &prg->spriteShader);
+	guiElementDraw(&gui, prg->windowWidth, prg->windowHeight, &prg->spriteShader);
 
 
 	SDL_GL_SwapWindow(prg->window);
@@ -470,6 +488,7 @@ static return_t initResources(program *const restrict prg){
 	// Temporary object stuff.
 	//mdl = modelSMDLoad(mdl, "scout_reference.smd");
 	//skeleObjInit(&obj->skeleData, mdl->skele);
+	controlObj = obj;
 
 	// Temporary animation stuff.
 	#warning "Playing 'soldier_animations_anims_old/a_runN_LOSER.smd' on the Scout makes his left arm flip."

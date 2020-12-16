@@ -11,7 +11,7 @@
 size_t ultostr(unsigned long num, char *str){
 	size_t length;
 	char *curPos;
-	
+
 	// Special case for when num is equal to 0!
 	if(num == 0){
 		*str = '0';
@@ -48,7 +48,7 @@ size_t ultostr(unsigned long num, char *str){
 		++length;
 	}
 
-	// Add a null terminator and we're set!
+	// Add a NUL terminator and we're set!
 	*(str + length) = '\0';
 
 

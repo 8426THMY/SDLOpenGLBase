@@ -162,7 +162,7 @@ textureGroup *texGroupLoad(const char *const restrict texGroupPath, const size_t
 					char *texPathEnd;
 					const size_t texPathLength = fileParseResourcePath(texPath, &line[2], lineLength - 2, &texPathEnd);
 					char *texExt;
-					// Note that this includes the null terminator.
+					// Note that this includes the NUL terminator.
 					size_t texExtLength;
 
 

@@ -2,10 +2,10 @@
 #define physicsJointPrismatic_h
 
 
-#include "utilTypes.h"
 #include "vec3.h"
 #include "mat2.h"
 #include "mat3.h"
+#include "utilTypes.h"
 
 
 #define PHYSJOINT_TYPE_PRISMATIC 3
@@ -60,7 +60,7 @@ typedef struct physicsJointPrismatic {
 	// (rB X u2)
 	vec3 rBu2;
 
-	// Angular and linear effective masses.
+	// Linear and angular effective masses.
 	mat2 linearMass;
 	mat3 angularMass;
 	float limitMotorMass;

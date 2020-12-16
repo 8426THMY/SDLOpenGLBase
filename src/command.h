@@ -59,8 +59,8 @@ typedef struct commandNode {
 
 void cmdSysInit(commandSystem *const restrict cmdSys);
 return_t cmdSysAdd(commandSystem *node, const char *restrict name, commandFunction func);
-return_t cmdSysRemove(commandSystem *const node, const char *restrict name);
-const commandFunction cmdSysFind(commandSystem *const node, const char *restrict name);
+void cmdSysRemove(commandSystem *node, const char *restrict name);
+const commandFunction cmdSysFind(commandSystem *node, const char *restrict name);
 
 
 /**

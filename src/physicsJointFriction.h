@@ -31,9 +31,9 @@ typedef struct physicsJointFriction {
 	vec3 normal;
 	vec3 tangents[2];
 
-	// Angular and linear effective masses.
+	// Linear and inverse angular effective masses.
 	mat2 linearMass;
-	float angularMass;
+	float invAngularMass;
 	// Accumulated impulses used for warm starting.
 	vec2 linearImpulse;
 	float angularImpulse;

@@ -13,6 +13,7 @@ void billboardInit(billboard *const restrict billboardData){
 }
 
 
+#warning "This can almost certainly be optimized using quaternion swing-twist decomposition."
 void billboardState(const billboard *const restrict billboardData, const camera *const restrict cam, const vec3 centroid, mat4 rootState, mat4 *const restrict out){
 	// Use the camera's axes for billboarding.
 	// We can just use the columns of its view matrix.
