@@ -65,6 +65,7 @@ typedef struct physicsJointDistance {
 	vec3 rAB;
 
 	float invEffectiveMass;
+
 	// Accumulated impulse used for warm starting.
 	float impulse;
 } physicsJointDistance;

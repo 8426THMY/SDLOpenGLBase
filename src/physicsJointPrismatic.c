@@ -59,7 +59,7 @@
 **
 ** ----------------------------------------------------------------------
 **
-** The effective mass for the constraint is given by (JM^(-1))J^T,
+** The effective mass for the constraint is given by JM^(-1)J^T,
 ** where M^(-1) is the inverse mass matrix and J^T is the transposed
 ** Jacobian.
 **
@@ -175,7 +175,7 @@
 **
 ** Using this, we get that the effective mass is:
 **
-** (JM^(-1))J^T = mA^(-1) + mB^(-1)
+** JM^(-1)J^T = mA^(-1) + mB^(-1)
 **/
 
 
@@ -358,7 +358,7 @@ static void calculateEffectiveMass(
 	vec3 IBrBu2;
 
 
-	// (JM^(-1))J^T = mA^(-1) + mB^(-1) + (((rA + d) X a) . (IA^(-1) * ((rA + d) X a))) + ((rB X a) . (IB^(-1) * (rB X a)))
+	// JM^(-1)J^T = mA^(-1) + mB^(-1) + (((rA + d) X a) . (IA^(-1) * ((rA + d) X a))) + ((rB X a) . (IB^(-1) * (rB X a)))
 	mat3MultiplyByVec3Out(invInertiaA, rAa, &IArAu1);
 	mat3MultiplyByVec3Out(invInertiaB, rBa, &IBrBu1);
 
@@ -367,7 +367,7 @@ static void calculateEffectiveMass(
 	joint->limitMotorMass = 1.f / (invMass + vec3DotVec3(&IArAu1, rAa) + vec3DotVec3(&IBrBu1, rBa));
 
 
-	// K = (JM^(-1))J^T
+	// K = JM^(-1)J^T
 	// [K]_00 = mA^(-1) + mB^(-1) + (((rA + d) X u1) . (IA^(-1) * ((rA + d) X u1))) + ((rB X u1) . (IB^(-1) * (rB X u1)))
 	// [K]_01 =                     (((rA + d) X u1) . (IA^(-1) * ((rA + d) X u2))) + ((rB X u1) . (IB^(-1) * (rB X u2)))
 	// [K]_10 = [K]_01
@@ -386,7 +386,7 @@ static void calculateEffectiveMass(
 	///mat2Invert(&joint->linearMass);
 
 
-	// (JM^(-1))J^T = IA^(-1) + IB^(-1)
+	// JM^(-1)J^T = IA^(-1) + IB^(-1)
 	// Calculate the inverse angular effective mass.
     mat3AddMat3Out(invInertiaA, invInertiaB, &joint->angularMass);
 	#warning "Don't invert the effective mass here. It's faster to instead use Cramer's rule or something later."

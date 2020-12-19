@@ -25,6 +25,8 @@ typedef struct physicsJointFriction {
 	vec3 rA;
 	vec3 rB;
 
+	float friction;
+
 	// These points are in global space. Note that
 	// the normal is for a face on body A, and so
 	// should roughly point from body A to body B.
@@ -34,11 +36,10 @@ typedef struct physicsJointFriction {
 	// Linear and inverse angular effective masses.
 	mat2 linearMass;
 	float invAngularMass;
+
 	// Accumulated impulses used for warm starting.
 	vec2 linearImpulse;
 	float angularImpulse;
-
-	float friction;
 } physicsJointFriction;
 
 

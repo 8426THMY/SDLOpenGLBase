@@ -54,7 +54,7 @@
 **
 ** ----------------------------------------------------------------------
 **
-** The effective mass for the constraint is given by (JM^(-1))J^T,
+** The effective mass for the constraint is given by JM^(-1)J^T,
 ** where M^(-1) is the inverse mass matrix and J^T is the transposed
 ** Jacobian.
 **
@@ -71,7 +71,7 @@
 **
 ** Evaluating this expression gives us:
 **
-** (JM^(-1))J^T = mA^(-1) + mB^(-1) + ((rA X d) . (IA^(-1) * (rA X d))) + ((rB X d) . (IB^(-1) * (rB X d))).
+** JM^(-1)J^T = mA^(-1) + mB^(-1) + ((rA X d) . (IA^(-1) * (rA X d))) + ((rB X d) . (IB^(-1) * (rB X d))).
 **
 ** ----------------------------------------------------------------------
 */
@@ -181,17 +181,17 @@ void physJointDistanceSolveVelocity(void *const restrict joint, physicsRigidBody
 	// vB_anchor  = vB + wB X rB
 	// v_relative = vB_anchor - vA_anchor
 
-	// Calculate the total linear velocity of the anchor point on body A.
+	// Calculate the total velocity of the anchor point on body A.
 	vec3CrossVec3Out(&bodyA->angularVelocity, &((physicsJointDistance *)joint)->rA, &impulse);
 	vec3AddVec3(&impulse, &bodyA->linearVelocity);
-	// Calculate the total linear velocity of the anchor point on body B.
+	// Calculate the total velocity of the anchor point on body B.
 	vec3CrossVec3Out(&bodyB->angularVelocity, &((physicsJointDistance *)joint)->rB, &relativeVelocity);
 	vec3AddVec3(&relativeVelocity, &bodyB->linearVelocity);
 	// Calculate the relative velocity between the two points.
 	vec3SubtractVec3From(&relativeVelocity, &impulse);
 
 
-	// lambda = -(JV + b)/((JM^(-1))J^T)
+	// lambda = -(JV + b)/(JM^(-1)J^T)
 	//        = -((v_relative . d) + b)/K
 	lambda = -(vec3DotVec3(&relativeVelocity, &((physicsJointDistance *)joint)->rAB) + ((physicsJointDistance *)joint)->bias +
 	         ((physicsJointDistance *)joint)->gamma * ((physicsJointDistance *)joint)->impulse) * ((physicsJointDistance *)joint)->invEffectiveMass;
@@ -316,7 +316,7 @@ static float calculateEffectiveMass(
 	vec3 rBd;
 	vec3 IBrBd;
 
-	// (JM^(-1))J^T = mA^(-1) + mB^(-1) + ((rA X d) . (IA^(-1) * (rA X d))) + ((rB X d) . (IB^(-1) * (rB X d)))
+	// JM^(-1)J^T = mA^(-1) + mB^(-1) + ((rA X d) . (IA^(-1) * (rA X d))) + ((rB X d) . (IB^(-1) * (rB X d)))
 	vec3CrossVec3Out(&joint->rA, &joint->rAB, &rAd);
 	mat3MultiplyByVec3Out(&bodyA->invInertiaGlobal, &rAd, &IArAd);
 	vec3CrossVec3Out(&joint->rB, &joint->rAB, &rBd);

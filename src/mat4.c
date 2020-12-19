@@ -1145,7 +1145,7 @@ mat4 mat4RotateQuatC(const mat4 m, const quat q){
 	return(out);
 }
 
-// Rotate a matrix on the x-axis!
+// Rotate a matrix on the X-axis!
 void mat4RotateXRad(mat4 *const restrict m, const float x){
 	const float a = cosf(x);
 	const float b = sinf(x);
@@ -1162,7 +1162,7 @@ void mat4RotateXRad(mat4 *const restrict m, const float x){
 	m->m[2][3] = a * tempMatrix.m[2][3] - b * tempMatrix.m[1][3];
 }
 
-// Rotate a matrix on the x-axis!
+// Rotate a matrix on the X-axis!
 mat4 mat4RotateXRadC(const mat4 m, const float x){
 	const float a = cosf(x);
 	const float b = sinf(x);
@@ -1192,17 +1192,17 @@ mat4 mat4RotateXRadC(const mat4 m, const float x){
 	return(out);
 }
 
-// Convert the x rotation from degrees to radians!
+// Convert the X rotation from degrees to radians!
 void mat4RotateXDeg(mat4 *const restrict m, const float x){
 	mat4RotateXRad(m, x * DEG_TO_RAD);
 }
 
-// Convert the x rotation from degrees to radians!
+// Convert the X rotation from degrees to radians!
 mat4 mat4RotateXDegC(const mat4 m, const float x){
 	return(mat4RotateXRadC(m, x * DEG_TO_RAD));
 }
 
-// Rotate a matrix on the y-axis!
+// Rotate a matrix on the Y-axis!
 void mat4RotateYRad(mat4 *const restrict m, const float y){
 	const float c = cosf(y);
 	const float d = sinf(y);
@@ -1219,7 +1219,7 @@ void mat4RotateYRad(mat4 *const restrict m, const float y){
 	m->m[2][3] = d * tempMatrix.m[0][3] + c * tempMatrix.m[2][3];
 }
 
-// Rotate a matrix on the y-axis!
+// Rotate a matrix on the Y-axis!
 mat4 mat4RotateYRadC(const mat4 m, const float y){
 	const float c = cosf(y);
 	const float d = sinf(y);
@@ -1249,17 +1249,17 @@ mat4 mat4RotateYRadC(const mat4 m, const float y){
 	return(out);
 }
 
-// Convert the y rotation from degrees to radians!
+// Convert the Y rotation from degrees to radians!
 void mat4RotateYDeg(mat4 *const restrict m, const float y){
 	mat4RotateYRad(m, y * DEG_TO_RAD);
 }
 
-// Convert the y rotation from degrees to radians!
+// Convert the Y rotation from degrees to radians!
 mat4 mat4RotateYDegC(const mat4 m, const float y){
 	return(mat4RotateYRadC(m, y * DEG_TO_RAD));
 }
 
-// Rotate a matrix on the z-axis!
+// Rotate a matrix on the Z-axis!
 void mat4RotateZRad(mat4 *const restrict m, const float z){
 	const float e = cosf(z);
 	const float f = sinf(z);
@@ -1276,7 +1276,7 @@ void mat4RotateZRad(mat4 *const restrict m, const float z){
 	m->m[1][3] = e * tempMatrix.m[1][3] - f * tempMatrix.m[0][3];
 }
 
-// Rotate a matrix on the z-axis!
+// Rotate a matrix on the Z-axis!
 mat4 mat4RotateZRadC(const mat4 m, const float z){
 	const float e = cosf(z);
 	const float f = sinf(z);
@@ -1306,12 +1306,12 @@ mat4 mat4RotateZRadC(const mat4 m, const float z){
 	return(out);
 }
 
-// Convert the z rotation from degrees to radians!
+// Convert the Z rotation from degrees to radians!
 void mat4RotateZDeg(mat4 *const restrict m, const float z){
 	mat4RotateZRad(m, z * DEG_TO_RAD);
 }
 
-// Convert the z rotation from degrees to radians!
+// Convert the Z rotation from degrees to radians!
 mat4 mat4RotateZDegC(const mat4 m, const float z){
 	return(mat4RotateZRadC(m, z * DEG_TO_RAD));
 }

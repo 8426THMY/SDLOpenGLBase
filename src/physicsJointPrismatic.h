@@ -64,6 +64,7 @@ typedef struct physicsJointPrismatic {
 	mat2 linearMass;
 	mat3 angularMass;
 	float limitMotorMass;
+
 	// Accumulated impulses used for warm starting.
 	vec2 linearImpulse;
 	float angularImpulse;

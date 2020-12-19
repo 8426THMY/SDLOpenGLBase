@@ -49,7 +49,7 @@
 **
 ** ----------------------------------------------------------------------
 **
-** The effective mass for the constraint is given by (JM^(-1))J^T,
+** The effective mass for the constraint is given by JM^(-1)J^T,
 ** where M^(-1) is the inverse mass matrix and J^T is the transposed
 ** Jacobian.
 **
@@ -154,7 +154,7 @@ void physJointFrictionCalculateInverseEffectiveMass(
 	float angularMass;
 
 
-	// K = (JM^(-1))J^T
+	// K = JM^(-1)J^T
 	// [K]_00 = mA^(-1) + mB^(-1) + ((rA X u1) . (IA^(-1) * (rA X u1))) + ((rB X u1) . (IB^(-1) * (rB X u1)))
 	// [K]_01 =                     ((rA X u1) . (IA^(-1) * (rA X u2))) + ((rB X u1) . (IB^(-1) * (rB X u2)))
 	// [K]_10 = [K]_01
@@ -178,7 +178,7 @@ void physJointFrictionCalculateInverseEffectiveMass(
 	mat2Invert(&joint->linearMass);
 
 
-	// (JM^(-1))J^T = (n . (IA^(-1) * n)) + (n . (IB^(-1) * n))
+	// JM^(-1)J^T = (n . (IA^(-1) * n)) + (n . (IB^(-1) * n))
 	mat3AddMat3Out(invInertiaA, invInertiaB, &totalInertia);
 	mat3MultiplyByVec3Out(&totalInertia, &joint->normal, &IArAu1);
 	angularMass = vec3DotVec3(&IArAu1, &joint->normal);
@@ -208,10 +208,10 @@ void physJointFrictionSolveVelocity(
 	// vB_anchor  = vB + wB X rB
 	// v_relative = vB_anchor - vA_anchor
 
-	// Calculate the total linear velocity of the anchor point on body A.
+	// Calculate the total velocity of the anchor point on body A.
 	vec3CrossVec3Out(&bodyA->angularVelocity, &joint->rA, &linearImpulse);
 	vec3AddVec3(&linearImpulse, &bodyA->linearVelocity);
-	// Calculate the total linear velocity of the anchor point on body B.
+	// Calculate the total velocity of the anchor point on body B.
 	vec3CrossVec3Out(&bodyB->angularVelocity, &joint->rB, &relativeVelocity);
 	vec3AddVec3(&relativeVelocity, &bodyB->linearVelocity);
 	// Calculate the relative velocity between the two points.
@@ -219,7 +219,7 @@ void physJointFrictionSolveVelocity(
 
 
 	{
-		// lambda    = -JV/((JM^(-1))J^T)
+		// lambda    = -JV/(JM^(-1)J^T)
 		// lambda[0] = -(v_relative . u1)/K
 		// lambda[1] = -(v_relative . u2)/K
 		// Calculate the magnitudes for the linear impulses.
@@ -256,7 +256,7 @@ void physJointFrictionSolveVelocity(
 		float lambda;
 		const float oldImpulse = joint->angularImpulse;
 
-		// lambda = -JV/((JM^(-1))J^T)
+		// lambda = -JV/(JM^(-1)J^T)
 		//        = -((wB - wA) . n)/K
 		// Calculate the magnitude for the angular impulse.
 		vec3SubtractVec3FromOut(&bodyA->angularVelocity, &bodyB->angularVelocity, &dC);

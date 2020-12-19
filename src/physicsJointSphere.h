@@ -37,8 +37,16 @@ typedef struct physicsJointSphere {
 
 	// Effective masses for the point-to-point
 	// (K1) and angular (K2) constraints.
-	vec3 invLinearMass;
+	mat3 linearMass;
 	mat3 angularMass;
+
+	// Axis-angle bias term for the angular constraint:
+	// b = C2/dt.
+	vec3 bias;
+
+	// Accumulated impulses used for warm starting.
+	vec3 linearImpulse;
+	vec3 angularImpulse;
 } physicsJointSphere;
 
 

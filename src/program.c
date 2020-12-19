@@ -233,14 +233,14 @@ static void updateCameras(program *const restrict prg){
 	/** TEMPORARY TESTING STUFF! **/
 	if(controlObj != NULL){
 		quat rot = quatNormalizeQuatC(mat4ToQuatC(mat4RotateToFaceC(controlObj->state.pos, prg->cam.pos, vec3InitSetC(0.f, 1.f, 0.f))));
-		vec3 angles = quatToEulerAnglesC(rot);
+		vec3 angles = quatToEulerAnglesC(rot);printf("%f, %f, %f\n", angles.x, angles.y, angles.z);
 
 
 		angles.x = clampFloat(angles.x, -M_PI_4, M_PI_4);
 		angles.y = clampFloat(angles.y, -M_PI_4, M_PI_4);
 		angles.z = clampFloat(angles.z, 0.f, 0.f);
 
-		rot = quatInitEulerVec3RadC(angles);
+		rot = quatNormalizeQuatFastC(quatInitEulerVec3RadC(angles));
 		rot.w = fabsf(rot.w);
 
 
@@ -365,13 +365,13 @@ static void render(program *const restrict prg){
 
 	/** TEMPORARY PARTICLE RENDER STUFF! **/
 	glUseProgram(prg->spriteShader.programID);
-	particleSysDraw(&partSys, &prg->cam, &prg->spriteShader, prg->step.renderDelta);
+	//particleSysDraw(&partSys, &prg->cam, &prg->spriteShader, prg->step.renderDelta);
 
 	/** TEMPORARY GUI RENDER STUFF! **/
 	glUseProgram(prg->spriteShader.programID);
 	/** Do we need this? **/
 	glClear(GL_DEPTH_BUFFER_BIT);
-	guiElementDraw(&gui, prg->windowWidth, prg->windowHeight, &prg->spriteShader);
+	//guiElementDraw(&gui, prg->windowWidth, prg->windowHeight, &prg->spriteShader);
 
 
 	SDL_GL_SwapWindow(prg->window);
@@ -469,6 +469,12 @@ static return_t initResources(program *const restrict prg){
 
 	/** TEMPORARY OBJECT STUFF **/
 	model *mdl;
+	renderableDef *renderDef;// = moduleRenderableDefAlloc();
+	objectDef *objDef;// = moduleObjectDefAlloc();
+	object *obj;// = moduleObjectAlloc();
+	skeletonAnimDef *animDef;
+	#if 0
+	model *mdl;
 	renderableDef *renderDef = moduleRenderableDefAlloc();
 	objectDef *objDef = moduleObjectDefAlloc();
 	object *obj = moduleObjectAlloc();
@@ -503,6 +509,7 @@ static return_t initResources(program *const restrict prg){
 		obj->skeleData.anims = moduleSkeletonAnimPrepend(&obj->skeleData.anims);
 		skeleAnimInit(obj->skeleData.anims, animDef, 0.5f);
 	}
+	#endif
 
 
 	/** TEMPORARY PHYSICS STUFF **/
@@ -549,7 +556,7 @@ static return_t initResources(program *const restrict prg){
 
 	size_t i;
 	// Set up instances.
-	for(i = 0; i < 3; ++i){
+	for(i = 0; i < 1; ++i){
 		obj = moduleObjectAlloc();
 		objectInit(obj, objDef);
 		physIslandInsertRigidBody(&island, obj->physBodies);
@@ -581,6 +588,12 @@ static return_t initResources(program *const restrict prg){
 	printf("Egg: %u -> %u\n", obj->physBodies, obj->physBodies->colliders);
 	obj->state.pos.y = 0.f;obj->state.pos.z = -2.f;
 	quatInitEulerDeg(&obj->state.rot, 0.f, 45.f, 45.f);
+
+	physRigidBodyIgnoreLinear(obj->physBodies);physRigidBodyIgnoreSimulation(obj->physBodies);
+	obj->physBodies->mass = 0.f;
+	mat3InitZero(&obj->physBodies->invInertiaLocal);mat3InitZero(&obj->physBodies->invInertiaGlobal);
+	obj->physBodies->invMass = 0.f;
+
 	objectPreparePhysics(obj);
 
 

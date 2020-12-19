@@ -1214,7 +1214,8 @@ quat quatNegateC(quat q){
 
 /*
 ** Find the Euler angles describing a quaternion and store the result in "out"!
-** The output vector is given in the form (roll, pitch, yaw).
+** The output vector is given in the form (roll, pitch, yaw) and the ordering
+** is ZYX, as usual.
 **
 ** Implementation inspired by the one in Gino van den Bergen's Motion Toolkit.
 */
@@ -1228,7 +1229,8 @@ void quatToEulerAngles(const quat q, vec3 *const restrict out){
 
 /*
 ** Find the Euler angles describing a quaternion and return them as a vec3.
-** The output vector is given in the form (roll, pitch, yaw).
+** The output vector is given in the form (roll, pitch, yaw) and the ordering
+** is ZYX, as usual.
 **
 ** Implementation inspired by the one in Gino van den Bergen's Motion Toolkit.
 */
@@ -1242,7 +1244,8 @@ vec3 quatToEulerAnglesC(const quat q){
 
 /*
 ** Find the Euler angles describing a quaternion and store the result in "out"!
-** The output vector is given in the form (pitch, yaw, roll).
+** The output vector is given in the form (pitch, yaw, roll) and the ordering
+** is ZYX, as usual.
 **
 ** This version checks for singularities, but I don't think it's strictly necessary.
 ** Thanks to Martin Baker at EuclideanSpace for this implementation!
@@ -1264,7 +1267,8 @@ void quatToEulerAnglesAlt(const quat q, vec3 *const restrict out){
 
 /*
 ** Find the Euler angles describing a quaternion and return them as a vec3.
-** The output vector is given in the form (pitch, yaw, roll).
+** The output vector is given in the form (pitch, yaw, roll) and the ordering
+** is ZYX, as usual.
 **
 ** This version checks for singularities, but I don't think it's strictly necessary.
 ** Thanks to Martin Baker at EuclideanSpace for this implementation!

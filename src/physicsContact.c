@@ -73,14 +73,14 @@
 ** JV_f + b = 0
 ** J(V + dt * M^(-1) * F_C) + b = 0
 ** JV + dt * (JM^(-1))F_C + b = 0
-** JV + dt * (JM^(-1))J^T . lambda + b = 0
-** dt * (JM^(-1))J^T . lambda = -(JV + b)
-** dt * lambda = -(JV + b)/((JM^(-1))J^T)
-** lambda' = -(JV + b)/((JM^(-1))J^T).
+** JV + dt * JM^(-1)J^T . lambda + b = 0
+** dt * JM^(-1)J^T . lambda = -(JV + b)
+** dt * lambda = -(JV + b)/(JM^(-1)J^T)
+** lambda' = -(JV + b)/(JM^(-1)J^T).
 **
 ** ----------------------------------------------------------------------
 **
-** The effective mass for the constraint is given by (JM^(-1))J^T,
+** The effective mass for the constraint is given by JM^(-1)J^T,
 ** where M^(-1) is the inverse mass matrix and J^T is the transposed
 ** Jacobian.
 **
@@ -97,7 +97,7 @@
 **
 ** Evaluating this expression gives us:
 **
-** (JM^(-1))J^T = mA^(-1) + mB^(-1) + ((rA X n) . (IA^(-1) * (rA X n))) + ((rB X n) . (IB^(-1) * (rB X n))).
+** JM^(-1)J^T = mA^(-1) + mB^(-1) + ((rA X n) . (IA^(-1) * (rA X n))) + ((rB X n) . (IB^(-1) * (rB X n))).
 **
 ** ----------------------------------------------------------------------
 */
@@ -561,7 +561,7 @@ static float calculateEffectiveMass(
 	vec3 rBn;
 	vec3 IBrBn;
 
-	// (JM^(-1))J^T = mA^(-1) + mB^(-1) + ((rA X n) . (IA^(-1) * (rA X n))) + ((rB X n) . (IB^(-1) * (rB X n)))
+	// JM^(-1)J^T = mA^(-1) + mB^(-1) + ((rA X n) . (IA^(-1) * (rA X n))) + ((rB X n) . (IB^(-1) * (rB X n)))
 	vec3CrossVec3Out(pointA, normal, &rAn);
 	mat3MultiplyByVec3Out(invInertiaA, &rAn, &IArAn);
 	vec3CrossVec3Out(pointB, normal, &rBn);
@@ -641,10 +641,10 @@ static void calculateBias(
 	// vB_contact = vB + wB X rB
 	// v_relative = vB_contact - vA_contact
 
-	// Calculate the total linear velocity of the contact point on body A.
+	// Calculate the total velocity of the contact point on body A.
 	vec3CrossVec3Out(&bodyA->angularVelocity, &contact->rA, &tempVelocity);
 	vec3AddVec3(&tempVelocity, &bodyA->linearVelocity);
-	// Calculate the total linear velocity of the contact point on body B.
+	// Calculate the total velocity of the contact point on body B.
 	vec3CrossVec3Out(&bodyB->angularVelocity, &contact->rB, &contactVelocity);
 	vec3AddVec3(&contactVelocity, &bodyB->linearVelocity);
 	// Calculate the relative velocity between the two points.
@@ -697,17 +697,17 @@ static void solveTangents(
 	// vB_contact = vB + wB X rB
 	// v_relative = vB_contact - vA_contact
 
-	// Calculate the total linear velocity of the contact point on body A.
+	// Calculate the total velocity of the contact point on body A.
 	vec3CrossVec3Out(&bodyA->angularVelocity, &contact->rA, &temp);
 	vec3AddVec3(&temp, &bodyA->linearVelocity);
-	// Calculate the total linear velocity of the contact point on body B.
+	// Calculate the total velocity of the contact point on body B.
 	vec3CrossVec3Out(&bodyB->angularVelocity, &contact->rB, &contactVelocity);
 	vec3AddVec3(&contactVelocity, &bodyB->linearVelocity);
 	// Calculate the relative velocity between the two points.
 	vec3SubtractVec3From(&contactVelocity, &temp);
 
 
-	// lambda = -(JV + b)/((JM^(-1))J^T)
+	// lambda = -(JV + b)/(JM^(-1)J^T)
 	//        = -(v_relative . n)/K
 	lambda = -vec3DotVec3(&contactVelocity, &physContactTangent(pm, 0)) * contact->invTangentMass[0];
 	oldImpulse = contact->tangentImpulse[0];
@@ -718,7 +718,7 @@ static void solveTangents(
 	vec3MultiplySOut(&physContactTangent(pm, 0), contact->tangentImpulse[0] - oldImpulse, &temp);
 
 
-	// lambda = -(JV + b)/((JM^(-1))J^T)
+	// lambda = -(JV + b)/(JM^(-1)J^T)
 	//        = -(v_relative . n)/K
 	lambda = -vec3DotVec3(&contactVelocity, &physContactTangent(pm, 1)) * contact->invTangentMass[1];
 	oldImpulse = contact->tangentImpulse[1];
@@ -754,17 +754,17 @@ static void solveNormal(
 	// vB_contact = vB + wB X rB
 	// v_relative = vB_contact - vA_contact
 
-	// Calculate the total linear velocity of the contact point on body A.
+	// Calculate the total velocity of the contact point on body A.
 	vec3CrossVec3Out(&bodyA->angularVelocity, &contact->rA, &impulse);
 	vec3AddVec3(&impulse, &bodyA->linearVelocity);
-	// Calculate the total linear velocity of the contact point on body B.
+	// Calculate the total velocity of the contact point on body B.
 	vec3CrossVec3Out(&bodyB->angularVelocity, &contact->rB, &contactVelocity);
 	vec3AddVec3(&contactVelocity, &bodyB->linearVelocity);
 	// Calculate the relative velocity between the two points.
 	vec3SubtractVec3From(&contactVelocity, &impulse);
 
 
-	// lambda = -(JV + b)/((JM^(-1))J^T)
+	// lambda = -(JV + b)/(JM^(-1)J^T)
 	//        = -((v_relative . n) + b)/K
 	lambda = -(vec3DotVec3(&contactVelocity, &physContactNormal(pm)) + contact->bias) * contact->invNormalMass;
 
@@ -826,7 +826,7 @@ float solvePosition(
 		// JA = (IA * (rA X n)) . (rA X n)
 		// JB = (IB * (rB X n)) . (rB X n)
 		//
-		// K = (JM^(-1))J^T
+		// K = JM^(-1)J^T
 		//   = mA^(-1) + mB^(-1) + JA + JB
 
 		// We use *full* non-linear Gauss-Seidel, which
