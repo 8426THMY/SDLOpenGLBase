@@ -30,6 +30,12 @@ typedef struct physicsIsland {
 	// We store doubly-linked lists of the resources that the island "owns".
 	// Colliders will store their own lists of contacts and separations, for
 	// instance, but they get inserted into the island's lists.
+	//
+	// Note that the doubly-linked lists for rigid bodies and joints aren't
+	// actually "new". Objects store their rigid bodies in doubly-linked lists,
+	// for instance, and we basically just mess around with the pointers for
+	// the first and last rigid bodies in those lists. Objects store the
+	// number of rigid bodies they own, so this is never really a problem.
 	physicsRigidBody *bodies;
 	physicsContactPair *contacts;
 	physicsSeparationPair *separations;
@@ -39,10 +45,9 @@ typedef struct physicsIsland {
 
 void physIslandInit(physicsIsland *const restrict island);
 
-void physIslandRemoveCollider(physicsIsland *const restrict island, physicsCollider *const restrict collider);
 void physIslandInsertRigidBody(physicsIsland *const restrict island, physicsRigidBody *const body);
-void physIslandRemoveRigidBody(physicsIsland *const restrict island, physicsRigidBody *const body);
 void physIslandInsertRigidBodyList(physicsIsland *const restrict island, physicsRigidBody *const bodies, size_t numBodies);
+void physIslandRemoveRigidBody(physicsIsland *const restrict island, physicsRigidBody *const body);
 void physIslandRemoveRigidBodyList(physicsIsland *const restrict island, physicsRigidBody *const bodies, size_t numBodies);
 
 #ifdef PHYSCONTACT_STABILISER_BAUMGARTE

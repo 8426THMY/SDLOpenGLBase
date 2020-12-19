@@ -4,6 +4,7 @@
 #include "physicsRigidBody.h"
 
 #include "vec4.h"
+#include "utilMath.h"
 
 
 /*
@@ -389,5 +390,6 @@ static void calculateBias(
 	// We apply a bias term of b = C2/dt. However, we
 	// must first convert b to an axis-angle representation.
 	quatToAxisAngle(&rotDiff, &C2);
+	#warning "Should we make joints accept the frequency so we can avoid the division here?"
 	vec3MultiplySOut((vec3 *)&C2.x, C2.w/dt, &joint->bias);
 }

@@ -472,7 +472,6 @@ static return_t initResources(program *const restrict prg){
 	renderableDef *renderDef;// = moduleRenderableDefAlloc();
 	objectDef *objDef;// = moduleObjectDefAlloc();
 	object *obj;// = moduleObjectAlloc();
-	skeletonAnimDef *animDef;
 	#if 0
 	model *mdl;
 	renderableDef *renderDef = moduleRenderableDefAlloc();

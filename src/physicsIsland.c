@@ -9,7 +9,12 @@
 
 // Forward-declare any helper functions!
 static void insertColliders(physicsIsland *const restrict island, physicsRigidBody *const restrict body);
+static void removeColliderNode(physicsIsland *const restrict island, physicsCollider *const restrict collider);
 static void removeColliders(physicsIsland *const restrict island, physicsRigidBody *const restrict body);
+
+static void insertJoint(physicsIsland *const restrict island, physicsJointPair *const restrict joint);
+static void removeJoint(physicsIsland *const restrict island, physicsJointPair *const restrict joint);
+
 static void updateRigidBodies(physicsIsland *const restrict island, const float dt);
 
 static void collisionCallback(void *const colliderA, void *const colliderB, void *const restrict island);
@@ -41,14 +46,10 @@ void physIslandInit(physicsIsland *const restrict island){
 }
 
 
-void physIslandRemoveCollider(physicsIsland *const restrict island, physicsCollider *const restrict collider){
-	if(collider->node != NULL){
-		aabbTreeRemoveNode(&island->tree, collider->node, &freeNodeCallback, island);
-	}
-}
-
 // Insert a single rigid body into an island.
 void physIslandInsertRigidBody(physicsIsland *const restrict island, physicsRigidBody *const body){
+	physicsJointPair *joint;
+
 	// Insert the body at the beginning of the island's list.
 	if(island->bodies != NULL){
 		memDoubleListNext(body) = island->bodies;
@@ -56,10 +57,49 @@ void physIslandInsertRigidBody(physicsIsland *const restrict island, physicsRigi
 	}
 	memDoubleListPrev(body) = NULL;
 	island->bodies = body;
+
+	joint = body->joints;
+	// Insert any joints owned by this body into the island.
+	while(joint != NULL && joint->bodyA == body){
+		insertJoint(island, joint);
+		joint = joint->nextA;
+	}
+}
+
+// Insert a doubly linked list of rigid bodies into an island.
+void physIslandInsertRigidBodyList(physicsIsland *const restrict island, physicsRigidBody *const bodies, size_t numBodies){
+	if(bodies != NULL){
+		if(island->bodies != NULL){
+			physicsRigidBody *lastBody = bodies;
+			// Find the last rigid body in the list.
+			for(;;){
+				physicsJointPair *joint = lastBody->joints;
+				// Insert any joints owned by this body into the island.
+				while(joint != NULL && joint->bodyA == lastBody){
+					insertJoint(island, joint);
+					joint = joint->nextA;
+				}
+
+				--numBodies;
+				if(numBodies <= 0){
+					break;
+				}
+				lastBody = modulePhysicsBodyNext(lastBody);
+			}
+
+			// Insert the body list at the beginning of the island's list.
+			memDoubleListPrev(island->bodies) = lastBody;
+			memDoubleListNext(lastBody) = island->bodies;
+		}
+
+		memDoubleListPrev(bodies) = NULL;
+		island->bodies = bodies;
+	}
 }
 
 // Remove a single rigid body from an island.
 void physIslandRemoveRigidBody(physicsIsland *const restrict island, physicsRigidBody *const body){
+	physicsJointPair *joint;
 	physicsCollider *collider;
 
 	physicsRigidBody *const nextBody = (physicsRigidBody *)modulePhysicsBodyNext(body);
@@ -78,35 +118,18 @@ void physIslandRemoveRigidBody(physicsIsland *const restrict island, physicsRigi
 	memDoubleListNext(body) = NULL;
 	memDoubleListPrev(body) = NULL;
 
+	joint = body->joints;
+	// Remove any joints owned by this body from the island.
+	while(joint != NULL && joint->bodyA == body){
+		removeJoint(island, joint);
+		joint = joint->nextA;
+	}
+
 	collider = body->colliders;
 	// Remove the body's colliders from the island.
 	while(collider != NULL){
-		physIslandRemoveCollider(island, collider);
+		removeColliderNode(island, collider);
 		collider = (physicsCollider *)memSingleListNext(collider);
-	}
-}
-
-// Insert a doubly linked list of rigid bodies into an island.
-void physIslandInsertRigidBodyList(physicsIsland *const restrict island, physicsRigidBody *const bodies, size_t numBodies){
-	if(bodies != NULL){
-		if(island->bodies != NULL){
-			physicsRigidBody *lastBody = bodies;
-			// Find the last rigid body in the list.
-			for(;;){
-				--numBodies;
-				if(numBodies <= 0){
-					break;
-				}
-				lastBody = modulePhysicsBodyNext(lastBody);
-			}
-
-			// Insert the body list at the beginning of the island's list.
-			memDoubleListPrev(island->bodies) = lastBody;
-			memDoubleListNext(lastBody) = island->bodies;
-		}
-
-		memDoubleListPrev(bodies) = NULL;
-		island->bodies = bodies;
 	}
 }
 
@@ -119,10 +142,20 @@ void physIslandRemoveRigidBodyList(physicsIsland *const restrict island, physics
 		physicsRigidBody *lastBody = bodies;
 		// Find the last rigid body in the list.
 		for(;;){
-			physicsCollider *collider = lastBody->colliders;
+			physicsJointPair *joint;
+			physicsCollider *collider;
+
+			joint = lastBody->joints;
+			// Remove any joints owned by this body from the island.
+			while(joint != NULL && joint->bodyA == lastBody){
+				removeJoint(island, joint);
+				joint = joint->nextA;
+			}
+
+			collider = lastBody->colliders;
 			// Remove the body's colliders from the island.
 			while(collider != NULL){
-				physIslandRemoveCollider(island, collider);
+				removeColliderNode(island, collider);
 				collider = (physicsCollider *)modulePhysicsColliderNext(collider);
 			}
 
@@ -212,13 +245,50 @@ static void insertColliders(physicsIsland *const restrict island, physicsRigidBo
 	}
 }
 
+// Remove a single collider from the island.
+static void removeColliderNode(physicsIsland *const restrict island, physicsCollider *const restrict collider){
+	if(collider->node != NULL){
+		aabbTreeRemoveNode(&island->tree, collider->node, &freeNodeCallback, island);
+	}
+}
+
 // Remove each of the rigid body's colliders from the island.
 static void removeColliders(physicsIsland *const restrict island, physicsRigidBody *const restrict body){
 	physicsCollider *curCollider = body->colliders;
 	for(; curCollider != NULL; curCollider = memSingleListNext(curCollider)){
-		physIslandRemoveCollider(island, curCollider);
+		removeColliderNode(island, curCollider);
 	}
 }
+
+
+static void insertJoint(physicsIsland *const restrict island, physicsJointPair *const restrict joint){
+	// Insert the joint at the beginning of the island's list.
+	if(island->joints != NULL){
+		memDoubleListNext(joint) = island->joints;
+		memDoubleListPrev(island->joints) = joint;
+	}
+	memDoubleListPrev(joint) = NULL;
+	island->joints = joint;
+}
+
+static void removeJoint(physicsIsland *const restrict island, physicsJointPair *const restrict joint){
+	physicsJointPair *const nextJoint = (physicsJointPair *)memDoubleListNext(joint);
+	physicsJointPair *const prevJoint = (physicsJointPair *)memDoubleListPrev(joint);
+	// Fix up the next list element's pointers.
+	if(nextJoint != NULL){
+		memDoubleListPrev(nextJoint) = prevJoint;
+	}
+	// Fix up the previous list element's pointers.
+	if(prevJoint != NULL){
+		memDoubleListNext(prevJoint) = nextJoint;
+	}else{
+		island->joints = nextJoint;
+	}
+	// Remove the joint from the island's list.
+	memDoubleListNext(joint) = NULL;
+	memDoubleListPrev(joint) = NULL;
+}
+
 
 // Updating a rigid body involves integrating its velocity.
 static void updateRigidBodies(physicsIsland *const restrict island, const float dt){
