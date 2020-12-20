@@ -42,7 +42,8 @@ typedef struct physicsJointSphere {
 
 	// Axis-angle bias term for the angular constraint:
 	// b = C2/dt.
-	vec3 bias;
+	#warning "Should we use a Baumgarte bias here?"
+	vec3 angularBias;
 
 	// Accumulated impulses used for warm starting.
 	vec3 linearImpulse;

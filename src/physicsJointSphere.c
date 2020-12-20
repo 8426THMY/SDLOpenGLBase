@@ -99,14 +99,15 @@
 **
 ** 1. Compute the relative orientation Rr (A -> B).
 ** 2. Convert Rr to Euler angles (Re).
-** 3. Clamp Re using upper and lower bounds.
-** 4. Multiply C2 = conj(Rr)*Re to get the rotation from Rr to Re.
-** 5. Let b = C2/dt.
+** 3. Clamp Re to Rc using the upper and lower bounds on the angles.
+** 4. The rotation required to correct the relative orientation is Rd = conj(Rc)*Rr.
+** 5. Let b = C2/dt = axisAngle(Rd)/dt.
 ** 6. Compute relative angular velocity JV (A -> B).
 ** 7. Compute lambda = -(JV + b)/(JM^(-1)J^T).
 ** 8. Apply the impulse.
 **
 ** Note that the bias term 'b' should be in axis-angle form.
+** Also, we use Rd = Rc -> Rr to get the correction with respect to body A.
 **
 ** ----------------------------------------------------------------------
 */
@@ -158,6 +159,9 @@ void physJointSphereInit(
 
 	vec3InitSet(&joint->anglesMin, minX, minY, minZ);
 	vec3InitSet(&joint->anglesMax, maxX, maxY, maxZ);
+
+	vec3InitZero(&joint->linearImpulse);
+	vec3InitZero(&joint->angularImpulse);
 }
 
 
@@ -193,16 +197,28 @@ void physJointSpherePresolve(
 */
 void physJointSphereSolveVelocity(void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB){
 	// Solve the angular constraints.
+	#warning "The problem at the moment is the impulse accumulator."
+	#warning "We should solve the upper and lower constraints separately like Box2D does so we can get the 'difference' from the limits."
 	{
 		vec3 relativeAngularVelocity;
 		vec3 impulse;
+		const vec3 oldImpulse = ((physicsJointSphere *)joint)->angularImpulse;
 
 		// -(JV + b) = wA - wB - b
 		vec3SubtractVec3FromOut(&bodyA->angularVelocity, &bodyB->angularVelocity, &relativeAngularVelocity);
-		vec3SubtractVec3From(&relativeAngularVelocity, &((physicsJointSphere *)joint)->bias);
+		vec3SubtractVec3From(&relativeAngularVelocity, &((physicsJointSphere *)joint)->angularBias);
 		// lambda = -(JV + b)/(JM^(-1)J^T)
 		mat3Solve(&((physicsJointSphere *)joint)->angularMass, &relativeAngularVelocity, &impulse);
-		vec3AddVec3(&((physicsJointSphere *)joint)->angularImpulse, &impulse);
+
+		((physicsJointSphere *)joint)->angularImpulse = vec3MaxC(vec3AddVec3C(oldImpulse, impulse), vec3InitZeroC());
+		vec3SubtractVec3FromOut(&((physicsJointSphere *)joint)->angularImpulse, &oldImpulse, &impulse);
+
+		//vec3AddVec3(&((physicsJointSphere *)joint)->angularImpulse, &impulse);
+		//printf("b: %f, %f, %f\n", ((physicsJointSphere *)joint)->angularBias.x, ((physicsJointSphere *)joint)->angularBias.y, ((physicsJointSphere *)joint)->angularBias.z);
+		//printf("w: %f, %f, %f\n", bodyB->angularVelocity.x, bodyB->angularVelocity.y, bodyB->angularVelocity.z);
+		//if(vec3MagnitudeVec3(&((physicsJointSphere *)joint)->angularBias) > 10.f){
+			//exit(0);
+		//}
 
 		// Apply the correctional impulse.
 		physRigidBodyApplyAngularImpulseInverse(bodyA, impulse);
@@ -287,14 +303,14 @@ static void calculateEffectiveMass(
 	// plough through the maths. Maybe dot the position constraint
 	// with some basis where the effective mass' diagonals cancel?
 	{
-		// Compute body A's contribution to K1. Note that the matrix "[a]_X*I^(-1)*[a]_X"
+		// Compute body A's contribution to K1. Note that the matrix [a]_X*I^(-1)*[a]_X
 		// is symmetric, so we only need to compute the half of the off-diagonal elements.
 
 		// These variables bring it down to 27 multiplications and 14 subtractions.
 		// An alternative method gives 24 multiplications and 21 subtractions,
 		// but float multiplication is generally faster and has less error.
 		//
-		// Note that "a" refers to the axis and "A" is "[a]_X*I^(-1)".
+		// Note that 'a' refers to the axis and A = [a]_X*I^(-1).
 		const vec3 a = joint->axisGlobalA;
 		const float I[6] = {
 			bodyA->invInertiaGlobal.m[0][0], bodyA->invInertiaGlobal.m[0][1], bodyA->invInertiaGlobal.m[0][2],
@@ -307,17 +323,16 @@ static void calculateEffectiveMass(
 			a.z*I[0] - a.x*I[2],     a3xy - a.x*I[4], a.z*I[2] - a.x*I[5],
 			a.x*I[1] - a.y*I[0], a.x*I[3] - a.y*I[1]
 		};
-		const float invMass = bodyA->invMass;
 
-		// Compute "mA^(-1)*I_3 - [aA]_X*IA^(-1)*[aA]_X".
+		// Compute -[aA]_X*IA^(-1)*[aA]_X.
 		// We don't set the lower triangular components here, as
 		// we can just do that when adding body B's contribution.
-		joint->linearMass.m[0][0] = a.y*A[2] - a.z*A[1] + invMass;
+		joint->linearMass.m[0][0] = a.y*A[2] - a.z*A[1];
 		joint->linearMass.m[0][1] = a.z*A[0] - a.x*A[2];
 		joint->linearMass.m[0][2] = a.x*A[1] - a.y*A[0];
-		joint->linearMass.m[1][1] = a.x*A[5] - a.z*A[3] + invMass;
-		joint->linearMass.m[1][2] = a.y*A[3] - a.x*A[4];
-		joint->linearMass.m[2][2] = a.y*A[6] - a.x*A[7] + invMass;
+		joint->linearMass.m[1][1] = a.z*A[3] - a.x*A[5];
+		joint->linearMass.m[1][2] = a.x*A[4] - a.y*A[3];
+		joint->linearMass.m[2][2] = a.x*A[7] - a.y*A[6];
 	}
 	{
 		// Compute body B's contribution to K1.
@@ -333,18 +348,18 @@ static void calculateEffectiveMass(
 			a.z*I[0] - a.x*I[2],     a3xy - a.x*I[4], a.z*I[2] - a.x*I[5],
 			a.x*I[1] - a.y*I[0], a.x*I[3] - a.y*I[1]
 		};
-		const float invMass = bodyB->invMass;
+		const float invMass = bodyA->invMass + bodyB->invMass;
 
-		// Compute "mB^(-1)*I_3 - [aB]_X*IB^(-1)*[aB]_X".
+		// Compute (mA^(-1) + mB^(-1))*I_3 - [aB]_X*IB^(-1)*[aB]_X.
 		joint->linearMass.m[0][0] += a.y*A[2] - a.z*A[1] + invMass;
 		joint->linearMass.m[0][1] += a.z*A[0] - a.x*A[2];
 		joint->linearMass.m[0][2] += a.x*A[1] - a.y*A[0];
 		joint->linearMass.m[1][0] = joint->linearMass.m[0][1];
-		joint->linearMass.m[1][1] += a.x*A[5] - a.z*A[3] + invMass;
-		joint->linearMass.m[1][2] += a.y*A[3] - a.x*A[4];
+		joint->linearMass.m[1][1] += a.z*A[3] - a.x*A[5] + invMass;
+		joint->linearMass.m[1][2] += a.x*A[4] - a.y*A[3];
 		joint->linearMass.m[2][0] = joint->linearMass.m[0][2];
 		joint->linearMass.m[2][1] = joint->linearMass.m[1][2];
-		joint->linearMass.m[2][2] += a.y*A[6] - a.x*A[7] + invMass;
+		joint->linearMass.m[2][2] += a.x*A[7] - a.y*A[6] + invMass;
 	}
 
 	// The angular effective mass is a bit easier to compute.
@@ -378,18 +393,22 @@ static void calculateBias(
 	// Find body B's relative orientation with respect to body A.
 	quatMultiplyQuatConjByOut(bodyB->state.rot, bodyA->state.rot, &rotRel);
 	// Calculate the clamped orientation.
-	quatToEulerAngles(rotRel, &rotEuler);
+	quatToEulerAnglesAlt(rotRel, &rotEuler);
 	rotEuler.x = clampFloat(rotEuler.x, joint->anglesMin.x, joint->anglesMax.x);
 	rotEuler.y = clampFloat(rotEuler.y, joint->anglesMin.y, joint->anglesMax.y);
 	rotEuler.z = clampFloat(rotEuler.z, joint->anglesMin.z, joint->anglesMax.z);
 	quatInitEulerVec3Rad(&rotDiff, &rotEuler);
 
-	// Get the rotation we need to apply to correct the current orientation.
-	// If the orientation is already in an allowable state, this will be the identity.
-	quatMultiplyQuatConjBy(&rotDiff, rotRel);
+	// Get the rotation we need to apply to correct the current orientation
+	// with respect to body A (Rc -> Rr). If the orientation is already in
+	// an allowable state, this will be the identity.
+	quatMultiplyConjByQuat(&rotDiff, rotRel);
+	quatNormalizeQuatFast(&rotDiff);
 	// We apply a bias term of b = C2/dt. However, we
 	// must first convert b to an axis-angle representation.
-	quatToAxisAngle(&rotDiff, &C2);
+	#warning "We may need to normalize 'rotDiff' and the axis for 'C2'."
+	quatToAxisAngleFast(&rotDiff, &C2);
+	//printf("%f, %f, %f, %f\n", C2.x, C2.y, C2.z, C2.w);
 	#warning "Should we make joints accept the frequency so we can avoid the division here?"
-	vec3MultiplySOut((vec3 *)&C2.x, C2.w/dt, &joint->bias);
+	vec3MultiplySOut((vec3 *)&C2.x, C2.w/dt, &joint->angularBias);
 }

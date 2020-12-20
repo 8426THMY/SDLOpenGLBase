@@ -18,21 +18,25 @@
 #define MODULE_PHYSICS
 #define MODULE_PHYSICS_SETUP_FAIL 4
 
+#define MODULE_AABBNODE_ELEMENT_SIZE           sizeof(aabbNode)
 #define MODULE_PHYSCONTACTPAIR_ELEMENT_SIZE    sizeof(physicsContactPair)
 #define MODULE_PHYSSEPARATIONPAIR_ELEMENT_SIZE sizeof(physicsSeparationPair)
-#define MODULE_AABBNODE_ELEMENT_SIZE           sizeof(aabbNode)
+#define MODULE_PHYSJOINTPAIR_ELEMENT_SIZE sizeof(physicsJointPair)
 #define MODULE_PHYSCOLLIDER_ELEMENT_SIZE       sizeof(physicsCollider)
 #define MODULE_PHYSRIGIDBODYDEF_ELEMENT_SIZE   sizeof(physicsRigidBodyDef)
 #define MODULE_PHYSRIGIDBODY_ELEMENT_SIZE      sizeof(physicsRigidBody)
 
+#ifndef MEMORY_MODULE_NUM_AABBNODES
+	#define MEMORY_MODULE_NUM_AABBNODES 1
+#endif
 #ifndef MEMORY_MODULE_NUM_PHYSCONTACTPAIRS
 	#define MEMORY_MODULE_NUM_PHYSCONTACTPAIRS 1
 #endif
 #ifndef MEMORY_MODULE_NUM_PHYSSEPARATIONPAIRS
 	#define MEMORY_MODULE_NUM_PHYSSEPARATIONPAIRS 1
 #endif
-#ifndef MEMORY_MODULE_NUM_AABBNODES
-	#define MEMORY_MODULE_NUM_AABBNODES 1
+#ifndef MEMORY_MODULE_NUM_PHYSJOINTPAIRS
+	#define MEMORY_MODULE_NUM_PHYSJOINTPAIRS 1
 #endif
 #ifndef MEMORY_MODULE_NUM_PHYSCOLLIDERS
 	#define MEMORY_MODULE_NUM_PHYSCOLLIDERS 1
@@ -44,9 +48,10 @@
 	#define MEMORY_MODULE_NUM_PHYSRIGIDBODIES 1
 #endif
 
+#define MODULE_AABBNODE_MANAGER_SIZE           memPoolMemoryForBlocks(MEMORY_MODULE_NUM_AABBNODES, MODULE_AABBNODE_ELEMENT_SIZE)
 #define MODULE_PHYSCONTACTPAIR_MANAGER_SIZE    memPoolMemoryForBlocks(MEMORY_MODULE_NUM_PHYSCONTACTPAIRS, MODULE_PHYSCONTACTPAIR_ELEMENT_SIZE)
 #define MODULE_PHYSSEPARATIONPAIR_MANAGER_SIZE memPoolMemoryForBlocks(MEMORY_MODULE_NUM_PHYSSEPARATIONPAIRS, MODULE_PHYSSEPARATIONPAIR_ELEMENT_SIZE)
-#define MODULE_AABBNODE_MANAGER_SIZE           memPoolMemoryForBlocks(MEMORY_MODULE_NUM_AABBNODES, MODULE_AABBNODE_ELEMENT_SIZE)
+#define MODULE_PHYSJOINTPAIR_MANAGER_SIZE      memPoolMemoryForBlocks(MEMORY_MODULE_NUM_PHYSJOINTPAIRS, MODULE_PHYSJOINTPAIR_ELEMENT_SIZE)
 #define MODULE_PHYSCOLLIDER_MANAGER_SIZE       memSingleListMemoryForBlocks(MEMORY_MODULE_NUM_PHYSCOLLIDERS, MODULE_PHYSCOLLIDER_ELEMENT_SIZE)
 #define MODULE_PHYSRIGIDBODYDEF_MANAGER_SIZE   memSingleListMemoryForBlocks(MEMORY_MODULE_NUM_PHYSRIGIDBODYDEFS, MODULE_PHYSRIGIDBODYDEF_ELEMENT_SIZE)
 #define MODULE_PHYSRIGIDBODY_MANAGER_SIZE      memSingleListMemoryForBlocks(MEMORY_MODULE_NUM_PHYSRIGIDBODIES, MODULE_PHYSRIGIDBODY_ELEMENT_SIZE)
@@ -80,6 +85,17 @@ physicsSeparationPair *modulePhysicsSeparationPairPrev(const physicsSeparationPa
 void modulePhysicsSeparationPairFree(physicsSeparationPair **const restrict start, physicsSeparationPair *const restrict sPair);
 void modulePhysicsSeparationPairFreeArray(physicsSeparationPair **const restrict start);
 void modulePhysicsSeparationPairClear();
+
+physicsJointPair *modulePhysicsJointPairAlloc();
+physicsJointPair *modulePhysicsJointPairPrepend(physicsJointPair **const restrict start);
+physicsJointPair *modulePhysicsJointPairAppend(physicsJointPair **const restrict start);
+physicsJointPair *modulePhysicsJointPairInsertBefore(physicsJointPair **const restrict start, physicsJointPair *const restrict prevData);
+physicsJointPair *modulePhysicsJointPairInsertAfter(physicsJointPair **const restrict start, physicsJointPair *const restrict data);
+physicsJointPair *modulePhysicsJointPairNext(const physicsJointPair *const restrict sPair);
+physicsJointPair *modulePhysicsJointPairPrev(const physicsJointPair *const restrict sPair);
+void modulePhysicsJointPairFree(physicsJointPair **const restrict start, physicsJointPair *const restrict sPair);
+void modulePhysicsJointPairFreeArray(physicsJointPair **const restrict start);
+void modulePhysicsJointPairClear();
 
 physicsCollider *modulePhysicsColliderAlloc();
 physicsCollider *modulePhysicsColliderPrepend(physicsCollider **const restrict start);
@@ -118,6 +134,7 @@ void modulePhysicsBodyClear();
 extern memoryPool g_aabbNodeManager;
 extern memoryDoubleList g_physContactPairManager;
 extern memoryDoubleList g_physSeparationPairManager;
+extern memoryDoubleList g_physJointPairManager;
 extern memorySingleList g_physColliderManager;
 extern memorySingleList g_physRigidBodyDefManager;
 extern memoryDoubleList g_physRigidBodyManager;

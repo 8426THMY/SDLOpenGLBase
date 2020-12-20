@@ -513,6 +513,7 @@ static return_t initResources(program *const restrict prg){
 
 	/** TEMPORARY PHYSICS STUFF **/
 	#warning "We kind of need to do joints."
+	#warning "Although our sorting works fine for contacts, it means that we can't really choose which body owns constraints like the spherical joint."
 	#warning "An input manager would be neat, too."
 	physIslandInit(&island);
 	// Create the base physics object.
@@ -529,7 +530,6 @@ static return_t initResources(program *const restrict prg){
 	// Set up an instance.
 	obj = moduleObjectAlloc();
 	objectInit(obj, objDef);
-	physIslandInsertRigidBody(&island, obj->physBodies);
 	printf("Ground: %u -> %u\n", obj->physBodies, obj->physBodies->colliders);
 	obj->state.pos.y = -4.f;
 	obj->state.scale.x = obj->state.scale.z = 100.f;
@@ -539,7 +539,76 @@ static return_t initResources(program *const restrict prg){
 	mat3InitZero(&obj->physBodies->invInertiaLocal);mat3InitZero(&obj->physBodies->invInertiaGlobal);
 	obj->physBodies->invMass = 0.f;
 	objectPreparePhysics(obj);
+	physIslandInsertRigidBody(&island, obj->physBodies);
 
+	{
+		physicsRigidBody *egg, *cube;
+
+
+		// Create the base physics object.
+		mdl = modelOBJLoad("cubeQuads.obj", sizeof("cubeQuads.obj"));
+		objDef = moduleObjectDefAlloc();
+		objectDefInit(objDef);
+		physRigidBodyDefLoad(&objDef->physBodies, "cube.tdp", sizeof("cube.tdp"));
+		objDef->physBoneIDs = memoryManagerGlobalAlloc(sizeof(size_t));
+		*objDef->physBoneIDs = 0;
+		objDef->numBodies = 1;
+		renderDef = moduleRenderableDefAlloc();
+		renderableDefInit(renderDef, mdl);
+		objDef->renderables = renderDef;
+
+		// Set up an instance.
+		obj = moduleObjectAlloc();
+		objectInit(obj, objDef);
+		printf("Cube %u: %u -> %u\n", 0, obj->physBodies, obj->physBodies->colliders);
+		obj->state.pos.y = ((float)0)*2.f;
+		objectPreparePhysics(obj);
+		cube = obj->physBodies;
+
+
+		// Create the base physics object.
+		objDef = moduleObjectDefAlloc();
+		objectDefInit(objDef);
+		physRigidBodyDefLoad(&objDef->physBodies, "egg.tdp", sizeof("egg.tdp"));
+		objDef->physBoneIDs = memoryManagerGlobalAlloc(sizeof(size_t));
+		*objDef->physBoneIDs = 0;
+		objDef->numBodies = 1;
+		renderDef = moduleRenderableDefAlloc();
+		renderableDefInit(renderDef, mdl);
+		objDef->renderables = renderDef;
+
+		// Set up an instance.
+		obj = moduleObjectAlloc();
+		objectInit(obj, objDef);
+		printf("Egg: %u -> %u\n", obj->physBodies, obj->physBodies->colliders);
+		obj->state.pos.y = 0.f;obj->state.pos.z = -2.f;
+		//quatInitEulerDeg(&obj->state.rot, 0.f, 45.f, 45.f);
+
+		physRigidBodyIgnoreLinear(obj->physBodies);physRigidBodyIgnoreSimulation(obj->physBodies);
+		obj->physBodies->mass = 0.f;
+		mat3InitZero(&obj->physBodies->invInertiaLocal);mat3InitZero(&obj->physBodies->invInertiaGlobal);
+		obj->physBodies->invMass = 0.f;
+
+		objectPreparePhysics(obj);
+		egg = obj->physBodies;
+
+
+		{
+			physicsJointPair *joint = modulePhysicsJointPairAlloc();
+			const vec3 axisA = vec3InitZeroC();
+			const vec3 axisB = vec3InitSetC(0.f, 0.f, -2.5f);
+			physJointPairInit(joint, egg, cube, NULL, NULL);
+			//physJointSphereInit(&joint->joint.data.sphere, &axisA, &axisB, -2.f*M_PI, 2.f*M_PI, -2.f*M_PI, 2.f*M_PI, -2.f*M_PI, 2.f*M_PI);
+			//physJointSphereInit(&joint->joint.data.sphere, &axisA, &axisB, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f);
+			physJointSphereInit(&joint->joint.data.sphere, &axisA, &axisB, -M_PI_2, M_PI_2, -M_PI_2, M_PI_2, -M_PI_2, M_PI_2);
+			joint->joint.type = PHYSJOINT_TYPE_SPHERE;
+		}
+		physIslandInsertRigidBody(&island, cube);
+		physIslandInsertRigidBody(&island, egg);
+		controlPhys = egg;
+	}
+
+	#if 0
 	/** EVEN MORE TEMPORARY PHYSICS STUFF **/
 	// Create the base physics object.
 	mdl = modelOBJLoad("cubeQuads.obj", sizeof("cubeQuads.obj"));
@@ -558,7 +627,6 @@ static return_t initResources(program *const restrict prg){
 	for(i = 0; i < 1; ++i){
 		obj = moduleObjectAlloc();
 		objectInit(obj, objDef);
-		physIslandInsertRigidBody(&island, obj->physBodies);
 		printf("Cube %u: %u -> %u\n", i, obj->physBodies, obj->physBodies->colliders);
 		/*if(i == 0){
 			controlPhys = obj->physBodies;
@@ -566,6 +634,7 @@ static return_t initResources(program *const restrict prg){
 		}*/
 		obj->state.pos.y = ((float)i)*2.f;
 		objectPreparePhysics(obj);
+		physIslandInsertRigidBody(&island, obj->physBodies);
 	}
 
 	/** MORE TEMPORARY PHYSICS STUFF **/
@@ -583,7 +652,6 @@ static return_t initResources(program *const restrict prg){
 	// Set up an instance.
 	obj = moduleObjectAlloc();
 	objectInit(obj, objDef);
-	physIslandInsertRigidBody(&island, obj->physBodies);
 	printf("Egg: %u -> %u\n", obj->physBodies, obj->physBodies->colliders);
 	obj->state.pos.y = 0.f;obj->state.pos.z = -2.f;
 	quatInitEulerDeg(&obj->state.rot, 0.f, 45.f, 45.f);
@@ -594,6 +662,8 @@ static return_t initResources(program *const restrict prg){
 	obj->physBodies->invMass = 0.f;
 
 	objectPreparePhysics(obj);
+	physIslandInsertRigidBody(&island, obj->physBodies);
+	#endif
 
 
 	/** EVEN MORE TEMPORARY PARTICLE STUFF **/

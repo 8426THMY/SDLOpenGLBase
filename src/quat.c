@@ -7,9 +7,10 @@
 #include "utilMath.h"
 
 
+#define QUAT_SINGULARITY_THRESHOLD 0.0001f
 // We'll do linear interpolation if the angle between
 // the two quaternions is less than half a degree.
-#define QUAT_LERP_THRESHOLD cos(1.f*DEG_TO_RAD)
+#define QUAT_LERP_THRESHOLD        cosf(1.f*DEG_TO_RAD)
 
 
 quat g_quatIdentity = {
@@ -100,11 +101,15 @@ void quatInitEulerRad(quat *const restrict q, const float x, const float y, cons
 	const float sx = sinf(hx);
 	const float sy = sinf(hy);
 	const float sz = sinf(hz);
+	const float czcy = cz*cy;
+	const float szsy = sz*sy;
+	const float czsy = cz*sy;
+	const float szcy = sz*cy;
 
-	q->x = cz * cy * sx - sz * sy * cx;
-	q->y = cz * sy * cx + sz * cy * sx;
-	q->z = sz * cy * cx - cz * sy * sx;
-	q->w = cz * cy * cx + sz * sy * sx;
+	q->x = czcy * sx - szsy * cx;
+	q->y = czsy * cx + szcy * sx;
+	q->z = szcy * cx - czsy * sx;
+	q->w = czcy * cx + szsy * sx;
 }
 
 /*
@@ -121,12 +126,17 @@ quat quatInitEulerRadC(const float x, const float y, const float z){
 	const float sx = sinf(hx);
 	const float sy = sinf(hy);
 	const float sz = sinf(hz);
-	quat q;
+	const float czcy = cz*cy;
+	const float szsy = sz*sy;
+	const float czsy = cz*sy;
+	const float szcy = sz*cy;
 
-	q.x = cz * cy * sx - sz * sy * cx;
-	q.y = cz * sy * cx + sz * cy * sx;
-	q.z = sz * cy * cx - cz * sy * sx;
-	q.w = cz * cy * cx + sz * sy * sx;
+	const quat q = {
+		.x = czcy * sx - szsy * cx,
+		.y = czsy * cx + szcy * sx,
+		.z = szcy * cx - czsy * sx,
+		.w = czcy * cx + szsy * sx
+	};
 
 	return(q);
 }
@@ -714,7 +724,7 @@ void quatMultiplyQuatConjBy(quat *const restrict q1, const quat q2){
 	q1->x = q2.w * tempQuat.x - q2.x * tempQuat.w - q2.y * tempQuat.z + q2.z * tempQuat.y;
 	q1->y = q2.w * tempQuat.y - q2.y * tempQuat.w - q2.z * tempQuat.x + q2.x * tempQuat.z;
 	q1->z = q2.w * tempQuat.z - q2.z * tempQuat.w - q2.x * tempQuat.y + q2.y * tempQuat.x;
-	q1->w = q2.w * tempQuat.w - q2.x * tempQuat.x + q2.y * tempQuat.y + q2.z * tempQuat.z;
+	q1->w = q2.w * tempQuat.w + q2.x * tempQuat.x + q2.y * tempQuat.y + q2.z * tempQuat.z;
 }
 
 // Multiply conj(q1)*q2 (undo a rotation of "q1" from "q2")!
@@ -732,7 +742,7 @@ void quatMultiplyQuatConjByOut(const quat q1, const quat q2, quat *const restric
 	out->x = q2.w * q1.x - q2.x * q1.w - q2.y * q1.z + q2.z * q1.y;
 	out->y = q2.w * q1.y - q2.y * q1.w - q2.z * q1.x + q2.x * q1.z;
 	out->z = q2.w * q1.z - q2.z * q1.w - q2.x * q1.y + q2.y * q1.x;
-	out->w = q2.w * q1.w - q2.x * q1.x + q2.y * q1.y + q2.z * q1.z;
+	out->w = q2.w * q1.w + q2.x * q1.x + q2.y * q1.y + q2.z * q1.z;
 }
 
 // Multiply conj(q2)*q1 (undo a rotation of "q2" from "q1")!
@@ -741,7 +751,7 @@ quat quatMultiplyQuatConjByC(const quat q1, const quat q2){
 		.x = q2.w * q1.x - q2.x * q1.w - q2.y * q1.z + q2.z * q1.y,
 		.y = q2.w * q1.y - q2.y * q1.w - q2.z * q1.x + q2.x * q1.z,
 		.z = q2.w * q1.z - q2.z * q1.w - q2.x * q1.y + q2.y * q1.x,
-		.w = q2.w * q1.w - q2.x * q1.x + q2.y * q1.y + q2.z * q1.z
+		.w = q2.w * q1.w + q2.x * q1.x + q2.y * q1.y + q2.z * q1.z
 	};
 	return(out);
 }
@@ -1220,10 +1230,11 @@ quat quatNegateC(quat q){
 ** Implementation inspired by the one in Gino van den Bergen's Motion Toolkit.
 */
 void quatToEulerAngles(const quat q, vec3 *const restrict out){
+	const float xx = q.x*q.x;
 	vec3InitSet(out,
 		asinf(2.f*(q.x*q.w - q.y*q.z)),
-		atan2f(2.f*(q.x*q.z + q.y*q.w), 1.f - 2.f*(q.y*q.y + q.x*q.x)),
-		atan2f(2.f*(q.x*q.y + q.z*q.w), 1.f - 2.f*(q.z*q.z + q.x*q.x))
+		atan2f(2.f*(q.x*q.z + q.y*q.w), 1.f - 2.f*(xx + q.y*q.y)),
+		atan2f(2.f*(q.x*q.y + q.z*q.w), 1.f - 2.f*(xx + q.z*q.z))
 	);
 }
 
@@ -1235,10 +1246,11 @@ void quatToEulerAngles(const quat q, vec3 *const restrict out){
 ** Implementation inspired by the one in Gino van den Bergen's Motion Toolkit.
 */
 vec3 quatToEulerAnglesC(const quat q){
+	const float xx = q.x*q.x;
 	return(vec3InitSetC(
 		asinf(2.f*(q.x*q.w - q.y*q.z)),
-		atan2f(2.f*(q.x*q.z + q.y*q.w), 1.f - 2.f*(q.y*q.y + q.x*q.x)),
-		atan2f(2.f*(q.x*q.y + q.z*q.w), 1.f - 2.f*(q.z*q.z + q.x*q.x))
+		atan2f(2.f*(q.x*q.z + q.y*q.w), 1.f - 2.f*(xx + q.y*q.y)),
+		atan2f(2.f*(q.x*q.y + q.z*q.w), 1.f - 2.f*(xx + q.z*q.z))
 	));
 }
 
@@ -1253,7 +1265,7 @@ vec3 quatToEulerAnglesC(const quat q){
 void quatToEulerAnglesAlt(const quat q, vec3 *const restrict out){
 	const float sinp = q.x*q.y + q.z*q.w;
 	// Handle the singularities at the poles.
-	if(fabsf(sinp) > -0.5f + QUAT_LERP_THRESHOLD){
+	if(fabsf(sinp) > 0.5f - QUAT_SINGULARITY_THRESHOLD){
 		vec3InitSet(out, 0.f, copySign(2.f*atan2f(q.x, q.w), sinp), copySign(M_PI_2, sinp));
 	}else{
 		const float zz = q.z*q.z;
@@ -1276,7 +1288,7 @@ void quatToEulerAnglesAlt(const quat q, vec3 *const restrict out){
 vec3 quatToEulerAnglesAltC(const quat q){
 	const float sinp = q.x*q.y + q.z*q.w;
 	// Handle the singularities at the poles.
-	if(fabsf(sinp) > 0.49f + 0.f*(-0.5f + QUAT_LERP_THRESHOLD)){
+	if(fabsf(sinp) > 0.5f - QUAT_SINGULARITY_THRESHOLD){
 		return(vec3InitSetC(0.f, copySign(2.f*atan2f(q.x, q.w), sinp), copySign(M_PI_2, sinp)));
 	}else{
 		const float zz = q.z*q.z;
@@ -1290,52 +1302,52 @@ vec3 quatToEulerAnglesAltC(const quat q){
 
 // Convert a quaternion to an axis and an angle and store the result in "out"!
 void quatToAxisAngle(const quat *const restrict q, vec4 *const restrict out){
-	if(q->w > -1.f && q->w < 1.f){
-		const float scale = invSqrt(1.f - q->w * q->w);
-
-		out->x = q->x * scale;
-		out->y = q->y * scale;
-		out->z = q->z * scale;
-		out->w = acosf(q->w);
-		out->w += out->w;
+	float scale = 1.f - q->w*q->w;
+	if(scale < QUAT_SINGULARITY_THRESHOLD*QUAT_SINGULARITY_THRESHOLD){
+		out->x = 1.f;
+		out->y = 0.f;
+		out->z = 0.f;
 	}else{
-		out->x = out->y = out->z = 1.f;
-		out->w = 0.f;
+		scale = invSqrt(scale);
+		out->x = q->x*scale;
+		out->y = q->y*scale;
+		out->z = q->z*scale;
 	}
+	out->w = 2.f*acosf(q->w);
 }
 
 // Convert a quaternion to an axis and an angle and store the result in "out"!
 void quatToAxisAngleFast(const quat *const restrict q, vec4 *const restrict out){
-	if(q->w > -1.f && q->w < 1.f){
-		const float scale = invSqrtFast(1.f - q->w * q->w);
-
-		out->x = q->x * scale;
-		out->y = q->y * scale;
-		out->z = q->z * scale;
-		out->w = acosf(q->w);
-		out->w += out->w;
+	float scale = 1.f - q->w*q->w;
+	if(scale < QUAT_SINGULARITY_THRESHOLD*QUAT_SINGULARITY_THRESHOLD){
+		out->x = 1.f;
+		out->y = 0.f;
+		out->z = 0.f;
 	}else{
-		out->x = out->y = out->z = 1.f;
-		out->w = 0.f;
+		scale = invSqrtFast(scale);
+		out->x = q->x*scale;
+		out->y = q->y*scale;
+		out->z = q->z*scale;
 	}
+	out->w = 2.f*acosf(q->w);
 }
 
 // Convert a quaternion to an axis and an angle!
 vec4 quatToAxisAngleC(const quat q){
 	vec4 v;
 
-	if(q.w > -1.f && q.w < 1.f){
-		const float scale = invSqrt(1.f - q.w * q.w);
-
-		v.x = q.x * scale;
-		v.y = q.y * scale;
-		v.z = q.z * scale;
-		v.w = acosf(q.w);
-		v.w += v.w;
+	float scale = 1.f - q.w*q.w;
+	if(scale < QUAT_SINGULARITY_THRESHOLD*QUAT_SINGULARITY_THRESHOLD){
+		v.x = 1.f;
+		v.y = 0.f;
+		v.z = 0.f;
 	}else{
-		v.x = v.y = v.z = 1.f;
-		v.w = 0.f;
+		scale = invSqrt(scale);
+		v.x = q.x*scale;
+		v.y = q.y*scale;
+		v.z = q.z*scale;
 	}
+	v.w = 2.f*acosf(q.w);
 
 	return(v);
 }
@@ -1344,18 +1356,18 @@ vec4 quatToAxisAngleC(const quat q){
 vec4 quatToAxisAngleFastC(const quat q){
 	vec4 v;
 
-	if(q.w > -1.f && q.w < 1.f){
-		const float scale = invSqrtFast(1.f - q.w * q.w);
-
-		v.x = q.x * scale;
-		v.y = q.y * scale;
-		v.z = q.z * scale;
-		v.w = acosf(q.w);
-		v.w += v.w;
+	float scale = 1.f - q.w*q.w;
+	if(scale < QUAT_SINGULARITY_THRESHOLD*QUAT_SINGULARITY_THRESHOLD){
+		v.x = 1.f;
+		v.y = 0.f;
+		v.z = 0.f;
 	}else{
-		v.x = v.y = v.z = 1.f;
-		v.w = 0.f;
+		scale = invSqrtFast(scale);
+		v.x = q.x*scale;
+		v.y = q.y*scale;
+		v.z = q.z*scale;
 	}
+	v.w = 2.f*acosf(q.w);
 
 	return(v);
 }

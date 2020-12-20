@@ -118,11 +118,14 @@ static void calculateBias(
 ** 0 = no damping
 ** 1 = no oscillations
 */
-void physJointDistanceInit(physicsJointDistance *const restrict joint, const float frequency, const float dampingRatio){
+void physJointDistanceInit(physicsJointDistance *const restrict joint, const float distance, const float frequency, const float dampingRatio){
+	joint->distance = distance;
 	// w = 2pi * f
 	joint->angularFrequency = 2.f * M_PI * frequency;
 	// damp = 2w * zeta
 	joint->damping = 2.f * joint->angularFrequency * dampingRatio;
+
+	joint->impulse = 0.f;
 }
 
 
