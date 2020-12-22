@@ -42,7 +42,7 @@ How can we do this?
 
 #warning "Frame limiting logic seems very poor. We should be sleeping instead of busy-waiting, too. Investigate the _mm_pause instrinsic."
 
-#warning "Our modules define a lot of functions that are identical or almost identical.'
+#warning "Our modules define a lot of functions that are identical or almost identical."
 #warning "Would it be possible to avoid defining the duplicate functions by using macros?"
 #warning "Alternatively, if this gets ugly, it would almost certainly be better to define these functions using macros."
 

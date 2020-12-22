@@ -233,7 +233,16 @@ static void updateCameras(program *const restrict prg){
 	/** TEMPORARY TESTING STUFF! **/
 	if(controlObj != NULL){
 		quat rot = quatNormalizeQuatC(mat4ToQuatC(mat4RotateToFaceC(controlObj->state.pos, prg->cam.pos, vec3InitSetC(0.f, 1.f, 0.f))));
-		vec3 angles = quatToEulerAnglesC(rot);printf("%f, %f, %f\n", angles.x, angles.y, angles.z);
+		vec3 angles = quatToEulerAnglesC(rot);
+		//printf("E: %f, %f, %f\n", angles.x, angles.y, angles.z);
+
+
+		quat t1, s1, t2, s2, t3, s3;
+		vec3 angles2;
+		quatSwingTwistFastC(rot, vec3InitSetC(1.f, 0.f, 0.f), &t1, &s1);
+		quatSwingTwistFastC(rot, vec3InitSetC(0.f, 1.f, 0.f), &t2, &s2);
+		quatSwingTwistFastC(rot, vec3InitSetC(0.f, 0.f, 1.f), &t3, &s3);
+		rot = quatMultiplyByQuatC(quatMultiplyByQuatC(s1, s2), s3);
 
 
 		angles.x = clampFloat(angles.x, -M_PI_4, M_PI_4);
@@ -468,11 +477,12 @@ static return_t initResources(program *const restrict prg){
 
 
 	/** TEMPORARY OBJECT STUFF **/
+	#if 0
 	model *mdl;
 	renderableDef *renderDef;// = moduleRenderableDefAlloc();
 	objectDef *objDef;// = moduleObjectDefAlloc();
 	object *obj;// = moduleObjectAlloc();
-	#if 0
+	#else
 	model *mdl;
 	renderableDef *renderDef = moduleRenderableDefAlloc();
 	objectDef *objDef = moduleObjectDefAlloc();
@@ -534,11 +544,11 @@ static return_t initResources(program *const restrict prg){
 	obj->state.pos.y = -4.f;
 	obj->state.scale.x = obj->state.scale.z = 100.f;
 	physRigidBodySetScale(obj->physBodies, vec3InitSetC(20.f, 0.f, 20.f));
-	physRigidBodyIgnoreLinear(obj->physBodies);physRigidBodyIgnoreSimulation(obj->physBodies);
 	obj->physBodies->mass = 0.f;
 	mat3InitZero(&obj->physBodies->invInertiaLocal);mat3InitZero(&obj->physBodies->invInertiaGlobal);
 	obj->physBodies->invMass = 0.f;
 	objectPreparePhysics(obj);
+	physRigidBodyIgnoreLinear(obj->physBodies);physRigidBodyIgnoreSimulation(obj->physBodies);
 	physIslandInsertRigidBody(&island, obj->physBodies);
 
 	{
@@ -561,7 +571,9 @@ static return_t initResources(program *const restrict prg){
 		obj = moduleObjectAlloc();
 		objectInit(obj, objDef);
 		printf("Cube %u: %u -> %u\n", 0, obj->physBodies, obj->physBodies->colliders);
-		obj->state.pos.y = ((float)0)*2.f;
+		//obj->state.pos.y = -0.5f;obj->state.pos.z = -2.f;
+		obj->state.pos = vec3InitSetC(0.239072f, -1.207037f+0.5f, -2.172446f);
+		obj->physBodies->linearVelocity.y = -2.f;
 		objectPreparePhysics(obj);
 		cube = obj->physBodies;
 
@@ -581,15 +593,15 @@ static return_t initResources(program *const restrict prg){
 		obj = moduleObjectAlloc();
 		objectInit(obj, objDef);
 		printf("Egg: %u -> %u\n", obj->physBodies, obj->physBodies->colliders);
-		obj->state.pos.y = 0.f;obj->state.pos.z = -2.f;
+		obj->state.pos.y = 2.f;obj->state.pos.z = -2.f;
 		//quatInitEulerDeg(&obj->state.rot, 0.f, 45.f, 45.f);
 
-		physRigidBodyIgnoreLinear(obj->physBodies);physRigidBodyIgnoreSimulation(obj->physBodies);
 		obj->physBodies->mass = 0.f;
 		mat3InitZero(&obj->physBodies->invInertiaLocal);mat3InitZero(&obj->physBodies->invInertiaGlobal);
 		obj->physBodies->invMass = 0.f;
 
 		objectPreparePhysics(obj);
+		physRigidBodyIgnoreLinear(obj->physBodies);physRigidBodyIgnoreSimulation(obj->physBodies);
 		egg = obj->physBodies;
 
 
@@ -602,6 +614,29 @@ static return_t initResources(program *const restrict prg){
 			//physJointSphereInit(&joint->joint.data.sphere, &axisA, &axisB, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f);
 			physJointSphereInit(&joint->joint.data.sphere, &axisA, &axisB, -M_PI_2, M_PI_2, -M_PI_2, M_PI_2, -M_PI_2, M_PI_2);
 			joint->joint.type = PHYSJOINT_TYPE_SPHERE;
+			/*physicsJointPair *joint = modulePhysicsJointPairAlloc();
+			const vec3 anchorA = vec3InitZeroC();
+			const vec3 anchorB = vec3InitSetC(0.f, 2.5f, 0.f);
+			physJointPairInit(joint, egg, cube, NULL, NULL);
+			physJointDistanceInit(&joint->joint.data.distance, &anchorA, &anchorB, 0.f, 1.f, 0.01f);
+			joint->joint.type = PHYSJOINT_TYPE_DISTANCE;
+			{
+				vec3 aA, aB;
+				vec3 constraint;
+				mat3 linearMass;
+				vec3 impulse;
+
+				vec3MultiplyVec3Out(&egg->state.scale, &anchorA, &aA);
+				quatRotateVec3Fast(&egg->state.rot, &aA);
+				vec3MultiplyVec3Out(&cube->state.scale, &anchorB, &aB);
+				quatRotateVec3Fast(&cube->state.rot, &aB);
+
+				// Calculate the displacement from the ball to the socket:
+				// -C1 = (pA + aA) - (pB - aB).
+				vec3AddVec3Out(&egg->centroid, &aA, &constraint);
+				vec3SubtractVec3From(&constraint, &cube->centroid);
+				vec3SubtractVec3From(&constraint, &aB);
+			}*/
 		}
 		physIslandInsertRigidBody(&island, cube);
 		physIslandInsertRigidBody(&island, egg);
@@ -628,12 +663,12 @@ static return_t initResources(program *const restrict prg){
 		obj = moduleObjectAlloc();
 		objectInit(obj, objDef);
 		printf("Cube %u: %u -> %u\n", i, obj->physBodies, obj->physBodies->colliders);
+		obj->state.pos.y = ((float)i)*2.f;
+		objectPreparePhysics(obj);
 		/*if(i == 0){
 			controlPhys = obj->physBodies;
 			physRigidBodyIgnoreAngular(obj->physBodies);
 		}*/
-		obj->state.pos.y = ((float)i)*2.f;
-		objectPreparePhysics(obj);
 		physIslandInsertRigidBody(&island, obj->physBodies);
 	}
 
@@ -656,12 +691,12 @@ static return_t initResources(program *const restrict prg){
 	obj->state.pos.y = 0.f;obj->state.pos.z = -2.f;
 	quatInitEulerDeg(&obj->state.rot, 0.f, 45.f, 45.f);
 
-	physRigidBodyIgnoreLinear(obj->physBodies);physRigidBodyIgnoreSimulation(obj->physBodies);
 	obj->physBodies->mass = 0.f;
 	mat3InitZero(&obj->physBodies->invInertiaLocal);mat3InitZero(&obj->physBodies->invInertiaGlobal);
 	obj->physBodies->invMass = 0.f;
 
 	objectPreparePhysics(obj);
+	physRigidBodyIgnoreLinear(obj->physBodies);physRigidBodyIgnoreSimulation(obj->physBodies);
 	physIslandInsertRigidBody(&island, obj->physBodies);
 	#endif
 

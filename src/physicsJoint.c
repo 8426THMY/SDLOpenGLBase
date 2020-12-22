@@ -29,7 +29,7 @@ void (*const physJointSolveVelocityTable[PHYSJOINT_NUM_TYPES])(
 };
 
 return_t (*const physJointSolvePositionTable[PHYSJOINT_NUM_TYPES])(
-	void *const restrict joint,
+	const void *const restrict joint,
 	physicsRigidBody *const restrict bodyA,
 	physicsRigidBody *const restrict bodyB
 ) = {
@@ -54,6 +54,6 @@ void physJointSolveVelocity(physicsJoint *const restrict joint, physicsRigidBody
 	physJointSolveVelocityTable[joint->type]((void *)(&joint->data), bodyA, bodyB);
 }
 
-return_t physJointSolvePosition(physicsJoint *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB){
+return_t physJointSolvePosition(const physicsJoint *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB){
 	return(physJointSolvePositionTable[joint->type]((void *)(&joint->data), bodyA, bodyB));
 }

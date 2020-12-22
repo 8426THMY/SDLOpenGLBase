@@ -72,10 +72,12 @@
 ** Evaluating this expression gives us the
 ** following matrix for our linear constraints:
 **
-**             [-u1 * mA^(-1), -(rA X u1) * IA^(-1), u1 * mB^(-1), (rB X u1) * IB^(-1)]
-** J1*M^(-1) = [-u2 * mA^(-1), -(rA X u2) * IA^(-1), u2 * mB^(-1), (rB X u2) * IB^(-1)]
+**               [-mA^(-1) * u1,        -mA^(-1) * u2       ]
+**               [-IA^(-1) * (rA X u1), -IA^(-1) * (rA X u2)]
+** M^(-1)*J1^T = [ mB^(-1) * u1,         mB^(-1) * u2       ]
+**               [ IB^(-1) * (rA X u1),  IB^(-1) * (rA X u2)]
 **
-** K = (J1*M^(-1))J1^T
+** K = J1*M^(-1)*J1^T
 ** [K]_00 = mA^(-1) + mB^(-1) + ((rA X u1) . (IA^(-1) * (rA X u1))) + ((rB X u1) . (IB^(-1) * (rB X u1))),
 ** [K]_01 =                     ((rA X u1) . (IA^(-1) * (rA X u2))) + ((rB X u1) . (IB^(-1) * (rB X u2))),
 ** [K]_10 =                     ((rA X u1) . (IA^(-1) * (rA X u2))) + ((rB X u1) . (IB^(-1) * (rB X u2))),
@@ -96,7 +98,7 @@
 **
 ** For our angular constraint, we simply get:
 **
-** (J2*M^(-1))J2^T = ((n * IA^(-1)) . n) + ((n * IB^(-1)) . n).
+** J2*M^(-1)*J2^T = ((n * IA^(-1)) . n) + ((n * IB^(-1)) . n).
 **
 ** ----------------------------------------------------------------------
 */

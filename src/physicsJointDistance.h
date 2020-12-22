@@ -73,7 +73,11 @@ typedef struct physicsJointDistance {
 
 typedef struct physicsRigidBody physicsRigidBody;
 
-void physJointDistanceInit(physicsJointDistance *const restrict joint, const float distance, const float frequency, const float dampingRatio);
+void physJointDistanceInit(
+	physicsJointDistance *const restrict joint,
+	const vec3 *const restrict anchorA, const vec3 *const restrict anchorB,
+	const float distance, const float frequency, const float dampingRatio
+);
 
 #ifdef PHYSJOINTDISTANCE_WARM_START
 void physJointDistanceWarmStart(physicsJointDistance *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB);
@@ -82,9 +86,7 @@ void physJointDistancePresolve(
 	void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB, const float dt
 );
 void physJointDistanceSolveVelocity(void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB);
-#ifdef PHYSJOINTDISTANCE_STABILISER_GAUSS_SEIDEL
-return_t physJointDistanceSolvePosition(void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB);
-#endif
+return_t physJointDistanceSolvePosition(const void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB);
 
 
 #endif

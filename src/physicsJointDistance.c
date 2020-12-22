@@ -98,7 +98,7 @@ static void updateConstraintData(
 	const physicsRigidBody *const restrict bodyA, const physicsRigidBody *const restrict bodyB
 );
 static float calculateEffectiveMass(
-	physicsJointDistance *const restrict joint,
+	const vec3 *const restrict rA, const vec3 *const restrict rB, const vec3 *const restrict rAB,
 	const physicsRigidBody *const restrict bodyA, const physicsRigidBody *const restrict bodyB
 );
 static void calculateBias(
@@ -118,7 +118,15 @@ static void calculateBias(
 ** 0 = no damping
 ** 1 = no oscillations
 */
-void physJointDistanceInit(physicsJointDistance *const restrict joint, const float distance, const float frequency, const float dampingRatio){
+void physJointDistanceInit(
+	physicsJointDistance *const restrict joint,
+	const vec3 *const restrict anchorA, const vec3 *const restrict anchorB,
+	const float distance, const float frequency, const float dampingRatio
+){
+
+	joint->anchorA = *anchorA;
+	joint->anchorB = *anchorB;
+
 	joint->distance = distance;
 	// w = 2pi * f
 	joint->angularFrequency = 2.f * M_PI * frequency;
@@ -159,7 +167,8 @@ void physJointDistancePresolve(
 	updateConstraintData((physicsJointDistance *)joint, bodyA, bodyB);
 	// We don't invert the effective mass just yet, as we need it for the bias.
 	((physicsJointDistance *)joint)->invEffectiveMass = calculateEffectiveMass(
-		(physicsJointDistance *)joint, bodyA, bodyB
+		&((physicsJointDistance *)joint)->rA, &((physicsJointDistance *)joint)->rB,
+		&((physicsJointDistance *)joint)->rAB, bodyA, bodyB
 	);
 	calculateBias((physicsJointDistance *)joint, bodyA, bodyB, dt);
 	// Now we can invert it.
@@ -212,10 +221,10 @@ void physJointDistanceSolveVelocity(void *const restrict joint, physicsRigidBody
 ** This may also be called multiple times, but by returning
 ** the amount of error we'll know when to stop.
 */
-#ifdef PHYSJOINTDISTANCE_STABILISER_GAUSS_SEIDEL
-return_t physJointDistanceSolvePosition(void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB){
+return_t physJointDistanceSolvePosition(const void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB){
+	#ifdef PHYSJOINTDISTANCE_STABILISER_GAUSS_SEIDEL
 	// If we're not using soft constraints, we can perform positional correction.
-	if(((physicsJointDistance *)joint)->angularFrequency == 0.f){
+	if(((physicsJointDistance *)joint)->angularFrequency <= 0.f){
 		vec3 rA;
 		vec3 rB;
 		vec3 rAB;
@@ -229,15 +238,12 @@ return_t physJointDistanceSolvePosition(void *const restrict joint, physicsRigid
 		// Find the relative position of the two bodies.
 		// d = (pB - pA)
 		//   = (cB + rB - cA - rA)
-		rAB = bodyB->centroid;
-		vec3AddVec3(&rAB, &rB);
+		vec3AddVec3Out(&bodyB->centroid, &rB, &rAB);
 		vec3SubtractVec3From(&rAB, &bodyA->centroid);
 		vec3SubtractVec3From(&rAB, &rA);
 
 		{
-			const float effectiveMass = calculateEffectiveMass(
-				(physicsJointDistance *)joint, bodyA, bodyB
-			);
+			const float effectiveMass = calculateEffectiveMass(&rA, &rB, &rAB, bodyA, bodyB);
 			const float distance = vec3MagnitudeVec3(&rAB);
 			// Clamp the constraint value.
 			const float constraint = clampFloat(
@@ -246,8 +252,8 @@ return_t physJointDistanceSolvePosition(void *const restrict joint, physicsRigid
 				PHYSCONSTRAINT_MAX_LINEAR_CORRECTION
 			);
 
-			if(effectiveMass > 0.f){
-				vec3MultiplyS(&rAB, -constraint * effectiveMass);
+			if(distance*effectiveMass > PHYSCONSTRAINT_LINEAR_SLOP){
+				vec3MultiplyS(&rAB, -constraint/(distance*effectiveMass));
 
 				// Apply the correctional impulse.
 				physRigidBodyApplyImpulsePositionInverse(bodyA, &rA, &rAB);
@@ -257,11 +263,10 @@ return_t physJointDistanceSolvePosition(void *const restrict joint, physicsRigid
 			return(fabsf(constraint) < PHYSCONSTRAINT_LINEAR_SLOP);
 		}
 	}
-
+	#endif
 
 	return(1);
 }
-#endif
 
 
 /*
@@ -284,8 +289,7 @@ static void updateConstraintData(
 	// Find the relative position of the two bodies.
 	// d = (pB - pA)
 	//   = (cB + rB - cA - rA)
-	joint->rAB = bodyB->centroid;
-	vec3AddVec3(&joint->rAB, &joint->rB);
+	vec3AddVec3Out(&bodyB->centroid, &joint->rB, &joint->rAB);
 	vec3SubtractVec3From(&joint->rAB, &bodyA->centroid);
 	vec3SubtractVec3From(&joint->rAB, &joint->rA);
 
@@ -310,7 +314,7 @@ static void updateConstraintData(
 ** per update. Note that we take its inverse elsewhere.
 */
 static float calculateEffectiveMass(
-	physicsJointDistance *const restrict joint,
+	const vec3 *const restrict rA, const vec3 *const restrict rB, const vec3 *const restrict rAB,
 	const physicsRigidBody *const restrict bodyA, const physicsRigidBody *const restrict bodyB
 ){
 
@@ -320,9 +324,9 @@ static float calculateEffectiveMass(
 	vec3 IBrBd;
 
 	// JM^(-1)J^T = mA^(-1) + mB^(-1) + ((rA X d) . (IA^(-1) * (rA X d))) + ((rB X d) . (IB^(-1) * (rB X d)))
-	vec3CrossVec3Out(&joint->rA, &joint->rAB, &rAd);
+	vec3CrossVec3Out(rA, rAB, &rAd);
 	mat3MultiplyByVec3Out(&bodyA->invInertiaGlobal, &rAd, &IArAd);
-	vec3CrossVec3Out(&joint->rB, &joint->rAB, &rBd);
+	vec3CrossVec3Out(rB, rAB, &rBd);
 	mat3MultiplyByVec3Out(&bodyB->invInertiaGlobal, &rBd, &IBrBd);
 	// We don't take the inverse just yet, as we
 	// need this when calculating the bias term.
@@ -340,7 +344,7 @@ static void calculateBias(
 ){
 
 	// Only use soft constraints if the frequency is greater than 0.
-	if(joint->angularFrequency == 0.f){
+	if(joint->angularFrequency <= 0.f){
 		joint->gamma = 0.f;
 		joint->bias = 0.f;
 	}else{

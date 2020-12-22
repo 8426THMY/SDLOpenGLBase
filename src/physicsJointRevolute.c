@@ -31,8 +31,9 @@ void physJointRevoluteSolveVelocity(void *const restrict joint, physicsRigidBody
 ** This may also be called multiple times, but by returning
 ** the amount of error we'll know when to stop.
 */
-#ifdef PHYSJOINTREVOLUTE_STABILISER_GAUSS_SEIDEL
-return_t physJointRevoluteSolvePosition(void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB){
+return_t physJointRevoluteSolvePosition(const void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB){
+	#ifdef PHYSJOINTREVOLUTE_STABILISER_GAUSS_SEIDEL
+	#endif
+
 	return(1);
 }
-#endif

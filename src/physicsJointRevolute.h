@@ -23,9 +23,7 @@ void physJointRevolutePresolve(
 	void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB, const float dt
 );
 void physJointRevoluteSolveVelocity(void *const restrict joint, physicsRigidBody *bodyA, physicsRigidBody *const restrict bodyB);
-#ifdef PHYSJOINTREVOLUTE_STABILISER_GAUSS_SEIDEL
-return_t physJointRevoluteSolvePosition(void *const restrict joint, physicsRigidBody *bodyA, physicsRigidBody *const restrict bodyB);
-#endif
+return_t physJointRevoluteSolvePosition(const void *const restrict joint, physicsRigidBody *bodyA, physicsRigidBody *const restrict bodyB);
 
 
 #endif
