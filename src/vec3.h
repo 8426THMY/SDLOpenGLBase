@@ -108,7 +108,7 @@ void vec3CrossFloatVec3(const float x, const float y, const float z, const vec3 
 #define vec3CrossFloatVec3P(x, y, z, v, out) (vec3CrossFloatVec3(x, y, z, v, out), out)
 vec3 vec3CrossFloatVec3C(const float x, const float y, const float z, const vec3 v);
 void vec3CrossByVec3(vec3 *const restrict v1, const vec3 *const restrict v2);
-void vec3CrossVec3By(const vec3 *const restrict v1, vec3 *const restrict v2);
+void vec3CrossVec3By(vec3 *const restrict v1, const vec3 *const restrict v2);
 void vec3CrossVec3Out(const vec3 *const restrict v1, const vec3 *const restrict v2, vec3 *const restrict out);
 #define vec3CrossVec3P(v1, v2, out) (vec3CrossVec3Out(v1, v2, out), out)
 vec3 vec3CrossVec3C(const vec3 v1, const vec3 v2);
@@ -131,6 +131,10 @@ void vec3Negate(vec3 *const restrict v);
 void vec3NegateOut(const vec3 *const restrict v, vec3 *const restrict out);
 #define vec3NegateP(v, out) (vec3NegateOut(v, out), out)
 vec3 vec3NegateC(vec3 v);
+
+void vec3Orthogonal(const vec3 *const restrict v, vec3 *const restrict out);
+#define vec3OrthogonalP(v, out) (vec3Orthogonal(v, out), out)
+vec3 vec3OrthogonalC(const vec3 v);
 
 void vec3DegToRad(vec3 *const restrict v);
 void vec3RadToDeg(vec3 *const restrict v);

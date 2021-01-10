@@ -73,6 +73,8 @@
 **
 ** JM^(-1)J^T = mA^(-1) + mB^(-1) + ((rA X d) . (IA^(-1) * (rA X d))) + ((rB X d) . (IB^(-1) * (rB X d))).
 **
+** Note that we're free to normalize d,
+**
 ** ----------------------------------------------------------------------
 */
 
@@ -81,7 +83,7 @@
 **
 ** C  : d - L = 0
 ** C' : JV + b = 0
-** JV + beta/h * C(x) + gamma * lambda = 0
+** JV + beta/h * C + gamma * lambda = 0
 **
 ** gamma = 1/(c + hk)
 ** beta = hk/(c + hk)
@@ -112,7 +114,7 @@ static void calculateBias(
 ** Set up some of the joint's properties. Note that the frequency passed
 ** into this function should be given in hertz (that is, cycles per
 ** second) whereas the value we store is the angular frequency (radians
-** per second). If the frequency is 0, soft constraints will be disabled.
+** per second). If frequency <= 0, soft constraints will be disabled.
 **
 ** The damping ratio decides how quickly oscillations should cease.
 ** 0 = no damping
@@ -145,9 +147,7 @@ void physJointDistanceInit(
 #ifdef PHYSJOINTDISTANCE_WARM_START
 void physJointDistanceWarmStart(physicsJointDistance *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB){
 	vec3 impulse;
-
 	vec3MultiplySOut(&joint->rAB, joint->impulse, &impulse);
-
 
 	// Apply the accumulated impulse.
 	physRigidBodyApplyImpulseInverse(bodyA, &joint->rA, &impulse);
@@ -252,7 +252,7 @@ return_t physJointDistanceSolvePosition(const void *const restrict joint, physic
 				PHYSCONSTRAINT_MAX_LINEAR_CORRECTION
 			);
 
-			if(distance*effectiveMass > PHYSCONSTRAINT_LINEAR_SLOP){
+			if(effectiveMass > PHYSCONSTRAINT_LINEAR_SLOP && distance > PHYSCONSTRAINT_LINEAR_SLOP){
 				vec3MultiplyS(&rAB, -constraint/(distance*effectiveMass));
 
 				// Apply the correctional impulse.
@@ -302,9 +302,9 @@ static void updateConstraintData(
 	}else{
 		vec3InitZero(&joint->rAB);
 	}
-	// Calculate C(x) for our bias term.
+	// Calculate C for our bias term.
 	// beta = hk/(c + hk)
-	// bias = beta/h * C(x)
+	// bias = beta/h * C
 	joint->bias = distance - joint->distance;
 }
 
@@ -350,24 +350,24 @@ static void calculateBias(
 	}else{
 		const float invEffectiveMass = 1.f / joint->invEffectiveMass;
 		// k = K * w^2
-		const float stiffness = invEffectiveMass * joint->angularFrequency * joint->angularFrequency;
+		const float kdt = dt * invEffectiveMass * joint->angularFrequency * joint->angularFrequency;
 
 		// c = K * damp
-		// gamma = 1/(c + hk) = 1/(hk + K * damp)
-		joint->gamma = dt * (invEffectiveMass * joint->damping + dt * stiffness);
+		// gamma = 1/(c + hk) = 1/(K * damp + hk)
+		// The extra 'h' in the denominator here is because
+		// we're using impulses rather than forces.
+		joint->gamma = dt * (invEffectiveMass * joint->damping + kdt);
 		joint->gamma = (joint->gamma != 0.f) ? 1.f / joint->gamma : 0.f;
-		// beta = hk/(c + hk) = hk * gamma
-		// bias = beta/h * C(x) = k * gamma * C(x)
-		// Note that bias is already set to C(x).
-		joint->bias *= dt * stiffness * joint->gamma;
 
-		// lambda = -((v_relative . d) + beta/h * C(x) + gamma*lambda)/K
-		//        = -((v_relative . d) + b)/K - (gamma*lambda)/K
-		//
-		// lambda(1 + gamma/K) = -((v_relative . d) + b)/K
-		//
-		// lambda = -((v_relative . d) + b)/K(1 + gamma/K)
-		//        = -((v_relative . d) + b)/(K + gamma)
+		// Calculate the bias term. It should already be set to 'C'.
+		// Don't forget to cancel out the extra 'h' we added to "gamma"!
+		// beta = hk/(c + hk) = hk * gamma,
+		// bias = beta/h * C = k * gamma * C.
+		joint->bias *= kdt * joint->gamma;
+
+		// lambda = -((v_relative . d) + b + gamma*lambda)/K,
+		// lambda(K + gamma)/K = -((v_relative . d) + b)/K,
+		// lambda = -((v_relative . d) + b)/(K + gamma).
 		joint->invEffectiveMass += joint->gamma;
 	}
 }

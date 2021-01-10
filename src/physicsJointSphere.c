@@ -17,28 +17,35 @@
 **
 ** ----------------------------------------------------------------------
 **
-** For the point-to-point constraint, we define aA and aB to be
+** For the point-to-point constraint, we define rA and rB to be
 ** the offsets of the "socket" and "ball" from the rigid bodies
 ** respectively. Of course, these two points should coincide, so
 **
-** C : (pB + aB) - (pA + aA) = 0.
+** C1 : (pB + rB) - (pA + rA) = 0.
 **
 ** Differentiate with respect to time to get a velocity constraint:
 **
-** C1' : (vB +   wB X aB) - (vA +   wA X aA) = 0,
-**     : (vB -   aB X wB) - (vA -   aA X wA) = 0,
-**     : (vB - [aB]_X*wB) - (vA - [aA]_X*wA) = 0,
+** C1' : (vB +   wB X rB) - (vA +   wA X rA) = 0,
+**     : (vB -   rB X wB) - (vA -   rA X wA) = 0,
+**     : (vB - [rB]_X*wB) - (vA - [rA]_X*wA) = 0,
 **
 ** where "[.]_X" denotes the skew-symmetric "cross product" matrix.
 **
-** We also need to impose a constraint on the angular velocities
-** of the rigid bodies themselves, not the joint axis:
+** We also need to impose constraints on the angular velocities
+** of the rigid bodies themselves, not the joint axis. Suppose we
+** want to constrain rotation about the axis a. Then wB . a > 0
+** implies that the rigid body is rotating towards (or past) the
+** axis limit. Hence, we impose the constraints
 **
-** C2' : wB - wA = 0.
+** C2' : (wB - wA) . s <= 0,
+** C3' : (wB - wA) . t <= 0,
 **
-** This constraint in particular is used to limit the relative
-** rotation of rigid body B on all three axes (taken in rigid
-** body A's space).
+** where 's' denotes the swing axis and 't' denotes the twist axis.
+** The twist axis is chosen as body B's local x-axis.
+**
+** Note that in order to solve the angular constraints as C' >= 0
+** constraints like we usually would, we just negate the swing and
+** twist axes after computing them.
 **
 ** ----------------------------------------------------------------------
 **
@@ -50,11 +57,12 @@
 **     [wB]
 **
 ** and the identity C' = JV, we can solve for the Jacobian J.
-** We will use two separate Jacobians, J1 for C1' and J2 for C2'.
+** We will use three separate Jacobians, J1, J2 and J3, for
+** C1', C2' and C3'.
 **
-** J1 = [-I_3, [aA]_X, I_3, -[aB]_X],
-**
-** J2 = [0, -1, 0, 1].
+** J1 = [-I_3, [rA]_X, I_3, -[rB]_X],
+** J2 = [0, -s, 0, s],
+** J3 = [0, -t, 0, t],
 **
 ** Note that "I_3" is the 3x3 identity matrix.
 **
@@ -70,50 +78,37 @@
 **          [   0       0       0    IB^(-1)]
 **
 **        [ -I_3  ]
-**        [-[aA]_X]
+**        [-[rA]_X]
 ** J1^T = [  I_3  ].
-**        [ [aB]_X]
+**        [ [rB]_X]
 **
 **
 ** Evaluating this expression gives us the following matrix for our
 ** point-to-point constraint:
 **
 **               [-mA^(-1) * I_3   ]
-**               [-IA^(-1) * [aA]_X]
+**               [-IA^(-1) * [rA]_X]
 ** M^(-1)*J1^T = [ mB^(-1) * I_3   ],
-**               [ IB^(-1) * [aB]_X]
+**               [ IB^(-1) * [rB]_X]
 **
 ** K1 = J1*M^(-1)*J1^T
-**    = (mA^(-1) + mB^(-1))*I_3 - [aA]_X*IA^(-1)*[aA]_X - [aB]_X*IB^(-1)*[aB]_X,
+**    = (mA^(-1) + mB^(-1))*I_3 - [rA]_X*IA^(-1)*[rA]_X - [rB]_X*IB^(-1)*[rB]_X,
 **
-** For our angular constraint, we simply get:
+** For our angular constraints, we simply get:
 **
-**               [    0   ]
-**               [-IA^(-1)]
-** M^(-1)*J2^T = [    0   ].
-**               [ IB^(-1)]
+**               [     0    ]
+**               [-IA^(-1)*s]
+** M^(-1)*J2^T = [     0    ],
+**               [ IB^(-1)*s]
 **
-** K2 = J2*M^(-1)*J2^T = IA^(-1) + IB^(-1).
+** K2 = J2*M^(-1)*J2^T = s . (IA^(-1) + IB^(-1))*s,
 **
-** Note that K1 and K2 are both 3x3 matrices.
+** and similarly for K3. Note that K1 is a 3x3 matrix,
+** but K2 and K3 are simply scalars.
 **
 ** ----------------------------------------------------------------------
 **
-** For the angular constraint, we also introduce a bias dependent
-** on C2. Although C2 wasn't given, we use it to clamp the minimum
-** and maximum rotation on each axis. To solve for C2, we need to:
-**
-** 1. Compute the relative orientation Rr (A -> B).
-** 2. Convert Rr to Euler angles (Re).
-** 3. Clamp Re to Rc using the upper and lower bounds on the angles.
-** 4. The rotation required to correct the relative orientation is Rd = conj(Rc)*Rr.
-** 5. Let b = C2/dt = axisAngle(Rd)/dt.
-** 6. Compute relative angular velocity JV (A -> B).
-** 7. Compute lambda = -(JV + b)/(JM^(-1)J^T).
-** 8. Apply the impulse.
-**
-** Note that the bias term 'b' should be in axis-angle form.
-** Also, we use Rd = Rc -> Rr to get the correction with respect to body A.
+** a
 **
 ** ----------------------------------------------------------------------
 */
@@ -125,7 +120,17 @@ https://github.com/erincatto/box2d/blob/master/src/dynamics/b2_revolute_joint.cp
 https://github.com/bulletphysics/bullet3/blob/master/src/BulletDynamics/ConstraintSolver/btConeTwistConstraint.cpp
 https://github.com/kovertopz/jReactPhysics3D/blob/master/src/main/java/net/smert/jreactphysics3d/constraint/BallAndSocketJoint.java
 https://github.com/dtecta/motion-toolkit
+https://github.com/DigitalRune/DigitalRune/blob/master/Source/DigitalRune.Physics/Constraints/TwistSwingLimit.cs
+
+Maybe investigate the generic 6-DOF constraints in Bullet.
+The way they handle angle limits might be better than just swing-twist.
+
+https://www.gamedev.net/forums/topic/589924-most-efficient-method-of-implementing-6dof-objects/
 **/
+#warning "Given two pairs of minimum and maximum angles, one for both swing axes, can we choose a twist axis that's halfway between the two pairs (in spherical coordinates)?"
+#warning "We can then use swing-twist decomposition directly with this new basis, or perhaps limit the swing axes using spherical coordinates."
+#warning "To limit it using spherical coordinates, you'd have to find a rotation that puts your twist axis at z and aligns your swing axes with x and y."
+#warning "If you don't do this, then the Euler angles will completely ruin you. Actually, we probably wouldn't even be using Euler angles."
 
 
 // Forward-declare any helper functions!
@@ -134,13 +139,14 @@ static void updateConstraintData(
 	const physicsRigidBody *const restrict bodyA, const physicsRigidBody *const restrict bodyB
 );
 static void calculateLinearMass(
-	const vec3 aA, const vec3 aB,
+	const vec3 rA, const vec3 rB,
 	const physicsRigidBody *const restrict bodyA, const physicsRigidBody *const restrict bodyB,
 	mat3 *const restrict linearMass
 );
-static void calculateAngularMass(
+static void calculateInverseAngularMass(
 	const physicsRigidBody *const restrict bodyA, const physicsRigidBody *const restrict bodyB,
-	mat3 *const restrict angularMass
+	const vec3 *const restrict swingAxis, const vec3 *const restrict twistAxis,
+	float *const restrict swingInvMass, float *const restrict twistInvMass
 );
 static void calculateBias(
 	physicsJointSphere *const restrict joint,
@@ -151,33 +157,50 @@ static void calculateBias(
 
 /*
 ** The inputs for the ball and socket joint shouldn't be too mysterious:
-**     axisA            - Vector from rigid body A's point of reference to the socket.
-**     axisB            - Vector from rigid body B's point of reference to the ball.
+**     anchorA          - Vector from rigid body A's point of reference to the socket.
+**     anchorB          - Vector from rigid body B's point of reference to the ball.
 **     {min,max}{X,Y,Z} - Angles used to clamp the relative orientation of body B.
 ** Note that the minimum and maximum angles are given in radians.
 ** The axes are taken relative to rigid body A's frame of reference.
 */
 void physJointSphereInit(
 	physicsJointSphere *const restrict joint,
-	const vec3 *const restrict axisA, const vec3 *const restrict axisB,
+	const vec3 *const restrict anchorA, const vec3 *const restrict anchorB,
 	const float minX, const float maxX,
 	const float minY, const float maxY,
 	const float minZ, const float maxZ
 ){
 
-	joint->axisLocalA = *axisA;
-	joint->axisLocalB = *axisB;
+	joint->anchorA = *anchorA;
+	joint->anchorB = *anchorB;
+
+	joint->angleLimitsX[0] = minX;
+	joint->angleLimitsX[1] = maxX;
+	joint->angleLimitsY[0] = minY;
+	joint->angleLimitsY[1] = maxY;
+	joint->angleLimitsZ[0] = minZ;
+	joint->angleLimitsZ[1] = maxZ;
 
 	vec3InitZero(&joint->linearImpulse);
-	vec3InitZero(&joint->angularImpulse);
+	joint->swingImpulse = 0.f;
+	joint->twistImpulse = 0.f;
 }
 
 
 #ifdef PHYSJOINTSPHERE_WARM_START
 void physJointSphereWarmStart(physicsJointSphere *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB){
+	vec3 angularImpulse;
+	vec3 twistImpulse;
+
+	// The angular impulse is the sum of the swing and twist impulses.
+	// We recalculate them here because we need the new swing and twist axes.
+	vec3MultiplySOut(&joint->swingAxis, joint->swingImpulse, &angularImpulse);
+	vec3MultiplySOut(&joint->twistAxis, joint->twistImpulse, &twistImpulse);
+	vec3AddVec3(&angularImpulse, &twistImpulse);
+
 	// Apply the accumulated impulses.
-	physRigidBodyApplyImpulseBoostInverse(bodyA, &joint->axisGlobalA, &joint->linearImpulse, &joint->angularImpulse);
-	physRigidBodyApplyImpulseBoost(bodyB, &joint->axisGlobalB, &joint->linearImpulse, &joint->angularImpulse);
+	physRigidBodyApplyImpulseBoostInverse(bodyA, &joint->rA, &joint->linearImpulse, &angularImpulse);
+	physRigidBodyApplyImpulseBoost(bodyB, &joint->rB, &joint->linearImpulse, &angularImpulse);
 }
 #endif
 
@@ -191,12 +214,18 @@ void physJointSpherePresolve(
 ){
 
 	updateConstraintData((physicsJointSphere *)joint, bodyA, bodyB);
+	calculateBias((physicsJointSphere *)joint, bodyA, bodyB, dt);
 	calculateLinearMass(
-		((physicsJointSphere *)joint)->axisGlobalA, ((physicsJointSphere *)joint)->axisGlobalB,
+		((physicsJointSphere *)joint)->rA, ((physicsJointSphere *)joint)->rB,
 		bodyA, bodyB, &((physicsJointSphere *)joint)->linearMass
 	);
-	calculateAngularMass(bodyA, bodyB, &((physicsJointSphere *)joint)->angularMass);
-	calculateBias((physicsJointSphere *)joint, bodyA, bodyB, dt);
+	calculateInverseAngularMass(
+		bodyA, bodyB,
+		&((physicsJointSphere *)joint)->swingAxis,
+		&((physicsJointSphere *)joint)->twistAxis,
+		&((physicsJointSphere *)joint)->swingInvMass,
+		&((physicsJointSphere *)joint)->twistInvMass
+	);
 	#ifdef PHYSJOINTSPHERE_WARM_START
 	physJointSphereWarmStart((physicsJointSphere *)joint, bodyA, bodyB);
 	#endif
@@ -211,21 +240,69 @@ void physJointSphereSolveVelocity(
 	void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB
 ){
 
+	vec3 relativeVelocity;
+	vec3 impulse;
+
+	// Solve the angular swing and twist constraints.
+	{
+		float lambda;
+		float oldImpulse;
+		vec3 tempImpulse;
+
+		// w_relative = wB - wA
+		vec3SubtractVec3FromOut(&bodyB->angularVelocity, &bodyA->angularVelocity, &relativeVelocity);
+
+
+		// Calculate the Lagrange multiplier for the swing constraint.
+		// lambda = -(J2*V + b2)/(J2*M^(-1)*J2^T)
+		lambda = -(
+			vec3DotVec3(&relativeVelocity, &((physicsJointSphere *)joint)->swingAxis) +
+			((physicsJointSphere *)joint)->swingBias
+		) * ((physicsJointSphere *)joint)->swingInvMass;
+
+		// Clamp the accumulated swing impulse magnitude.
+		oldImpulse = ((physicsJointSphere *)joint)->swingImpulse;
+		((physicsJointSphere *)joint)->swingImpulse = maxFloat(0.f, oldImpulse + lambda);
+		lambda = ((physicsJointSphere *)joint)->swingImpulse - oldImpulse;
+
+		// Calculate the swing impulse.
+		vec3MultiplySOut(&((physicsJointSphere *)joint)->swingAxis, lambda, &impulse);
+
+
+		// Calculate the Lagrange multiplier for the twist constraint.
+		// lambda = -(J3*V + b3)/(J3*M^(-1)*J3^T)
+		lambda = -(
+			vec3DotVec3(&relativeVelocity, &((physicsJointSphere *)joint)->twistAxis) +
+			((physicsJointSphere *)joint)->twistBias
+		) * ((physicsJointSphere *)joint)->twistInvMass;
+
+		// Clamp the accumulated twist impulse magnitude.
+		oldImpulse = ((physicsJointSphere *)joint)->twistImpulse;
+		((physicsJointSphere *)joint)->twistImpulse = maxFloat(0.f, oldImpulse + lambda);
+		lambda = ((physicsJointSphere *)joint)->twistImpulse - oldImpulse;
+
+		// Calculate the twist impulse and add it to the swing impulse.
+		vec3MultiplySOut(&((physicsJointSphere *)joint)->twistAxis, lambda, &tempImpulse);
+		vec3AddVec3(&impulse, &tempImpulse);
+
+
+		// Apply the correctional impulse.
+		physRigidBodyApplyAngularImpulseInverse(bodyA, impulse);
+		physRigidBodyApplyAngularImpulse(bodyB, impulse);
+	}
+
 	// Solve the linear point-to-point constraint last,
 	// as it's more important that it's satisfied.
 	{
-		vec3 relativeVelocity;
-		vec3 impulse;
-
-		// v_socket   = vA + wA X aA
-		// v_ball     = vB + wB X aB
+		// v_socket   = vA + wA X rA
+		// v_ball     = vB + wB X rB
 		// v_relative = v_ball - v_socket
 
 		// Calculate the total velocity of the socket.
-		vec3CrossVec3Out(&bodyA->angularVelocity, &((physicsJointSphere *)joint)->axisGlobalA, &impulse);
+		vec3CrossVec3Out(&bodyA->angularVelocity, &((physicsJointSphere *)joint)->rA, &impulse);
 		vec3AddVec3(&impulse, &bodyA->linearVelocity);
 		// Calculate the total velocity of the ball.
-		vec3CrossVec3Out(&bodyB->angularVelocity, &((physicsJointSphere *)joint)->axisGlobalB, &relativeVelocity);
+		vec3CrossVec3Out(&bodyB->angularVelocity, &((physicsJointSphere *)joint)->rB, &relativeVelocity);
 		vec3AddVec3(&relativeVelocity, &bodyB->linearVelocity);
 		// Calculate the relative velocity between the ball and socket.
 		// Note that we actually compute -v_relative here.
@@ -239,8 +316,8 @@ void physJointSphereSolveVelocity(
 		vec3AddVec3(&((physicsJointSphere *)joint)->linearImpulse, &impulse);
 
 		// Apply the correctional impulse.
-		physRigidBodyApplyImpulseInverse(bodyA, &((physicsJointSphere *)joint)->axisGlobalA, &impulse);
-		physRigidBodyApplyImpulse(bodyB, &((physicsJointSphere *)joint)->axisGlobalB, &impulse);
+		physRigidBodyApplyImpulseInverse(bodyA, &((physicsJointSphere *)joint)->rA, &impulse);
+		physRigidBodyApplyImpulse(bodyB, &((physicsJointSphere *)joint)->rB, &impulse);
 	}
 }
 
@@ -259,29 +336,32 @@ return_t physJointSphereSolvePosition(
 
 	// Solve the linear point-to-point constraint.
 	{
-		vec3 aA, aB;
+		vec3 rA;
+		vec3 rB;
 		vec3 constraint;
 		mat3 linearMass;
 		vec3 impulse;
 
-		vec3MultiplyVec3Out(&bodyA->state.scale, &((physicsJointSphere *)joint)->axisLocalA, &aA);
-		quatRotateVec3Fast(&bodyA->state.rot, &aA);
-		vec3MultiplyVec3Out(&bodyB->state.scale, &((physicsJointSphere *)joint)->axisLocalB, &aB);
-		quatRotateVec3Fast(&bodyB->state.rot, &aB);
+		vec3MultiplyVec3Out(&bodyA->state.scale, &((physicsJointSphere *)joint)->anchorA, &rA);
+		quatRotateVec3Fast(&bodyA->state.rot, &rA);
+		vec3MultiplyVec3Out(&bodyB->state.scale, &((physicsJointSphere *)joint)->anchorB, &rB);
+		quatRotateVec3Fast(&bodyB->state.rot, &rB);
 
 		// Calculate the displacement from the ball to the socket:
-		// -C1 = (pA + aA) - (pB - aB).
-		vec3AddVec3Out(&bodyA->centroid, &aA, &constraint);
+		// -C1 = (pA + rA) - (pB - rB).
+		vec3AddVec3Out(&bodyA->centroid, &rA, &constraint);
 		vec3SubtractVec3From(&constraint, &bodyB->centroid);
-		vec3SubtractVec3From(&constraint, &aB);
+		vec3SubtractVec3From(&constraint, &rB);
 		linearError = vec3MagnitudeVec3(&constraint);
 
-		calculateLinearMass(aA, aB, bodyA, bodyB, &linearMass);
+		// Solve for the impulse:
+		// K1*lambda = -C1.
+		calculateLinearMass(rA, rB, bodyA, bodyB, &linearMass);
 		mat3Solve(&linearMass, &constraint, &impulse);
 
 		// Apply the correctional impulse.
-		physRigidBodyApplyImpulseInverse(bodyA, &aA, &impulse);
-		physRigidBodyApplyImpulse(bodyB, &aB, &impulse);
+		physRigidBodyApplyImpulsePositionInverse(bodyA, &rA, &impulse);
+		physRigidBodyApplyImpulsePosition(bodyB, &rB, &impulse);
 	}
 
 	return(linearError <= PHYSCONSTRAINT_LINEAR_SLOP);
@@ -301,10 +381,10 @@ static void updateConstraintData(
 ){
 
 	// Transform the axis points using the bodies' new scales and rotations.
-	vec3MultiplyVec3Out(&bodyA->state.scale, &joint->axisLocalA, &joint->axisGlobalA);
-	quatRotateVec3Fast(&bodyA->state.rot, &joint->axisGlobalA);
-	vec3MultiplyVec3Out(&bodyB->state.scale, &joint->axisLocalB, &joint->axisGlobalB);
-	quatRotateVec3Fast(&bodyB->state.rot, &joint->axisGlobalB);
+	vec3MultiplyVec3Out(&bodyA->state.scale, &joint->anchorA, &joint->rA);
+	quatRotateVec3Fast(&bodyA->state.rot, &joint->rA);
+	vec3MultiplyVec3Out(&bodyB->state.scale, &joint->anchorB, &joint->rB);
+	quatRotateVec3Fast(&bodyB->state.rot, &joint->rB);
 }
 
 /*
@@ -312,21 +392,21 @@ static void updateConstraintData(
 ** change between velocity iterations. We can just do it once per update.
 */
 static void calculateLinearMass(
-	const vec3 aA, const vec3 aB,
+	const vec3 rA, const vec3 rB,
 	const physicsRigidBody *const restrict bodyA, const physicsRigidBody *const restrict bodyB,
 	mat3 *const restrict linearMass
 ){
 
 	// Compute the linear effective mass given by:
-	// K1 = (mA^(-1) + mB^(-1))*I_3 - [aA]_X*IA^(-1)*[aA]_X - [aB]_X*IB^(-1)*[aB]_X.
+	// K1 = (mA^(-1) + mB^(-1))*I_3 - [rA]_X*IA^(-1)*[rA]_X - [rB]_X*IB^(-1)*[rB]_X.
 	//
-	// This probably isn't so good, as [aA]_X*IA^(-1)*[aA]_X and [aB]_X*IB^(-1)*[aB]_X
+	// This probably isn't so good, as [rA]_X*IA^(-1)*[rA]_X and [rB]_X*IB^(-1)*[rB]_X
 	// are necessarily singular. We don't invert the matrix here, as it's faster to
 	// solve for lambda using Cramer's rule.
 
 	// Compute body A's contribution to K1.
 	{
-		// Note that the matrix [aA]_X*IA^(-1)*[aA]_X is symmetric, so we
+		// Note that the matrix [rA]_X*IA^(-1)*[rA]_X is symmetric, so we
 		// only need to compute the half of the off-diagonal elements.
 
 		// These variables bring it down to 27 multiplications and 14 subtractions.
@@ -337,22 +417,22 @@ static void calculateLinearMass(
 			                                 bodyA->invInertiaGlobal.m[1][1], bodyA->invInertiaGlobal.m[1][2],
 			                                                                  bodyA->invInertiaGlobal.m[2][2]
 		};
-		const float a3xy = aA.z*I[1];
+		const float a3xy = rA.z*I[1];
 		const float A[8] = {
-			aA.y*I[2] -      a3xy, aA.y*I[4] - aA.z*I[3], aA.y*I[5] - aA.z*I[4],
-			aA.z*I[0] - aA.x*I[2],      a3xy - aA.x*I[4], aA.z*I[2] - aA.x*I[5],
-			aA.x*I[1] - aA.y*I[0], aA.x*I[3] - aA.y*I[1]
+			rA.y*I[2] -      a3xy, rA.y*I[4] - rA.z*I[3], rA.y*I[5] - rA.z*I[4],
+			rA.z*I[0] - rA.x*I[2],      a3xy - rA.x*I[4], rA.z*I[2] - rA.x*I[5],
+			rA.x*I[1] - rA.y*I[0], rA.x*I[3] - rA.y*I[1]
 		};
 
-		// Compute -[aA]_X*IA^(-1)*[aA]_X.
+		// Compute -[rA]_X*IA^(-1)*[rA]_X.
 		// We don't set the lower triangular components here, as
 		// we can just do that when adding body B's contribution.
-		linearMass->m[0][0] = aA.y*A[2] - aA.z*A[1];
-		linearMass->m[0][1] = aA.z*A[0] - aA.x*A[2];
-		linearMass->m[0][2] = aA.x*A[1] - aA.y*A[0];
-		linearMass->m[1][1] = aA.z*A[3] - aA.x*A[5];
-		linearMass->m[1][2] = aA.x*A[4] - aA.y*A[3];
-		linearMass->m[2][2] = aA.x*A[7] - aA.y*A[6];
+		linearMass->m[0][0] = rA.y*A[2] - rA.z*A[1];
+		linearMass->m[0][1] = rA.z*A[0] - rA.x*A[2];
+		linearMass->m[0][2] = rA.x*A[1] - rA.y*A[0];
+		linearMass->m[1][1] = rA.z*A[3] - rA.x*A[5];
+		linearMass->m[1][2] = rA.x*A[4] - rA.y*A[3];
+		linearMass->m[2][2] = rA.x*A[7] - rA.y*A[6];
 	}
 	// Compute body B's contribution to K1.
 	{
@@ -361,40 +441,48 @@ static void calculateLinearMass(
 			                                 bodyB->invInertiaGlobal.m[1][1], bodyB->invInertiaGlobal.m[1][2],
 			                                                                  bodyB->invInertiaGlobal.m[2][2]
 		};
-		const float a3xy = aB.z*I[1];
+		const float a3xy = rB.z*I[1];
 		const float A[8] = {
-			aB.y*I[2] -      a3xy, aB.y*I[4] - aB.z*I[3], aB.y*I[5] - aB.z*I[4],
-			aB.z*I[0] - aB.x*I[2],      a3xy - aB.x*I[4], aB.z*I[2] - aB.x*I[5],
-			aB.x*I[1] - aB.y*I[0], aB.x*I[3] - aB.y*I[1]
+			rB.y*I[2] -      a3xy, rB.y*I[4] - rB.z*I[3], rB.y*I[5] - rB.z*I[4],
+			rB.z*I[0] - rB.x*I[2],      a3xy - rB.x*I[4], rB.z*I[2] - rB.x*I[5],
+			rB.x*I[1] - rB.y*I[0], rB.x*I[3] - rB.y*I[1]
 		};
 		const float invMass = bodyA->invMass + bodyB->invMass;
 
-		// Compute (mA^(-1) + mB^(-1))*I_3 - [aB]_X*IB^(-1)*[aB]_X.
-		linearMass->m[0][0] += aB.y*A[2] - aB.z*A[1] + invMass;
-		linearMass->m[0][1] += aB.z*A[0] - aB.x*A[2];
-		linearMass->m[0][2] += aB.x*A[1] - aB.y*A[0];
+		// Compute (mA^(-1) + mB^(-1))*I_3 - [rB]_X*IB^(-1)*[rB]_X.
+		linearMass->m[0][0] += rB.y*A[2] - rB.z*A[1] + invMass;
+		linearMass->m[0][1] += rB.z*A[0] - rB.x*A[2];
+		linearMass->m[0][2] += rB.x*A[1] - rB.y*A[0];
 		linearMass->m[1][0] = linearMass->m[0][1];
-		linearMass->m[1][1] += aB.z*A[3] - aB.x*A[5] + invMass;
-		linearMass->m[1][2] += aB.x*A[4] - aB.y*A[3];
+		linearMass->m[1][1] += rB.z*A[3] - rB.x*A[5] + invMass;
+		linearMass->m[1][2] += rB.x*A[4] - rB.y*A[3];
 		linearMass->m[2][0] = linearMass->m[0][2];
 		linearMass->m[2][1] = linearMass->m[1][2];
-		linearMass->m[2][2] += aB.x*A[7] - aB.y*A[6] + invMass;
+		linearMass->m[2][2] += rB.x*A[7] - rB.y*A[6] + invMass;
 	}
 }
 
 /*
-** Calculate the angular effective mass of the constraint, which won't
+** Calculate the inverse angular effective mass of the constraint, which won't
 ** change between velocity iterations. We can just do it once per update.
 */
-static void calculateAngularMass(
+static void calculateInverseAngularMass(
 	const physicsRigidBody *const restrict bodyA, const physicsRigidBody *const restrict bodyB,
-	mat3 *const restrict angularMass
+	const vec3 *const restrict swingAxis, const vec3 *const restrict twistAxis,
+	float *const restrict swingInvMass, float *const restrict twistInvMass
 ){
 
-	// K2 = IA^(-1) + IB^(-1).
-	// We don't invert it here, as it's faster to
-	// use Cramer's rule later to solve for lambda.
-	mat3AddMat3Out(&bodyA->invInertiaGlobal, &bodyB->invInertiaGlobal, angularMass);
+	mat3 invInertiaSum;
+	vec3 IABa;
+	mat3AddMat3Out(&bodyA->invInertiaGlobal, &bodyB->invInertiaGlobal, &invInertiaSum);
+
+	// Swing inverse effective mass (K2).
+	mat3MultiplyByVec3Out(&invInertiaSum, swingAxis, &IABa);
+	*swingInvMass = 1.f / vec3DotVec3(swingAxis, &IABa);
+
+	// Twist inverse effective mass (K3).
+	mat3MultiplyByVec3Out(&invInertiaSum, twistAxis, &IABa);
+	*twistInvMass = 1.f / vec3DotVec3(twistAxis, &IABa);
 }
 
 /*
@@ -407,5 +495,62 @@ static void calculateBias(
 	const float dt
 ){
 
-	//
+	// We also need to calculate the new swing
+	// and twist axes and the angle limits.
+	{
+		quat qAB;
+		quat swing, twist;
+
+		// Get the relative orientation from body A to body B:
+		// qAB = conj(A)*B.
+		quatMultiplyQuatConjByOut(bodyB->state.rot, bodyA->state.rot, &qAB);
+		// Decompose the relative orientation into swing and twist components.
+		vec3InitSet(&joint->twistAxis, 1.f, 0.f, 0.f);
+		quatSwingTwistFast(&qAB, &joint->twistAxis, &twist, &swing);
+		// We need to normalize the swing and twist quaternions, just in case.
+		quatNormalizeQuatFast(&swing);
+		quatNormalizeQuatFast(&twist);
+
+
+		// Compute the swing limit.
+		{
+			joint->swingBias = (clampEllipseDistanceFast(
+				swing.z, swing.y,
+				(swing.z > 0.f) ? joint->angleLimitsZ[1] : -joint->angleLimitsZ[0],
+				(swing.y > 0.f) ? joint->angleLimitsY[1] : -joint->angleLimitsY[0]
+			) - quatAngle(&swing)) / dt;
+
+			// Bring the swing axis from body B's space to global space.
+			quatAxis(&swing, &joint->swingAxis);
+			// Recall that our constraints specify that C' <= 0.
+			// In order to solve these as C' >= 0 constraints like
+			// usual, we need to negate the swing and twist axes.
+			joint->swingAxis.y = -joint->swingAxis.y;
+			joint->swingAxis.z = -joint->swingAxis.z;
+			quatRotateVec3Fast(&bodyA->state.rot, &joint->swingAxis);
+		}
+
+
+		// Compute the twist limit.
+		{
+			float twistAngle = quatAngle(&twist);
+			// Ensure the angle is in the range (-pi, pi].
+			// We'll also need to flip the twist axis.
+			if(twistAngle > M_PI){
+				twistAngle = 2.f*M_PI - twistAngle;
+
+			// Rather than flipping the twist axis above, we
+			// do it here, as we need to negate it later anyway.
+			}else{
+				joint->twistAxis.x = -1.f;
+			}
+			joint->twistBias = minFloat(
+				twistAngle - joint->angleLimitsX[0],
+				joint->angleLimitsX[1] - twistAngle
+			) / dt;
+
+			// Bring the twist axis from body B's space to global space.
+			quatRotateVec3Fast(&bodyA->state.rot, &joint->twistAxis);
+		}
+	}
 }

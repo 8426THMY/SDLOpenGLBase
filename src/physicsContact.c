@@ -228,7 +228,7 @@ void physManifoldInit(
 	#else
 	// Set the tangent vectors such that they form an
 	// orthonormal basis together with the contact normal.
-	normalBasisFaster(&normal, &physContactTangent(pm, 0), &physContactTangent(pm, 1));
+	orthonormalBasisFaster(&normal, &physContactTangent(pm, 0), &physContactTangent(pm, 1));
 	#endif
 
 	// If we're using a friction join, we initialize it here.
@@ -335,7 +335,7 @@ void physManifoldPersist(
 	vec3NormalizeVec3Fast(&normal);
 	// Set the tangent vectors such that they form an
 	// orthonormal basis together with the contact normal.
-	normalBasisFaster(&normal, &physContactTangent(pm, 0), &physContactTangent(pm, 1));
+	orthonormalBasisFaster(&normal, &physContactTangent(pm, 0), &physContactTangent(pm, 1));
 	physContactNormal(pm) = normal;
 
 	#ifdef PHYSCONTACT_STABILISER_GAUSS_SEIDEL
@@ -745,7 +745,7 @@ static void solveNormal(
 ){
 
 	float lambda;
-	float newImpulse;
+	float oldImpulse;
 	vec3 impulse;
 	vec3 contactVelocity;
 
@@ -770,9 +770,9 @@ static void solveNormal(
 
 	// C' >= 0
 	// Clamp our accumulated impulse in the normal direction.
-	newImpulse = maxFloat(0.f, contact->normalImpulse + lambda);
-	vec3MultiplySOut(&physContactNormal(pm), newImpulse - contact->normalImpulse, &impulse);
-	contact->normalImpulse = newImpulse;
+	oldImpulse = contact->normalImpulse;
+	contact->normalImpulse = maxFloat(0.f, oldImpulse + lambda);
+	vec3MultiplySOut(&physContactNormal(pm), contact->normalImpulse - oldImpulse, &impulse);
 
 	// Apply the correctional impulse.
 	physRigidBodyApplyImpulseInverse(bodyA, &contact->rA, &impulse);

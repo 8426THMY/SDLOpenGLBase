@@ -233,24 +233,37 @@ static void updateCameras(program *const restrict prg){
 	/** TEMPORARY TESTING STUFF! **/
 	if(controlObj != NULL){
 		quat rot = quatNormalizeQuatC(mat4ToQuatC(mat4RotateToFaceC(controlObj->state.pos, prg->cam.pos, vec3InitSetC(0.f, 1.f, 0.f))));
-		vec3 angles = quatToEulerAnglesC(rot);
-		//printf("E: %f, %f, %f\n", angles.x, angles.y, angles.z);
+		//vec3 angles = quatToEulerAnglesC(rot);
+		//printf("E: (%f, %f, %f)\n", angles.x, angles.y, angles.z);
 
 
-		quat t1, s1, t2, s2, t3, s3;
-		vec3 angles2;
-		quatSwingTwistFastC(rot, vec3InitSetC(1.f, 0.f, 0.f), &t1, &s1);
-		quatSwingTwistFastC(rot, vec3InitSetC(0.f, 1.f, 0.f), &t2, &s2);
-		quatSwingTwistFastC(rot, vec3InitSetC(0.f, 0.f, 1.f), &t3, &s3);
-		rot = quatMultiplyByQuatC(quatMultiplyByQuatC(s1, s2), s3);
-
-
-		angles.x = clampFloat(angles.x, -M_PI_4, M_PI_4);
-		angles.y = clampFloat(angles.y, -M_PI_4, M_PI_4);
-		angles.z = clampFloat(angles.z, 0.f, 0.f);
-
-		rot = quatNormalizeQuatFastC(quatInitEulerVec3RadC(angles));
-		rot.w = fabsf(rot.w);
+		const vec3 anglesMin = {.x = -M_PI_4, .y = -M_PI_4, .z = 0.f};
+		const vec3 anglesMax = {.x = M_PI_4, .y = M_PI_4, .z = 0.f};
+		quat s, t;
+		quatSwingTwistC(rot, vec3InitSetC(0.f, 0.f, 1.f), &t, &s);
+		/** Just implement this! Pyramid limits can wait (until I figure them out). **/
+		{
+			/** https://github.com/DigitalRune/DigitalRune/blob/master/Source/DigitalRune.Physics/Constraints/TwistSwingLimit.cs **/
+			/** https://github.com/bulletphysics/bullet3/blob/master/src/BulletDynamics/ConstraintSolver/btConeTwistConstraint.cpp **/
+			const vec4 axisAngle = quatToAxisAngleFastC(s);
+			const float swingLimit = clampEllipseDistanceFast(
+				s.x, s.y,
+				(s.x > 0.f) ? anglesMax.x : -anglesMin.x,
+				(s.y > 0.f) ? anglesMax.y : -anglesMin.y
+			);
+			if(axisAngle.w > swingLimit){
+				s = quatInitAxisAngleC(*((const vec3 *const)&axisAngle.x), swingLimit);
+			}
+		}
+		{
+			const float twistAngle = quatAngle(&t) - M_PI;
+			if(twistAngle < anglesMin.z){
+				t = quatInitAxisAngleC(vec3InitSetC(0.f, 0.f, 1.f), anglesMin.z);
+			}else if(twistAngle > anglesMax.z){
+				t = quatInitAxisAngleC(vec3InitSetC(0.f, 0.f, 1.f), anglesMax.z);
+			}
+		}
+		quatMultiplyByQuatOut(s, t, &rot);
 
 
 		controlObj->state.rot = rot;
@@ -571,10 +584,16 @@ static return_t initResources(program *const restrict prg){
 		obj = moduleObjectAlloc();
 		objectInit(obj, objDef);
 		printf("Cube %u: %u -> %u\n", 0, obj->physBodies, obj->physBodies->colliders);
-		//obj->state.pos.y = -0.5f;obj->state.pos.z = -2.f;
-		obj->state.pos = vec3InitSetC(0.239072f, -1.207037f+0.5f, -2.172446f);
-		obj->physBodies->linearVelocity.y = -2.f;
+		obj->state.pos = vec3InitSetC(0.239072f+2.5f, -0.707037f+2.f, -0.172447f-2.f);
+		//obj->state.pos = vec3InitSetC(0.239072f, -0.707037f+2.f-2.5f, -0.172447f-2.f);
+		//obj->physBodies->linearVelocity.x = 12.f;
+
+		//obj->physBodies->mass = 0.f;
+		//mat3InitZero(&obj->physBodies->invInertiaLocal);mat3InitZero(&obj->physBodies->invInertiaGlobal);
+		//obj->physBodies->invMass = 0.f;
+
 		objectPreparePhysics(obj);
+		//physRigidBodyIgnoreLinear(obj->physBodies);physRigidBodyIgnoreSimulation(obj->physBodies);
 		cube = obj->physBodies;
 
 
@@ -607,24 +626,20 @@ static return_t initResources(program *const restrict prg){
 
 		{
 			physicsJointPair *joint = modulePhysicsJointPairAlloc();
-			const vec3 axisA = vec3InitZeroC();
-			const vec3 axisB = vec3InitSetC(0.f, 0.f, -2.5f);
+			const vec3 anchorA = vec3InitZeroC();
+			const vec3 anchorB = vec3InitSetC(-2.5f, 0.f, 0.f);
 			physJointPairInit(joint, egg, cube, NULL, NULL);
-			//physJointSphereInit(&joint->joint.data.sphere, &axisA, &axisB, -2.f*M_PI, 2.f*M_PI, -2.f*M_PI, 2.f*M_PI, -2.f*M_PI, 2.f*M_PI);
-			//physJointSphereInit(&joint->joint.data.sphere, &axisA, &axisB, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f);
-			physJointSphereInit(&joint->joint.data.sphere, &axisA, &axisB, -M_PI_2, M_PI_2, -M_PI_2, M_PI_2, -M_PI_2, M_PI_2);
+			physJointSphereInit(&joint->joint.data.sphere, &anchorA, &anchorB, 0.f, 0.f, -M_PI_4, M_PI_4, -M_PI_4, M_PI_4);
 			joint->joint.type = PHYSJOINT_TYPE_SPHERE;
 			/*physicsJointPair *joint = modulePhysicsJointPairAlloc();
 			const vec3 anchorA = vec3InitZeroC();
 			const vec3 anchorB = vec3InitSetC(0.f, 2.5f, 0.f);
 			physJointPairInit(joint, egg, cube, NULL, NULL);
 			physJointDistanceInit(&joint->joint.data.distance, &anchorA, &anchorB, 0.f, 1.f, 0.01f);
-			joint->joint.type = PHYSJOINT_TYPE_DISTANCE;
+			joint->joint.type = PHYSJOINT_TYPE_DISTANCE;*/
 			{
 				vec3 aA, aB;
 				vec3 constraint;
-				mat3 linearMass;
-				vec3 impulse;
 
 				vec3MultiplyVec3Out(&egg->state.scale, &anchorA, &aA);
 				quatRotateVec3Fast(&egg->state.rot, &aA);
@@ -636,7 +651,8 @@ static return_t initResources(program *const restrict prg){
 				vec3AddVec3Out(&egg->centroid, &aA, &constraint);
 				vec3SubtractVec3From(&constraint, &cube->centroid);
 				vec3SubtractVec3From(&constraint, &aB);
-			}*/
+				printf("%f, %f, %f\n", constraint.x, constraint.y, constraint.z);
+			}
 		}
 		physIslandInsertRigidBody(&island, cube);
 		physIslandInsertRigidBody(&island, egg);

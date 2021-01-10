@@ -11,7 +11,7 @@ typedef struct vec2 {
 void vec2InitZero(vec2 *const restrict v);
 vec2 vec2InitZeroC();
 void vec2InitSet(vec2 *const restrict v, const float x, const float y);
-vec2 vec2InitSetC(vec2 v, const float x, const float y);
+vec2 vec2InitSetC(const float x, const float y);
 
 void vec2Add(vec2 *const restrict v, const float x, const float y);
 void vec2AddOut(const vec2 *const restrict v, const float x, const float y, vec2 *const restrict out);
@@ -93,6 +93,9 @@ vec2 vec2NormalizeVec2FastC(vec2 v);
 void vec2Negate(vec2 *const restrict v);
 void vec2NegateOut(const vec2 *const restrict v, vec2 *const restrict out);
 vec2 vec2NegateC(vec2 v);
+
+void vec2Orthogonal(const vec2 *const restrict v, vec2 *const restrict out);
+vec2 vec2OrthogonalC(const vec2 v);
 
 void vec2DegToRad(vec2 *const restrict v);
 void vec2RadToDeg(vec2 *const restrict v);

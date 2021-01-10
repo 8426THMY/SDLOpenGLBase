@@ -575,7 +575,7 @@ void physRigidBodyApplyImpulsePosition(physicsRigidBody *const restrict body, co
 		vec3CrossVec3Out(r, p, &impulse);
 		mat3MultiplyByVec3(&body->invInertiaGlobal, &impulse);
 		quatDifferentiateOut(&body->state.rot, &impulse, &tempRot);
-		quatAddQuat(&body->state.rot, &tempRot);
+		quatAddVec4(&body->state.rot, &tempRot);
 		quatNormalizeQuatFast(&body->state.rot);
 
 		physRigidBodyUpdateGlobalInertia(body);
@@ -598,7 +598,7 @@ void physRigidBodyApplyImpulsePositionInverse(physicsRigidBody *const restrict b
 		vec3CrossVec3Out(r, p, &impulse);
 		mat3MultiplyByVec3(&body->invInertiaGlobal, &impulse);
 		quatDifferentiateOut(&body->state.rot, &impulse, &tempRot);
-		quatSubtractQuatFrom(&body->state.rot, &tempRot);
+		quatSubtractVec4From(&body->state.rot, &tempRot);
 		quatNormalizeQuatFast(&body->state.rot);
 
 		physRigidBodyUpdateGlobalInertia(body);

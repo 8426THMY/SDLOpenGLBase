@@ -27,9 +27,8 @@ void vec2InitSet(vec2 *const restrict v, const float x, const float y){
 }
 
 // Initialize the vec2's values to the ones specified!
-vec2 vec2InitSetC(vec2 v, const float x, const float y){
-	v.x = x;
-	v.y = y;
+vec2 vec2InitSetC(const float x, const float y){
+	const vec2 v = {.x = x, .y = y};
 
 	return(v);
 }
@@ -575,6 +574,20 @@ vec2 vec2NegateC(vec2 v){
 	v.y = -v.y;
 
 	return(v);
+}
+
+
+/*
+** Generate a vector that is orthogonal to the
+** input vector and store the result in "out"!
+*/
+void vec2Orthogonal(const vec2 *const restrict v, vec2 *const restrict out){
+	vec2InitSet(out, -v->y, v->x);
+}
+
+// Generate a vector that is orthogonal to the input vector.
+vec2 vec2OrthogonalC(const vec2 v){
+	return(vec2InitSetC(-v.y, v.x));
 }
 
 

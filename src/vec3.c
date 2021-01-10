@@ -29,7 +29,7 @@ void vec3InitSet(vec3 *const restrict v, const float x, const float y, const flo
 
 // Initialize the vec3's values to the ones specified!
 vec3 vec3InitSetC(const float x, const float y, const float z){
-	vec3 v = {
+	const vec3 v = {
 		.x = x,
 		.y = y,
 		.z = z
@@ -574,20 +574,20 @@ vec3 vec3CrossFloatVec3C(const float x, const float y, const float z, const vec3
 
 // Find the cross product of two vec3s (v1 x v2) and store the result in "v1"!
 void vec3CrossByVec3(vec3 *const restrict v1, const vec3 *const restrict v2){
-	vec3 temp = *v1;
+	const vec3 temp = *v1;
 
 	v1->x = temp.y * v2->z - temp.z * v2->y;
 	v1->y = temp.z * v2->x - temp.x * v2->z;
 	v1->z = temp.x * v2->y - temp.y * v2->x;
 }
 
-// Find the cross product of two vec3s (v1 x v2) and store the result in "v2"!
-void vec3CrossVec3By(const vec3 *const restrict v1, vec3 *const restrict v2){
-	vec3 temp = *v2;
+// Find the cross product of two vec3s (v2 x v1) and store the result in "v1"!
+void vec3CrossVec3By(vec3 *const restrict v1, const vec3 *const restrict v2){
+	const vec3 temp = *v1;
 
-	v2->x = v1->y * temp.z - v1->z * temp.y;
-	v2->y = v1->z * temp.x - v1->x * temp.z;
-	v2->z = v1->x * temp.y - v1->y * temp.x;
+	v1->x = v2->y * temp.z - v2->z * temp.y;
+	v1->y = v2->z * temp.x - v2->x * temp.z;
+	v1->z = v2->x * temp.y - v2->y * temp.x;
 }
 
 // Find the cross product of two vec3s (v1 x v2) and store the result in "out"!
@@ -730,6 +730,36 @@ vec3 vec3NegateC(vec3 v){
 	v.z = -v.z;
 
 	return(v);
+}
+
+
+/*
+** Generate a vector that is orthogonal to the
+** input vector and store the result in "out"!
+**
+** Note that this is basically copied from Pixar's
+** code for generating an orthonormal basis.
+** See "orthonormalBasisFaster" in "utilMath.c".
+*/
+void vec3Orthogonal(const vec3 *const restrict v, vec3 *const restrict out){
+	const float sign = copySign(1.f, v->z);
+	const float a = -1.f/(sign + v->z);
+	const float b = v->x*v->y*a;
+	vec3InitSet(out, b, sign + v->y*v->y*a, -v->y);
+}
+
+/*
+** Generate a vector that is orthogonal to the input vector.
+**
+** Note that this is basically copied from Pixar's
+** code for generating an orthonormal basis.
+** See "orthonormalBasisFaster" in "utilMath.c".
+*/
+vec3 vec3OrthogonalC(const vec3 v){
+	const float sign = copySign(1.f, v.z);
+	const float a = -1.f/(sign + v.z);
+	const float b = v.x*v.y*a;
+	return(vec3InitSetC(b, sign + v.y*v.y*a, -v.y));
 }
 
 

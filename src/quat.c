@@ -8,6 +8,7 @@
 
 
 #define QUAT_SINGULARITY_THRESHOLD 0.0001f
+#define QUAT_SINGULARITY_THRESHOLD_SQUARED (QUAT_SINGULARITY_THRESHOLD*QUAT_SINGULARITY_THRESHOLD)
 // We'll do linear interpolation if the angle between
 // the two quaternions is less than half a degree.
 #define QUAT_LERP_THRESHOLD        cosf(1.f*DEG_TO_RAD)
@@ -84,6 +85,36 @@ quat quatInitSetC(const float x, const float y, const float z, const float w){
 	q.z = z;
 	q.w = w;
 
+	return(q);
+}
+
+// Initialize a quaternion from a vector and a float!
+void quatInitVec3F(quat *const restrict q, const vec3 *const restrict v, const float w){
+	*((vec3 *)&q->x) = *v;
+	q->w = w;
+}
+
+// Initialize a quaternion from a vector and a float!
+quat quatInitVec3FC(const vec3 v, const float w){
+	const quat q = {.x = v.x, .y = v.y, .z = v.z, .w = w};
+	return(q);
+}
+
+// Initialize a quaternion from an axis-angle representation!
+void quatInitAxisAngle(quat *const restrict q, const vec3 *const restrict a, const float t){
+	const float tHalf = t*0.5f;
+	const float st = sinf(tHalf);
+	q->x = st*a->x;
+	q->y = st*a->y;
+	q->z = st*a->z;
+	q->w = cosf(tHalf);
+}
+
+// Initialize a quaternion from an axis-angle representation!
+quat quatInitAxisAngleC(const vec3 a, const float t){
+	const float tHalf = t*0.5f;
+	const float st = sinf(tHalf);
+	const quat q = {.x = st*a.x, .y = st*a.y, .z = st*a.z, .w = cosf(tHalf)};
 	return(q);
 }
 
@@ -243,7 +274,7 @@ quat quatAddSC(quat q, const float x){
 }
 
 // Add "v" to "q"!
-void quatAddQuat(quat *const restrict q, const vec4 *const restrict v){
+void quatAddVec4(quat *const restrict q, const vec4 *const restrict v){
 	q->x += v->x;
 	q->y += v->y;
 	q->z += v->z;
@@ -251,7 +282,7 @@ void quatAddQuat(quat *const restrict q, const vec4 *const restrict v){
 }
 
 // Add "v" to "q" and store the result in "out"!
-void quatAddQuatOut(const quat *const restrict q, const vec4 *const restrict v, quat *const restrict out){
+void quatAddVec4Out(const quat *const restrict q, const vec4 *const restrict v, quat *const restrict out){
 	out->x = q->x + v->x;
 	out->y = q->y + v->y;
 	out->z = q->z + v->z;
@@ -259,7 +290,7 @@ void quatAddQuatOut(const quat *const restrict q, const vec4 *const restrict v, 
 }
 
 // Add "v" to "q"!
-quat quatAddQuatC(quat q, const vec4 v){
+quat quatAddVec4C(quat q, const vec4 v){
 	q.x += v.x;
 	q.y += v.y;
 	q.z += v.z;
@@ -373,7 +404,7 @@ quat quatSubtractFromSC(quat q, const float x){
 }
 
 // Subtract "v" from "q"!
-void quatSubtractQuatFrom(quat *const restrict q, const vec4 *const restrict v){
+void quatSubtractVec4From(quat *const restrict q, const vec4 *const restrict v){
 	q->x -= v->x;
 	q->y -= v->y;
 	q->z -= v->z;
@@ -381,7 +412,7 @@ void quatSubtractQuatFrom(quat *const restrict q, const vec4 *const restrict v){
 }
 
 // Subtract "q" from "v"!
-void quatSubtractFromQuat(quat *const restrict q, const vec4 *const restrict v){
+void quatSubtractFromVec4(quat *const restrict q, const vec4 *const restrict v){
 	q->x = v->x - q->x;
 	q->y = v->y - q->y;
 	q->z = v->z - q->z;
@@ -389,7 +420,7 @@ void quatSubtractFromQuat(quat *const restrict q, const vec4 *const restrict v){
 }
 
 // Subtract "v" from "q" and store the result in "out"!
-void quatSubtractQuatFromOut(const quat *const restrict q, const vec4 *const restrict v, quat *const restrict out){
+void quatSubtractVec4FromOut(const quat *const restrict q, const vec4 *const restrict v, quat *const restrict out){
 	out->x = q->x - v->x;
 	out->y = q->y - v->y;
 	out->z = q->z - v->z;
@@ -397,7 +428,7 @@ void quatSubtractQuatFromOut(const quat *const restrict q, const vec4 *const res
 }
 
 // Subtract "v" from "q"!
-quat quatSubtractQuatFromC(quat q, const vec4 v){
+quat quatSubtractVec4FromC(quat q, const vec4 v){
 	q.x -= v.x;
 	q.y -= v.y;
 	q.z -= v.z;
@@ -895,11 +926,11 @@ void quatRotateVec3Fast(const quat *const restrict q, vec3 *const restrict v){
 	qvCross.x += q->w * v->x;
 	qvCross.y += q->w * v->y;
 	qvCross.z += q->w * v->z;
-	vec3CrossVec3By((const vec3 *const restrict)&q->x, &qvCross);
+	vec3CrossVec3By(&qvCross, (const vec3 *const restrict)&q->x);
 
-	v->x = qvCross.x + qvCross.x + v->x;
-	v->y = qvCross.y + qvCross.y + v->y;
-	v->z = qvCross.z + qvCross.z + v->z;
+	v->x = 2.f*qvCross.x + v->x;
+	v->y = 2.f*qvCross.y + v->y;
+	v->z = 2.f*qvCross.z + v->z;
 }
 
 // Apply a quaternion rotation to a vec3!
@@ -909,11 +940,11 @@ void quatRotateVec3FastOut(const quat *const restrict q, const vec3 *const restr
 	qvCross.x += q->w * v->x;
 	qvCross.y += q->w * v->y;
 	qvCross.z += q->w * v->z;
-	vec3CrossVec3By((const vec3 *const restrict)&q->x, &qvCross);
+	vec3CrossVec3By(&qvCross, (const vec3 *const restrict)&q->x);
 
-	out->x = qvCross.x + qvCross.x + v->x;
-	out->y = qvCross.y + qvCross.y + v->y;
-	out->z = qvCross.z + qvCross.z + v->z;
+	out->x = 2.f*qvCross.x + v->x;
+	out->y = 2.f*qvCross.y + v->y;
+	out->z = 2.f*qvCross.z + v->z;
 }
 
 // Apply a quaternion rotation to a vec3!
@@ -924,9 +955,9 @@ vec3 quatRotateVec3FastC(const quat q, vec3 v){
 	qvCross.z += q.w * v.z;
 	qvCross = vec3CrossVec3C(*((const vec3 *)&q.x), qvCross);
 
-	v.x = qvCross.x + qvCross.x + v.x;
-	v.y = qvCross.y + qvCross.y + v.y;
-	v.z = qvCross.z + qvCross.z + v.z;
+	v.x = 2.f*qvCross.x + v.x;
+	v.y = 2.f*qvCross.y + v.y;
+	v.z = 2.f*qvCross.z + v.z;
 
 	return(v);
 }
@@ -938,11 +969,11 @@ void quatRotateVec3InverseFast(const quat *const restrict q, vec3 *const restric
 	qvCross.x -= q->w * v->x;
 	qvCross.y -= q->w * v->y;
 	qvCross.z -= q->w * v->z;
-	vec3CrossVec3By((const vec3 *const restrict)&q->x, &qvCross);
+	vec3CrossVec3By(&qvCross, (const vec3 *const restrict)&q->x);
 
-	v->x = qvCross.x + qvCross.x + v->x;
-	v->y = qvCross.y + qvCross.y + v->y;
-	v->z = qvCross.z + qvCross.z + v->z;
+	v->x = 2.f*qvCross.x + v->x;
+	v->y = 2.f*qvCross.y + v->y;
+	v->z = 2.f*qvCross.z + v->z;
 }
 
 // Undo a quaternion rotation on a vec3!
@@ -952,11 +983,11 @@ void quatRotateVec3InverseFastOut(const quat *const restrict q, const vec3 *cons
 	qvCross.x -= q->w * v->x;
 	qvCross.y -= q->w * v->y;
 	qvCross.z -= q->w * v->z;
-	vec3CrossVec3By((const vec3 *const restrict)&q->x, &qvCross);
+	vec3CrossVec3By(&qvCross, (const vec3 *const restrict)&q->x);
 
-	out->x = qvCross.x + qvCross.x + v->x;
-	out->y = qvCross.y + qvCross.y + v->y;
-	out->z = qvCross.z + qvCross.z + v->z;
+	out->x = 2.f*qvCross.x + v->x;
+	out->y = 2.f*qvCross.y + v->y;
+	out->z = 2.f*qvCross.z + v->z;
 }
 
 // Undo a quaternion rotation on a vec3!
@@ -967,11 +998,142 @@ vec3 quatRotateVec3InverseFastC(const quat q, vec3 v){
 	qvCross.z -= q.w * v.z;
 	qvCross = vec3CrossVec3C(*((const vec3 *)&q.x), qvCross);
 
-	v.x = qvCross.x + qvCross.x + v.x;
-	v.y = qvCross.y + qvCross.y + v.y;
-	v.z = qvCross.z + qvCross.z + v.z;
+	v.x = 2.f*qvCross.x + v.x;
+	v.y = 2.f*qvCross.y + v.y;
+	v.z = 2.f*qvCross.z + v.z;
 
 	return(v);
+}
+
+
+// Rotate the x-axis by a quaternion and store the result in "out"!
+void quatBasisX(const quat *const restrict q, vec3 *const restrict out){
+	const float x2 = 2.f * q->x;
+	const float w2 = 2.f * q->w;
+	out->x = q->x * x2 + q->w * w2 - 1.f;
+	out->y = q->y * x2 + q->z * w2;
+	out->z = q->z * x2 - q->y * w2;
+}
+
+// Rotate the x-axis by a quaternion!
+vec3 quatBasisXC(const quat q){
+	const float x2 = 2.f * q.x;
+	const float w2 = 2.f * q.w;
+	const vec3 v = {
+		.x = q.x * x2 + q.w * w2 - 1.f,
+		.y = q.y * x2 + q.z * w2,
+		.z = q.z * x2 - q.y * w2
+	};
+
+	return(v);
+}
+
+// Rotate the y-axis by a quaternion and store the result in "out"!
+void quatBasisY(const quat *const restrict q, vec3 *const restrict out){
+	const float y2 = 2.f * q->y;
+	const float w2 = 2.f * q->w;
+	out->x = q->x * y2 - q->z * w2;
+	out->y = q->y * y2 + q->w * w2 - 1.f;
+	out->z = q->z * y2 + q->x * w2;
+}
+
+// Rotate the y-axis by a quaternion!
+vec3 quatBasisYC(const quat q){
+	const float y2 = 2.f * q.y;
+	const float w2 = 2.f * q.w;
+	const vec3 v = {
+		.x = q.x * y2 - q.z * w2,
+		.y = q.y * y2 + q.w * w2 - 1.f,
+		.z = q.z * y2 + q.x * w2
+	};
+
+	return(v);
+}
+
+// Rotate the z-axis by a quaternion and store the result in "out"!
+void quatBasisZ(const quat *const restrict q, vec3 *const restrict out){
+	const float z2 = 2.f * q->z;
+	const float w2 = 2.f * q->w;
+	//2xz + 2yw, 2yz - 2xw, 2zz + 2ww - 1
+	out->x = q->x * z2 + q->y * w2;
+	out->y = q->y * z2 - q->x * w2;
+	out->z = q->z * z2 + q->w * w2 - 1.f;
+}
+
+// Rotate the z-axis by a quaternion!
+vec3 quatBasisZC(const quat q){
+	const float z2 = 2.f * q.z;
+	const float w2 = 2.f * q.w;
+	const vec3 v = {
+		.x = q.x * z2 + q.y * w2,
+		.y = q.y * z2 - q.x * w2,
+		.z = q.z * z2 + q.w * w2 - 1.f
+	};
+
+	return(v);
+}
+
+
+// Find a quaternion that rotates "v1" to "v2" and store the result in "out"!
+void quatShortestArc(const vec3 *const restrict v1, const vec3 *const restrict v2, quat *const restrict out){
+	vec3CrossVec3Out(v1, v2, (vec3 *)&out->x);
+	out->w = 1.f + vec3DotVec3(v1, v2);
+	quatNormalizeQuatFast(out);
+}
+
+// Find a quaternion that rotates "v1" to "v2"!
+quat quatShortestArcC(const vec3 v1, const vec3 v2){
+	const vec3 axis = vec3CrossVec3C(v1, v2);
+	return(quatNormalizeQuatFastC(quatInitSetC(axis.x, axis.y, axis.z, 1.f + vec3DotVec3C(v1, v2))));
+}
+
+/*
+** Find a quaternion that rotates "v1" to "v2"!
+** This implementation is based on Stan Melax's article in Game Programming Gems 2.
+**
+** The main difference is that this implementation
+** handles the singularity when the two vectors are
+** antiparallel.
+*/
+void quatShortestArcAlt(const vec3 *const restrict v1, const vec3 *const restrict v2, quat *const restrict out){
+	const float d = vec3DotVec3(v1, v2);
+	// Handle the case where the vectors are
+	// antiparallel to avoid dividing by zero.
+	if(d < -1.f + QUAT_SINGULARITY_THRESHOLD){
+		vec3Orthogonal(v1, (vec3 *const restrict)&out->x);
+		out->w = 0.f;
+	}else{
+		const float s = sqrtf(2.f * (1.f + d));
+		const float rs = 1.f/s;
+		vec3 axis;
+		vec3CrossVec3Out(v1, v2, &axis);
+		quatInitSet(out, rs*axis.x, rs*axis.y, rs*axis.z, s*0.5f);
+	}
+}
+
+/*
+** Find a quaternion that rotates "v1" to "v2"!
+** This implementation is based on Stan Melax's article in Game Programming Gems 2.
+**
+** The main difference is that this implementation
+** handles the singularity when the two vectors are
+** antiparallel.
+*/
+quat quatShortestArcAltC(const vec3 v1, const vec3 v2){
+	const float d = vec3DotVec3C(v1, v2);
+	// Handle the case where the vectors are
+	// antiparallel to avoid dividing by zero.
+	if(d < -1.f + QUAT_SINGULARITY_THRESHOLD){
+		quat q;
+		*((vec3 *const restrict)&q.x) = vec3OrthogonalC(v1);
+		q.w = 0.f;
+		return(q);
+	}else{
+		const float s = sqrtf(2.f * (1.f + d));
+		const float rs = 1.f/s;
+		const vec3 axis = vec3CrossVec3C(v1, v2);
+		return(quatInitSetC(rs*axis.x, rs*axis.y, rs*axis.z, s*0.5f));
+	}
 }
 
 
@@ -1222,6 +1384,126 @@ quat quatNegateC(quat q){
 }
 
 
+// Find a quaternion's normalized axis and store the result in "out"!
+void quatAxis(const quat *const restrict q, vec3 *const restrict out){
+	float scale = 1.f - q->w*q->w;
+	if(scale < QUAT_SINGULARITY_THRESHOLD_SQUARED){
+		out->x = 1.f;
+		out->y = 0.f;
+		out->z = 0.f;
+	}else{
+		scale = invSqrt(scale);
+		out->x = q->x*scale;
+		out->y = q->y*scale;
+		out->z = q->z*scale;
+	}
+}
+
+// Find a quaternion's normalized axis and store the result in "out"!
+void quatAxisFast(const quat *const restrict q, vec3 *const restrict out){
+	float scale = 1.f - q->w*q->w;
+	if(scale < QUAT_SINGULARITY_THRESHOLD_SQUARED){
+		out->x = 1.f;
+		out->y = 0.f;
+		out->z = 0.f;
+	}else{
+		scale = invSqrtFast(scale);
+		out->x = q->x*scale;
+		out->y = q->y*scale;
+		out->z = q->z*scale;
+	}
+}
+
+// Find a quaternion's normalized axis!
+vec3 quatAxisC(const quat q){
+	vec3 v;
+
+	float scale = 1.f - q.w*q.w;
+	if(scale < QUAT_SINGULARITY_THRESHOLD_SQUARED){
+		v.x = 1.f;
+		v.y = 0.f;
+		v.z = 0.f;
+	}else{
+		scale = invSqrt(scale);
+		v.x = q.x*scale;
+		v.y = q.y*scale;
+		v.z = q.z*scale;
+	}
+
+	return(v);
+}
+
+// Find a quaternion's normalized axis!
+vec3 quatAxisFastC(const quat q){
+	vec3 v;
+
+	float scale = 1.f - q.w*q.w;
+	if(scale < QUAT_SINGULARITY_THRESHOLD_SQUARED){
+		v.x = 1.f;
+		v.y = 0.f;
+		v.z = 0.f;
+	}else{
+		scale = invSqrtFast(scale);
+		v.x = q.x*scale;
+		v.y = q.y*scale;
+		v.z = q.z*scale;
+	}
+
+	return(v);
+}
+
+// Return a quaternion's angle!
+float quatAngle(const quat *const restrict q){
+	return(2.f * acosf(q->w));
+}
+
+// Return a quaternion's angle!
+float quatAngleC(const quat q){
+	return(2.f * acosf(q.w));
+}
+
+
+/*
+** Return a quaternion's rotation about an arbitrary axis!
+** Note that "qa" is the dot product of the quaternion's
+** axis with the unit axis of interest and "w" is the
+** quaternion's real part.
+*/
+float quatAngleAboutAxis(const float qa, const float w){
+	// tan(t/4) = sin(t/2)/(1 + cos(t/2))
+	return(4.f * atan2f(qa, 1.f + w));
+}
+
+/*
+** Assuming "v" is a vector given by
+**     v = (tanf(tx * 0.25f), tanf(ty * 0.25f), tanf(tz * 0.25f)),
+** where
+**     tk = quatAngleAboutAxis(q.k, q.w),
+** this function reconstructs "q" and stores it in "out".
+**
+** This function was inspired by the one used by NVIDIA in PhysX.
+*/
+void quatFromTanVector(const vec3 *const restrict v, quat *const restrict out){
+	const float vv = vec3NormVec3(v);
+	if(vv < QUAT_SINGULARITY_THRESHOLD_SQUARED){
+		quatInitIdentity(out);
+	}else{
+		const float d = 2.f / (1.f + vv);
+		quatInitSet(out, v->x * d, v->y * d, v->z * d, d - 1.f);
+	}
+}
+
+quat quatFromTanVectorC(const vec3 v){
+	const float vv = vec3NormVec3C(v);
+	if(vv < QUAT_SINGULARITY_THRESHOLD_SQUARED){
+		return(quatInitIdentityC());
+	}else{
+		const float d = 2.f / (1.f + vv);
+		return(quatInitSetC(v.x * d, v.y * d, v.z * d, d - 1.f));
+	}
+}
+
+
 /*
 ** Find the Euler angles describing a quaternion and store the result in "out"!
 ** The output vector is given in the form (roll, pitch, yaw) and the ordering
@@ -1303,7 +1585,7 @@ vec3 quatToEulerAnglesAltC(const quat q){
 // Convert a quaternion to an axis and an angle and store the result in "out"!
 void quatToAxisAngle(const quat *const restrict q, vec4 *const restrict out){
 	float scale = 1.f - q->w*q->w;
-	if(scale < QUAT_SINGULARITY_THRESHOLD*QUAT_SINGULARITY_THRESHOLD){
+	if(scale < QUAT_SINGULARITY_THRESHOLD_SQUARED){
 		out->x = 1.f;
 		out->y = 0.f;
 		out->z = 0.f;
@@ -1319,7 +1601,7 @@ void quatToAxisAngle(const quat *const restrict q, vec4 *const restrict out){
 // Convert a quaternion to an axis and an angle and store the result in "out"!
 void quatToAxisAngleFast(const quat *const restrict q, vec4 *const restrict out){
 	float scale = 1.f - q->w*q->w;
-	if(scale < QUAT_SINGULARITY_THRESHOLD*QUAT_SINGULARITY_THRESHOLD){
+	if(scale < QUAT_SINGULARITY_THRESHOLD_SQUARED){
 		out->x = 1.f;
 		out->y = 0.f;
 		out->z = 0.f;
@@ -1337,7 +1619,7 @@ vec4 quatToAxisAngleC(const quat q){
 	vec4 v;
 
 	float scale = 1.f - q.w*q.w;
-	if(scale < QUAT_SINGULARITY_THRESHOLD*QUAT_SINGULARITY_THRESHOLD){
+	if(scale < QUAT_SINGULARITY_THRESHOLD_SQUARED){
 		v.x = 1.f;
 		v.y = 0.f;
 		v.z = 0.f;
@@ -1357,7 +1639,7 @@ vec4 quatToAxisAngleFastC(const quat q){
 	vec4 v;
 
 	float scale = 1.f - q.w*q.w;
-	if(scale < QUAT_SINGULARITY_THRESHOLD*QUAT_SINGULARITY_THRESHOLD){
+	if(scale < QUAT_SINGULARITY_THRESHOLD_SQUARED){
 		v.x = 1.f;
 		v.y = 0.f;
 		v.z = 0.f;
@@ -2179,6 +2461,7 @@ quat quatScaleFasterC(quat q, const float time){
 **
 ** This implementation negates twist when the dot product is
 ** negative to ensure that it points in the same direction as "v".
+** We also check for and handle the singularity.
 **
 ** Based off Przemyslaw Dobrowolski's implementation given
 ** in Swing-Twist Decomposition in Clifford Algebra (2015).
@@ -2187,34 +2470,52 @@ void quatSwingTwist(const quat *const restrict q, const vec3 *const restrict v, 
 	// Project the q's rotation axis onto the twist axis "v".
 	float u = vec3DotVec3(v, (const vec3 *const restrict)&q->x);
 	// Quickly compute the inverse magnitude of the projection.
-	//
-	// Note that if the dot product is negative, we need to invert
-	// the twist quaternion to keep the direction consistent.
-	const float l = (u < 0.f) ? -invSqrtFast(q->w*q->w + u*u) : invSqrtFast(q->w*q->w + u*u);
-	u *= l;
+	float l = q->w*q->w + u*u;
 
-	// Set the twist quaternion.
-	quatInitSet(t, v->x*u, v->y*u, v->z*u, q->w*l);
+	// Handle the singularity at twist rotations close to pi.
+	if(l < QUAT_SINGULARITY_THRESHOLD_SQUARED){
+		quatInitIdentity(t);
+	}else{
+		l = invSqrtFast(l);
+		u *= l;
+		quatInitSet(t, v->x*u, v->y*u, v->z*u, q->w*l);
+	}
+
 	// By construction, q = s*t. We have "t", so to find
 	// "s" we can just multiply "q" by the conjugate of "t".
 	quatMultiplyByQuatConjOut(*q, *t, s);
+
+	// Note that if the dot product is negative, we need to invert
+	// the twist quaternion to keep the direction consistent.
+	if(u < 0.f){
+		quatNegate(t);
+	}
 }
 
 void quatSwingTwistC(const quat q, const vec3 v, quat *const restrict t, quat *const restrict s){
 	// Project the q's rotation axis onto the twist axis "v".
 	float u = vec3DotVec3C(v, *((const vec3 *)&q.x));
 	// Quickly compute the inverse magnitude of the projection.
-	//
-	// Note that if the dot product is negative, we need to invert
-	// the twist quaternion to keep the direction consistent.
-	const float l = (u < 0.f) ? -invSqrtFast(q.w*q.w + u*u) : invSqrtFast(q.w*q.w + u*u);
-	u *= l;
+	float l = q.w*q.w + u*u;
 
-	// Set the twist quaternion.
-	*t = quatInitSetC(v.x*u, v.y*u, v.z*u, q.w*l);
+	// Handle the singularity at twist rotations close to pi.
+	if(l < QUAT_SINGULARITY_THRESHOLD_SQUARED){
+		*t = quatInitIdentityC();
+	}else{
+		l = invSqrtFast(l);
+		u *= l;
+		*t = quatInitSetC(v.x*u, v.y*u, v.z*u, q.w*l);
+	}
+
 	// By construction, q = s*t. We have "t", so to find
 	// "s" we can just multiply "q" by the conjugate of "t".
 	*s = quatMultiplyByQuatConjC(q, *t);
+
+	// Note that if the dot product is negative, we need to invert
+	// the twist quaternion to keep the direction consistent.
+	if(u < 0.f){
+		quatNegate(t);
+	}
 }
 
 /*
@@ -2321,7 +2622,7 @@ void quatIntegrate(quat *const restrict q, const vec3 *const restrict w, float d
 	quatInitSet(&spin, w->x * dt, w->y * dt, w->z * dt, 0.f);
 
 	quatMultiplyByQuat(&spin, *q);
-	quatAddQuat(q, &spin);
+	quatAddVec4(q, &spin);
 }
 
 /*
@@ -2339,7 +2640,7 @@ void quatIntegrateOut(const quat *const restrict q, const vec3 *const restrict w
 	quatInitSet(&spin, w->x * dt, w->y * dt, w->z * dt, 0.f);
 
 	quatMultiplyByQuat(&spin, *q);
-	quatAddQuatOut(q, &spin, out);
+	quatAddVec4Out(q, &spin, out);
 }
 
 /*
@@ -2352,5 +2653,5 @@ quat quatIntegrateC(const quat q, const vec3 w, float dt){
 	dt *= 0.5f;
 	// Multiply by half the timestep to
 	// save multiplications later on.
-	return(quatAddQuatC(q, quatMultiplyByQuatC(quatInitSetC(w.x * dt, w.y * dt, w.z * dt, 0.f), q)));
+	return(quatAddVec4C(q, quatMultiplyByQuatC(quatInitSetC(w.x * dt, w.y * dt, w.z * dt, 0.f), q)));
 }

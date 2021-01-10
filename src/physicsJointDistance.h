@@ -42,6 +42,11 @@ typedef struct physicsJointDistance {
 	// These points are in local space.
 	vec3 anchorA;
 	vec3 anchorB;
+	// These points are in global space, but they
+	// are still relative to the centres of mass.
+	vec3 rA;
+	vec3 rB;
+	vec3 rAB;
 
 	float distance;
 	float angularFrequency;
@@ -58,12 +63,6 @@ typedef struct physicsJointDistance {
 	float gamma;
 	float bias;
 
-	// These points are in global space, but they
-	// are still relative to the centres of mass.
-	vec3 rA;
-	vec3 rB;
-	vec3 rAB;
-
 	float invEffectiveMass;
 
 	// Accumulated impulse used for warm starting.
@@ -76,7 +75,7 @@ typedef struct physicsRigidBody physicsRigidBody;
 void physJointDistanceInit(
 	physicsJointDistance *const restrict joint,
 	const vec3 *const restrict anchorA, const vec3 *const restrict anchorB,
-	const float distance, const float frequency, const float dampingRatio
+	const float distance, const float oscillationFrequency, const float dampingRatio
 );
 
 #ifdef PHYSJOINTDISTANCE_WARM_START

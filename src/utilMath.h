@@ -76,9 +76,9 @@ void pointBarycentric(
 	vec3 *const restrict out
 );
 
-void normalBasis(const vec3 *const restrict v1, vec3 *const restrict v2, vec3 *const restrict v3);
-void normalBasisFast(const vec3 *const restrict v1, vec3 *const restrict v2, vec3 *const restrict v3);
-void normalBasisFaster(const vec3 *const restrict v1, vec3 *const restrict v2, vec3 *const restrict v3);
+void orthonormalBasis(const vec3 *const restrict v1, vec3 *const restrict v2, vec3 *const restrict v3);
+void orthonormalBasisFast(const vec3 *const restrict v1, vec3 *const restrict v2, vec3 *const restrict v3);
+void orthonormalBasisFaster(const vec3 *const restrict v1, vec3 *const restrict v2, vec3 *const restrict v3);
 
 void segmentClosestPoints(
 	const vec3 *const restrict s1, const vec3 *const restrict e1, const vec3 *const restrict s2,
@@ -89,6 +89,8 @@ void triangleNormal(const vec3 *const restrict a, const vec3 *const restrict b, 
 
 float pointPlaneDist(const vec3 *const restrict point, const vec3 *const restrict vertex, const vec3 *const restrict normal);
 void pointPlaneProject(const vec3 *const restrict point, const vec3 *const restrict vertex, const vec3 *const restrict normal, vec3 *const restrict out);
+
+float clampEllipseDistanceFast(const float Ex, const float Ey, const float Ea, const float Eb);
 
 
 #endif
