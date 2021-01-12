@@ -57,26 +57,34 @@
 **
 ** ----------------------------------------------------------------------
 **
-** Semi-implicit Euler:
+** Using sequential impulses, we apply velocities in order to
+** satisfy constraints. If V and V_f are the current and final
+** velocity vectors, then we can write
 **
-** V   = V_i + dt * M^(-1) * F_ext,
-** V_f = V   + dt * M^(-1) * F_C.
+** V_f = V + DV,
 **
-** Where V_i is the initial velocity vector, V_f is the final
-** velocity vector, F_ext is the external force on the body
-** F_C is the constraint force and dt is the timestep.
+** where DV is the change in velocity due to our constraint.
+** Like usual, we can write this velocity in terms a force
+** which we will call the constraint force F_C,
 **
+** DV = M^(-1) * F_C.
 **
-** Using F_C = J^T * lambda and lambda' = dt * lambda, we can solve
-** for the impulse magnitude (constraint Lagrange multiplier) lambda':
+** We don't want our constraints to introduce energy into
+** the system, so F_C must be perpendicular to V. However,
+** from our velocity constraint, we have JV = 0, which
+** implies that J^T is perpendicular to V. Therefore, we
+** can say that F_C is some scalar multiple of J^T, so
 **
-** JV_f + b = 0
-** J(V + dt * M^(-1) * F_C) + b = 0
-** JV + dt * (JM^(-1))F_C + b = 0
-** JV + dt * JM^(-1)J^T . lambda + b = 0
-** dt * JM^(-1)J^T . lambda = -(JV + b)
-** dt * lambda = -(JV + b)/(JM^(-1)J^T)
-** lambda' = -(JV + b)/(JM^(-1)J^T).
+** DV = lambda * M^(-1) * J^T.
+**
+** Plugging this into J(V + DV) + b = 0 and solving for lambda,
+**
+** J(V + DV) + b = 0,
+** JV + J * lambda * M^(-1) * J^T + b = 0,
+** J * lambda * M^(-1) * J^T = -(JV + b),
+** lambda = -(JV + b)/(JM^(-1)J^T),
+**
+** as required.
 **
 ** ----------------------------------------------------------------------
 **

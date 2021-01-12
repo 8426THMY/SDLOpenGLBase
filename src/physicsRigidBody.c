@@ -559,6 +559,34 @@ void physRigidBodyApplyImpulseBoostInverse(physicsRigidBody *const restrict body
 }
 
 #ifdef PHYSCOLLIDER_USE_POSITIONAL_CORRECTION
+// Add a rotational impulse to a rigid body's position.
+void physRigidBodyApplyAngularImpulsePosition(physicsRigidBody *const restrict body, vec3 J){
+	// Orientation.
+	if(flagsAreSet(body->flags, PHYSRIGIDBODY_SIMULATE_ANGULAR)){
+		quat tempRot;
+		mat3MultiplyByVec3(&body->invInertiaGlobal, &J);
+		quatDifferentiateOut(&body->state.rot, &J, &tempRot);
+		quatAddVec4(&body->state.rot, &tempRot);
+		quatNormalizeQuatFast(&body->state.rot);
+
+		physRigidBodyUpdateGlobalInertia(body);
+	}
+}
+
+// Subtract a rotational impulse from a rigid body's position.
+void physRigidBodyApplyAngularImpulsePositionInverse(physicsRigidBody *const restrict body, vec3 J){
+	// Orientation.
+	if(flagsAreSet(body->flags, PHYSRIGIDBODY_SIMULATE_ANGULAR)){
+		quat tempRot;
+		mat3MultiplyByVec3(&body->invInertiaGlobal, &J);
+		quatDifferentiateOut(&body->state.rot, &J, &tempRot);
+		quatSubtractVec4From(&body->state.rot, &tempRot);
+		quatNormalizeQuatFast(&body->state.rot);
+
+		physRigidBodyUpdateGlobalInertia(body);
+	}
+}
+
 // Add a translational and rotational impulse to a rigid body's position.
 void physRigidBodyApplyImpulsePosition(physicsRigidBody *const restrict body, const vec3 *const restrict r, const vec3 *const restrict p){
 	// Position.

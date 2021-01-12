@@ -108,10 +108,30 @@
 **
 ** ----------------------------------------------------------------------
 **
-** a
+** To limit the relative orientation of rigid body B with
+** respect to rigid body A, we use swing-twist decomposition
+** and constrain the swing and twist axes individually.
+**
+** The biases for the swing and twist constraints, b1 and b2
+** respectively, are defined as
+**
+** b1 = theta_s / dt,
+** b2 = theta_t / dt,
+**
+** where theta_s and theta_t are the differences between the
+** nearest angle limit and the current angle. For the twist
+** axis, we are only constraining between two limits, but
+** in the swing case we need to clamp the angle to the closest
+** point on an ellipse.
+**
+** It is worth noting that we don't use an ellipse so much as
+** four elliptical segments, one in each quadrant. The major
+** and minor radii depend on the minimum or maximum angle limits
+** for each axis.
 **
 ** ----------------------------------------------------------------------
 */
+
 /**
 How do we handle the axes for the biases? Should they just be the cardinal axes?
 This would perhaps make sense, as we are using relative orientations.
@@ -126,6 +146,15 @@ Maybe investigate the generic 6-DOF constraints in Bullet.
 The way they handle angle limits might be better than just swing-twist.
 
 https://www.gamedev.net/forums/topic/589924-most-efficient-method-of-implementing-6dof-objects/
+
+https://github.com/NVIDIAGameWorks/PhysX/blob/ae80dede0546d652040ae6260a810e53e20a06fa/physx/source/physxextensions/src/ExtSphericalJoint.h
+https://github.com/NVIDIAGameWorks/PhysX/blob/ae80dede0546d652040ae6260a810e53e20a06fa/physx/source/physxextensions/src/ExtSphericalJoint.cpp
+https://github.com/NVIDIAGameWorks/PhysX/blob/ae80dede0546d652040ae6260a810e53e20a06fa/physx/source/physxextensions/src/ExtD6Joint.h
+https://github.com/NVIDIAGameWorks/PhysX/blob/ae80dede0546d652040ae6260a810e53e20a06fa/physx/source/physxextensions/src/ExtD6Joint.cpp
+https://github.com/NVIDIAGameWorks/PhysX/blob/ae80dede0546d652040ae6260a810e53e20a06fa/physx/include/extensions/PxJointLimit.h
+https://github.com/NVIDIAGameWorks/PhysX/blob/ae80dede0546d652040ae6260a810e53e20a06fa/physx/source/common/src/CmConeLimitHelper.h
+https://github.com/NVIDIAGameWorks/PhysX/blob/ae80dede0546d652040ae6260a810e53e20a06fa/physx/source/physxextensions/src/ExtConstraintHelper.h
+https://github.com/NVIDIAGameWorks/PhysX/blob/ae80dede0546d652040ae6260a810e53e20a06fa/physx/source/foundation/include/PsMathUtils.h
 **/
 #warning "Given two pairs of minimum and maximum angles, one for both swing axes, can we choose a twist axis that's halfway between the two pairs (in spherical coordinates)?"
 #warning "We can then use swing-twist decomposition directly with this new basis, or perhaps limit the swing axes using spherical coordinates."
@@ -214,6 +243,8 @@ void physJointSpherePresolve(
 ){
 
 	updateConstraintData((physicsJointSphere *)joint, bodyA, bodyB);
+	// We actually compute the swing and twist axes in "calculateBias"
+	// rather than in "updateConstraintData", as it makes things easier.
 	calculateBias((physicsJointSphere *)joint, bodyA, bodyB, dt);
 	calculateLinearMass(
 		((physicsJointSphere *)joint)->rA, ((physicsJointSphere *)joint)->rB,
@@ -332,7 +363,104 @@ return_t physJointSphereSolvePosition(
 ){
 
 	#ifdef PHYSJOINTSPHERE_STABILISER_GAUSS_SEIDEL
+	float angularError;
 	float linearError;
+	vec3 impulse;
+
+
+	// Solve the angular swing and twist constraints.
+	{
+		float lambda;
+		float oldImpulse;
+		vec3 tempImpulse;
+
+		float swingAngle;
+		vec3 twistImpulse = {.x = 1.f, .y = 0.f, .z = 0.f};
+		float twistAngle;
+
+		float swingInvMass;
+		float twistInvMass;
+
+
+		{
+			quat qAB;
+			quat swing, twist;
+
+			// Get the relative orientation from body A to body B:
+			// qAB = conj(A)*B.
+			quatMultiplyQuatConjByOut(bodyB->state.rot, bodyA->state.rot, &qAB);
+			// Decompose the relative orientation into swing and twist components.
+			quatSwingTwistFast(&qAB, &twistImpulse, &twist, &swing);
+			// We need to normalize the swing and twist quaternions, just in case.
+			quatNormalizeQuatFast(&swing);
+			quatNormalizeQuatFast(&twist);
+
+
+			// Compute the swing limit.
+			{
+				swingAngle = minFloat(0.f, clampEllipseDistanceFast(
+					swing.z, swing.y,
+					(swing.z > 0.f) ?
+						((physicsJointSphere *)joint)->angleLimitsZ[1] :
+						-((physicsJointSphere *)joint)->angleLimitsZ[0],
+					(swing.y > 0.f) ?
+						((physicsJointSphere *)joint)->angleLimitsY[1] :
+						-((physicsJointSphere *)joint)->angleLimitsY[0]
+				) - quatAngle(&swing));
+
+				// Bring the swing axis from body B's space to global space.
+				quatAxis(&swing, &impulse);
+				// Recall that our constraints specify that C <= 0.
+				// In order to solve these as C >= 0 constraints like
+				// usual, we need to negate the swing and twist axes.
+				impulse.y = -impulse.y;
+				impulse.z = -impulse.z;
+				quatRotateVec3Fast(&bodyA->state.rot, &impulse);
+			}
+
+
+			// Compute the twist limit.
+			{
+				twistAngle = quatAngle(&twist);
+				// Ensure the angle is in the range (-pi, pi].
+				// We'll also need to flip the twist axis.
+				if(twistAngle > M_PI){
+					twistAngle = 2.f*M_PI - twistAngle;
+
+				// Rather than flipping the twist axis above, we
+				// do it here, as we need to negate it later anyway.
+				}else{
+					twistImpulse.x = -1.f;
+				}
+				twistAngle = minFloat(0.f, minFloat(
+					twistAngle - ((physicsJointSphere *)joint)->angleLimitsX[0],
+					((physicsJointSphere *)joint)->angleLimitsX[1] - twistAngle
+				));
+
+				// Bring the twist axis from body B's space to global space.
+				quatRotateVec3Fast(&bodyA->state.rot, &twistImpulse);
+			}
+		}
+
+		// Calculate the angular error. The swing and twist
+		// angles should always be negative since we clamp
+		// them, but we want to sum their absolute values.
+		angularError = -(swingAngle + twistAngle);
+
+
+		calculateInverseAngularMass(bodyA, bodyB, &impulse, &twistImpulse, &swingInvMass, &twistInvMass);
+		// lambda = -C2/K2
+		vec3MultiplyS(&impulse, -swingAngle*swingInvMass);
+		// lambda = -C3/K3
+		vec3MultiplyS(&twistImpulse, -twistAngle*twistInvMass);
+		vec3AddVec3(&impulse, &twistImpulse);
+
+
+		// Apply the correctional impulse.
+		physRigidBodyApplyAngularImpulsePositionInverse(bodyA, impulse);
+		physRigidBodyApplyAngularImpulsePosition(bodyB, impulse);
+	}
+
 
 	// Solve the linear point-to-point constraint.
 	{
@@ -340,7 +468,6 @@ return_t physJointSphereSolvePosition(
 		vec3 rB;
 		vec3 constraint;
 		mat3 linearMass;
-		vec3 impulse;
 
 		vec3MultiplyVec3Out(&bodyA->state.scale, &((physicsJointSphere *)joint)->anchorA, &rA);
 		quatRotateVec3Fast(&bodyA->state.rot, &rA);
@@ -364,7 +491,11 @@ return_t physJointSphereSolvePosition(
 		physRigidBodyApplyImpulsePosition(bodyB, &rB, &impulse);
 	}
 
-	return(linearError <= PHYSCONSTRAINT_LINEAR_SLOP);
+
+	return(
+		linearError <= PHYSCONSTRAINT_LINEAR_SLOP &&
+		angularError <= PHYSCONSTRAINT_LINEAR_SLOP
+	);
 	#else
 	return(1);
 	#endif
@@ -495,62 +626,65 @@ static void calculateBias(
 	const float dt
 ){
 
-	// We also need to calculate the new swing
+	// We need to calculate the new swing
 	// and twist axes and the angle limits.
+	//
+	// Ideally, we would calculate the axes
+	// in "updateConstraintData", but doing
+	// it here just makes things easier.
+
+	quat qAB;
+	quat swing, twist;
+
+	// Get the relative orientation from body A to body B:
+	// qAB = conj(A)*B.
+	quatMultiplyQuatConjByOut(bodyB->state.rot, bodyA->state.rot, &qAB);
+	// Decompose the relative orientation into swing and twist components.
+	vec3InitSet(&joint->twistAxis, 1.f, 0.f, 0.f);
+	quatSwingTwistFast(&qAB, &joint->twistAxis, &twist, &swing);
+	// We need to normalize the swing and twist quaternions, just in case.
+	quatNormalizeQuatFast(&swing);
+	quatNormalizeQuatFast(&twist);
+
+
+	// Compute the swing limit.
 	{
-		quat qAB;
-		quat swing, twist;
+		joint->swingBias = (clampEllipseDistanceFast(
+			swing.z, swing.y,
+			(swing.z > 0.f) ? joint->angleLimitsZ[1] : -joint->angleLimitsZ[0],
+			(swing.y > 0.f) ? joint->angleLimitsY[1] : -joint->angleLimitsY[0]
+		) - quatAngle(&swing)) / dt;
 
-		// Get the relative orientation from body A to body B:
-		// qAB = conj(A)*B.
-		quatMultiplyQuatConjByOut(bodyB->state.rot, bodyA->state.rot, &qAB);
-		// Decompose the relative orientation into swing and twist components.
-		vec3InitSet(&joint->twistAxis, 1.f, 0.f, 0.f);
-		quatSwingTwistFast(&qAB, &joint->twistAxis, &twist, &swing);
-		// We need to normalize the swing and twist quaternions, just in case.
-		quatNormalizeQuatFast(&swing);
-		quatNormalizeQuatFast(&twist);
+		// Bring the swing axis from body B's space to global space.
+		quatAxis(&swing, &joint->swingAxis);
+		// Recall that our constraints specify that C' <= 0.
+		// In order to solve these as C' >= 0 constraints like
+		// usual, we need to negate the swing and twist axes.
+		joint->swingAxis.y = -joint->swingAxis.y;
+		joint->swingAxis.z = -joint->swingAxis.z;
+		quatRotateVec3Fast(&bodyA->state.rot, &joint->swingAxis);
+	}
 
 
-		// Compute the swing limit.
-		{
-			joint->swingBias = (clampEllipseDistanceFast(
-				swing.z, swing.y,
-				(swing.z > 0.f) ? joint->angleLimitsZ[1] : -joint->angleLimitsZ[0],
-				(swing.y > 0.f) ? joint->angleLimitsY[1] : -joint->angleLimitsY[0]
-			) - quatAngle(&swing)) / dt;
+	// Compute the twist limit.
+	{
+		float twistAngle = quatAngle(&twist);
+		// Ensure the angle is in the range (-pi, pi].
+		// We'll also need to flip the twist axis.
+		if(twistAngle > M_PI){
+			twistAngle = 2.f*M_PI - twistAngle;
 
-			// Bring the swing axis from body B's space to global space.
-			quatAxis(&swing, &joint->swingAxis);
-			// Recall that our constraints specify that C' <= 0.
-			// In order to solve these as C' >= 0 constraints like
-			// usual, we need to negate the swing and twist axes.
-			joint->swingAxis.y = -joint->swingAxis.y;
-			joint->swingAxis.z = -joint->swingAxis.z;
-			quatRotateVec3Fast(&bodyA->state.rot, &joint->swingAxis);
+		// Rather than flipping the twist axis above, we
+		// do it here, as we need to negate it later anyway.
+		}else{
+			joint->twistAxis.x = -1.f;
 		}
+		joint->twistBias = minFloat(
+			twistAngle - joint->angleLimitsX[0],
+			joint->angleLimitsX[1] - twistAngle
+		) / dt;
 
-
-		// Compute the twist limit.
-		{
-			float twistAngle = quatAngle(&twist);
-			// Ensure the angle is in the range (-pi, pi].
-			// We'll also need to flip the twist axis.
-			if(twistAngle > M_PI){
-				twistAngle = 2.f*M_PI - twistAngle;
-
-			// Rather than flipping the twist axis above, we
-			// do it here, as we need to negate it later anyway.
-			}else{
-				joint->twistAxis.x = -1.f;
-			}
-			joint->twistBias = minFloat(
-				twistAngle - joint->angleLimitsX[0],
-				joint->angleLimitsX[1] - twistAngle
-			) / dt;
-
-			// Bring the twist axis from body B's space to global space.
-			quatRotateVec3Fast(&bodyA->state.rot, &joint->twistAxis);
-		}
+		// Bring the twist axis from body B's space to global space.
+		quatRotateVec3Fast(&bodyA->state.rot, &joint->twistAxis);
 	}
 }
