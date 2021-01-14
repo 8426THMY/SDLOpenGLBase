@@ -135,6 +135,9 @@ vec3 vec3NegateC(vec3 v);
 void vec3Orthogonal(const vec3 *const restrict v, vec3 *const restrict out);
 #define vec3OrthogonalP(v, out) (vec3Orthogonal(v, out), out)
 vec3 vec3OrthogonalC(const vec3 v);
+void vec3Orthonormal(const vec3 *const restrict v, vec3 *const restrict out);
+#define vec3OrthonormalP(v, out) (vec3Orthonormal(v, out), out)
+vec3 vec3OrthonormalC(const vec3 v);
 
 void vec3DegToRad(vec3 *const restrict v);
 void vec3RadToDeg(vec3 *const restrict v);

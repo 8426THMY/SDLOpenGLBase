@@ -127,15 +127,9 @@ void interpTransSetNextPosZ(interpTransform *const restrict iTrans, const float 
 }
 
 
-void interpTransAddRotEulerRad(interpTransform *const restrict iTrans, const float x, const float y, const float z, const float time){
+void interpTransAddRotEuler(interpTransform *const restrict iTrans, const float x, const float y, const float z, const float time){
 	quat q = iTrans->rot.next;
-	quatRotateByRad(&q, x, y, z);
-	quatSlerpFaster(&iTrans->rot.next, &q, time);
-}
-
-void interpTransAddRotEulerDeg(interpTransform *const restrict iTrans, const float x, const float y, const float z, const float time){
-	quat q = iTrans->rot.next;
-	quatRotateByDeg(&q, x, y, z);
+	quatRotateByXYZ(&q, x, y, z);
 	quatSlerpFaster(&iTrans->rot.next, &q, time);
 }
 
@@ -143,13 +137,8 @@ void interpTransAddRotQuat(interpTransform *const restrict iTrans, const quat *c
 	quatSlerpFaster(&iTrans->rot.next, q, time);
 }
 
-void interpTransSetRotEulerRad(interpTransform *const restrict iTrans, const float x, const float y, const float z){
-	quatInitEulerRad(&iTrans->rot.next, x, y, z);
-	iTrans->rot.last = iTrans->rot.next;
-}
-
-void interpTransSetRotEulerDeg(interpTransform *const restrict iTrans, const float x, const float y, const float z){
-	quatInitEulerDeg(&iTrans->rot.next, x, y, z);
+void interpTransSetRotEuler(interpTransform *const restrict iTrans, const float x, const float y, const float z){
+	quatInitEulerXYZ(&iTrans->rot.next, x, y, z);
 	iTrans->rot.last = iTrans->rot.next;
 }
 
@@ -158,12 +147,8 @@ void interpTransSetRotQuat(interpTransform *const restrict iTrans, const quat *c
 	iTrans->rot.last = *q;
 }
 
-void interpTransSetNextRotEulerRad(interpTransform *const restrict iTrans, const float x, const float y, const float z){
-	quatInitEulerRad(&iTrans->rot.next, x, y, z);
-}
-
-void interpTransSetNextRotEulerDeg(interpTransform *const restrict iTrans, const float x, const float y, const float z){
-	quatInitEulerDeg(&iTrans->rot.next, x, y, z);
+void interpTransSetNextRotEuler(interpTransform *const restrict iTrans, const float x, const float y, const float z){
+	quatInitEulerXYZ(&iTrans->rot.next, x, y, z);
 }
 
 void interpTransSetNextRotQuat(interpTransform *const restrict iTrans, const quat *const restrict q){

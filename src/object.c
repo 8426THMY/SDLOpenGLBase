@@ -286,7 +286,7 @@ void objectDraw(
 
 	// Send the new model-view-projection matrix to the shader!
 	#warning "Maybe do this outside since it applies to all objects?"
-	/*const mat4 test = mat4RotateRadC(mat4InitTranslateC(2.f, 1.f, -1.f), 2.f, 1.f, -1.f);
+	/*const mat4 test = mat4RotateC(mat4InitTranslateC(2.f, 1.f, -1.f), 2.f, 1.f, -1.f);
 	const vec3 axis = {.x = 0.f, .y = 1.f, .z = 0.f};
 	const billboard bData = {
 		.axis = &axis,

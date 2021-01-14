@@ -131,6 +131,11 @@
 **
 ** ----------------------------------------------------------------------
 */
+//#error "Investigate 6-DOF joints and maybe energy loss!"
+//#error "Double check how Bullet does stuff. It doesn't solve for the limits if they haven't been broken."
+/** https://github.com/bulletphysics/bullet3/blob/master/src/BulletDynamics/ConstraintSolver/btConeTwistConstraint.cpp **/
+/** https://github.com/bulletphysics/bullet3/blob/master/src/BulletDynamics/ConstraintSolver/btGeneric6DofConstraint.h **/
+/** https://github.com/bulletphysics/bullet3/blob/master/src/BulletDynamics/ConstraintSolver/btGeneric6DofConstraint.cpp **/
 
 
 // Forward-declare any helper functions!
@@ -277,6 +282,10 @@ void physJointSphereSolveVelocity(
 		oldImpulse = ((physicsJointSphere *)joint)->swingImpulse;
 		((physicsJointSphere *)joint)->swingImpulse = maxFloat(0.f, oldImpulse + lambda);
 		lambda = ((physicsJointSphere *)joint)->swingImpulse - oldImpulse;
+		#warning "Energy loss?"
+		if(lambda > 0.1f){
+			printf("%f, %f, %f\n", bodyB->angularVelocity.x, bodyB->angularVelocity.y, bodyB->angularVelocity.z);
+		}
 
 		// Calculate the swing impulse.
 		vec3MultiplySOut(&((physicsJointSphere *)joint)->swingAxis, lambda, &impulse);

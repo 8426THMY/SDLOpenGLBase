@@ -582,7 +582,7 @@ model *modelSMDLoad(const char *const restrict mdlPath, const size_t mdlPathLeng
 									x = strtof(tokPos, &tokPos);
 									y = strtof(tokPos, &tokPos);
 									z = strtof(tokPos, NULL);
-									quatInitEulerRad(&currentBone->localBind.rot, x, y, z);
+									quatInitEulerXYZ(&currentBone->localBind.rot, x, y, z);
 
 									// Set the bone's scale!
 									vec3InitSet(&currentBone->localBind.scale, 1.f, 1.f, 1.f);

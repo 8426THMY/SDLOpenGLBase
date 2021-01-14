@@ -737,11 +737,41 @@ vec3 vec3NegateC(vec3 v){
 ** Generate a vector that is orthogonal to the
 ** input vector and store the result in "out"!
 **
+** Note that the output vector is not normalized in general.
+*/
+void vec3Orthogonal(const vec3 *const restrict v, vec3 *const restrict out){
+	// At least one component is always greater
+	// than 1/sqrt(3) if 'v' is unit length.
+	if(fabsf(v->x) >= 0.57735026f){
+		vec3InitSet(out, v->y, -v->x, 0.f);
+	}else{
+		vec3InitSet(out, 0.f, v->z, -v->y);
+	}
+}
+
+/*
+** Generate a vector that is orthogonal to the input vector.
+**
+** Note that the output vector is not normalized in general.
+*/
+vec3 vec3OrthogonalC(const vec3 v){
+	// At least one component is always greater
+	// than 1/sqrt(3) if 'v' is unit length.
+	if(fabsf(v.x) >= 0.57735026f){
+		return(vec3InitSetC(v.y, -v.x, 0.f));
+	}
+	return(vec3InitSetC(0.f, v.z, -v.y));
+}
+
+/*
+** Generate a vector that is orthogonal to the
+** input vector and store the result in "out"!
+**
 ** Note that this is basically copied from Pixar's
 ** code for generating an orthonormal basis.
 ** See "orthonormalBasisFaster" in "utilMath.c".
 */
-void vec3Orthogonal(const vec3 *const restrict v, vec3 *const restrict out){
+void vec3Orthonormal(const vec3 *const restrict v, vec3 *const restrict out){
 	const float sign = copySign(1.f, v->z);
 	const float a = -1.f/(sign + v->z);
 	const float b = v->x*v->y*a;
@@ -755,7 +785,7 @@ void vec3Orthogonal(const vec3 *const restrict v, vec3 *const restrict out){
 ** code for generating an orthonormal basis.
 ** See "orthonormalBasisFaster" in "utilMath.c".
 */
-vec3 vec3OrthogonalC(const vec3 v){
+vec3 vec3OrthonormalC(const vec3 v){
 	const float sign = copySign(1.f, v.z);
 	const float a = -1.f/(sign + v.z);
 	const float b = v.x*v.y*a;

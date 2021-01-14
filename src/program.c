@@ -204,28 +204,39 @@ static void input(program *const restrict prg){
 /** TEMPORARY PHYSICS STUFF!! **/
 object *controlObj = NULL;
 physicsRigidBody *controlPhys = NULL;
+float cYaw = 0.f;
+float cPitch = 0.f;
+float cZ = -5.f;
 #include "utilMath.h"
 static void updateCameras(program *const restrict prg){
 	if(prg->keyStates[SDL_SCANCODE_LEFT]){
+		cYaw -= 2.f * prg->step.updateDelta;
 		prg->cam.pos.x -= 10.f * prg->step.updateDelta;
 	}
 	if(prg->keyStates[SDL_SCANCODE_RIGHT]){
+		cYaw += 2.f * prg->step.updateDelta;
 		prg->cam.pos.x += 10.f * prg->step.updateDelta;
 	}
 
 	if(prg->keyStates[SDL_SCANCODE_UP]){
+		cPitch -= 2.f * prg->step.updateDelta;
 		prg->cam.pos.y += 10.f * prg->step.updateDelta;
 	}
 	if(prg->keyStates[SDL_SCANCODE_DOWN]){
+		cPitch += 2.f * prg->step.updateDelta;
 		prg->cam.pos.y -= 10.f * prg->step.updateDelta;
 	}
 
 	if(prg->keyStates[SDL_SCANCODE_W]){
+		cZ += 10.f * prg->step.updateDelta;
 		prg->cam.pos.z -= 10.f * prg->step.updateDelta;
 	}
 	if(prg->keyStates[SDL_SCANCODE_S]){
+		cZ -= 10.f * prg->step.updateDelta;
 		prg->cam.pos.z += 10.f * prg->step.updateDelta;
 	}
+	quat q = quatInitEulerXYZC(cPitch, cYaw, 0.f);
+	prg->cam.pos = quatRotateVec3FastC(q, vec3InitSetC(0.f, 0.f, cZ));
 
 
 
@@ -233,37 +244,17 @@ static void updateCameras(program *const restrict prg){
 	/** TEMPORARY TESTING STUFF! **/
 	if(controlObj != NULL){
 		quat rot = quatNormalizeQuatC(mat4ToQuatC(mat4RotateToFaceC(controlObj->state.pos, prg->cam.pos, vec3InitSetC(0.f, 1.f, 0.f))));
-		//vec3 angles = quatToEulerAnglesC(rot);
-		//printf("E: (%f, %f, %f)\n", angles.x, angles.y, angles.z);
 
 
 		const vec3 anglesMin = {.x = -M_PI_4, .y = -M_PI_4, .z = 0.f};
 		const vec3 anglesMax = {.x = M_PI_4, .y = M_PI_4, .z = 0.f};
-		quat s, t;
-		quatSwingTwistC(rot, vec3InitSetC(0.f, 0.f, 1.f), &t, &s);
-		/** Just implement this! Pyramid limits can wait (until I figure them out). **/
-		{
-			/** https://github.com/DigitalRune/DigitalRune/blob/master/Source/DigitalRune.Physics/Constraints/TwistSwingLimit.cs **/
-			/** https://github.com/bulletphysics/bullet3/blob/master/src/BulletDynamics/ConstraintSolver/btConeTwistConstraint.cpp **/
-			const vec4 axisAngle = quatToAxisAngleFastC(s);
-			const float swingLimit = clampEllipseDistanceFast(
-				s.x, s.y,
-				(s.x > 0.f) ? anglesMax.x : -anglesMin.x,
-				(s.y > 0.f) ? anglesMax.y : -anglesMin.y
-			);
-			if(axisAngle.w > swingLimit){
-				s = quatInitAxisAngleC(*((const vec3 *const)&axisAngle.x), swingLimit);
-			}
-		}
-		{
-			const float twistAngle = quatAngle(&t) - M_PI;
-			if(twistAngle < anglesMin.z){
-				t = quatInitAxisAngleC(vec3InitSetC(0.f, 0.f, 1.f), anglesMin.z);
-			}else if(twistAngle > anglesMax.z){
-				t = quatInitAxisAngleC(vec3InitSetC(0.f, 0.f, 1.f), anglesMax.z);
-			}
-		}
-		quatMultiplyByQuatOut(s, t, &rot);
+		vec3 angles = quatToEulerAnglesXYZC(rot);
+		printf("E: (%f, %f, %f)\n", angles.x, angles.y, angles.z);
+
+		angles.x = clampFloat(anglesMin.x, angles.x, anglesMax.x);
+		angles.y = clampFloat(anglesMin.y, angles.y, anglesMax.y);
+		angles.z = clampFloat(anglesMin.z, angles.z, anglesMax.z);
+		rot = quatInitEulerXYZC(angles.x, angles.y, angles.z);
 
 
 		controlObj->state.rot = rot;
@@ -306,10 +297,10 @@ static void updateObjects(program *const restrict prg){
 	/** Temporary if statement for temporary code. Don't want the program to crash, do we? **/
 	/*if(allRenderObjects.size > 2){
 		renderObjState *currentObj = ((renderObject *)vectorGet(&allRenderObjects, 1))->states[0];
-		interpTransAddRotEulerDeg(&currentObj->transform, 0.f, 0.f, 2.f, prg->step.updateDelta);
+		interpTransAddRotEuler(&currentObj->transform, 0.f, 0.f, 2.f * DEG_TO_RAD, prg->step.updateDelta);
 
 		currentObj = ((renderObject *)vectorGet(&allRenderObjects, 2))->states[0];
-		interpTransAddRotEulerDeg(&currentObj->transform, 2.f, 2.f, 2.f, prg->step.updateDelta);
+		interpTransAddRotEuler(&currentObj->transform, 2.f * DEG_TO_RAD, 2.f * DEG_TO_RAD, 2.f * DEG_TO_RAD, prg->step.updateDelta);
 	}*/
 }
 
@@ -511,7 +502,7 @@ static return_t initResources(program *const restrict prg){
 
 	objectInit(obj, objDef);
 	//obj->state.pos = vec3InitSetC(1.f, 2.f, 3.f);
-	//obj->state.rot = quatInitEulerDegC(45.f, 10.f, 23.f);
+	//obj->state.rot = quatInitEulerXYZC(45.f * DEG_TO_RAD, 10.f * DEG_TO_RAD, 23.f * DEG_TO_RAD);
 	//obj->state.scale.z = 0.1f;
 	// Temporary object stuff.
 	//mdl = modelSMDLoad(mdl, "scout_reference.smd");
@@ -613,7 +604,7 @@ static return_t initResources(program *const restrict prg){
 		objectInit(obj, objDef);
 		printf("Egg: %u -> %u\n", obj->physBodies, obj->physBodies->colliders);
 		obj->state.pos.y = 2.f;obj->state.pos.z = -2.f;
-		//quatInitEulerDeg(&obj->state.rot, 0.f, 45.f, 45.f);
+		//quatInitEulerXYZ(&obj->state.rot, 0.f, M_PI_2, M_PI_2);
 
 		obj->physBodies->mass = 0.f;
 		mat3InitZero(&obj->physBodies->invInertiaLocal);mat3InitZero(&obj->physBodies->invInertiaGlobal);
@@ -705,7 +696,7 @@ static return_t initResources(program *const restrict prg){
 	objectInit(obj, objDef);
 	printf("Egg: %u -> %u\n", obj->physBodies, obj->physBodies->colliders);
 	obj->state.pos.y = 0.f;obj->state.pos.z = -2.f;
-	quatInitEulerDeg(&obj->state.rot, 0.f, 45.f, 45.f);
+	quatInitEulerXYZ(&obj->state.rot, 0.f, M_PI_2, M_PI_2);
 
 	obj->physBodies->mass = 0.f;
 	mat3InitZero(&obj->physBodies->invInertiaLocal);mat3InitZero(&obj->physBodies->invInertiaGlobal);

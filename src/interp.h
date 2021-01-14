@@ -63,14 +63,11 @@ void interpTransSetNextPosX(interpTransform *const restrict iTrans, const float 
 void interpTransSetNextPosY(interpTransform *const restrict iTrans, const float y);
 void interpTransSetNextPosZ(interpTransform *const restrict iTrans, const float z);
 
-void interpTransAddRotEulerRad(interpTransform *const restrict iTrans, const float x, const float y, const float z, const float time);
-void interpTransAddRotEulerDeg(interpTransform *const restrict iTrans, const float x, const float y, const float z, const float time);
+void interpTransAddRotEuler(interpTransform *const restrict iTrans, const float x, const float y, const float z, const float time);
 void interpTransAddRotQuat(interpTransform *const restrict iTrans, const quat *const restrict q, const float time);
-void interpTransSetRotEulerRad(interpTransform *const restrict iTrans, const float x, const float y, const float z);
-void interpTransSetRotEulerDeg(interpTransform *const restrict iTrans, const float x, const float y, const float z);
+void interpTransSetRotEuler(interpTransform *const restrict iTrans, const float x, const float y, const float z);
 void interpTransSetRotQuat(interpTransform *const restrict iTrans, const quat *const restrict q);
-void interpTransSetNextRotEulerRad(interpTransform *const restrict iTrans, const float x, const float y, const float z);
-void interpTransSetNextRotEulerDeg(interpTransform *const restrict iTrans, const float x, const float y, const float z);
+void interpTransSetNextRotEuler(interpTransform *const restrict iTrans, const float x, const float y, const float z);
 void interpTransSetNextRotQuat(interpTransform *const restrict iTrans, const quat *const restrict q);
 
 void interpTransAddScale(interpTransform *const restrict iTrans, const float x, const float y, const float z, const float time);

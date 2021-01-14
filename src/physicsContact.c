@@ -718,10 +718,10 @@ static void solveTangents(
 	// lambda = -(JV + b)/(JM^(-1)J^T)
 	//        = -(v_relative . n)/K
 	lambda = -vec3DotVec3(&contactVelocity, &physContactTangent(pm, 0)) * contact->invTangentMass[0];
-	oldImpulse = contact->tangentImpulse[0];
 
 	// -f < lambda < f
 	// Clamp our accumulated impulse for the first tangent.
+	oldImpulse = contact->tangentImpulse[0];
 	contact->tangentImpulse[0] = clampFloat(oldImpulse + lambda, -maxFriction, maxFriction);
 	vec3MultiplySOut(&physContactTangent(pm, 0), contact->tangentImpulse[0] - oldImpulse, &temp);
 
@@ -729,10 +729,10 @@ static void solveTangents(
 	// lambda = -(JV + b)/(JM^(-1)J^T)
 	//        = -(v_relative . n)/K
 	lambda = -vec3DotVec3(&contactVelocity, &physContactTangent(pm, 1)) * contact->invTangentMass[1];
-	oldImpulse = contact->tangentImpulse[1];
 
 	// -f < lambda < f
 	// Clamp our accumulated impulse for the second tangent.
+	oldImpulse = contact->tangentImpulse[1];
 	contact->tangentImpulse[1] = clampFloat(oldImpulse + lambda, -maxFriction, maxFriction);
 	vec3MultiplySOut(&physContactTangent(pm, 1), contact->tangentImpulse[1] - oldImpulse, &impulse);
 

@@ -355,7 +355,7 @@ skeletonAnimDef *skeleAnimSMDLoad(const char *const restrict skeleAnimPath, cons
 								x = strtof(tokPos, &tokPos);
 								y = strtof(tokPos, &tokPos);
 								z = strtof(tokPos, NULL);
-								quatInitEulerRad(&currentState->rot, x, y, z);
+								quatInitEulerXYZ(&currentState->rot, x, y, z);
 
 								//The Source Engine uses Z as its up axis, so we need to fix that with the root bone.
 								if(boneID == 0 && strcmp(skeleAnimPath, "soldier_animations_anims_new/a_flinch01.smd") != 0){

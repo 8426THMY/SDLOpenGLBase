@@ -11,7 +11,7 @@
 #define QUAT_SINGULARITY_THRESHOLD_SQUARED (QUAT_SINGULARITY_THRESHOLD*QUAT_SINGULARITY_THRESHOLD)
 // We'll do linear interpolation if the angle between
 // the two quaternions is less than half a degree.
-#define QUAT_LERP_THRESHOLD        cosf(1.f*DEG_TO_RAD)
+#define QUAT_LERP_THRESHOLD cosf(1.f*DEG_TO_RAD)
 
 
 quat g_quatIdentity = {
@@ -101,28 +101,28 @@ quat quatInitVec3FC(const vec3 v, const float w){
 }
 
 // Initialize a quaternion from an axis-angle representation!
-void quatInitAxisAngle(quat *const restrict q, const vec3 *const restrict a, const float t){
+void quatInitAxisAngle(quat *const restrict q, const vec3 *const restrict v, const float t){
 	const float tHalf = t*0.5f;
 	const float st = sinf(tHalf);
-	q->x = st*a->x;
-	q->y = st*a->y;
-	q->z = st*a->z;
+	q->x = st*v->x;
+	q->y = st*v->y;
+	q->z = st*v->z;
 	q->w = cosf(tHalf);
 }
 
 // Initialize a quaternion from an axis-angle representation!
-quat quatInitAxisAngleC(const vec3 a, const float t){
+quat quatInitAxisAngleC(const vec3 v, const float t){
 	const float tHalf = t*0.5f;
 	const float st = sinf(tHalf);
-	const quat q = {.x = st*a.x, .y = st*a.y, .z = st*a.z, .w = cosf(tHalf)};
+	const quat q = {.x = st*v.x, .y = st*v.y, .z = st*v.z, .w = cosf(tHalf)};
 	return(q);
 }
 
 /*
 ** Initialize the quaternion's values to the Euler angles specified (in radians)!
-** The order of rotations is ZYX.
+** The order of rotations is XYZ.
 */
-void quatInitEulerRad(quat *const restrict q, const float x, const float y, const float z){
+void quatInitEulerXYZ(quat *const restrict q, const float x, const float y, const float z){
 	const float hx = x * 0.5f;
 	const float hy = y * 0.5f;
 	const float hz = z * 0.5f;
@@ -145,9 +145,9 @@ void quatInitEulerRad(quat *const restrict q, const float x, const float y, cons
 
 /*
 ** Initialize the quaternion's values to the Euler angles specified (in radians)!
-** The order of rotations is ZYX.
+** The order of rotations is XYZ.
 */
-quat quatInitEulerRadC(const float x, const float y, const float z){
+quat quatInitEulerXYZC(const float x, const float y, const float z){
 	const float hx = x * 0.5f;
 	const float hy = y * 0.5f;
 	const float hz = z * 0.5f;
@@ -173,51 +173,19 @@ quat quatInitEulerRadC(const float x, const float y, const float z){
 }
 
 /*
-** Initialize the quaternion's values to the Euler angles specified (in radians)!
-** The order of rotations is ZYX.
+** Initialize the quaternion's values to the Euler angles specified in "v" (in radians)!
+** The order of rotations is XYZ.
 */
-void quatInitEulerDeg(quat *const restrict q, const float x, const float y, const float z){
-	quatInitEulerRad(q, x * DEG_TO_RAD, y * DEG_TO_RAD, z * DEG_TO_RAD);
-}
-
-/*
-** Initialize the quaternion's values to the Euler angles specified (in radians)!
-** The order of rotations is ZYX.
-*/
-quat quatInitEulerDegC(const float x, const float y, const float z){
-	return(quatInitEulerRadC(x * DEG_TO_RAD, y * DEG_TO_RAD, z * DEG_TO_RAD));
+void quatInitEulerVec3XYZ(quat *const restrict q, const vec3 *const restrict v){
+	quatInitEulerXYZ(q, v->x, v->y, v->z);
 }
 
 /*
 ** Initialize the quaternion's values to the Euler angles specified in "v" (in radians)!
-** The order of rotations is ZYX.
+** The order of rotations is XYZ.
 */
-void quatInitEulerVec3Rad(quat *const restrict q, const vec3 *const restrict v){
-	quatInitEulerRad(q, v->x, v->y, v->z);
-}
-
-/*
-** Initialize the quaternion's values to the Euler angles specified in "v" (in radians)!
-** The order of rotations is ZYX.
-*/
-quat quatInitEulerVec3RadC(const vec3 v){
-	return(quatInitEulerRadC(v.x, v.y, v.z));
-}
-
-/*
-** Initialize the quaternion's values to the Euler angles specified in "v" (in radians)!
-** The order of rotations is ZYX.
-*/
-void quatInitEulerVec3Deg(quat *const restrict q, const vec3 *const restrict v){
-	quatInitEulerRad(q, v->x * DEG_TO_RAD, v->y * DEG_TO_RAD, v->z * DEG_TO_RAD);
-}
-
-/*
-** Initialize the quaternion's values to the Euler angles specified in "v" (in radians)!
-** The order of rotations is ZYX.
-*/
-quat quatInitEulerVec3DegC(const vec3 v){
-	return(quatInitEulerRadC(v.x * DEG_TO_RAD, v.y * DEG_TO_RAD, v.z * DEG_TO_RAD));
+quat quatInitEulerVec3XYZC(const vec3 v){
+	return(quatInitEulerXYZC(v.x, v.y, v.z));
 }
 
 
@@ -1100,7 +1068,7 @@ void quatShortestArcAlt(const vec3 *const restrict v1, const vec3 *const restric
 	// Handle the case where the vectors are
 	// antiparallel to avoid dividing by zero.
 	if(d < -1.f + QUAT_SINGULARITY_THRESHOLD){
-		vec3Orthogonal(v1, (vec3 *const restrict)&out->x);
+		vec3Orthonormal(v1, (vec3 *const restrict)&out->x);
 		out->w = 0.f;
 	}else{
 		const float s = sqrtf(2.f * (1.f + d));
@@ -1125,7 +1093,7 @@ quat quatShortestArcAltC(const vec3 v1, const vec3 v2){
 	// antiparallel to avoid dividing by zero.
 	if(d < -1.f + QUAT_SINGULARITY_THRESHOLD){
 		quat q;
-		*((vec3 *const restrict)&q.x) = vec3OrthogonalC(v1);
+		*((vec3 *const restrict)&q.x) = vec3OrthonormalC(v1);
 		q.w = 0.f;
 		return(q);
 	}else{
@@ -1507,11 +1475,11 @@ quat quatFromTanVectorC(const vec3 v){
 /*
 ** Find the Euler angles describing a quaternion and store the result in "out"!
 ** The output vector is given in the form (roll, pitch, yaw) and the ordering
-** is ZYX, as usual.
+** is XYZ, as usual.
 **
 ** Implementation inspired by the one in Gino van den Bergen's Motion Toolkit.
 */
-void quatToEulerAngles(const quat q, vec3 *const restrict out){
+void quatToEulerAnglesXYZ(const quat q, vec3 *const restrict out){
 	const float xx = q.x*q.x;
 	vec3InitSet(out,
 		asinf(2.f*(q.x*q.w - q.y*q.z)),
@@ -1523,11 +1491,11 @@ void quatToEulerAngles(const quat q, vec3 *const restrict out){
 /*
 ** Find the Euler angles describing a quaternion and return them as a vec3.
 ** The output vector is given in the form (roll, pitch, yaw) and the ordering
-** is ZYX, as usual.
+** is XYZ, as usual.
 **
 ** Implementation inspired by the one in Gino van den Bergen's Motion Toolkit.
 */
-vec3 quatToEulerAnglesC(const quat q){
+vec3 quatToEulerAnglesXYZC(const quat q){
 	const float xx = q.x*q.x;
 	return(vec3InitSetC(
 		asinf(2.f*(q.x*q.w - q.y*q.z)),
@@ -1539,12 +1507,12 @@ vec3 quatToEulerAnglesC(const quat q){
 /*
 ** Find the Euler angles describing a quaternion and store the result in "out"!
 ** The output vector is given in the form (pitch, yaw, roll) and the ordering
-** is ZYX, as usual.
+** is XYZ, as usual.
 **
 ** This version checks for singularities, but I don't think it's strictly necessary.
 ** Thanks to Martin Baker at EuclideanSpace for this implementation!
 */
-void quatToEulerAnglesAlt(const quat q, vec3 *const restrict out){
+void quatToEulerAnglesXYZAlt(const quat q, vec3 *const restrict out){
 	const float sinp = q.x*q.y + q.z*q.w;
 	// Handle the singularities at the poles.
 	if(fabsf(sinp) > 0.5f - QUAT_SINGULARITY_THRESHOLD){
@@ -1562,12 +1530,12 @@ void quatToEulerAnglesAlt(const quat q, vec3 *const restrict out){
 /*
 ** Find the Euler angles describing a quaternion and return them as a vec3.
 ** The output vector is given in the form (pitch, yaw, roll) and the ordering
-** is ZYX, as usual.
+** is XYZ, as usual.
 **
 ** This version checks for singularities, but I don't think it's strictly necessary.
 ** Thanks to Martin Baker at EuclideanSpace for this implementation!
 */
-vec3 quatToEulerAnglesAltC(const quat q){
+vec3 quatToEulerAnglesXYZAltC(const quat q){
 	const float sinp = q.x*q.y + q.z*q.w;
 	// Handle the singularities at the poles.
 	if(fabsf(sinp) > 0.5f - QUAT_SINGULARITY_THRESHOLD){
@@ -1656,45 +1624,25 @@ vec4 quatToAxisAngleFastC(const quat q){
 
 
 // Rotate a quaternion (in radians)!
-void quatRotateByRad(quat *const restrict q, const float x, const float y, const float z){
+void quatRotateByXYZ(quat *const restrict q, const float x, const float y, const float z){
 	quat rot;
-	quatInitEulerRad(&rot, x, y, z);
+	quatInitEulerXYZ(&rot, x, y, z);
 	quatMultiplyQuatBy(q, rot);
 }
 
 // Rotate a quaternion (in radians)!
-quat quatRotateByRadC(const quat q, const float x, const float y, const float z){
-	return(quatMultiplyByQuatC(quatInitEulerRadC(x, y, z), q));
-}
-
-// Rotate a quaternion (in degrees)!
-void quatRotateByDeg(quat *const restrict q, const float x, const float y, const float z){
-	quatRotateByRad(q, x * DEG_TO_RAD, y * DEG_TO_RAD, z * DEG_TO_RAD);
-}
-
-// Rotate a quaternion (in degrees)!
-quat quatRotateByDegC(const quat q, const float x, const float y, const float z){
-	return(quatRotateByRadC(q, x * DEG_TO_RAD, y * DEG_TO_RAD, z * DEG_TO_RAD));
+quat quatRotateByXYZC(const quat q, const float x, const float y, const float z){
+	return(quatMultiplyByQuatC(quatInitEulerXYZC(x, y, z), q));
 }
 
 // Rotate a quaternion by a vec3 (in radians)!
-void quatRotateByVec3Rad(quat *const restrict q, const vec3 *const restrict v){
-	quatRotateByRad(q, v->x, v->y, v->z);
+void quatRotateByVec3XYZ(quat *const restrict q, const vec3 *const restrict v){
+	quatRotateByXYZ(q, v->x, v->y, v->z);
 }
 
 // Rotate a quaternion by a vec3 (in radians)!
-quat quatRotateByVec3RadC(const quat q, const vec3 v){
-	return(quatRotateByRadC(q, v.x, v.y, v.z));
-}
-
-// Rotate a quaternion by a vec3 (in degrees)!
-void quatRotateByVec3Deg(quat *const restrict q, const vec3 *const restrict v){
-	quatRotateByRad(q, v->x * DEG_TO_RAD, v->y * DEG_TO_RAD, v->z * DEG_TO_RAD);
-}
-
-// Rotate a quaternion by a vec3 (in degrees)!
-quat quatRotateByVec3DegC(const quat q, const vec3 v){
-	return(quatRotateByRadC(q, v.x * DEG_TO_RAD, v.y * DEG_TO_RAD, v.z * DEG_TO_RAD));
+quat quatRotateByVec3XYZC(const quat q, const vec3 v){
+	return(quatRotateByXYZC(q, v.x, v.y, v.z));
 }
 
 
