@@ -203,7 +203,7 @@ void physJointPrismaticInit(physicsJointPrismatic *const restrict joint){
 ** Joints are always active so we always warm start.
 */
 #ifdef PHYSJOINTPRISMATIC_WARM_START
-void physJointPrismaticWarmStart(physicsJointPrismatic *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB){
+void physJointPrismaticWarmStart(const physicsJointPrismatic *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB){
 	vec3 linearImpulse;
 	vec3 angularImpulseA;
 	vec3 angularImpulseB;

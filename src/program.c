@@ -206,7 +206,7 @@ object *controlObj = NULL;
 physicsRigidBody *controlPhys = NULL;
 float cYaw = 0.f;
 float cPitch = 0.f;
-float cZ = -5.f;
+float cZ = 5.f;
 #include "utilMath.h"
 static void updateCameras(program *const restrict prg){
 	if(prg->keyStates[SDL_SCANCODE_LEFT]){
@@ -249,7 +249,7 @@ static void updateCameras(program *const restrict prg){
 		const vec3 anglesMin = {.x = -M_PI_4, .y = -M_PI_4, .z = 0.f};
 		const vec3 anglesMax = {.x = M_PI_4, .y = M_PI_4, .z = 0.f};
 		vec3 angles = quatToEulerAnglesXYZC(rot);
-		printf("E: (%f, %f, %f)\n", angles.x, angles.y, angles.z);
+		//printf("E: (%f, %f, %f)\n", angles.x, angles.y, angles.z);
 
 		angles.x = clampFloat(anglesMin.x, angles.x, anglesMax.x);
 		angles.y = clampFloat(anglesMin.y, angles.y, anglesMax.y);

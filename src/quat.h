@@ -204,6 +204,8 @@ void quatSwingTwist(const quat *const restrict q, const vec3 *const restrict v, 
 void quatSwingTwistC(const quat q, const vec3 v, quat *const restrict t, quat *const restrict s);
 void quatSwingTwistFast(const quat *const restrict q, const vec3 *const restrict v, quat *const restrict t, quat *const restrict s);
 void quatSwingTwistFastC(const quat q, const vec3 v, quat *const restrict t, quat *const restrict s);
+void quatSwingTwistFaster(const quat *const restrict q, const vec3 *const restrict v, quat *const restrict t, quat *const restrict s);
+void quatSwingTwistFasterC(const quat q, const vec3 v, quat *const restrict t, quat *const restrict s);
 
 void quatDifferentiate(quat *const restrict q, const vec3 *const restrict w);
 void quatDifferentiateOut(const quat *const restrict q, const vec3 *const restrict w, quat *const restrict out);

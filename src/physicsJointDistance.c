@@ -73,8 +73,6 @@
 **
 ** JM^(-1)J^T = mA^(-1) + mB^(-1) + ((rA X d) . (IA^(-1) * (rA X d))) + ((rB X d) . (IB^(-1) * (rB X d))).
 **
-** Note that we're free to normalize d,
-**
 ** ----------------------------------------------------------------------
 */
 
@@ -145,7 +143,7 @@ void physJointDistanceInit(
 ** Joints are always active so we always warm start.
 */
 #ifdef PHYSJOINTDISTANCE_WARM_START
-void physJointDistanceWarmStart(physicsJointDistance *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB){
+void physJointDistanceWarmStart(const physicsJointDistance *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB){
 	vec3 impulse;
 	vec3MultiplySOut(&joint->rAB, joint->impulse, &impulse);
 

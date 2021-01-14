@@ -2472,6 +2472,9 @@ void quatSwingTwistC(const quat q, const vec3 v, quat *const restrict t, quat *c
 ** "t" such that q = s*t. We also assume that the twist axis
 ** "v" has been normalized.
 **
+** This implementation negates twist when the dot product is
+** negative to ensure that it points in the same direction as "v".
+**
 ** Based off Przemyslaw Dobrowolski's implementation given
 ** in Swing-Twist Decomposition in Clifford Algebra (2015).
 */
@@ -2487,9 +2490,58 @@ void quatSwingTwistFast(const quat *const restrict q, const vec3 *const restrict
 	// By construction, q = s*t. We have "t", so to find
 	// "s" we can just multiply "q" by the conjugate of "t".
 	quatMultiplyByQuatConjOut(*q, *t, s);
+
+	// Note that if the dot product is negative, we need to invert
+	// the twist quaternion to keep the direction consistent.
+	if(u < 0.f){
+		quatNegate(t);
+	}
 }
 
 void quatSwingTwistFastC(const quat q, const vec3 v, quat *const restrict t, quat *const restrict s){
+	// Project the q's rotation axis onto the twist axis "v".
+	float u = vec3DotVec3C(v, *((const vec3 *)&q.x));
+	// Quickly compute the inverse magnitude of the projection.
+	const float l = invSqrtFast(q.w*q.w + u*u);
+	u *= l;
+
+	// Set the twist quaternion.
+	*t = quatInitSetC(v.x*u, v.y*u, v.z*u, q.w*l);
+	// By construction, q = s*t. We have "t", so to find
+	// "s" we can just multiply "q" by the conjugate of "t".
+	*s = quatMultiplyByQuatConjC(q, *t);
+
+	// Note that if the dot product is negative, we need to invert
+	// the twist quaternion to keep the direction consistent.
+	if(u < 0.f){
+		quatNegate(t);
+	}
+}
+
+/*
+** Decompose a quaternion into its swing and twist components.
+** This results in a swing quaternion "s" and twist quaternion
+** "t" such that q = s*t. We also assume that the twist axis
+** "v" has been normalized.
+**
+** Based off Przemyslaw Dobrowolski's implementation given
+** in Swing-Twist Decomposition in Clifford Algebra (2015).
+*/
+void quatSwingTwistFaster(const quat *const restrict q, const vec3 *const restrict v, quat *const restrict t, quat *const restrict s){
+	// Project the q's rotation axis onto the twist axis "v".
+	float u = vec3DotVec3(v, (const vec3 *const restrict)&q->x);
+	// Quickly compute the inverse magnitude of the projection.
+	const float l = invSqrtFast(q->w*q->w + u*u);
+	u *= l;
+
+	// Set the twist quaternion.
+	quatInitSet(t, v->x*u, v->y*u, v->z*u, q->w*l);
+	// By construction, q = s*t. We have "t", so to find
+	// "s" we can just multiply "q" by the conjugate of "t".
+	quatMultiplyByQuatConjOut(*q, *t, s);
+}
+
+void quatSwingTwistFasterC(const quat q, const vec3 v, quat *const restrict t, quat *const restrict s){
 	// Project the q's rotation axis onto the twist axis "v".
 	float u = vec3DotVec3C(v, *((const vec3 *)&q.x));
 	// Quickly compute the inverse magnitude of the projection.
