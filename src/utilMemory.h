@@ -13,7 +13,8 @@
 #if UINTPTR_MAX == UINT32_MAX
 	#define PRINTF_SIZE_T "%u"
 #else
-	#define PRINTF_SIZE_T "%u"
+	#include <inttypes.h>
+	#define PRINTF_SIZE_T "%"PRIu64
 #endif
 
 

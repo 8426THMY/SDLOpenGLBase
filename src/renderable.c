@@ -59,7 +59,7 @@ static void updateShaderBones(
 	const mat4 *const restrict animStates, const GLuint boneStatesID
 ){
 
-	const size_t numBones = mdlSkele->numBones;
+	const boneIndex_t numBones = mdlSkele->numBones;
 
 	#warning "We could possibly use a global bone states array."
 	#warning "Probably not a good idea if we want to create a render queue sometime in the future."
@@ -73,10 +73,10 @@ static void updateShaderBones(
 	// Search the object's skeleton for bones shared by the
 	// renderable's skeleton and copy them into a new array.
 	for(; curBone < lastBone; ++curBone, ++curBoneState){
-		const size_t boneID = skeleFindBone(objSkele, curBone->name);
+		const boneIndex_t boneID = skeleFindBone(objSkele, curBone->name);
 		// If this bone appeared in an animation, convert the
 		// bone state to a matrix so it can be sent to the shader!
-		if(!valueIsInvalid(boneID, size_t)){
+		if(!valueIsInvalid(boneID, boneIndex_t)){
 			*curBoneState = animStates[boneID];
 
 		// Otherwise, use the root's transformation!

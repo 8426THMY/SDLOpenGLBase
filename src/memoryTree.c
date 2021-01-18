@@ -239,7 +239,7 @@ void *memTreeResize(memoryTree *const restrict tree, void *const restrict block,
 	size_t newSize;
 	memTreeNode *tempBlock;
 
-	const size_t fullSize = (size_t)memoryAlign(blockSize + MEMTREE_BLOCK_HEADER_SIZE);
+	const size_t fullSize = memTreeGetBlockSize(blockSize) + MEMTREE_BLOCK_HEADER_SIZE;
 	const size_t oldSize = newBlock->size;
 	// If the block is already the size we want, we can exit early.
 	if(fullSize == oldSize){
@@ -311,7 +311,7 @@ void *memTreeResize(memoryTree *const restrict tree, void *const restrict block,
 		// We only need to copy the user's data
 		// if the block's pointer has moved.
 		if(tempBlock != block){
-			memmove(tempBlock, block, oldSize);
+			memmove(tempBlock, block, oldSize - MEMTREE_BLOCK_HEADER_SIZE);
 		}
 
 		// Provided the leftover memory is large enough,
@@ -328,7 +328,7 @@ void *memTreeResize(memoryTree *const restrict tree, void *const restrict block,
 	// the user's data with any of the free block header information.
 	tempBlock = memTreeAlloc(tree, blockSize);
 	if(tempBlock != NULL){
-		memcpy(tempBlock, block, oldSize);
+		memcpy(tempBlock, block, oldSize - MEMTREE_BLOCK_HEADER_SIZE);
 
 		// Now we can add the old block back to the tree.
 		newBlock->prevSize = listNodeRemoveActive(newBlock->prevSize);
@@ -350,6 +350,8 @@ void *memTreeRealloc(memoryTree *const restrict tree, void *const restrict block
 		size_t newSize;
 		memTreeNode *tempBlock;
 
+		// We don't need to check if the new size is valid, as the block is
+		// already valid and we can just reuse it if the new size is smaller.
 		const size_t fullSize = blockSize + MEMTREE_BLOCK_HEADER_SIZE;
 		const size_t oldSize = newBlock->size;
 		// If the block is already big enough, we can exit early.
@@ -363,6 +365,7 @@ void *memTreeRealloc(memoryTree *const restrict tree, void *const restrict block
 
 		// If this block is not the first, we might be able to merge left.
 		if(!listNodeIsFirst(newBlock->prevSize)){
+			//#error "Why is prevSize wrong?"
 			memTreeListNode *const leftBlock = listNodeGetPrevList(newBlock, listNodeGetSize(newBlock->prevSize));
 			// We can only merge it if the block to its left is free.
 			if(!listNodeIsActive(leftBlock->prevSize)){
@@ -422,7 +425,7 @@ void *memTreeRealloc(memoryTree *const restrict tree, void *const restrict block
 			// We only need to copy the user's data
 			// if the block's pointer has moved.
 			if(tempBlock != block){
-				memmove(tempBlock, block, oldSize);
+				memmove(tempBlock, block, oldSize - MEMTREE_BLOCK_HEADER_SIZE);
 			}
 
 			// Provided the leftover memory is large enough,
@@ -439,7 +442,7 @@ void *memTreeRealloc(memoryTree *const restrict tree, void *const restrict block
 		// the user's data with any of the free block header information.
 		tempBlock = memTreeAlloc(tree, blockSize);
 		if(tempBlock != NULL){
-			memcpy(tempBlock, block, oldSize);
+			memcpy(tempBlock, block, oldSize - MEMTREE_BLOCK_HEADER_SIZE);
 
 			// Now we can add the old block back to the tree.
 			newBlock->prevSize = listNodeRemoveActive(newBlock->prevSize);
@@ -611,16 +614,20 @@ void memTreePrintAllSizes(memoryTree *const restrict tree){
 			// If the node is active, we just print its size and flags.
 			if(listNodeIsActive(node->prevSize)){
 				printf(
-					"Used Address: "PRINTF_SIZE_T", Size: "PRINTF_SIZE_T", Flags: "PRINTF_SIZE_T"\n\n",
-					(uintptr_t)(nodeTree), node->size - MEMTREE_BLOCK_HEADER_SIZE, listNodeGetFlags(node->prevSize)
+					"Used Address: "PRINTF_SIZE_T", Size: "PRINTF_SIZE_T", PrevSize: "PRINTF_SIZE_T", Flags: "PRINTF_SIZE_T"\n\n",
+					(uintptr_t)(nodeTree),
+					node->size - MEMTREE_BLOCK_HEADER_SIZE,
+					listNodeIsFirst(node->prevSize) ? 0 : (listNodeGetSize(node->prevSize) - MEMTREE_BLOCK_HEADER_SIZE),
+					listNodeGetFlags(node->prevSize)
 				);
 
 			// Otherwise, we can print its tree data too!
 			}else{
 				printf(
-					"Free Address: "PRINTF_SIZE_T", Size: "PRINTF_SIZE_T", Flags: "PRINTF_SIZE_T",\n"
+					"Free Address: "PRINTF_SIZE_T", Size: "PRINTF_SIZE_T", PrevSize: "PRINTF_SIZE_T", Flags: "PRINTF_SIZE_T",\n"
 					"Left: "PRINTF_SIZE_T", Right: "PRINTF_SIZE_T", Parent: "PRINTF_SIZE_T", Colour: "PRINTF_SIZE_T"\n\n",
-					(uintptr_t)(nodeTree), node->size - MEMTREE_BLOCK_HEADER_SIZE, listNodeGetFlags(node->prevSize),
+					(uintptr_t)(nodeTree), node->size - MEMTREE_BLOCK_HEADER_SIZE,
+					listNodeIsFirst(node->prevSize) ? 0 : (listNodeGetSize(node->prevSize) - MEMTREE_BLOCK_HEADER_SIZE), listNodeGetFlags(node->prevSize),
 					(uintptr_t)(nodeTree->left), (uintptr_t)(nodeTree->right), (uintptr_t)(treeNodeGetParent(nodeTree)), treeNodeGetColour(nodeTree)
 				);
 			}

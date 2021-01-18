@@ -63,9 +63,10 @@ void particleSysInit(particleSystem *const restrict partSys, const particleSyste
 		curEmitter = partSys->emitters;
 		lastEmitter = &curEmitter[partSysDef->numEmitters];
 		// Initialize the system's emitters.
-		for(; curEmitter < lastEmitter; ++curEmitter){
+		do {
 			particleEmitterInit(curEmitter);
-		}
+			++curEmitter;
+		} while(curEmitter < lastEmitter);
 	}else{
 		partSys->emitters = NULL;
 	}
@@ -89,7 +90,7 @@ void particleSysInit(particleSystem *const restrict partSys, const particleSyste
 		curParticle = partSys->particles;
 		lastParticle = &curParticle[partSysDef->maxParticles];
 		// Initialize the system's particles.
-		for(; curParticle < lastParticle; ++curParticle){
+		do {
 			// Set up any initially active particles using the system's initializers.
 			if(partSys->numParticles < partSysDef->initialParticles){
 				initializeParticle(partSys, curParticle);
@@ -99,7 +100,8 @@ void particleSysInit(particleSystem *const restrict partSys, const particleSyste
 			}else{
 				particleDelete(curParticle);
 			}
-		}
+			++curParticle;
+		} while(curParticle < lastParticle);
 	}else{
 		partSys->particles = NULL;
 	}
@@ -120,9 +122,11 @@ void particleSysInit(particleSystem *const restrict partSys, const particleSyste
 		lastChild = &curChild[partSysDef->numChildren];
 		curChildDef = partSysDef->children;
 		// Initialize the system's children.
-		for(; curChild < lastChild; ++curChild, ++curChildDef){
+		do {
 			particleSysInit(curChild, curChildDef);
-		}
+			++curChild;
+			++curChildDef;
+		} while(curChild < lastChild);
 	}else{
 		partSys->children = NULL;
 	}
@@ -189,9 +193,10 @@ void particleSysDelete(particleSystem *const restrict partSys){
 		particleSystem *curChild = partSys->children;
 		const particleSystem *const lastChild = &curChild[partSys->partSysDef->numChildren];
 		// Delete the system's children.
-		for(; curChild < lastChild; ++curChild){
+		do {
 			particleSysDelete(curChild);
-		}
+			++curChild;
+		} while(curChild < lastChild);
 
 		memoryManagerGlobalFree(partSys->children);
 	}

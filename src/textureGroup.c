@@ -487,6 +487,7 @@ textureGroup *texGroupLoad(const char *const restrict texGroupPath, const size_t
 			// If the textureGroup has no
 			// animations, use the default one.
 			if(texAnimsSize == 0){
+				texGroup->texAnims = &texGroupAnimDefault;
 				// Allocate memory for a single default animation.
 				texAnims = memoryManagerGlobalRealloc(texAnims, sizeof(*texAnims));
 				if(texAnims == NULL){
@@ -563,6 +564,7 @@ textureGroupFrame *texGroupStateGetFrame(const textureGroupState *const restrict
 }
 
 
+// This function assumes that the input isn't the default animation.
 void texGroupAnimDefDelete(textureGroupAnimDef *const restrict texGroupAnimDef){
 	if(texGroupAnimDef->name != NULL){
 		memoryManagerGlobalFree(texGroupAnimDef->name);
@@ -585,9 +587,10 @@ void texGroupDelete(textureGroup *const restrict texGroup){
 		// Delete the textureGroup's animations.
 		if(curAnim != NULL && curAnim != &texGroupAnimDefault){
 			const textureGroupAnimDef *lastAnim = &curAnim[texGroup->numAnims];
-			for(; curAnim < lastAnim; ++curAnim){
+			do {
 				texGroupAnimDefDelete(curAnim);
-			}
+				++curAnim;
+			} while(curAnim < lastAnim);
 			memoryManagerGlobalFree(texGroup->texAnims);
 		}
 	}

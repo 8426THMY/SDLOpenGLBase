@@ -8,16 +8,13 @@
 };
 
 
-#warning "In 'transformStateAppend' and 'transformStateToMat4', we rotate before scaling. I can't seem to get it to work well the correct way."
-
-
 void transformStateInit(transformState *trans){
 	*trans = g_transformIdentity;
 }
 
 
 // Append "trans2" to "trans1". This effectively multiplies them as if they're matrices.
-void transformStateAppend(const transformState *const restrict trans1, const transformState *const restrict trans2, transformState *const restrict out){
+void transformStateAppend(const transformState *const trans1, const transformState *const trans2, transformState *const out){
 	vec3 pos;
 
 	vec3MultiplyVec3Out(&trans2->pos, &trans1->scale, &pos);
@@ -33,7 +30,7 @@ void transformStateAppend(const transformState *const restrict trans1, const tra
 }
 
 // Remove the effect of prepending "trans1" to "trans2".
-void transformStateUndoPrepend(const transformState *const restrict trans1, const transformState *const restrict trans2, transformState *const restrict out){
+void transformStateUndoPrepend(const transformState *const trans1, const transformState *const trans2, transformState *const out){
 	transformState inverse;
 	vec3DivideSByFastOut(&trans1->scale, 1.f, &inverse.scale);
 	quatConjugateOut(&trans1->rot, &inverse.rot);
@@ -52,14 +49,14 @@ void transformStateUndoPrepend(const transformState *const restrict trans1, cons
 }
 
 // Interpolate between two states and store the result in "out"!
-void transformStateInterpSet(const transformState *const restrict trans1, const transformState *const restrict trans2, const float time, transformState *const restrict out){
+void transformStateInterpSet(const transformState *const trans1, const transformState *const trans2, const float time, transformState *const out){
 	vec3Lerp(&trans1->pos, &trans2->pos, time, &out->pos);
 	quatSlerpFasterOut(&trans1->rot, &trans2->rot, time, &out->rot);
 	vec3Lerp(&trans1->scale, &trans2->scale, time, &out->scale);
 }
 
 // Interpolate between two states and add the offsets to "out"!
-void transformStateInterpAdd(const transformState *const restrict trans1, const transformState *const restrict trans2, const float time, transformState *const restrict out){
+void transformStateInterpAdd(const transformState *const trans1, const transformState *const trans2, const float time, transformState *const restrict out){
 	transformState interp;
 
 	// Interpolate between "trans1" and "trans2", then
@@ -77,7 +74,7 @@ void transformStateInterpAdd(const transformState *const restrict trans1, const 
 
 
 // Invert all three components of a transformation state.
-void transformStateInvert(const transformState *const restrict trans, transformState *const restrict out){
+void transformStateInvert(const transformState *const trans, transformState *const out){
 	// Invert the transform's rotation!
 	quatConjugateOut(&trans->rot, &out->rot);
 
@@ -103,14 +100,14 @@ void transformStateToMat4(const transformState *const restrict trans, mat4 *cons
 
 
 // Transform a vec3 by scaling it, rotating it and finally translating it.
-void transformStateTransformPosition(const transformState *const restrict trans, const vec3 *const restrict v, vec3 *const restrict out){
+void transformStateTransformPosition(const transformState *const restrict trans, const vec3 *const v, vec3 *const out){
 	vec3MultiplyVec3Out(&trans->scale, v, out);
 	quatRotateVec3Fast(&trans->rot, out);
 	vec3AddVec3(out, &trans->pos);
 }
 
 // Transform a vec3 by scaling it and rotating it, but not translating it.
-void transformStateTransformVelocity(const transformState *const restrict trans, const vec3 *const restrict v, vec3 *const restrict out){
+void transformStateTransformVelocity(const transformState *const restrict trans, const vec3 *const v, vec3 *const out){
 	vec3MultiplyVec3Out(&trans->scale, v, out);
 	quatRotateVec3Fast(&trans->rot, out);
 }

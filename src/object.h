@@ -26,7 +26,7 @@ typedef struct objectDef {
 	physicsRigidBodyDef *physBodies;
 	// Array of identifiers that tell us which
 	// bones each rigid body should be attached to.
-	size_t *physBoneIDs;
+	boneIndex_t *physBoneIDs;
 	size_t numBodies;
 
 	// Default array of drawable models
@@ -62,7 +62,7 @@ void objectInit(object *const restrict obj, const objectDef *const restrict objD
 
 return_t objectDefLoad(objectDef *const restrict objDef, const char *const restrict objFile);
 
-void objectPrepareRigidBody(object *const restrict obj, physicsRigidBody *const restrict body, const size_t boneID);
+void objectPrepareRigidBody(object *const restrict obj, physicsRigidBody *const restrict body, const boneIndex_t boneID);
 void objectPreparePhysics(object *const restrict obj);
 
 void objectUpdate(object *const restrict obj, const float time);

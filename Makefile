@@ -1,6 +1,11 @@
 CC=gcc
 CFLAGS=-Wall -pedantic -O3 -ffast-math -ffloat-store -fno-unsafe-math-optimizations -Isrc
-LIBS=-lm -lGLEW -lGL -lSDL2main -lSDL2 -lSDL2_image -lSDL2_mixer
+ifeq($(OS), Windows_NT)
+	LIBS=-lglew32s -lmingw32 -lopengl32
+else
+	LIBS=-lm -lGLEW -lGL
+endif
+LIBS+=-lSDL2main -lSDL2 -lSDL2_image -lSDL2_mixer
 
 EXE=bin/NewSDLOpenGLBase
 SRC=$(wildcard src/*.c)

@@ -27,8 +27,8 @@ void spriteInit(sprite *const restrict spriteData){
 ** We only fill them when we actually draw our sprite.
 */
 void spriteGenerateBuffers(
-	sprite *const restrict spriteData, const spriteVertex *const restrict vertices, const size_t numVertices,
-	const size_t *const restrict indices, const size_t numIndices
+	sprite *const restrict spriteData, const spriteVertex *const restrict vertices, const spriteVertexIndex_t numVertices,
+	const spriteVertexIndex_t *const restrict indices, const spriteVertexIndex_t numIndices
 ){
 
 	// Generate a vertex array object for our sprite and bind it!
@@ -127,7 +127,7 @@ return_t spriteSetupDefault(){
 		}
 	};
 
-	const size_t indices[6] = {
+	const spriteVertexIndex_t indices[6] = {
 		0, 1, 2,
 		2, 3, 0
 	};

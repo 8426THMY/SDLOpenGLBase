@@ -534,7 +534,7 @@ static return_t initResources(program *const restrict prg){
 	objDef = moduleObjectDefAlloc();
 	objectDefInit(objDef);
 	physRigidBodyDefLoad(&objDef->physBodies, "cube.tdp", sizeof("cube.tdp"));
-	objDef->physBoneIDs = memoryManagerGlobalAlloc(sizeof(size_t));
+	objDef->physBoneIDs = memoryManagerGlobalAlloc(sizeof(*objDef->physBoneIDs));
 	*objDef->physBoneIDs = 0;
 	objDef->numBodies = 1;
 	renderDef = moduleRenderableDefAlloc();
@@ -560,11 +560,12 @@ static return_t initResources(program *const restrict prg){
 
 
 		// Create the base physics object.
+		printf("\nThis is the part we care about:\n");
 		mdl = modelOBJLoad("cubeQuads.obj", sizeof("cubeQuads.obj"));
 		objDef = moduleObjectDefAlloc();
 		objectDefInit(objDef);
 		physRigidBodyDefLoad(&objDef->physBodies, "cube.tdp", sizeof("cube.tdp"));
-		objDef->physBoneIDs = memoryManagerGlobalAlloc(sizeof(size_t));
+		objDef->physBoneIDs = memoryManagerGlobalAlloc(sizeof(*objDef->physBoneIDs));
 		*objDef->physBoneIDs = 0;
 		objDef->numBodies = 1;
 		renderDef = moduleRenderableDefAlloc();
@@ -575,7 +576,7 @@ static return_t initResources(program *const restrict prg){
 		obj = moduleObjectAlloc();
 		objectInit(obj, objDef);
 		printf("Cube %u: %u -> %u\n", 0, obj->physBodies, obj->physBodies->colliders);
-		obj->state.pos = vec3InitSetC(0.239072f+2.5f, -0.707037f+2.f, -0.172447f-2.f);
+		obj->state.pos = vec3InitSetC(0.23907208442687988f+2.5f, -0.70703732967376709f+2.f, -0.17244648933410645f-2.f);
 		//obj->state.pos = vec3InitSetC(0.239072f, -0.707037f+2.f-2.5f, -0.172447f-2.f);
 		//obj->physBodies->linearVelocity.x = 12.f;
 
@@ -592,7 +593,7 @@ static return_t initResources(program *const restrict prg){
 		objDef = moduleObjectDefAlloc();
 		objectDefInit(objDef);
 		physRigidBodyDefLoad(&objDef->physBodies, "egg.tdp", sizeof("egg.tdp"));
-		objDef->physBoneIDs = memoryManagerGlobalAlloc(sizeof(size_t));
+		objDef->physBoneIDs = memoryManagerGlobalAlloc(sizeof(*objDef->physBoneIDs));
 		*objDef->physBoneIDs = 0;
 		objDef->numBodies = 1;
 		renderDef = moduleRenderableDefAlloc();
@@ -657,7 +658,7 @@ static return_t initResources(program *const restrict prg){
 	objDef = moduleObjectDefAlloc();
 	objectDefInit(objDef);
 	physRigidBodyDefLoad(&objDef->physBodies, "cube.tdp", sizeof("cube.tdp"));
-	objDef->physBoneIDs = memoryManagerGlobalAlloc(sizeof(size_t));
+	objDef->physBoneIDs = memoryManagerGlobalAlloc(sizeof(*objDef->physBoneIDs));
 	*objDef->physBoneIDs = 0;
 	objDef->numBodies = 1;
 	renderDef = moduleRenderableDefAlloc();
@@ -684,7 +685,7 @@ static return_t initResources(program *const restrict prg){
 	objDef = moduleObjectDefAlloc();
 	objectDefInit(objDef);
 	physRigidBodyDefLoad(&objDef->physBodies, "egg.tdp", sizeof("egg.tdp"));
-	objDef->physBoneIDs = memoryManagerGlobalAlloc(sizeof(size_t));
+	objDef->physBoneIDs = memoryManagerGlobalAlloc(sizeof(*objDef->physBoneIDs));
 	*objDef->physBoneIDs = 0;
 	objDef->numBodies = 1;
 	renderDef = moduleRenderableDefAlloc();
@@ -807,11 +808,6 @@ static return_t setupModules(){
 	puts("Beginning setup...\n");
 	memoryManagerGlobalInit(MEMORY_HEAPSIZE);
 
-	#ifdef MODULE_SHADER
-	if(!moduleShaderSetup()){
-		return(MODULE_SHADER_SETUP_FAIL);
-	}
-	#endif
 	#ifdef MODULE_TEXTURE
 	if(!moduleTextureSetup()){
 		return(MODULE_TEXTURE_SETUP_FAIL);
@@ -877,36 +873,43 @@ static void cleanupModules(){
 		textFontDelete(&fontIBM);
 	}
 	guiElementDelete(&gui);
-	#ifdef MODULE_PARTICLE
-	moduleParticleCleanup();
-	#endif
-	#ifdef MODULE_OBJECT
-	moduleObjectCleanup();
-	#endif
-	#ifdef MODULE_RENDERABLE
-	moduleRenderableCleanup();
-	#endif
-	#ifdef MODULE_MODEL
-	moduleModelCleanup();
-	#endif
-	#ifdef MODULE_PHYSICS
-	modulePhysicsCleanup();
-	#endif
-	#ifdef MODULE_SKELETON
-	moduleSkeletonCleanup();
-	#endif
-	#ifdef MODULE_TEXGROUP
-	moduleTexGroupCleanup();
-	#endif
-	#ifdef MODULE_TEXTURE
-	moduleTextureCleanup();
-	#endif
-	#ifdef MODULE_SHADER
-	moduleShaderCleanup();
-	#endif
 
 	/** THIS IS TEMPORARY **/
 	debugDrawCleanup();
+
+	#ifdef MODULE_PARTICLE
+	puts("Cleaning up particles...");
+	moduleParticleCleanup();
+	#endif
+	#ifdef MODULE_OBJECT
+	puts("Cleaning up objects...");
+	moduleObjectCleanup();
+	#endif
+	#ifdef MODULE_RENDERABLE
+	puts("Cleaning up renderables...");
+	moduleRenderableCleanup();
+	#endif
+	#ifdef MODULE_MODEL
+	puts("Cleaning up models...");
+	moduleModelCleanup();
+	#endif
+	#ifdef MODULE_PHYSICS
+	puts("Cleaning up physics...");
+	modulePhysicsCleanup();
+	#endif
+	#ifdef MODULE_SKELETON
+	puts("Cleaning up skeletons...");
+	moduleSkeletonCleanup();
+	#endif
+	#ifdef MODULE_TEXGROUP
+	puts("Cleaning up texture groups...");
+	moduleTexGroupCleanup();
+	#endif
+	#ifdef MODULE_TEXTURE
+	puts("Cleaning up textures...");
+	moduleTextureCleanup();
+	#endif
+	printf("\n");
 
 	memTreePrintAllSizes(&g_memManager);
 	memoryManagerGlobalDelete();

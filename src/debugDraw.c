@@ -14,12 +14,14 @@
 #include "memoryManager.h"
 
 
+typedef GLsizei debugVertexIndex_t;
+
 typedef struct debugMesh {
 	GLuint vertexArrayID;
 	GLuint vertexBufferID;
 
 	GLuint indexBufferID;
-	size_t numIndices;
+	debugVertexIndex_t numIndices;
 
 	GLuint drawMode;
 } debugMesh;
@@ -38,8 +40,8 @@ debugShader debugDrawShader;
 
 // Forward-declare any helper functions!
 static void debugMeshGenerateBuffers(
-	debugMesh *const restrict meshData, const vec3 *const restrict vertices, const size_t numVertices,
-	const size_t *const restrict indices, const size_t numIndices
+	debugMesh *const restrict meshData, const vec3 *const restrict vertices, const debugVertexIndex_t numVertices,
+	const debugVertexIndex_t *const restrict indices, const debugVertexIndex_t numIndices
 );
 static void debugMeshDrawBuffers(
 	const debugMesh *const restrict meshData, const debugDrawInfo *const restrict info, const mat4 *const restrict vpMatrix
@@ -91,9 +93,9 @@ void debugDrawSkeleton(const skeletonObject *const restrict skeleData, const deb
 
 
 	vec3 *vertices;
-	size_t *indices;
-	const size_t numBones = skeleData->skele->numBones;
-	size_t i = 0;
+	debugVertexIndex_t *indices;
+	const debugVertexIndex_t numBones = skeleData->skele->numBones;
+	debugVertexIndex_t i = 0;
 
 	vertices = memoryManagerGlobalAlloc(numBones * sizeof(*vertices));
 	if(vertices == NULL){
@@ -108,9 +110,9 @@ void debugDrawSkeleton(const skeletonObject *const restrict skeleData, const deb
 
 	// Copy each bone's position and create a new edge between it and its parent.
 	for(; i < numBones; ++i){
-		const size_t parentID = skeleData->skele->bones[i].parent;
+		const boneIndex_t parentID = skeleData->skele->bones[i].parent;
 		vertices[i] = skeleData->bones[i].pos;
-		if(!valueIsInvalid(parentID, size_t)){
+		if(!valueIsInvalid(parentID, boneIndex_t)){
 			indices[meshData.numIndices] = parentID;
 			++meshData.numIndices;
 			indices[meshData.numIndices] = i;
@@ -159,7 +161,7 @@ void debugDrawColliderAABB(const colliderAABB *aabb, const debugDrawInfo info, c
 		{.x = aabb->max.x, .y = aabb->min.y, .z = aabb->max.z},
 		{.x = aabb->min.x, .y = aabb->min.y, .z = aabb->max.z}
 	};
-	const size_t indices[36] = {
+	const debugVertexIndex_t indices[36] = {
 		2, 1, 0,
 		0, 3, 2,
 		6, 0, 1,
@@ -204,9 +206,9 @@ void debugDrawColliderHull(const colliderHull *const restrict hull, const debugD
 
 	// Compute an upper bound for the number of indices needed.
 	// We assume that each face has the maximum number of edges.
-	size_t *const indices = memoryManagerGlobalAlloc(hull->numFaces * (3 * (hull->maxFaceEdges - 2)) * sizeof(*indices));
-	size_t *curIndex = indices;
-	size_t curFaceIndex = 0;
+	debugVertexIndex_t *const indices = memoryManagerGlobalAlloc(hull->numFaces * (3 * (hull->maxFaceEdges - 2)) * sizeof(*indices));
+	debugVertexIndex_t *curIndex = indices;
+	debugVertexIndex_t curFaceIndex = 0;
 	const colliderHullFace *curFace = hull->faces;
 	meshData.numIndices = 0;
 
@@ -304,8 +306,8 @@ void debugDrawCleanup(){
 
 // Generate vertex and index buffers to hold our mesh data!
 static void debugMeshGenerateBuffers(
-	debugMesh *const restrict meshData, const vec3 *const restrict vertices, const size_t numVertices,
-	const size_t *const restrict indices, const size_t numIndices
+	debugMesh *const restrict meshData, const vec3 *const restrict vertices, const debugVertexIndex_t numVertices,
+	const debugVertexIndex_t *const restrict indices, const debugVertexIndex_t numIndices
 ){
 
 	// Generate a vertex array object for our mesh and bind it!

@@ -79,14 +79,14 @@ void modulePhysicsCleanup(){
 	MEMSINGLELIST_LOOP_END(g_physColliderManager, i)
 	memSingleListDelete(&g_physColliderManager, memoryManagerGlobalFree);
 	// physicsJointPair
-	MEMPOOL_LOOP_BEGIN(g_physJointPairManager, i, physicsJointPair)
+	MEMDOUBLELIST_LOOP_BEGIN(g_physJointPairManager, i, physicsJointPair)
 		modulePhysicsJointPairFree(NULL, i);
-	MEMPOOL_LOOP_END(g_physJointPairManager, i)
+	MEMDOUBLELIST_LOOP_END(g_physJointPairManager, i)
 	memDoubleListDelete(&g_physJointPairManager, memoryManagerGlobalFree);
 	// physicsSeparationPair
-	MEMPOOL_LOOP_BEGIN(g_physSeparationPairManager, i, physicsSeparationPair)
+	MEMDOUBLELIST_LOOP_BEGIN(g_physSeparationPairManager, i, physicsSeparationPair)
 		modulePhysicsSeparationPairFree(NULL, i);
-	MEMPOOL_LOOP_END(g_physSeparationPairManager, i)
+	MEMDOUBLELIST_LOOP_END(g_physSeparationPairManager, i)
 	memDoubleListDelete(&g_physSeparationPairManager, memoryManagerGlobalFree);
 	// physicsContactPair
 	MEMDOUBLELIST_LOOP_BEGIN(g_physContactPairManager, i, physicsContactPair)
@@ -94,9 +94,9 @@ void modulePhysicsCleanup(){
 	MEMDOUBLELIST_LOOP_END(g_physContactPairManager, i)
 	memDoubleListDelete(&g_physContactPairManager, memoryManagerGlobalFree);
 	// aabbNode
-	MEMDOUBLELIST_LOOP_BEGIN(g_aabbNodeManager, i, aabbNode)
+	MEMPOOL_LOOP_BEGIN(g_aabbNodeManager, i, aabbNode)
 		modulePhysicsAABBNodeFree(i);
-	MEMDOUBLELIST_LOOP_END(g_aabbNodeManager, i)
+	MEMPOOL_LOOP_END(g_aabbNodeManager, i)
 	memPoolDelete(&g_aabbNodeManager, memoryManagerGlobalFree);
 }
 

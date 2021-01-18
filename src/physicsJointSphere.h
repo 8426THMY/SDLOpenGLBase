@@ -67,6 +67,9 @@ typedef struct physicsJointSphere {
 	vec3 linearImpulse;
 	float swingImpulse;
 	float twistImpulse;
+
+	float test1;
+	float test2;
 } physicsJointSphere;
 
 

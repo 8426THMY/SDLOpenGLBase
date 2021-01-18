@@ -16,6 +16,8 @@
 #define VERTEX_MAX_WEIGHTS 4
 
 
+typedef GLsizei meshVertexIndex_t;
+
 typedef struct vertex {
 	vec3 pos;
 	vec2 uv;
@@ -30,7 +32,7 @@ typedef struct mesh {
 	GLuint vertexBufferID;
 
 	GLuint indexBufferID;
-	size_t numIndices;
+	meshVertexIndex_t numIndices;
 } mesh;
 
 
@@ -47,8 +49,8 @@ typedef struct meshShader {
 void meshInit(mesh *const restrict meshData);
 
 void meshGenerateBuffers(
-	mesh *const restrict meshData, const vertex *const restrict vertices, const size_t numVertices,
-	const size_t *const restrict indices, const size_t numIndices
+	mesh *const restrict meshData, const vertex *const restrict vertices, const meshVertexIndex_t numVertices,
+	const meshVertexIndex_t *const restrict indices, const meshVertexIndex_t numIndices
 );
 
 return_t vertexDifferent(const vertex *const restrict v1, const vertex *const restrict v2);

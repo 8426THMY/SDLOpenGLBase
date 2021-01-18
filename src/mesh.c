@@ -21,8 +21,8 @@ void meshInit(mesh *const restrict meshData){
 
 // Generate vertex and index buffers to hold our mesh data!
 void meshGenerateBuffers(
-	mesh *const restrict meshData, const vertex *const restrict vertices, const size_t numVertices,
-	const size_t *const restrict indices, const size_t numIndices
+	mesh *const restrict meshData, const vertex *const restrict vertices, const meshVertexIndex_t numVertices,
+	const meshVertexIndex_t *const restrict indices, const meshVertexIndex_t numIndices
 ){
 
 	// Generate a vertex array object for our mesh and bind it!
@@ -202,7 +202,7 @@ return_t meshSetupDefault(){
 		}
 	};
 
-	const size_t indices[36] = {
+	const meshVertexIndex_t indices[36] = {
 		 0,  1,  2,
 		 3,  4,  5,
 		 6,  7,  8,

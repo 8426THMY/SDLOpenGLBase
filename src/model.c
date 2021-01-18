@@ -86,40 +86,40 @@ model *modelOBJLoad(const char *const restrict mdlPath, const size_t mdlPathLeng
 
 
 		// Temporarily stores only unique vertices.
-		size_t tempVerticesSize = 0;
-		size_t tempVerticesCapacity = BASE_VERTEX_CAPACITY;
+		meshVertexIndex_t tempVerticesSize = 0;
+		meshVertexIndex_t tempVerticesCapacity = BASE_VERTEX_CAPACITY;
 		vertex *tempVertices = memoryManagerGlobalAlloc(BASE_VERTEX_CAPACITY * sizeof(*tempVertices));
 		if(tempVertices == NULL){
 			/** MALLOC FAILED **/
 		}
 
 		// Temporarily stores vertex indices for faces.
-		size_t tempIndicesSize = 0;
-		size_t tempIndicesCapacity = BASE_INDEX_CAPACITY;
-		size_t *tempIndices = memoryManagerGlobalAlloc(BASE_INDEX_CAPACITY * sizeof(*tempIndices));
+		meshVertexIndex_t tempIndicesSize = 0;
+		meshVertexIndex_t tempIndicesCapacity = BASE_INDEX_CAPACITY;
+		meshVertexIndex_t *tempIndices = memoryManagerGlobalAlloc(BASE_INDEX_CAPACITY * sizeof(*tempIndices));
 		if(tempIndices == NULL){
 			/** MALLOC FAILED **/
 		}
 
 		// Temporarily stores vertex positions, regardless of whether or not they are unique.
-		size_t tempPositionsSize = 0;
-		size_t tempPositionsCapacity = BASE_POSITION_CAPACITY;
+		meshVertexIndex_t tempPositionsSize = 0;
+		meshVertexIndex_t tempPositionsCapacity = BASE_POSITION_CAPACITY;
 		vec3 *tempPositions = memoryManagerGlobalAlloc(BASE_POSITION_CAPACITY * sizeof(*tempPositions));
 		if(tempPositions == NULL){
 			/** MALLOC FAILED **/
 		}
 
 		// Temporarily stores vertex UVs, regardless of whether or not they are unique.
-		size_t tempUVsSize = 0;
-		size_t tempUVsCapacity = BASE_UV_CAPACITY;
+		meshVertexIndex_t tempUVsSize = 0;
+		meshVertexIndex_t tempUVsCapacity = BASE_UV_CAPACITY;
 		vec2 *tempUVs = memoryManagerGlobalAlloc(BASE_UV_CAPACITY * sizeof(*tempUVs));
 		if(tempUVs == NULL){
 			/** MALLOC FAILED **/
 		}
 
 		// Temporarily stores vertex normals, regardless of whether or not they are unique.
-		size_t tempNormalsSize = 0;
-		size_t tempNormalsCapacity = BASE_NORMAL_CAPACITY;
+		meshVertexIndex_t tempNormalsSize = 0;
+		meshVertexIndex_t tempNormalsCapacity = BASE_NORMAL_CAPACITY;
 		vec3 *tempNormals = memoryManagerGlobalAlloc(BASE_NORMAL_CAPACITY * sizeof(*tempNormals));
 		if(tempNormals == NULL){
 			/** MALLOC FAILED **/
@@ -213,7 +213,7 @@ model *modelOBJLoad(const char *const restrict mdlPath, const size_t mdlPathLeng
 
 			// Faces.
 			}else if(memcmp(line, "f ", 2) == 0){
-				size_t i;
+				meshVertexIndex_t i;
 				char *tokEnd;
 
 				tokPos = &line[2];
@@ -226,10 +226,10 @@ model *modelOBJLoad(const char *const restrict mdlPath, const size_t mdlPathLeng
 				// If the vertex we want to add already exists, create an index to it!
 				// Otherwise, add it to the vector!
 				for(i = 0; i < 3 || tokPos != NULL; ++i){
-					size_t j;
+					meshVertexIndex_t j;
 
 					vertex tempVertex;
-					size_t posIndex, uvIndex, normalIndex;
+					meshVertexIndex_t posIndex, uvIndex, normalIndex;
 					const vertex *checkVertex = tempVertices;
 
 
@@ -431,17 +431,17 @@ model *modelSMDLoad(const char *const restrict mdlPath, const size_t mdlPathLeng
 
 
 		// Temporarily stores only unique vertices.
-		size_t tempVerticesSize = 0;
-		size_t tempVerticesCapacity = BASE_VERTEX_CAPACITY;
+		meshVertexIndex_t tempVerticesSize = 0;
+		meshVertexIndex_t tempVerticesCapacity = BASE_VERTEX_CAPACITY;
 		vertex *tempVertices = memoryManagerGlobalAlloc(BASE_VERTEX_CAPACITY * sizeof(*tempVertices));
 		if(tempVertices == NULL){
 			/** MALLOC FAILED **/
 		}
 
 		// Temporarily stores vertex indices for faces.
-		size_t tempIndicesSize = 0;
-		size_t tempIndicesCapacity = BASE_INDEX_CAPACITY;
-		size_t *tempIndices = memoryManagerGlobalAlloc(BASE_INDEX_CAPACITY * sizeof(*tempIndices));
+		meshVertexIndex_t tempIndicesSize = 0;
+		meshVertexIndex_t tempIndicesCapacity = BASE_INDEX_CAPACITY;
+		meshVertexIndex_t *tempIndices = memoryManagerGlobalAlloc(BASE_INDEX_CAPACITY * sizeof(*tempIndices));
 		if(tempIndices == NULL){
 			/** MALLOC FAILED **/
 		}
@@ -506,7 +506,7 @@ model *modelSMDLoad(const char *const restrict mdlPath, const size_t mdlPathLeng
 						bone tempBone;
 
 						// Get this bone's ID.
-						size_t boneID = strtoul(tokPos, &tokPos, 10);
+						const boneIndex_t boneID = strtoul(tokPos, &tokPos, 10);
 						if(boneID == tempBonesSize){
 							// Get the bone's name.
 							size_t boneNameLength;
@@ -519,7 +519,7 @@ model *modelSMDLoad(const char *const restrict mdlPath, const size_t mdlPathLeng
 							tempBone.name[boneNameLength] = '\0';
 
 							// Get the ID of this bone's parent.
-							tempBone.parent = strtoul(tokPos + boneNameLength + 1, NULL, 10);
+							tempBone.parent = strtol(tokPos + boneNameLength + 1, NULL, 10);
 
 
 							// If we're out of space, allocate some more!
@@ -538,7 +538,7 @@ model *modelSMDLoad(const char *const restrict mdlPath, const size_t mdlPathLeng
 								"Error loading model!\n"
 								"Path: %s\n"
 								"Line: %s\n"
-								"Error: Found node "PRINTF_SIZE_T" when expecting node "PRINTF_SIZE_T"!\n",
+								"Error: Found node %u when expecting node "PRINTF_SIZE_T"!\n",
 								mdlFullPath, line, boneID, tempBonesSize
 							);
 
@@ -547,7 +547,7 @@ model *modelSMDLoad(const char *const restrict mdlPath, const size_t mdlPathLeng
 					}else if(dataType == 2){
 						// If the line begins with time, get the frame's timestamp!
 						if(memcmp(line, "time ", 5) == 0){
-							unsigned int newTime = strtoul(&line[5], NULL, 10);
+							const unsigned int newTime = strtoul(&line[5], NULL, 10);
 							if(newTime >= data){
 								data = newTime;
 							}else{
@@ -565,7 +565,7 @@ model *modelSMDLoad(const char *const restrict mdlPath, const size_t mdlPathLeng
 						// Otherwise, we're setting the bone's state!
 						}else{
 							// Get this bone's ID.
-							size_t boneID = strtoul(line, &tokPos, 10);
+							const boneIndex_t boneID = strtoul(line, &tokPos, 10);
 							// Make sure a bone with this ID actually exists.
 							if(boneID < tempBonesSize){
 								bone *currentBone = &tempBones[boneID];
@@ -591,7 +591,7 @@ model *modelSMDLoad(const char *const restrict mdlPath, const size_t mdlPathLeng
 									// Set the inverse bind state!
 									currentBone->invGlobalBind = currentBone->localBind;
 									// If this bone has a parent, append its state to its parent's state!
-									if(!valueIsInvalid(currentBone->parent, size_t)){
+									if(!valueIsInvalid(currentBone->parent, boneIndex_t)){
 										transformStateAppend(
 											&tempBones[currentBone->parent].invGlobalBind,
 											&currentBone->invGlobalBind,
@@ -619,7 +619,7 @@ model *modelSMDLoad(const char *const restrict mdlPath, const size_t mdlPathLeng
 							memset(&tempVertex, 0.f, sizeof(tempVertex));
 
 							// Read the vertex data from the line!
-							size_t parentBoneID = strtoul(line, &tokPos, 10);
+							const unsigned int parentBoneID = strtoul(line, &tokPos, 10);
 							// Make sure a bone with this ID actually exists.
 							if(parentBoneID < tempBonesSize){
 								tempVertex.pos.x = strtof(tokPos, &tokPos) * 0.05f;
@@ -630,7 +630,7 @@ model *modelSMDLoad(const char *const restrict mdlPath, const size_t mdlPathLeng
 								tempVertex.normal.z = strtof(tokPos, &tokPos);
 								tempVertex.uv.x = strtof(tokPos, &tokPos);
 								tempVertex.uv.y = 1.f - strtof(tokPos, &tokPos);
-								size_t numLinks = strtoul(tokPos, &tokPos, 10);
+								boneIndex_t numLinks = strtoul(tokPos, &tokPos, 10);
 								// Make sure some links were specified.
 								if(numLinks > 0){
 									// If there are more than the maximum number of supported weights, we'll have to clamp it down!
@@ -646,12 +646,12 @@ model *modelSMDLoad(const char *const restrict mdlPath, const size_t mdlPathLeng
 										numLinks = VERTEX_MAX_WEIGHTS;
 									}
 
-									size_t parentPos = valueInvalid(size_t);
+									boneIndex_t parentPos = valueInvalid(boneIndex_t);
 									float totalWeight = 0.f;
 
-									size_t *curBoneID = tempVertex.boneIDs;
+									unsigned int *curBoneID = tempVertex.boneIDs;
 									float *curBoneWeight = tempVertex.boneWeights;
-									size_t i;
+									boneIndex_t i;
 									// Load all of the links!
 									for(i = 0; i < numLinks; ++i){
 										// Load the bone's ID!
@@ -693,7 +693,7 @@ model *modelSMDLoad(const char *const restrict mdlPath, const size_t mdlPathLeng
 									// Make sure the total weight isn't less than 1!
 									if(totalWeight < 1.f){
 										// If we never loaded the parent bone, see if we can add it!
-										if(valueIsInvalid(parentPos, size_t)){
+										if(valueIsInvalid(parentPos, boneIndex_t)){
 											if(i < VERTEX_MAX_WEIGHTS){
 												*curBoneID = parentBoneID;
 												*curBoneWeight = 0.f;
@@ -734,7 +734,7 @@ model *modelSMDLoad(const char *const restrict mdlPath, const size_t mdlPathLeng
 
 
 								const vertex *checkVertex = tempVertices;
-								size_t i;
+								meshVertexIndex_t i;
 								// Check if this vertex already exists!
 								for(i = 0; i < tempVerticesSize; ++i){
 									// Looks like it does, so we don't need to store it again!

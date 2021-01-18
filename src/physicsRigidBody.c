@@ -32,6 +32,7 @@ void physRigidBodyInit(physicsRigidBody *const restrict body, const physicsRigid
 
 	body->base = bodyDef;
 
+	body->colliders = NULL;
 	// Instantiate the rigid body's colliders.
 	while(curCollider != NULL){
 		body->colliders = modulePhysicsColliderPrepend(&body->colliders);

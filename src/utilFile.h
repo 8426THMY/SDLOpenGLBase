@@ -22,6 +22,7 @@
 
 #define FILE_MAX_LINE_LENGTH 1024
 #ifdef _WIN32
+	#include <windows.h>
 	#define FILE_MAX_PATH_LENGTH MAX_PATH
 #else
 	#include <limits.h>
