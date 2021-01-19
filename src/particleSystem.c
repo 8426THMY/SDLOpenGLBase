@@ -245,7 +245,7 @@ static void initializeParticle(const particleSystem *const restrict partSys, par
 
 	// Prepend the particle system's state.
 	vec3AddVec3(&part->state.pos, &partSys->pos);
-	quatMultiplyQuatBy(&part->state.rot, partSys->rot);
+	quatMultiplyByQuat(&part->state.rot, partSys->rot);
 
 	#warning "If we do this, we'll need to scale the result of operators."
 	#warning "Is this correct, though?"

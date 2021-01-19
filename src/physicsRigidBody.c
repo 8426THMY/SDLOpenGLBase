@@ -403,7 +403,7 @@ void physRigidBodyIntegrateVelocity(physicsRigidBody *const restrict body, const
 
 		// Calculate the body's angular acceleration.
 		vec3MultiplySOut(&body->netTorque, dt, &angularAcceleration);
-		mat3MultiplyByVec3(&body->invInertiaGlobal, &angularAcceleration);
+		mat3MultiplyVec3By(&body->invInertiaGlobal, &angularAcceleration);
 		// Add the angular acceleration to the angular velocity.
 		vec3AddVec3(&body->angularVelocity, &angularAcceleration);
 	}else{
@@ -490,14 +490,14 @@ void physRigidBodyApplyLinearImpulseInverse(physicsRigidBody *const restrict bod
 // Add a rotational impulse to a rigid body.
 void physRigidBodyApplyAngularImpulse(physicsRigidBody *const restrict body, vec3 J){
 	// Angular velocity.
-	mat3MultiplyByVec3(&body->invInertiaGlobal, &J);
+	mat3MultiplyVec3By(&body->invInertiaGlobal, &J);
 	vec3AddVec3(&body->angularVelocity, &J);
 }
 
 // Subtract a rotational impulse from a rigid body.
 void physRigidBodyApplyAngularImpulseInverse(physicsRigidBody *const restrict body, vec3 J){
 	// Angular velocity.
-	mat3MultiplyByVec3(&body->invInertiaGlobal, &J);
+	mat3MultiplyVec3By(&body->invInertiaGlobal, &J);
 	vec3SubtractVec3From(&body->angularVelocity, &J);
 }
 
@@ -511,7 +511,7 @@ void physRigidBodyApplyImpulse(physicsRigidBody *const restrict body, const vec3
 
 	// Angular velocity.
 	vec3CrossVec3Out(r, p, &impulse);
-	mat3MultiplyByVec3(&body->invInertiaGlobal, &impulse);
+	mat3MultiplyVec3By(&body->invInertiaGlobal, &impulse);
 	vec3AddVec3(&body->angularVelocity, &impulse);
 }
 
@@ -526,7 +526,7 @@ void physRigidBodyApplyImpulseBoost(physicsRigidBody *const restrict body, const
 	// Angular velocity.
 	vec3CrossVec3Out(r, p, &impulse);
 	vec3AddVec3(&impulse, a);
-	mat3MultiplyByVec3(&body->invInertiaGlobal, &impulse);
+	mat3MultiplyVec3By(&body->invInertiaGlobal, &impulse);
 	vec3AddVec3(&body->angularVelocity, &impulse);
 }
 
@@ -540,7 +540,7 @@ void physRigidBodyApplyImpulseInverse(physicsRigidBody *const restrict body, con
 
 	// Angular velocity.
 	vec3CrossVec3Out(r, p, &impulse);
-	mat3MultiplyByVec3(&body->invInertiaGlobal, &impulse);
+	mat3MultiplyVec3By(&body->invInertiaGlobal, &impulse);
 	vec3SubtractVec3From(&body->angularVelocity, &impulse);
 }
 
@@ -555,7 +555,7 @@ void physRigidBodyApplyImpulseBoostInverse(physicsRigidBody *const restrict body
 	// Angular velocity.
 	vec3CrossVec3Out(r, p, &impulse);
 	vec3AddVec3(&impulse, a);
-	mat3MultiplyByVec3(&body->invInertiaGlobal, &impulse);
+	mat3MultiplyVec3By(&body->invInertiaGlobal, &impulse);
 	vec3SubtractVec3From(&body->angularVelocity, &impulse);
 }
 
@@ -565,7 +565,7 @@ void physRigidBodyApplyAngularImpulsePosition(physicsRigidBody *const restrict b
 	// Orientation.
 	if(flagsAreSet(body->flags, PHYSRIGIDBODY_SIMULATE_ANGULAR)){
 		quat tempRot;
-		mat3MultiplyByVec3(&body->invInertiaGlobal, &J);
+		mat3MultiplyVec3By(&body->invInertiaGlobal, &J);
 		quatDifferentiateOut(&body->state.rot, &J, &tempRot);
 		quatAddVec4(&body->state.rot, &tempRot);
 		quatNormalizeQuatFast(&body->state.rot);
@@ -579,7 +579,7 @@ void physRigidBodyApplyAngularImpulsePositionInverse(physicsRigidBody *const res
 	// Orientation.
 	if(flagsAreSet(body->flags, PHYSRIGIDBODY_SIMULATE_ANGULAR)){
 		quat tempRot;
-		mat3MultiplyByVec3(&body->invInertiaGlobal, &J);
+		mat3MultiplyVec3By(&body->invInertiaGlobal, &J);
 		quatDifferentiateOut(&body->state.rot, &J, &tempRot);
 		quatSubtractVec4From(&body->state.rot, &tempRot);
 		quatNormalizeQuatFast(&body->state.rot);
@@ -602,7 +602,7 @@ void physRigidBodyApplyImpulsePosition(physicsRigidBody *const restrict body, co
 		vec3 impulse;
 		quat tempRot;
 		vec3CrossVec3Out(r, p, &impulse);
-		mat3MultiplyByVec3(&body->invInertiaGlobal, &impulse);
+		mat3MultiplyVec3By(&body->invInertiaGlobal, &impulse);
 		quatDifferentiateOut(&body->state.rot, &impulse, &tempRot);
 		quatAddVec4(&body->state.rot, &tempRot);
 		quatNormalizeQuatFast(&body->state.rot);
@@ -625,7 +625,7 @@ void physRigidBodyApplyImpulsePositionInverse(physicsRigidBody *const restrict b
 		vec3 impulse;
 		quat tempRot;
 		vec3CrossVec3Out(r, p, &impulse);
-		mat3MultiplyByVec3(&body->invInertiaGlobal, &impulse);
+		mat3MultiplyVec3By(&body->invInertiaGlobal, &impulse);
 		quatDifferentiateOut(&body->state.rot, &impulse, &tempRot);
 		quatSubtractVec4From(&body->state.rot, &tempRot);
 		quatNormalizeQuatFast(&body->state.rot);
@@ -745,8 +745,8 @@ void physRigidBodyUpdateGlobalInertia(physicsRigidBody *const restrict body){
 	//
 	// The orientation matrix is used to transform the angular momentum
 	// to local space, then the angular velocity to global space.
-	mat3MultiplyByMat3Out(body->invInertiaLocal, orientation, &body->invInertiaGlobal);
-	mat3MultiplyMat3By(&body->invInertiaGlobal, invOrientation);
+	mat3MultiplyMat3ByOut(body->invInertiaLocal, orientation, &body->invInertiaGlobal);
+	mat3MultiplyByMat3(&body->invInertiaGlobal, invOrientation);
 }
 
 /*

@@ -22,7 +22,7 @@ void transformStateAppend(const transformState *const trans1, const transformSta
 	// Generate the new position!
 	vec3AddVec3Out(&trans1->pos, &pos, &out->pos);
 	// Generate the new orientation!
-	quatMultiplyByQuatOut(trans1->rot, trans2->rot, &out->rot);
+	quatMultiplyQuatByOut(trans1->rot, trans2->rot, &out->rot);
 	// A slight error will build up if we don't normalize the rotation.
 	quatNormalizeQuat(&out->rot);
 	// Generate the new scale!
@@ -41,7 +41,7 @@ void transformStateUndoPrepend(const transformState *const trans1, const transfo
 	vec3MultiplyVec3Out(&inverse.pos, &inverse.scale, &out->pos);
 
 	// Recover the original orientation!
-	quatMultiplyByQuatOut(inverse.rot, trans2->rot, &out->rot);
+	quatMultiplyQuatByOut(inverse.rot, trans2->rot, &out->rot);
 	quatNormalizeQuatFast(&out->rot);
 
 	// Recover the original scale!
@@ -65,7 +65,7 @@ void transformStateInterpAdd(const transformState *const trans1, const transform
 	vec3AddVec3(&out->pos, &interp.pos);
 
 	quatSlerpFasterOut(&trans1->rot, &trans2->rot, time, &interp.rot);
-	quatMultiplyByQuat(&out->rot, interp.rot);
+	quatMultiplyQuatBy(&out->rot, interp.rot);
 	quatNormalizeQuat(&out->rot);
 
 	vec3Lerp(&trans1->scale, &trans2->scale, time, &interp.scale);

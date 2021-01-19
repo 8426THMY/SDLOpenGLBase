@@ -266,7 +266,7 @@ void objectDraw(
 		cam->viewMatrix.m[0][2], cam->viewMatrix.m[1][2], cam->viewMatrix.m[2][2], 0.f,
 		                    0.f,                     0.f,                     0.f, 1.f
 	};
-	mat4 test2 = mat4MultiplyByMat4C(rot, test);
+	mat4 test2 = mat4MultiplyMat4ByC(rot, test);
 	printf("Pre:\n[%f, %f, %f, %f]\n[%f, %f, %f, %f]\n[%f, %f, %f, %f]\n[%f, %f, %f, %f]\n",
 	test.m[0][0], test.m[0][1], test.m[0][2], test.m[0][3],
 	test.m[1][0], test.m[1][1], test.m[1][2], test.m[1][3],
@@ -278,7 +278,7 @@ void objectDraw(
 	test2.m[1][0], test2.m[1][1], test2.m[1][2], test2.m[1][3],
 	test2.m[2][0], test2.m[2][1], test2.m[2][2], test2.m[2][3],
 	test2.m[3][0], test2.m[3][1], test2.m[3][2], test2.m[3][3]);
-	const mat4 mvp = mat4MultiplyByMat4C(cam->viewProjectionMatrix, test2);
+	const mat4 mvp = mat4MultiplyMat4ByC(cam->viewProjectionMatrix, test2);
 	glUniformMatrix4fv(shader->vpMatrixID, 1, GL_FALSE, (GLfloat *)&mvp);*/
 	glUniformMatrix4fv(shader->vpMatrixID, 1, GL_FALSE, (GLfloat *)&cam->viewProjectionMatrix);
 
@@ -480,7 +480,7 @@ static void prepareBoneMatrices(
 	// Convert the local bone to a matrix representation.
 	transformStateToMat4(&localBone, curState);
 	transformStateToMat4(stateAccumulator, &curTransformMatrix);
-	mat4MultiplyByMat4Out(curTransformMatrix, *curState, curState);
+	mat4MultiplyMat4ByOut(curTransformMatrix, *curState, curState);
 
 
 	++curObjBone;
@@ -499,6 +499,6 @@ static void prepareBoneMatrices(
 		// Convert the local bone to a matrix representation.
 		transformStateToMat4(&localBone, curState);
 		transformStateToMat4(stateAccumulator, &curTransformMatrix);
-		mat4MultiplyByMat4Out(curTransformMatrix, *curState, curState);
+		mat4MultiplyMat4ByOut(curTransformMatrix, *curState, curState);
 	}
 }

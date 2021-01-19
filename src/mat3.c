@@ -155,8 +155,8 @@ mat3 mat3AddMat3C(const mat3 m1, const mat3 m2){
 }
 
 
-// Multiply a matrix by a vec3!
-void mat3MultiplyByVec3(const mat3 *const restrict m, vec3 *const restrict v){
+// Multiply a vec3 by a matrix (m*v)!
+void mat3MultiplyVec3By(const mat3 *const restrict m, vec3 *const restrict v){
 	vec3 temp = *v;
 
 	v->x = m->m[0][0] * temp.x + m->m[1][0] * temp.y + m->m[2][0] * temp.z;
@@ -164,15 +164,15 @@ void mat3MultiplyByVec3(const mat3 *const restrict m, vec3 *const restrict v){
 	v->z = m->m[0][2] * temp.x + m->m[1][2] * temp.y + m->m[2][2] * temp.z;
 }
 
-// Multiply a matrix by a vec3 and store the result in "out"! This assumes that "out" isn't "v".
-void mat3MultiplyByVec3Out(const mat3 *const restrict m, const vec3 *const restrict v, vec3 *const restrict out){
+// Multiply a vec3 by a matrix (m*v) and store the result in "out"! This assumes that "out" isn't "v".
+void mat3MultiplyVec3ByOut(const mat3 *const restrict m, const vec3 *const restrict v, vec3 *const restrict out){
 	out->x = m->m[0][0] * v->x + m->m[1][0] * v->y + m->m[2][0] * v->z;
 	out->y = m->m[0][1] * v->x + m->m[1][1] * v->y + m->m[2][1] * v->z;
 	out->z = m->m[0][2] * v->x + m->m[1][2] * v->y + m->m[2][2] * v->z;
 }
 
-// Multiply a matrix by a vec3!
-vec3 mat3MultiplyByVec3C(const mat3 m, const vec3 v){
+// Multiply a vec3 by a matrix (m*v)!
+vec3 mat3MultiplyVec3ByC(const mat3 m, const vec3 v){
 	const vec3 out = {
 		.x = m.m[0][0] * v.x + m.m[1][0] * v.y + m.m[2][0] * v.z,
 		.y = m.m[0][1] * v.x + m.m[1][1] * v.y + m.m[2][1] * v.z,
@@ -182,59 +182,35 @@ vec3 mat3MultiplyByVec3C(const mat3 m, const vec3 v){
 	return(out);
 }
 
-// Multiply a vec3 by a matrix!
-void mat3MultiplyVec3By(mat3 *const restrict m, const vec3 *const restrict v){
-	const mat3 tempMatrix = *m;
+// Multiply a matrix by a vec3 (v*m)!
+void mat3MultiplyByVec3(const mat3 *const restrict m, vec3 *const restrict v){
+	const vec3 temp = *v;
 
-	m->m[0][0] =
-	m->m[0][1] =
-	m->m[0][2] = tempMatrix.m[0][0] * v->x + tempMatrix.m[0][1] * v->y + tempMatrix.m[0][2] * v->z;
-
-	m->m[1][0] =
-	m->m[1][1] =
-	m->m[1][2] = tempMatrix.m[1][0] * v->x + tempMatrix.m[1][1] * v->y + tempMatrix.m[1][2] * v->z;
-
-	m->m[2][0] =
-	m->m[2][1] =
-	m->m[2][2] = tempMatrix.m[2][0] * v->x + tempMatrix.m[2][1] * v->y + tempMatrix.m[2][2] * v->z;
+	v->x = temp.x * m->m[0][0] + temp.y * m->m[0][1] + temp.z * m->m[0][2];
+	v->y = temp.x * m->m[1][0] + temp.y * m->m[1][1] + temp.z * m->m[1][2];
+	v->z = temp.x * m->m[2][0] + temp.y * m->m[2][1] + temp.z * m->m[2][2];
 }
 
-// Multiply a vec3 by a matrix and store the result in "out"!
-void mat3MultiplyVec3ByOut(const mat3 m, const vec3 *const restrict v, mat3 *const restrict out){
-	out->m[0][0] =
-	out->m[0][1] =
-	out->m[0][2] = m.m[0][0] * v->x + m.m[0][1] * v->y + m.m[0][2] * v->z;
-
-	out->m[1][0] =
-	out->m[1][1] =
-	out->m[1][2] = m.m[1][0] * v->x + m.m[1][1] * v->y + m.m[1][2] * v->z;
-
-	out->m[2][0] =
-	out->m[2][1] =
-	out->m[2][2] = m.m[2][0] * v->x + m.m[2][1] * v->y + m.m[2][2] * v->z;
+// Multiply a matrix by a vec3 (v*m) and store the result in "out"!
+void mat3MultiplyByVec3Out(const mat3 *const restrict m, const vec3 *const restrict v, vec3 *const restrict out){
+	out->x = v->x * m->m[0][0] + v->y * m->m[0][1] + v->z * m->m[0][2];
+	out->y = v->x * m->m[1][0] + v->y * m->m[1][1] + v->z * m->m[1][2];
+	out->z = v->x * m->m[2][0] + v->y * m->m[2][1] + v->z * m->m[2][2];
 }
 
-// Multiply a vec3 by a matrix!
-mat3 mat3MultiplyVec3ByC(const mat3 m, const vec3 v){
-	mat3 out;
-
-	out.m[0][0] =
-	out.m[0][1] =
-	out.m[0][2] = m.m[0][0] * v.x + m.m[0][1] * v.y + m.m[0][2] * v.z;
-
-	out.m[1][0] =
-	out.m[1][1] =
-	out.m[1][2] = m.m[1][0] * v.x + m.m[1][1] * v.y + m.m[1][2] * v.z;
-
-	out.m[2][0] =
-	out.m[2][1] =
-	out.m[2][2] = m.m[2][0] * v.x + m.m[2][1] * v.y + m.m[2][2] * v.z;
+// Multiply a matrix by a vec3 (v*m)!
+vec3 mat3MultiplyByVec3C(const mat3 m, const vec3 v){
+	const vec3 out = {
+		.x = v.x * m.m[0][0] + v.y * m.m[0][1] + v.z * m.m[0][2],
+		.y = v.x * m.m[1][0] + v.y * m.m[1][1] + v.z * m.m[1][2],
+		.z = v.x * m.m[2][0] + v.y * m.m[2][1] + v.z * m.m[2][2]
+	};
 
 	return(out);
 }
 
 // Right-multiply "m1" by "m2" (m1*m2)!
-void mat3MultiplyByMat3(mat3 *const restrict m1, const mat3 m2){
+void mat3MultiplyMat3By(mat3 *const restrict m1, const mat3 m2){
 	const mat3 tempMatrix = *m1;
 
 	m1->m[0][0] = tempMatrix.m[0][0] * m2.m[0][0] + tempMatrix.m[1][0] * m2.m[0][1] + tempMatrix.m[2][0] * m2.m[0][2];
@@ -251,7 +227,7 @@ void mat3MultiplyByMat3(mat3 *const restrict m1, const mat3 m2){
 }
 
 // Left-multiply "m1" by "m2" (m2*m1)!
-void mat3MultiplyMat3By(mat3 *const restrict m1, const mat3 m2){
+void mat3MultiplyByMat3(mat3 *const restrict m1, const mat3 m2){
 	const mat3 tempMatrix = *m1;
 
 	m1->m[0][0] = m2.m[0][0] * tempMatrix.m[0][0] + m2.m[1][0] * tempMatrix.m[0][1] + m2.m[2][0] * tempMatrix.m[0][2];
@@ -268,7 +244,7 @@ void mat3MultiplyMat3By(mat3 *const restrict m1, const mat3 m2){
 }
 
 // Right-multiply "m1" by "m2" (m1*m2) and store the result in "out"!
-void mat3MultiplyByMat3Out(const mat3 m1, const mat3 m2, mat3 *const restrict out){
+void mat3MultiplyMat3ByOut(const mat3 m1, const mat3 m2, mat3 *const restrict out){
 	out->m[0][0] = m1.m[0][0] * m2.m[0][0] + m1.m[1][0] * m2.m[0][1] + m1.m[2][0] * m2.m[0][2];
 	out->m[0][1] = m1.m[0][1] * m2.m[0][0] + m1.m[1][1] * m2.m[0][1] + m1.m[2][1] * m2.m[0][2];
 	out->m[0][2] = m1.m[0][2] * m2.m[0][0] + m1.m[1][2] * m2.m[0][1] + m1.m[2][2] * m2.m[0][2];
@@ -283,7 +259,7 @@ void mat3MultiplyByMat3Out(const mat3 m1, const mat3 m2, mat3 *const restrict ou
 }
 
 // Right-multiply "m1" by "m2" (m1*m2)!
-mat3 mat3MultiplyByMat3C(const mat3 m1, const mat3 m2){
+mat3 mat3MultiplyMat3ByC(const mat3 m1, const mat3 m2){
 	const mat3 out = {
 		.m[0][0] = m1.m[0][0] * m2.m[0][0] + m1.m[1][0] * m2.m[0][1] + m1.m[2][0] * m2.m[0][2],
 		.m[0][1] = m1.m[0][1] * m2.m[0][0] + m1.m[1][1] * m2.m[0][1] + m1.m[2][1] * m2.m[0][2],

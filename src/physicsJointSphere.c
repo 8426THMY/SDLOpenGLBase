@@ -3,7 +3,6 @@
 
 #include "physicsRigidBody.h"
 
-#include "vec4.h"
 #include "utilMath.h"
 
 
@@ -379,7 +378,7 @@ return_t physJointSphereSolvePosition(
 
 			// Get the relative orientation from body A to body B:
 			// qAB = conj(A)*B.
-			quatMultiplyQuatConjByOut(bodyB->state.rot, bodyA->state.rot, &qAB);
+			quatMultiplyConjByQuatOut(bodyB->state.rot, bodyA->state.rot, &qAB);
 			// Decompose the relative orientation into swing and twist components.
 			quatSwingTwistFaster(&qAB, &twistImpulse, &twist, &swing);
 			// The twist quaternion's axis may be antiparallel to the twist axis,
@@ -576,11 +575,11 @@ static void calculateInverseAngularMass(
 	mat3AddMat3Out(&bodyA->invInertiaGlobal, &bodyB->invInertiaGlobal, &invInertiaSum);
 
 	// Swing inverse effective mass (K2).
-	mat3MultiplyByVec3Out(&invInertiaSum, swingAxis, &IABa);
+	mat3MultiplyVec3ByOut(&invInertiaSum, swingAxis, &IABa);
 	*swingInvMass = 1.f / vec3DotVec3(swingAxis, &IABa);
 
 	// Twist inverse effective mass (K3).
-	mat3MultiplyByVec3Out(&invInertiaSum, twistAxis, &IABa);
+	mat3MultiplyVec3ByOut(&invInertiaSum, twistAxis, &IABa);
 	*twistInvMass = 1.f / vec3DotVec3(twistAxis, &IABa);
 }
 
@@ -606,7 +605,7 @@ static void calculateBias(
 
 	// Get the relative orientation from body A to body B:
 	// qAB = conj(A)*B.
-	quatMultiplyQuatConjByOut(bodyB->state.rot, bodyA->state.rot, &qAB);
+	quatMultiplyConjByQuatOut(bodyB->state.rot, bodyA->state.rot, &qAB);
 	// Decompose the relative orientation into swing and twist components.
 	vec3InitSet(&joint->twistAxis, 1.f, 0.f, 0.f);
 	quatSwingTwistFaster(&qAB, &joint->twistAxis, &twist, &swing);

@@ -571,9 +571,9 @@ static float calculateEffectiveMass(
 
 	// JM^(-1)J^T = mA^(-1) + mB^(-1) + ((rA X n) . (IA^(-1) * (rA X n))) + ((rB X n) . (IB^(-1) * (rB X n)))
 	vec3CrossVec3Out(pointA, normal, &rAn);
-	mat3MultiplyByVec3Out(invInertiaA, &rAn, &IArAn);
+	mat3MultiplyVec3ByOut(invInertiaA, &rAn, &IArAn);
 	vec3CrossVec3Out(pointB, normal, &rBn);
-	mat3MultiplyByVec3Out(invInertiaB, &rBn, &IBrBn);
+	mat3MultiplyVec3ByOut(invInertiaB, &rBn, &IBrBn);
 	return(invMass + vec3DotVec3(&rAn, &IArAn) + vec3DotVec3(&rBn, &IBrBn));
 }
 

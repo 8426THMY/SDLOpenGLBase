@@ -44,19 +44,22 @@ void mat4AddMat4(mat4 *const restrict m1, const mat4 *const restrict m2);
 void mat4AddMat4Out(const mat4 *const restrict m1, const mat4 *const restrict m2, mat4 *const restrict out);
 mat4 mat4AddMat4C(const mat4 m1, const mat4 m2);
 
+void mat4MultiplyVec3By(const mat4 *const restrict m, vec3 *const restrict v);
+void mat4MultiplyVec3ByOut(const mat4 *const restrict m, const vec3 *const restrict v, vec3 *const restrict out);
+vec3 mat4MultiplyVec3ByC(const mat4 m, const vec3 v);
 void mat4MultiplyByVec3(const mat4 *const restrict m, vec3 *const restrict v);
 void mat4MultiplyByVec3Out(const mat4 *const restrict m, const vec3 *const restrict v, vec3 *const restrict out);
 vec3 mat4MultiplyByVec3C(const mat4 m, const vec3 v);
-void mat4MultiplyVec4By(mat4 *const restrict m, const vec4 *const restrict v);
-void mat4MultiplyVec4ByOut(const mat4 m, const vec4 *const restrict v, mat4 *const restrict out);
-mat4 mat4MultiplyVec4ByC(const mat4 m, const vec4 v);
+void mat4MultiplyVec4By(const mat4 *const restrict m, vec4 *const restrict v);
+void mat4MultiplyVec4ByOut(const mat4 *const restrict m, const vec4 *const restrict v, vec4 *const restrict out);
+vec4 mat4MultiplyVec4ByC(const mat4 m, const vec4 v);
 void mat4MultiplyByVec4(const mat4 *const restrict m, vec4 *const restrict v);
 void mat4MultiplyByVec4Out(const mat4 *const restrict m, const vec4 *const restrict v, vec4 *const restrict out);
 vec4 mat4MultiplyByVec4C(const mat4 m, const vec4 v);
-void mat4MultiplyByMat4(mat4 *const restrict m1, const mat4 m2);
 void mat4MultiplyMat4By(mat4 *const restrict m1, const mat4 m2);
-void mat4MultiplyByMat4Out(const mat4 m1, const mat4 m2, mat4 *const restrict out);
-mat4 mat4MultiplyByMat4C(const mat4 m1, const mat4 m2);
+void mat4MultiplyByMat4(mat4 *const restrict m1, const mat4 m2);
+void mat4MultiplyMat4ByOut(const mat4 m1, const mat4 m2, mat4 *const restrict out);
+mat4 mat4MultiplyMat4ByC(const mat4 m1, const mat4 m2);
 
 void mat4TranslatePre(mat4 *const restrict m, const float x, const float y, const float z);
 mat4 mat4TranslatePreC(mat4 m, const float x, const float y, const float z);

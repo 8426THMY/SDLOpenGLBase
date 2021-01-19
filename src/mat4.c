@@ -497,24 +497,24 @@ mat4 mat4AddMat4C(const mat4 m1, const mat4 m2){
 }
 
 
-// Multiply a matrix by a vec3!
-void mat4MultiplyByVec3(const mat4 *const restrict m, vec3 *const restrict v){
-	vec3 temp = *v;
+// Multiply a vec3 by a matrix (m*v)!
+void mat4MultiplyVec3By(const mat4 *const restrict m, vec3 *const restrict v){
+	const vec3 temp = *v;
 
 	v->x = m->m[0][0] * temp.x + m->m[1][0] * temp.y + m->m[2][0] * temp.z + m->m[3][0];
 	v->y = m->m[0][1] * temp.x + m->m[1][1] * temp.y + m->m[2][1] * temp.z + m->m[3][1];
 	v->z = m->m[0][2] * temp.x + m->m[1][2] * temp.y + m->m[2][2] * temp.z + m->m[3][2];
 }
 
-// Multiply a matrix by a vec3 and store the result in "out"! This assumes that "out" isn't "v".
-void mat4MultiplyByVec3Out(const mat4 *const restrict m, const vec3 *const restrict v, vec3 *const restrict out){
+// Multiply a vec3 by a matrix (m*v) and store the result in "out"! This assumes that "out" isn't "v".
+void mat4MultiplyVec3ByOut(const mat4 *const restrict m, const vec3 *const restrict v, vec3 *const restrict out){
 	out->x = m->m[0][0] * v->x + m->m[1][0] * v->y + m->m[2][0] * v->z + m->m[3][0];
 	out->y = m->m[0][1] * v->x + m->m[1][1] * v->y + m->m[2][1] * v->z + m->m[3][1];
 	out->z = m->m[0][2] * v->x + m->m[1][2] * v->y + m->m[2][2] * v->z + m->m[3][2];
 }
 
-// Multiply a matrix by a vec3!
-vec3 mat4MultiplyByVec3C(const mat4 m, const vec3 v){
+// Multiply a vec3 by a matrix (m*v)!
+vec3 mat4MultiplyVec3ByC(const mat4 m, const vec3 v){
 	const vec3 out = {
 		.x = m.m[0][0] * v.x + m.m[1][0] * v.y + m.m[2][0] * v.z + m.m[3][0],
 		.y = m.m[0][1] * v.x + m.m[1][1] * v.y + m.m[2][1] * v.z + m.m[3][1],
@@ -524,84 +524,36 @@ vec3 mat4MultiplyByVec3C(const mat4 m, const vec3 v){
 	return(out);
 }
 
-// Multiply a vec4 by a matrix!
-void mat4MultiplyVec4By(mat4 *const restrict m, const vec4 *const restrict v){
-	const mat4 tempMatrix = *m;
+// Multiply a matrix by a vec3 (v*m)!
+void mat4MultiplyByVec3(const mat4 *const restrict m, vec3 *const restrict v){
+	const vec3 temp = *v;
 
-	m->m[0][0] =
-	m->m[0][1] =
-	m->m[0][2] =
-	m->m[0][3] = v->x * tempMatrix.m[0][0] + v->y * tempMatrix.m[0][1] + v->z * tempMatrix.m[0][2] + v->w * tempMatrix.m[0][3];
-
-	m->m[1][0] =
-	m->m[1][1] =
-	m->m[1][2] =
-	m->m[1][3] = v->x * tempMatrix.m[1][0] + v->y * tempMatrix.m[1][1] + v->z * tempMatrix.m[1][2] + v->w * tempMatrix.m[1][3];
-
-	m->m[2][0] =
-	m->m[2][1] =
-	m->m[2][2] =
-	m->m[2][3] = v->x * tempMatrix.m[2][0] + v->y * tempMatrix.m[2][1] + v->z * tempMatrix.m[2][2] + v->w * tempMatrix.m[2][3];
-
-	m->m[3][0] =
-	m->m[3][1] =
-	m->m[3][2] =
-	m->m[3][3] = v->x * tempMatrix.m[3][0] + v->y * tempMatrix.m[3][1] + v->z * tempMatrix.m[3][2] + v->w * tempMatrix.m[3][3];
+	v->x = temp.x * m->m[0][0] + temp.y * m->m[0][1] + temp.z * m->m[0][2];
+	v->y = temp.x * m->m[1][0] + temp.y * m->m[1][1] + temp.z * m->m[1][2];
+	v->z = temp.x * m->m[2][0] + temp.y * m->m[2][1] + temp.z * m->m[2][2];
 }
 
-// Multiply a vec4 by a matrix and store the result in "out"!
-void mat4MultiplyVec4ByOut(const mat4 m, const vec4 *const restrict v, mat4 *const restrict out){
-	out->m[0][0] =
-	out->m[0][1] =
-	out->m[0][2] =
-	out->m[0][3] = v->x * m.m[0][0] + v->y * m.m[0][1] + v->z * m.m[0][2] + v->w * m.m[0][3];
-
-	out->m[1][0] =
-	out->m[1][1] =
-	out->m[1][2] =
-	out->m[1][3] = v->x * m.m[1][0] + v->y * m.m[1][1] + v->z * m.m[1][2] + v->w * m.m[1][3];
-
-	out->m[2][0] =
-	out->m[2][1] =
-	out->m[2][2] =
-	out->m[2][3] = v->x * m.m[2][0] + v->y * m.m[2][1] + v->z * m.m[2][2] + v->w * m.m[2][3];
-
-	out->m[3][0] =
-	out->m[3][1] =
-	out->m[3][2] =
-	out->m[3][3] = v->x * m.m[3][0] + v->y * m.m[3][1] + v->z * m.m[3][2] + v->w * m.m[3][3];
+// Multiply a matrix by a vec3 (v*m) and store the result in "out"! This assumes that "out" isn't "v".
+void mat4MultiplyByVec3Out(const mat4 *const restrict m, const vec3 *const restrict v, vec3 *const restrict out){
+	out->x = v->x * m->m[0][0] + v->y * m->m[0][1] + v->z * m->m[0][2];
+	out->y = v->x * m->m[1][0] + v->y * m->m[1][1] + v->z * m->m[1][2];
+	out->z = v->x * m->m[2][0] + v->y * m->m[2][1] + v->z * m->m[2][2];
 }
 
-// Multiply a vec4 by a matrix!
-mat4 mat4MultiplyVec4ByC(const mat4 m, const vec4 v){
-	mat4 out;
-
-	out.m[0][0] =
-	out.m[0][1] =
-	out.m[0][2] =
-	out.m[0][3] = v.x * m.m[0][0] + v.y * m.m[0][1] + v.z * m.m[0][2] + v.w * m.m[0][3];
-
-	out.m[1][0] =
-	out.m[1][1] =
-	out.m[1][2] =
-	out.m[1][3] = v.x * m.m[1][0] + v.y * m.m[1][1] + v.z * m.m[1][2] + v.w * m.m[1][3];
-
-	out.m[2][0] =
-	out.m[2][1] =
-	out.m[2][2] =
-	out.m[2][3] = v.x * m.m[2][0] + v.y * m.m[2][1] + v.z * m.m[2][2] + v.w * m.m[2][3];
-
-	out.m[3][0] =
-	out.m[3][1] =
-	out.m[3][2] =
-	out.m[3][3] = v.x * m.m[3][0] + v.y * m.m[3][1] + v.z * m.m[3][2] + v.w * m.m[3][3];
+// Multiply a matrix by a vec3 (v*m)!
+vec3 mat4MultiplyByVec3C(const mat4 m, const vec3 v){
+	const vec3 out = {
+		.x = v.x * m.m[0][0] + v.y * m.m[0][1] + v.z * m.m[0][2],
+		.y = v.x * m.m[1][0] + v.y * m.m[1][1] + v.z * m.m[1][2],
+		.z = v.x * m.m[2][0] + v.y * m.m[2][1] + v.z * m.m[2][2]
+	};
 
 	return(out);
 }
 
-// Multiply a matrix by a vec4!
-void mat4MultiplyByVec4(const mat4 *const restrict m, vec4 *const restrict v){
-	vec4 temp = *v;
+// Multiply a vec4 by a matrix (m*v)!
+void mat4MultiplyVec4By(const mat4 *const restrict m, vec4 *const restrict v){
+	const vec4 temp = *v;
 
 	v->x = m->m[0][0] * temp.x + m->m[1][0] * temp.y + m->m[2][0] * temp.z + m->m[3][0] * temp.w;
 	v->y = m->m[0][1] * temp.x + m->m[1][1] * temp.y + m->m[2][1] * temp.z + m->m[3][1] * temp.w;
@@ -609,16 +561,16 @@ void mat4MultiplyByVec4(const mat4 *const restrict m, vec4 *const restrict v){
 	v->w = m->m[0][3] * temp.x + m->m[1][3] * temp.y + m->m[2][3] * temp.z + m->m[3][3] * temp.w;
 }
 
-// Multiply a matrix by a vec4 and store the result in "out"! This assumes that "out" isn't "v".
-void mat4MultiplyByVec4Out(const mat4 *const restrict m, const vec4 *const restrict v, vec4 *const restrict out){
+// Multiply a vec4 by a matrix (m*v) and store the result in "out"! This assumes that "out" isn't "v".
+void mat4MultiplyVec4ByOut(const mat4 *const restrict m, const vec4 *const restrict v, vec4 *const restrict out){
 	out->x = m->m[0][0] * v->x + m->m[1][0] * v->y + m->m[2][0] * v->z + m->m[3][0] * v->w;
 	out->y = m->m[0][1] * v->x + m->m[1][1] * v->y + m->m[2][1] * v->z + m->m[3][1] * v->w;
 	out->z = m->m[0][2] * v->x + m->m[1][2] * v->y + m->m[2][2] * v->z + m->m[3][2] * v->w;
 	out->w = m->m[0][3] * v->x + m->m[1][3] * v->y + m->m[2][3] * v->z + m->m[3][3] * v->w;
 }
 
-// Multiply a matrix by a vec4!
-vec4 mat4MultiplyByVec4C(const mat4 m, const vec4 v){
+// Multiply a vec4 by a matrix (m*v)!
+vec4 mat4MultiplyVec4ByC(const mat4 m, const vec4 v){
 	const vec4 out = {
 		.x = m.m[0][0] * v.x + m.m[1][0] * v.y + m.m[2][0] * v.z + m.m[3][0] * v.w,
 		.y = m.m[0][1] * v.x + m.m[1][1] * v.y + m.m[2][1] * v.z + m.m[3][1] * v.w,
@@ -629,8 +581,38 @@ vec4 mat4MultiplyByVec4C(const mat4 m, const vec4 v){
 	return(out);
 }
 
+// Multiply a matrix by a vec4 (v*m)!
+void mat4MultiplyByVec4(const mat4 *const restrict m, vec4 *const restrict v){
+	const vec4 temp = *v;
+
+	v->x = temp.x * m->m[0][0] + temp.y * m->m[0][1] + temp.z * m->m[0][2] + temp.w * m->m[0][3];
+	v->y = temp.x * m->m[1][0] + temp.y * m->m[1][1] + temp.z * m->m[1][2] + temp.w * m->m[1][3];
+	v->z = temp.x * m->m[2][0] + temp.y * m->m[2][1] + temp.z * m->m[2][2] + temp.w * m->m[2][3];
+	v->w = temp.x * m->m[3][0] + temp.y * m->m[3][1] + temp.z * m->m[3][2] + temp.w * m->m[3][3];
+}
+
+// Multiply a matrix by a vec4 (v*m) and store the result in "out"!
+void mat4MultiplyByVec4Out(const mat4 *const restrict m, const vec4 *const restrict v, vec4 *const restrict out){
+	out->x = v->x * m->m[0][0] + v->y * m->m[0][1] + v->z * m->m[0][2] + v->w * m->m[0][3];
+	out->y = v->x * m->m[1][0] + v->y * m->m[1][1] + v->z * m->m[1][2] + v->w * m->m[1][3];
+	out->z = v->x * m->m[2][0] + v->y * m->m[2][1] + v->z * m->m[2][2] + v->w * m->m[2][3];
+	out->w = v->x * m->m[3][0] + v->y * m->m[3][1] + v->z * m->m[3][2] + v->w * m->m[3][3];
+}
+
+// Multiply a matrix by a vec4 (v*m)!
+vec4 mat4MultiplyByVec4C(const mat4 m, const vec4 v){
+	const vec4 out = {
+		.x = v.x * m.m[0][0] + v.y * m.m[0][1] + v.z * m.m[0][2] + v.w * m.m[0][3],
+		.y = v.x * m.m[1][0] + v.y * m.m[1][1] + v.z * m.m[1][2] + v.w * m.m[1][3],
+		.z = v.x * m.m[2][0] + v.y * m.m[2][1] + v.z * m.m[2][2] + v.w * m.m[2][3],
+		.w = v.x * m.m[3][0] + v.y * m.m[3][1] + v.z * m.m[3][2] + v.w * m.m[3][3]
+	};
+
+	return(out);
+}
+
 // Right-multiply "m1" by "m2" (m1*m2)!
-void mat4MultiplyByMat4(mat4 *const restrict m1, const mat4 m2){
+void mat4MultiplyMat4By(mat4 *const restrict m1, const mat4 m2){
 	const mat4 tempMatrix1 = *m1;
 
 	m1->m[0][0] = tempMatrix1.m[0][0] * m2.m[0][0] + tempMatrix1.m[1][0] * m2.m[0][1] + tempMatrix1.m[2][0] * m2.m[0][2] + tempMatrix1.m[3][0] * m2.m[0][3];
@@ -655,7 +637,7 @@ void mat4MultiplyByMat4(mat4 *const restrict m1, const mat4 m2){
 }
 
 // Left-multiply "m1" by "m2" (m2*m1)!
-void mat4MultiplyMat4By(mat4 *const restrict m1, const mat4 m2){
+void mat4MultiplyByMat4(mat4 *const restrict m1, const mat4 m2){
 	const mat4 tempMatrix1 = *m1;
 
 	m1->m[0][0] = m2.m[0][0] * tempMatrix1.m[0][0] + m2.m[1][0] * tempMatrix1.m[0][1] + m2.m[2][0] * tempMatrix1.m[0][2] + m2.m[3][0] * tempMatrix1.m[0][3];
@@ -680,7 +662,7 @@ void mat4MultiplyMat4By(mat4 *const restrict m1, const mat4 m2){
 }
 
 // Right-multiply "m1" by "m2" (m1*m2) and store the result in "out"! This assumes that "out" isn't "m1" or "m2".
-void mat4MultiplyByMat4Out(const mat4 m1, const mat4 m2, mat4 *const restrict out){
+void mat4MultiplyMat4ByOut(const mat4 m1, const mat4 m2, mat4 *const restrict out){
 	out->m[0][0] = m1.m[0][0] * m2.m[0][0] + m1.m[1][0] * m2.m[0][1] + m1.m[2][0] * m2.m[0][2] + m1.m[3][0] * m2.m[0][3];
 	out->m[0][1] = m1.m[0][1] * m2.m[0][0] + m1.m[1][1] * m2.m[0][1] + m1.m[2][1] * m2.m[0][2] + m1.m[3][1] * m2.m[0][3];
 	out->m[0][2] = m1.m[0][2] * m2.m[0][0] + m1.m[1][2] * m2.m[0][1] + m1.m[2][2] * m2.m[0][2] + m1.m[3][2] * m2.m[0][3];
@@ -703,7 +685,7 @@ void mat4MultiplyByMat4Out(const mat4 m1, const mat4 m2, mat4 *const restrict ou
 }
 
 // Right-multiply "m1" by "m2" (m1*m2) and return the result!
-mat4 mat4MultiplyByMat4C(const mat4 m1, const mat4 m2){
+mat4 mat4MultiplyMat4ByC(const mat4 m1, const mat4 m2){
 	const mat4 out = {
 		.m[0][0] = m1.m[0][0] * m2.m[0][0] + m1.m[1][0] * m2.m[0][1] + m1.m[2][0] * m2.m[0][2] + m1.m[3][0] * m2.m[0][3],
 		.m[0][1] = m1.m[0][1] * m2.m[0][0] + m1.m[1][1] * m2.m[0][1] + m1.m[2][1] * m2.m[0][2] + m1.m[3][1] * m2.m[0][3],
@@ -902,7 +884,7 @@ mat4 mat4TranslateVec4C(const mat4 m, const vec4 v){
 void mat4RotateXYZ(mat4 *const restrict m, const float x, const float y, const float z){
 	mat4 rotMatrix;
 	mat4InitEulerXYZ(&rotMatrix, x, y, z);
-	mat4MultiplyMat4By(m, rotMatrix);
+	mat4MultiplyByMat4(m, rotMatrix);
 }
 
 /*
@@ -911,7 +893,7 @@ void mat4RotateXYZ(mat4 *const restrict m, const float x, const float y, const f
 */
 mat4 mat4RotateXYZC(const mat4 m, const float x, const float y, const float z){
 	const mat4 rotMatrix = mat4InitEulerXYZC(x, y, z);
-	return(mat4MultiplyByMat4C(rotMatrix, m));
+	return(mat4MultiplyMat4ByC(rotMatrix, m));
 }
 
 /*

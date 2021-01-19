@@ -78,18 +78,18 @@ void quatDivideVec4ByFast(quat *const restrict q, const vec4 *const restrict v);
 void quatDivideVec4ByFastOut(const quat *const restrict q, const vec4 *const restrict v, quat *const restrict out);
 quat quatDivideVec4ByFastC(quat q, const vec4 v);
 
-void quatMultiplyByQuat(quat *const restrict q1, const quat q2);
 void quatMultiplyQuatBy(quat *const restrict q1, const quat q2);
-void quatMultiplyByQuatOut(const quat q1, const quat q2, quat *const restrict out);
-quat quatMultiplyByQuatC(const quat q1, const quat q2);
-void quatMultiplyQuatConjBy(quat *const restrict q1, const quat q2);
+void quatMultiplyByQuat(quat *const restrict q1, const quat q2);
+void quatMultiplyQuatByOut(const quat q1, const quat q2, quat *const restrict out);
+quat quatMultiplyQuatByC(const quat q1, const quat q2);
 void quatMultiplyConjByQuat(quat *const restrict q1, const quat q2);
-void quatMultiplyQuatConjByOut(const quat q1, const quat q2, quat *const restrict out);
-quat quatMultiplyQuatConjByC(const quat q1, const quat q2);
-void quatMultiplyByQuatConj(quat *const restrict q1, const quat q2);
+void quatMultiplyQuatConjBy(quat *const restrict q1, const quat q2);
+void quatMultiplyConjByQuatOut(const quat q1, const quat q2, quat *const restrict out);
+quat quatMultiplyConjByQuatC(const quat q1, const quat q2);
 void quatMultiplyQuatByConj(quat *const restrict q1, const quat q2);
-void quatMultiplyByQuatConjOut(const quat q1, const quat q2, quat *const restrict out);
-quat quatMultiplyByQuatConjC(const quat q1, const quat q2);
+void quatMultiplyByQuatConj(quat *const restrict q1, const quat q2);
+void quatMultiplyQuatByConjOut(const quat q1, const quat q2, quat *const restrict out);
+quat quatMultiplyQuatByConjC(const quat q1, const quat q2);
 
 void quatRotateVec3(const quat *const restrict q, vec3 *const restrict v);
 void quatRotateVec3Out(const quat *const restrict q, const vec3 *const restrict v, vec3 *const restrict out);

@@ -22,16 +22,16 @@ void mat2AddMat2(mat2 *const restrict m1, const mat2 *const restrict m2);
 void mat2AddMat2Out(const mat2 *const restrict m1, const mat2 *const restrict m2, mat2 *const restrict out);
 mat2 mat2AddMat2C(const mat2 m1, const mat2 m2);
 
+void mat2MultiplyVec2By(const mat2 *const restrict m, vec2 *const restrict v);
+void mat2MultiplyVec2ByOut(const mat2 *const restrict m, const vec2 *const restrict v, vec2 *const restrict out);
+vec2 mat2MultiplyVec2ByC(const mat2 m, const vec2 v);
 void mat2MultiplyByVec2(const mat2 *const restrict m, vec2 *const restrict v);
 void mat2MultiplyByVec2Out(const mat2 *const restrict m, const vec2 *const restrict v, vec2 *const restrict out);
 vec2 mat2MultiplyByVec2C(const mat2 m, const vec2 v);
-void mat2MultiplyVec2By(mat2 *const restrict m, const vec2 *const restrict v);
-void mat2MultiplyVec2ByOut(const mat2 m, const vec2 *const restrict v, mat2 *const restrict out);
-mat2 mat2MultiplyVec2ByC(const mat2 m, const vec2 v);
-void mat2MultiplyByMat2(mat2 *const restrict m1, const mat2 m2);
 void mat2MultiplyMat2By(mat2 *const restrict m1, const mat2 m2);
-void mat2MultiplyByMat2Out(const mat2 m1, const mat2 m2, mat2 *const restrict out);
-mat2 mat2MultiplyByMat2C(const mat2 m1, const mat2 m2);
+void mat2MultiplyByMat2(mat2 *const restrict m1, const mat2 m2);
+void mat2MultiplyMat2ByOut(const mat2 m1, const mat2 m2, mat2 *const restrict out);
+mat2 mat2MultiplyMat2ByC(const mat2 m1, const mat2 m2);
 
 void mat2Transpose(mat2 *const restrict m);
 void mat2TransposeOut(const mat2 m, mat2 *const restrict out);

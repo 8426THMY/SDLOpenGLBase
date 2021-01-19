@@ -4,7 +4,6 @@
 
 #include "vec3.h"
 #include "mat3.h"
-#include "utilTypes.h"
 
 
 #define PHYSJOINT_TYPE_SPHERE 4
@@ -67,9 +66,6 @@ typedef struct physicsJointSphere {
 	vec3 linearImpulse;
 	float swingImpulse;
 	float twistImpulse;
-
-	float test1;
-	float test2;
 } physicsJointSphere;
 
 
