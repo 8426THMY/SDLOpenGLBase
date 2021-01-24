@@ -121,7 +121,7 @@ void objectPreparePhysics(object *const restrict obj){
 	// We store the rigid bodies in order of increasing bone IDs.
 	// We can simply move to the next ID when we find a bone with a rigid body.
 	const boneIndex_t *curPhysBoneID = obj->objDef->physBoneIDs;
-	const boneIndex_t *lastPhysBoneID = &obj->objDef->physBoneIDs[obj->objDef->numBodies];
+	const boneIndex_t *const lastPhysBoneID = &obj->objDef->physBoneIDs[obj->objDef->numBodies];
 
 	boneIndex_t boneID;
 	const boneIndex_t lastID = obj->skeleData.skele->numBones;
@@ -346,7 +346,7 @@ static void updateBones(object *const restrict obj, const float time){
 	// We store the rigid bodies in order of increasing bone IDs.
 	// We can simply move to the next ID when we find a bone with a rigid body.
 	const boneIndex_t *curPhysBoneID = obj->objDef->physBoneIDs;
-	const boneIndex_t *lastPhysBoneID = &obj->objDef->physBoneIDs[obj->objDef->numBodies];
+	const boneIndex_t *const lastPhysBoneID = &obj->objDef->physBoneIDs[obj->objDef->numBodies];
 
 	#warning "This takes a significant chunk of the stack. Maybe allocate it on the heap?"
 	transformState accumulators[SKELETON_MAX_BONES << 1];

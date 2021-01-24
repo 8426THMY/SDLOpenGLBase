@@ -197,8 +197,6 @@ static void input(program *const restrict prg){
 	}else{
 		renderState = 0;
 	}
-
-	#warning "Selecting text in the console also causes crashes."
 }
 
 /** TEMPORARY PHYSICS STUFF!! **/
@@ -808,6 +806,11 @@ static return_t setupModules(){
 	puts("Beginning setup...\n");
 	memoryManagerGlobalInit(MEMORY_HEAPSIZE);
 
+	#ifdef MODULE_COMMAND
+	if(!moduleCommandSetup()){
+		return(MODULE_COMMAND_SETUP_FAIL);
+	}
+	#endif
 	#ifdef MODULE_TEXTURE
 	if(!moduleTextureSetup()){
 		return(MODULE_TEXTURE_SETUP_FAIL);
@@ -908,6 +911,10 @@ static void cleanupModules(){
 	#ifdef MODULE_TEXTURE
 	puts("Cleaning up textures...");
 	moduleTextureCleanup();
+	#endif
+	#ifdef MODULE_COMMAND
+	puts("Cleaning up commands...");
+	moduleCommandCleanup();
 	#endif
 	printf("\n");
 

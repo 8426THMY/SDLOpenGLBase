@@ -48,7 +48,7 @@ size_t ultostr(unsigned long num, char *str){
 		++length;
 	}
 
-	// Add a NUL terminator and we're set!
+	// Add a NULL terminator and we're set!
 	*(str + length) = '\0';
 
 

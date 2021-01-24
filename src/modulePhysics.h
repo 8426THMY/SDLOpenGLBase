@@ -16,7 +16,7 @@
 
 
 #define MODULE_PHYSICS
-#define MODULE_PHYSICS_SETUP_FAIL 4
+#define MODULE_PHYSICS_SETUP_FAIL 5
 
 #define MODULE_AABBNODE_ELEMENT_SIZE           sizeof(aabbNode)
 #define MODULE_PHYSCONTACTPAIR_ELEMENT_SIZE    sizeof(physicsContactPair)

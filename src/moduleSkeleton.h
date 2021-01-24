@@ -12,7 +12,7 @@
 
 
 #define MODULE_SKELETON
-#define MODULE_SKELETON_SETUP_FAIL 3
+#define MODULE_SKELETON_SETUP_FAIL 4
 
 #define MODULE_SKELETON_ELEMENT_SIZE       sizeof(skeleton)
 #define MODULE_SKELEANIMDEF_ELEMENT_SIZE      sizeof(skeletonAnimDef)

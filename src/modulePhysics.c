@@ -15,7 +15,7 @@ memoryDoubleList g_physRigidBodyManager;
 
 return_t modulePhysicsSetup(){
 	// The module's setup will be successful if we
-	// can allocate enough memory for our manager.
+	// can allocate enough memory for our managers.
 	return(
 		// aabbNode
 		memPoolInit(

@@ -6,6 +6,8 @@ memorySingleList g_renderableManager;
 
 
 return_t moduleRenderableSetup(){
+	// The module's setup will be successful if we
+	// can allocate enough memory for our managers.
 	return(
 		// renderableDef
 		memSingleListInit(

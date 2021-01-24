@@ -6,6 +6,8 @@ memorySingleList g_objectManager;
 
 
 return_t moduleObjectSetup(){
+	// The module's setup will be successful if we
+	// can allocate enough memory for our managers.
 	return(
 		// objectDef
 		memSingleListInit(
