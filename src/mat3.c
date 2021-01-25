@@ -664,18 +664,18 @@ void mat3Solve(const mat3 *const restrict A, const vec3 *const restrict b, vec3 
 		invDet = 1.f / invDet;
 
 		// x_1 = det(A_1)/det(A)
-		memcpy(Ai.m[0], b, sizeof(vec3));
-		memcpy(Ai.m[1], A->m[1], sizeof(vec3)+sizeof(vec3));
+		memcpy(Ai.m[0], b, sizeof(*b));
+		memcpy(Ai.m[1], A->m[1], sizeof(*b)+sizeof(*b));
 		x->x = mat3Determinant(&Ai) * invDet;
 
 		// x_2 = det(A_2)/det(A)
-		memcpy(Ai.m[0], A->m[0], sizeof(vec3));
-		memcpy(Ai.m[1], b, sizeof(vec3));
+		memcpy(Ai.m[0], A->m[0], sizeof(*b));
+		memcpy(Ai.m[1], b, sizeof(*b));
 		x->y = mat3Determinant(&Ai) * invDet;
 
 		// x_3 = det(A_3)/det(A)
-		memcpy(Ai.m[1], A->m[1], sizeof(vec3));
-		memcpy(Ai.m[2], b, sizeof(vec3));
+		memcpy(Ai.m[1], A->m[1], sizeof(*b));
+		memcpy(Ai.m[2], b, sizeof(*b));
 		x->z = mat3Determinant(&Ai) * invDet;
 	}
 }
@@ -689,18 +689,18 @@ vec3 mat3SolveC(const mat3 A, const vec3 b){
 		invDet = 1.f / invDet;
 
 		// x_1 = det(A_1)/det(A)
-		memcpy(Ai.m[0], &b, sizeof(vec3));
-		memcpy(Ai.m[1], A.m[1], sizeof(vec3)+sizeof(vec3));
+		memcpy(Ai.m[0], &b, sizeof(b));
+		memcpy(Ai.m[1], A.m[1], sizeof(b)+sizeof(b));
 		x.x = mat3DeterminantC(Ai) * invDet;
 
 		// x_2 = det(A_2)/det(A)
-		memcpy(Ai.m[0], A.m[0], sizeof(vec3));
-		memcpy(Ai.m[1], &b, sizeof(vec3));
+		memcpy(Ai.m[0], A.m[0], sizeof(b));
+		memcpy(Ai.m[1], &b, sizeof(b));
 		x.y = mat3DeterminantC(Ai) * invDet;
 
 		// x_3 = det(A_3)/det(A)
-		memcpy(Ai.m[1], A.m[1], sizeof(vec3));
-		memcpy(Ai.m[2], &b, sizeof(vec3));
+		memcpy(Ai.m[1], A.m[1], sizeof(b));
+		memcpy(Ai.m[2], &b, sizeof(b));
 		x.z = mat3DeterminantC(Ai) * invDet;
 
 		return(x);
@@ -721,18 +721,18 @@ return_t mat3CanSolve(const mat3 *const restrict A, const vec3 *const restrict b
 		invDet = 1.f / invDet;
 
 		// x_1 = det(A_1)/det(A)
-		memcpy(Ai.m[0], b, sizeof(vec3));
-		memcpy(Ai.m[1], A->m[1], sizeof(vec3)+sizeof(vec3));
+		memcpy(Ai.m[0], b, sizeof(*b));
+		memcpy(Ai.m[1], A->m[1], sizeof(*b)+sizeof(*b));
 		x->x = mat3Determinant(&Ai) * invDet;
 
 		// x_2 = det(A_2)/det(A)
-		memcpy(Ai.m[0], A->m[0], sizeof(vec3));
-		memcpy(Ai.m[1], b, sizeof(vec3));
+		memcpy(Ai.m[0], A->m[0], sizeof(*b));
+		memcpy(Ai.m[1], b, sizeof(*b));
 		x->y = mat3Determinant(&Ai) * invDet;
 
 		// x_3 = det(A_3)/det(A)
-		memcpy(Ai.m[1], A->m[1], sizeof(vec3));
-		memcpy(Ai.m[2], b, sizeof(vec3));
+		memcpy(Ai.m[1], A->m[1], sizeof(*b));
+		memcpy(Ai.m[2], b, sizeof(*b));
 		x->z = mat3Determinant(&Ai) * invDet;
 
 		return(1);
@@ -749,18 +749,18 @@ return_t mat3CanSolveC(const mat3 A, const vec3 b, vec3 *const restrict x){
 		invDet = 1.f / invDet;
 
 		// x_1 = det(A_1)/det(A)
-		memcpy(Ai.m[0], &b, sizeof(vec3));
-		memcpy(Ai.m[1], A.m[1], sizeof(vec3)+sizeof(vec3));
+		memcpy(Ai.m[0], &b, sizeof(b));
+		memcpy(Ai.m[1], A.m[1], sizeof(b)+sizeof(b));
 		x->x = mat3DeterminantC(Ai) * invDet;
 
 		// x_2 = det(A_2)/det(A)
-		memcpy(Ai.m[0], A.m[0], sizeof(vec3));
-		memcpy(Ai.m[1], &b, sizeof(vec3));
+		memcpy(Ai.m[0], A.m[0], sizeof(b));
+		memcpy(Ai.m[1], &b, sizeof(b));
 		x->y = mat3DeterminantC(Ai) * invDet;
 
 		// x_3 = det(A_3)/det(A)
-		memcpy(Ai.m[1], A.m[1], sizeof(vec3));
-		memcpy(Ai.m[2], &b, sizeof(vec3));
+		memcpy(Ai.m[1], A.m[1], sizeof(b));
+		memcpy(Ai.m[2], &b, sizeof(b));
 		x->z = mat3DeterminantC(Ai) * invDet;
 
 		return(1);

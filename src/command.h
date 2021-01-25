@@ -28,9 +28,9 @@
 **     - We use the last bit of the pointer to store whether the node represents a console function or user variable.
 **
 ** Executing console functions:
-**     - When one or more semicolon-delimited console commands are entered, we parse them one command string at a time.
-**     - For each command string, we need to tokenize the function and its arguments.
-**     - We then lookup the function in the trie and execute the function, passing in the tokenized arguments.
+**     - Given a semicolon-delimited command string, we tokenize each command and its arguments.
+**     - The first argument for a command is always the command's name.
+**     - We can then lookup the command name in the trie and execute the function, passing in the tokenized arguments.
 */
 
 

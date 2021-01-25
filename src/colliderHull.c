@@ -170,7 +170,7 @@ static void clipEdgeContact(
 
 void colliderHullInit(colliderHull *hull){
 	// Clear the hull's data so it's ready for use.
-	memset(hull, 0, sizeof(colliderHull));
+	memset(hull, 0, sizeof(*hull));
 }
 
 void colliderHullInstantiate(void *const restrict hull, const void *const restrict base){

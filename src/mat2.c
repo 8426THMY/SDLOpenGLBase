@@ -337,13 +337,13 @@ void mat2Solve(const mat2 *const restrict A, const vec2 *const restrict b, vec2 
 		invDet = 1.f / invDet;
 
 		// x_1 = det(A_1)/det(A)
-		memcpy(Ai.m[0], b, sizeof(vec2));
-		memcpy(Ai.m[1], A->m[1], sizeof(vec2));
+		memcpy(Ai.m[0], b, sizeof(*b));
+		memcpy(Ai.m[1], A->m[1], sizeof(*b));
 		x->x = mat2Determinant(&Ai) * invDet;
 
 		// x_2 = det(A_2)/det(A)
-		memcpy(Ai.m[0], A->m[0], sizeof(vec2));
-		memcpy(Ai.m[1], b, sizeof(vec2));
+		memcpy(Ai.m[0], A->m[0], sizeof(*b));
+		memcpy(Ai.m[1], b, sizeof(*b));
 		x->y = mat2Determinant(&Ai) * invDet;
 	}
 }
@@ -357,13 +357,13 @@ vec2 mat2SolveC(const mat2 A, const vec2 b){
 		invDet = 1.f / invDet;
 
 		// x_1 = det(A_1)/det(A)
-		memcpy(Ai.m[0], &b, sizeof(vec2));
-		memcpy(Ai.m[1], A.m[1], sizeof(vec2));
+		memcpy(Ai.m[0], &b, sizeof(b));
+		memcpy(Ai.m[1], A.m[1], sizeof(b));
 		x.x = mat2Determinant(&Ai) * invDet;
 
 		// x_2 = det(A_2)/det(A)
-		memcpy(Ai.m[0], A.m[0], sizeof(vec2));
-		memcpy(Ai.m[1], &b, sizeof(vec2));
+		memcpy(Ai.m[0], A.m[0], sizeof(b));
+		memcpy(Ai.m[1], &b, sizeof(b));
 		x.y = mat2Determinant(&Ai) * invDet;
 
 		return(x);
@@ -384,13 +384,13 @@ return_t mat2CanSolve(const mat2 *const restrict A, const vec2 *const restrict b
 		invDet = 1.f / invDet;
 
 		// x_1 = det(A_1)/det(A)
-		memcpy(Ai.m[0], b, sizeof(vec2));
-		memcpy(Ai.m[1], A->m[1], sizeof(vec2));
+		memcpy(Ai.m[0], b, sizeof(*b));
+		memcpy(Ai.m[1], A->m[1], sizeof(*b));
 		x->x = mat2Determinant(&Ai) * invDet;
 
 		// x_2 = det(A_2)/det(A)
-		memcpy(Ai.m[0], A->m[0], sizeof(vec2));
-		memcpy(Ai.m[1], b, sizeof(vec2));
+		memcpy(Ai.m[0], A->m[0], sizeof(*b));
+		memcpy(Ai.m[1], b, sizeof(*b));
 		x->y = mat2Determinant(&Ai) * invDet;
 
 		return(1);
@@ -407,13 +407,13 @@ return_t mat2CanSolveC(const mat2 A, const vec2 b, vec2 *const restrict x){
 		invDet = 1.f / invDet;
 
 		// x_1 = det(A_1)/det(A)
-		memcpy(Ai.m[0], &b, sizeof(vec2));
-		memcpy(Ai.m[1], A.m[1], sizeof(vec2));
+		memcpy(Ai.m[0], &b, sizeof(b));
+		memcpy(Ai.m[1], A.m[1], sizeof(b));
 		x->x = mat2Determinant(&Ai) * invDet;
 
 		// x_2 = det(A_2)/det(A)
-		memcpy(Ai.m[0], A.m[0], sizeof(vec2));
-		memcpy(Ai.m[1], &b, sizeof(vec2));
+		memcpy(Ai.m[0], A.m[0], sizeof(b));
+		memcpy(Ai.m[1], &b, sizeof(b));
 		x->y = mat2Determinant(&Ai) * invDet;
 
 		return(1);

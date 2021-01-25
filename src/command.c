@@ -24,6 +24,7 @@
 #define cmdWhitespaceCharacter(c) ((c) == ' ' || (c) == '\t')
 
 
+// Forward-declare any helper functions!
 static void cmdNodeInit(commandNode *const restrict cmdNode, const char value);
 static return_t cmdNodeValid(const char *const restrict name, const command cmd);
 static commandNode *cmdNodeNext(const commandNode *const node, const char c);
@@ -309,7 +310,7 @@ static commandNode *cmdNodeAddChild(commandNode *const node, const char c){
 		// our new node should be inserted before it.
 		}else if(c < curChild->value){
 			tempBuffer = memoryManagerGlobalRealloc(
-				node->children, ++node->numChildren*sizeof(commandNode)
+				node->children, ++node->numChildren*sizeof(*tempBuffer)
 			);
 			if(tempBuffer == NULL){
 				return(NULL);
@@ -327,7 +328,7 @@ static commandNode *cmdNodeAddChild(commandNode *const node, const char c){
 
 	// Insert the new child node at the end of the node's array!
 	tempBuffer = memoryManagerGlobalRealloc(
-		node->children, ++node->numChildren*sizeof(commandNode)
+		node->children, ++node->numChildren*sizeof(*tempBuffer)
 	);
 	if(tempBuffer == NULL){
 		return(NULL);
