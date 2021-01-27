@@ -1367,21 +1367,6 @@ void quatAxis(const quat *const restrict q, vec3 *const restrict out){
 	}
 }
 
-// Find a quaternion's normalized axis and store the result in "out"!
-void quatAxisFast(const quat *const restrict q, vec3 *const restrict out){
-	float scale = 1.f - q->w*q->w;
-	if(scale < QUAT_SINGULARITY_THRESHOLD_SQUARED){
-		out->x = 1.f;
-		out->y = 0.f;
-		out->z = 0.f;
-	}else{
-		scale = invSqrtFast(scale);
-		out->x = q->x*scale;
-		out->y = q->y*scale;
-		out->z = q->z*scale;
-	}
-}
-
 // Find a quaternion's normalized axis!
 vec3 quatAxisC(const quat q){
 	vec3 v;
@@ -1399,6 +1384,21 @@ vec3 quatAxisC(const quat q){
 	}
 
 	return(v);
+}
+
+// Find a quaternion's normalized axis and store the result in "out"!
+void quatAxisFast(const quat *const restrict q, vec3 *const restrict out){
+	float scale = 1.f - q->w*q->w;
+	if(scale < QUAT_SINGULARITY_THRESHOLD_SQUARED){
+		out->x = 1.f;
+		out->y = 0.f;
+		out->z = 0.f;
+	}else{
+		scale = invSqrtFast(scale);
+		out->x = q->x*scale;
+		out->y = q->y*scale;
+		out->z = q->z*scale;
+	}
 }
 
 // Find a quaternion's normalized axis!
@@ -1566,22 +1566,6 @@ void quatToAxisAngle(const quat *const restrict q, vec4 *const restrict out){
 	out->w = 2.f*acosf(q->w);
 }
 
-// Convert a quaternion to an axis and an angle and store the result in "out"!
-void quatToAxisAngleFast(const quat *const restrict q, vec4 *const restrict out){
-	float scale = 1.f - q->w*q->w;
-	if(scale < QUAT_SINGULARITY_THRESHOLD_SQUARED){
-		out->x = 1.f;
-		out->y = 0.f;
-		out->z = 0.f;
-	}else{
-		scale = invSqrtFast(scale);
-		out->x = q->x*scale;
-		out->y = q->y*scale;
-		out->z = q->z*scale;
-	}
-	out->w = 2.f*acosf(q->w);
-}
-
 // Convert a quaternion to an axis and an angle!
 vec4 quatToAxisAngleC(const quat q){
 	vec4 v;
@@ -1600,6 +1584,22 @@ vec4 quatToAxisAngleC(const quat q){
 	v.w = 2.f*acosf(q.w);
 
 	return(v);
+}
+
+// Convert a quaternion to an axis and an angle and store the result in "out"!
+void quatToAxisAngleFast(const quat *const restrict q, vec4 *const restrict out){
+	float scale = 1.f - q->w*q->w;
+	if(scale < QUAT_SINGULARITY_THRESHOLD_SQUARED){
+		out->x = 1.f;
+		out->y = 0.f;
+		out->z = 0.f;
+	}else{
+		scale = invSqrtFast(scale);
+		out->x = q->x*scale;
+		out->y = q->y*scale;
+		out->z = q->z*scale;
+	}
+	out->w = 2.f*acosf(q->w);
 }
 
 // Convert a quaternion to an axis and an angle!

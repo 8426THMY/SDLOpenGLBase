@@ -2,6 +2,8 @@
 #define physicsIsland_h
 
 
+#include "settingsPhysics.h"
+
 #include "aabbTree.h"
 
 #include "physicsConstraintPair.h"

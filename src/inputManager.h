@@ -20,6 +20,9 @@
 #define INPUT_MWHEELDOWN 5
 #define INPUT_MWHEELUP   6
 
+#define inputMngrKeyboardID(id) (INPUT_NUM_MOUSE_BUTTONS + (id))
+#define inputMngrMouseID(id)    (id)
+
 
 typedef struct inputBinding {
 	// Identifier for the button

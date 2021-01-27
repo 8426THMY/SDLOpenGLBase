@@ -47,7 +47,7 @@ void inputMngrTakeInput(inputManager *const restrict inputMngr, commandBuffer *c
 		switch(event.type){
 			// A keyboard key has been pressed.
 			case SDL_KEYDOWN:
-				keybind = &inputMngr->keybinds[INPUT_NUM_MOUSE_BUTTONS + event.key.keysym.scancode];
+				keybind = &inputMngr->keybinds[inputMngrKeyboardID(event.key.keysym.scancode)];
 				// Make sure the key was only just pressed
 				// this tick and it has a valid binding.
 				if(!event.key.repeat && keybind->binding != NULL){
@@ -57,7 +57,7 @@ void inputMngrTakeInput(inputManager *const restrict inputMngr, commandBuffer *c
 
 			// A keyboard key has been released.
 			case SDL_KEYUP:
-				keybind = &inputMngr->keybinds[INPUT_NUM_MOUSE_BUTTONS + event.key.keysym.scancode];
+				keybind = &inputMngr->keybinds[inputMngrKeyboardID(event.key.keysym.scancode)];
 				// Make sure the key was only just released
 				// this tick and it has a valid binding.
 				if(!event.key.repeat && keybind->binding != NULL){

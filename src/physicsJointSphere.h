@@ -2,6 +2,8 @@
 #define physicsJointSphere_h
 
 
+#include "settingsPhysics.h"
+
 #include "vec3.h"
 #include "mat3.h"
 
@@ -26,9 +28,9 @@ typedef struct physicsJointSphereDef {
 
 	// Stores the minimum and maximum angular
 	// limits (in that order) for each axis.
-	float angleLimitsX[2];
-	float angleLimitsY[2];
-	float angleLimitsZ[2];
+	float angularLimitsX[2];
+	float angularLimitsY[2];
+	float angularLimitsZ[2];
 } physicsJointSphereDef;
 
 typedef struct physicsJointSphere {
@@ -43,9 +45,10 @@ typedef struct physicsJointSphere {
 
 	// Stores the minimum and maximum angular
 	// limits (in that order) for each axis.
-	float angleLimitsX[2];
-	float angleLimitsY[2];
-	float angleLimitsZ[2];
+	float angularLimitsX[2];
+	float angularLimitsY[2];
+	float angularLimitsZ[2];
+	#ifndef PHYSJOINTSPHERE_ANGULAR_CONSTRAINT_EULER
 	// Difference between the current swing
 	// and twist angles and their limits.
 	float swingBias;
@@ -55,17 +58,34 @@ typedef struct physicsJointSphere {
 	// be rigid body B's transformed x-axis.
 	vec3 swingAxis;
 	vec3 twistAxis;
+	#else
+	// Difference between the current
+	// axis angles and their limits.
+	vec3 angularBias;
+	// Rotation axes in global space.
+	vec3 angularAxisX;
+	vec3 angularAxisY;
+	vec3 angularAxisZ;
+	#endif
 
 	// Effective masses for the point-to-point
-	// (K1) and angular (K2) constraints.
+	// (K1) and angular (K2, K3) constraints.
 	mat3 linearMass;
+	#ifndef PHYSJOINTSPHERE_ANGULAR_CONSTRAINT_EULER
 	float swingInvMass;
 	float twistInvMass;
+	#else
+	vec3 angularInvMass;
+	#endif
 
 	// Accumulated impulses used for warm starting.
 	vec3 linearImpulse;
+	#ifndef PHYSJOINTSPHERE_ANGULAR_CONSTRAINT_EULER
 	float swingImpulse;
 	float twistImpulse;
+	#else
+	vec3 angularImpulse;
+	#endif
 } physicsJointSphere;
 
 

@@ -524,9 +524,6 @@ static return_t initResources(program *const restrict prg){
 
 
 	/** TEMPORARY PHYSICS STUFF **/
-	#warning "We kind of need to do joints."
-	#warning "Although our sorting works fine for contacts, it means that we can't really choose which body owns constraints like the spherical joint."
-	#warning "An input manager would be neat, too."
 	physIslandInit(&island);
 	// Create the base physics object.
 	objDef = moduleObjectDefAlloc();

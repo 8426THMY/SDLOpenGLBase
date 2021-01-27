@@ -18,12 +18,7 @@ typedef union textCMapCodeUnit_t {
 	uint8_t _8;
 	uint16_t _16;
 	uint32_t _32;
-	struct {
-		uint8_t _1;
-		uint8_t _2;
-		uint8_t _3;
-		uint8_t _4;
-	} byte;
+	uint8_t bytes[4];
 } textCMapCodeUnit_t;
 
 

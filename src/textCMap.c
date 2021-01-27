@@ -378,8 +378,8 @@ static uint32_t indexFormat0(const textCMapHeader *const restrict cmap, const te
 static uint32_t indexFormat2(const textCMapHeader *const restrict cmap, const textCMapCodeUnit_t code){
 	// Format 2 requires that characters be at most 2 bytes.
 	if(code._32 <= TEXT_CMAP_FORMAT_2_CODEUNIT_LIMIT){
-		const textCMapSubHeader2 *const subHeader = textCMapFormat2GetSubHeader(cmap, code.byte._2);
-		const uint8_t subArrayIndex = code.byte._1 - subHeader->firstCode;
+		const textCMapSubHeader2 *const subHeader = textCMapFormat2GetSubHeader(cmap, code.bytes[1]);
+		const uint8_t subArrayIndex = code.bytes[0] - subHeader->firstCode;
 
 		// If the index is inside the subheader's range,
 		// get the glyph associated with the character.

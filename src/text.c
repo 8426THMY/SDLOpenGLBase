@@ -42,8 +42,6 @@
 #define UTF8_4_BYTE_HEADER_MASK     0xF8
 #define UTF8_EXTRA_BYTE_HEADER_MASK 0xC0
 
-#define UTF8_INVALID_BYTE 0xFF
-
 #define byteIsValid(byte) (((byte) & UTF8_EXTRA_BYTE_HEADER_MASK) == UTF8_EXTRA_BYTE_HEADER)
 
 
@@ -85,8 +83,13 @@ return_t textBufferFinishedReading(const textBuffer *const restrict buffer, cons
 }
 
 
-// Write a string to a text buffer!
-#warning "If we overwrite part of a UTF8 character, we'll probably get weird results."
+/*
+** Write a string to a text buffer!
+**
+** Our reading function should be able to detect
+** when part of a multi-byte UTF-8 code point was
+** overwritten, so we don't need to check here.
+*/
 void textBufferWrite(textBuffer *const restrict buffer, const char *restrict str, size_t strLength){
 	#ifdef TEXT_BUFFER_USE_FLAG_BYTE
 	const size_t bufferLength = (size_t)memorySubPointer(buffer->end, buffer->start);
@@ -134,26 +137,31 @@ void textBufferWrite(textBuffer *const restrict buffer, const char *restrict str
 	}
 }
 
-// Read and return a single encoded UTF-8 character from the specified stream.
-uint32_t textBufferRead(const textBuffer *const restrict buffer, const byte_t **const restrict cursor){
-	textCMapCodeUnit_t character = {._32 = 0};
+// Read and return a single ASCII character from the specified stream.
+byte_t textBufferReadASCII(const textBuffer *const restrict buffer, const byte_t **const restrict cursor){
+	return(readBufferByte(buffer, cursor));
+}
 
-	character.byte._1 = readBufferByte(buffer, cursor);
+// Read and return a single encoded UTF-8 character from the specified stream.
+uint32_t textBufferReadUTF8(const textBuffer *const restrict buffer, const byte_t **const restrict cursor){
+	textCMapCodeUnit_t code = {._32 = 0};
+
+	code.bytes[0] = readBufferByte(buffer, cursor);
 	// The character uses one byte.
-	if(character.byte._1 <= UTF8_1_BYTE_LIMIT){
-		return(character._32);
-	}else if(byteIsValid(character.byte._2 = readBufferByte(buffer, cursor))){
+	if(code.bytes[0] <= UTF8_1_BYTE_LIMIT){
+		return(code._32);
+	}else if(byteIsValid(code.bytes[1] = readBufferByte(buffer, cursor))){
 		// The character uses two bytes.
-		if(character.byte._2 <= UTF8_2_BYTE_LIMIT){
-			return(character._32);
-		}else if(byteIsValid(character.byte._3 = readBufferByte(buffer, cursor))){
+		if(code.bytes[0] <= UTF8_2_BYTE_LIMIT){
+			return(code._32);
+		}else if(byteIsValid(code.bytes[2] = readBufferByte(buffer, cursor))){
 			// The character uses three bytes.
-			if(character.byte._3 <= UTF8_3_BYTE_LIMIT){
-				return(character._32);
-			}else if(byteIsValid(character.byte._4 = readBufferByte(buffer, cursor))){
+			if(code.bytes[0] <= UTF8_3_BYTE_LIMIT){
+				return(code._32);
+			}else if(byteIsValid(code.bytes[3] = readBufferByte(buffer, cursor))){
 				// The character uses four bytes.
-				if(character.byte._4 <= UTF8_4_BYTE_LIMIT){
-					return(character._32);
+				if(code.bytes[0] <= UTF8_4_BYTE_LIMIT){
+					return(code._32);
 				}
 			}
 		}
@@ -181,5 +189,5 @@ static byte_t readBufferByte(const textBuffer *const restrict buffer, const byte
 		return(curByte);
 	}
 
-	return(UTF8_INVALID_BYTE);
+	return(TEXT_ASCII_INVALID_CODE);
 }

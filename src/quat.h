@@ -150,8 +150,8 @@ void quatNegateOut(const quat *const restrict q, quat *const restrict out);
 quat quatNegateC(quat q);
 
 void quatAxis(const quat *const restrict q, vec3 *const restrict out);
-void quatAxisFast(const quat *const restrict q, vec3 *const restrict out);
 vec3 quatAxisC(const quat q);
+void quatAxisFast(const quat *const restrict q, vec3 *const restrict out);
 vec3 quatAxisFastC(const quat q);
 float quatAngle(const quat *const restrict q);
 float quatAngleC(const quat q);
@@ -165,8 +165,8 @@ vec3 quatToEulerAnglesXYZC(const quat q);
 void quatToEulerAnglesAltXYZ(const quat q, vec3 *const restrict angles);
 vec3 quatToEulerAnglesAltXYZC(const quat q);
 void quatToAxisAngle(const quat *const restrict q, vec4 *const restrict out);
-void quatToAxisAngleFast(const quat *const restrict q, vec4 *const restrict out);
 vec4 quatToAxisAngleC(const quat q);
+void quatToAxisAngleFast(const quat *const restrict q, vec4 *const restrict out);
 vec4 quatToAxisAngleFastC(const quat q);
 
 void quatRotateByXYZ(quat *const restrict q, const float x, const float y, const float z);

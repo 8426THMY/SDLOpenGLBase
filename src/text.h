@@ -22,7 +22,8 @@
 	#define textBufferIsFull(buffer)  ((uintptr_t)(buffer)->start & TEXT_BUFFER_FLAG_FULL)
 #endif
 
-#define TEXT_UTF8_INVALID_CODE valueInvalid(uint32_t)
+#define TEXT_ASCII_INVALID_CODE valueInvalid(byte_t)
+#define TEXT_UTF8_INVALID_CODE  valueInvalid(uint32_t)
 
 
 /*
@@ -52,7 +53,8 @@ const byte_t *textBufferGetStart(const textBuffer *const restrict buffer);
 return_t textBufferFinishedReading(const textBuffer *const restrict buffer, const byte_t *const restrict cursor);
 
 void textBufferWrite(textBuffer *const restrict buffer, const char *restrict str, size_t strLength);
-uint32_t textBufferRead(const textBuffer *const restrict text, const byte_t **const restrict cursor);
+byte_t textBufferReadASCII(const textBuffer *const restrict text, const byte_t **const restrict cursor);
+uint32_t textBufferReadUTF8(const textBuffer *const restrict text, const byte_t **const restrict cursor);
 
 void textBufferDelete(textBuffer *const restrict text);
 

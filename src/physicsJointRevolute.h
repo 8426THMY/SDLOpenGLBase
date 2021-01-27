@@ -5,6 +5,8 @@
 #define PHYSJOINT_TYPE_REVOLUTE 2
 
 
+#include "settingsPhysics.h"
+
 #include "utilTypes.h"
 
 

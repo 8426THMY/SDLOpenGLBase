@@ -4,6 +4,8 @@
 
 #include <stdint.h>
 
+#include "settingsPhysics.h"
+
 #include "vec3.h"
 #include "quat.h"
 #include "mat3.h"

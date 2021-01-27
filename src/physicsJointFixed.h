@@ -5,6 +5,8 @@
 #define PHYSJOINT_TYPE_FIXED 1
 
 
+#include "settingsPhysics.h"
+
 #include "utilTypes.h"
 
 

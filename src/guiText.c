@@ -58,7 +58,7 @@ void guiTextDraw(
 
 		// Store our text data in the arrays.
 		do {
-			const textCMapCodeUnit_t code = {._32 = textBufferRead(&text.buffer, &curChar)};
+			const textCMapCodeUnit_t code = {._32 = textBufferReadUTF8(&text.buffer, &curChar)};
 			// End of stream.
 			if(code._32 == 0){
 				break;
@@ -68,7 +68,8 @@ void guiTextDraw(
 				cursor[0] = 0.f;
 				cursor[1] -= 48.f;//advanceY * format.size;
 
-			// An invalid character code usually indicates a change in text formatting.
+			// An invalid character code usually indicates either a change in text
+			// formatting or part of a multi-byte UTF-8 code point was overwritten.
 			}else if(code._32 == TEXT_UTF8_INVALID_CODE){
 				//
 

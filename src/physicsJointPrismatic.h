@@ -2,6 +2,8 @@
 #define physicsJointPrismatic_h
 
 
+#include "settingsPhysics.h"
+
 #include "vec3.h"
 #include "mat2.h"
 #include "mat3.h"
