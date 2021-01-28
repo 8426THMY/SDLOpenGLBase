@@ -352,7 +352,7 @@ void clampEllipse(const float Ex, const float Ey, const float Ea, const float Eb
 ** Note that we assume that "Ea" and "Eb" are non-negative.
 */
 float clampEllipseDistanceFast(const float Ex, const float Ey, const float Ea, const float Eb){
-	if(fabsf(Ex) > 0.f){
+	if(Ex != 0.f){
 		// Given an ellipse "x^2/a^2 + y^2/b^2 = 1"
 		// and a line through the origin "y = (t_y/t_x)x",
 		// the points of intersection are given by
@@ -381,6 +381,58 @@ float clampEllipseDistanceFast(const float Ex, const float Ey, const float Ea, c
 		//const float Eay = Ea*Ey;
 		//return((Ea*Eb) * sqrtf(vec2Norm(Ex, Ey)/(Ebx*Ebx + Eay*Eay)));
 	}else{
+		return(Eb);
+	}
+}
+
+/*
+** Clamp a quaternion's swing to an ellipse using a fast, approximate algorithm.
+** Besides returning the distance, this also computes the unit normal of the intersection point.
+*/
+float clampEllipseDistanceNormalFast(const float Ex, const float Ey, const float Ea, const float Eb, vec2 *const restrict normal){
+	if(Ex != 0.f){
+		// Given an ellipse "x^2/a^2 + y^2/b^2 = 1"
+		// and a line through the origin "y = (t_y/t_x)x",
+		// the points of intersection are given by
+		//
+		// x = (+/-)1/sqrt(1/a^2 + (1/b^2)(t_y^2/t_x^2)),
+		// y = (+/-)1/sqrt((1/a^2)(t_x^2/t_y^2) + 1/b^2).
+		//
+		// We're only concerned about the distance from
+		// the origin, however, which may be written as
+		//
+		// d = sqrt((1 + t_y^2/t_x^2)/(1/a^2 + (1/b^2)(t_y^2/t_x^2))).
+		const float slope = Ey/Ex;
+		const float slopeSquared = slope*slope;
+		const float Eab = Ea/Eb;
+		const float EabSquared = Eab*Eab;
+
+		// Using the formulae above, we can show that the
+		// normal at the intersection point is given by
+		//
+		// (t_x, (a^2/b^2)t_y).
+		normal->x = Ex;
+		normal->y = Ey*EabSquared;
+		vec2NormalizeVec2Fast(normal);
+
+		return(Ea*sqrtf((1.f + slopeSquared)/(1.f + EabSquared*slopeSquared)));
+
+		// Consider the ellipse "x^2/a^2 + y^2/b^2 = 1",
+		// and let (x0, y0) be a point satisfying
+		//
+		// x0^2/a^2 + y0^2/b^2 = L^2,
+		// L = ab/sqrt(b^2*x0^2 + a^2*y0^2).
+		//
+		// Then the closest point on the ellipse to (x0, y0)
+		// is given by (1/L)(x0, y0). The distance is then
+		// given simply by d = ||(x0, y0)||/L.
+		//const float Ebx = Eb*Ex;
+		//const float Eay = Ea*Ey;
+		//return((Ea*Eb) * sqrtf(vec2Norm(Ex, Ey)/(Ebx*Ebx + Eay*Eay)));
+	}else{
+		normal->x = 0.f;
+		normal->y = 1.f;
+
 		return(Eb);
 	}
 }

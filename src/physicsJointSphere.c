@@ -3,6 +3,7 @@
 
 #include "physicsRigidBody.h"
 
+#include "vec2.h"
 #include "utilMath.h"
 
 
@@ -131,6 +132,15 @@
 **
 ** b2 = C2/dt,
 ** b3 = C3/dt.
+**
+** ----------------------------------------------------------------------
+**
+** Although undiscussed here, we support rectangular angle limits
+** using Euler angles rather than the conical limit that swing-twist
+** decomposition gives.
+**
+** This is implemented by effectively having a twist constraint
+** for all three axes rather than just the x-axis.
 **
 ** ----------------------------------------------------------------------
 */
@@ -347,6 +357,15 @@ void physJointSphereSolveVelocity(
 				vec3DotVec3(&relativeVelocity, &((physicsJointSphere *)joint)->swingAxis) +
 				((physicsJointSphere *)joint)->swingBias
 			) * ((physicsJointSphere *)joint)->swingInvMass;
+
+			// don't let cone response affect twist
+			// (this can happen since body A's twist doesn't match body B's AND we use an elliptical cone limit)
+			{
+				const vec3 impulseA = vec3MultiplySC(((physicsJointSphere *)joint)->swingAxis, lambda);
+				const vec3 impulseTwistCouple = vec3MultiplySC(((physicsJointSphere *)joint)->twistAxis, vec3DotVec3C(impulseA, ((physicsJointSphere *)joint)->twistAxis));
+				const vec3 impulseNoTwistCouple = vec3SubtractVec3FromC(impulseA, impulseTwistCouple);
+				printf("(%f = %f, %f = %f, %f = %f)\n", impulseNoTwistCouple.x, impulseA.x, impulseNoTwistCouple.y, impulseA.y, impulseNoTwistCouple.z, impulseTwistCouple.z);
+			}
 
 			// Clamp the accumulated swing impulse magnitude.
 			oldImpulse = ((physicsJointSphere *)joint)->swingImpulse;
@@ -845,8 +864,14 @@ static float calculateSwingLimit(
 	vec3 *const restrict swingAxis
 ){
 
-	// Bring the swing axis from body B's space to global space.
+	#ifndef PHYSJOINTSPHERE_SWING_USE_ELLIPSE_NORMAL
+	// Note that when there is no relative rotation,
+	// the swing axis will be parallel to the twist axis.
+	//
+	// Bullet corrects this during the velocity solver,
+	// but I'm not sure it's really worth worrying about.
 	quatAxis(swing, swingAxis);
+	// Bring the swing axis from body B's space to global space.
 	quatRotateVec3Fast(rotA, swingAxis);
 
 	return(
@@ -856,6 +881,29 @@ static float calculateSwingLimit(
 			(swing->y > 0.f) ? angularLimitsY[1] : -angularLimitsY[0]
 		)
 	);
+	#else
+	vec2 ellipseNormal;
+	float swingLimit;
+
+	// Note that the swing axis is identical to the quaternion's imaginary
+	// part except for a factor of sin(theta/2), we we can use either here.
+	swingLimit = clampEllipseDistanceNormalFast(
+		swing->z, swing->y,
+		(swing->z > 0.f) ? angularLimitsZ[1] : -angularLimitsZ[0],
+		(swing->y > 0.f) ? angularLimitsY[1] : -angularLimitsY[0],
+		&ellipseNormal
+	);
+	// The ellipse normal we compute is unit length, so since the
+	// swing axis is either of the form (1, 0, 0) or (0, y, z),
+	// we don't need to normalize the new swing axis.
+	swingAxis->x = 0.f;
+	swingAxis->y = ellipseNormal.y;
+	swingAxis->z = ellipseNormal.x;
+	// Bring the swing axis from body B's space to global space.
+	quatRotateVec3Fast(rotA, swingAxis);
+
+	return(quatAngle(swing) - swingLimit);
+	#endif
 }
 #endif
 

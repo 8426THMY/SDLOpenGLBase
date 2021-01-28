@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <math.h>
 
+#include "vec2.h"
 #include "vec3.h"
 
 
@@ -91,6 +92,7 @@ float pointPlaneDist(const vec3 *const restrict point, const vec3 *const restric
 void pointPlaneProject(const vec3 *const restrict point, const vec3 *const restrict vertex, const vec3 *const restrict normal, vec3 *const restrict out);
 
 float clampEllipseDistanceFast(const float Ex, const float Ey, const float Ea, const float Eb);
+float clampEllipseDistanceNormalFast(const float Ex, const float Ey, const float Ea, const float Eb, vec2 *const restrict normal);
 
 
 #endif
