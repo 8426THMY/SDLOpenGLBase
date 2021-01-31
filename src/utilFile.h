@@ -31,7 +31,7 @@
 
 
 return_t fileSetWorkingDirectory(char *const restrict dir, size_t *const restrict pathLength);
-size_t fileParseResourcePath(char *resPath, char *const restrict line, const size_t lineLength, char **const restrict endPtr);
+size_t fileParseResourcePath(char *restrict resPath, char *line, const size_t lineLength, char **const endPtr);
 void fileGenerateFullResourcePath(
 	const char *const restrict prefix, const size_t prefixLength,
 	const char *const restrict filePath, const size_t filePathLength,

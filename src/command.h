@@ -60,7 +60,7 @@ typedef struct commandNode {
 */
 typedef void (*commandFunction)(
 	commandSystem *const restrict cmdSys,
-	const size_t argc, const char **const argv
+	const size_t argc, const char **const restrict argv
 );
 
 

@@ -13,8 +13,8 @@
 
 
 size_t ultostr(unsigned long num, char *str);
-char *stringDelimited(char *const restrict str, const size_t strLength, const char delim, size_t *const restrict outLength);
-char *stringMultiDelimited(char *const restrict str, const size_t strLength, const char *delims, size_t *const restrict outLength);
+size_t stringDelimited(char *const str, const size_t strLength, const char delim, const char **const restrict token);
+size_t stringMultiDelimited(char *const str, const size_t strLength, const char *delims, const char **const restrict token);
 char *stringTokenDelims(const char *const restrict str, const char *delims);
 
 

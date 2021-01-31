@@ -84,46 +84,25 @@ model *modelOBJLoad(const char *const restrict mdlPath, const size_t mdlPathLeng
 	if(mdlFile != NULL){
 		return_t success = 1;
 
-
-		// Temporarily stores only unique vertices.
 		meshVertexIndex_t tempVerticesSize = 0;
 		meshVertexIndex_t tempVerticesCapacity = BASE_VERTEX_CAPACITY;
-		vertex *tempVertices = memoryManagerGlobalAlloc(BASE_VERTEX_CAPACITY * sizeof(*tempVertices));
-		if(tempVertices == NULL){
-			/** MALLOC FAILED **/
-		}
+		vertex *tempVertices;
 
-		// Temporarily stores vertex indices for faces.
 		meshVertexIndex_t tempIndicesSize = 0;
 		meshVertexIndex_t tempIndicesCapacity = BASE_INDEX_CAPACITY;
-		meshVertexIndex_t *tempIndices = memoryManagerGlobalAlloc(BASE_INDEX_CAPACITY * sizeof(*tempIndices));
-		if(tempIndices == NULL){
-			/** MALLOC FAILED **/
-		}
+		meshVertexIndex_t *tempIndices;
 
-		// Temporarily stores vertex positions, regardless of whether or not they are unique.
 		meshVertexIndex_t tempPositionsSize = 0;
 		meshVertexIndex_t tempPositionsCapacity = BASE_POSITION_CAPACITY;
-		vec3 *tempPositions = memoryManagerGlobalAlloc(BASE_POSITION_CAPACITY * sizeof(*tempPositions));
-		if(tempPositions == NULL){
-			/** MALLOC FAILED **/
-		}
+		vec3 *tempPositions;
 
-		// Temporarily stores vertex UVs, regardless of whether or not they are unique.
 		meshVertexIndex_t tempUVsSize = 0;
 		meshVertexIndex_t tempUVsCapacity = BASE_UV_CAPACITY;
-		vec2 *tempUVs = memoryManagerGlobalAlloc(BASE_UV_CAPACITY * sizeof(*tempUVs));
-		if(tempUVs == NULL){
-			/** MALLOC FAILED **/
-		}
+		vec2 *tempUVs;
 
-		// Temporarily stores vertex normals, regardless of whether or not they are unique.
 		meshVertexIndex_t tempNormalsSize = 0;
 		meshVertexIndex_t tempNormalsCapacity = BASE_NORMAL_CAPACITY;
-		vec3 *tempNormals = memoryManagerGlobalAlloc(BASE_NORMAL_CAPACITY * sizeof(*tempNormals));
-		if(tempNormals == NULL){
-			/** MALLOC FAILED **/
-		}
+		vec3 *tempNormals;
 
 		// Stores the name of the textureGroup that the model uses.
 		char *tempTexGroupName = NULL;
@@ -135,6 +114,33 @@ model *modelOBJLoad(const char *const restrict mdlPath, const size_t mdlPathLeng
 		char lineBuffer[FILE_MAX_LINE_LENGTH];
 		char *line;
 		size_t lineLength;
+
+
+		// Temporarily stores only unique vertices.
+		tempVertices = memoryManagerGlobalAlloc(BASE_VERTEX_CAPACITY * sizeof(*tempVertices));
+		if(tempVertices == NULL){
+			/** MALLOC FAILED **/
+		}
+		// Temporarily stores vertex indices for faces.
+		tempIndices = memoryManagerGlobalAlloc(BASE_INDEX_CAPACITY * sizeof(*tempIndices));
+		if(tempIndices == NULL){
+			/** MALLOC FAILED **/
+		}
+		// Temporarily stores vertex positions, regardless of whether or not they are unique.
+		tempPositions = memoryManagerGlobalAlloc(BASE_POSITION_CAPACITY * sizeof(*tempPositions));
+		if(tempPositions == NULL){
+			/** MALLOC FAILED **/
+		}
+		// Temporarily stores vertex UVs, regardless of whether or not they are unique.
+		tempUVs = memoryManagerGlobalAlloc(BASE_UV_CAPACITY * sizeof(*tempUVs));
+		if(tempUVs == NULL){
+			/** MALLOC FAILED **/
+		}
+		// Temporarily stores vertex normals, regardless of whether or not they are unique.
+		tempNormals = memoryManagerGlobalAlloc(BASE_NORMAL_CAPACITY * sizeof(*tempNormals));
+		if(tempNormals == NULL){
+			/** MALLOC FAILED **/
+		}
 
 
 		while(success && (line = fileReadLine(mdlFile, &lineBuffer[0], &lineLength)) != NULL){
@@ -429,30 +435,17 @@ model *modelSMDLoad(const char *const restrict mdlPath, const size_t mdlPathLeng
 	if(mdlFile != NULL){
 		return_t success = 1;
 
-
-		// Temporarily stores only unique vertices.
 		meshVertexIndex_t tempVerticesSize = 0;
 		meshVertexIndex_t tempVerticesCapacity = BASE_VERTEX_CAPACITY;
-		vertex *tempVertices = memoryManagerGlobalAlloc(BASE_VERTEX_CAPACITY * sizeof(*tempVertices));
-		if(tempVertices == NULL){
-			/** MALLOC FAILED **/
-		}
+		vertex *tempVertices;
 
-		// Temporarily stores vertex indices for faces.
 		meshVertexIndex_t tempIndicesSize = 0;
 		meshVertexIndex_t tempIndicesCapacity = BASE_INDEX_CAPACITY;
-		meshVertexIndex_t *tempIndices = memoryManagerGlobalAlloc(BASE_INDEX_CAPACITY * sizeof(*tempIndices));
-		if(tempIndices == NULL){
-			/** MALLOC FAILED **/
-		}
+		meshVertexIndex_t *tempIndices;
 
-		// Temporarily stores bones.
 		size_t tempBonesSize = 0;
 		size_t tempBonesCapacity = BASE_BONE_CAPACITY;
-		bone *tempBones = memoryManagerGlobalAlloc(BASE_BONE_CAPACITY * sizeof(*tempBones));
-		if(tempBones == NULL){
-			/** MALLOC FAILED **/
-		}
+		bone *tempBones;
 
 		char *tokPos;
 		// This indicates what sort of data we're currently supposed to be reading.
@@ -463,6 +456,23 @@ model *modelSMDLoad(const char *const restrict mdlPath, const size_t mdlPathLeng
 		char lineBuffer[FILE_MAX_LINE_LENGTH];
 		char *line;
 		size_t lineLength;
+
+
+		// Temporarily stores only unique vertices.
+		tempVertices = memoryManagerGlobalAlloc(BASE_VERTEX_CAPACITY * sizeof(*tempVertices));
+		if(tempVertices == NULL){
+			/** MALLOC FAILED **/
+		}
+		// Temporarily stores vertex indices for faces.
+		tempIndices = memoryManagerGlobalAlloc(BASE_INDEX_CAPACITY * sizeof(*tempIndices));
+		if(tempIndices == NULL){
+			/** MALLOC FAILED **/
+		}
+		// Temporarily stores bones.
+		tempBones = memoryManagerGlobalAlloc(BASE_BONE_CAPACITY * sizeof(*tempBones));
+		if(tempBones == NULL){
+			/** MALLOC FAILED **/
+		}
 
 
 		while(success && (line = fileReadLine(mdlFile, &lineBuffer[0], &lineLength)) != NULL){
@@ -509,8 +519,7 @@ model *modelSMDLoad(const char *const restrict mdlPath, const size_t mdlPathLeng
 						const boneIndex_t boneID = strtoul(tokPos, &tokPos, 10);
 						if(boneID == tempBonesSize){
 							// Get the bone's name.
-							size_t boneNameLength;
-							tokPos = stringMultiDelimited(tokPos, line + lineLength - tokPos, "\" ", &boneNameLength);
+							const size_t boneNameLength = stringMultiDelimited(tokPos, line + lineLength - tokPos, "\" ", (const char **)&tokPos);
 							tempBone.name = memoryManagerGlobalAlloc(boneNameLength + 1);
 							if(tempBone.name == NULL){
 								/** MALLOC FAILED **/

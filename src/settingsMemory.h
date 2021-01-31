@@ -20,7 +20,6 @@
 #define MEMDOUBLELIST_COUNT_USED_BLOCKS
 #define MEMQUADLIST_COUNT_USED_BLOCKS
 
-
 // Define the base pool sizes for our object allocators!
 #define MEMORY_MODULE_NUM_COMMANDS            128
 #define MEMORY_MODULE_NUM_TEXTURES            36

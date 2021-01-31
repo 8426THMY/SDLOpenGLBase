@@ -4,9 +4,6 @@
 
 #include <stddef.h>
 
-#define GLEW_STATIC
-#include <GL/glew.h>
-
 #include "utilTypes.h"
 
 #include "rectangle.h"
@@ -22,7 +19,7 @@
 /**
 1. Replace textureGroups/textureWrappers with materials.
 2. Materials include one or more base textures.
-3. Each base texture can have at most one normal map and at most one bump map.
+3. Each base texture can have at most one normal map, bump map and specular map.
 4. Materials must have one and only one animation.
 5. Materials may also have support for scrolling that is interpolated during rendering.
 **/
@@ -30,7 +27,7 @@
 
 // Stores the data for a frame!
 typedef struct textureGroupFrame {
-	const texture *diffuse;
+	const texture *tex;
 	rectangle bounds;
 } textureGroupFrame;
 

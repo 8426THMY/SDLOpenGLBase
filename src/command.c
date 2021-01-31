@@ -386,7 +386,7 @@ static const char *cmdBufferTokenizeCommand(
 			const unsigned int strWhitespace = cmdWhitespaceCharacter(c);
 
 			// If we've just finished reading an argument, add it to the buffer!
-			if((!strQuoted && strWhitespace) || (strQuoted && c == '"')){
+			if((!strQuoted && strWhitespace) || (strQuoted && c == '\"')){
 				cmdBufferAddArgument(cmdBuffer, cmdTok, str);
 				strQuoted = 0;
 				strReading = 0;
@@ -409,7 +409,7 @@ static const char *cmdBufferTokenizeCommand(
 				// If we aren't currently reading an argument, start
 				// reading one at the next character that isn't whitespace.
 				}else if(!strReading && !strWhitespace){
-					if(c == '"'){
+					if(c == '\"'){
 						cmdTok->argv[cmdTok->argc] = str+1;
 						strQuoted = 1;
 					}else{

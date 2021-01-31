@@ -144,7 +144,7 @@ skeletonAnimDef *skeleAnimSMDLoad(const char *const restrict skeleAnimPath, cons
 
 	#ifdef TEMP_MODULE_FIND
 	// If the animation has already been loaded, return a pointer to it!
-	if((animDef = moduleSkeletonAnimDefFind(mdlPath)) != NULL){
+	if((animDef = moduleSkeletonAnimDefFind(skeleAnimPath)) != NULL){
 		return(animDef);
 	}
 	#else
@@ -165,30 +165,15 @@ skeletonAnimDef *skeleAnimSMDLoad(const char *const restrict skeleAnimPath, cons
 	if(skeleAnimFile != NULL){
 		return_t success = 1;
 
-
 		// We use this capacity for all of our arrays, since we only use one at a time.
 		size_t tempCapacity = BASE_BONE_CAPACITY;
 		// This represents the current size of both the time and frame arrays.
 		size_t numFrames = 0;
 
-		// Temporarily stores bones.
 		size_t tempBonesSize = 0;
-		bone *tempBones = memoryManagerGlobalAlloc(BASE_BONE_CAPACITY * sizeof(*tempBones));
-		if(tempBones == NULL){
-			/** MALLOC FAILED **/
-		}
-
-		// Temporarily stores frame times.
-		float *tempTimes = memoryManagerGlobalAlloc(BASE_FRAME_CAPACITY * sizeof(*tempTimes));
-		if(tempTimes == NULL){
-			/** MALLOC FAILED **/
-		}
-
-		// Temporarily stores frame states.
-		boneState **tempFrames = memoryManagerGlobalAlloc(BASE_FRAME_CAPACITY * sizeof(*tempFrames));
-		if(tempFrames == NULL){
-			/** MALLOC FAILED **/
-		}
+		bone *tempBones;
+		float *tempTimes;
+		boneState **tempFrames;
 
 		// Store a reference to the current frame that we're loading.
 		boneState *currentFrame = NULL;
@@ -203,6 +188,23 @@ skeletonAnimDef *skeleAnimSMDLoad(const char *const restrict skeleAnimPath, cons
 		char lineBuffer[1024];
 		char *line;
 		size_t lineLength;
+
+
+		// Temporarily stores bones.
+		tempBones = memoryManagerGlobalAlloc(BASE_BONE_CAPACITY * sizeof(*tempBones));
+		if(tempBones == NULL){
+			/** MALLOC FAILED **/
+		}
+		// Temporarily stores frame times.
+		tempTimes = memoryManagerGlobalAlloc(BASE_FRAME_CAPACITY * sizeof(*tempTimes));
+		if(tempTimes == NULL){
+			/** MALLOC FAILED **/
+		}
+		// Temporarily stores frame states.
+		tempFrames = memoryManagerGlobalAlloc(BASE_FRAME_CAPACITY * sizeof(*tempFrames));
+		if(tempFrames == NULL){
+			/** MALLOC FAILED **/
+		}
 
 
 		while(success && (line = fileReadLine(skeleAnimFile, &lineBuffer[0], &lineLength)) != NULL){
@@ -257,8 +259,7 @@ skeletonAnimDef *skeleAnimSMDLoad(const char *const restrict skeleAnimPath, cons
 						const boneIndex_t boneID = strtoul(line, &tokPos, 10);
 						// Make sure a bone with this ID actually exists.
 						if(boneID == tempBonesSize){
-							size_t boneNameLength;
-							tokPos = stringMultiDelimited(tokPos, line + lineLength - tokPos, "\" ", &boneNameLength);
+							const size_t boneNameLength = stringMultiDelimited(tokPos, line + lineLength - tokPos, "\" ", (const char **)&tokPos);
 							// Get the bone's name.
 							tempBone.name = memoryManagerGlobalAlloc(boneNameLength + 1);
 							if(tempBone.name == NULL){

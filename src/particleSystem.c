@@ -3,6 +3,9 @@
 
 #include <math.h>
 
+#define GLEW_STATIC
+#include <GL/glew.h>
+
 #include "sort.h"
 
 #include "memoryManager.h"

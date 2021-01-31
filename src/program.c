@@ -8,6 +8,7 @@
 
 #include "settingsProgram.h"
 
+#include "moduleCommand.h"
 #include "moduleTexture.h"
 #include "moduleTextureGroup.h"
 #include "moduleSkeleton.h"
@@ -447,7 +448,7 @@ static return_t initLibs(program *const restrict prg){
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
 
-	#warning "Don't enable this unless the object is translucent."
+	#warning "Don't enable this unless an object is translucent."
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -458,6 +459,8 @@ static return_t initLibs(program *const restrict prg){
 }
 
 static return_t initResources(program *const restrict prg){
+	printf("Beginning to initialize resources...\n");
+
 	const GLuint objVertexShaderID      = shaderLoad("./resource/shaders/vertexShader.gls",         GL_VERTEX_SHADER);
 	const GLuint spriteVertexShaderID   = shaderLoad("./resource/shaders/spriteVertexShader.gls",   GL_VERTEX_SHADER);
 	const GLuint objFragmentShaderID    = shaderLoad("./resource/shaders/fragmentShader.gls",       GL_FRAGMENT_SHADER);
@@ -555,7 +558,6 @@ static return_t initResources(program *const restrict prg){
 
 
 		// Create the base physics object.
-		printf("\nThis is the part we care about:\n");
 		mdl = modelOBJLoad("cubeQuads.obj", sizeof("cubeQuads.obj"));
 		objDef = moduleObjectDefAlloc();
 		objectDefInit(objDef);
@@ -792,6 +794,9 @@ static return_t initResources(program *const restrict prg){
 	gui.data.panel.uvCoords[7].h = 0.2f;
 
 	flagsSet(gui.data.panel.flags, GUI_PANEL_TILE_BODY);*/
+
+
+	printf("Finished initializing resources!\n");
 
 
 	return(1);

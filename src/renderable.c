@@ -45,7 +45,7 @@ void renderableDraw(
 
 	glActiveTexture(GL_TEXTURE0);
 	// Bind the texture we're using!
-	glBindTexture(GL_TEXTURE_2D, texFrame->diffuse->id);
+	glBindTexture(GL_TEXTURE_2D, texFrame->tex->id);
 	glUniform1fv(shader->uvOffsetsID, 4, (GLfloat *)&texFrame->bounds);
 
 	// Draw the renderable!

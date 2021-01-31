@@ -72,5 +72,5 @@ texture *moduleTextureFind(const char *const restrict name){
 		}
 	MEMPOOL_LOOP_END(g_textureManager, i)
 
-	return(NULL);
+	return(&g_texDefault);
 }

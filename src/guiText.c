@@ -3,6 +3,9 @@
 
 #include <stddef.h>
 
+#define GLEW_STATIC
+#include <GL/glew.h>
+
 #include "vec2.h"
 
 #include "texture.h"

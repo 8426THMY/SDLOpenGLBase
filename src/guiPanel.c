@@ -1,6 +1,9 @@
 #include "guiPanel.h"
 
 
+#define GLEW_STATIC
+#include <GL/glew.h>
+
 #include "texture.h"
 #include "textureGroup.h"
 
@@ -53,8 +56,8 @@ void guiPanelDraw(
 	const textureGroupFrame *const bodyFrame = texGroupStateGetFrame(&panel.bodyTexState);
 
 	const rectangle *offsets = panel.uvCoords;
-	float curWidth = offsets[0].w * borderFrame->diffuse->width;
-	float curHeight = offsets[0].h * borderFrame->diffuse->height;
+	float curWidth = offsets[0].w * borderFrame->tex->width;
+	float curHeight = offsets[0].h * borderFrame->tex->height;
 	const transformState rootTransform = {
 		// Move the panel's origin to the top-left corner.
 		.pos = {
@@ -73,7 +76,7 @@ void guiPanelDraw(
 
 	glActiveTexture(GL_TEXTURE0);
 	// Bind the border's texture!
-	glBindTexture(GL_TEXTURE_2D, borderFrame->diffuse->id);
+	glBindTexture(GL_TEXTURE_2D, borderFrame->tex->id);
 
 
 	#warning "Border tiling is not yet implemented."
@@ -103,8 +106,8 @@ void guiPanelDraw(
 
 
 	// Set up the top-right corner's state.
-	curWidth = offsets[1].w * borderFrame->diffuse->width;
-	curHeight = offsets[1].h * borderFrame->diffuse->height;
+	curWidth = offsets[1].w * borderFrame->tex->width;
+	curHeight = offsets[1].h * borderFrame->tex->height;
 
 	panelStates[1].state.m[0][0] = curWidth;
 	panelStates[1].state.m[0][1] = 0.f;
@@ -130,8 +133,8 @@ void guiPanelDraw(
 
 
 	// Set up the top-left corner's state.
-	curWidth = offsets[2].w * borderFrame->diffuse->width;
-	curHeight = offsets[2].h * borderFrame->diffuse->height;
+	curWidth = offsets[2].w * borderFrame->tex->width;
+	curHeight = offsets[2].h * borderFrame->tex->height;
 
 	panelStates[2].state.m[0][0] = curWidth;
 	panelStates[2].state.m[0][1] = 0.f;
@@ -157,8 +160,8 @@ void guiPanelDraw(
 
 
 	// Set up the bottom-left corner's state.
-	curWidth = offsets[3].w * borderFrame->diffuse->width;
-	curHeight = offsets[3].h * borderFrame->diffuse->height;
+	curWidth = offsets[3].w * borderFrame->tex->width;
+	curHeight = offsets[3].h * borderFrame->tex->height;
 
 	panelStates[3].state.m[0][0] = curWidth;
 	panelStates[3].state.m[0][1] = 0.f;
@@ -184,7 +187,7 @@ void guiPanelDraw(
 
 
 	// Set up the right edge's state.
-	curHeight = offsets[4].h * borderFrame->diffuse->height;
+	curHeight = offsets[4].h * borderFrame->tex->height;
 
 	panelStates[4].state.m[0][0] = 0.f;
 	panelStates[4].state.m[0][1] = -rootTransform.scale.y;
@@ -210,7 +213,7 @@ void guiPanelDraw(
 
 
 	// Set up the top edge's state.
-	curHeight = offsets[5].h * borderFrame->diffuse->height;
+	curHeight = offsets[5].h * borderFrame->tex->height;
 
 	panelStates[5].state.m[0][0] = rootTransform.scale.x;
 	panelStates[5].state.m[0][1] = 0.f;
@@ -236,7 +239,7 @@ void guiPanelDraw(
 
 
 	// Set up the left edge's state.
-	curHeight = offsets[6].h * borderFrame->diffuse->height;
+	curHeight = offsets[6].h * borderFrame->tex->height;
 
 	panelStates[6].state.m[0][0] = 0.f;
 	panelStates[6].state.m[0][1] = rootTransform.scale.y;
@@ -262,7 +265,7 @@ void guiPanelDraw(
 
 
 	// Set up the bottom edge's state.
-	curHeight = offsets[7].h * borderFrame->diffuse->height;
+	curHeight = offsets[7].h * borderFrame->tex->height;
 
 	panelStates[7].state.m[0][0] = -rootTransform.scale.x;
 	panelStates[7].state.m[0][1] = 0.f;
@@ -295,7 +298,7 @@ void guiPanelDraw(
 
 
 	// Bind the body's texture!
-	glBindTexture(GL_TEXTURE_2D, bodyFrame->diffuse->id);
+	glBindTexture(GL_TEXTURE_2D, bodyFrame->tex->id);
 
 	// Draw the main region of the panel.
 	transformStateToMat4(&rootTransform, &panelStates[0].state);
@@ -305,8 +308,8 @@ void guiPanelDraw(
 	// Scroll the body image if tiling is enabled.
 	// Otherwise, we stretch it to fit the panel.
 	if(flagsAreSet(panel.flags, GUI_PANEL_TILE_BODY)){
-		panelStates[0].uvOffsets.w = rootTransform.scale.x / bodyFrame->diffuse->width;
-		panelStates[0].uvOffsets.h = rootTransform.scale.y / bodyFrame->diffuse->height;
+		panelStates[0].uvOffsets.w = rootTransform.scale.x / bodyFrame->tex->width;
+		panelStates[0].uvOffsets.h = rootTransform.scale.y / bodyFrame->tex->height;
 	}else{
 		panelStates[0].uvOffsets.w = bodyFrame->bounds.w;
 		panelStates[0].uvOffsets.h = bodyFrame->bounds.h;

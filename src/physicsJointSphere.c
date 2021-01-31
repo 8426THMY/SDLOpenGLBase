@@ -358,15 +358,6 @@ void physJointSphereSolveVelocity(
 				((physicsJointSphere *)joint)->swingBias
 			) * ((physicsJointSphere *)joint)->swingInvMass;
 
-			// don't let cone response affect twist
-			// (this can happen since body A's twist doesn't match body B's AND we use an elliptical cone limit)
-			{
-				const vec3 impulseA = vec3MultiplySC(((physicsJointSphere *)joint)->swingAxis, lambda);
-				const vec3 impulseTwistCouple = vec3MultiplySC(((physicsJointSphere *)joint)->twistAxis, vec3DotVec3C(impulseA, ((physicsJointSphere *)joint)->twistAxis));
-				const vec3 impulseNoTwistCouple = vec3SubtractVec3FromC(impulseA, impulseTwistCouple);
-				printf("(%f = %f, %f = %f, %f = %f)\n", impulseNoTwistCouple.x, impulseA.x, impulseNoTwistCouple.y, impulseA.y, impulseNoTwistCouple.z, impulseTwistCouple.z);
-			}
-
 			// Clamp the accumulated swing impulse magnitude.
 			oldImpulse = ((physicsJointSphere *)joint)->swingImpulse;
 			((physicsJointSphere *)joint)->swingImpulse = minFloat(0.f, oldImpulse + lambda);

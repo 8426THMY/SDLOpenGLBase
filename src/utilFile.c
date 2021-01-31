@@ -40,33 +40,34 @@ return_t fileSetWorkingDirectory(char *const restrict dir, size_t *const restric
 ** Copy a resource's path from "line" into "resPath", converting any folder
 ** delimiters. If the path is between quotations marks, they will be removed too.
 */
-size_t fileParseResourcePath(char *resPath, char *const restrict line, const size_t lineLength, char **const restrict endPtr){
-	const char *pathStart = strchr(line, '"');
-	char *pathEnd = NULL;
-	const char *delimiter;
+size_t fileParseResourcePath(char *restrict resPath, char *line, const size_t lineLength, char **const endPtr){
+	char *pathStart = strchr(line, '\"');
+	char *pathEnd;
 
 	// Find the beginning and end of the resource path string.
 	if(pathStart != NULL){
 		++pathStart;
-		pathEnd = strrchr(line, '"');
-	}
-	if(pathStart == pathEnd){
+		pathEnd = strchr(pathStart, '\"');
+		if(pathEnd == NULL){
+			pathEnd = &line[lineLength];
+		}
+	}else{
 		pathStart = line;
-		pathEnd   = &line[lineLength];
+		pathEnd = &line[lineLength];
 	}
 
 	// Copy the path and convert any invalid folder delimiters.
-	for(delimiter = pathStart; delimiter != pathEnd; ++resPath, ++delimiter){
-		if(*delimiter == FILE_PATH_DELIMITER_UNUSED){
+	for(line = pathStart; line != pathEnd; ++resPath, ++line){
+		if(*line == FILE_PATH_DELIMITER_UNUSED){
 			*resPath = FILE_PATH_DELIMITER;
 		}else{
-			*resPath = *delimiter;
+			*resPath = *line;
 		}
 	}
 
 	*resPath = '\0';
 	if(endPtr != NULL){
-		*endPtr = pathEnd;
+		*endPtr = pathEnd + 1;
 	}
 
 

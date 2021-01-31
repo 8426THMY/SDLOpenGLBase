@@ -71,14 +71,10 @@ texture *textureLoad(const char *const restrict texPath, const size_t texPathLen
 	char texFullPath[FILE_MAX_PATH_LENGTH];
 
 
-	#ifdef TEMP_MODULE_FIND
 	// If the texture has already been loaded, return a pointer to it!
-	if((tex = moduleTextureFind(texGroupPath)) != &g_texDefault){
+	if((tex = moduleTextureFind(texPath)) != &g_texDefault){
 		return(tex);
 	}
-	#else
-	tex = &g_texDefault;
-	#endif
 
 
 	// Generate the full path for the texture!
