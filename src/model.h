@@ -12,13 +12,15 @@
 typedef struct model {
 	char *name;
 
-	mesh meshData;
+	// Models use an individual mesh
+	// for each separate texture group.
+	mesh *meshes;
+	textureGroup **texGroups;
+	size_t numMeshes;
+
 	skeleton *skele;
-	textureGroup *texGroup;
 } model;
 
-
-void modelInit(model *const restrict mdl);
 
 model *modelOBJLoad(const char *const restrict mdlPath, const size_t mdlPathLength);
 model *modelSMDLoad(const char *const restrict mdlPath, const size_t mdlPathLength);

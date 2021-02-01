@@ -14,19 +14,19 @@ static void updateShaderBones(
 
 void renderableDefInit(renderableDef *const restrict renderDef, model *const restrict mdl){
 	renderDef->mdl = mdl;
-	renderDef->texGroup = mdl->texGroup;
+	renderDef->texGroup = &g_texGroupDefault;//mdl->texGroup;
 }
 
 void renderableInit(renderable *const restrict render, const renderableDef *const restrict renderDef){
 	render->mdl = renderDef->mdl;
 	texGroupStateInit(&render->texState, renderDef->texGroup);
-	billboardInit(&render->billboardData);
+	//billboardInit(&render->billboardData);
 }
 
 
 // Update a renderable's current state.
 void renderableUpdate(renderable *const restrict render, const float time){
-	texGroupStateUpdate(&render->texState, time);
+	//texGroupStateUpdate(&render->texState, time);
 }
 
 #warning "We probably shouldn't have the OpenGL drawing stuff split up so much."
@@ -35,21 +35,24 @@ void renderableDraw(
 	const mat4 *const restrict animStates, const meshShader *const restrict shader
 ){
 
+	const mesh *curMesh = render->mdl->meshes;
+	const mesh *const lastMesh = &curMesh[render->mdl->numMeshes];
 	const textureGroupFrame *const texFrame = texGroupStateGetFrame(&render->texState);
-
 
 	updateShaderBones(render->mdl->skele, objSkele, animStates, shader->boneStatesID);
 
-	// Bind the mesh we're using!
-	glBindVertexArray(render->mdl->meshData.vertexArrayID);
-
 	glActiveTexture(GL_TEXTURE0);
-	// Bind the texture we're using!
-	glBindTexture(GL_TEXTURE_2D, texFrame->tex->id);
-	glUniform1fv(shader->uvOffsetsID, 4, (GLfloat *)&texFrame->bounds);
+	// Render each of the renderable's meshes!
+	for(; curMesh < lastMesh; ++curMesh){
+		// Bind the mesh we're using!
+		glBindVertexArray(curMesh->vertexArrayID);
+		// Bind the texture we're using!
+		glBindTexture(GL_TEXTURE_2D, texFrame->tex->id);
+		glUniform1fv(shader->uvOffsetsID, 4, (GLfloat *)&texFrame->bounds);
 
-	// Draw the renderable!
-	glDrawElements(GL_TRIANGLES, render->mdl->meshData.numIndices, GL_UNSIGNED_INT, NULL);
+		// Draw the renderable!
+		glDrawElements(GL_TRIANGLES, curMesh->numIndices, GL_UNSIGNED_INT, NULL);
+	}
 }
 
 

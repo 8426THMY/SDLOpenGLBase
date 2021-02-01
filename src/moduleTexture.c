@@ -64,7 +64,7 @@ void moduleTextureClear(){
 }
 
 
-// Find a texture whose name matches "name"!
+// Find a texture whose name matches the one specified!
 texture *moduleTextureFind(const char *const restrict name){
 	MEMPOOL_LOOP_BEGIN(g_textureManager, i, texture)
 		if(strcmp(name, i->name) == 0){

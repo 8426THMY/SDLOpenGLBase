@@ -22,8 +22,8 @@
 // Stores the various positional data for a
 // bone as offsets from its parent's data.
 typedef transformState boneState;
-
 typedef uint_least8_t boneIndex_t;
+
 typedef struct bone {
 	char *name;
 

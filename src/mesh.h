@@ -17,13 +17,14 @@
 
 
 typedef GLsizei meshVertexIndex_t;
+typedef GLuint meshBoneIndex_t;
 
 typedef struct vertex {
 	vec3 pos;
 	vec2 uv;
 	vec3 normal;
 
-	unsigned int boneIDs[VERTEX_MAX_WEIGHTS];
+	meshBoneIndex_t boneIDs[VERTEX_MAX_WEIGHTS];
 	float boneWeights[VERTEX_MAX_WEIGHTS];
 } vertex;
 

@@ -54,6 +54,9 @@ textureGroup g_texGroupDefault = {
 	.texAnims = &texGroupAnimDefault,
 	.numAnims = 1
 };
+// A lot of structures store arrays of texture group pointers,
+// so it's useful to have a double pointer on the stack.
+textureGroup *g_texGroupArrayDefault = &g_texGroupDefault;
 
 
 // Forward-declare any helper functions!
@@ -80,13 +83,6 @@ void texGroupAnimDefInit(textureGroupAnimDef *const restrict texGroupAnimDef){
 	animFrameDataInit(&texGroupAnimDef->frameData);
 }
 
-void texGroupInit(textureGroup *const restrict texGroup){
-	texGroup->name = NULL;
-
-	texGroup->texAnims = NULL;
-	texGroup->numAnims = 0;
-}
-
 void texGroupStateInit(textureGroupState *const restrict texGroupState, const textureGroup *const restrict texGroup){
 	texGroupState->texGroup = texGroup;
 
@@ -106,14 +102,11 @@ textureGroup *texGroupLoad(const char *const restrict texGroupPath, const size_t
 	char texGroupFullPath[FILE_MAX_PATH_LENGTH];
 
 
-	#ifdef TEMP_MODULE_FIND
 	// If the texture group has already been loaded, return a pointer to it!
-	if((texGroup = moduleTextureGroupFind(texGroupPath)) != &g_texGroupDefault){
+	texGroup = moduleTexGroupFind(texGroupPath);
+	if(texGroup != &g_texGroupDefault){
 		return(texGroup);
 	}
-	#else
-	texGroup = &g_texGroupDefault;
-	#endif
 
 
 	// Generate the full path for the textureGroup!
@@ -158,8 +151,11 @@ textureGroup *texGroupLoad(const char *const restrict texGroupPath, const size_t
 			if(line[0] == 't'){
 				// Texture.
 				if(line[1] == ' '){
-					char texPath[FILE_MAX_PATH_LENGTH];
-					const size_t texPathLength = fileParseResourcePath(texPath, &line[2], lineLength - 2, NULL) + 1;
+					char *const texPath = memoryManagerGlobalAlloc((lineLength - 1) * sizeof(*texPath));
+					if(texPath == NULL){
+						/** MALLOC FAILED **/
+					}
+					fileParseResourcePath(texPath, &line[2], lineLength - 2, NULL);
 
 					// If we're out of space, allocate some more!
 					if(texPathsSize >= texPathsCapacity){
@@ -170,28 +166,43 @@ textureGroup *texGroupLoad(const char *const restrict texGroupPath, const size_t
 						}
 					}
 
-					texPaths[texPathsSize] = memoryManagerGlobalAlloc(texPathLength);
-					memcpy(texPaths[texPathsSize], texPath, texPathLength);
+					texPaths[texPathsSize] = texPath;
 					++texPathsSize;
 
 				// Texture sequence.
-				}else if(line[1] == 's'){
+				}else if(memcmp(&line[1], "s ", 2) == 0){
 					// Find the first and last indices for the sequence.
 					unsigned int curIndex = strtoul(&line[2], &line, 10);
 					unsigned int lastIndex = maxUint(strtoul(line, &line, 10), curIndex);
 
-					char texPath[FILE_MAX_PATH_LENGTH];
+					char *texPath;
+					size_t texPathLength;
+					char *texExt;
+					size_t texExtLength;
+
+
+					texPath = memoryManagerGlobalAlloc((lineLength - 2) * sizeof(*texPath));
+					if(texPath == NULL){
+						/** MALLOC FAILED **/
+					}
 					// Load the base texture's name!
-					const size_t texPathLength = fileParseResourcePath(
+					texPathLength = fileParseResourcePath(
 						texPath, line, lineLength - (size_t)(line - lineBuffer), NULL
 					) + 1;
 
-					char *texExt = strrchr(texPath, '.');
-					const size_t texExtLength = (texExt == NULL)  ?
-						// We need to move the NULL terminator if there's no file extension.
-						(texExt = &texPath[texPathLength - 1], 1) :
-						// Otherwise, move everything after the period.
-						texPathLength - (size_t)(texExt - texPath);
+					// We insert the texture indices before the file
+					// extension, so we need to find where it starts.
+					texExt = strrchr(texPath, '.');
+					// We only need to move the NULL terminator if there's no file extension.
+					if(texExt == NULL){
+						texExt = &texPath[texPathLength - 1];
+						texExtLength = 1;
+
+					// Otherwise, move everything after the period.
+					}else{
+						texExtLength = texPathLength - (size_t)(texExt - texPath);
+					}
+
 
 					// Generate and store the name of each texture in the sequence!
 					for(; curIndex <= lastIndex; ++curIndex){
@@ -218,6 +229,10 @@ textureGroup *texGroupLoad(const char *const restrict texGroupPath, const size_t
 						// Move the file extension back to where it was originally.
 						memmove(texExt, &texExt[indexStrLength], texExtLength);
 					}
+
+
+					// Don't forget to free the path afterwards.
+					memoryManagerGlobalFree(texPath);
 				}
 
 			// Animation.
@@ -500,7 +515,7 @@ static return_t texGroupAnimLoad(
 			// Frame scroll.
 			// Create "numFrames" many frames by repeatedly moving
 			// the frame bounds by (scrollX, scrollY, scrollW, scrollH).
-			}else if(line[1] == 'c'){
+			}else if(memcmp(&line[1], "c ", 2) == 0){
 				const unsigned int numFrames = strtoul(tokPos, &tokPos, 10);
 				size_t curFrame = 0;
 
@@ -567,7 +582,7 @@ static return_t texGroupAnimLoad(
 			// Frame sequence.
 			// Create a frame for each texture with
 			// indices from "startTex" up to "endTex".
-			}else if(line[1] == 's'){
+			}else if(memcmp(&line[1], "s ", 2) == 0){
 				const unsigned int endTex = strtoul(tokPos, NULL, 10);
 
 				size_t curTex = startTex;

@@ -64,7 +64,6 @@ typedef struct textureGroupState {
 
 void texGroupFrameInit(textureGroupFrame *const restrict texGroupFrame);
 void texGroupAnimDefInit(textureGroupAnimDef *const restrict texGroupAnimDef);
-void texGroupInit(textureGroup *const restrict texGroup);
 void texGroupStateInit(textureGroupState *const restrict texGroupState, const textureGroup *const restrict texGroup);
 
 textureGroup *texGroupLoad(const char *const restrict texGroupPath, const size_t texGroupPathLength);
@@ -77,6 +76,7 @@ void texGroupDelete(textureGroup *const restrict texGroup);
 
 
 extern textureGroup g_texGroupDefault;
+extern textureGroup *g_texGroupArrayDefault;
 
 
 #endif

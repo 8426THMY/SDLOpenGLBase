@@ -253,12 +253,11 @@ skeletonAnimDef *skeleAnimSMDLoad(const char *const restrict skeleAnimPath, cons
 				}else{
 					// Loading bone names.
 					if(dataType == 1){
-						bone tempBone;
-
 						// Get this bone's ID.
 						const boneIndex_t boneID = strtoul(line, &tokPos, 10);
 						// Make sure a bone with this ID actually exists.
 						if(boneID == tempBonesSize){
+							bone tempBone;
 							const size_t boneNameLength = stringMultiDelimited(tokPos, line + lineLength - tokPos, "\" ", (const char **)&tokPos);
 							// Get the bone's name.
 							tempBone.name = memoryManagerGlobalAlloc(boneNameLength + 1);

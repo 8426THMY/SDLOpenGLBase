@@ -72,7 +72,8 @@ texture *textureLoad(const char *const restrict texPath, const size_t texPathLen
 
 
 	// If the texture has already been loaded, return a pointer to it!
-	if((tex = moduleTextureFind(texPath)) != &g_texDefault){
+	tex = moduleTextureFind(texPath);
+	if(tex != &g_texDefault){
 		return(tex);
 	}
 
@@ -102,27 +103,32 @@ texture *textureLoad(const char *const restrict texPath, const size_t texPathLen
 			// Image path.
 			if(memcmp(line, "i ", 2) == 0){
 				if(image == NULL){
-					char imgFullPath[FILE_MAX_PATH_LENGTH];
-
+					char *const imgPath = memoryManagerGlobalAlloc((IMAGE_PATH_PREFIX_LENGTH + lineLength - 1) * sizeof(*imgPath));
+					if(imgPath == NULL){
+						/** MALLOC FAILED **/
+					}
 					// Generate the full path for the image!
-					memcpy(imgFullPath, IMAGE_PATH_PREFIX, IMAGE_PATH_PREFIX_LENGTH);
-					fileParseResourcePath(&imgFullPath[IMAGE_PATH_PREFIX_LENGTH], &lineBuffer[2], lineLength - 2, NULL);
+					memcpy(imgPath, IMAGE_PATH_PREFIX, IMAGE_PATH_PREFIX_LENGTH);
+					fileParseResourcePath(&imgPath[IMAGE_PATH_PREFIX_LENGTH], &line[2], lineLength - 2, NULL);
 
 					// Now load the pixel data!
-					image = IMG_Load(imgFullPath);
+					image = IMG_Load(imgPath);
 					if(image == NULL){
 						printf(
 							"Unable to create SDL2 surface for image!\n"
 							"Path: %s\n"
 							"Error: %s\n",
-							imgFullPath, SDL_GetError()
+							imgPath, SDL_GetError()
 						);
 					}
+
+					// Don't forget to free the path afterwards.
+					memoryManagerGlobalFree(imgPath);
 				}
 
 			// Filter type.
 			}else if(memcmp(line, "f ", 2) == 0){
-				filtering = strtoul(&lineBuffer[2], NULL, 10);
+				filtering = strtoul(&line[2], NULL, 10);
 			}
 		}
 
@@ -177,7 +183,6 @@ texture *textureLoad(const char *const restrict texPath, const size_t texPathLen
 					/** MALLOC FAILED **/
 				}
 
-
 				// Set the texture's name!
 				tex->name = memoryManagerGlobalAlloc(texPathLength + 1);
 				if(tex->name == NULL){
@@ -203,7 +208,7 @@ texture *textureLoad(const char *const restrict texPath, const size_t texPathLen
 			printf(
 				"Error loading texture!\n"
 				"Path: %s\n"
-				"Error: No image was specified!.\n",
+				"Error: No image was specified!\n",
 				texFullPath
 			);
 		}

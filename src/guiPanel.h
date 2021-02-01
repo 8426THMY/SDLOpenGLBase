@@ -2,13 +2,9 @@
 #define guiPanel_h
 
 
-#include "vec2.h"
-#include "transform.h"
-
+#include "rectangle.h"
 #include "sprite.h"
-#include "model.h"
 #include "textureGroup.h"
-#include "renderable.h"
 
 #include "utilTypes.h"
 

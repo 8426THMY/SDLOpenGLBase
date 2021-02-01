@@ -30,6 +30,9 @@
 #endif
 
 
+#warning "We use 'FILE_MAX_PATH_LENGTH' too much when we know the length. It would be better to allocate on the heap."
+
+
 return_t fileSetWorkingDirectory(char *const restrict dir, size_t *const restrict pathLength);
 size_t fileParseResourcePath(char *restrict resPath, char *line, const size_t lineLength, char **const endPtr);
 void fileGenerateFullResourcePath(

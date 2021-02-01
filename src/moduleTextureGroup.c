@@ -62,7 +62,7 @@ void moduleTexGroupClear(){
 }
 
 
-// Find a textureGroup whose name matches "name"!
+// Find a textureGroup whose name matches the one specified!
 textureGroup *moduleTexGroupFind(const char *const restrict name){
 	MEMPOOL_LOOP_BEGIN(g_texGroupManager, i, textureGroup)
 		if(strcmp(name, i->name) == 0){
@@ -70,5 +70,5 @@ textureGroup *moduleTexGroupFind(const char *const restrict name){
 		}
 	MEMPOOL_LOOP_END(g_texGroupManager, i)
 
-	return(NULL);
+	return(&g_texGroupDefault);
 }

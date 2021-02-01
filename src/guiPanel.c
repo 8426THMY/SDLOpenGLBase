@@ -4,6 +4,9 @@
 #define GLEW_STATIC
 #include <GL/glew.h>
 
+#include "mat4.h"
+#include "transform.h"
+
 #include "texture.h"
 #include "textureGroup.h"
 
