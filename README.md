@@ -8,8 +8,10 @@ Features that exist currently:
 * Rigid body physics engine that uses sequential impulse to solve constraints and a dynamic AABB tree for spacial partioning in islands.
 * Skeletal animation system supporting frame/animation interpolation and capable of playing multiple animations simultaneously.
 * Dynamic and programmable Source-like particle system.
-* Custom font format based off OpenType, designed for fast and efficient rendering. Supports BMP and MSDF (multi-channel signed distance field) formats.
-* GUI system supporting basic pannels and text rendering.
+* Custom font format based off OpenType, designed for fast and efficient rendering. Supports BMP and MSDF (multi-channel signed distance field) images.
+* GUI system supporting basic panels and text rendering.
+* Quake/Source-like console and command system.
+* Quake/Source-like input manager allowing strings of console commands to be bound to keyboard and mouse buttons.
 
 Features that need to be refined:
 
@@ -19,15 +21,12 @@ Features that need to be refined:
 * The current GUI system is extremely basic, there's a lot of missing functionality and a lot of the code is temporary.
 * GUI panels aren't quite "pixel-perfect" at most resolutions.
 * Textures support mipmapping, but it hasn't been tested. Smooth scrolling and programmable texture animations still need to be implemented.
-* Models should be able to use multiple textures.
 * File loading sucks, binary file formats would be nice for pretty much everything.
 * Mathematics functions are used fairly naively at the moment.
 
 Features that haven't been started:
 
-* Input management system.
 * Audio system.
-* Quake-like console and command system.
 * Scene management system with support for multiple cameras and independently renderable regions.
 * Decals.
 * SIMD for mathematics functions.

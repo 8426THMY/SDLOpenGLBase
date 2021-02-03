@@ -38,7 +38,7 @@ typedef struct object {
 	const objectDef *objDef;
 
 	// Stores the skeleton and animations that this object is using.
-	skeletonObject skeleData;
+	skeletonState skeleState;
 	// Controls the object's position, orientation and scale.
 	// This transformation is applied to the root bone during animation.
 	transformState state;

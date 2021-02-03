@@ -46,6 +46,8 @@ How can we do this?
 #warning "Would it be possible to avoid defining the duplicate functions by using macros?"
 #warning "Alternatively, if this gets ugly, it would almost certainly be better to define these functions using macros."
 
+#warning "Can we combine some of our memory allocations (for components of models, texture groups, skeletons, etcetera) into just one?"
+
 /**
 Fix up the maths functions (use the R variants) in these files:
 

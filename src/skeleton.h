@@ -74,12 +74,12 @@ typedef struct skeletonAnim {
 
 
 // Stores skeleton data for objects.
-typedef struct skeletonObject {
+typedef struct skeletonState {
 	skeleton *skele;
 	// Animations are stored in a singleList.
 	skeletonAnim *anims;
 	boneState *bones;
-} skeletonObject;
+} skeletonState;
 
 
 void boneInit(bone *const restrict bone, char *const restrict name, const boneIndex_t parent, const boneState *const restrict state);
@@ -90,13 +90,13 @@ void skeleInitSet(
 );
 void skeleAnimDefInit(skeletonAnimDef *animDef);
 void skeleAnimInit(skeletonAnim *const restrict anim, skeletonAnimDef *const restrict animDef, const float intensity);
-void skeleObjInit(skeletonObject *const restrict skeleObj, skeleton *const restrict skele);
+void skeleStateInit(skeletonState *const restrict skeleState, skeleton *const restrict skele);
 
 skeletonAnimDef *skeleAnimSMDLoad(const char *const restrict skeleAnimPath, const size_t skeleAnimPathLength);
 
 void skeleAnimUpdate(skeletonAnim *const restrict anim, const float time);
-void skeleObjGenerateBoneState(
-	const skeletonObject *const restrict skeleData, const boneIndex_t boneID, const char *const restrict boneName, boneState *const restrict out
+void skeleStateGenerateBoneState(
+	const skeletonState *const restrict skeleState, const boneIndex_t boneID, const char *const restrict boneName, boneState *const restrict out
 );
 
 boneIndex_t skeleFindBone(const skeleton *const restrict skele, const char *const restrict name);
@@ -105,7 +105,7 @@ boneIndex_t skeleAnimFindBone(const skeletonAnim *const restrict skeleAnim, cons
 void boneDelete(bone *const restrict bone);
 void skeleDelete(skeleton *const restrict skele);
 void skeleAnimDefDelete(skeletonAnimDef *const restrict animDef);
-void skeleObjDelete(skeletonObject *const restrict skeleObj);
+void skeleStateDelete(skeletonState *const restrict skeleState);
 
 
 extern skeleton g_skeleDefault;

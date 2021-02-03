@@ -19,17 +19,26 @@
 
 typedef struct renderableDef {
 	model *mdl;
-	textureGroup *texGroup;
+	// Default array of texture groups for this renderable.
+	// The size of this array should always be equal to
+	// "mdl->numMeshes" so that this array matches the model's.
+	textureGroup **texGroups;
 } renderableDef;
 
 typedef struct renderable {
 	model *mdl;
-	textureGroupState texState;
-	billboard billboardData;
+	// The size of this array should
+	// always be equal to "mdl->numMeshes".
+	textureGroupState *texStates;
+
+	//billboard billboardData;
 } renderable;
 
 
-void renderableDefInit(renderableDef *const restrict renderDef, model *const restrict mdl);
+void renderableDefInit(
+	renderableDef *const restrict renderDef,
+	model *const restrict mdl, textureGroup **const restrict texGroups
+);
 void renderableInit(renderable *const restrict render, const renderableDef *const restrict renderDef);
 
 void renderableUpdate(renderable *const restrict render, const float time);
@@ -37,6 +46,9 @@ void renderableDraw(
 	const renderable *const restrict render, const skeleton *const restrict objSkele,
 	const mat4 *const restrict animStates, const meshShader *const restrict shader
 );
+
+void renderableDelete(renderable *const restrict render);
+void renderableDefDelete(renderableDef *const restrict renderDef);
 
 
 #endif

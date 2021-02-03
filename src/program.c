@@ -17,6 +17,8 @@
 #include "moduleRenderable.h"
 #include "moduleObject.h"
 
+#include "timing.h"
+#include "utilMath.h"
 #include "utilFile.h"
 
 /** TEMPORARY DEBUG DRAW STUFF **/
@@ -59,6 +61,8 @@ return_t programInit(program *const restrict prg, char *const restrict prgDir){
 
 	timestepInit(&prg->step, UPDATE_RATE, FRAME_RATE);
 
+	// Initialize our timing system.
+	initTiming();
 	// Set the current working directory. This ensures that
 	// we're looking for resources in the correct directory.
 	fileSetWorkingDirectory(prgDir, NULL);
@@ -68,58 +72,57 @@ return_t programInit(program *const restrict prg, char *const restrict prgDir){
 }
 
 void programLoop(program *const restrict prg){
+	#warning "Time modifier."
 	// FPS-independent logic.
 	unsigned int updates = 0;
 	unsigned int renders = 0;
 
-	Uint32 nextPrint = SDL_GetTicks();
-	float nextUpdate = nextPrint;
-	float nextRender = nextUpdate;
-	nextPrint += 1000;
+	float nextUpdate = getTimeFloat();
+	float lastRender = nextUpdate;
+	float lastPrint  = nextUpdate;
+
 	while(prg->running){
-		Uint32 startTime;
-		// Note: This loop freezes the game if our input and update functions take longer than updateTime.
-		while((startTime = SDL_GetTicks()) >= nextUpdate){
+		const float curTime = getTimeFloat();
+
+		// Note: This loop freezes the game if our input and update
+		//       functions take longer than "prg->step.updateTime".
+		if(curTime >= nextUpdate){
 			input(prg);
 			update(prg);
 
-			nextUpdate += prg->step.updateTime;
 			++updates;
-		}
+			nextUpdate += prg->step.updateTime;
+		}else{
+			// Make sure we don't exceed our framerate cap!
+			if(curTime - lastRender >= prg->step.renderTime){
+				// Get our progress through the current update!
+				prg->step.renderDelta = clampFloat(
+					1.f - (nextUpdate - curTime) * prg->step.updateTickrate, 0.f, 1.f
+				);
+				render(prg);
 
-		// Make sure we don't exceed our framerate cap!
-		if(prg->step.renderRate <= 0.f || (startTime = SDL_GetTicks()) >= nextRender){
-			// Determine the interpolation period for when we render the scene!
-			prg->step.renderDelta = (startTime - (nextUpdate - prg->step.updateTime)) * prg->step.updateTickrate;
-			if(prg->step.renderDelta < 0.f){
-				prg->step.renderDelta = 0.f;
-			}else if(prg->step.renderDelta > 1.f){
-				prg->step.renderDelta = 1.f;
+				++renders;
+				lastRender = curTime;
 			}
 
-			render(prg);
+			// Print our update rate and framerate every second!
+			if(curTime - lastPrint >= 1000.f){
+				printf("Updates: %u\n", updates);
+				printf("Renders: %u\n", renders);
 
-			nextRender += prg->step.renderTime;
-			/** We use this block to stop it from exceeding the framerate if   **/
-			/** there was a lag spike. Unfortunately, it misbehaves with very  **/
-			/** high framerates. We should be able to fix this by using a high **/
-			/** resolution timer, such as SDL_GetPerformanceCounter().         **/
-			/*if(startTime > nextRender){
-				nextRender = startTime;
-			}*/
-			++renders;
-		}
+				updates = 0;
+				renders = 0;
 
+				lastPrint = curTime;
+			}
 
-		// Print our update rate and framerate every second!
-		if((startTime = SDL_GetTicks()) > nextPrint){
-			nextPrint = startTime + 1000;
-
-			printf("Updates: %u\n", updates);
-			printf("Renders: %u\n", renders);
-
-			updates = 0;
-			renders = 0;
+			// Sleep for the remaining time until the next update or render.
+			{
+				const time32_t timeLeft = (time32_t)maxFloat(
+					minFloat(nextUpdate, lastRender + prg->step.renderTime) - getTimeFloat(), 0.f
+				);
+				sleepAccurate(timeLeft);
+			}
 		}
 	}
 }
@@ -428,6 +431,10 @@ static return_t initLibs(program *const restrict prg){
 		return(0);
 	}
 
+
+	#warning "SDL has a nasty tendency to set the timer resolution and forget about it, which just drains power."
+	#warning "Although we don't use SDL's timers, it does, so this might break stuff somewhere."
+	timeEndPeriod(1);
 	// SDL_ShowCursor(SDL_DISABLE);
 	SDL_GL_SetSwapInterval(0);
 
@@ -495,8 +502,8 @@ static return_t initResources(program *const restrict prg){
 	skeletonAnimDef *animDef;
 
 
-	mdl = modelSMDLoad("soldier_reference.smd", sizeof("soldier_reference.smd"));
-	renderableDefInit(renderDef, mdl);
+	mdl = modelSMDLoad("soldier_reference.smd", sizeof("soldier_reference.smd") - 1);
+	renderableDefInit(renderDef, mdl, NULL);
 	objectDefInit(objDef);
 	objDef->skele = mdl->skele;
 	objDef->renderables = renderDef;
@@ -507,21 +514,21 @@ static return_t initResources(program *const restrict prg){
 	//obj->state.scale.z = 0.1f;
 	// Temporary object stuff.
 	//mdl = modelSMDLoad(mdl, "scout_reference.smd");
-	//skeleObjInit(&obj->skeleData, mdl->skele);
+	//skeleStateInit(&obj->skeleState, mdl->skele);
 	controlObj = obj;
 
 	// Temporary animation stuff.
 	#warning "Playing 'soldier_animations_anims_old/a_runN_LOSER.smd' on the Scout makes his left arm flip."
 	animDef = skeleAnimSMDLoad("soldier_animations_anims_old/a_runN_MELEE.smd", sizeof("soldier_animations_anims_old/a_runN_MELEE.smd"));
 	if(animDef != NULL){
-		obj->skeleData.anims = moduleSkeletonAnimPrepend(&obj->skeleData.anims);
-		skeleAnimInit(obj->skeleData.anims, animDef, 0.5f);
+		obj->skeleState.anims = moduleSkeletonAnimPrepend(&obj->skeleState.anims);
+		skeleAnimInit(obj->skeleState.anims, animDef, 0.5f);
 	}
 
 	animDef = skeleAnimSMDLoad("soldier_animations_anims_old/stand_MELEE.smd", sizeof("soldier_animations_anims_old/stand_MELEE.smd"));
 	if(animDef != NULL){
-		obj->skeleData.anims = moduleSkeletonAnimPrepend(&obj->skeleData.anims);
-		skeleAnimInit(obj->skeleData.anims, animDef, 0.5f);
+		obj->skeleState.anims = moduleSkeletonAnimPrepend(&obj->skeleState.anims);
+		skeleAnimInit(obj->skeleState.anims, animDef, 0.5f);
 	}
 	#endif
 
@@ -531,12 +538,12 @@ static return_t initResources(program *const restrict prg){
 	// Create the base physics object.
 	objDef = moduleObjectDefAlloc();
 	objectDefInit(objDef);
-	physRigidBodyDefLoad(&objDef->physBodies, "cube.tdp", sizeof("cube.tdp"));
+	physRigidBodyDefLoad(&objDef->physBodies, "cube.tdp", sizeof("cube.tdp") - 1);
 	objDef->physBoneIDs = memoryManagerGlobalAlloc(sizeof(*objDef->physBoneIDs));
 	*objDef->physBoneIDs = 0;
 	objDef->numBodies = 1;
 	renderDef = moduleRenderableDefAlloc();
-	renderableDefInit(renderDef, &g_mdlDefault);
+	renderableDefInit(renderDef, &g_mdlDefault, NULL);
 	objDef->renderables = renderDef;
 
 	// Set up an instance.
@@ -558,15 +565,15 @@ static return_t initResources(program *const restrict prg){
 
 
 		// Create the base physics object.
-		mdl = modelOBJLoad("cubeQuads.obj", sizeof("cubeQuads.obj"));
+		mdl = modelOBJLoad("cubeQuads.obj", sizeof("cubeQuads.obj") - 1);
 		objDef = moduleObjectDefAlloc();
 		objectDefInit(objDef);
-		physRigidBodyDefLoad(&objDef->physBodies, "cube.tdp", sizeof("cube.tdp"));
+		physRigidBodyDefLoad(&objDef->physBodies, "cube.tdp", sizeof("cube.tdp") - 1);
 		objDef->physBoneIDs = memoryManagerGlobalAlloc(sizeof(*objDef->physBoneIDs));
 		*objDef->physBoneIDs = 0;
 		objDef->numBodies = 1;
 		renderDef = moduleRenderableDefAlloc();
-		renderableDefInit(renderDef, mdl);
+		renderableDefInit(renderDef, mdl, NULL);
 		objDef->renderables = renderDef;
 
 		// Set up an instance.
@@ -589,12 +596,12 @@ static return_t initResources(program *const restrict prg){
 		// Create the base physics object.
 		objDef = moduleObjectDefAlloc();
 		objectDefInit(objDef);
-		physRigidBodyDefLoad(&objDef->physBodies, "egg.tdp", sizeof("egg.tdp"));
+		physRigidBodyDefLoad(&objDef->physBodies, "egg.tdp", sizeof("egg.tdp") - 1);
 		objDef->physBoneIDs = memoryManagerGlobalAlloc(sizeof(*objDef->physBoneIDs));
 		*objDef->physBoneIDs = 0;
 		objDef->numBodies = 1;
 		renderDef = moduleRenderableDefAlloc();
-		renderableDefInit(renderDef, mdl);
+		renderableDefInit(renderDef, mdl, NULL);
 		objDef->renderables = renderDef;
 
 		// Set up an instance.
@@ -651,15 +658,15 @@ static return_t initResources(program *const restrict prg){
 	#if 0
 	/** EVEN MORE TEMPORARY PHYSICS STUFF **/
 	// Create the base physics object.
-	mdl = modelOBJLoad("cubeQuads.obj", sizeof("cubeQuads.obj"));
+	mdl = modelOBJLoad("cubeQuads.obj", sizeof("cubeQuads.obj") - 1);
 	objDef = moduleObjectDefAlloc();
 	objectDefInit(objDef);
-	physRigidBodyDefLoad(&objDef->physBodies, "cube.tdp", sizeof("cube.tdp"));
+	physRigidBodyDefLoad(&objDef->physBodies, "cube.tdp", sizeof("cube.tdp") - 1);
 	objDef->physBoneIDs = memoryManagerGlobalAlloc(sizeof(*objDef->physBoneIDs));
 	*objDef->physBoneIDs = 0;
 	objDef->numBodies = 1;
 	renderDef = moduleRenderableDefAlloc();
-	renderableDefInit(renderDef, mdl);
+	renderableDefInit(renderDef, mdl, NULL);
 	objDef->renderables = renderDef;
 
 	size_t i;
@@ -681,12 +688,12 @@ static return_t initResources(program *const restrict prg){
 	// Create the base physics object.
 	objDef = moduleObjectDefAlloc();
 	objectDefInit(objDef);
-	physRigidBodyDefLoad(&objDef->physBodies, "egg.tdp", sizeof("egg.tdp"));
+	physRigidBodyDefLoad(&objDef->physBodies, "egg.tdp", sizeof("egg.tdp") - 1);
 	objDef->physBoneIDs = memoryManagerGlobalAlloc(sizeof(*objDef->physBoneIDs));
 	*objDef->physBoneIDs = 0;
 	objDef->numBodies = 1;
 	renderDef = moduleRenderableDefAlloc();
-	renderableDefInit(renderDef, mdl);
+	renderableDefInit(renderDef, mdl, NULL);
 	objDef->renderables = renderDef;
 
 	// Set up an instance.
@@ -748,8 +755,8 @@ static return_t initResources(program *const restrict prg){
 	gui.root.scale.x = gui.root.scale.y = 100.f;
 	guiPanelInit(&gui.data.panel);
 
-	gui.data.panel.borderTexState.texGroup = texGroupLoad("gui/border.tdg", sizeof("gui/border.tdg"));
-	gui.data.panel.bodyTexState.texGroup   = texGroupLoad("gui/body.tdg", sizeof("gui/body.tdg"));
+	gui.data.panel.borderTexState.texGroup = texGroupLoad("gui/border.tdg", sizeof("gui/border.tdg") - 1);
+	gui.data.panel.bodyTexState.texGroup   = texGroupLoad("gui/body.tdg", sizeof("gui/body.tdg") - 1);
 
 	// Bottom-right corner.
 	gui.data.panel.uvCoords[0].x = 0.75f;

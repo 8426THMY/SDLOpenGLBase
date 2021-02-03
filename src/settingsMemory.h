@@ -23,7 +23,7 @@
 // Define the base pool sizes for our object allocators!
 #define MEMORY_MODULE_NUM_COMMANDS            128
 #define MEMORY_MODULE_NUM_TEXTURES            38
-#define MEMORY_MODULE_NUM_TEXGROUPS           6
+#define MEMORY_MODULE_NUM_TEXGROUPS           7
 #define MEMORY_MODULE_NUM_SKELETONS           2
 #define MEMORY_MODULE_NUM_SKELEANIMDEFS       2
 #define MEMORY_MODULE_NUM_SKELEANIMS          2

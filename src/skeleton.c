@@ -115,11 +115,11 @@ void skeleAnimInit(skeletonAnim *const restrict anim, skeletonAnimDef *const res
 	anim->intensity = intensity;
 }
 
-void skeleObjInit(skeletonObject *const restrict skeleObj, skeleton *const restrict skele){
-	skeleObj->skele = skele;
-	skeleObj->anims = NULL;
-	skeleObj->bones = memoryManagerGlobalAlloc(sizeof(*skeleObj->bones) * skele->numBones);
-	if(skeleObj->bones == NULL){
+void skeleStateInit(skeletonState *const restrict skeleState, skeleton *const restrict skele){
+	skeleState->skele = skele;
+	skeleState->anims = NULL;
+	skeleState->bones = memoryManagerGlobalAlloc(sizeof(*skeleState->bones) * skele->numBones);
+	if(skeleState->bones == NULL){
 		/** MALLOC FAILED **/
 	}
 }
@@ -462,11 +462,11 @@ void skeleAnimUpdate(skeletonAnim *const restrict anim, const float time){
 
 #warning "If interpolation is turned off, we don't need to call the transform functions."
 // Animate a particular bone in an animation instance!
-void skeleObjGenerateBoneState(
-	const skeletonObject *const restrict skeleData, const boneIndex_t boneID, const char *const restrict boneName, boneState *const restrict out
+void skeleStateGenerateBoneState(
+	const skeletonState *const restrict skeleState, const boneIndex_t boneID, const char *const restrict boneName, boneState *const restrict out
 ){
 
-	const skeletonAnim *curAnim = skeleData->anims;
+	const skeletonAnim *curAnim = skeleState->anims;
 
 	// Update the bone using each animation!
 	while(curAnim != NULL){
@@ -489,7 +489,7 @@ void skeleObjGenerateBoneState(
 			// Remove the bind pose's "contribution" to the animation.
 			if(strcmp(curAnim->animDef->name, "soldier_animations_anims_new/a_flinch01.smd") != 0){
 				boneState invLocalBind;
-				transformStateInvert(&skeleData->skele->bones[boneID].localBind, &invLocalBind);
+				transformStateInvert(&skeleState->skele->bones[boneID].localBind, &invLocalBind);
 				transformStateAppend(&invLocalBind, &animState, &animState);
 			}
 			// Set the animation's intensity by blending from the identity state.
@@ -596,9 +596,9 @@ void skeleAnimDefDelete(skeletonAnimDef *const restrict animDef){
 	}
 }
 
-void skeleObjDelete(skeletonObject *const restrict skeleObj){
-	moduleSkeletonAnimFreeArray(&skeleObj->anims);
-	if(skeleObj->bones != NULL){
-		memoryManagerGlobalFree(skeleObj->bones);
+void skeleStateDelete(skeletonState *const restrict skeleState){
+	moduleSkeletonAnimFreeArray(&skeleState->anims);
+	if(skeleState->bones != NULL){
+		memoryManagerGlobalFree(skeleState->bones);
 	}
 }

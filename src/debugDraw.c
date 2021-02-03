@@ -85,7 +85,7 @@ return_t debugDrawSetup(){
 }
 
 // Draw a skeleton object using the settings supplied.
-void debugDrawSkeleton(const skeletonObject *const restrict skeleData, const debugDrawInfo info, const mat4 *const restrict vpMatrix){
+void debugDrawSkeleton(const skeletonState *const restrict skeleState, const debugDrawInfo info, const mat4 *const restrict vpMatrix){
 	debugMesh meshData;
 	GLint prevArrayObject;
 	GLint prevShader;
@@ -93,7 +93,7 @@ void debugDrawSkeleton(const skeletonObject *const restrict skeleData, const deb
 
 	vec3 *vertices;
 	debugVertexIndex_t *indices;
-	const debugVertexIndex_t numBones = skeleData->skele->numBones;
+	const debugVertexIndex_t numBones = skeleState->skele->numBones;
 	debugVertexIndex_t i = 0;
 
 	vertices = memoryManagerGlobalAlloc(numBones * sizeof(*vertices));
@@ -109,8 +109,8 @@ void debugDrawSkeleton(const skeletonObject *const restrict skeleData, const deb
 
 	// Copy each bone's position and create a new edge between it and its parent.
 	for(; i < numBones; ++i){
-		const boneIndex_t parentID = skeleData->skele->bones[i].parent;
-		vertices[i] = skeleData->bones[i].pos;
+		const boneIndex_t parentID = skeleState->skele->bones[i].parent;
+		vertices[i] = skeleState->bones[i].pos;
 		if(!valueIsInvalid(parentID, boneIndex_t)){
 			indices[meshData.numIndices] = parentID;
 			++meshData.numIndices;

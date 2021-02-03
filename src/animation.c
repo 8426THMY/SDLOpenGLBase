@@ -71,7 +71,7 @@ size_t animationGetNextFrame(const size_t currentFrame, const size_t numFrames){
 
 
 void animFrameDataClear(animationFrameData *const restrict frameData){
-	if(frameData->time != &g_animTimeDefault && frameData->time != NULL){
+	if(frameData->time != NULL && frameData->time != &g_animTimeDefault){
 		memoryManagerGlobalFree(frameData->time);
 	}
 }
