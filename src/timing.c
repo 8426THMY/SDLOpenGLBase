@@ -2,9 +2,13 @@
 
 
 #ifdef _WIN32
+	#include <intrin.h>
+
 	static time32_t freq;
 	static float rfreq;
 #else
+	#include <x86intrin.h>
+
 	#if HAVE_NANOSLEEP
 		#include <time.h>
 	#else
@@ -232,15 +236,19 @@ void sleepBusy(const time32_t ms){
 	timerVal_t now = startTimer();
 	#ifdef _WIN32
 		const time64_t end = now.QuadPart + ms * freq;
-		while(now = startTimer(), now.QuadPart < end);
+		while(now = startTimer(), now.QuadPart < end){
+			_mm_pause();
+		}
 	#else
 		#if HAVE_CLOCK_GETTIME
 		const time64_t end = ((time64_t)now.tv_sec * 1000000000 + (time64_t)now.tv_nsec) + (time64_t)ms * 1000000;
-		while(now = startTimer(), ((time64_t)now.tv_sec * 1000000000 + (time64_t)now.tv_nsec) < end);
+		while(now = startTimer(), ((time64_t)now.tv_sec * 1000000000 + (time64_t)now.tv_nsec) < end){
 		#else
 		const time64_t end = ((time64_t)now.tv_sec * 1000000000 + (time64_t)now.tv_usec) + (time64_t)ms * 1000000;
-		while(now = startTimer(), ((time64_t)now.tv_sec * 1000000000 + (time64_t)now.tv_usec) < end);
+		while(now = startTimer(), ((time64_t)now.tv_sec * 1000000000 + (time64_t)now.tv_usec) < end){
 		#endif
+			_mm_pause();
+		}
 	#endif
 }
 

@@ -8,8 +8,10 @@
 #include <math.h>
 
 
-#define ASPECT_RATIO_X 4
-#define ASPECT_RATIO_Y 3
+#define WINDOW_DEFAULT_WIDTH  640
+#define WINDOW_DEFAULT_HEIGHT 480
+#define ASPECT_RATIO_X 16
+#define ASPECT_RATIO_Y 9
 
 #define FOV_DEFAULT M_PI/3
 

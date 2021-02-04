@@ -4,8 +4,6 @@
 
 #include <stdint.h>
 
-#include "utilTypes.h"
-
 
 #ifdef _WIN32
 	#include <windows.h>

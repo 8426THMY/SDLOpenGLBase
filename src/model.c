@@ -141,7 +141,7 @@ model *modelOBJLoad(const char *const restrict mdlPath, const size_t mdlPathLeng
 
 		while((line = fileReadLine(mdlFile, &lineBuffer[0], &lineLength)) != NULL){
 			// Vertex position.
-			if(memcmp(line, "v ", 2) == 0){
+			if(lineLength >= 7 && memcmp(line, "v ", 2) == 0){
 				vec3 newPosition;
 
 				// If we're out of space, allocate some more!
@@ -164,7 +164,7 @@ model *modelOBJLoad(const char *const restrict mdlPath, const size_t mdlPathLeng
 				++tempPositionsSize;
 
 			// Vertex UV.
-			}else if(memcmp(line, "vt ", 3) == 0){
+			}else if(lineLength >= 6 && memcmp(line, "vt ", 3) == 0){
 				vec2 newUV;
 
 				// If we're out of space, allocate some more!
@@ -186,7 +186,7 @@ model *modelOBJLoad(const char *const restrict mdlPath, const size_t mdlPathLeng
 				++tempUVsSize;
 
 			// Vertex normal.
-			}else if(memcmp(line, "vn ", 3) == 0){
+			}else if(lineLength >= 8 && memcmp(line, "vn ", 3) == 0){
 				vec3 newNormal;
 
 				// If we're out of space, allocate some more!
@@ -209,7 +209,7 @@ model *modelOBJLoad(const char *const restrict mdlPath, const size_t mdlPathLeng
 				++tempNormalsSize;
 
 			// Texture group path.
-			}else if(memcmp(line, "usemtl ", 7) == 0){
+			}else if(lineLength >= 8 && memcmp(line, "usemtl ", 7) == 0){
 				char *const texGroupPath = memoryManagerGlobalAlloc((lineLength - 6) * sizeof(*texGroupPath));
 				if(texGroupPath == NULL){
 					/** MALLOC FAILED **/
@@ -267,7 +267,7 @@ model *modelOBJLoad(const char *const restrict mdlPath, const size_t mdlPathLeng
 				}
 
 			// Faces.
-			}else if(memcmp(line, "f ", 2) == 0){
+			}else if(lineLength >= 13 && memcmp(line, "f ", 2) == 0){
 				const char *const lineEnd = &line[lineLength];
 				size_t i;
 
@@ -661,7 +661,7 @@ model *modelSMDLoad(const char *const restrict mdlPath, const size_t mdlPathLeng
 						}
 					}else if(dataType == 2){
 						// If the line begins with time, get the frame's timestamp!
-						if(memcmp(line, "time ", 5) == 0){
+						if(lineLength >= 6 && memcmp(line, "time ", 5) == 0){
 							const unsigned int newTime = strtoul(&line[5], NULL, 10);
 							if(newTime >= data){
 								data = newTime;
@@ -708,8 +708,8 @@ model *modelSMDLoad(const char *const restrict mdlPath, const size_t mdlPathLeng
 									// If this bone has a parent, append its state to its parent's state!
 									if(!valueIsInvalid(currentBone->parent, boneIndex_t)){
 										transformStateAppend(
-											&tempBones[currentBone->parent].invGlobalBind,
 											&currentBone->invGlobalBind,
+											&tempBones[currentBone->parent].invGlobalBind,
 											&currentBone->invGlobalBind
 										);
 									}

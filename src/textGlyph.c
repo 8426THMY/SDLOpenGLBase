@@ -38,7 +38,7 @@ textGlyph *textGlyphArrayLoad(const char *const restrict glyphPath, const textur
 						/** MALLOC FAILED **/
 					}
 				}
-			}else if(line[0] != '\0'){
+			}else if(lineLength > 0){
 				size_t tokenLength;
 				char *token = line;
 

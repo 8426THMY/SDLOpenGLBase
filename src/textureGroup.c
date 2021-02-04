@@ -148,7 +148,7 @@ textureGroup *texGroupLoad(const char *const restrict texGroupPath, const size_t
 
 		while((line = fileReadLine(texGroupFile, &lineBuffer[0], &lineLength)) != NULL){
 			// Texture or texture sequence.
-			if(line[0] == 't'){
+			if(lineLength >= 3 && line[0] == 't'){
 				// Texture.
 				if(line[1] == ' '){
 					char *const texPath = memoryManagerGlobalAlloc((lineLength - 1) * sizeof(*texPath));
@@ -236,7 +236,7 @@ textureGroup *texGroupLoad(const char *const restrict texGroupPath, const size_t
 				}
 
 			// Animation.
-			}else if(line[0] == 'a' && line[lineLength - 1] == '{'){
+			}else if(lineLength >= 2 && line[0] == 'a' && line[lineLength - 1] == '{'){
 				// Allocate room for the new animation if we've run out!
 				if(texAnimsSize >= texAnimsCapacity){
 					texAnimsCapacity = texAnimsSize * 2;
@@ -433,7 +433,7 @@ static return_t texGroupAnimLoad(
 	while((line = fileReadLine(texGroupFile, &lineBuffer[0], &lineLength)) != NULL){
 		// Animation name.
 		// Make sure we haven't set the name already.
-		if(tempAnim.name == texGroupAnimDefault.name && memcmp(line, "n ", 2) == 0){
+		if(tempAnim.name == texGroupAnimDefault.name && lineLength >= 3 && memcmp(line, "n ", 2) == 0){
 			const char *animName;
 			#warning "We should check if we've already loaded an animation with this name."
 			const size_t animNameLength = stringMultiDelimited(&line[2], lineLength - 2, "\" ", &animName);
@@ -447,12 +447,12 @@ static return_t texGroupAnimLoad(
 			tempAnim.name[animNameLength] = '\0';
 
 		// Animation default loop count.
-		}else if(memcmp(line, "l ", 2) == 0){
+		}else if(lineLength >= 3 && memcmp(line, "l ", 2) == 0){
 			const int playNum = strtol(&line[2], NULL, 10);
 			tempAnim.frameData.playNum = (playNum < 0) ? valueInvalid(unsigned int) : playNum;
 
 		// Animation frames.
-		}else if(line[0] == 'f'){
+		}else if(lineLength >= 3 && line[0] == 'f'){
 			char *tokPos;
 			// Every frame format shares these inputs.
 			const unsigned int startTex = strtoul(&line[2], &tokPos, 10);
@@ -631,7 +631,7 @@ static return_t texGroupAnimLoad(
 			}
 
 		// Animation end.
-		}else if(line[0] == '}'){
+		}else if(lineLength >= 1 && line[0] == '}'){
 			break;
 		}
 	}

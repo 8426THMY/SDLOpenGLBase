@@ -23,6 +23,7 @@ Features that need to be refined:
 * Textures support mipmapping, but it hasn't been tested. Smooth scrolling and programmable texture animations still need to be implemented.
 * File loading sucks, binary file formats would be nice for pretty much everything.
 * Mathematics functions are used fairly naively at the moment.
+* Everything is designed to be compatible with UNIX derivatives, but nothing has been tested on one.
 
 Features that haven't been started:
 
@@ -33,5 +34,6 @@ Features that haven't been started:
 * Thread pool system and multithreading support for memory managers.
 * Featherstone method for things like inverse kinematics.
 * Maybe remove dependence on SDL2. This would make cross-platform support a pain, though.
+* Mipmaps for textures and LODs for models.
 
 Note: In a future commit I'll probably include some of my sample resources so you can actually see what's happening. At the moment, feel free to download the binary if you want to be treated to a black screen.

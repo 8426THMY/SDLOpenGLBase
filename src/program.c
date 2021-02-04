@@ -3,6 +3,10 @@
 
 #include <stdio.h>
 
+/** TEMPORARY DENORMAL STUFF **/
+#include <pmmintrin.h>
+#include <xmmintrin.h>
+
 #include <SDL2/SDL_opengl.h>
 #include <SDL2/SDL_image.h>
 
@@ -47,8 +51,17 @@ static size_t renderState = 0;
 
 
 return_t programInit(program *const restrict prg, char *const restrict prgDir){
-	prg->windowWidth = 640;
-	prg->windowHeight = 480;
+	/** TEMPORARY DENORMAL STUFF **/
+	// Enable denormals-are-zero (DAZ), requires <pmmintrin.h>.
+	// This must be done for every thread!
+	_MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
+	// Enable flush-to-zero (FTZ), requires <xmmintrin.h>.
+	// This must be done for every thread!
+	_MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON);
+
+
+	prg->windowWidth = WINDOW_DEFAULT_WIDTH;
+	prg->windowHeight = WINDOW_DEFAULT_HEIGHT;
 
 	prg->running = 1;
 
@@ -60,9 +73,9 @@ return_t programInit(program *const restrict prg, char *const restrict prgDir){
 	prg->cam.pos.z = 5.f;
 
 	timestepInit(&prg->step, UPDATE_RATE, FRAME_RATE);
-
 	// Initialize our timing system.
 	initTiming();
+
 	// Set the current working directory. This ensures that
 	// we're looking for resources in the correct directory.
 	fileSetWorkingDirectory(prgDir, NULL);
@@ -72,14 +85,12 @@ return_t programInit(program *const restrict prg, char *const restrict prgDir){
 }
 
 void programLoop(program *const restrict prg){
-	#warning "Time modifier."
-	// FPS-independent logic.
-	unsigned int updates = 0;
-	unsigned int renders = 0;
-
 	float nextUpdate = getTimeFloat();
 	float lastRender = nextUpdate;
 	float lastPrint  = nextUpdate;
+
+	unsigned int updates = 0;
+	unsigned int renders = 0;
 
 	while(prg->running){
 		const float curTime = getTimeFloat();
@@ -115,13 +126,13 @@ void programLoop(program *const restrict prg){
 
 				lastPrint = curTime;
 			}
+		}
 
-			// Sleep for the remaining time until the next update or render.
-			{
-				const time32_t timeLeft = (time32_t)maxFloat(
-					minFloat(nextUpdate, lastRender + prg->step.renderTime) - getTimeFloat(), 0.f
-				);
-				sleepAccurate(timeLeft);
+		// Sleep until the next update or render.
+		{
+			const float timeLeft = minFloat(nextUpdate, lastRender + prg->step.renderTime) - getTimeFloat();
+			if(timeLeft > 0.f){
+				sleepAccurate((time32_t)timeLeft);
 			}
 		}
 	}
@@ -259,7 +270,7 @@ static void updateCameras(program *const restrict prg){
 		rot = quatInitEulerXYZC(angles.x, angles.y, angles.z);
 
 
-		controlObj->state.rot = rot;
+		//controlObj->state.rot = rot;
 	}
 	/** TEMPORARY PHYSICS STUFF! **/
 	if(controlPhys != NULL){
@@ -413,7 +424,12 @@ static return_t initLibs(program *const restrict prg){
 	}
 
 	// Create a window using SDL2!
-	prg->window = SDL_CreateWindow("NewSDLOpenGLBaseC", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, prg->windowWidth, prg->windowHeight, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
+	prg->window = SDL_CreateWindow(
+		"NewSDLOpenGLBaseC",
+		SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+		prg->windowWidth, prg->windowHeight,
+		SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE
+	);
 	if(!prg->window){
 		printf(
 			"Unable to create SDL2 window!\n"
@@ -430,7 +446,6 @@ static return_t initLibs(program *const restrict prg){
 		);
 		return(0);
 	}
-
 
 	#warning "SDL has a nasty tendency to set the timer resolution and forget about it, which just drains power."
 	#warning "Although we don't use SDL's timers, it does, so this might break stuff somewhere."
@@ -502,30 +517,30 @@ static return_t initResources(program *const restrict prg){
 	skeletonAnimDef *animDef;
 
 
-	mdl = modelSMDLoad("soldier_reference.smd", sizeof("soldier_reference.smd") - 1);
+	//mdl = modelSMDLoad("soldier_reference.smd", sizeof("soldier_reference.smd") - 1);
+	mdl = modelSMDLoad("scout_reference.smd", sizeof("scout_reference.smd") - 1);
 	renderableDefInit(renderDef, mdl, NULL);
 	objectDefInit(objDef);
 	objDef->skele = mdl->skele;
 	objDef->renderables = renderDef;
 
 	objectInit(obj, objDef);
-	//obj->state.pos = vec3InitSetC(1.f, 2.f, 3.f);
-	//obj->state.rot = quatInitEulerXYZC(45.f * DEG_TO_RAD, 10.f * DEG_TO_RAD, 23.f * DEG_TO_RAD);
-	//obj->state.scale.z = 0.1f;
-	// Temporary object stuff.
-	//mdl = modelSMDLoad(mdl, "scout_reference.smd");
-	//skeleStateInit(&obj->skeleState, mdl->skele);
+	obj->state.pos = vec3InitSetC(-1.f, -2.f, -3.f);
+	obj->state.rot = quatInitEulerXYZC(45.f * DEG_TO_RAD, 10.f * DEG_TO_RAD, 23.f * DEG_TO_RAD);
+	obj->state.scale.z = 0.1f;
+
 	controlObj = obj;
 
 	// Temporary animation stuff.
 	#warning "Playing 'soldier_animations_anims_old/a_runN_LOSER.smd' on the Scout makes his left arm flip."
-	animDef = skeleAnimSMDLoad("soldier_animations_anims_old/a_runN_MELEE.smd", sizeof("soldier_animations_anims_old/a_runN_MELEE.smd"));
+	//animDef = skeleAnimSMDLoad("soldier_animations_anims_old/a_runN_MELEE.smd", sizeof("soldier_animations_anims_old/a_runN_MELEE.smd") - 1);
+	animDef = skeleAnimSMDLoad("soldier_animations_anims_old/a_runN_LOSER.smd", sizeof("soldier_animations_anims_old/a_runN_LOSER.smd") - 1);
 	if(animDef != NULL){
 		obj->skeleState.anims = moduleSkeletonAnimPrepend(&obj->skeleState.anims);
 		skeleAnimInit(obj->skeleState.anims, animDef, 0.5f);
 	}
 
-	animDef = skeleAnimSMDLoad("soldier_animations_anims_old/stand_MELEE.smd", sizeof("soldier_animations_anims_old/stand_MELEE.smd"));
+	animDef = skeleAnimSMDLoad("soldier_animations_anims_old/stand_MELEE.smd", sizeof("soldier_animations_anims_old/stand_MELEE.smd") - 1);
 	if(animDef != NULL){
 		obj->skeleState.anims = moduleSkeletonAnimPrepend(&obj->skeleState.anims);
 		skeleAnimInit(obj->skeleState.anims, animDef, 0.5f);
@@ -652,7 +667,7 @@ static return_t initResources(program *const restrict prg){
 		}
 		physIslandInsertRigidBody(&island, cube);
 		physIslandInsertRigidBody(&island, egg);
-		controlPhys = egg;
+		controlPhys = cube;
 	}
 
 	#if 0

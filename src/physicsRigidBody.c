@@ -100,12 +100,12 @@ return_t physRigidBodyDefLoad(physicsRigidBodyDef **const restrict bodies, const
 		while((line = fileReadLine(bodyFile, &lineBuffer[0], &lineLength)) != NULL){
 			if(curCollider != NULL){
 				// New collider.
-				if(line[0] == 'c' && line[lineLength - 1] == '{'){
+				if(lineLength >= 2 && line[0] == 'c' && line[lineLength - 1] == '{'){
 					// Load the collider using its respective function.
 					colliderLoaded = colliderLoad(&curCollider->global, bodyFile, &curCentroid, &curInertia);
 
 				// Physics collider mass.
-				}else if(memcmp(line, "m ", 2) == 0){
+				}else if(lineLength >= 3 && memcmp(line, "m ", 2) == 0){
 					curMass = strtof(&line[2], &tokPos);
 					// If the mass specified is invalid, use the default value.
 					if(&line[2] == tokPos){
@@ -113,7 +113,7 @@ return_t physRigidBodyDefLoad(physicsRigidBodyDef **const restrict bodies, const
 					}
 
 				// Physics collider density.
-				}else if(memcmp(line, "d ", 2) == 0){
+				}else if(lineLength >= 3 && memcmp(line, "d ", 2) == 0){
 					curCollider->density = strtof(&line[2], &tokPos);
 					// If the density specified is invalid, use the default value.
 					if(&line[2] == tokPos){
@@ -121,7 +121,7 @@ return_t physRigidBodyDefLoad(physicsRigidBodyDef **const restrict bodies, const
 					}
 
 				// Physics collider friction.
-				}else if(memcmp(line, "f ", 2) == 0){
+				}else if(lineLength >= 3 && memcmp(line, "f ", 2) == 0){
 					curCollider->friction = strtof(&line[2], &tokPos);
 					// If the friction specified is invalid, use the default value.
 					if(&line[2] == tokPos){
@@ -129,7 +129,7 @@ return_t physRigidBodyDefLoad(physicsRigidBodyDef **const restrict bodies, const
 					}
 
 				// Physics collider restitution.
-				}else if(memcmp(line, "r ", 2) == 0){
+				}else if(lineLength >= 3 && memcmp(line, "r ", 2) == 0){
 					curCollider->restitution = strtof(&line[2], &tokPos);
 					// If the restitution specified is invalid, use the default value.
 					if(&line[2] == tokPos){
@@ -137,7 +137,7 @@ return_t physRigidBodyDefLoad(physicsRigidBodyDef **const restrict bodies, const
 					}
 
 				// Physics collider end.
-				}else if(line[0] == '}'){
+				}else if(lineLength >= 1 && line[0] == '}'){
 					// Add the new physics collider to our rigid body!
 					if(colliderLoaded){
 						physRigidBodyDefAddCollider(&bodyDef, curMass, &curCentroid, curInertia);
@@ -153,7 +153,7 @@ return_t physRigidBodyDefLoad(physicsRigidBodyDef **const restrict bodies, const
 				}
 			}else{
 				// Bone name.
-				if(memcmp(line, "b ", 2) == 0){
+				if(lineLength >= 3 && memcmp(line, "b ", 2) == 0){
 					const char *boneName;
 					// Find the name of the bone to attach this rigid body to!
 					const size_t boneNameLength = stringMultiDelimited(&line[2], lineLength - 2, "\" ", &boneName);
@@ -161,7 +161,7 @@ return_t physRigidBodyDefLoad(physicsRigidBodyDef **const restrict bodies, const
 					/** What do we do with the bone's name? **/
 
 				// New physics collider.
-				}else if(line[0] == 'p' && line[lineLength - 1] == '{'){
+				}else if(lineLength >= 2 && line[0] == 'p' && line[lineLength - 1] == '{'){
 					colliderType_t currentType = strtoul(&line[2], &tokPos, 10);
 
 					// Make sure a valid number was entered.

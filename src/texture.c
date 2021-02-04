@@ -101,7 +101,7 @@ texture *textureLoad(const char *const restrict texPath, const size_t texPathLen
 
 		while((line = fileReadLine(texFile, &lineBuffer[0], &lineLength)) != NULL){
 			// Image path.
-			if(memcmp(line, "i ", 2) == 0){
+			if(lineLength >= 3 && memcmp(line, "i ", 2) == 0){
 				if(image == NULL){
 					char *const imgPath = memoryManagerGlobalAlloc((IMAGE_PATH_PREFIX_LENGTH + lineLength - 1) * sizeof(*imgPath));
 					if(imgPath == NULL){
@@ -127,7 +127,7 @@ texture *textureLoad(const char *const restrict texPath, const size_t texPathLen
 				}
 
 			// Filter type.
-			}else if(memcmp(line, "f ", 2) == 0){
+			}else if(lineLength >= 3 && memcmp(line, "f ", 2) == 0){
 				filtering = strtoul(&line[2], NULL, 10);
 			}
 		}

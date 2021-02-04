@@ -255,7 +255,7 @@ return_t colliderHullLoad(
 
 	while((line = fileReadLine(hullFile, &lineBuffer[0], &lineLength)) != NULL){
 		// Hull vertex.
-		if(memcmp(line, "v ", 2) == 0){
+		if(lineLength >= 7 && memcmp(line, "v ", 2) == 0){
 			vec3 newVertex;
 			#ifdef COLLIDER_HULL_USE_VERTEX_WEIGHT
 			float newWeight;
@@ -296,7 +296,7 @@ return_t colliderHullLoad(
 			++tempHull.numVertices;
 
 		// Hull face.
-		}else if(memcmp(line, "f ", 2) == 0){
+		}else if(lineLength >= 7 && memcmp(line, "f ", 2) == 0){
 			colliderVertexIndex_t startIndex;
 			colliderVertexIndex_t endIndex;
 
@@ -491,7 +491,7 @@ return_t colliderHullLoad(
 			++tempHull.numFaces;
 
 		// Hull end.
-		}else if(line[0] == '}'){
+		}else if(lineLength >= 1 && line[0] == '}'){
 			break;
 		}
 	}

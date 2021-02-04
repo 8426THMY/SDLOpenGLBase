@@ -5,8 +5,11 @@
 #include <GL/glew.h>
 
 
+#include "memoryManager.h"
+
+
 // Forward-declare any helper functions!
-static void updateShaderBones(
+static void prepareShaderBones(
 	const skeleton *const restrict mdlSkele, const skeleton *const restrict objSkele,
 	const mat4 *const restrict animStates, GLuint boneStatesID
 );
@@ -43,8 +46,11 @@ void renderableInit(renderable *const restrict render, const renderableDef *cons
 	{
 		// If the renderable definition's array is NULL,
 		// we should use the model's default array.
-		const textureGroup **curTexGroup = (renderDef->texGroups == NULL) ? renderDef->mdl->texGroups : renderDef->texGroups;
-		const textureGroupState *curTexState = render->texStates;
+		const textureGroup **curTexGroup = (renderDef->texGroups == NULL) ?
+			(const textureGroup **)renderDef->mdl->texGroups :
+			(const textureGroup **)renderDef->texGroups
+		;
+		textureGroupState *curTexState = render->texStates;
 		const textureGroupState *const lastTexState = &curTexState[renderDef->mdl->numMeshes];
 		do {
 			texGroupStateInit(curTexState, *curTexGroup);
@@ -60,7 +66,7 @@ void renderableInit(renderable *const restrict render, const renderableDef *cons
 
 // Update a renderable's current state.
 void renderableUpdate(renderable *const restrict render, const float time){
-	const textureGroupState *curTexState = render->texStates;
+	textureGroupState *curTexState = render->texStates;
 	const textureGroupState *const lastTexState = &curTexState[render->mdl->numMeshes];
 	do {
 		texGroupStateUpdate(curTexState, time);
@@ -78,7 +84,7 @@ void renderableDraw(
 	const mesh *const lastMesh = &curMesh[render->mdl->numMeshes];
 	const textureGroupState *curTexState = render->texStates;
 
-	updateShaderBones(render->mdl->skele, objSkele, animStates, shader->boneStatesID);
+	prepareShaderBones(render->mdl->skele, objSkele, animStates, shader->boneStatesID);
 
 	glActiveTexture(GL_TEXTURE0);
 	// Render each of the renderable's meshes!
@@ -113,7 +119,7 @@ void renderableDefDelete(renderableDef *const restrict renderDef){
 
 
 // Check which bones are used by the model and send their matrices to the shader.
-static void updateShaderBones(
+static void prepareShaderBones(
 	const skeleton *const restrict mdlSkele, const skeleton *const restrict objSkele,
 	const mat4 *const restrict animStates, GLuint boneStatesID
 ){

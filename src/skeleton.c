@@ -297,7 +297,7 @@ skeletonAnimDef *skeleAnimSMDLoad(const char *const restrict skeleAnimPath, cons
 					// Loading keyframes.
 					}else if(dataType == 2){
 						// If the line begins with time, get the frame's timestamp!
-						if(memcmp(line, "time ", 5) == 0){
+						if(lineLength >= 6 && memcmp(line, "time ", 5) == 0){
 							const unsigned int newTime = strtoul(&line[5], NULL, 10);
 							if(newTime >= data){
 								data = newTime;
@@ -364,7 +364,7 @@ skeletonAnimDef *skeleAnimSMDLoad(const char *const restrict skeleAnimPath, cons
 										.rot.x = -0.70710678118654752440084436210485f, .rot.y = 0.f, .rot.z = 0.f, .rot.w = 0.70710678118654752440084436210485f,
 										.scale.x = 1.f, .scale.y = 1.f, .scale.z = 1.f
 									};
-									transformStateAppend(&rotateUp, currentState, currentState);
+									transformStateAppend(currentState, &rotateUp, currentState);
 								}
 
 								// Set the bone's scale!
@@ -488,13 +488,11 @@ void skeleStateGenerateBoneState(
 			/** TEMPORARY **/
 			// Remove the bind pose's "contribution" to the animation.
 			if(strcmp(curAnim->animDef->name, "soldier_animations_anims_new/a_flinch01.smd") != 0){
-				boneState invLocalBind;
-				transformStateInvert(&skeleState->skele->bones[boneID].localBind, &invLocalBind);
-				transformStateAppend(&invLocalBind, &animState, &animState);
+				transformStateUndoPrepend(&skeleState->skele->bones[boneID].localBind, &animState, &animState);
 			}
 			// Set the animation's intensity by blending from the identity state.
 			transformStateInterpSet(&g_transformIdentity, &animState, curAnim->intensity, &animState);
-			transformStateAppend(out, &animState, out);
+			transformStateAppend(&animState, out, out);
 		}
 
 		// Continue to the next animation in the list.
