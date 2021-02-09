@@ -111,12 +111,12 @@ mat4 mat4InvertC(const mat4 m);
 return_t mat4CanInvert(mat4 *const restrict m);
 return_t mat4CanInvertOut(const mat4 m, mat4 *const restrict out);
 
-void mat4Orthographic(mat4 *const restrict m, const float right, const float left, const float top, const float bottom, const float near, const float far);
-mat4 mat4OrthographicC(const float right, const float left, const float top, const float bottom, const float near, const float far);
-void mat4Perspective(mat4 *const restrict m, const float fov, const float aspectRatio, const float near, const float far);
-mat4 mat4PerspectiveC(const float fov, const float aspectRatio, const float near, const float far);
-void mat4PerspectiveOld(mat4 *const restrict m, const float fov, const float aspectRatio, const float near, const float far);
-mat4 mat4PerspectiveOldC(const float fov, const float aspectRatio, const float near, const float far);
+void mat4Orthographic(mat4 *const restrict m, const float right, const float left, const float top, const float bottom, const float nearVal, const float farVal);
+mat4 mat4OrthographicC(const float right, const float left, const float top, const float bottom, const float nearVal, const float farVal);
+void mat4Perspective(mat4 *const restrict m, const float fov, const float aspectRatio, const float nearVal, const float farVal);
+mat4 mat4PerspectiveC(const float fov, const float aspectRatio, const float nearVal, const float farVal);
+void mat4PerspectiveOld(mat4 *const restrict m, const float fov, const float aspectRatio, const float nearVal, const float farVal);
+mat4 mat4PerspectiveOldC(const float fov, const float aspectRatio, const float nearVal, const float farVal);
 void mat4RotateToFace(mat4 *const restrict m, const vec3 *const restrict eye, const vec3 *const restrict target, const vec3 *const restrict worldUp);
 mat4 mat4RotateToFaceC(const vec3 eye, const vec3 target, const vec3 worldUp);
 void mat4LookAt(mat4 *const restrict m, const vec3 *const restrict eye, const vec3 *const restrict target, const vec3 *const restrict worldUp);

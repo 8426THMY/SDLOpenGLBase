@@ -15,11 +15,9 @@ Features that exist currently:
 
 Features that need to be refined:
 
-* Skeletal animation can almost certainly be optimized further.
 * There are still some joints, constraints and collider types left to implement in the physics engine, and a lot of it needs more rigorous testing.
 * The particle system is still missing a few features, such as initializers, operators and constraints.
 * The current GUI system is extremely basic, there's a lot of missing functionality and a lot of the code is temporary.
-* GUI panels aren't quite "pixel-perfect" at most resolutions.
 * Textures support mipmapping, but it hasn't been tested. Smooth scrolling and programmable texture animations still need to be implemented.
 * File loading sucks, binary file formats would be nice for pretty much everything.
 * Mathematics functions are used fairly naively at the moment.

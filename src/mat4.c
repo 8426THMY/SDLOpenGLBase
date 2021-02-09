@@ -1867,10 +1867,10 @@ return_t mat4CanInvertOut(const mat4 m, mat4 *const restrict out){
 
 
 // Generate an orthographic matrix!
-void mat4Orthographic(mat4 *const restrict m, const float right, const float left, const float top, const float bottom, const float near, const float far){
+void mat4Orthographic(mat4 *const restrict m, const float right, const float left, const float top, const float bottom, const float nearVal, const float farVal){
 	const float widthScale  = 1.f/(right - left);
 	const float heightScale = 1.f/(top - bottom);
-	const float depthScale  = 1.f/(near - far);
+	const float depthScale  = 1.f/(nearVal - farVal);
 
 	m->m[0][0] = 2.f*widthScale;
 	m->m[0][1] = 0.f;
@@ -1889,106 +1889,106 @@ void mat4Orthographic(mat4 *const restrict m, const float right, const float lef
 
 	m->m[3][0] = -((right + left) * widthScale);
 	m->m[3][1] = -((top + bottom) * heightScale);
-	m->m[3][2] = ((near + far) * depthScale);
+	m->m[3][2] = ((nearVal + farVal) * depthScale);
 	m->m[3][3] = 1.f;
 }
 
 // Generate an orthographic matrix!
-mat4 mat4OrthographicC(const float right, const float left, const float top, const float bottom, const float near, const float far){
+mat4 mat4OrthographicC(const float right, const float left, const float top, const float bottom, const float nearVal, const float farVal){
 	const float widthScale  = 1.f/(right - left);
 	const float heightScale = 1.f/(top - bottom);
-	const float depthScale  = 1.f/(near - far);
+	const float depthScale  = 1.f/(nearVal - farVal);
 	const mat4 m = {
 		.m[0][0] =                 2.f*widthScale, .m[0][1] =                             0.f, .m[0][2] =                         0.f, .m[0][3] = 0.f,
 		.m[1][0] =                            0.f, .m[1][1] =                 2.f*heightScale, .m[1][2] =                         0.f, .m[1][3] = 0.f,
 		.m[2][0] =                            0.f, .m[2][1] =                             0.f, .m[2][2] =              2.f*depthScale, .m[2][3] = 0.f,
-		.m[3][0] = -((right + left) * widthScale), .m[3][1] = -((top + bottom) * heightScale), .m[3][2] = ((near + far) * depthScale), .m[3][3] = 1.f
+		.m[3][0] = -((right + left) * widthScale), .m[3][1] = -((top + bottom) * heightScale), .m[3][2] = ((nearVal + farVal) * depthScale), .m[3][3] = 1.f
 	};
 
 	return(m);
 }
 
 // Generate a perspective matrix!
-void mat4Perspective(mat4 *const restrict m, const float fov, const float aspectRatio, const float near, const float far){
-	const float invScale = 1.f/tan(fov * 0.5f);
-	const float invNearMinFar = 1.f/(near - far);
+void mat4Perspective(mat4 *const restrict m, const float fov, const float aspectRatio, const float nearVal, const float farVal){
+	const float invScale = 1.f/(aspectRatio * tan(fov * 0.5f));
+	const float depthScale = 1.f/(nearVal - farVal);
 
-	m->m[0][0] = invScale/aspectRatio;
+	m->m[0][0] = invScale;
 	m->m[0][1] = 0.f;
 	m->m[0][2] = 0.f;
 	m->m[0][3] = 0.f;
 
 	m->m[1][0] = 0.f;
-	m->m[1][1] = invScale;
+	m->m[1][1] = aspectRatio * invScale;
 	m->m[1][2] = 0.f;
 	m->m[1][3] = 0.f;
 
 	m->m[2][0] = 0.f;
 	m->m[2][1] = 0.f;
-	m->m[2][2] = ((far + near) * invNearMinFar);
+	m->m[2][2] = (farVal + nearVal) * depthScale;
 	m->m[2][3] = -1.f;
 
 	m->m[3][0] = 0.f;
 	m->m[3][1] = 0.f;
-	m->m[3][2] = (((far + far) * near) * invNearMinFar);
+	m->m[3][2] = 2.f * farVal * nearVal * depthScale;
 	m->m[3][3] = 0.f;
 }
 
 // Generate a perspective matrix!
-mat4 mat4PerspectiveC(const float fov, const float aspectRatio, const float near, const float far){
-	const float invScale = 1.f/tan(fov * 0.5f);
-	const float invNearMinFar = 1.f/(near - far);
+mat4 mat4PerspectiveC(const float fov, const float aspectRatio, const float nearVal, const float farVal){
+	const float invScale = 1.f/(aspectRatio * tan(fov * 0.5f));
+	const float depthScale = 1.f/(nearVal - farVal);
 	const mat4 m = {
-		.m[0][0] = invScale/aspectRatio, .m[0][1] = 0.f,      .m[0][2] = 0.f,                                    .m[0][3] = 0.f,
-		.m[1][0] = 0.f,                  .m[1][1] = invScale, .m[1][2] = 0.f,                                    .m[1][3] = 0.f,
-		.m[2][0] = 0.f,                  .m[2][1] = 0.f,      .m[2][2] = ((far + near) * invNearMinFar),         .m[2][3] = -1.f,
-		.m[3][0] = 0.f,                  .m[3][1] = 0.f,      .m[3][2] = (((far + far) * near) * invNearMinFar), .m[3][3] = 0.f
+		.m[0][0] = invScale, .m[0][1] = 0.f,                    .m[0][2] = 0.f,                                 .m[0][3] =  0.f,
+		.m[1][0] = 0.f,      .m[1][1] = aspectRatio * invScale, .m[1][2] = 0.f,                                 .m[1][3] =  0.f,
+		.m[2][0] = 0.f,      .m[2][1] = 0.f,                    .m[2][2] = (farVal + nearVal) * depthScale,     .m[2][3] = -1.f,
+		.m[3][0] = 0.f,      .m[3][1] = 0.f,                    .m[3][2] = 2.f * farVal * nearVal * depthScale, .m[3][3] =  0.f
 	};
 
 	return(m);
 }
 
 // Generate a perspective matrix using the plain, unoptimized method!
-void mat4PerspectiveOld(mat4 *const restrict m, const float fov, const float aspectRatio, const float near, const float far){
-	const float top    = near * tanf(fov * 0.5f);
+void mat4PerspectiveOld(mat4 *const restrict m, const float fov, const float aspectRatio, const float nearVal, const float farVal){
+	const float top    = nearVal * tanf(fov * 0.5f);
 	const float right  = top * aspectRatio;
-	const float invRightMinLeft = 1.f/(right + right);
-	const float invTopMinBottom = 1.f/(top + top);
-	const float invNearMinFar = 1.f/(near - far);
+	const float widthScale = 1.f/right;
+	const float heightScale = 1.f/top;
+	const float depthScale = 1.f/(nearVal - farVal);
 
-	m->m[0][0] = (near + near) * invRightMinLeft;
+	m->m[0][0] = nearVal * widthScale;
 	m->m[0][1] = 0.f;
 	m->m[0][2] = 0.f;
 	m->m[0][3] = 0.f;
 
 	m->m[1][0] = 0.f;
-	m->m[1][1] = (near + near) * invTopMinBottom;
+	m->m[1][1] = nearVal * heightScale;
 	m->m[1][2] = 0.f;
 	m->m[1][3] = 0.f;
 
 	m->m[2][0] = 0.f;
 	m->m[2][1] = 0.f;
-	m->m[2][2] = ((far + near) * invNearMinFar);
+	m->m[2][2] = (farVal + nearVal) * depthScale;
 	m->m[2][3] = -1.f;
 
 	m->m[3][0] = 0.f;
 	m->m[3][1] = 0.f;
-	m->m[3][2] = (((far + far) * near) * invNearMinFar);
+	m->m[3][2] = 2.f * farVal * nearVal * depthScale;
 	m->m[3][3] = 0.f;
 }
 
 // Generate a perspective matrix using the plain, unoptimized method!
-mat4 mat4PerspectiveOldC(const float fov, const float aspectRatio, const float near, const float far){
-	const float top    = near * tanf(fov * 0.5f);
+mat4 mat4PerspectiveOldC(const float fov, const float aspectRatio, const float nearVal, const float farVal){
+	const float top    = nearVal * tanf(fov * 0.5f);
 	const float right  = top * aspectRatio;
-	const float invRightMinLeft = 1.f/(right + right);
-	const float invTopMinBottom = 1.f/(top + top);
-	const float invNearMinFar = 1.f/(near - far);
+	const float widthScale = 1.f/right;
+	const float heightScale = 1.f/top;
+	const float depthScale = 1.f/(nearVal - farVal);
 	const mat4 m = {
-		.m[0][0] = (near + near) * invRightMinLeft, .m[0][1] = 0.f,                             .m[0][2] = 0.f,                                    .m[0][3] = 0.f,
-		.m[1][0] = 0.f,                             .m[1][1] = (near + near) * invTopMinBottom, .m[1][2] = 0.f,                                    .m[1][3] = 0.f,
-		.m[2][0] = 0.f,                             .m[2][1] = 0.f,                             .m[2][2] = ((far + near) * invNearMinFar),         .m[2][3] = -1.f,
-		.m[3][0] = 0.f,                             .m[3][1] = 0.f,                             .m[3][2] = (((far + far) * near) * invNearMinFar), .m[3][3] = 0.f
+		.m[0][0] = nearVal * widthScale, .m[0][1] = 0.f,                   .m[0][2] = 0.f,                                 .m[0][3] =  0.f,
+		.m[1][0] = 0.f,                  .m[1][1] = nearVal * heightScale, .m[1][2] = 0.f,                                 .m[1][3] =  0.f,
+		.m[2][0] = 0.f,                  .m[2][1] = 0.f,                   .m[2][2] = (farVal + nearVal) * depthScale,     .m[2][3] = -1.f,
+		.m[3][0] = 0.f,                  .m[3][1] = 0.f,                   .m[3][2] = 2.f * farVal * nearVal * depthScale, .m[3][3] =  0.f
 	};
 
 	return(m);

@@ -499,8 +499,8 @@ static return_t initResources(program *const restrict prg){
 
 	// Temporary animation stuff.
 	#warning "Playing 'soldier_animations_anims_old/a_runN_LOSER.smd' on the Scout makes his left arm flip."
-	//animDef = skeleAnimSMDLoad("soldier_animations_anims_old/a_runN_MELEE.smd", sizeof("soldier_animations_anims_old/a_runN_MELEE.smd") - 1);
-	animDef = skeleAnimSMDLoad("soldier_animations_anims_old/a_runN_LOSER.smd", sizeof("soldier_animations_anims_old/a_runN_LOSER.smd") - 1);
+	animDef = skeleAnimSMDLoad("soldier_animations_anims_old/a_runN_MELEE.smd", sizeof("soldier_animations_anims_old/a_runN_MELEE.smd") - 1);
+	//animDef = skeleAnimSMDLoad("soldier_animations_anims_old/a_runN_LOSER.smd", sizeof("soldier_animations_anims_old/a_runN_LOSER.smd") - 1);
 	if(animDef != NULL){
 		obj->skeleState.anims = moduleSkeletonAnimPrepend(&obj->skeleState.anims);
 		skeleAnimInit(obj->skeleState.anims, animDef, 0.5f);
