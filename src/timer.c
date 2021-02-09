@@ -1,14 +1,10 @@
-#include "timing.h"
+#include "timer.h"
 
 
 #ifdef _WIN32
-	#include <intrin.h>
-
 	static time32_t freq;
 	static float rfreq;
 #else
-	#include <x86intrin.h>
-
 	#if HAVE_NANOSLEEP
 		#include <time.h>
 	#else
@@ -36,7 +32,7 @@
 static timerVal_t first;
 
 
-void initTiming(){
+void timerInit(){
 	#ifdef _WIN32
 		LARGE_INTEGER li;
 		// This should only fail on versions of Windows before XP.
@@ -62,7 +58,7 @@ void initTiming(){
 ** Return how many milliseconds have
 ** passed between "start" and "end".
 */
-time32_t elapsedTime(const timerVal_t start, const timerVal_t end){
+time32_t timerElapsedTime(const timerVal_t start, const timerVal_t end){
 	#ifdef _WIN32
 		return((end.u.LowPart - start.u.LowPart) / freq);
 	#else
@@ -78,7 +74,7 @@ time32_t elapsedTime(const timerVal_t start, const timerVal_t end){
 ** Return how many milliseconds have
 ** passed between "start" and "end".
 */
-float elapsedTimeFloat(const timerVal_t start, const timerVal_t end){
+float timerElapsedTimeFloat(const timerVal_t start, const timerVal_t end){
 	#ifdef _WIN32
 		return((float)(end.u.LowPart - start.u.LowPart) * rfreq);
 	#else
@@ -95,7 +91,7 @@ float elapsedTimeFloat(const timerVal_t start, const timerVal_t end){
 ** Return how many milliseconds have elapsed
 ** since the timing system was initialized.
 */
-time32_t getTime(){
+time32_t timerGetTime(){
 	#ifdef _WIN32
 		timerVal_t now;
 		QueryPerformanceCounter(&now);
@@ -109,14 +105,14 @@ time32_t getTime(){
 		#endif
 	#endif
 
-	return(elapsedTime(first, now));
+	return(timerElapsedTime(first, now));
 }
 
 /*
 ** Return how many milliseconds have elapsed
 ** since the timing system was initialized.
 */
-float getTimeFloat(){
+float timerGetTimeFloat(){
 	#ifdef _WIN32
 		timerVal_t now;
 		QueryPerformanceCounter(&now);
@@ -130,7 +126,7 @@ float getTimeFloat(){
 		#endif
 	#endif
 
-	return(elapsedTimeFloat(first, now));
+	return(timerElapsedTimeFloat(first, now));
 }
 
 
@@ -138,7 +134,7 @@ float getTimeFloat(){
 ** Returns the current tick, which is mostly
 ** useless for timing without the frequency.
 */
-timerVal_t startTimer(){
+timerVal_t timerStart(){
 	#ifdef _WIN32
 		timerVal_t start;
 		QueryPerformanceCounter(&start);
@@ -156,7 +152,7 @@ timerVal_t startTimer(){
 }
 
 // Return how many milliseconds have elapsed since "start".
-time32_t endTimer(const timerVal_t start){
+time32_t timerEnd(const timerVal_t start){
 	#ifdef _WIN32
 		timerVal_t end;
 		QueryPerformanceCounter(&end);
@@ -170,11 +166,11 @@ time32_t endTimer(const timerVal_t start){
 		#endif
 	#endif
 
-	return(elapsedTime(start, end));
+	return(timerElapsedTime(start, end));
 }
 
 // Return how many milliseconds have elapsed since "start".
-float endTimerFloat(const timerVal_t start){
+float timerEndFloat(const timerVal_t start){
 	#ifdef _WIN32
 		timerVal_t end;
 		QueryPerformanceCounter(&end);
@@ -188,7 +184,7 @@ float endTimerFloat(const timerVal_t start){
 		#endif
 	#endif
 
-	return(elapsedTimeFloat(start, end));
+	return(timerElapsedTimeFloat(start, end));
 }
 
 
@@ -233,22 +229,18 @@ void sleepAccurate(const time32_t ms){
 
 // Extremely accurate but not very kind on the processor.
 void sleepBusy(const time32_t ms){
-	timerVal_t now = startTimer();
+	timerVal_t now = timerStart();
 	#ifdef _WIN32
 		const time64_t end = now.QuadPart + ms * freq;
-		while(now = startTimer(), now.QuadPart < end){
-			_mm_pause();
-		}
+		while(now = timerStart(), now.QuadPart < end);
 	#else
 		#if HAVE_CLOCK_GETTIME
 		const time64_t end = ((time64_t)now.tv_sec * 1000000000 + (time64_t)now.tv_nsec) + (time64_t)ms * 1000000;
-		while(now = startTimer(), ((time64_t)now.tv_sec * 1000000000 + (time64_t)now.tv_nsec) < end){
+		while(now = timerStart(), ((time64_t)now.tv_sec * 1000000000 + (time64_t)now.tv_nsec) < end);
 		#else
 		const time64_t end = ((time64_t)now.tv_sec * 1000000000 + (time64_t)now.tv_usec) + (time64_t)ms * 1000000;
-		while(now = startTimer(), ((time64_t)now.tv_sec * 1000000000 + (time64_t)now.tv_usec) < end){
+		while(now = timerStart(), ((time64_t)now.tv_sec * 1000000000 + (time64_t)now.tv_usec) < end);
 		#endif
-			_mm_pause();
-		}
 	#endif
 }
 

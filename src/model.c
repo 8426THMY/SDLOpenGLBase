@@ -30,11 +30,15 @@
 #define BASE_BONE_CAPACITY     1
 
 
+// This mesh is only used by the default model.
+// It cannot be accessed from outside this file.
+mesh mdlMeshDefault;
+
 // By default, the error model only has a name.
 // We need to set up the other data the hard way.
 model g_mdlDefault = {
 	.name      = "error",
-	.meshes    = &g_meshDefault,
+	.meshes    = &mdlMeshDefault,
 	.texGroups = &g_texGroupArrayDefault,
 	.numMeshes = 1,
 	.skele     = &g_skeleDefault
@@ -1110,15 +1114,11 @@ model *modelSMDLoad(const char *const restrict mdlPath, const size_t mdlPathLeng
 	return(mdl);
 }
 
-return_t modelSetupDefault(){
-	return(meshSetupDefault());
-}
 
-
+// This should never be called on the default model!
 void modelDelete(model *const restrict mdl){
-	// Only free the name if it's in
-	// use and it's not the error model.
-	if(mdl->name != NULL && mdl != &g_mdlDefault){
+	// Only free the name if it's in use.
+	if(mdl->name != NULL){
 		memoryManagerGlobalFree(mdl->name);
 	}
 
@@ -1129,9 +1129,157 @@ void modelDelete(model *const restrict mdl){
 		for(; curMesh < lastMesh; ++curMesh){
 			meshDelete(curMesh);
 		}
-		if(mdl != &g_mdlDefault){
-			memoryManagerGlobalFree(mdl->meshes);
-			memoryManagerGlobalFree(mdl->texGroups);
-		}
+		memoryManagerGlobalFree(mdl->meshes);
+		memoryManagerGlobalFree(mdl->texGroups);
 	}
+}
+
+
+return_t modelSetup(){
+	const vertex vertices[20] = {
+		{
+			.pos.x = 0.5f, .pos.y = 1.f, .pos.z = -0.5f,
+			.uv.x = 0.f, .uv.y = 1.f,
+			.normal.x = 0.5774f, .normal.y = 0.5774f, .normal.z = -0.5774f,
+			.boneIDs = {0, -1, -1, -1}, .boneWeights = {1.f, 0.f, 0.f, 0.f}
+		},
+		{
+			.pos.x = -0.5f, .pos.y = 0.f, .pos.z = -0.5f,
+			.uv.x = 1.f, .uv.y = 0.f,
+			.normal.x = -0.5774f, .normal.y = -0.5774f, .normal.z = -0.5774f,
+			.boneIDs = {0, -1, -1, -1}, .boneWeights = {1.f, 0.f, 0.f, 0.f}
+		},
+		{
+			.pos.x = -0.5f, .pos.y = 1.f, .pos.z = -0.5f,
+			.uv.x = 1.f, .uv.y = 1.f,
+			.normal.x = -0.5774f, .normal.y = 0.5774f, .normal.z = -0.5774f,
+			.boneIDs = {0, -1, -1, -1}, .boneWeights = {1.f, 0.f, 0.f, 0.f}
+		},
+		{
+			.pos.x = 0.5f, .pos.y = 1.f, .pos.z = 0.5f,
+			.uv.x = 0.f, .uv.y = 1.f,
+			.normal.x = 0.5774f, .normal.y = 0.5774f, .normal.z = 0.5774f,
+			.boneIDs = {0, -1, -1, -1}, .boneWeights = {1.f, 0.f, 0.f, 0.f}
+		},
+		{
+			.pos.x = 0.5f, .pos.y = 0.f, .pos.z = -0.5f,
+			.uv.x = 1.f, .uv.y = 0.f,
+			.normal.x = 0.5774f, .normal.y = -0.5774f, .normal.z = -0.5774f,
+			.boneIDs = {0, -1, -1, -1}, .boneWeights = {1.f, 0.f, 0.f, 0.f}
+		},
+		{
+			.pos.x = 0.5f, .pos.y = 1.f, .pos.z = -0.5f,
+			.uv.x = 1.f, .uv.y = 1.f,
+			.normal.x = 0.5774f, .normal.y = 0.5774f, .normal.z = -0.5774f,
+			.boneIDs = {0, -1, -1, -1}, .boneWeights = {1.f, 0.f, 0.f, 0.f}
+		},
+		{
+			.pos.x = -0.5f, .pos.y = 1.f, .pos.z = 0.5f,
+			.uv.x = 0.f, .uv.y = 1.f,
+			.normal.x = -0.5774f, .normal.y = 0.5774f, .normal.z = 0.5774f,
+			.boneIDs = {0, -1, -1, -1}, .boneWeights = {1.f, 0.f, 0.f, 0.f}
+		},
+		{
+			.pos.x = 0.5f, .pos.y = 0.f, .pos.z = 0.5f,
+			.uv.x = 1.f, .uv.y = 0.f,
+			.normal.x = 0.5774f, .normal.y = -0.5774f, .normal.z = 0.5774f,
+			.boneIDs = {0, -1, -1, -1}, .boneWeights = {1.f, 0.f, 0.f, 0.f}
+		},
+		{
+			.pos.x = 0.5f, .pos.y = 1.f, .pos.z = 0.5f,
+			.uv.x = 1.f, .uv.y = 1.f,
+			.normal.x = 0.5774f, .normal.y = 0.5774f, .normal.z = 0.5774f,
+			.boneIDs = {0, -1, -1, -1}, .boneWeights = {1.f, 0.f, 0.f, 0.f}
+		},
+		{
+			.pos.x = -0.5f, .pos.y = 1.f, .pos.z = -0.5f,
+			.uv.x = 0.f, .uv.y = 1.f,
+			.normal.x = -0.5774f, .normal.y = 0.5774f, .normal.z = -0.5774f,
+			.boneIDs = {0, -1, -1, -1}, .boneWeights = {1.f, 0.f, 0.f, 0.f}
+		},
+		{
+			.pos.x = -0.5f, .pos.y = 0.f, .pos.z = 0.5f,
+			.uv.x = 1.f, .uv.y = 0.f,
+			.normal.x = -0.5774f, .normal.y = -0.5774f, .normal.z = 0.5774f,
+			.boneIDs = {0, -1, -1, -1}, .boneWeights = {1.f, 0.f, 0.f, 0.f}
+		},
+		{
+			.pos.x = -0.5f, .pos.y = 1.f, .pos.z = 0.5f,
+			.uv.x = 1.f, .uv.y = 1.f,
+			.normal.x = -0.5774f, .normal.y = 0.5774f, .normal.z = 0.5774f,
+			.boneIDs = {0, -1, -1, -1}, .boneWeights = {1.f, 0.f, 0.f, 0.f}
+		},
+		{
+			.pos.x = -0.5f, .pos.y = 0.f, .pos.z = 0.5f,
+			.uv.x = 0.f, .uv.y = 1.f,
+			.normal.x = -0.5774f, .normal.y = -0.5774f, .normal.z = 0.5774f,
+			.boneIDs = {0, -1, -1, -1}, .boneWeights = {1.f, 0.f, 0.f, 0.f}
+		},
+		{
+			.pos.x = -0.5f, .pos.y = 0.f, .pos.z = -0.5f,
+			.uv.x = 0.f, .uv.y = 0.f,
+			.normal.x = -0.5774f, .normal.y = -0.5774f, .normal.z = -0.5774f,
+			.boneIDs = {0, -1, -1, -1}, .boneWeights = {1.f, 0.f, 0.f, 0.f}
+		},
+		{
+			.pos.x = 0.5f, .pos.y = 1.f, .pos.z = 0.5f,
+			.uv.x = 1.f, .uv.y = 0.f,
+			.normal.x = 0.5774f, .normal.y = 0.5774f, .normal.z = 0.5774f,
+			.boneIDs = {0, -1, -1, -1}, .boneWeights = {1.f, 0.f, 0.f, 0.f}
+		},
+		{
+			.pos.x = -0.5f, .pos.y = 1.f, .pos.z = 0.5f,
+			.uv.x = 0.f, .uv.y = 0.f,
+			.normal.x = -0.5774f, .normal.y = 0.5774f, .normal.z = 0.5774f,
+			.boneIDs = {0, -1, -1, -1}, .boneWeights = {1.f, 0.f, 0.f, 0.f}
+		},
+		{
+			.pos.x = 0.5f, .pos.y = 0.f, .pos.z = -0.5f,
+			.uv.x = 0.f, .uv.y = 0.f,
+			.normal.x = 0.5774f, .normal.y = -0.5774f, .normal.z = -0.5774f,
+			.boneIDs = {0, -1, -1, -1}, .boneWeights = {1.f, 0.f, 0.f, 0.f}
+		},
+		{
+			.pos.x = 0.5f, .pos.y = 0.f, .pos.z = 0.5f,
+			.uv.x = 0.f, .uv.y = 0.f,
+			.normal.x = 0.5774f, .normal.y = -0.5774f, .normal.z = 0.5774f,
+			.boneIDs = {0, -1, -1, -1}, .boneWeights = {1.f, 0.f, 0.f, 0.f}
+		},
+		{
+			.pos.x = -0.5f, .pos.y = 0.f, .pos.z = 0.5f,
+			.uv.x = 0.f, .uv.y = 0.f,
+			.normal.x = -0.5774f, .normal.y = -0.5774f, .normal.z = 0.5774f,
+			.boneIDs = {0, -1, -1, -1}, .boneWeights = {1.f, 0.f, 0.f, 0.f}
+		},
+		{
+			.pos.x = 0.5f, .pos.y = 0.f, .pos.z = 0.5f,
+			.uv.x = 1.f, .uv.y = 1.f,
+			.normal.x = 0.5774f, .normal.y = -0.5774f, .normal.z = 0.5774f,
+			.boneIDs = {0, -1, -1, -1}, .boneWeights = {1.f, 0.f, 0.f, 0.f}
+		}
+	};
+
+	const meshVertexIndex_t indices[36] = {
+		 0,  1,  2,
+		 3,  4,  5,
+		 6,  7,  8,
+		 9, 10, 11,
+		 4, 12, 13,
+		14,  9, 15,
+		 0, 16,  1,
+		 3, 17,  4,
+		 6, 18,  7,
+		 9, 13, 10,
+		 4, 19, 12,
+		14,  5,  9
+	};
+
+	meshGenerateBuffers(&mdlMeshDefault, vertices, sizeof(vertices)/sizeof(*vertices), indices, sizeof(indices)/sizeof(*indices));
+
+
+	return(1);
+}
+
+void modelCleanup(){
+	meshDelete(&mdlMeshDefault);
 }

@@ -4,7 +4,6 @@
 
 #include <stdint.h>
 
-#include "sprite.h"
 #include "texture.h"
 
 #include "textGlyph.h"

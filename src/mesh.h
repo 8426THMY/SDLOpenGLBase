@@ -57,14 +57,9 @@ void meshGenerateBuffers(
 return_t vertexDifferent(const vertex *const restrict v1, const vertex *const restrict v2);
 return_t meshDifferent(const mesh *const restrict m1, const mesh *const restrict m2);
 
-return_t meshSetupDefault();
-
 void meshDelete(mesh *const restrict meshData);
 
 return_t meshShaderInit(meshShader *const restrict shader, const GLuint programID);
-
-
-extern mesh g_meshDefault;
 
 
 #endif

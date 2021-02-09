@@ -24,9 +24,11 @@ typedef struct model {
 
 model *modelOBJLoad(const char *const restrict mdlPath, const size_t mdlPathLength);
 model *modelSMDLoad(const char *const restrict mdlPath, const size_t mdlPathLength);
-return_t modelSetupDefault();
 
 void modelDelete(model *const restrict mdl);
+
+return_t modelSetup();
+void modelCleanup();
 
 
 extern model g_mdlDefault;

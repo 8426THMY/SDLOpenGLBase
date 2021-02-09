@@ -13,10 +13,6 @@
 #warning "People suggest that '-ffast-math' and '-Ox' should do this anyway, but this doesn't seem to be the case on my system."
 /* https://stackoverflow.com/questions/9314534/why-does-changing-0-1f-to-0-slow-down-performance-by-10x */
 
-#warning "Applying global transformations to animated objects is kind of hacky and incorrect (it rotates before scaling)."
-#warning "This is because transformStates cannot represent every possible global bone state - we need matrices for that."
-#warning "Are matrices faster than transformStates using SIMD? Do they still work with physics objects?"
-
 #warning "Our modules define a lot of functions that are identical or almost identical."
 #warning "Would it be possible to avoid defining the duplicate functions by using macros?"
 #warning "Alternatively, if this gets ugly, it would almost certainly be better to define these functions using macros."

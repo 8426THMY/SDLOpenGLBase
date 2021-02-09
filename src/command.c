@@ -117,7 +117,7 @@ void cmdBufferInit(commandBuffer *const restrict cmdBuffer){
 void cmdBufferAddCommand(
 	commandBuffer *const restrict cmdBuffer,
 	const char *str, const size_t strLength,
-	const tick_t timestamp, const tick_t delay
+	const cmdTimestamp_t timestamp, const cmdTimestamp_t delay
 ){
 
 	const char *const strEnd = &str[strLength];

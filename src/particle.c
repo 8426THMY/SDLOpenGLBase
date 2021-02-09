@@ -6,8 +6,12 @@
 #include "sort.h"
 
 
+// Particles use this sprite by default.
+sprite partSpriteDefault;
+
+
 void particleDefInit(particleDef *const restrict partDef){
-	partDef->spriteData = g_spriteDefault;
+	partDef->spriteData = partSpriteDefault;
 	partDef->texGroup = &g_texGroupDefault;
 }
 
@@ -68,7 +72,43 @@ void particleDelete(particle *const restrict part){
 void particleDefDelete(particleDef *const restrict partDef){
 	// Only delete the system's mesh if
 	// it's not the default sprite.
-	if(spriteDifferent(&partDef->spriteData, &g_spriteDefault)){
+	if(spriteDifferent(&partDef->spriteData, &partSpriteDefault)){
 		spriteDelete(&partDef->spriteData);
 	}
+}
+
+
+return_t particleSetup(){
+	const spriteVertex vertices[4] = {
+		{
+			.pos.x = -0.5f, .pos.y =  0.5f, .pos.z = 0.f,
+			.uv.x = 0.f, 0.f
+		},
+		{
+			.pos.x = -0.5f, .pos.y = -0.5f, .pos.z = 0.f,
+			.uv.x = 0.f, 1.f
+		},
+		{
+			.pos.x =  0.5f, .pos.y = -0.5f, .pos.z = 0.f,
+			.uv.x = 1.f, 1.f
+		},
+		{
+			.pos.x =  0.5f, .pos.y =  0.5f, .pos.z = 0.f,
+			.uv.x = 1.f, 0.f
+		}
+	};
+
+	const spriteVertexIndex_t indices[6] = {
+		0, 1, 2,
+		2, 3, 0
+	};
+
+	spriteGenerateBuffers(&partSpriteDefault, vertices, sizeof(vertices)/sizeof(*vertices), indices, sizeof(indices)/sizeof(*indices));
+
+
+	return(1);
+}
+
+void particleCleanup(){
+	spriteDelete(&partSpriteDefault);
 }

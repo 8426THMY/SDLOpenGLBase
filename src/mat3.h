@@ -5,6 +5,7 @@
 #include "utilTypes.h"
 
 #include "vec3.h"
+#include "vec4.h"
 #include "quat.h"
 
 
@@ -18,6 +19,14 @@ void mat3InitZero(mat3 *const restrict m);
 mat3 mat3InitZeroC();
 void mat3InitIdentity(mat3 *const restrict m);
 mat3 mat3InitIdentityC();
+void mat3InitEulerXYZ(mat3 *const restrict m, const float x, const float y, const float z);
+mat3 mat3InitEulerXYZC(const float x, const float y, const float z);
+void mat3InitRotateQuat(mat3 *const restrict m, const quat *const restrict q);
+mat3 mat3InitRotateQuatC(const quat q);
+void mat3InitScale(mat3 *const restrict m, const float x, const float y, const float z);
+mat3 mat3InitScaleC(const float x, const float y, const float z);
+void mat3InitScaleVec3(mat3 *const restrict m, const vec3 *const restrict v);
+mat3 mat3InitScaleVec3C(const vec3 v);
 void mat3InitDiagonal(mat3 *const restrict m, const float x);
 mat3 mat3InitDiagonalC(const float x);
 void mat3InitSkew(mat3 *const restrict m, const vec3 *const restrict v);
@@ -38,14 +47,29 @@ void mat3MultiplyByMat3(mat3 *const restrict m1, const mat3 m2);
 void mat3MultiplyMat3ByOut(const mat3 m1, const mat3 m2, mat3 *const restrict out);
 mat3 mat3MultiplyMat3ByC(const mat3 m1, const mat3 m2);
 
-void mat3ScalePre(mat3 *const restrict m, const float x, const float y, const float z);
-mat3 mat3ScalePreC(mat3 m, const float x, const float y, const float z);
-void mat3ScalePreVec3(mat3 *const restrict m, const vec3 *const restrict v);
-mat3 mat3ScalePreVec3C(mat3 m, const vec3 v);
+void mat3RotateXYZ(mat3 *const restrict m, const float x, const float y, const float z);
+mat3 mat3RotateXYZC(const mat3 m, const float x, const float y, const float z);
+void mat3RotateByVec3XYZ(mat3 *const restrict m, const vec3 *const restrict v);
+mat3 mat3RotateByVec3XYZC(const mat3 m, const vec3 v);
+void mat3RotateAxisAngle(mat3 *const restrict m, const vec4 *const restrict v);
+mat3 mat3RotateAxisAngleC(const mat3 m, const vec4 v);
+void mat3RotateQuat(mat3 *const restrict m, const quat *const restrict q);
+mat3 mat3RotateQuatC(const mat3 m, const quat q);
+void mat3RotateX(mat3 *const restrict m, const float x);
+mat3 mat3RotateXC(const mat3 m, const float x);
+void mat3RotateY(mat3 *const restrict m, const float y);
+mat3 mat3RotateYC(const mat3 m, const float y);
+void mat3RotateZ(mat3 *const restrict m, const float z);
+mat3 mat3RotateZC(const mat3 m, const float z);
+
 void mat3Scale(mat3 *const restrict m, const float x, const float y, const float z);
 mat3 mat3ScaleC(mat3 m, const float x, const float y, const float z);
 void mat3ScaleVec3(mat3 *const restrict m, const vec3 *const restrict v);
 mat3 mat3ScaleVec3C(mat3 m, const vec3 v);
+void mat3ScalePre(mat3 *const restrict m, const float x, const float y, const float z);
+mat3 mat3ScalePreC(mat3 m, const float x, const float y, const float z);
+void mat3ScalePreVec3(mat3 *const restrict m, const vec3 *const restrict v);
+mat3 mat3ScalePreVec3C(mat3 m, const vec3 v);
 
 void mat3Transpose(mat3 *const restrict m);
 void mat3TransposeOut(const mat3 m, mat3 *const restrict out);

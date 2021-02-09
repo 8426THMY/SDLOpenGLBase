@@ -3,10 +3,6 @@
 
 #include <stdio.h>
 
-/** TEMPORARY DENORMAL STUFF **/
-#include <pmmintrin.h>
-#include <xmmintrin.h>
-
 #include <SDL2/SDL_opengl.h>
 #include <SDL2/SDL_image.h>
 
@@ -21,7 +17,7 @@
 #include "moduleRenderable.h"
 #include "moduleObject.h"
 
-#include "timing.h"
+#include "timer.h"
 #include "utilMath.h"
 #include "utilFile.h"
 
@@ -51,15 +47,6 @@ static size_t renderState = 0;
 
 
 return_t programInit(program *const restrict prg, char *const restrict prgDir){
-	/** TEMPORARY DENORMAL STUFF **/
-	// Enable denormals-are-zero (DAZ), requires <pmmintrin.h>.
-	// This must be done for every thread!
-	_MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
-	// Enable flush-to-zero (FTZ), requires <xmmintrin.h>.
-	// This must be done for every thread!
-	_MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON);
-
-
 	prg->windowWidth = WINDOW_DEFAULT_WIDTH;
 	prg->windowHeight = WINDOW_DEFAULT_HEIGHT;
 
@@ -74,7 +61,7 @@ return_t programInit(program *const restrict prg, char *const restrict prgDir){
 
 	timestepInit(&prg->step, UPDATE_RATE, FRAME_RATE);
 	// Initialize our timing system.
-	initTiming();
+	timerInit();
 
 	// Set the current working directory. This ensures that
 	// we're looking for resources in the correct directory.
@@ -85,15 +72,15 @@ return_t programInit(program *const restrict prg, char *const restrict prgDir){
 }
 
 void programLoop(program *const restrict prg){
-	float nextUpdate = getTimeFloat();
-	float lastRender = nextUpdate;
-	float lastPrint  = nextUpdate;
+	float nextUpdate = timerGetTimeFloat();
+	float nextRender = nextUpdate;
+	float nextPrint  = nextUpdate + 1000.f;
 
 	unsigned int updates = 0;
 	unsigned int renders = 0;
 
 	while(prg->running){
-		const float curTime = getTimeFloat();
+		const float curTime = timerGetTimeFloat();
 
 		// Note: This loop freezes the game if our input and update
 		//       functions take longer than "prg->step.updateTime".
@@ -105,7 +92,7 @@ void programLoop(program *const restrict prg){
 			nextUpdate += prg->step.updateTime;
 		}else{
 			// Make sure we don't exceed our framerate cap!
-			if(curTime - lastRender >= prg->step.renderTime){
+			if(curTime >= nextRender){
 				// Get our progress through the current update!
 				prg->step.renderDelta = clampFloat(
 					1.f - (nextUpdate - curTime) * prg->step.updateTickrate, 0.f, 1.f
@@ -113,24 +100,24 @@ void programLoop(program *const restrict prg){
 				render(prg);
 
 				++renders;
-				lastRender = curTime;
+				nextRender = curTime + prg->step.renderTime;
 			}
 
 			// Print our update rate and framerate every second!
-			if(curTime - lastPrint >= 1000.f){
+			if(curTime >= nextPrint){
 				printf("Updates: %u\n", updates);
 				printf("Renders: %u\n", renders);
 
 				updates = 0;
 				renders = 0;
 
-				lastPrint = curTime;
+				nextPrint = curTime + 1000.f;
 			}
 		}
 
 		// Sleep until the next update or render.
 		{
-			const float timeLeft = minFloat(nextUpdate, lastRender + prg->step.renderTime) - getTimeFloat();
+			const float timeLeft = minFloat(nextUpdate, nextRender) - timerGetTimeFloat();
 			if(timeLeft > 0.f){
 				sleepAccurate((time32_t)timeLeft);
 			}
@@ -215,7 +202,6 @@ static void input(program *const restrict prg){
 }
 
 /** TEMPORARY PHYSICS STUFF!! **/
-object *controlObj = NULL;
 physicsRigidBody *controlPhys = NULL;
 float cYaw = 0.f;
 float cPitch = 0.f;
@@ -254,24 +240,6 @@ static void updateCameras(program *const restrict prg){
 
 
 
-	/** TEMPORARY TESTING STUFF! **/
-	if(controlObj != NULL){
-		quat rot = quatNormalizeQuatC(mat4ToQuatC(mat4RotateToFaceC(controlObj->state.pos, prg->cam.pos, vec3InitSetC(0.f, 1.f, 0.f))));
-
-
-		const vec3 anglesMin = {.x = -M_PI_4, .y = -M_PI_4, .z = 0.f};
-		const vec3 anglesMax = {.x = M_PI_4, .y = M_PI_4, .z = 0.f};
-		vec3 angles = quatToEulerAnglesXYZC(rot);
-		//printf("E: (%f, %f, %f)\n", angles.x, angles.y, angles.z);
-
-		angles.x = clampFloat(anglesMin.x, angles.x, anglesMax.x);
-		angles.y = clampFloat(anglesMin.y, angles.y, anglesMax.y);
-		angles.z = clampFloat(anglesMin.z, angles.z, anglesMax.z);
-		rot = quatInitEulerXYZC(angles.x, angles.y, angles.z);
-
-
-		//controlObj->state.rot = rot;
-	}
 	/** TEMPORARY PHYSICS STUFF! **/
 	if(controlPhys != NULL){
 		if(prg->keyStates[SDL_SCANCODE_J]){
@@ -347,7 +315,7 @@ static void update(program *const restrict prg){
 
 
 	/** TEMPORARY GUI UPDATE STUFF! **/
-	/*if(prg->keyStates[SDL_SCANCODE_LEFT]){
+	if(prg->keyStates[SDL_SCANCODE_LEFT]){
 		gui.root.pos.x -= 100.f * prg->step.updateDelta;
 	}
 	if(prg->keyStates[SDL_SCANCODE_RIGHT]){
@@ -367,11 +335,11 @@ static void update(program *const restrict prg){
 		gui.root.scale.x += 100.f * prg->step.updateDelta;
 	}
 	if(prg->keyStates[SDL_SCANCODE_W]){
-		gui.root.scale.y += 100.f * prg->step.updateDelta;
+		gui.root.scale.y -= 100.f * prg->step.updateDelta;
 	}
 	if(prg->keyStates[SDL_SCANCODE_S]){
-		gui.root.scale.y -= 100.f * prg->step.updateDelta;
-	}*/
+		gui.root.scale.y += 100.f * prg->step.updateDelta;
+	}
 
 	guiElementUpdate(&gui, prg->step.updateTime);
 }
@@ -391,13 +359,13 @@ static void render(program *const restrict prg){
 
 	/** TEMPORARY PARTICLE RENDER STUFF! **/
 	glUseProgram(prg->spriteShader.programID);
-	//particleSysDraw(&partSys, &prg->cam, &prg->spriteShader, prg->step.renderDelta);
+	particleSysDraw(&partSys, &prg->cam, &prg->spriteShader, prg->step.renderDelta);
 
 	/** TEMPORARY GUI RENDER STUFF! **/
 	glUseProgram(prg->spriteShader.programID);
 	/** Do we need this? **/
 	glClear(GL_DEPTH_BUFFER_BIT);
-	//guiElementDraw(&gui, prg->windowWidth, prg->windowHeight, &prg->spriteShader);
+	guiElementDraw(&gui, prg->windowWidth, prg->windowHeight, &prg->spriteShader);
 
 
 	SDL_GL_SwapWindow(prg->window);
@@ -528,8 +496,6 @@ static return_t initResources(program *const restrict prg){
 	obj->state.pos = vec3InitSetC(-1.f, -2.f, -3.f);
 	obj->state.rot = quatInitEulerXYZC(45.f * DEG_TO_RAD, 10.f * DEG_TO_RAD, 23.f * DEG_TO_RAD);
 	obj->state.scale.z = 0.1f;
-
-	controlObj = obj;
 
 	// Temporary animation stuff.
 	#warning "Playing 'soldier_animations_anims_old/a_runN_LOSER.smd' on the Scout makes his left arm flip."
@@ -729,7 +695,7 @@ static return_t initResources(program *const restrict prg){
 
 
 	/** EVEN MORE TEMPORARY PARTICLE STUFF **/
-	spriteSetupDefault();
+	particleSetup();
 
 	particleSysDefInit(&partSysDef);
 	partSysDef.maxParticles = SPRITE_MAX_INSTANCES;
@@ -745,6 +711,8 @@ static return_t initResources(program *const restrict prg){
 
 
 	/** TEMPORARY FONT STUFF **/
+	#if 1
+	guiElementSetup();
 	const texture *atlasArray[2] = {
 		textureLoad("gui/PxPlusIBMBIOS.0.tdt", sizeof("gui/PxPlusIBMBIOS.0.tdt")),
 		textureLoad("gui/PxPlusIBMBIOS.1.tdt", sizeof("gui/PxPlusIBMBIOS.1.tdt"))
@@ -753,8 +721,8 @@ static return_t initResources(program *const restrict prg){
 	textFontLoad(&fontIBM, SPRITE_IMAGE_TYPE_MSDF, atlasArray, "./resource/fonts/PxPlus_IBM_BIOS.ttf", "./resource/fonts/PxPlus_IBM_BIOS-msdf-temp.csv");
 
 	guiElementInit(&gui, GUI_ELEMENT_TYPE_TEXT);
-	gui.root.pos.x = -320.f;
-	gui.root.pos.y = 240.f;
+	gui.root.pos.x = 0.f;
+	gui.root.pos.y = 0.f;
 	gui.root.scale.x = gui.root.scale.y = 0.5f;
 	guiTextInit(&gui.data.text, &fontIBM, sizeof("The quick brown fox jumps over the lazy dog!"));
 	textBufferWrite(&gui.data.text.buffer, "The quick brown fox jumps over the lazy dog!", sizeof("The quick brown fox jumps over the lazy dog!"));
@@ -764,9 +732,11 @@ static return_t initResources(program *const restrict prg){
 
 
 	/** TEMPORARY PANEL STUFF **/
-	/*guiElementInit(&gui, GUI_ELEMENT_TYPE_PANEL);
-	gui.root.pos.x = -320.f;
-	gui.root.pos.y = 240.f;
+	#else
+	guiElementSetup();
+	guiElementInit(&gui, GUI_ELEMENT_TYPE_PANEL);
+	gui.root.pos.x = 0.f;
+	gui.root.pos.y = 0.f;
 	gui.root.scale.x = gui.root.scale.y = 100.f;
 	guiPanelInit(&gui.data.panel);
 
@@ -815,7 +785,8 @@ static return_t initResources(program *const restrict prg){
 	gui.data.panel.uvCoords[7].w = 1.f;
 	gui.data.panel.uvCoords[7].h = 0.2f;
 
-	flagsSet(gui.data.panel.flags, GUI_PANEL_TILE_BODY);*/
+	flagsSet(gui.data.panel.flags, GUI_PANEL_TILE_BODY);
+	#endif
 
 
 	printf("Finished initializing resources!\n");
@@ -895,11 +866,13 @@ static void cleanupModules(){
 	/** YET MORE TEMPORARY PARTICLE STUFF **/
 	particleSysDelete(&partSys);
 	particleSysDefDelete(&partSysDef);
+	particleCleanup();
 	/** YET MORE TEMPORARY GUI STUFF **/
 	if(gui.type == GUI_ELEMENT_TYPE_TEXT){
 		textFontDelete(&fontIBM);
 	}
 	guiElementDelete(&gui);
+	guiElementCleanup();
 
 	/** THIS IS TEMPORARY **/
 	debugDrawCleanup();

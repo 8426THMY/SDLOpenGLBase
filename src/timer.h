@@ -1,5 +1,5 @@
-#ifndef timing_h
-#define timing_h
+#ifndef timer_h
+#define timer_h
 
 
 #include <stdint.h>
@@ -23,17 +23,17 @@ typedef uint32_t time32_t;
 typedef uint64_t time64_t;
 
 
-void initTiming();
+void timerInit();
 
-time32_t elapsedTime(const timerVal_t start, const timerVal_t end);
-float elapsedTimeFloat(const timerVal_t start, const timerVal_t end);
+time32_t timerElapsedTime(const timerVal_t start, const timerVal_t end);
+float timerElapsedTimeFloat(const timerVal_t start, const timerVal_t end);
 
-time32_t getTime();
-float getTimeFloat();
+time32_t timerGetTime();
+float timerGetTimeFloat();
 
-timerVal_t startTimer();
-time32_t endTimer(const timerVal_t start);
-float endTimerFloat(const timerVal_t start);
+timerVal_t timerStart();
+time32_t timerEnd(const timerVal_t start);
+float timerEndFloat(const timerVal_t start);
 
 void sleepResolution(const time32_t ms, const unsigned int res);
 void sleepInaccurate(const time32_t ms);

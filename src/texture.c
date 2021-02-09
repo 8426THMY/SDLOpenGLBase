@@ -224,8 +224,63 @@ texture *textureLoad(const char *const restrict texPath, const size_t texPathLen
 	return(tex);
 }
 
+
+// Update the filtering mode for a texture!
+void textureSetFiltering(const GLuint id, GLint filtering, const uint_least8_t mips){
+	GLint filteringMin, filteringMag;
+
+	if(filtering == TEXTURE_FILTER_DEFAULT_ID){
+		filtering = TEXTURE_FILTER_DEFAULT;
+	}
+
+	switch(filtering){
+		case TEXTURE_FILTER_NEAREST_ID:
+			filteringMin = (mips > 1) ? GL_NEAREST_MIPMAP_NEAREST : GL_NEAREST;
+			filteringMag = GL_NEAREST;
+		break;
+
+		case TEXTURE_FILTER_LINEAR_ID:
+			filteringMin = (mips > 1) ? GL_NEAREST_MIPMAP_LINEAR : GL_LINEAR;
+			filteringMag = GL_LINEAR;
+		break;
+
+		case TEXTURE_FILTER_BILINEAR_ID:
+			filteringMin = (mips > 1) ? GL_LINEAR_MIPMAP_NEAREST : GL_LINEAR;
+			filteringMag = GL_LINEAR;
+		break;
+
+		case TEXTURE_FILTER_TRILINEAR_ID:
+			filteringMin = (mips > 1) ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR;
+			filteringMag = GL_LINEAR;
+		break;
+
+		default:
+			return;
+	}
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filteringMin);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filteringMag);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+}
+
+
+// This should never be called on the default texture!
+void textureDelete(texture *const restrict tex){
+	// Only free the name if it's in use.
+	if(tex->name != NULL){
+		memoryManagerGlobalFree(tex->name);
+	}
+
+	if(tex->id != 0){
+		glDeleteTextures(1, &tex->id);
+	}
+}
+
+
 // Set up the error texture!
-return_t textureSetupDefault(){
+return_t textureSetup(){
 	unsigned int pixels[TEXTURE_ERROR_WIDTH * TEXTURE_ERROR_HEIGHT];
 
 	// Define the pixel data for the error texture!
@@ -274,7 +329,7 @@ return_t textureSetupDefault(){
 			g_texDefault.id, openGLError
 		);
 
-		textureDelete(&g_texDefault);
+		textureCleanup();
 
 
 		return(0);
@@ -285,56 +340,8 @@ return_t textureSetupDefault(){
 	return(1);
 }
 
-
-// Update the filtering mode for a texture!
-void textureSetFiltering(const GLuint id, GLint filtering, const uint_least8_t mips){
-	GLint filteringMin, filteringMag;
-
-	if(filtering == TEXTURE_FILTER_DEFAULT_ID){
-		filtering = TEXTURE_FILTER_DEFAULT;
-	}
-
-	switch(filtering){
-		case TEXTURE_FILTER_NEAREST_ID:
-			filteringMin = (mips > 1) ? GL_NEAREST_MIPMAP_NEAREST : GL_NEAREST;
-			filteringMag = GL_NEAREST;
-		break;
-
-		case TEXTURE_FILTER_LINEAR_ID:
-			filteringMin = (mips > 1) ? GL_NEAREST_MIPMAP_LINEAR : GL_LINEAR;
-			filteringMag = GL_LINEAR;
-		break;
-
-		case TEXTURE_FILTER_BILINEAR_ID:
-			filteringMin = (mips > 1) ? GL_LINEAR_MIPMAP_NEAREST : GL_LINEAR;
-			filteringMag = GL_LINEAR;
-		break;
-
-		case TEXTURE_FILTER_TRILINEAR_ID:
-			filteringMin = (mips > 1) ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR;
-			filteringMag = GL_LINEAR;
-		break;
-
-		default:
-			return;
-	}
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filteringMin);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filteringMag);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-}
-
-
-void textureDelete(texture *const restrict tex){
-	// Only free the name if it's in use
-	// and it's not the error texture.
-	if(tex->name != NULL && tex != &g_texDefault){
-		memoryManagerGlobalFree(tex->name);
-	}
-
-	if(tex->id != 0){
-		glDeleteTextures(1, &tex->id);
+void textureCleanup(){
+	if(g_texDefault.id != 0){
+		glDeleteTextures(1, &g_texDefault.id);
 	}
 }

@@ -73,7 +73,4 @@ void spriteDelete(sprite *const restrict spriteData);
 return_t spriteShaderInit(spriteShader *const restrict shader, const GLuint programID);
 
 
-extern sprite g_spriteDefault;
-
-
 #endif

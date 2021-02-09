@@ -17,6 +17,12 @@
 #include "utilTypes.h"
 
 
+//#error "Merge these with models. We should have 'modelBases' and 'models', the latter of which represents instances."
+//#error "While we're at it, maybe rename our other 'defs' to 'bases'."
+
+//#error "Should models only store a single mesh and texture group like before? That would mean we need multiple renderables for a 'full' model."
+
+
 typedef struct renderableDef {
 	model *mdl;
 	// Default array of texture groups for this renderable.

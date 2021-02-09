@@ -21,6 +21,13 @@
 #include "utilTypes.h"
 
 
+/**
+*** Maybe investigate soft particles? They don't seem too hard to implement.
+*** http://alessandroribeiro.thegeneralsolution.com/en/2021/01/09/openglstarter-soft-particles/
+*** https://www.youtube.com/watch?v=VT6OaSV5d38
+**/
+
+
 /*
 ** Children don't have to be rendered at exactly the same
 ** time as the rest of the particles/children in a system.

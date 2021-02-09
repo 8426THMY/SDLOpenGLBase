@@ -55,6 +55,9 @@ void guiElementDraw(
 
 void guiElementDelete(guiElement *const restrict gui);
 
+return_t guiElementSetup();
+void guiElementCleanup();
+
 
 extern void (*const guiElementUpdateTable[GUI_ELEMENT_NUM_TYPES])(
 	guiElement *const restrict gui,
@@ -67,6 +70,8 @@ extern void (*const guiElementDrawTable[GUI_ELEMENT_NUM_TYPES])(
 extern void (*const guiElementDeleteTable[GUI_ELEMENT_NUM_TYPES])(
 	guiElement *const restrict gui
 );
+
+extern sprite g_guiSpriteDefault;
 
 
 #endif

@@ -55,7 +55,7 @@ void guiTextDraw(
 		}
 
 		// Bind the sprite we're using!
-		glBindVertexArray(g_spriteDefault.vertexArrayID);
+		glBindVertexArray(g_guiSpriteDefault.vertexArrayID);
 		glActiveTexture(GL_TEXTURE0);
 
 
@@ -79,9 +79,9 @@ void guiTextDraw(
 			// Regular character.
 			}else{
 				const textGlyph curGlyph = *textFontGetGlyph(text.font, code);
-				const float halfWidth = curGlyph.uvOffsets.w * (curGlyph.atlas->width >> 1);
-				float translateX = cursor[0] + halfWidth + curGlyph.kerningX;
-				float translateY = -(curGlyph.uvOffsets.h * (curGlyph.atlas->height >> 1)) - curGlyph.kerningY;
+				const float curWidth = curGlyph.uvOffsets.w * curGlyph.atlas->width;
+				float translateX = cursor[0] + curGlyph.kerningX;
+				float translateY = -curGlyph.kerningY;
 
 				// If we've filled the render buffer or the new character uses a different
 				// texture atlas, draw all of the characters in our buffer and empty it.
@@ -90,10 +90,10 @@ void guiTextDraw(
 				if(numChars >= SPRITE_MAX_INSTANCES || curAtlas != curGlyph.atlas){
 					if(numChars != 0){
 						// Upload the characters' states to the shader.
-						glBindBuffer(GL_ARRAY_BUFFER, g_spriteDefault.stateBufferID);
+						glBindBuffer(GL_ARRAY_BUFFER, g_guiSpriteDefault.stateBufferID);
 						glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(*curState) * numChars, &charStates[0]);
 						// Draw each character!
-						glDrawElementsInstanced(GL_TRIANGLES, g_spriteDefault.numIndices, GL_UNSIGNED_INT, NULL, numChars);
+						glDrawElementsInstanced(GL_TRIANGLES, g_guiSpriteDefault.numIndices, GL_UNSIGNED_INT, NULL, numChars);
 
 						curState = charStates;
 						numChars = 0;
@@ -106,7 +106,7 @@ void guiTextDraw(
 
 
 				// If we've exceeded the width of the text box, move onto the next line.
-				if((translateX + halfWidth)*gui->root.scale.x > text.width){
+				if((translateX + curWidth)*gui->root.scale.x > text.width){
 					translateX -= cursor[0];
 					cursor[0] = 0.f;
 					cursor[1] -= 48.f;//advanceY * format.size;
@@ -114,13 +114,11 @@ void guiTextDraw(
 				translateY += cursor[1];
 
 
-				#warning "The top-left corner of the sprite should be at the cursor."
-				#warning "We can translate it to that position like so, but what if we used a special sprite?"
-				// We need to translate the glyph such that its origin is the
-				// top-left corner of the sprite for our kerning to work correctly.
+				#warning "This should use the same code that makes panels render correctly!"
 				curState->state = rootTransform;
-				mat4Translate(&curState->state, translateX, translateY, 0.f);
-				mat4Scale(&curState->state, curGlyph.uvOffsets.w * curAtlas->width, curGlyph.uvOffsets.h * curAtlas->height, 1.f);
+				// Set the sprite's position and scale.
+				mat4TranslatePre(&curState->state, translateX, translateY, 0.f);
+				mat4ScalePre(&curState->state, curWidth, curGlyph.uvOffsets.h * curAtlas->height, 1.f);
 				curState->uvOffsets = curGlyph.uvOffsets;
 
 				++numChars;
@@ -137,10 +135,10 @@ void guiTextDraw(
 		// Render any leftover characters.
 		if(numChars > 0){
 			// Upload the characters' states to the shader.
-			glBindBuffer(GL_ARRAY_BUFFER, g_spriteDefault.stateBufferID);
+			glBindBuffer(GL_ARRAY_BUFFER, g_guiSpriteDefault.stateBufferID);
 			glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(*curState) * numChars, &charStates[0]);
 			// Draw each character!
-			glDrawElementsInstanced(GL_TRIANGLES, g_spriteDefault.numIndices, GL_UNSIGNED_INT, NULL, numChars);
+			glDrawElementsInstanced(GL_TRIANGLES, g_guiSpriteDefault.numIndices, GL_UNSIGNED_INT, NULL, numChars);
 		}
 	}
 }

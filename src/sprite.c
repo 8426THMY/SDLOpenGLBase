@@ -7,9 +7,6 @@
 #define SPRITE_INVALID_BUFFER_ID 0
 
 
-sprite g_spriteDefault;
-
-
 void spriteInit(sprite *const restrict spriteData){
 	spriteData->vertexArrayID  = SPRITE_INVALID_BUFFER_ID;
 	spriteData->vertexBufferID = SPRITE_INVALID_BUFFER_ID;
@@ -104,38 +101,6 @@ return_t spriteVertexDifferent(const spriteVertex *const restrict v1, const spri
 // Return whether or not two sprites are different.
 return_t spriteDifferent(const sprite *const restrict s1, const sprite *const restrict s2){
 	return(s1->vertexArrayID != s2->vertexArrayID);
-}
-
-
-return_t spriteSetupDefault(){
-	const spriteVertex vertices[4] = {
-		{
-			.pos.x = -0.5f, .pos.y =  0.5f, .pos.z = 0.f,
-			.uv.x = 0.f, 0.f
-		},
-		{
-			.pos.x = -0.5f, .pos.y = -0.5f, .pos.z = 0.f,
-			.uv.x = 0.f, 1.f
-		},
-		{
-			.pos.x =  0.5f, .pos.y = -0.5f, .pos.z = 0.f,
-			.uv.x = 1.f, 1.f
-		},
-		{
-			.pos.x =  0.5f, .pos.y =  0.5f, .pos.z = 0.f,
-			.uv.x = 1.f, 0.f
-		}
-	};
-
-	const spriteVertexIndex_t indices[6] = {
-		0, 1, 2,
-		2, 3, 0
-	};
-
-	spriteGenerateBuffers(&g_spriteDefault, vertices, sizeof(vertices)/sizeof(*vertices), indices, sizeof(indices)/sizeof(*indices));
-
-
-	return(1);
 }
 
 

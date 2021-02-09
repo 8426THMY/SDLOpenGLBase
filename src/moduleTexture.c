@@ -17,7 +17,7 @@ return_t moduleTextureSetup(){
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_TEXTURE_MANAGER_SIZE)),
 			MODULE_TEXTURE_MANAGER_SIZE, MODULE_TEXTURE_ELEMENT_SIZE
 		) != NULL &&
-		textureSetupDefault()
+		textureSetup()
 	);
 }
 
@@ -25,6 +25,7 @@ void moduleTextureCleanup(){
 	MEMPOOL_LOOP_BEGIN(g_textureManager, i, texture)
 		moduleTextureFree(i);
 	MEMPOOL_LOOP_END(g_textureManager, i)
+	textureCleanup();
 	memPoolDelete(&g_textureManager, memoryManagerGlobalFree);
 }
 

@@ -10,8 +10,6 @@ typedef uint_least8_t flags_t;
 
 typedef int return_t;
 
-typedef uint32_t tick_t;
-
 
 #define valueInvalid(type) ((type)-1)
 #define valueIsInvalid(x, type) ((x) == ((type)-1))

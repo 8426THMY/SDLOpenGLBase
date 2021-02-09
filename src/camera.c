@@ -33,14 +33,18 @@ void cameraUpdateViewMatrix(camera *const restrict cam){
 }
 
 void cameraUpdateProjectionMatrix(camera *const restrict cam, const float windowWidth, const float windowHeight){
+	const float near = 0.1f/cam->fov;
+
 	// If the camera is set in projection mode, create a perspective matrix.
 	if(flagsAreSet(cam->flags, CAMERA_TYPE_FRUSTUM)){
-		mat4Perspective(&cam->projectionMatrix, cam->fov, windowWidth/windowHeight, 0.1f/cam->fov, 1000.f);
+		mat4Perspective(&cam->projectionMatrix, cam->fov, windowWidth/windowHeight, near, 1000.f);
 
 	// Otherwise, use an orthographic matrix.
 	}else{
-		const float screenSizeMod = 1.f/((windowWidth < windowHeight) ? windowWidth : windowHeight);
-		mat4Orthographic(&cam->projectionMatrix, windowWidth*screenSizeMod, -windowWidth*screenSizeMod, windowHeight*screenSizeMod, -windowHeight*screenSizeMod, 0.1f, 1000.f);
+		const float aspectRatio = 1.f/((windowWidth < windowHeight) ? windowWidth : windowHeight);
+		const float widthRatio  = windowWidth * aspectRatio;
+		const float heightRatio = windowHeight * aspectRatio;
+		mat4Orthographic(&cam->projectionMatrix, widthRatio, -widthRatio, heightRatio, -heightRatio, near, 1000.f);
 	}
 }
 

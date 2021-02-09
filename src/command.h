@@ -36,6 +36,7 @@
 
 typedef size_t commandNodeIndex_t;
 typedef uintptr_t command;
+typedef uint_least8_t cmdTimestamp_t;
 
 /*
 ** Console commands/variables and aliases are all stored in a trie.
@@ -72,9 +73,9 @@ typedef struct commandTokenized {
 	size_t argc;
 
 	// Time at which the command was sent to the buffer.
-	tick_t timestamp;
+	cmdTimestamp_t timestamp;
 	// Number of ticks to wait before executing the command.
-	tick_t delay;
+	cmdTimestamp_t delay;
 } commandTokenized;
 
 //
@@ -100,7 +101,7 @@ void cmdBufferInit(commandBuffer *const restrict cmdBuf);
 void cmdBufferAddCommand(
 	commandBuffer *const restrict cmdBuffer,
 	const char *str, const size_t strLength,
-	const tick_t timestamp, const tick_t delay
+	const cmdTimestamp_t timestamp, const cmdTimestamp_t delay
 );
 void cmdBufferExecute(commandBuffer *const restrict cmdBuf, commandSystem *const restrict cmdSys);
 void cmdBufferDelete(commandBuffer *const restrict cmdBuf);

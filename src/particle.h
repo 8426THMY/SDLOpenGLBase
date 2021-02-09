@@ -50,6 +50,9 @@ return_t particleCompare(const void *const restrict p1, const void *const restri
 void particleDelete(particle *const restrict part);
 void particleDefDelete(particleDef *const restrict partDef);
 
+return_t particleSetup();
+void particleCleanup();
+
 
 
 #endif

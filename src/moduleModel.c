@@ -17,7 +17,7 @@ return_t moduleModelSetup(){
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_MODEL_MANAGER_SIZE)),
 			MODULE_MODEL_MANAGER_SIZE, MODULE_MODEL_ELEMENT_SIZE
 		) != NULL &&
-		modelSetupDefault()
+		modelSetup()
 	);
 }
 
@@ -25,6 +25,7 @@ void moduleModelCleanup(){
 	MEMPOOL_LOOP_BEGIN(g_modelManager, i, model)
 		moduleModelFree(i);
 	MEMPOOL_LOOP_END(g_modelManager, i)
+	modelCleanup();
 	memPoolDelete(&g_modelManager, memoryManagerGlobalFree);
 }
 

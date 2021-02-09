@@ -150,16 +150,6 @@ mat4 mat4InitTranslateVec3C(const vec3 v){
 	return(mat4InitTranslateC(v.x, v.y, v.z));
 }
 
-// Initialise a matrix to a translation matrix using a vec4!
-void mat4InitTranslateVec4(mat4 *const restrict m, const vec4 *const restrict v){
-	mat4InitTranslate4(m, v->x, v->y, v->z, v->w);
-}
-
-// Initialise a matrix to a translation matrix using a vec4!
-mat4 mat4InitTranslateVec4C(const vec4 v){
-	return(mat4InitTranslate4C(v.x, v.y, v.z, v.w));
-}
-
 // Initialize a matrix from XYZ Euler angles (in radians)!
 void mat4InitEulerXYZ(mat4 *const restrict m, const float x, const float y, const float z){
 	const float cx = cosf(x);
@@ -712,124 +702,66 @@ mat4 mat4MultiplyMat4ByC(const mat4 m1, const mat4 m2){
 }
 
 
-// Translate a matrix!
-void mat4TranslatePre(mat4 *const restrict m, const float x, const float y, const float z){
-	m->m[0][0] += m->m[0][3] * x;
-	m->m[0][1] += m->m[0][3] * y;
-	m->m[0][2] += m->m[0][3] * z;
-
-	m->m[1][0] += m->m[1][3] * x;
-	m->m[1][1] += m->m[1][3] * y;
-	m->m[1][2] += m->m[1][3] * z;
-
-	m->m[2][0] += m->m[2][3] * x;
-	m->m[2][1] += m->m[2][3] * y;
-	m->m[2][2] += m->m[2][3] * z;
-
-	m->m[3][0] += m->m[3][3] * x;
-	m->m[3][1] += m->m[3][3] * y;
-	m->m[3][2] += m->m[3][3] * z;
-}
-
-// Translate a matrix!
-mat4 mat4TranslatePreC(mat4 m, const float x, const float y, const float z){
-	m.m[0][0] += m.m[0][3] * x;
-	m.m[0][1] += m.m[0][3] * y;
-	m.m[0][2] += m.m[0][3] * z;
-
-	m.m[1][0] += m.m[1][3] * x;
-	m.m[1][1] += m.m[1][3] * y;
-	m.m[1][2] += m.m[1][3] * z;
-
-	m.m[2][0] += m.m[2][3] * x;
-	m.m[2][1] += m.m[2][3] * y;
-	m.m[2][2] += m.m[2][3] * z;
-
-	m.m[3][0] += m.m[3][3] * x;
-	m.m[3][1] += m.m[3][3] * y;
-	m.m[3][2] += m.m[3][3] * z;
-
-	return(m);
-}
-
-// Translate a matrix!
-void mat4TranslatePre4(mat4 *const restrict m, const float x, const float y, const float z, const float w){
-	m->m[0][0] += m->m[0][3] * x;
-	m->m[0][1] += m->m[0][3] * y;
-	m->m[0][2] += m->m[0][3] * z;
-	m->m[0][3] += m->m[0][3] * w;
-
-	m->m[1][0] += m->m[1][3] * x;
-	m->m[1][1] += m->m[1][3] * y;
-	m->m[1][2] += m->m[1][3] * z;
-	m->m[1][3] += m->m[1][3] * w;
-
-	m->m[2][0] += m->m[2][3] * x;
-	m->m[2][1] += m->m[2][3] * y;
-	m->m[2][2] += m->m[2][3] * z;
-	m->m[2][3] += m->m[2][3] * w;
-
-	m->m[3][0] += m->m[3][3] * x;
-	m->m[3][1] += m->m[3][3] * y;
-	m->m[3][2] += m->m[3][3] * z;
-	m->m[3][3] += m->m[3][3] * w;
-}
-
-// Translate a matrix!
-mat4 mat4TranslatePre4C(mat4 m, const float x, const float y, const float z, const float w){
-	m.m[0][0] += m.m[0][3] * x;
-	m.m[0][1] += m.m[0][3] * y;
-	m.m[0][2] += m.m[0][3] * z;
-	m.m[0][3] += m.m[0][3] * w;
-
-	m.m[1][0] += m.m[1][3] * x;
-	m.m[1][1] += m.m[1][3] * y;
-	m.m[1][2] += m.m[1][3] * z;
-	m.m[1][3] += m.m[1][3] * w;
-
-	m.m[2][0] += m.m[2][3] * x;
-	m.m[2][1] += m.m[2][3] * y;
-	m.m[2][2] += m.m[2][3] * z;
-	m.m[2][3] += m.m[2][3] * w;
-
-	m.m[3][0] += m.m[3][3] * x;
-	m.m[3][1] += m.m[3][3] * y;
-	m.m[3][2] += m.m[3][3] * z;
-	m.m[3][3] += m.m[3][3] * w;
-
-	return(m);
-}
-
-// Translate a matrix by a vec3!
-void mat4TranslatePreVec3(mat4 *const restrict m, const vec3 *const restrict v){
-	mat4TranslatePre(m, v->x, v->y, v->z);
-}
-
-// Translate a matrix by a vec3!
-mat4 mat4TranslatePreVec3C(const mat4 m, const vec3 v){
-	return(mat4TranslatePreC(m, v.x, v.y, v.z));
-}
-
-// Translate a matrix by a vec4!
-void mat4TranslatePreVec4(mat4 *const restrict m, const vec4 *const restrict v){
-	mat4TranslatePre4(m, v->x, v->y, v->z, v->w);
-}
-
-// Translate a matrix by a vec4!
-mat4 mat4TranslatePreVec4C(const mat4 m, const vec4 v){
-	return(mat4TranslatePre4C(m, v.x, v.y, v.z, v.w));
-}
-
-// Translate a matrix!
+// Left-multiply a matrix by a translation matrix stored as three floats!
 void mat4Translate(mat4 *const restrict m, const float x, const float y, const float z){
+	m->m[0][0] += m->m[0][3] * x;
+	m->m[0][1] += m->m[0][3] * y;
+	m->m[0][2] += m->m[0][3] * z;
+
+	m->m[1][0] += m->m[1][3] * x;
+	m->m[1][1] += m->m[1][3] * y;
+	m->m[1][2] += m->m[1][3] * z;
+
+	m->m[2][0] += m->m[2][3] * x;
+	m->m[2][1] += m->m[2][3] * y;
+	m->m[2][2] += m->m[2][3] * z;
+
+	m->m[3][0] += m->m[3][3] * x;
+	m->m[3][1] += m->m[3][3] * y;
+	m->m[3][2] += m->m[3][3] * z;
+}
+
+// Left-multiply a matrix by a translation matrix stored as three floats!
+mat4 mat4TranslateC(mat4 m, const float x, const float y, const float z){
+	m.m[0][0] += m.m[0][3] * x;
+	m.m[0][1] += m.m[0][3] * y;
+	m.m[0][2] += m.m[0][3] * z;
+
+	m.m[1][0] += m.m[1][3] * x;
+	m.m[1][1] += m.m[1][3] * y;
+	m.m[1][2] += m.m[1][3] * z;
+
+	m.m[2][0] += m.m[2][3] * x;
+	m.m[2][1] += m.m[2][3] * y;
+	m.m[2][2] += m.m[2][3] * z;
+
+	m.m[3][0] += m.m[3][3] * x;
+	m.m[3][1] += m.m[3][3] * y;
+	m.m[3][2] += m.m[3][3] * z;
+
+	return(m);
+}
+
+// Left-multiply a matrix by a translation matrix stored as a vec3!
+void mat4TranslateVec3(mat4 *const restrict m, const vec3 *const restrict v){
+	mat4Translate(m, v->x, v->y, v->z);
+}
+
+// Left-multiply a matrix by a translation matrix stored as a vec3!
+mat4 mat4TranslateVec3C(const mat4 m, const vec3 v){
+	return(mat4TranslateC(m, v.x, v.y, v.z));
+}
+
+// Right-multiply a matrix by a translation matrix stored as three floats!
+void mat4TranslatePre(mat4 *const restrict m, const float x, const float y, const float z){
 	m->m[3][0] = m->m[0][0] * x + m->m[1][0] * y + m->m[2][0] * z + m->m[3][0];
 	m->m[3][1] = m->m[0][1] * x + m->m[1][1] * y + m->m[2][1] * z + m->m[3][1];
 	m->m[3][2] = m->m[0][2] * x + m->m[1][2] * y + m->m[2][2] * z + m->m[3][2];
 	m->m[3][3] = m->m[0][3] * x + m->m[1][3] * y + m->m[2][3] * z + m->m[3][3];
 }
 
-// Translate a matrix!
-mat4 mat4TranslateC(mat4 m, const float x, const float y, const float z){
+// Right-multiply a matrix by a translation matrix stored as three floats!
+mat4 mat4TranslatePreC(mat4 m, const float x, const float y, const float z){
 	m.m[3][0] = m.m[0][0] * x + m.m[1][0] * y + m.m[2][0] * z + m.m[3][0];
 	m.m[3][1] = m.m[0][1] * x + m.m[1][1] * y + m.m[2][1] * z + m.m[3][1];
 	m.m[3][2] = m.m[0][2] * x + m.m[1][2] * y + m.m[2][2] * z + m.m[3][2];
@@ -838,42 +770,40 @@ mat4 mat4TranslateC(mat4 m, const float x, const float y, const float z){
 	return(m);
 }
 
-// Translate a matrix!
-void mat4Translate4(mat4 *const restrict m, const float x, const float y, const float z, const float w){
-	m->m[3][0] = m->m[0][0] * x + m->m[1][0] * y + m->m[2][0] * z + m->m[3][0] * w;
-	m->m[3][1] = m->m[0][1] * x + m->m[1][1] * y + m->m[2][1] * z + m->m[3][1] * w;
-	m->m[3][2] = m->m[0][2] * x + m->m[1][2] * y + m->m[2][2] * z + m->m[3][2] * w;
-	m->m[3][3] = m->m[0][3] * x + m->m[1][3] * y + m->m[2][3] * z + m->m[3][3] * w;
+// Right-multiply a matrix by a translation matrix stored as a vec3!
+void mat4TranslatePreVec3(mat4 *const restrict m, const vec3 *const restrict v){
+	mat4TranslatePre(m, v->x, v->y, v->z);
 }
 
-// Translate a matrix!
-mat4 mat4Translate4C(mat4 m, const float x, const float y, const float z, const float w){
-	m.m[3][0] = m.m[0][0] * x + m.m[1][0] * y + m.m[2][0] * z + m.m[3][0] * w;
-	m.m[3][1] = m.m[0][1] * x + m.m[1][1] * y + m.m[2][1] * z + m.m[3][1] * w;
-	m.m[3][2] = m.m[0][2] * x + m.m[1][2] * y + m.m[2][2] * z + m.m[3][2] * w;
-	m.m[3][3] = m.m[0][3] * x + m.m[1][3] * y + m.m[2][3] * z + m.m[3][3] * w;
+// Right-multiply a matrix by a translation matrix stored as a vec3!
+mat4 mat4TranslatePreVec3C(const mat4 m, const vec3 v){
+	return(mat4TranslatePreC(m, v.x, v.y, v.z));
+}
+
+// Left-multiply a transformation matrix by a translation matrix stored as three floats!
+void mat4TranslateTransform(mat4 *const restrict m, const float x, const float y, const float z){
+	m->m[3][0] += x;
+	m->m[3][1] += y;
+	m->m[3][2] += z;
+}
+
+// Left-multiply a transformation matrix by a translation matrix stored as three floats!
+mat4 mat4TranslateTransformC(mat4 m, const float x, const float y, const float z){
+	m.m[3][0] += x;
+	m.m[3][1] += y;
+	m.m[3][2] += z;
 
 	return(m);
 }
 
-// Translate a matrix by a vec3!
-void mat4TranslateVec3(mat4 *const restrict m, const vec3 *const restrict v){
-	mat4Translate(m, v->x, v->y, v->z);
+// Left-multiply a transformation matrix by a translation matrix stored as a vec3!
+void mat4TranslateTransformVec3(mat4 *const restrict m, const vec3 *const restrict v){
+	mat4TranslateTransform(m, v->x, v->y, v->z);
 }
 
-// Translate a matrix by a vec3!
-mat4 mat4TranslateVec3C(const mat4 m, const vec3 v){
-	return(mat4TranslateC(m, v.x, v.y, v.z));
-}
-
-// Translate a matrix by a vec4!
-void mat4TranslateVec4(mat4 *const restrict m, const vec4 *const restrict v){
-	mat4Translate4(m, v->x, v->y, v->z, v->w);
-}
-
-// Translate a matrix by a vec4!
-mat4 mat4TranslateVec4C(const mat4 m, const vec4 v){
-	return(mat4Translate4C(m, v.x, v.y, v.z, v.w));
+// Left-multiply a transformation matrix by a translation matrix stored as a vec3!
+mat4 mat4TranslateTransformVec3C(const mat4 m, const vec3 v){
+	return(mat4TranslateTransformC(m, v.x, v.y, v.z));
 }
 
 
@@ -1283,7 +1213,7 @@ mat4 mat4RotateZC(const mat4 m, const float z){
 
 
 // Left-multiply a matrix by a scale matrix stored as three floats!
-void mat4ScalePre(mat4 *const restrict m, const float x, const float y, const float z){
+void mat4Scale(mat4 *const restrict m, const float x, const float y, const float z){
 	m->m[0][0] *= x;
 	m->m[0][1] *= y;
 	m->m[0][2] *= z;
@@ -1302,7 +1232,7 @@ void mat4ScalePre(mat4 *const restrict m, const float x, const float y, const fl
 }
 
 // Left-multiply a matrix by a scale matrix stored as three floats!
-mat4 mat4ScalePreC(mat4 m, const float x, const float y, const float z){
+mat4 mat4ScaleC(mat4 m, const float x, const float y, const float z){
 	m.m[0][0] *= x;
 	m.m[0][1] *= y;
 	m.m[0][2] *= z;
@@ -1323,7 +1253,7 @@ mat4 mat4ScalePreC(mat4 m, const float x, const float y, const float z){
 }
 
 // Left-multiply a matrix by a scale matrix stored as four floats!
-void mat4ScalePre4(mat4 *const restrict m, const float x, const float y, const float z, const float w){
+void mat4Scale4(mat4 *const restrict m, const float x, const float y, const float z, const float w){
 	m->m[0][0] *= x;
 	m->m[0][1] *= y;
 	m->m[0][2] *= z;
@@ -1346,7 +1276,7 @@ void mat4ScalePre4(mat4 *const restrict m, const float x, const float y, const f
 }
 
 // Left-multiply a matrix by a scale matrix stored as four floats!
-mat4 mat4ScalePre4C(mat4 m, const float x, const float y, const float z, const float w){
+mat4 mat4Scale4C(mat4 m, const float x, const float y, const float z, const float w){
 	m.m[0][0] *= x;
 	m.m[0][1] *= y;
 	m.m[0][2] *= z;
@@ -1371,27 +1301,27 @@ mat4 mat4ScalePre4C(mat4 m, const float x, const float y, const float z, const f
 }
 
 // Left-multiply a matrix by a scale matrix stored as a vec3!
-void mat4ScalePreVec3(mat4 *const restrict m, const vec3 *const restrict v){
-	mat4ScalePre(m, v->x, v->y, v->z);
+void mat4ScaleVec3(mat4 *const restrict m, const vec3 *const restrict v){
+	mat4Scale(m, v->x, v->y, v->z);
 }
 
 // Left-multiply a matrix by a scale matrix stored as a vec3!
-mat4 mat4ScalePreVec3C(mat4 m, const vec3 v){
-	return(mat4ScalePreC(m, v.x, v.y, v.z));
+mat4 mat4ScaleVec3C(mat4 m, const vec3 v){
+	return(mat4ScaleC(m, v.x, v.y, v.z));
 }
 
 // Left-multiply a matrix by a scale matrix stored as a vec4!
-void mat4ScalePreVec4(mat4 *const restrict m, const vec4 *const restrict v){
-	mat4ScalePre4(m, v->x, v->y, v->z, v->w);
+void mat4ScaleVec4(mat4 *const restrict m, const vec4 *const restrict v){
+	mat4Scale4(m, v->x, v->y, v->z, v->w);
 }
 
 // Left-multiply a matrix by a scale matrix stored as a vec4!
-mat4 mat4ScalePreVec4C(mat4 m, const vec4 v){
-	return(mat4ScalePre4C(m, v.x, v.y, v.z, v.w));
+mat4 mat4ScaleVec4C(mat4 m, const vec4 v){
+	return(mat4Scale4C(m, v.x, v.y, v.z, v.w));
 }
 
 // Right-multiply a matrix by a scale matrix stored as three floats!
-void mat4Scale(mat4 *const restrict m, const float x, const float y, const float z){
+void mat4ScalePre(mat4 *const restrict m, const float x, const float y, const float z){
 	m->m[0][0] *= x;
 	m->m[0][1] *= x;
 	m->m[0][2] *= x;
@@ -1409,7 +1339,7 @@ void mat4Scale(mat4 *const restrict m, const float x, const float y, const float
 }
 
 // Right-multiply a matrix by a scale matrix stored as three floats!
-mat4 mat4ScaleC(mat4 m, const float x, const float y, const float z){
+mat4 mat4ScalePreC(mat4 m, const float x, const float y, const float z){
 	m.m[0][0] *= x;
 	m.m[0][1] *= x;
 	m.m[0][2] *= x;
@@ -1429,7 +1359,7 @@ mat4 mat4ScaleC(mat4 m, const float x, const float y, const float z){
 }
 
 // Right-multiply a matrix by a scale matrix stored as four floats!
-void mat4Scale4(mat4 *const restrict m, const float x, const float y, const float z, const float w){
+void mat4ScalePre4(mat4 *const restrict m, const float x, const float y, const float z, const float w){
 	m->m[0][0] *= x;
 	m->m[0][1] *= x;
 	m->m[0][2] *= x;
@@ -1452,7 +1382,7 @@ void mat4Scale4(mat4 *const restrict m, const float x, const float y, const floa
 }
 
 // Right-multiply a matrix by a scale matrix stored as four floats!
-mat4 mat4Scale4C(mat4 m, const float x, const float y, const float z, const float w){
+mat4 mat4ScalePre4C(mat4 m, const float x, const float y, const float z, const float w){
 	m.m[0][0] *= x;
 	m.m[0][1] *= x;
 	m.m[0][2] *= x;
@@ -1477,23 +1407,23 @@ mat4 mat4Scale4C(mat4 m, const float x, const float y, const float z, const floa
 }
 
 // Right-multiply a matrix by a scale matrix stored as a vec3!
-void mat4ScaleVec3(mat4 *const restrict m, const vec3 *const restrict v){
-	mat4Scale(m, v->x, v->y, v->z);
+void mat4ScalePreVec3(mat4 *const restrict m, const vec3 *const restrict v){
+	mat4ScalePre(m, v->x, v->y, v->z);
 }
 
 // Right-multiply a matrix by a scale matrix stored as a vec3!
-mat4 mat4ScaleVec3C(mat4 m, const vec3 v){
-	return(mat4ScaleC(m, v.x, v.y, v.z));
+mat4 mat4ScalePreVec3C(mat4 m, const vec3 v){
+	return(mat4ScalePreC(m, v.x, v.y, v.z));
 }
 
 // Right-multiply a matrix by a scale matrix stored as a vec4!
-void mat4ScaleVec4(mat4 *const restrict m, const vec4 *const restrict v){
-	mat4Scale4(m, v->x, v->y, v->z, v->w);
+void mat4ScalePreVec4(mat4 *const restrict m, const vec4 *const restrict v){
+	mat4ScalePre4(m, v->x, v->y, v->z, v->w);
 }
 
 // Right-multiply a matrix by a scale matrix stored as a vec4!
-mat4 mat4ScaleVec4C(mat4 m, const vec4 v){
-	return(mat4Scale4C(m, v.x, v.y, v.z, v.w));
+mat4 mat4ScalePreVec4C(mat4 m, const vec4 v){
+	return(mat4ScalePre4C(m, v.x, v.y, v.z, v.w));
 }
 
 
@@ -1938,41 +1868,41 @@ return_t mat4CanInvertOut(const mat4 m, mat4 *const restrict out){
 
 // Generate an orthographic matrix!
 void mat4Orthographic(mat4 *const restrict m, const float right, const float left, const float top, const float bottom, const float near, const float far){
-	const float invRightMinLeft = 1.f/(right - left);
-	const float invTopMinBottom = 1.f/(top - bottom);
-	const float invNearMinFar   = 1.f/(near - far);
+	const float widthScale  = 1.f/(right - left);
+	const float heightScale = 1.f/(top - bottom);
+	const float depthScale  = 1.f/(near - far);
 
-	m->m[0][0] = invRightMinLeft + invRightMinLeft;
+	m->m[0][0] = 2.f*widthScale;
 	m->m[0][1] = 0.f;
 	m->m[0][2] = 0.f;
-	m->m[0][3] = -((right + left) * invRightMinLeft);
+	m->m[0][3] = 0.f;
 
 	m->m[1][0] = 0.f;
-	m->m[1][1] = invTopMinBottom + invTopMinBottom;
+	m->m[1][1] = 2.f*heightScale;
 	m->m[1][2] = 0.f;
-	m->m[1][3] = -((top + bottom) * invTopMinBottom);
+	m->m[1][3] = 0.f;
 
 	m->m[2][0] = 0.f;
 	m->m[2][1] = 0.f;
-	m->m[2][2] = invNearMinFar + invNearMinFar;
-	m->m[2][3] = ((near + far) * invNearMinFar);
+	m->m[2][2] = 2.f*depthScale;
+	m->m[2][3] = 0.f;
 
-	m->m[3][0] = 0.f;
-	m->m[3][1] = 0.f;
-	m->m[3][2] = 0.f;
+	m->m[3][0] = -((right + left) * widthScale);
+	m->m[3][1] = -((top + bottom) * heightScale);
+	m->m[3][2] = ((near + far) * depthScale);
 	m->m[3][3] = 1.f;
 }
 
 // Generate an orthographic matrix!
 mat4 mat4OrthographicC(const float right, const float left, const float top, const float bottom, const float near, const float far){
-	const float invRightMinLeft = 1.f/(right - left);
-	const float invTopMinBottom = 1.f/(top - bottom);
-	const float invNearMinFar   = 1.f/(near - far);
+	const float widthScale  = 1.f/(right - left);
+	const float heightScale = 1.f/(top - bottom);
+	const float depthScale  = 1.f/(near - far);
 	const mat4 m = {
-		.m[0][0] = invRightMinLeft + invRightMinLeft,   .m[0][1] = 0.f,                                 .m[0][2] = 0.f,                            .m[0][3] = 0.f,
-		.m[1][0] = 0.f,                                 .m[1][1] = invTopMinBottom + invTopMinBottom,   .m[1][2] = 0.f,                            .m[1][3] = 0.f,
-		.m[2][0] = 0.f,                                 .m[2][1] = 0.f,                                 .m[2][2] = invNearMinFar + invNearMinFar,  .m[2][3] = 0.f,
-		.m[3][0] = -((right + left) * invRightMinLeft), .m[3][1] = -((top + bottom) * invTopMinBottom), .m[3][2] = ((near + far) * invNearMinFar), .m[3][3] = 1.f
+		.m[0][0] =                 2.f*widthScale, .m[0][1] =                             0.f, .m[0][2] =                         0.f, .m[0][3] = 0.f,
+		.m[1][0] =                            0.f, .m[1][1] =                 2.f*heightScale, .m[1][2] =                         0.f, .m[1][3] = 0.f,
+		.m[2][0] =                            0.f, .m[2][1] =                             0.f, .m[2][2] =              2.f*depthScale, .m[2][3] = 0.f,
+		.m[3][0] = -((right + left) * widthScale), .m[3][1] = -((top + bottom) * heightScale), .m[3][2] = ((near + far) * depthScale), .m[3][3] = 1.f
 	};
 
 	return(m);

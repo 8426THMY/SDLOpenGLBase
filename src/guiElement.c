@@ -7,6 +7,9 @@
 #include "memoryManager.h"
 
 
+sprite g_guiSpriteDefault;
+
+
 void (*const guiElementUpdateTable[GUI_ELEMENT_NUM_TYPES])(guiElement *const restrict gui, const float time) = {
 	guiPanelUpdate,
 	guiTextUpdate
@@ -50,10 +53,11 @@ void guiElementDraw(
 	//
 	// To help prevent texturing artifacts, we start from the middle of
 	// the lower-left pixel and end at the middle of the upper-right pixel.
-	#warning "We still get artifacts. Maybe use integer positions and scales for elements?"
-	#warning "Also, it'd be nice if we could move this into our camera."
-	//mat4Orthographic(&viewProjectionMatrix, (windowWidth - 1)*0.5f, -(windowWidth - 1)*0.5f, (windowHeight - 1)*0.5f, -(windowHeight - 1)*0.5f, -1000.f, 1000.f);
-	mat4InitScale(&viewProjectionMatrix, 2.f/(windowWidth - 1), 2.f/(windowHeight - 1), -1.f/1000.f);
+	//
+	// We treat the top-left corner of the screen as the origin, with the
+	// x-axis increasing to the right and the y-axis increasing downwards.
+	#warning "Tiles are streched by one pixel when they're close to the top or left sides of the window."
+	mat4Orthographic(&viewProjectionMatrix, (float)windowWidth - 0.5f, 0.5f, -0.5f, 0.5f - (float)windowHeight, 0.f, 1.f);
 	glUniformMatrix4fv(shader->vpMatrixID, 1, GL_FALSE, (GLfloat *)&viewProjectionMatrix);
 
 	guiElementDrawTable[gui->type](gui, shader);
@@ -62,4 +66,40 @@ void guiElementDraw(
 
 void guiElementDelete(guiElement *const restrict gui){
 	guiElementDeleteTable[gui->type](gui);
+}
+
+
+return_t guiElementSetup(){
+	const spriteVertex vertices[4] = {
+		{
+			.pos.x = 0.f, .pos.y =  0.f, .pos.z = 0.f,
+			.uv.x = 0.f, 0.f
+		},
+		{
+			.pos.x = 0.f, .pos.y = -1.f, .pos.z = 0.f,
+			.uv.x = 0.f, 1.f
+		},
+		{
+			.pos.x = 1.f, .pos.y = -1.f, .pos.z = 0.f,
+			.uv.x = 1.f, 1.f
+		},
+		{
+			.pos.x = 1.f, .pos.y =  0.f, .pos.z = 0.f,
+			.uv.x = 1.f, 0.f
+		}
+	};
+
+	const spriteVertexIndex_t indices[6] = {
+		0, 1, 2,
+		2, 3, 0
+	};
+
+	spriteGenerateBuffers(&g_guiSpriteDefault, vertices, sizeof(vertices)/sizeof(*vertices), indices, sizeof(indices)/sizeof(*indices));
+
+
+	return(1);
+}
+
+void guiElementCleanup(){
+	spriteDelete(&g_guiSpriteDefault);
 }

@@ -38,7 +38,7 @@ void billboardState(const billboard *const restrict billboardData, const camera 
 		// Scale the renderable based on its distance from the camera.
 		if(flagsAreSet(billboardData->flags, BILLBOARD_SCALE)){
 			const float distance = cameraDistance(cam, &centroid) * billboardData->scale;
-			mat4Scale(&rootState, distance, distance, distance);
+			mat4ScalePre(&rootState, distance, distance, distance);
 		}
 
 	// Lock some axes to prevent billboarding around them.
@@ -85,7 +85,7 @@ void billboardState(const billboard *const restrict billboardData, const camera 
 		// Scale the renderable based on its distance from the camera.
 		if(flagsAreSet(billboardData->flags, BILLBOARD_SCALE)){
 			const float distance = cameraDistance(cam, &centroid) * billboardData->scale;
-			mat4ScalePre(&rootState, distance, distance, distance);
+			mat4Scale(&rootState, distance, distance, distance);
 		}
 
 		// Rotate the matrix to face the target and move it back to where it was.
@@ -97,7 +97,7 @@ void billboardState(const billboard *const restrict billboardData, const camera 
 	}else{
 		if(flagsAreSet(billboardData->flags, BILLBOARD_SCALE)){
 			const float distance = cameraDistance(cam, &centroid) * billboardData->scale;
-			mat4Scale(&rootState, distance, distance, distance);
+			mat4ScalePre(&rootState, distance, distance, distance);
 		}
 	}
 
