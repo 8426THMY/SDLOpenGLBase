@@ -87,12 +87,11 @@ void programLoop(program *const restrict prg){
 		if(curTime >= nextUpdate){
 			input(prg);
 			update(prg);
+			nextUpdate += prg->step.updateTime;
 
 			++updates;
-			nextUpdate += prg->step.updateTime;
+		#ifndef PRG_ENABLE_EFFICIENT_RENDERING
 		}else{
-			#warning "If the next render preceeds the next update, can we just render the frame now (with the appropriate delta), then sleep until the right time before swapping the buffers?"
-			#warning "This would be a far more efficient use of time that runs less of a risk of rendering running through updating."
 			// Make sure we don't exceed our framerate cap!
 			if(curTime >= nextRender){
 				// Get our progress through the current update!
@@ -100,16 +99,15 @@ void programLoop(program *const restrict prg){
 					1.f - (nextUpdate - curTime) * prg->step.updateTickrate, 0.f, 1.f
 				);
 				render(prg);
+				nextRender = curTime + prg->step.renderTime;
 
 				++renders;
-				nextRender = curTime + prg->step.renderTime;
 			}
 
 			// Print our update rate and framerate every second!
 			if(curTime >= nextPrint){
 				printf("Updates: %u\n", updates);
 				printf("Renders: %u\n", renders);
-
 				updates = 0;
 				renders = 0;
 
@@ -118,12 +116,48 @@ void programLoop(program *const restrict prg){
 		}
 
 		// Sleep until the next update or render.
-		{
-			const float timeLeft = minFloat(nextUpdate, nextRender) - timerGetTimeFloat();
-			if(timeLeft > 0.f){
-				sleepAccurate((time32_t)timeLeft);
+		sleepUntilFloat(minFloat(nextUpdate, nextRender));
+		#else
+		}else{
+			// If there are no updates between the next render, start rendering now
+			// and sleep until the normal render time before swapping the buffers.
+			if(nextRender < nextUpdate){
+				const float nextRenderTime = maxFloat(nextRender, curTime);
+				prg->step.renderDelta = clampFloat(
+					1.f - (nextUpdate - nextRenderTime) * prg->step.updateTickrate, 0.f, 1.f
+				);
+				render(prg);
+
+				// We may have to sleep until the actual time of
+				// the next render before swapping the buffers.
+				sleepUntilFloat(nextRender);
+				#warning "Can we keep this inside the render function?"
+				#if GFX_ENABLE_DOUBLEBUFFERING
+				SDL_GL_SwapWindow(prg->window);
+				#else
+				glFlush();
+				#endif
+				nextRender = nextRenderTime + prg->step.renderTime;
+
+				++renders;
+
+			// If there's an update before the next render, we can sleep until it.
+			}else{
+				// Sleep until the next update.
+				sleepUntilFloat(nextUpdate);
+			}
+
+			// Print our update rate and framerate every second!
+			if(curTime >= nextPrint){
+				printf("Updates: %u\n", updates);
+				printf("Renders: %u\n", renders);
+				updates = 0;
+				renders = 0;
+
+				nextPrint = curTime + 1000.f;
 			}
 		}
+		#endif
 	}
 }
 
@@ -370,10 +404,12 @@ static void render(program *const restrict prg){
 	guiElementDraw(&gui, prg->windowWidth, prg->windowHeight, &prg->spriteShader);
 
 
+	#ifndef PRG_ENABLE_EFFICIENT_RENDERING
 	#if GFX_ENABLE_DOUBLEBUFFERING
 	SDL_GL_SwapWindow(prg->window);
 	#else
 	glFlush();
+	#endif
 	#endif
 }
 

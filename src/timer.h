@@ -32,13 +32,15 @@ time32_t timerGetTime();
 float timerGetTimeFloat();
 
 timerVal_t timerStart();
-time32_t timerEnd(const timerVal_t start);
-float timerEndFloat(const timerVal_t start);
+time32_t timerStop(const timerVal_t start);
+float timerStopFloat(const timerVal_t start);
 
 void sleepResolution(const time32_t ms, const unsigned int res);
 void sleepInaccurate(const time32_t ms);
 void sleepAccurate(const time32_t ms);
 void sleepBusy(const time32_t ms);
+void sleepUntil(const time32_t end);
+void sleepUntilFloat(const float end);
 
 
 #endif

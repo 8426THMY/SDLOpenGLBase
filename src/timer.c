@@ -153,7 +153,7 @@ timerVal_t timerStart(){
 }
 
 // Return how many milliseconds have elapsed since "start".
-time32_t timerEnd(const timerVal_t start){
+time32_t timerStop(const timerVal_t start){
 	#ifdef _WIN32
 		timerVal_t end;
 		QueryPerformanceCounter(&end);
@@ -171,7 +171,7 @@ time32_t timerEnd(const timerVal_t start){
 }
 
 // Return how many milliseconds have elapsed since "start".
-float timerEndFloat(const timerVal_t start){
+float timerStopFloat(const timerVal_t start){
 	#ifdef _WIN32
 		timerVal_t end;
 		QueryPerformanceCounter(&end);
@@ -243,6 +243,20 @@ void sleepBusy(const time32_t ms){
 		while(now = timerStart(), ((time64_t)now.tv_sec * 1000000000 + (time64_t)now.tv_usec) < end);
 		#endif
 	#endif
+}
+
+void sleepUntil(const time32_t end){
+	const time32_t timeLeft = end - timerGetTime();
+	if(timeLeft >= 1){
+		sleepAccurate(timeLeft);
+	}
+}
+
+void sleepUntilFloat(const float end){
+	const float timeLeft = end - timerGetTimeFloat();
+	if(timeLeft >= 1.f){
+		sleepAccurate((time32_t)timeLeft);
+	}
 }
 
 
