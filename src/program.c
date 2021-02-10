@@ -91,6 +91,8 @@ void programLoop(program *const restrict prg){
 			++updates;
 			nextUpdate += prg->step.updateTime;
 		}else{
+			#warning "If the next render preceeds the next update, can we just render the frame now (with the appropriate delta), then sleep until the right time before swapping the buffers?"
+			#warning "This would be a far more efficient use of time that runs less of a risk of rendering running through updating."
 			// Make sure we don't exceed our framerate cap!
 			if(curTime >= nextRender){
 				// Get our progress through the current update!
