@@ -10,9 +10,9 @@
 
 	typedef LARGE_INTEGER timerVal_t;
 #else
-	#if HAVE_CLOCK_GETTIME
-		#include <time.h>
+	#include <sys/time.h>
 
+	#if HAVE_CLOCK_GETTIME
 		typedef struct timespec timerVal_t;
 	#else
 		typedef struct timeval timerVal_t;

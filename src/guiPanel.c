@@ -49,7 +49,6 @@ void guiPanelUpdate(guiElement *const restrict gui, const float time){
 	texGroupStateUpdate(&(gui->data.panel.bodyTexState), time);
 }
 
-#warning "If elements are not being rendered at the correct pixel scale, we may need to round positions and scales."
 void guiPanelDraw(
 	const guiElement *const restrict gui, const spriteShader *const restrict shader
 ){
@@ -60,15 +59,15 @@ void guiPanelDraw(
 
 	const rectangle *offsets = gui->data.panel.uvCoords;
 	const float cornerPos[2] = {
-		gui->root.pos.x,
-		gui->root.pos.y
+		floorf(gui->root.pos.x),
+		floorf(gui->root.pos.y)
 	};
 	const float bodyPos[2] = {
-		cornerPos[0] + offsets[2].w * borderFrame->tex->width,
-		cornerPos[1] - offsets[2].h * borderFrame->tex->height
+		cornerPos[0] + roundf(offsets[2].w * borderFrame->tex->width),
+		cornerPos[1] - roundf(offsets[2].h * borderFrame->tex->height)
 	};
-	const float bodyWidth  = gui->root.scale.x;
-	const float bodyHeight = gui->root.scale.y;
+	const float bodyWidth  = roundf(gui->root.scale.x);
+	const float bodyHeight = roundf(gui->root.scale.y);
 	float tempHeight;
 
 
@@ -85,7 +84,7 @@ void guiPanelDraw(
 	#warning "Neither is panel rotation."
 	// Set up the bottom-right corner's state.
 	mat4InitScale(&panelStates[0].state,
-		offsets[0].w * borderFrame->tex->width, offsets[0].h * borderFrame->tex->height, 1.f
+		roundf(offsets[0].w * borderFrame->tex->width), roundf(offsets[0].h * borderFrame->tex->height), 1.f
 	);
 	mat4TranslateTransform(&panelStates[0].state, bodyPos[0] + bodyWidth, bodyPos[1] - bodyHeight, 0.f);
 
@@ -94,7 +93,7 @@ void guiPanelDraw(
 
 	// Set up the top-right corner's state.
 	mat4InitScale(&panelStates[1].state,
-		offsets[1].w * borderFrame->tex->width, offsets[1].h * borderFrame->tex->height, 1.f
+		roundf(offsets[1].w * borderFrame->tex->width), roundf(offsets[1].h * borderFrame->tex->height), 1.f
 	);
 	mat4TranslateTransform(&panelStates[1].state, bodyPos[0] + bodyWidth, cornerPos[1], 0.f);
 
@@ -110,7 +109,7 @@ void guiPanelDraw(
 
 	// Set up the bottom-left corner's state.
 	mat4InitScale(&panelStates[3].state,
-		offsets[3].w * borderFrame->tex->width, offsets[3].h * borderFrame->tex->height, 1.f
+		roundf(offsets[3].w * borderFrame->tex->width), roundf(offsets[3].h * borderFrame->tex->height), 1.f
 	);
 	mat4TranslateTransform(&panelStates[3].state, cornerPos[0], bodyPos[1] - bodyHeight, 0.f);
 
@@ -118,7 +117,7 @@ void guiPanelDraw(
 
 
 	// Set up the right edge's state.
-	tempHeight = offsets[4].h * borderFrame->tex->height;
+	tempHeight = roundf(offsets[4].h * borderFrame->tex->height);
 	mat4InitScale(&panelStates[4].state, bodyHeight, tempHeight, 1.f);
 	mat4RotateZ(&panelStates[4].state, -M_PI_2);
 	mat4TranslateTransform(&panelStates[4].state, bodyPos[0] + bodyWidth + tempHeight, bodyPos[1], 0.f);
@@ -127,14 +126,14 @@ void guiPanelDraw(
 
 
 	// Set up the top edge's state.
-	mat4InitScale(&panelStates[5].state, bodyWidth, offsets[5].h * borderFrame->tex->height, 1.f);
+	mat4InitScale(&panelStates[5].state, bodyWidth, roundf(offsets[5].h * borderFrame->tex->height), 1.f);
 	mat4TranslateTransform(&panelStates[5].state, bodyPos[0], cornerPos[1], 0.f);
 
 	panelStates[5].uvOffsets = offsets[5];
 
 
 	// Set up the left edge's state.
-	mat4InitScale(&panelStates[6].state, bodyHeight, offsets[6].h * borderFrame->tex->height, 1.f);
+	mat4InitScale(&panelStates[6].state, bodyHeight, roundf(offsets[6].h * borderFrame->tex->height), 1.f);
 	mat4RotateZ(&panelStates[6].state, M_PI_2);
 	mat4TranslateTransform(&panelStates[6].state, cornerPos[0], bodyPos[1] - bodyHeight, 0.f);
 
@@ -142,7 +141,7 @@ void guiPanelDraw(
 
 
 	// Set up the bottom edge's state.
-	tempHeight = offsets[7].h * borderFrame->tex->height;
+	tempHeight = roundf(offsets[7].h * borderFrame->tex->height);
 	mat4InitScale(&panelStates[7].state, bodyWidth, tempHeight, 1.f);
 	mat4RotateZ(&panelStates[7].state, M_PI);
 	mat4TranslateTransform(&panelStates[7].state, bodyPos[0] + bodyWidth, bodyPos[1] - bodyHeight - tempHeight, 0.f);

@@ -51,15 +51,8 @@ void guiElementDraw(
 	// We use a scale matrix as the view-projection matrix
 	// so our interface's size can be specified in pixels.
 	//
-	#warning "Tiles are streched by one pixel when they're close to the top or left sides of the window when we do this."
-	/// To help prevent texturing artifacts, we start from the middle of
-	/// the lower-left pixel and end at the middle of the upper-right pixel.
-	//
 	// We treat the top-left corner of the screen as the origin, with the
-	// x-axis increasing to the right and the y-axis increasing downwards.
-	//mat4Orthographic(&viewProjectionMatrix, (float)windowWidth - 0.5f, 0.5f, -0.5f, 0.5f - (float)windowHeight, 0.f, 1.f);
-	#warning "This seems to work though."
-	#warning "If we have any issues, we might need to round the positions and scales of GUI elements."
+	// x-axis increasing to the right and the y-axis increasing upwards.
 	mat4Orthographic(&viewProjectionMatrix, (float)windowWidth, 0.f, 0.f, -(float)windowHeight, 0.f, 1.f);
 	glUniformMatrix4fv(shader->vpMatrixID, 1, GL_FALSE, (GLfloat *)&viewProjectionMatrix);
 

@@ -115,7 +115,7 @@ void guiTextDraw(
 
 
 				#warning "This should use the same code that makes panels render correctly!"
-				#warning "It's mostly fine like this, but we may need to round positions and scales if it's an issue for panels."
+				#warning "It's mostly fine like this, but we need to round positions and scales like with panels."
 				curState->state = rootTransform;
 				// Set the sprite's position and scale.
 				mat4TranslatePre(&curState->state, translateX, translateY, 0.f);

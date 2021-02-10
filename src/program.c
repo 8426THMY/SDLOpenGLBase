@@ -368,7 +368,11 @@ static void render(program *const restrict prg){
 	guiElementDraw(&gui, prg->windowWidth, prg->windowHeight, &prg->spriteShader);
 
 
+	#if GFX_ENABLE_DOUBLEBUFFERING
 	SDL_GL_SwapWindow(prg->window);
+	#else
+	glFlush();
+	#endif
 }
 
 
@@ -381,6 +385,12 @@ static return_t initLibs(program *const restrict prg){
 		);
 		return(0);
 	}
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, GFX_DEFAULT_GL_VERSION_MAJOR);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, GFX_DEFAULT_GL_VERSION_MINOR);
+	SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
+	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, GFX_ENABLE_DOUBLEBUFFERING);
+	SDL_GL_SetSwapInterval(0);
 
 	// Initialize the SDL2 Image library!
 	if(!IMG_Init(IMG_INIT_PNG)){
@@ -415,11 +425,12 @@ static return_t initLibs(program *const restrict prg){
 		return(0);
 	}
 
+	#ifdef _WIN32
 	#warning "SDL has a nasty tendency to set the timer resolution and forget about it, which just drains power."
 	#warning "Although we don't use SDL's timers, it does, so this might break stuff somewhere."
 	timeEndPeriod(1);
+	#endif
 	// SDL_ShowCursor(SDL_DISABLE);
-	SDL_GL_SetSwapInterval(0);
 
 
 	// Initialize the GLEW library!
@@ -711,7 +722,7 @@ static return_t initResources(program *const restrict prg){
 
 
 	/** TEMPORARY FONT STUFF **/
-	#if 1
+	#if 0
 	guiElementSetup();
 	const texture *atlasArray[2] = {
 		textureLoad("gui/PxPlusIBMBIOS.0.tdt", sizeof("gui/PxPlusIBMBIOS.0.tdt")),

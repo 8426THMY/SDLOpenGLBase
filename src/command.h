@@ -2,6 +2,7 @@
 #define command_h
 
 
+#include <stddef.h>
 #include <stdint.h>
 
 #include "utilTypes.h"

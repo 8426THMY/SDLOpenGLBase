@@ -1,7 +1,7 @@
 CC=gcc
 CFLAGS=-Wall -pedantic -O3 -ffast-math -ffloat-store -fno-unsafe-math-optimizations -Isrc
 ifeq ($(OS), Windows_NT)
-	LIBS=-lglew32s -lmingw32 -lopengl32 -lwinmm
+	LIBS=-lwinmm -lglew32s -lmingw32 -lopengl32
 	EXE=bin/NewSDLOpenGLBase.exe
 else
 	LIBS=-lm -lGLEW -lGL
