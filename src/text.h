@@ -8,6 +8,8 @@
 #include "utilTypes.h"
 
 
+// Write to text buffers using a loop rather than smart memcpy.
+//#define TEXT_BUFFER_LOOP_WRITE
 #define TEXT_BUFFER_USE_FLAG_BYTE
 
 #define TEXT_BUFFER_FLAG_DEFAULT   0x00

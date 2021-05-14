@@ -19,6 +19,9 @@
 **
 ** This may possibly help maintain the framerate limit when rendering
 ** by anticipating lag spikes and using otherwise wasted time to draw.
+**
+** In reality, this doesn't seem to make a difference.
+** This is likely a result of how OpenGL buffers draw calls.
 */
 #define PRG_ENABLE_EFFICIENT_RENDERING
 

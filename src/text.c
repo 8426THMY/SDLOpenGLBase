@@ -90,7 +90,25 @@ return_t textBufferFinishedReading(const textBuffer *const restrict buffer, cons
 ** when part of a multi-byte UTF-8 code point was
 ** overwritten, so we don't need to check here.
 */
+#warning "It would be good to benchmark the for loop versus the memcpy approach some time."
 void textBufferWrite(textBuffer *const restrict buffer, const char *restrict str, size_t strLength){
+	#ifdef TEXT_BUFFER_LOOP_WRITE
+	for(; strLength > 0; ++str, --strLength){
+		*buffer->cursor = *str;
+		++buffer->cursor;
+
+		// If we've reached the end of the
+		// buffer, loop back to the start.
+		if(buffer->cursor >= buffer->end){
+			buffer->cursor = buffer->start;
+			#ifdef TEXT_BUFFER_USE_FLAG_BYTE
+			buffer->full = TEXT_BUFFER_FLAG_FULL;
+			#else
+			buffer->start = textBufferSetFull(buffer->start);
+			#endif
+		}
+	}
+	#else
 	#ifdef TEXT_BUFFER_USE_FLAG_BYTE
 	const size_t bufferLength = (size_t)memorySubPointer(buffer->end, buffer->start);
 	#else
@@ -135,6 +153,7 @@ void textBufferWrite(textBuffer *const restrict buffer, const char *restrict str
 		memcpy(buffer->cursor, str, strLength);
 		buffer->cursor += strLength;
 	}
+	#endif
 }
 
 // Read and return a single ASCII character from the specified stream.

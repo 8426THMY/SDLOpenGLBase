@@ -3,22 +3,61 @@
 
 #include <SDL2/SDL.h>
 
+#include <stdio.h>
+
+#include "cvars.h"
 #include "memoryManager.h"
 
 
+#ifdef C_MOUSEMOVE_FAST
+	// Must be large enough for "mousemove x y", where
+	// x and y are guaranteed to be exactly 5 bytes.
+	#define MOTION_CMD_BUFFER_MAX_LENGTH 22
+#else
+	// Must be large enough for "mousemove x y", where x and y
+	// can be no more than 5 digits (or 6 counting the sign).
+	#define MOTION_CMD_BUFFER_MAX_LENGTH 24
+#endif
+
+
 // Forward-declare any helper functions!
+#ifdef C_MOUSEMOVE_FAST
+static void mouseMotionIntToStr(char *str, const int i);
+#endif
+static void mouseMotionAddCommand(
+	commandBuffer *const restrict cmdBuffer,
+	int *const restrict mouseDeltaX, int *const restrict mouseDeltaY,
+	const cmdTimestamp_t mouseDeltaTime
+);
+
 static void inputBindingDelete(inputBinding *const restrict keybind);
 
 
+// Initialize each keybind.
 void inputMngrInit(inputManager *const restrict inputMngr){
-	memset(inputMngr, 0, sizeof(*inputMngr));
+	inputBinding *curBind = inputMngr->keyboardBinds;
+	const inputBinding *lastBind = &curBind[INPUT_NUM_KEYBOARD_KEYS];
+	int id = 0;
+	// Delete all of the keyboard bindings.
+	for(; curBind < lastBind; ++curBind, ++id){
+		curBind->id = id;
+		curBind->binding = NULL;
+	}
+
+	curBind = inputMngr->mouseBinds;
+	lastBind = &curBind[INPUT_NUM_MOUSE_BUTTONS];
+	id = 0;
+	// Delete all of the mouse bindings.
+	for(; curBind < lastBind; ++curBind, ++id){
+		curBind->id = id;
+		curBind->binding = NULL;
+	}
 }
 
 
-void inputMngrBind(inputManager *const restrict inputMngr, const int id, const char *const binding, const size_t bindingLength){
-	inputBinding *const keybind = &inputMngr->keybinds[id];
+void inputMngrKeyboardBind(inputManager *const restrict inputMngr, const int id, const char *const binding, const size_t bindingLength){
+	inputBinding *const keybind = &inputMngr->keyboardBinds[id];
 
-	keybind->id = id;
 	// If the key has already been bound, we
 	// should replace it with the new bind.
 	if(keybind == NULL){
@@ -34,35 +73,76 @@ void inputMngrBind(inputManager *const restrict inputMngr, const int id, const c
 	keybind->bindingLength = bindingLength;
 }
 
-void inputMngrUnbind(inputManager *const restrict inputMngr, const int id){
-	inputBindingDelete(&inputMngr->keybinds[id]);
+void inputMngrMouseBind(inputManager *const restrict inputMngr, const int id, const char *const binding, const size_t bindingLength){
+	inputBinding *const keybind = &inputMngr->mouseBinds[id];
+
+	// If the button has already been bound, we
+	// should replace it with the new bind.
+	if(keybind == NULL){
+		keybind->binding = memoryManagerGlobalRealloc(keybind->binding, bindingLength * sizeof(*binding));
+	}else{
+		keybind->binding = memoryManagerGlobalAlloc(bindingLength * sizeof(*binding));
+	}
+	if(keybind->binding == NULL){
+		/** REALLOC FAILED **/
+		/** MALLOC FAILED **/
+	}
+	memcpy(keybind->binding, binding, bindingLength * sizeof(*binding));
+	keybind->bindingLength = bindingLength;
+}
+
+void inputMngrKeyboardUnbind(inputManager *const restrict inputMngr, const int id){
+	inputBindingDelete(&inputMngr->keyboardBinds[id]);
+}
+
+void inputMngrMouseUnbind(inputManager *const restrict inputMngr, const int id){
+	inputBindingDelete(&inputMngr->mouseBinds[id]);
 }
 
 
 void inputMngrTakeInput(inputManager *const restrict inputMngr, commandBuffer *const restrict cmdBuffer){
 	inputBinding *keybind;
 
+	// Used for tracking mouse movement between commands.
+	int mouseDeltaX = 0;
+	int mouseDeltaY = 0;
+	cmdTimestamp_t mouseDeltaTime = 0;
+
 	SDL_Event event;
+
+	// Make sure the real mouse deltas are
+	// reset in case the mouse was not moved.
+	cv_mouse_dx = 0;
+	cv_mouse_dy = 0;
+
+	#warning "I think this can cause microstutters. If it gets bad, consider using 'SDL_PeepEvents' so we aren't constantly calling 'SDL_PumpEvents'."
 	while(SDL_PollEvent(&event)){
 		switch(event.type){
+			// Ideally, we shouldn't have to handle this here.
+			case SDL_QUIT:
+				cv_prg_running = 0;
+			break;
+
 			// A keyboard key has been pressed.
 			case SDL_KEYDOWN:
-				keybind = &inputMngr->keybinds[inputMngrKeyboardID(event.key.keysym.scancode)];
+				keybind = &inputMngr->keyboardBinds[event.key.keysym.scancode];
 				// Make sure the key was only just pressed
 				// this tick and it has a valid binding.
 				if(!event.key.repeat && keybind->binding != NULL){
+					mouseMotionAddCommand(cmdBuffer, &mouseDeltaX, &mouseDeltaY, mouseDeltaTime);
 					cmdBufferAddCommand(cmdBuffer, keybind->binding, keybind->bindingLength, event.key.timestamp, 0);
 				}
 			break;
 
 			// A keyboard key has been released.
 			case SDL_KEYUP:
-				keybind = &inputMngr->keybinds[inputMngrKeyboardID(event.key.keysym.scancode)];
+				keybind = &inputMngr->keyboardBinds[event.key.keysym.scancode];
 				// Make sure the key was only just released
 				// this tick and it has a valid binding.
 				if(!event.key.repeat && keybind->binding != NULL){
 					// If the command begins with a '+', we should execute its '-' pair.
 					if(keybind->binding[0] == '+'){
+						mouseMotionAddCommand(cmdBuffer, &mouseDeltaX, &mouseDeltaY, mouseDeltaTime);
 						keybind->binding[0] = '-';
 						cmdBufferAddCommand(cmdBuffer, keybind->binding, keybind->bindingLength, event.key.timestamp, 0);
 						keybind->binding[0] = '+';
@@ -70,28 +150,34 @@ void inputMngrTakeInput(inputManager *const restrict inputMngr, commandBuffer *c
 				}
 			break;
 
+			// Every time the cursor is moved, we need to update the deltas.
+			// The total movement gets added to the buffer when a different
+			// command is issued, and these deltas get reset. This lets us
+			// handle mouse movement between other keypresses.
 			case SDL_MOUSEMOTION:
-				// The cursor was moved.
-				inputMngr->mx += event.motion.xrel;
-				inputMngr->my += event.motion.yrel;
+				mouseDeltaX += event.motion.xrel;
+				mouseDeltaY += event.motion.yrel;
+				mouseDeltaTime = event.motion.timestamp;
 			break;
 
 			// A mouse button has been pressed.
 			case SDL_MOUSEBUTTONDOWN:
-				keybind = &inputMngr->keybinds[event.button.button - 1];
+				keybind = &inputMngr->mouseBinds[event.button.button - 1];
 				// Make sure the button has a valid binding.
 				if(keybind->binding != NULL){
+					mouseMotionAddCommand(cmdBuffer, &mouseDeltaX, &mouseDeltaY, mouseDeltaTime);
 					cmdBufferAddCommand(cmdBuffer, keybind->binding, keybind->bindingLength, event.button.timestamp, 0);
 				}
 			break;
 
 			// A mouse button has been released.
 			case SDL_MOUSEBUTTONUP:
-				keybind = &inputMngr->keybinds[event.button.button - 1];
+				keybind = &inputMngr->mouseBinds[event.button.button - 1];
 				// Make sure the button has a valid binding.
 				if(keybind->binding != NULL){
 					// If the command begins with a '+', we should execute its '-' pair.
 					if(keybind->binding[0] == '+'){
+						mouseMotionAddCommand(cmdBuffer, &mouseDeltaX, &mouseDeltaY, mouseDeltaTime);
 						keybind->binding[0] = '-';
 						cmdBufferAddCommand(cmdBuffer, keybind->binding, keybind->bindingLength, event.button.timestamp, 0);
 						keybind->binding[0] = '+';
@@ -102,14 +188,15 @@ void inputMngrTakeInput(inputManager *const restrict inputMngr, commandBuffer *c
 			// The mouse wheel was scrolled.
 			case SDL_MOUSEWHEEL:
 				if(event.wheel.y < 0){
-					keybind = &inputMngr->keybinds[INPUT_MWHEELDOWN];
+					keybind = &inputMngr->mouseBinds[INPUT_MWHEELDOWN];
 				}else if(event.wheel.y > 0){
-					keybind = &inputMngr->keybinds[INPUT_MWHEELUP];
+					keybind = &inputMngr->mouseBinds[INPUT_MWHEELUP];
 				}else{
 					break;
 				}
 				// Make sure the button has a valid binding.
 				if(keybind->binding != NULL){
+					mouseMotionAddCommand(cmdBuffer, &mouseDeltaX, &mouseDeltaY, mouseDeltaTime);
 					// When the mouse wheel is scrolled, we should
 					// perform both the press and release events.
 					cmdBufferAddCommand(cmdBuffer, keybind->binding, keybind->bindingLength, event.wheel.timestamp, 0);
@@ -121,25 +208,104 @@ void inputMngrTakeInput(inputManager *const restrict inputMngr, commandBuffer *c
 					}
 				}
 			break;
-
 		}
 	}
+
+	// Handle any trailing mouse movement.
+	mouseMotionAddCommand(cmdBuffer, &mouseDeltaX, &mouseDeltaY, mouseDeltaTime);
 }
 
-void inputMngrResetMouseDeltas(inputManager *const restrict inputMngr, int *const mx, int *const my){
-	*mx = inputMngr->mx;
-	*my = inputMngr->my;
-	inputMngr->mx = 0;
-	inputMngr->my = 0;
+/*
+** We take mouse input every time we render. However, rather
+** than adding the mouse movement commands to the buffer to
+** execute later, we can just execute the command here.
+*/
+void inputMngrUpdateMouseDeltas(inputManager *const restrict inputMngr, commandBuffer *const restrict cmdBuffer){
+	cv_mouse_dx = 0;
+	cv_mouse_dy = 0;
+
+	SDL_Event event;
+	#warning "I think this can cause microstutters."
+	while(SDL_PumpEvents(), SDL_PeepEvents(&event, 1, SDL_GETEVENT, SDL_MOUSEMOTION, SDL_MOUSEMOTION)){
+		cv_mouse_dx += event.motion.xrel;
+		cv_mouse_dy += event.motion.yrel;
+	}
 }
 
 
 void inputMngrDelete(inputManager *const restrict inputMngr){
-	inputBinding *curBind = inputMngr->keybinds;
-	const inputBinding *lastBind = &curBind[INPUT_NUM_BUTTONS];
-	// Delete all of the keyboard and mouse bindings.
+	inputBinding *curBind = inputMngr->keyboardBinds;
+	const inputBinding *lastBind = &curBind[INPUT_NUM_KEYBOARD_KEYS];
+	// Delete all of the keyboard bindings.
 	for(; curBind < lastBind; ++curBind){
 		inputBindingDelete(curBind);
+	}
+
+	curBind = inputMngr->mouseBinds;
+	lastBind = &curBind[INPUT_NUM_MOUSE_BUTTONS];
+	// Delete all of the mouse bindings.
+	for(; curBind < lastBind; ++curBind){
+		inputBindingDelete(curBind);
+	}
+}
+
+
+#ifdef C_MOUSEMOVE_FAST
+static void mouseMotionIntToStr(char *str, const int i){
+	unsigned int curIndex = 1;
+	char *flagChar = str;
+
+	++str;
+	*flagChar = COMMAND_SPECIAL_CHAR_LIMIT;
+
+	memcpy(str, &i, sizeof(i));
+	for(; curIndex < (1 << sizeof(i)); curIndex <<= 1, ++str){
+		if((unsigned char)*str < COMMAND_SPECIAL_CHAR_LIMIT){
+			*str += COMMAND_SPECIAL_CHAR_LIMIT;
+			*flagChar += curIndex;
+		}
+	}
+}
+#endif
+
+/*
+** If the mouse has been moved, add an extra command to the buffer.
+** We assume that "mouseDeltaX" and "mouseDeltaY" are no more than
+** 6 digits (including sign). Luckily, this should never happen.
+*/
+static void mouseMotionAddCommand(
+	commandBuffer *const restrict cmdBuffer,
+	int *const restrict mouseDeltaX, int *const restrict mouseDeltaY,
+	const cmdTimestamp_t mouseDeltaTime
+){
+
+	// Only send a command if the mouse has moved.
+	if(*mouseDeltaX | *mouseDeltaY){
+		#ifdef C_MOUSEMOVE_FAST
+		char motionCommand[MOTION_CMD_BUFFER_MAX_LENGTH];
+
+		// Construct the command string.
+		memcpy(&motionCommand[0], "mousemove ", 10);
+		mouseMotionIntToStr(&motionCommand[10], *mouseDeltaX);
+		motionCommand[15] = ' ';
+		mouseMotionIntToStr(&motionCommand[16], *mouseDeltaY);
+		motionCommand[21] = '\0';
+		// Add the command to the command buffer.
+		cmdBufferAddCommand(cmdBuffer, motionCommand, MOTION_CMD_BUFFER_MAX_LENGTH, mouseDeltaTime, 0);
+		#else
+		char motionCommand[MOTION_CMD_BUFFER_MAX_LENGTH];
+		size_t motionCommandLength = sizeof("mousemove ") - 1;
+
+		// Construct the command string.
+		memcpy(&motionCommand[0], "mousemove ", motionCommandLength);
+		motionCommandLength += sprintf(&motionCommand[motionCommandLength], "%i %i", *mouseDeltaX, *mouseDeltaY);
+		// Add the command to the command buffer.
+		cmdBufferAddCommand(cmdBuffer, motionCommand, motionCommandLength, mouseDeltaTime, 0);
+		#endif
+
+		// Reset the mouse deltas.
+		*mouseDeltaX = 0;
+		*mouseDeltaY = 0;
 	}
 }
 
@@ -147,6 +313,6 @@ void inputMngrDelete(inputManager *const restrict inputMngr){
 static void inputBindingDelete(inputBinding *const restrict keybind){
 	if(keybind->binding != NULL){
 		memoryManagerGlobalFree(keybind->binding);
+		keybind->binding = NULL;
 	}
-	memset(keybind, 0, sizeof(*keybind));
 }

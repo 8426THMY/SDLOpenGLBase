@@ -13,6 +13,10 @@
 #define COMMAND_MAX_BUFFER_LENGTH 8192
 #define COMMAND_MAX_ARGUMENTS 64
 
+// Any character code less than this
+// may be used by the command system.
+#define COMMAND_SPECIAL_CHAR_LIMIT 60
+
 
 /*
 ** Creating console variables:
@@ -66,7 +70,7 @@ typedef void (*commandFunction)(
 );
 
 
-//
+// Tokenized command.
 typedef struct commandTokenized {
 	// Stores pointers to first the command and then its
 	// arguments inside a command buffer's argument buffer.
@@ -79,7 +83,7 @@ typedef struct commandTokenized {
 	cmdTimestamp_t delay;
 } commandTokenized;
 
-//
+// Array of tokenized commands and their arguments.
 typedef struct commandBuffer {
 	// Stores a NULL terminated list of commands and their arguments.
 	char argBuffer[COMMAND_MAX_BUFFER_LENGTH];

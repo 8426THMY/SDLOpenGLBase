@@ -7,6 +7,9 @@
 
 #include <SDL2/SDL.h>
 
+#include "command.h"
+#include "inputManager.h"
+
 #include "sprite.h"
 #include "mesh.h"
 #include "camera.h"
@@ -20,11 +23,10 @@ typedef struct program {
 	int windowWidth;
 	int windowHeight;
 
-	int mouseX;
-	int mouseY;
+	commandSystem cmdSys;
+	commandBuffer cmdBuffer;
+	inputManager inputMngr;
 	const Uint8 *keyStates;
-
-	return_t running;
 
 	meshShader objectShader;
 	spriteShader spriteShader;

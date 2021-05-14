@@ -7,6 +7,7 @@
 #include <SDL2/SDL_image.h>
 
 #include "settingsProgram.h"
+#include "cvars.h"
 
 #include "moduleCommand.h"
 #include "moduleTexture.h"
@@ -42,33 +43,34 @@ static return_t setupModules();
 static void cleanupModules();
 
 
-#warning "This is just used for testing previous states."
-static size_t renderState = 0;
-
-
 return_t programInit(program *const restrict prg, char *const restrict prgDir){
-	prg->windowWidth = WINDOW_DEFAULT_WIDTH;
-	prg->windowHeight = WINDOW_DEFAULT_HEIGHT;
-
-	prg->running = 1;
-
-	prg->mouseX = 0;
-	prg->mouseY = 0;
-	prg->keyStates = SDL_GetKeyboardState(NULL);
-
-	cameraInit(&prg->cam);
-	prg->cam.pos.z = 5.f;
+	// Set the current working directory. This ensures that
+	// we're looking for resources in the correct directory.
+	fileSetWorkingDirectory(prgDir, NULL);
 
 	timestepInit(&prg->step, UPDATE_RATE, FRAME_RATE);
 	// Initialize our timing system.
 	timerInit();
 
-	// Set the current working directory. This ensures that
-	// we're looking for resources in the correct directory.
-	fileSetWorkingDirectory(prgDir, NULL);
+	if(!initLibs(prg) || setupModules() != MODULE_SETUP_SUCCESS){
+		cv_prg_running = 0;
+		return(0);
+	}
 
 
-	return(initLibs(prg) && setupModules() == MODULE_SETUP_SUCCESS && initResources(prg));
+	// Initialize the command system and input manager.
+	cmdSysInit(&prg->cmdSys);
+	cmdBufferInit(&prg->cmdBuffer);
+	inputMngrInit(&prg->inputMngr);
+
+	// Add the commands for our default list of cvars.
+	cmdSysAdd(&prg->cmdSys, "exit", (command)&c_exit);
+	cmdSysAdd(&prg->cmdSys, "mousemove", (command)&c_mousemove);
+
+	inputMngrKeyboardBind(&prg->inputMngr, SDL_SCANCODE_ESCAPE, "exit", sizeof("exit") - 1);
+
+
+	return(initResources(prg));
 }
 
 void programLoop(program *const restrict prg){
@@ -79,7 +81,7 @@ void programLoop(program *const restrict prg){
 	unsigned int updates = 0;
 	unsigned int renders = 0;
 
-	while(prg->running){
+	while(cv_prg_running){
 		const float curTime = timerGetTimeFloat();
 
 		// Note: This loop freezes the game if our input and update
@@ -164,7 +166,15 @@ void programLoop(program *const restrict prg){
 void programClose(program *const restrict prg){
 	shaderDeleteProgram(prg->objectShader.programID);
 	shaderDeleteProgram(prg->spriteShader.programID);
+
+	inputMngrDelete(&prg->inputMngr);
+	cmdBufferDelete(&prg->cmdBuffer);
+	cmdSysDelete(&prg->cmdSys);
+
 	cleanupModules();
+
+
+	IMG_Quit();
 
 	SDL_DestroyWindow(prg->window);
 	SDL_Quit();
@@ -206,35 +216,10 @@ static void input(program *const restrict prg){
 	}
 
 
-	// Refresh SDL2 events!
-	SDL_Event event;
-	#warning "This is causing microstutters for some reason."
-	while(SDL_PollEvent(&event) != 0){
-		switch(event.type){
-			case SDL_MOUSEMOTION:
-				SDL_GetMouseState(&prg->mouseX, &prg->mouseY);
-				// SDL_WarpMouseInWindow(prg->window, (prg->windowWidth / 2), (prg->windowHeight / 2));
-			break;
-
-
-			case SDL_QUIT:
-				prg->running = 0;
-			break;
-		}
-	}
-
-	// Refresh SDL2 key presses! PollEvent should do this automatically, but we'll do it again just in case.
-	#warning "So is this."
-	SDL_PumpEvents();
-
-	if(prg->keyStates[SDL_SCANCODE_ESCAPE]){
-		prg->running = 0;
-	}
-	if(prg->keyStates[SDL_SCANCODE_R]){
-		renderState = NUM_LOOKBACK_STATES - 1;
-	}else{
-		renderState = 0;
-	}
+	// Handle user inputs and any other SDL2 events.
+	inputMngrTakeInput(&prg->inputMngr, &prg->cmdBuffer);
+	//SDL_GetMouseState(&prg->mouseX, &prg->mouseY);
+	//SDL_WarpMouseInWindow(prg->window, (prg->windowWidth / 2), (prg->windowHeight / 2));
 }
 
 /** TEMPORARY PHYSICS STUFF!! **/
@@ -341,6 +326,10 @@ particleSystem partSys;
 guiElement gui;
 textFont fontIBM;
 static void update(program *const restrict prg){
+	// Execute the command buffer.
+	cmdBufferExecute(&prg->cmdBuffer, &prg->cmdSys);
+
+
 	updateCameras(prg);
 	updateObjects(prg);
 	updatePhysics(prg);
@@ -443,7 +432,7 @@ static return_t initLibs(program *const restrict prg){
 	prg->window = SDL_CreateWindow(
 		"NewSDLOpenGLBaseC",
 		SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-		prg->windowWidth, prg->windowHeight,
+		WINDOW_DEFAULT_WIDTH, WINDOW_DEFAULT_HEIGHT,
 		SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE
 	);
 	if(!prg->window){
@@ -453,6 +442,8 @@ static return_t initLibs(program *const restrict prg){
 		);
 		return(0);
 	}
+	prg->windowWidth = WINDOW_DEFAULT_WIDTH;
+	prg->windowHeight = WINDOW_DEFAULT_HEIGHT;
 
 	// Create an OpenGL context using SDL2!
 	if(!SDL_GL_CreateContext(prg->window)){
@@ -468,6 +459,7 @@ static return_t initLibs(program *const restrict prg){
 	#warning "Although we don't use SDL's timers, it does, so this might break stuff somewhere."
 	timeEndPeriod(1);
 	#endif
+	prg->keyStates = SDL_GetKeyboardState(NULL);
 	// SDL_ShowCursor(SDL_DISABLE);
 
 
@@ -518,6 +510,11 @@ static return_t initResources(program *const restrict prg){
 		shaderDeleteProgram(objectProgramID);
 		return(0);
 	}
+
+
+	/** TEMPORARY CAMERA STUFF **/
+	cameraInit(&prg->cam);
+	prg->cam.pos.z = 5.f;
 
 
 	/** TEMPORARY OBJECT STUFF **/
@@ -590,6 +587,7 @@ static return_t initResources(program *const restrict prg){
 	physRigidBodyIgnoreLinear(obj->physBodies);physRigidBodyIgnoreSimulation(obj->physBodies);
 	physIslandInsertRigidBody(&island, obj->physBodies);
 
+	#if 1
 	{
 		physicsRigidBody *egg, *cube;
 
@@ -684,8 +682,7 @@ static return_t initResources(program *const restrict prg){
 		physIslandInsertRigidBody(&island, egg);
 		controlPhys = cube;
 	}
-
-	#if 0
+	#else
 	/** EVEN MORE TEMPORARY PHYSICS STUFF **/
 	// Create the base physics object.
 	mdl = modelOBJLoad("cubeQuads.obj", sizeof("cubeQuads.obj") - 1);
@@ -707,12 +704,10 @@ static return_t initResources(program *const restrict prg){
 		printf("Cube %u: %u -> %u\n", i, obj->physBodies, obj->physBodies->colliders);
 		obj->state.pos.y = ((float)i)*2.f;
 		objectPreparePhysics(obj);
-		/*if(i == 0){
-			controlPhys = obj->physBodies;
-			physRigidBodyIgnoreAngular(obj->physBodies);
-		}*/
 		physIslandInsertRigidBody(&island, obj->physBodies);
 	}
+	controlPhys = obj->physBodies;
+	physRigidBodyIgnoreAngular(obj->physBodies);
 
 	/** MORE TEMPORARY PHYSICS STUFF **/
 	// Create the base physics object.

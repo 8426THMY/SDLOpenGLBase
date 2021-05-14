@@ -107,6 +107,7 @@ void cmdSysDelete(commandSystem *const restrict cmdSys){
 void cmdBufferInit(commandBuffer *const restrict cmdBuffer){
 	cmdBuffer->argBufferLength = 0;
 	cmdBuffer->cmdList = NULL;
+	cmdBuffer->cmdListEnd = NULL;
 }
 
 /* Add a command string to a command buffer!
