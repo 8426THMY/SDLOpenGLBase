@@ -63,11 +63,22 @@ void vec2DivideVec2ByFast(vec2 *const restrict v1, const vec2 *const restrict v2
 void vec2DivideByVec2FastOut(const vec2 *const restrict v1, const vec2 *const restrict v2, vec2 *const restrict out);
 vec2 vec2DivideByVec2FastC(vec2 v1, const vec2 v2);
 
+void vec2Fmaf(const float x, const vec2 *const restrict u, vec2 *const restrict v);
+void vec2FmafOut(const float x, const vec2 *const restrict u, const vec2 *const restrict v, vec2 *const restrict out);
+vec2 vec2FmafC(const float x, const vec2 u, const vec2 v);
+
 float vec2Magnitude(const float x, const float y);
 float vec2MagnitudeVec2(const vec2 *const restrict v);
 float vec2MagnitudeVec2C(const vec2 v);
+float vec2MagnitudeSquared(const float x, const float y);
+float vec2MagnitudeSquaredVec2(const vec2 *const restrict v);
+float vec2MagnitudeSquaredVec2C(const vec2 v);
+float vec2Distance(const vec2 *const restrict v, const float x, const float y);
+float vec2DistanceC(const vec2 v, const float x, const float y);
 float vec2DistanceSquared(const vec2 *const restrict v, const float x, const float y);
 float vec2DistanceSquaredC(const vec2 v, const float x, const float y);
+float vec2DistanceVec2(const vec2 *const restrict v1, const vec2 *const restrict v2);
+float vec2DistanceVec2C(const vec2 v1, const vec2 v2);
 float vec2DistanceSquaredVec2(const vec2 *const restrict v1, const vec2 *const restrict v2);
 float vec2DistanceSquaredVec2C(const vec2 v1, const vec2 v2);
 
@@ -76,9 +87,6 @@ float vec2DotVec2Float(const vec2 *const restrict v, const float x, const float 
 float vec2DotVec2FloatC(const vec2 v, const float x, const float y);
 float vec2DotVec2(const vec2 *const restrict v1, const vec2 *const restrict v2);
 float vec2DotVec2C(const vec2 v1, const vec2 v2);
-float vec2Norm(const float x, const float y);
-float vec2NormVec2(const vec2 *const restrict v);
-float vec2NormVec2C(const vec2 v);
 
 void vec2Normalize(const float x, const float y, vec2 *const restrict out);
 void vec2NormalizeFast(const float x, const float y, vec2 *const restrict out);

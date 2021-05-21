@@ -213,54 +213,88 @@ static void input(program *const restrict prg){
 		}else{
 			glViewport(0, 0, prg->windowWidth, prg->windowHeight);
 		}
+		flagsSet(prg->cam.flags, CAMERA_UPDATE_PROJ);
 	}
 
 
 	// Handle user inputs and any other SDL2 events.
 	inputMngrTakeInput(&prg->inputMngr, &prg->cmdBuffer);
-	//SDL_GetMouseState(&prg->mouseX, &prg->mouseY);
-	//SDL_WarpMouseInWindow(prg->window, (prg->windowWidth / 2), (prg->windowHeight / 2));
+	SDL_SetRelativeMouseMode(SDL_TRUE);
+}
+
+/** TEMPORARY CAMERA STUFF! **/
+static float cPitch = 0.f;
+static float cYaw = 0.f;
+static vec3 cVelocity = {.x = 0.f, .y = 0.f, .z = 0.f};
+#include "utilMath.h"
+static void updateCameras(program *const restrict prg){
+	/** TEMPORARY CAMERA STUFF! **/
+	#warning "Everything here should be handled by a camera controller structure."
+	mat3 rotMatrix;
+
+	cPitch -= 0.022f * 9.f * cv_mouse_dy * DEG_TO_RAD;
+	cYaw -= 0.022f * 9.f * cv_mouse_dx * DEG_TO_RAD;
+	mat3InitEulerZXY(&rotMatrix, cPitch, cYaw, 0.f);
+
+	/** Mega modified Quake 3 movement code. **/
+	{
+		vec3 wishdir = {.x = 0.f, .y = 0.f, .z = 0.f};
+		float wishspeed;
+		float addspeed;
+		float speed;
+		float control;
+		float newSpeed;
+
+		if(prg->keyStates[SDL_SCANCODE_A]){
+			vec3SubtractVec3From(&wishdir, (vec3 *)&rotMatrix.m[0]);
+		}
+		if(prg->keyStates[SDL_SCANCODE_D]){
+			vec3AddVec3(&wishdir, (vec3 *)&rotMatrix.m[0]);
+		}
+		if(prg->keyStates[SDL_SCANCODE_W]){
+			vec3SubtractVec3From(&wishdir, (vec3 *)&rotMatrix.m[2]);
+		}
+		if(prg->keyStates[SDL_SCANCODE_S]){
+			vec3AddVec3(&wishdir, (vec3 *)&rotMatrix.m[2]);
+		}
+
+		wishspeed = vec3MagnitudeVec3(&wishdir);
+		if(wishspeed > 0.f){
+			vec3DivideByS(&wishdir, wishspeed);
+			wishspeed = 0.2f;
+		}
+		addspeed = wishspeed - cVelocity.x*wishdir.x - cVelocity.y*wishdir.y - cVelocity.z*wishdir.z;
+		if(addspeed > 0.f){
+			float accelspeed = 10.f * wishspeed * 1.f * prg->step.updateDelta;
+			if(accelspeed > addspeed){
+				accelspeed = addspeed;
+			}
+			vec3Fmaf(accelspeed, &wishdir, &cVelocity);
+		}
+
+		speed = vec3MagnitudeVec3(&cVelocity);
+		control = (speed < 0.5f) ? 0.5f : speed;
+		if(wishspeed > 0.1f){
+			newSpeed = speed - control * prg->step.updateDelta * 2.f;
+		}else{
+			newSpeed = speed - control * prg->step.updateDelta * 2.f;
+		}
+		if(newSpeed < 0.f || speed <= 0.f){
+			vec3InitZero(&cVelocity);
+		}else{
+			vec3MultiplyS(&cVelocity, newSpeed/speed);
+		}
+		vec3AddVec3(&prg->cam.pos, &cVelocity);
+	}
+
+	mat4View(&prg->cam.viewMatrix, &prg->cam.pos, &rotMatrix);
+	flagsSet(prg->cam.flags, CAMERA_UPDATE_VIEW);
 }
 
 /** TEMPORARY PHYSICS STUFF!! **/
 physicsRigidBody *controlPhys = NULL;
-float cYaw = 0.f;
-float cPitch = 0.f;
-float cZ = 5.f;
-#include "utilMath.h"
-static void updateCameras(program *const restrict prg){
-	if(prg->keyStates[SDL_SCANCODE_LEFT]){
-		cYaw -= 2.f * prg->step.updateDelta;
-		prg->cam.pos.x -= 10.f * prg->step.updateDelta;
-	}
-	if(prg->keyStates[SDL_SCANCODE_RIGHT]){
-		cYaw += 2.f * prg->step.updateDelta;
-		prg->cam.pos.x += 10.f * prg->step.updateDelta;
-	}
-
-	if(prg->keyStates[SDL_SCANCODE_UP]){
-		cPitch -= 2.f * prg->step.updateDelta;
-		prg->cam.pos.y += 10.f * prg->step.updateDelta;
-	}
-	if(prg->keyStates[SDL_SCANCODE_DOWN]){
-		cPitch += 2.f * prg->step.updateDelta;
-		prg->cam.pos.y -= 10.f * prg->step.updateDelta;
-	}
-
-	if(prg->keyStates[SDL_SCANCODE_W]){
-		cZ += 10.f * prg->step.updateDelta;
-		prg->cam.pos.z -= 10.f * prg->step.updateDelta;
-	}
-	if(prg->keyStates[SDL_SCANCODE_S]){
-		cZ -= 10.f * prg->step.updateDelta;
-		prg->cam.pos.z += 10.f * prg->step.updateDelta;
-	}
-	quat q = quatInitEulerXYZC(cPitch, cYaw, 0.f);
-	prg->cam.pos = quatRotateVec3FastC(q, vec3InitSetC(0.f, 0.f, cZ));
-
-
-
-
+object *controlObj = NULL;
+static void updateObjects(program *const restrict prg){
 	/** TEMPORARY PHYSICS STUFF! **/
 	if(controlPhys != NULL){
 		if(prg->keyStates[SDL_SCANCODE_J]){
@@ -288,9 +322,10 @@ static void updateCameras(program *const restrict prg){
 			physRigidBodyApplyLinearForce(controlPhys, &F);
 		}
 	}
-}
+	if(controlObj != NULL){
+		controlObj->state.rot = mat4ToQuatC(mat4RotateToFaceC(controlObj->state.pos, prg->cam.pos, vec3InitSetC(0.f, 1.f, 0.f)));
+	}
 
-static void updateObjects(program *const restrict prg){
 	MEMSINGLELIST_LOOP_BEGIN(g_objectManager, curObj, object)
 		objectUpdate(curObj, prg->step.updateTime);
 	MEMSINGLELIST_LOOP_END(g_objectManager, curObj)
@@ -460,7 +495,7 @@ static return_t initLibs(program *const restrict prg){
 	timeEndPeriod(1);
 	#endif
 	prg->keyStates = SDL_GetKeyboardState(NULL);
-	// SDL_ShowCursor(SDL_DISABLE);
+	//SDL_ShowCursor(SDL_DISABLE);
 
 
 	// Initialize the GLEW library!
@@ -515,6 +550,7 @@ static return_t initResources(program *const restrict prg){
 	/** TEMPORARY CAMERA STUFF **/
 	cameraInit(&prg->cam);
 	prg->cam.pos.z = 5.f;
+	flagsSet(prg->cam.flags, CAMERA_TYPE_FRUSTUM);
 
 
 	/** TEMPORARY OBJECT STUFF **/
@@ -542,6 +578,7 @@ static return_t initResources(program *const restrict prg){
 	obj->state.pos = vec3InitSetC(-1.f, -2.f, -3.f);
 	obj->state.rot = quatInitEulerXYZC(45.f * DEG_TO_RAD, 10.f * DEG_TO_RAD, 23.f * DEG_TO_RAD);
 	obj->state.scale.z = 0.1f;
+	controlObj = obj;
 
 	// Temporary animation stuff.
 	#warning "Playing 'soldier_animations_anims_old/a_runN_LOSER.smd' on the Scout makes his left arm flip."
@@ -698,7 +735,7 @@ static return_t initResources(program *const restrict prg){
 
 	size_t i;
 	// Set up instances.
-	for(i = 0; i < 1; ++i){
+	for(i = 0; i < 4; ++i){
 		obj = moduleObjectAlloc();
 		objectInit(obj, objDef);
 		printf("Cube %u: %u -> %u\n", i, obj->physBodies, obj->physBodies->colliders);

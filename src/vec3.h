@@ -81,11 +81,23 @@ void vec3DivideByVec3FastOut(const vec3 *const restrict v1, const vec3 *const re
 #define vec3DivideByVec3FastP(v1, v2, out) (vec3DivideByVec3FastOut(v1, v2, out), out)
 vec3 vec3DivideByVec3FastC(vec3 v1, const vec3 v2);
 
+void vec3Fmaf(const float x, const vec3 *const restrict u, vec3 *const restrict v);
+void vec3FmafOut(const float x, const vec3 *const restrict u, const vec3 *const restrict v, vec3 *const restrict out);
+#define vec3FmafP(x, u, v, out) (vec3FmafOut(x, u, v, out), out)
+vec3 vec3FmafC(const float x, const vec3 u, const vec3 v);
+
 float vec3Magnitude(const float x, const float y, const float z);
 float vec3MagnitudeVec3(const vec3 *const restrict v);
 float vec3MagnitudeVec3C(const vec3 v);
+float vec3MagnitudeSquared(const float x, const float y, const float z);
+float vec3MagnitudeSquaredVec3(const vec3 *const restrict v);
+float vec3MagnitudeSquaredVec3C(const vec3 v);
+float vec3Distance(const vec3 *const restrict v, const float x, const float y, const float z);
+float vec3DistanceC(const vec3 v, const float x, const float y, const float z);
 float vec3DistanceSquared(const vec3 *const restrict v, const float x, const float y, const float z);
 float vec3DistanceSquaredC(const vec3 v, const float x, const float y, const float z);
+float vec3DistanceVec3(const vec3 *const restrict v1, const vec3 *const restrict v2);
+float vec3DistanceVec3C(const vec3 v1, const vec3 v2);
 float vec3DistanceSquaredVec3(const vec3 *const restrict v1, const vec3 *const restrict v2);
 float vec3DistanceSquaredVec3C(const vec3 v1, const vec3 v2);
 
@@ -94,9 +106,6 @@ float vec3DotVec3Float(const vec3 *const restrict v, const float x, const float 
 float vec3DotVec3FloatC(const vec3 v, const float x, const float y, const float z);
 float vec3DotVec3(const vec3 *const restrict v1, const vec3 *const restrict v2);
 float vec3DotVec3C(const vec3 v1, const vec3 v2);
-float vec3Norm(const float x, const float y, const float z);
-float vec3NormVec3(const vec3 *const restrict v);
-float vec3NormVec3C(const vec3 v);
 
 void vec3Cross(const float x1, const float y1, const float z1, const float x2, const float y2, const float z2, vec3 *const restrict out);
 #define vec3CrossP(x1, y1, z1, x2, y2, z2, out) (vec3Cross(x1, y1, z1, x2, y2, z2, out), out)
@@ -141,6 +150,15 @@ vec3 vec3OrthonormalC(const vec3 v);
 
 void vec3DegToRad(vec3 *const restrict v);
 void vec3RadToDeg(vec3 *const restrict v);
+
+void vec3RotateByEulerXYZ(vec3 *const restrict v, const float x, const float y, const float z);
+void vec3RotateByEulerZXY(vec3 *const restrict v, const float x, const float y, const float z);
+vec3 vec3RotateByEulerXYZC(const vec3 v, const float x, const float y, const float z);
+vec3 vec3RotateByEulerZXYC(const vec3 v, const float x, const float y, const float z);
+void vec3RotateByEulerXYZOut(const vec3 *const restrict v, const float x, const float y, const float z, vec3 *const restrict out);
+#define vec3RotateByEulerXYZP(v, x, y, z, out) (vec3RotateByEulerXYZOut(v, x, y, z, out), out)
+void vec3RotateByEulerZXYOut(const vec3 *const restrict v, const float x, const float y, const float z, vec3 *const restrict out);
+#define vec3RotateByEulerZXYP(v, x, y, z, out) (vec3RotateByEulerZXYOut(v, x, y, z, out), out)
 
 void vec3Lerp(const vec3 *const restrict v1, const vec3 *const restrict v2, const float time, vec3 *const restrict out);
 #define vec3LerpP(v1, v2, time, out) (vec3Lerp(v1, v2, time, out), out)

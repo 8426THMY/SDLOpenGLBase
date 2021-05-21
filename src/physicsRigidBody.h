@@ -137,8 +137,8 @@ void physRigidBodyApplyLinearForce(physicsRigidBody *const restrict body, const 
 void physRigidBodyApplyAngularForce(physicsRigidBody *const restrict body, const vec3 *const restrict r, const vec3 *const restrict F);
 void physRigidBodyApplyForce(physicsRigidBody *const restrict body, const vec3 *const restrict r, const vec3 *const restrict F);
 
-void physRigidBodyApplyLinearImpulse(physicsRigidBody *const restrict body, vec3 J);
-void physRigidBodyApplyLinearImpulseInverse(physicsRigidBody *const restrict body, vec3 J);
+void physRigidBodyApplyLinearImpulse(physicsRigidBody *const restrict body, const vec3 *const restrict J);
+void physRigidBodyApplyLinearImpulseInverse(physicsRigidBody *const restrict body, const vec3 *const restrict J);
 void physRigidBodyApplyAngularImpulse(physicsRigidBody *const restrict body, vec3 J);
 void physRigidBodyApplyAngularImpulseInverse(physicsRigidBody *const restrict body, vec3 J);
 void physRigidBodyApplyImpulse(physicsRigidBody *const restrict body, const vec3 *const restrict r, const vec3 *const restrict p);

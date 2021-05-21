@@ -6,6 +6,7 @@
 
 #include "vec3.h"
 #include "vec4.h"
+#include "mat3.h"
 #include "quat.h"
 
 
@@ -24,7 +25,9 @@ mat4 mat4InitTranslateC(const float x, const float y, const float z);
 void mat4InitTranslateVec3(mat4 *const restrict m, const vec3 *const restrict v);
 mat4 mat4InitTranslateVec3C(const vec3 v);
 void mat4InitEulerXYZ(mat4 *const restrict m, const float x, const float y, const float z);
+void mat4InitEulerZXY(mat4 *const restrict m, const float x, const float y, const float z);
 mat4 mat4InitEulerXYZC(const float x, const float y, const float z);
+mat4 mat4InitEulerZXYC(const float x, const float y, const float z);
 void mat4InitRotateQuat(mat4 *const restrict m, const quat *const restrict q);
 mat4 mat4InitRotateQuatC(const quat q);
 void mat4InitScale(mat4 *const restrict m, const float x, const float y, const float z);
@@ -52,6 +55,12 @@ vec4 mat4MultiplyVec4ByC(const mat4 m, const vec4 v);
 void mat4MultiplyByVec4(const mat4 *const restrict m, vec4 *const restrict v);
 void mat4MultiplyByVec4Out(const mat4 *const restrict m, const vec4 *const restrict v, vec4 *const restrict out);
 vec4 mat4MultiplyByVec4C(const mat4 m, const vec4 v);
+void mat4MultiplyMat3By(mat4 *const restrict m1, const mat3 m2);
+void mat4MultiplyMat3ByOut(const mat4 m1, const mat3 m2, mat4 *const restrict out);
+mat4 mat4MultiplyMat3ByC(const mat4 m1, const mat3 m2);
+void mat4MultiplyByMat3(mat4 *const restrict m1, const mat3 m2);
+void mat4MultiplyByMat3Out(const mat4 m1, const mat3 m2, mat4 *const restrict out);
+mat4 mat4MultiplyByMat3C(const mat4 m1, const mat3 m2);
 void mat4MultiplyMat4By(mat4 *const restrict m1, const mat4 m2);
 void mat4MultiplyByMat4(mat4 *const restrict m1, const mat4 m2);
 void mat4MultiplyMat4ByOut(const mat4 m1, const mat4 m2, mat4 *const restrict out);
@@ -70,20 +79,28 @@ mat4 mat4TranslateTransformC(mat4 m, const float x, const float y, const float z
 void mat4TranslateTransformVec3(mat4 *const restrict m, const vec3 *const restrict v);
 mat4 mat4TranslateTransformVec3C(const mat4 m, const vec3 v);
 
-void mat4RotateXYZ(mat4 *const restrict m, const float x, const float y, const float z);
-mat4 mat4RotateXYZC(const mat4 m, const float x, const float y, const float z);
-void mat4RotateByVec3XYZ(mat4 *const restrict m, const vec3 *const restrict v);
-mat4 mat4RotateByVec3XYZC(const mat4 m, const vec3 v);
-void mat4RotateAxisAngle(mat4 *const restrict m, const vec4 *const restrict v);
-mat4 mat4RotateAxisAngleC(const mat4 m, const vec4 v);
-void mat4RotateQuat(mat4 *const restrict m, const quat *const restrict q);
-mat4 mat4RotateQuatC(const mat4 m, const quat q);
+void mat4RotateByEulerXYZ(mat4 *const restrict m, const float x, const float y, const float z);
+void mat4RotateByEulerZXY(mat4 *const restrict m, const float x, const float y, const float z);
+mat4 mat4RotateByEulerXYZC(const mat4 m, const float x, const float y, const float z);
+mat4 mat4RotateByEulerZXYC(const mat4 m, const float x, const float y, const float z);
+void mat4RotateByVec3EulerXYZ(mat4 *const restrict m, const vec3 *const restrict v);
+void mat4RotateByVec3EulerZXY(mat4 *const restrict m, const vec3 *const restrict v);
+mat4 mat4RotateByVec3EulerXYZC(const mat4 m, const vec3 v);
+mat4 mat4RotateByVec3EulerZXYC(const mat4 m, const vec3 v);
+void mat4RotateByAxisAngle(mat4 *const restrict m, const vec4 *const restrict v);
+mat4 mat4RotateByAxisAngleC(const mat4 m, const vec4 v);
+void mat4RotateByQuat(mat4 *const restrict m, const quat *const restrict q);
+mat4 mat4RotateByQuatC(const mat4 m, const quat q);
 void mat4RotateX(mat4 *const restrict m, const float x);
 mat4 mat4RotateXC(const mat4 m, const float x);
 void mat4RotateY(mat4 *const restrict m, const float y);
 mat4 mat4RotateYC(const mat4 m, const float y);
 void mat4RotateZ(mat4 *const restrict m, const float z);
 mat4 mat4RotateZC(const mat4 m, const float z);
+void mat4RotateForward(mat4 *const restrict m, const vec3 *const restrict forward, const vec3 *const restrict worldUp);
+mat4 mat4RotateForwardC(const vec3 forward, const vec3 worldUp);
+void mat4RotateToFace(mat4 *const restrict m, const vec3 *const restrict eye, const vec3 *const restrict target, const vec3 *const restrict worldUp);
+mat4 mat4RotateToFaceC(const vec3 eye, const vec3 target, const vec3 worldUp);
 
 void mat4Scale(mat4 *const restrict m, const float x, const float y, const float z);
 mat4 mat4ScaleC(mat4 m, const float x, const float y, const float z);
@@ -111,16 +128,17 @@ mat4 mat4InvertC(const mat4 m);
 return_t mat4CanInvert(mat4 *const restrict m);
 return_t mat4CanInvertOut(const mat4 m, mat4 *const restrict out);
 
-void mat4Orthographic(mat4 *const restrict m, const float right, const float left, const float top, const float bottom, const float nearVal, const float farVal);
-mat4 mat4OrthographicC(const float right, const float left, const float top, const float bottom, const float nearVal, const float farVal);
-void mat4Perspective(mat4 *const restrict m, const float fov, const float aspectRatio, const float nearVal, const float farVal);
-mat4 mat4PerspectiveC(const float fov, const float aspectRatio, const float nearVal, const float farVal);
-void mat4PerspectiveOld(mat4 *const restrict m, const float fov, const float aspectRatio, const float nearVal, const float farVal);
-mat4 mat4PerspectiveOldC(const float fov, const float aspectRatio, const float nearVal, const float farVal);
-void mat4RotateToFace(mat4 *const restrict m, const vec3 *const restrict eye, const vec3 *const restrict target, const vec3 *const restrict worldUp);
-mat4 mat4RotateToFaceC(const vec3 eye, const vec3 target, const vec3 worldUp);
-void mat4LookAt(mat4 *const restrict m, const vec3 *const restrict eye, const vec3 *const restrict target, const vec3 *const restrict worldUp);
-mat4 mat4LookAtC(const vec3 eye, const vec3 target, const vec3 worldUp);
+void mat4View(mat4 *const restrict m, const vec3 *const restrict pos, const mat3 *const restrict rot);
+mat4 mat4ViewC(const vec3 pos, const mat3 rot);
+void mat4ViewLookAt(mat4 *const restrict m, const vec3 *const restrict eye, const vec3 *const restrict target, const vec3 *const restrict worldUp);
+mat4 mat4ViewLookAtC(const vec3 eye, const vec3 target, const vec3 worldUp);
+
+void mat4Frustum(mat4 *const restrict m, const float left, const float right, const float bottom, const float top, const float near, const float far);
+mat4 mat4FrustumC(const float left, const float right, const float bottom, const float top, const float near, const float far);
+void mat4Perspective(mat4 *const restrict m, const float fov, const float aspectRatio, const float near, const float far);
+mat4 mat4PerspectiveC(const float fov, const float aspectRatio, const float near, const float far);
+void mat4Orthographic(mat4 *const restrict m, const float left, const float right, const float bottom, const float top, const float near, const float far);
+mat4 mat4OrthographicC(const float left, const float right, const float bottom, const float top, const float near, const float far);
 
 void mat4ToQuat(const mat4 *const restrict m, quat *const restrict out);
 quat mat4ToQuatC(const mat4 m);

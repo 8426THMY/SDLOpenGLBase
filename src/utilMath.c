@@ -256,11 +256,11 @@ void segmentClosestPoints(
 		.z = e2->z - s2->z
 	};
 
-	const float d11 = vec3NormVec3(&v1);
+	const float d11 = vec3MagnitudeSquaredVec3(&v1);
 	const float d21 = vec3DotVec3(&v2, &v1);
 	const float d23 = vec3DotVec3(&v2, &v3);
 	const float d31 = vec3DotVec3(&v3, &v1);
-	const float d33 = vec3NormVec3(&v3);
+	const float d33 = vec3MagnitudeSquaredVec3(&v3);
 	const float denom = d11 * d33 - d31 * d31;
 	// If the two edges are perfectly parallel, the closest
 	// points should be in the middle of the first segment.
@@ -379,7 +379,7 @@ float clampEllipseDistanceFast(const float Ex, const float Ey, const float Ea, c
 		// given simply by d = ||(x0, y0)||/L.
 		//const float Ebx = Eb*Ex;
 		//const float Eay = Ea*Ey;
-		//return((Ea*Eb) * sqrtf(vec2Norm(Ex, Ey)/(Ebx*Ebx + Eay*Eay)));
+		//return((Ea*Eb) * sqrtf(vec2MagnitudeSquared(Ex, Ey)/(Ebx*Ebx + Eay*Eay)));
 	}else{
 		return(Eb);
 	}
@@ -428,7 +428,7 @@ float clampEllipseDistanceNormalFast(const float Ex, const float Ey, const float
 		// given simply by d = ||(x0, y0)||/L.
 		//const float Ebx = Eb*Ex;
 		//const float Eay = Ea*Ey;
-		//return((Ea*Eb) * sqrtf(vec2Norm(Ex, Ey)/(Ebx*Ebx + Eay*Eay)));
+		//return((Ea*Eb) * sqrtf(vec2MagnitudeSquared(Ex, Ey)/(Ebx*Ebx + Eay*Eay)));
 	}else{
 		normal->x = 0.f;
 		normal->y = 1.f;

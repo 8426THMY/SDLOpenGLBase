@@ -129,7 +129,7 @@ void interpTransSetNextPosZ(interpTransform *const restrict iTrans, const float 
 
 void interpTransAddRotEuler(interpTransform *const restrict iTrans, const float x, const float y, const float z, const float time){
 	quat q = iTrans->rot.next;
-	quatRotateByXYZ(&q, x, y, z);
+	quatRotateByEulerXYZ(&q, x, y, z);
 	quatSlerpFaster(&iTrans->rot.next, &q, time);
 }
 

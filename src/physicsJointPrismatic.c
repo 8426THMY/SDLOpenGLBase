@@ -204,37 +204,31 @@ void physJointPrismaticInit(physicsJointPrismatic *const restrict joint){
 */
 #ifdef PHYSJOINTPRISMATIC_WARM_START
 void physJointPrismaticWarmStart(const physicsJointPrismatic *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB){
+	const float totalImpulse = joint->limitImpulse + joint->motorImpulse;
 	vec3 linearImpulse;
 	vec3 angularImpulseA;
 	vec3 angularImpulseB;
-	vec3 temp;
 
 	// Calculate the linear impulse.
 	vec3MultiplySOut(&joint->tangentsGlobal[0], joint->linearImpulse.x, &linearImpulse);
-	vec3MultiplySOut(&joint->tangentsGlobal[1], joint->linearImpulse.y, &temp);
-	vec3AddVec3(&linearImpulse, &temp);
-	vec3MultiplySOut(&joint->axisGlobal, joint->limitImpulse + joint->motorImpulse, &temp);
-	vec3AddVec3(&linearImpulse, &temp);
+	vec3Fmaf(joint->linearImpulse.y, &joint->tangentsGlobal[1], &linearImpulse);
+	vec3Fmaf(totalImpulse, &joint->axisGlobal, &linearImpulse);
 
 	// Calculate the angular impulse for body A.
 	vec3MultiplySOut(&joint->rAu1, joint->linearImpulse.x, &angularImpulseA);
-	vec3MultiplySOut(&joint->rAu2, joint->linearImpulse.y, &temp);
-	vec3AddVec3(&angularImpulseA, &temp);
-	vec3MultiplySOut(&joint->rAa, joint->limitImpulse + joint->motorImpulse, &temp);
-	vec3AddVec3(&angularImpulseA, &temp);
+	vec3Fmaf(joint->linearImpulse.y, &joint->rAu2, &angularImpulseA);
+	vec3Fmaf(totalImpulse, &joint->rAa, &angularImpulseA);
 
 	// Calculate the angular impulse for body B.
 	vec3MultiplySOut(&joint->rBu1, joint->linearImpulse.x, &angularImpulseB);
-	vec3MultiplySOut(&joint->rBu2, joint->linearImpulse.y, &temp);
-	vec3AddVec3(&angularImpulseB, &temp);
-	vec3MultiplySOut(&joint->rBa, joint->limitImpulse + joint->motorImpulse, &temp);
-	vec3AddVec3(&angularImpulseB, &temp);
+	vec3Fmaf(joint->linearImpulse.y, &joint->rBu2, &angularImpulseB);
+	vec3Fmaf(totalImpulse, &joint->rBa, &angularImpulseB);
 
 
 	// Apply the accumulated impulses.
-	physRigidBodyApplyLinearImpulseInverse(bodyA, linearImpulse);
+	physRigidBodyApplyLinearImpulseInverse(bodyA, &linearImpulse);
 	physRigidBodyApplyAngularImpulseInverse(bodyA, angularImpulseA);
-	physRigidBodyApplyLinearImpulse(bodyB, linearImpulse);
+	physRigidBodyApplyLinearImpulse(bodyB, &linearImpulse);
 	physRigidBodyApplyAngularImpulse(bodyB, angularImpulseB);
 }
 #endif

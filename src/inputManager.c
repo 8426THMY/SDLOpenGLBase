@@ -251,17 +251,34 @@ void inputMngrDelete(inputManager *const restrict inputMngr){
 
 
 #ifdef C_MOUSEMOVE_FAST
+/*
+** Convert a signed integer to a special string
+** format that the command system can safely use.
+**
+** We use a flag byte followed by 4 bytes for the actual integer value.
+** If any of these 4 bytes have an individual value less than 60, we
+** need to add 60 to them and make a note of the change in the flag byte.
+**
+** We choose 60 as any values larger are guaranteed
+** not to be special command system characters.
+*/
 static void mouseMotionIntToStr(char *str, const int i){
 	unsigned int curIndex = 1;
 	char *flagChar = str;
 
 	++str;
+	// Set the flag byte's initial value to 60.
 	*flagChar = COMMAND_SPECIAL_CHAR_LIMIT;
 
 	memcpy(str, &i, sizeof(i));
+	// Process each byte of the original integer.
 	for(; curIndex < (1 << sizeof(i)); curIndex <<= 1, ++str){
+		// If the byte's individual value is less than 60,
+		// it may contain a special character, so add 60 to it.
 		if((unsigned char)*str < COMMAND_SPECIAL_CHAR_LIMIT){
 			*str += COMMAND_SPECIAL_CHAR_LIMIT;
+			// We need to keep track of this change in the flag byte.
+			// Just add 2^(n-1) to it, where n is the index of the modified byte.
 			*flagChar += curIndex;
 		}
 	}

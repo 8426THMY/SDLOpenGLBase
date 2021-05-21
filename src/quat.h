@@ -20,9 +20,13 @@ quat quatInitVec3FC(const vec3 v, const float w);
 void quatInitAxisAngle(quat *const restrict q, const vec3 *const restrict v, const float t);
 quat quatInitAxisAngleC(const vec3 v, const float t);
 void quatInitEulerXYZ(quat *const restrict q, const float x, const float y, const float z);
+void quatInitEulerZXY(quat *const restrict q, const float x, const float y, const float z);
 quat quatInitEulerXYZC(const float x, const float y, const float z);
+quat quatInitEulerZXYC(const float x, const float y, const float z);
 void quatInitEulerVec3XYZ(quat *const restrict q, const vec3 *const restrict v);
+void quatInitEulerVec3ZXY(quat *const restrict q, const vec3 *const restrict v);
 quat quatInitEulerVec3XYZC(const vec3 v);
+quat quatInitEulerVec3ZXYC(const vec3 v);
 
 void quatAdd(quat *const restrict q, const float x, const float y, const float z, const float w);
 void quatAddOut(const quat *const restrict q, const float x, const float y, const float z, const float w, quat *const restrict out);
@@ -119,15 +123,15 @@ quat quatShortestArcAltC(const vec3 v1, const vec3 v2);
 float quatMagnitude(const float x, const float y, const float z, const float w);
 float quatMagnitudeQuat(const quat *const restrict q);
 float quatMagnitudeQuatC(const quat q);
+float quatMagnitudeSquared(const float x, const float y, const float z, const float w);
+float quatMagnitudeSquaredQuat(const quat *const restrict q);
+float quatMagnitudeSquaredQuatC(const quat q);
 
 float quatDot(const float x1, const float y1, const float z1, const float w1, const float x2, const float y2, const float z2, const float w2);
 float quatDotQuatFloat(const quat *const restrict q, const float x, const float y, const float z, const float w);
 float quatDotQuatFloatC(const quat q, const float x, const float y, const float z, const float w);
 float quatDotQuat(const quat *const restrict q1, const quat *const restrict q2);
 float quatDotQuatC(const quat q1, const quat q2);
-float quatNorm(const float x, const float y, const float z, const float w);
-float quatNormQuat(const quat *const restrict q);
-float quatNormQuatC(const quat q);
 
 void quatNormalize(const float x, const float y, const float z, const float w, quat *const restrict out);
 void quatNormalizeFast(const float x, const float y, const float z, const float w, quat *const restrict out);
@@ -160,19 +164,23 @@ float quatAngleAboutAxis(const float qa, const float w);
 void quatFromTanVector(const vec3 *const restrict v, quat *const restrict out);
 quat quatFromTanVectorC(const vec3 v);
 
-void quatToEulerAnglesXYZ(const quat q, vec3 *const restrict angles);
+void quatToEulerAnglesXYZ(const quat q, vec3 *const restrict out);
+void quatToEulerAnglesZXY(const quat q, vec3 *const restrict out);
 vec3 quatToEulerAnglesXYZC(const quat q);
-void quatToEulerAnglesAltXYZ(const quat q, vec3 *const restrict angles);
-vec3 quatToEulerAnglesAltXYZC(const quat q);
+vec3 quatToEulerAnglesZXYC(const quat q);
 void quatToAxisAngle(const quat *const restrict q, vec4 *const restrict out);
 vec4 quatToAxisAngleC(const quat q);
 void quatToAxisAngleFast(const quat *const restrict q, vec4 *const restrict out);
 vec4 quatToAxisAngleFastC(const quat q);
 
-void quatRotateByXYZ(quat *const restrict q, const float x, const float y, const float z);
-quat quatRotateByXYZC(const quat q, const float x, const float y, const float z);
-void quatRotateByVec3XYZ(quat *const restrict q, const vec3 *const restrict v);
-quat quatRotateByVec3XYZC(const quat q, const vec3 v);
+void quatRotateByEulerXYZ(quat *const restrict q, const float x, const float y, const float z);
+void quatRotateByEulerZXY(quat *const restrict q, const float x, const float y, const float z);
+quat quatRotateByEulerXYZC(const quat q, const float x, const float y, const float z);
+quat quatRotateByEulerZXYC(const quat q, const float x, const float y, const float z);
+void quatRotateByVec3EulerXYZ(quat *const restrict q, const vec3 *const restrict v);
+void quatRotateByVec3EulerZXY(quat *const restrict q, const vec3 *const restrict v);
+quat quatRotateByVec3EulerXYZC(const quat q, const vec3 v);
+quat quatRotateByVec3EulerZXYC(const quat q, const vec3 v);
 
 void quatLerp(quat *const restrict q1, const quat *const restrict q2, const float time);
 void quatLerpOut(const quat *const restrict q1, const quat *const restrict q2, const float time, quat *const restrict out);

@@ -436,45 +436,129 @@ vec3 vec3DivideByVec3FastC(vec3 v1, const vec3 v2){
 }
 
 
+// Multiply "u" by "x" and add it to "v"!
+void vec3Fmaf(const float x, const vec3 *const restrict u, vec3 *const restrict v){
+	#ifdef FP_FAST_FMAF
+	v->x = fmaf(x, u->x, v->x);
+	v->y = fmaf(x, u->y, v->y);
+	v->z = fmaf(x, u->z, v->z);
+	#else
+	v->x += x*u->x;
+	v->y += x*u->y;
+	v->z += x*u->z;
+	#endif
+}
+
+// Multiply "u" by "x", add it to "v" and store the result in "out"!
+void vec3FmafOut(const float x, const vec3 *const restrict u, const vec3 *const restrict v, vec3 *const restrict out){
+	#ifdef FP_FAST_FMAF
+	out->x = fmaf(x, u->x, v->x);
+	out->y = fmaf(x, u->y, v->y);
+	out->z = fmaf(x, u->z, v->z);
+	#else
+	out->x = x*u->x + v->x;
+	out->y = x*u->y + v->y;
+	out->z = x*u->z + v->z;
+	#endif
+}
+
+// Multiply "u" by "x", add it to "v" and return the result!
+vec3 vec3FmafC(const float x, const vec3 u, const vec3 v){
+	const vec3 out = {
+	#ifdef FP_FAST_FMAF
+		.x = fmaf(x, u.x, v.x),
+		.y = fmaf(x, u.y, v.y),
+		.z = fmaf(x, u.z, v.z)
+	#else
+		.x = x*u.x + v.x,
+		.y = x*u.y + v.y,
+		.z = x*u.z + v.z
+	#endif
+	};
+	return(out);
+}
+
+
 // Find the magnitude (length) of a vec3 stored as three floats!
 float vec3Magnitude(const float x, const float y, const float z){
-	return(sqrtf(vec3Norm(x, y, z)));
+	return(sqrtf(vec3MagnitudeSquared(x, y, z)));
 }
 
 // Find the magnitude (length) of a vec3!
 float vec3MagnitudeVec3(const vec3 *const restrict v){
-	return(sqrtf(vec3NormVec3(v)));
+	return(sqrtf(vec3MagnitudeSquaredVec3(v)));
 }
 
 // Find the magnitude (length) of a vec3!
 float vec3MagnitudeVec3C(const vec3 v){
-	return(sqrtf(vec3NormVec3C(v)));
+	return(sqrtf(vec3MagnitudeSquaredVec3C(v)));
+}
+
+// Find the squared magnitude of a vec3 stored as three floats!
+float vec3MagnitudeSquared(const float x, const float y, const float z){
+	return(x * x + y * y + z * z);
+}
+
+// Find the squared magnitude of a vec3!
+float vec3MagnitudeSquaredVec3(const vec3 *const restrict v){
+	return(v->x * v->x + v->y * v->y + v->z * v->z);
+}
+
+// Find the squared magnitude of a vec3!
+float vec3MagnitudeSquaredVec3C(const vec3 v){
+	return(v.x * v.x + v.y * v.y + v.z * v.z);
 }
 
 // Find the distance between a vec3 and one stored as three floats!
+float vec3Distance(const vec3 *const restrict v, const float x, const float y, const float z){
+	vec3 dist;
+	vec3SubtractFromOut(v, x, y, z, &dist);
+	return(vec3MagnitudeVec3(&dist));
+}
+
+// Find the distance between a vec3 and one stored as three floats!
+float vec3DistanceC(const vec3 v, const float x, const float y, const float z){
+	const vec3 dist = vec3SubtractFromC(v, x, y, z);
+	return(vec3MagnitudeVec3C(dist));
+}
+
+// Find the squared distance between a vec3 and one stored as three floats!
 float vec3DistanceSquared(const vec3 *const restrict v, const float x, const float y, const float z){
 	vec3 dist;
 	vec3SubtractFromOut(v, x, y, z, &dist);
-	return(vec3NormVec3(&dist));
+	return(vec3MagnitudeSquaredVec3(&dist));
 }
 
-// Find the distance between a vec3 and one stored as three floats!
+// Find the squared distance between a vec3 and one stored as three floats!
 float vec3DistanceSquaredC(const vec3 v, const float x, const float y, const float z){
 	const vec3 dist = vec3SubtractFromC(v, x, y, z);
-	return(vec3NormVec3C(dist));
+	return(vec3MagnitudeSquaredVec3C(dist));
 }
 
 // Find the distance between two vec3s!
+float vec3DistanceVec3(const vec3 *const restrict v1, const vec3 *const restrict v2){
+	vec3 dist;
+	vec3SubtractVec3FromOut(v1, v2, &dist);
+	return(vec3MagnitudeVec3(&dist));
+}
+
+// Find the distance between two vec3s!
+float vec3DistanceVec3C(const vec3 v1, const vec3 v2){
+	const vec3 dist = vec3SubtractVec3FromC(v1, v2);
+	return(vec3MagnitudeVec3C(dist));
+}
+
+// Find the squared distance between two vec3s!
 float vec3DistanceSquaredVec3(const vec3 *const restrict v1, const vec3 *const restrict v2){
 	vec3 dist;
 	vec3SubtractVec3FromOut(v1, v2, &dist);
-	return(vec3NormVec3(&dist));
+	return(vec3MagnitudeSquaredVec3(&dist));
 }
 
-// Find the distance between two vec3s!
+// Find the squared distance between two vec3s!
 float vec3DistanceSquaredVec3C(const vec3 v1, const vec3 v2){
 	const vec3 dist = vec3SubtractVec3FromC(v1, v2);
-	return(vec3NormVec3C(dist));
+	return(vec3MagnitudeSquaredVec3C(dist));
 }
 
 
@@ -501,21 +585,6 @@ float vec3DotVec3(const vec3 *const restrict v1, const vec3 *const restrict v2){
 // Find the dot product of two vec3s!
 float vec3DotVec3C(const vec3 v1, const vec3 v2){
 	return(v1.x * v2.x + v1.y * v2.y + v1.z * v2.z);
-}
-
-// Find the norm of a vec3 stored as three floats!
-float vec3Norm(const float x, const float y, const float z){
-	return(x * x + y * y + z * z);
-}
-
-// Find the norm of a vec3!
-float vec3NormVec3(const vec3 *const restrict v){
-	return(v->x * v->x + v->y * v->y + v->z * v->z);
-}
-
-// Find the norm of a vec3!
-float vec3NormVec3C(const vec3 v){
-	return(v.x * v.x + v.y * v.y + v.z * v.z);
 }
 
 
@@ -805,6 +874,151 @@ void vec3RadToDeg(vec3 *const restrict v){
 	v->x *= RAD_TO_DEG;
 	v->y *= RAD_TO_DEG;
 	v->z *= RAD_TO_DEG;
+}
+
+
+// Rotate a vec3 using XYZ Euler angles (in radians)!
+void vec3RotateByEulerXYZ(vec3 *const restrict v, const float x, const float y, const float z){
+	const float cx = cosf(x);
+	const float sx = sinf(x);
+	const float cy = cosf(y);
+	const float sy = sinf(y);
+	const float cz = cosf(z);
+	const float sz = sinf(z);
+	const float sxsy = sx * sy;
+	const float cxsy = cx * sy;
+	// Note that this is row-major, whereas everywhere else we use column-major.
+	// It's better using row-major here since we can read the entries in order.
+	const float rotMatrix[9] = {
+		cy*cz, sxsy*cz - cx*sz, cxsy*cz + sx*sz,
+		cy*sz, sxsy*sz + cx*cz, cxsy*sz - sx*cz,
+		  -sy,           sx*cy,           cx*cy
+	};
+	const vec3 tempVec = *v;
+
+	v->x = rotMatrix[0]*tempVec.x + rotMatrix[1]*tempVec.y + rotMatrix[2]*tempVec.z;
+	v->y = rotMatrix[3]*tempVec.x + rotMatrix[4]*tempVec.y + rotMatrix[5]*tempVec.z;
+	v->z = rotMatrix[6]*tempVec.x + rotMatrix[7]*tempVec.y + rotMatrix[8]*tempVec.z;
+}
+
+// Rotate a vec3 using ZXY Euler angles (in radians)!
+void vec3RotateByEulerZXY(vec3 *const restrict v, const float x, const float y, const float z){
+	const float cx = cosf(x);
+	const float sx = sinf(x);
+	const float cy = cosf(y);
+	const float sy = sinf(y);
+	const float cz = cosf(z);
+	const float sz = sinf(z);
+	const float sxsy = sx * sy;
+	const float sxcy = sx * cy;
+	// Note that this is row-major, whereas everywhere else we use column-major.
+	// It's better using row-major here since we can read the entries in order.
+	const float rotMatrix[9] = {
+		sxsy*sz + cy*cz, sxsy*cz - cy*sz, cx*sy,
+		          cx*sz,           cx*cz,   -sx,
+		sxcy*sz - sy*cz, sxcy*cz + sy*sz, cx*cy
+	};
+	const vec3 tempVec = *v;
+
+	v->x = rotMatrix[0]*tempVec.x + rotMatrix[1]*tempVec.y + rotMatrix[2]*tempVec.z;
+	v->y = rotMatrix[3]*tempVec.x + rotMatrix[4]*tempVec.y + rotMatrix[5]*tempVec.z;
+	v->z = rotMatrix[6]*tempVec.x + rotMatrix[7]*tempVec.y + rotMatrix[8]*tempVec.z;
+}
+
+// Rotate a vec3 using XYZ Euler angles (in radians) and return the result!
+vec3 vec3RotateByEulerXYZC(const vec3 v, const float x, const float y, const float z){
+	const float cx = cosf(x);
+	const float sx = sinf(x);
+	const float cy = cosf(y);
+	const float sy = sinf(y);
+	const float cz = cosf(z);
+	const float sz = sinf(z);
+	const float sxsy = sx * sy;
+	const float cxsy = cx * sy;
+	// Note that this is row-major, whereas everywhere else we use column-major.
+	// It's better using row-major here since we can read the entries in order.
+	const float rotMatrix[9] = {
+		cy*cz, sxsy*cz - cx*sz, cxsy*cz + sx*sz,
+		cy*sz, sxsy*sz + cx*cz, cxsy*sz - sx*cz,
+		  -sy,           sx*cy,           cx*cy
+	};
+
+	return(vec3InitSetC(
+		rotMatrix[0]*v.x + rotMatrix[1]*v.y + rotMatrix[2]*v.z,
+		rotMatrix[3]*v.x + rotMatrix[4]*v.y + rotMatrix[5]*v.z,
+		rotMatrix[6]*v.x + rotMatrix[7]*v.y + rotMatrix[8]*v.z
+	));
+}
+
+// Rotate a vec3 using ZXY Euler angles (in radians) and return the result!
+vec3 vec3RotateByEulerZXYC(const vec3 v, const float x, const float y, const float z){
+	const float cx = cosf(x);
+	const float sx = sinf(x);
+	const float cy = cosf(y);
+	const float sy = sinf(y);
+	const float cz = cosf(z);
+	const float sz = sinf(z);
+	const float sxsy = sx * sy;
+	const float sxcy = sx * cy;
+	// Note that this is row-major, whereas everywhere else we use column-major.
+	// It's better using row-major here since we can read the entries in order.
+	const float rotMatrix[9] = {
+		sxsy*sz + cy*cz, sxsy*cz - cy*sz, cx*sy,
+		          cx*sz,           cx*cz,   -sx,
+		sxcy*sz - sy*cz, sxcy*cz + sy*sz, cx*cy
+	};
+
+	return(vec3InitSetC(
+		rotMatrix[0]*v.x + rotMatrix[1]*v.y + rotMatrix[2]*v.z,
+		rotMatrix[3]*v.x + rotMatrix[4]*v.y + rotMatrix[5]*v.z,
+		rotMatrix[6]*v.x + rotMatrix[7]*v.y + rotMatrix[8]*v.z
+	));
+}
+
+// Rotate a vec3 using XYZ Euler angles (in radians) and store the result in "out"!
+void vec3RotateByEulerXYZOut(const vec3 *const restrict v, const float x, const float y, const float z, vec3 *const restrict out){
+	const float cx = cosf(x);
+	const float sx = sinf(x);
+	const float cy = cosf(y);
+	const float sy = sinf(y);
+	const float cz = cosf(z);
+	const float sz = sinf(z);
+	const float sxsy = sx * sy;
+	const float cxsy = cx * sy;
+	// Note that this is row-major, whereas everywhere else we use column-major.
+	// It's better using row-major here since we can read the entries in order.
+	const float rotMatrix[9] = {
+		cy*cz, sxsy*cz - cx*sz, cxsy*cz + sx*sz,
+		cy*sz, sxsy*sz + cx*cz, cxsy*sz - sx*cz,
+		  -sy,           sx*cy,           cx*cy
+	};
+
+	out->x = rotMatrix[0]*v->x + rotMatrix[1]*v->y + rotMatrix[2]*v->z;
+	out->y = rotMatrix[3]*v->x + rotMatrix[4]*v->y + rotMatrix[5]*v->z;
+	out->z = rotMatrix[6]*v->x + rotMatrix[7]*v->y + rotMatrix[8]*v->z;
+}
+
+// Rotate a vec3 using ZXY Euler angles (in radians) and store the result in "out"!
+void vec3RotateByEulerZXYOut(const vec3 *const restrict v, const float x, const float y, const float z, vec3 *const restrict out){
+	const float cx = cosf(x);
+	const float sx = sinf(x);
+	const float cy = cosf(y);
+	const float sy = sinf(y);
+	const float cz = cosf(z);
+	const float sz = sinf(z);
+	const float sxsy = sx * sy;
+	const float sxcy = sx * cy;
+	// Note that this is row-major, whereas everywhere else we use column-major.
+	// It's better using row-major here since we can read the entries in order.
+	const float rotMatrix[9] = {
+		sxsy*sz + cy*cz, sxsy*cz - cy*sz, cx*sy,
+		          cx*sz,           cx*cz,   -sx,
+		sxcy*sz - sy*cz, sxcy*cz + sy*sz, cx*cy
+	};
+
+	out->x = rotMatrix[0]*v->x + rotMatrix[1]*v->y + rotMatrix[2]*v->z;
+	out->y = rotMatrix[3]*v->x + rotMatrix[4]*v->y + rotMatrix[5]*v->z;
+	out->z = rotMatrix[6]*v->x + rotMatrix[7]*v->y + rotMatrix[8]*v->z;
 }
 
 

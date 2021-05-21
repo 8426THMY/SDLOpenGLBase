@@ -70,11 +70,22 @@ void vec4DivideVec4ByFast(vec4 *const restrict v1, const vec4 *const restrict v2
 void vec4DivideByVec4FastOut(const vec4 *const restrict v1, const vec4 *const restrict v2, vec4 *const restrict out);
 vec4 vec4DivideByVec4FastC(vec4 v1, const vec4 v2);
 
+void vec4Fmaf(const float x, const vec4 *const restrict u, vec4 *const restrict v);
+void vec4FmafOut(const float x, const vec4 *const restrict u, const vec4 *const restrict v, vec4 *const restrict out);
+vec4 vec4FmafC(const float x, const vec4 u, const vec4 v);
+
 float vec4Magnitude(const float x, const float y, const float z, const float w);
 float vec4MagnitudeVec4(const vec4 *const restrict v);
 float vec4MagnitudeVec4C(const vec4 v);
+float vec4MagnitudeSquared(const float x, const float y, const float z, const float w);
+float vec4MagnitudeSquaredVec4(const vec4 *const restrict v);
+float vec4MagnitudeSquaredVec4C(const vec4 v);
+float vec4Distance(const vec4 *const restrict v, const float x, const float y, const float z, const float w);
+float vec4DistanceC(const vec4 v, const float x, const float y, const float z, const float w);
 float vec4DistanceSquared(const vec4 *const restrict v, const float x, const float y, const float z, const float w);
 float vec4DistanceSquaredC(const vec4 v, const float x, const float y, const float z, const float w);
+float vec4DistanceVec4(const vec4 *const restrict v1, const vec4 *const restrict v2);
+float vec4DistanceVec4C(const vec4 v1, const vec4 v2);
 float vec4DistanceSquaredVec4(const vec4 *const restrict v1, const vec4 *const restrict v2);
 float vec4DistanceSquaredVec4C(const vec4 v1, const vec4 v2);
 
@@ -83,9 +94,6 @@ float vec4DotVec4Float(const vec4 *const restrict v, const float x, const float 
 float vec4DotVec4FloatC(const vec4 v, const float x, const float y, const float z, const float w);
 float vec4DotVec4(const vec4 *const restrict v1, const vec4 *const restrict v2);
 float vec4DotVec4C(const vec4 v1, const vec4 v2);
-float vec4Norm(const float x, const float y, const float z, const float w);
-float vec4NormVec4(const vec4 *const restrict v);
-float vec4NormVec4C(const vec4 v);
 
 void vec4Normalize(const float x, const float y, const float z, const float w, vec4 *const restrict out);
 void vec4NormalizeFast(const float x, const float y, const float z, const float w, vec4 *const restrict out);

@@ -246,15 +246,14 @@ void physRigidBodyDefAddCollider(
 
 
 	// Calculate the collider's contribution to the body's centroid.
-	vec3MultiplySOut(centroid, mass, &tempCentroid);
 	vec3MultiplyS(&bodyDef->centroid, bodyDef->mass);
+	vec3Fmaf(mass, centroid, &bodyDef->centroid);
 
 	// Calculate the new mass and inverse mass.
 	bodyDef->mass += mass;
 	bodyDef->invMass = (bodyDef->mass == 0.f) ? 0.f : 1.f / bodyDef->mass;
 
-	// Add this collider's contribution to the centroid.
-	vec3AddVec3(&bodyDef->centroid, &tempCentroid);
+	// Scale the centroid by the new inverse mass.
 	vec3MultiplyS(&bodyDef->centroid, bodyDef->invMass);
 
 
@@ -385,11 +384,8 @@ return_t physRigidBodyPermitCollision(const physicsRigidBody *bodyA, const physi
 */
 void physRigidBodyIntegrateVelocity(physicsRigidBody *const restrict body, const float dt){
 	if(flagsAreSet(body->flags, PHYSRIGIDBODY_SIMULATE_LINEAR)){
-		vec3 linearAcceleration;
-		// Calculate the body's linear acceleration.
-		vec3MultiplySOut(&body->netForce, body->invMass * dt, &linearAcceleration);
 		// Add the linear acceleration to the linear velocity.
-		vec3AddVec3(&body->linearVelocity, &linearAcceleration);
+		vec3Fmaf(body->invMass * dt, &body->netForce, &body->linearVelocity);
 	}else{
 		vec3InitZero(&body->linearVelocity);
 	}
@@ -427,11 +423,8 @@ void physRigidBodyResetAccumulators(physicsRigidBody *const restrict body){
 */
 void physRigidBodyIntegratePosition(physicsRigidBody *const restrict body, const float dt){
 	if(flagsAreSet(body->flags, PHYSRIGIDBODY_SIMULATE_LINEAR)){
-		vec3 linearVelocityDelta;
-		vec3MultiplySOut(&body->linearVelocity, dt, &linearVelocityDelta);
 		// Compute the object's new position.
-		vec3AddVec3(&body->centroid, &linearVelocityDelta);
-
+		vec3Fmaf(dt, &body->linearVelocity, &body->centroid);
 		flagsSet(body->flags, PHYSRIGIDBODY_TRANSLATED);
 	}else{
 		flagsUnset(body->flags, PHYSRIGIDBODY_TRANSLATED);
@@ -473,17 +466,15 @@ void physRigidBodyApplyForce(physicsRigidBody *const restrict body, const vec3 *
 
 
 // Add a translational impulse to a rigid body.
-void physRigidBodyApplyLinearImpulse(physicsRigidBody *const restrict body, vec3 J){
+void physRigidBodyApplyLinearImpulse(physicsRigidBody *const restrict body, const vec3 *const restrict J){
 	// Linear velocity.
-	vec3MultiplyS(&J, body->invMass);
-	vec3AddVec3(&body->linearVelocity, &J);
+	vec3Fmaf(body->invMass, J, &body->linearVelocity);
 }
 
 // Subtract a translational impulse from a rigid body.
-void physRigidBodyApplyLinearImpulseInverse(physicsRigidBody *const restrict body, vec3 J){
+void physRigidBodyApplyLinearImpulseInverse(physicsRigidBody *const restrict body, const vec3 *const restrict J){
 	// Linear velocity.
-	vec3MultiplyS(&J, body->invMass);
-	vec3SubtractVec3From(&body->linearVelocity, &J);
+	vec3Fmaf(-body->invMass, J, &body->linearVelocity);
 }
 
 // Add a rotational impulse to a rigid body.
@@ -505,8 +496,7 @@ void physRigidBodyApplyImpulse(physicsRigidBody *const restrict body, const vec3
 	vec3 impulse;
 
 	// Linear velocity.
-	vec3MultiplySOut(p, body->invMass, &impulse);
-	vec3AddVec3(&body->linearVelocity, &impulse);
+	vec3Fmaf(body->invMass, p, &body->linearVelocity);
 
 	// Angular velocity.
 	vec3CrossVec3Out(r, p, &impulse);
@@ -519,8 +509,7 @@ void physRigidBodyApplyImpulseBoost(physicsRigidBody *const restrict body, const
 	vec3 impulse;
 
 	// Linear velocity.
-	vec3MultiplySOut(p, body->invMass, &impulse);
-	vec3AddVec3(&body->linearVelocity, &impulse);
+	vec3Fmaf(body->invMass, p, &body->linearVelocity);
 
 	// Angular velocity.
 	vec3CrossVec3Out(r, p, &impulse);
@@ -534,8 +523,7 @@ void physRigidBodyApplyImpulseInverse(physicsRigidBody *const restrict body, con
 	vec3 impulse;
 
 	// Linear velocity.
-	vec3MultiplySOut(p, body->invMass, &impulse);
-	vec3SubtractVec3From(&body->linearVelocity, &impulse);
+	vec3Fmaf(-body->invMass, p, &body->linearVelocity);
 
 	// Angular velocity.
 	vec3CrossVec3Out(r, p, &impulse);
@@ -548,8 +536,7 @@ void physRigidBodyApplyImpulseBoostInverse(physicsRigidBody *const restrict body
 	vec3 impulse;
 
 	// Linear velocity.
-	vec3MultiplySOut(p, body->invMass, &impulse);
-	vec3SubtractVec3From(&body->linearVelocity, &impulse);
+	vec3Fmaf(-body->invMass, p, &body->linearVelocity);
 
 	// Angular velocity.
 	vec3CrossVec3Out(r, p, &impulse);
@@ -591,9 +578,7 @@ void physRigidBodyApplyAngularImpulsePositionInverse(physicsRigidBody *const res
 void physRigidBodyApplyImpulsePosition(physicsRigidBody *const restrict body, const vec3 *const restrict r, const vec3 *const restrict p){
 	// Position.
 	if(flagsAreSet(body->flags, PHYSRIGIDBODY_SIMULATE_LINEAR)){
-		vec3 impulse;
-		vec3MultiplySOut(p, body->invMass, &impulse);
-		vec3AddVec3(&body->centroid, &impulse);
+		vec3Fmaf(body->invMass, p, &body->centroid);
 	}
 
 	// Orientation.
@@ -614,9 +599,7 @@ void physRigidBodyApplyImpulsePosition(physicsRigidBody *const restrict body, co
 void physRigidBodyApplyImpulsePositionInverse(physicsRigidBody *const restrict body, const vec3 *const restrict r, const vec3 *const restrict p){
 	// Position.
 	if(flagsAreSet(body->flags, PHYSRIGIDBODY_SIMULATE_LINEAR)){
-		vec3 impulse;
-		vec3MultiplySOut(p, body->invMass, &impulse);
-		vec3SubtractVec3From(&body->centroid, &impulse);
+		vec3Fmaf(-body->invMass, p, &body->centroid);
 	}
 
 	// Orientation.

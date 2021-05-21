@@ -383,45 +383,123 @@ vec2 vec2DivideByVec2FastC(vec2 v1, const vec2 v2){
 }
 
 
+// Multiply "u" by "x" and add it to "v"!
+void vec2Fmaf(const float x, const vec2 *const restrict u, vec2 *const restrict v){
+	#ifdef FP_FAST_FMAF
+	v->x = fmaf(x, u->x, v->x);
+	v->y = fmaf(x, u->y, v->y);
+	#else
+	v->x += x*u->x;
+	v->y += x*u->y;
+	#endif
+}
+
+// Multiply "u" by "x", add it to "v" and store the result in "out"!
+void vec2FmafOut(const float x, const vec2 *const restrict u, const vec2 *const restrict v, vec2 *const restrict out){
+	#ifdef FP_FAST_FMAF
+	out->x = fmaf(x, u->x, v->x);
+	out->y = fmaf(x, u->y, v->y);
+	#else
+	out->x = x*u->x + v->x;
+	out->y = x*u->y + v->y;
+	#endif
+}
+
+// Multiply "u" by "x", add it to "v" and return the result!
+vec2 vec2FmafC(const float x, const vec2 u, const vec2 v){
+	const vec2 out = {
+	#ifdef FP_FAST_FMAF
+		.x = fmaf(x, u.x, v.x),
+		.y = fmaf(x, u.y, v.y)
+	#else
+		.x = x*u.x + v.x,
+		.y = x*u.y + v.y
+	#endif
+	};
+	return(out);
+}
+
+
 // Find the magnitude (length) of a vec2 stored as two floats!
 float vec2Magnitude(const float x, const float y){
-	return(sqrtf(vec2Norm(x, y)));
+	return(sqrtf(vec2MagnitudeSquared(x, y)));
 }
 
 // Find the magnitude (length) of a vec2!
 float vec2MagnitudeVec2(const vec2 *const restrict v){
-	return(sqrtf(vec2NormVec2(v)));
+	return(sqrtf(vec2MagnitudeSquaredVec2(v)));
 }
 
 // Find the magnitude (length) of a vec2!
 float vec2MagnitudeVec2C(const vec2 v){
-	return(sqrtf(vec2NormVec2C(v)));
+	return(sqrtf(vec2MagnitudeSquaredVec2C(v)));
+}
+
+// Find the squared magnitude of a vec2 stored as two floats!
+float vec2MagnitudeSquared(const float x, const float y){
+	return(x * x + y * y);
+}
+
+// Find the squared magnitude of a vec2!
+float vec2MagnitudeSquaredVec2(const vec2 *const restrict v){
+	return(v->x * v->x + v->y * v->y);
+}
+
+// Find the squared magnitude of a vec2!
+float vec2MagnitudeSquaredVec2C(const vec2 v){
+	return(v.x * v.x + v.y * v.y);
 }
 
 // Find the distance between a vec2 and one stored as two floats!
+float vec2Distance(const vec2 *const restrict v, const float x, const float y){
+	vec2 dist;
+	vec2SubtractFromOut(v, x, y, &dist);
+	return(vec2MagnitudeVec2(&dist));
+}
+
+// Find the distance between a vec2 and one stored as two floats!
+float vec2DistanceC(const vec2 v, const float x, const float y){
+	const vec2 dist = vec2SubtractFromC(v, x, y);
+	return(vec2MagnitudeVec2C(dist));
+}
+
+// Find the squared distance between a vec2 and one stored as two floats!
 float vec2DistanceSquared(const vec2 *const restrict v, const float x, const float y){
 	vec2 dist;
 	vec2SubtractFromOut(v, x, y, &dist);
-	return(vec2NormVec2(&dist));
+	return(vec2MagnitudeSquaredVec2(&dist));
 }
 
-// Find the distance between a vec2 and one stored as two floats!
+// Find the squared distance between a vec2 and one stored as two floats!
 float vec2DistanceSquaredC(const vec2 v, const float x, const float y){
 	const vec2 dist = vec2SubtractFromC(v, x, y);
-	return(vec2NormVec2C(dist));
+	return(vec2MagnitudeSquaredVec2C(dist));
 }
 
 // Find the distance between two vec2s!
+float vec2DistanceVec2(const vec2 *const restrict v1, const vec2 *const restrict v2){
+	vec2 dist;
+	vec2SubtractVec2FromOut(v1, v2, &dist);
+	return(vec2MagnitudeVec2(&dist));
+}
+
+// Find the distance between two vec2s!
+float vec2DistanceVec2C(const vec2 v1, const vec2 v2){
+	const vec2 dist = vec2SubtractVec2FromC(v1, v2);
+	return(vec2MagnitudeVec2C(dist));
+}
+
+// Find the squared distance between two vec2s!
 float vec2DistanceSquaredVec2(const vec2 *const restrict v1, const vec2 *const restrict v2){
 	vec2 dist;
 	vec2SubtractVec2FromOut(v1, v2, &dist);
-	return(vec2NormVec2(&dist));
+	return(vec2MagnitudeSquaredVec2(&dist));
 }
 
-// Find the distance between two vec2s!
+// Find the squared distance between two vec2s!
 float vec2DistanceSquaredVec2C(const vec2 v1, const vec2 v2){
 	const vec2 dist = vec2SubtractVec2FromC(v1, v2);
-	return(vec2NormVec2C(dist));
+	return(vec2MagnitudeSquaredVec2C(dist));
 }
 
 
@@ -448,21 +526,6 @@ float vec2DotVec2(const vec2 *const restrict v1, const vec2 *const restrict v2){
 // Find the dot product of two vec2s!
 float vec2DotVec2C(const vec2 v1, const vec2 v2){
 	return(v1.x * v2.x + v1.y * v2.y);
-}
-
-// Find the norm of a vec2 stored as two floats!
-float vec2Norm(const float x, const float y){
-	return(x * x + y * y);
-}
-
-// Find the norm of a vec2!
-float vec2NormVec2(const vec2 *const restrict v){
-	return(v->x * v->x + v->y * v->y);
-}
-
-// Find the norm of a vec2!
-float vec2NormVec2C(const vec2 v){
-	return(v.x * v.x + v.y * v.y);
 }
 
 

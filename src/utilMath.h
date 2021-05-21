@@ -9,8 +9,10 @@
 #include "vec3.h"
 
 
-#define DEG_TO_RAD (M_PI / 180.f)
-#define RAD_TO_DEG (180.f / M_PI)
+// Used to convert from degrees to radians.
+#define DEG_TO_RAD (M_PI/180.f)
+// Used to convert from radians to degrees.
+#define RAD_TO_DEG (180.f/M_PI)
 
 // Note that these are prone to double evaluation,
 // so the equivalent functions should be used to prevent this.

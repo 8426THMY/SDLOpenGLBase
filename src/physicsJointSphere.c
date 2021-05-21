@@ -239,22 +239,18 @@ void physJointSphereInit(
 #ifdef PHYSJOINTSPHERE_WARM_START
 void physJointSphereWarmStart(const physicsJointSphere *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB){
 	vec3 angularImpulse;
-	vec3 tempImpulse;
 
 	#ifndef PHYSJOINTSPHERE_ANGULAR_CONSTRAINT_EULER
 	// The angular impulse is the sum of the swing and twist impulses.
 	// We recalculate them here because we need the new swing and twist axes.
 	vec3MultiplySOut(&joint->swingAxis, joint->swingImpulse, &angularImpulse);
-	vec3MultiplySOut(&joint->twistAxis, joint->twistImpulse, &tempImpulse);
-	vec3AddVec3(&angularImpulse, &tempImpulse);
+	vec3Fmaf(joint->twistImpulse, &joint->twistAxis, &angularImpulse);
 	#else
 	// The angular impulse is the sum of the three axis impulses.
 	// We recalculate them here because we need the new constraint axes.
 	vec3MultiplySOut(&joint->angularAxisX, joint->angularImpulse.x, &angularImpulse);
-	vec3MultiplySOut(&joint->angularAxisY, joint->angularImpulse.y, &tempImpulse);
-	vec3AddVec3(&angularImpulse, &tempImpulse);
-	vec3MultiplySOut(&joint->angularAxisZ, joint->angularImpulse.z, &tempImpulse);
-	vec3AddVec3(&angularImpulse, &tempImpulse);
+	vec3Fmaf(joint->angularImpulse.y, &joint->angularAxisY, &angularImpulse);
+	vec3Fmaf(joint->angularImpulse.z, &joint->angularAxisZ, &angularImpulse);
 	#endif
 
 	// Apply the accumulated impulses.
@@ -343,7 +339,6 @@ void physJointSphereSolveVelocity(
 	{
 		float lambda;
 		float oldImpulse;
-		vec3 tempImpulse;
 
 		// w_relative = wB - wA
 		vec3SubtractVec3FromOut(&bodyB->angularVelocity, &bodyA->angularVelocity, &relativeVelocity);
@@ -381,8 +376,7 @@ void physJointSphereSolveVelocity(
 			lambda = ((physicsJointSphere *)joint)->twistImpulse - oldImpulse;
 
 			// Calculate the twist impulse and add it to the swing impulse.
-			vec3MultiplySOut(&((physicsJointSphere *)joint)->twistAxis, lambda, &tempImpulse);
-			vec3AddVec3(&impulse, &tempImpulse);
+			vec3Fmaf(lambda, &((physicsJointSphere *)joint)->twistAxis, &impulse);
 		}
 		#else
 		// Solve for the angular impulse along the x-axis.
@@ -410,8 +404,7 @@ void physJointSphereSolveVelocity(
 			((physicsJointSphere *)joint)->angularImpulse.y = minFloat(0.f, oldImpulse + lambda);
 			lambda = ((physicsJointSphere *)joint)->angularImpulse.y - oldImpulse;
 
-			vec3MultiplySOut(&((physicsJointSphere *)joint)->angularAxisY, lambda, &tempImpulse);
-			vec3AddVec3(&impulse, &tempImpulse);
+			vec3Fmaf(lambda, &((physicsJointSphere *)joint)->angularAxisY, &impulse);
 		}
 
 		// Solve for the angular impulse along the z-axis.
@@ -425,8 +418,7 @@ void physJointSphereSolveVelocity(
 			((physicsJointSphere *)joint)->angularImpulse.z = minFloat(0.f, oldImpulse + lambda);
 			lambda = ((physicsJointSphere *)joint)->angularImpulse.z - oldImpulse;
 
-			vec3MultiplySOut(&((physicsJointSphere *)joint)->angularAxisZ, lambda, &tempImpulse);
-			vec3AddVec3(&impulse, &tempImpulse);
+			vec3Fmaf(lambda, &((physicsJointSphere *)joint)->angularAxisZ, &impulse);
 		}
 		#endif
 
@@ -512,8 +504,7 @@ return_t physJointSphereSolvePosition(
 		// lambda = -C2/K2
 		vec3MultiplyS(&impulse, -swingAngle*swingInvMass);
 		// lambda = -C3/K3
-		vec3MultiplyS(&twistImpulse, -twistAngle*twistInvMass);
-		vec3AddVec3(&impulse, &twistImpulse);
+		vec3Fmaf(-twistAngle*twistInvMass, &twistImpulse, &impulse);
 
 
 		// Apply the correctional impulse.
@@ -547,10 +538,8 @@ return_t physJointSphereSolvePosition(
 		calculateInverseAngularMass(bodyA, bodyB, &impulse, &angularImpulseY, &angularImpulseZ, &angularInvMass);
 		// lambda = -C/K
 		vec3MultiplyS(&impulse, -angularBias.x*angularInvMass.x);
-		vec3MultiplyS(&angularImpulseY, -angularBias.y*angularInvMass.y);
-		vec3AddVec3(&impulse, &angularImpulseY);
-		vec3MultiplyS(&angularImpulseZ, -angularBias.z*angularInvMass.z);
-		vec3AddVec3(&impulse, &angularImpulseZ);
+		vec3Fmaf(-angularBias.y*angularInvMass.y, &angularImpulseY, &impulse);
+		vec3Fmaf(-angularBias.z*angularInvMass.z, &angularImpulseZ, &impulse);
 
 
 		// Apply the correctional impulse.
@@ -819,7 +808,7 @@ static void calculateBias(
 	// qAB = conj(A)*B.
 	quatMultiplyConjByQuatOut(bodyB->state.rot, bodyA->state.rot, &qAB);
 	// Decompose the relative orientation into x, y and z components.
-	quatToEulerAnglesXYZ(qAB, &angles);
+	quatToEulerAnglesZXY(qAB, &angles);
 	// If an angle is negative, we should negate its constraint axis.
 	vec3InitSet(angularAxisX, (angles.x < 0.f) ? -1.f : 1.f, 0.f, 0.f);
 	vec3InitSet(angularAxisY, 0.f, (angles.y < 0.f) ? -1.f : 1.f, 0.f);

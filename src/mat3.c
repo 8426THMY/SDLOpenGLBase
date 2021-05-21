@@ -60,6 +60,30 @@ void mat3InitEulerXYZ(mat3 *const restrict m, const float x, const float y, cons
 	m->m[2][2] = cx*cy;
 }
 
+// Initialize a matrix from ZXY Euler angles (in radians)!
+void mat3InitEulerZXY(mat3 *const restrict m, const float x, const float y, const float z){
+	const float cx = cosf(x);
+	const float sx = sinf(x);
+	const float cy = cosf(y);
+	const float sy = sinf(y);
+	const float cz = cosf(z);
+	const float sz = sinf(z);
+	const float sxsy = sx * sy;
+	const float sxcy = sx * cy;
+
+	m->m[0][0] = sxsy*sz + cy*cz;
+	m->m[0][1] = cx*sz;
+	m->m[0][2] = sxcy*sz - sy*cz;
+
+	m->m[1][0] = sxsy*cz - cy*sz;
+	m->m[1][1] = cx*cz;
+	m->m[1][2] = sxcy*cz + sy*sz;
+
+	m->m[2][0] = cx*sy;
+	m->m[2][1] = -sx;
+	m->m[2][2] = cx*cy;
+}
+
 // Initialize a matrix from XYZ Euler angles (in radians)!
 mat3 mat3InitEulerXYZC(const float x, const float y, const float z){
 	const float cx = cosf(x);
@@ -82,6 +106,35 @@ mat3 mat3InitEulerXYZC(const float x, const float y, const float z){
 
 		.m[2][0] = cxsy*cz + sx*sz,
 		.m[2][1] = cxsy*sz - sx*cz,
+		.m[2][2] = cx*cy
+	};
+
+
+	return(m);
+}
+
+// Initialize a matrix from ZXY Euler angles (in radians)!
+mat3 mat3InitEulerZXYC(const float x, const float y, const float z){
+	const float cx = cosf(x);
+	const float sx = sinf(x);
+	const float cy = cosf(y);
+	const float sy = sinf(y);
+	const float cz = cosf(z);
+	const float sz = sinf(z);
+	const float sxsy = sx * sy;
+	const float sxcy = sx * cy;
+
+	const mat3 m = {
+		.m[0][0] = sxsy*sz + cy*cz,
+		.m[0][1] = cx*sz,
+		.m[0][2] = sxcy*sz - sy*cz,
+
+		.m[1][0] = sxsy*cz - cy*sz,
+		.m[1][1] = cx*cz,
+		.m[1][2] = sxcy*cz + sy*sz,
+
+		.m[2][0] = cx*sy,
+		.m[2][1] = -sx,
 		.m[2][2] = cx*cy
 	};
 
@@ -432,43 +485,54 @@ mat3 mat3MultiplyMat3ByC(const mat3 m1, const mat3 m2){
 }
 
 
-/*
-** Rotate a matrix!
-** The order of rotations is XYZ.
-*/
-void mat3RotateXYZ(mat3 *const restrict m, const float x, const float y, const float z){
+// Rotate a matrix using XYZ Euler angles!
+void mat3RotateByEulerXYZ(mat3 *const restrict m, const float x, const float y, const float z){
 	mat3 rotMatrix;
 	mat3InitEulerXYZ(&rotMatrix, x, y, z);
 	mat3MultiplyByMat3(m, rotMatrix);
 }
 
-/*
-** Rotate a matrix!
-** The order of rotations is XYZ.
-*/
-mat3 mat3RotateXYZC(const mat3 m, const float x, const float y, const float z){
+// Rotate a matrix using ZXY Euler angles!
+void mat3RotateByEulerZXY(mat3 *const restrict m, const float x, const float y, const float z){
+	mat3 rotMatrix;
+	mat3InitEulerZXY(&rotMatrix, x, y, z);
+	mat3MultiplyByMat3(m, rotMatrix);
+}
+
+// Rotate a matrix using XYZ Euler angles!
+mat3 mat3RotateByEulerXYZC(const mat3 m, const float x, const float y, const float z){
 	const mat3 rotMatrix = mat3InitEulerXYZC(x, y, z);
 	return(mat3MultiplyMat3ByC(rotMatrix, m));
 }
 
-/*
-** Rotate a matrix by a vec3 (using radians)!
-** The order of rotations is XYZ.
-*/
-void mat3RotateByVec3XYZ(mat3 *const restrict m, const vec3 *const restrict v){
-	mat3RotateXYZ(m, v->x, v->y, v->z);
+// Rotate a matrix using ZXY Euler angles!
+mat3 mat3RotateByEulerZXYC(const mat3 m, const float x, const float y, const float z){
+	const mat3 rotMatrix = mat3InitEulerZXYC(x, y, z);
+	return(mat3MultiplyMat3ByC(rotMatrix, m));
 }
 
-/*
-** Rotate a matrix by a vec3 (using radians)!
-** The order of rotations is ZYX.
-*/
-mat3 mat3RotateByVec3XYZC(const mat3 m, const vec3 v){
-	return(mat3RotateXYZC(m, v.x, v.y, v.z));
+// Rotate a matrix by a vec3 using XYZ Euler angles!
+void mat3RotateByVec3EulerXYZ(mat3 *const restrict m, const vec3 *const restrict v){
+	mat3RotateByEulerXYZ(m, v->x, v->y, v->z);
+}
+
+// Rotate a matrix by a vec3 using ZXY Euler angles!
+void mat3RotateByVec3EulerZXY(mat3 *const restrict m, const vec3 *const restrict v){
+	mat3RotateByEulerZXY(m, v->x, v->y, v->z);
+}
+
+// Rotate a matrix by a vec3 using XYZ Euler angles!
+mat3 mat3RotateByVec3EulerXYZC(const mat3 m, const vec3 v){
+	return(mat3RotateByEulerXYZC(m, v.x, v.y, v.z));
+}
+
+// Rotate a matrix by a vec3 using ZXY Euler angles!
+mat3 mat3RotateByVec3EulerZXYC(const mat3 m, const vec3 v){
+	return(mat3RotateByEulerZXYC(m, v.x, v.y, v.z));
 }
 
 // Rotate a matrix by an axis and an angle!
-void mat3RotateAxisAngle(mat3 *const restrict m, const vec4 *const restrict v){
+void mat3RotateByAxisAngle(mat3 *const restrict m, const vec4 *const restrict v){
 	const float c = cosf(v->w);
 	const float s = sinf(v->w);
 	const float t = 1.f - c;
@@ -510,7 +574,7 @@ void mat3RotateAxisAngle(mat3 *const restrict m, const vec4 *const restrict v){
 }
 
 // Rotate a matrix by an axis and an angle!
-mat3 mat3RotateAxisAngleC(const mat3 m, const vec4 v){
+mat3 mat3RotateByAxisAngleC(const mat3 m, const vec4 v){
 	const float c = cosf(v.w);
 	const float s = sinf(v.w);
 	const float t = 1.f - c;
@@ -555,7 +619,7 @@ mat3 mat3RotateAxisAngleC(const mat3 m, const vec4 v){
 }
 
 // Rotate a matrix by a quaternion!
-void mat3RotateQuat(mat3 *const restrict m, const quat *const restrict q){
+void mat3RotateByQuat(mat3 *const restrict m, const quat *const restrict q){
 	const float xx = q->x * q->x;
 	const float xy = q->x * q->y;
 	const float xz = q->x * q->z;
@@ -597,7 +661,7 @@ void mat3RotateQuat(mat3 *const restrict m, const quat *const restrict q){
 }
 
 // Rotate a matrix by a quaternion!
-mat3 mat3RotateQuatC(const mat3 m, const quat q){
+mat3 mat3RotateByQuatC(const mat3 m, const quat q){
 	const float xx = q.x * q.x;
 	const float xy = q.x * q.y;
 	const float xz = q.x * q.z;
@@ -772,6 +836,49 @@ mat3 mat3RotateZC(const mat3 m, const float z){
 	};
 
 	return(out);
+}
+
+// Generate a rotation matrix that faces a target!
+void mat3RotateToFace(mat3 *const restrict m, const vec3 *const restrict eye, const vec3 *const restrict target, const vec3 *const restrict worldUp){
+	vec3 right, up, forward;
+	// Get the forward vector!
+	vec3SubtractVec3FromOut(target, eye, &forward);
+	vec3NormalizeVec3Fast(&forward);
+	// Get the right vector!
+	vec3CrossVec3Out(worldUp, &forward, &right);
+	vec3NormalizeVec3Fast(&right);
+	// Get the up vector!
+	vec3CrossVec3Out(&forward, &right, &up);
+	vec3NormalizeVec3Fast(&up);
+
+	// Rotate the matrix to look at "target"!
+	m->m[0][0] = right.x;
+	m->m[0][1] = right.y;
+	m->m[0][2] = right.z;
+
+	m->m[1][0] = up.x;
+	m->m[1][1] = up.y;
+	m->m[1][2] = up.z;
+
+	m->m[2][0] = forward.x;
+	m->m[2][1] = forward.y;
+	m->m[2][2] = forward.z;
+}
+
+// Generate a rotation matrix that faces a target!
+mat3 mat3RotateToFaceC(const vec3 eye, const vec3 target, const vec3 worldUp){
+	const vec3 forward = vec3NormalizeVec3FastC(vec3SubtractVec3FromC(target, eye));
+	const vec3 right   = vec3NormalizeVec3FastC(vec3CrossVec3C(worldUp, forward));
+	const vec3 up      = vec3NormalizeVec3FastC(vec3CrossVec3C(forward, right));
+
+	// Rotate the matrix to look at "target"!
+	const mat3 m = {
+		.m[0][0] = right.x,   .m[0][1] = right.y,   .m[0][2] = right.z,
+		.m[1][0] = up.x,      .m[1][1] = up.y,      .m[1][2] = up.z,
+		.m[2][0] = forward.x, .m[2][1] = forward.y, .m[2][2] = forward.z
+	};
+
+	return(m);
 }
 
 

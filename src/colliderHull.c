@@ -744,10 +744,7 @@ static void generateCentroidWeighted(
 	// Add each vertex's contribution to the centroid.
 	for(; curVertex < lastVertex; ++curVertex, ++vertexWeights){
 		const float curWeight = *vertexWeights;
-		vec3 weightedVertex;
-
-		vec3MultiplySOut(curVertex, curWeight, &weightedVertex);
-		vec3AddVec3(&newCentroid, &weightedVertex);
+		vec3Fmaf(curWeight, curVertex, &newCentroid);
 		totalWeight += curWeight;
 	}
 
@@ -1070,9 +1067,9 @@ static float edgeDistSquared(
 
 
 	vec3CrossVec3Out(edgeDirA, edgeDirB, &edgeNormal);
-	edgeNormalMagnitude = vec3NormVec3(&edgeNormal);
+	edgeNormalMagnitude = vec3MagnitudeSquaredVec3(&edgeNormal);
 	// If the two edges are parallel, we can exit early.
-	if(edgeNormalMagnitude < COLLISION_PARALLEL_THRESHOLD_SQUARED * vec3NormVec3(edgeDirA) * vec3NormVec3(edgeDirB)){
+	if(edgeNormalMagnitude < COLLISION_PARALLEL_THRESHOLD_SQUARED * vec3MagnitudeSquaredVec3(edgeDirA) * vec3MagnitudeSquaredVec3(edgeDirB)){
 		return(-INFINITY);
 	}
 
@@ -1258,7 +1255,7 @@ static void reduceContacts(
 	// first one so we can begin the loop on the second.
 	const vertexProject *bestProj = vProj;
 	const vertexClip *bestClip = vClip;
-	float bestDist = vec3NormVec3(&bestProj->v);
+	float bestDist = vec3MagnitudeSquaredVec3(&bestProj->v);
 	const vertexProject *worstProj = vProj;
 	const vertexClip *worstClip = vClip;
 	float worstDist = bestDist;
@@ -1278,7 +1275,7 @@ static void reduceContacts(
 	// Start by finding the vertices with the greatest
 	// positive and negative distances from the origin.
 	for(; curProj < vLast; ++curProj, ++curClip){
-		curDist = vec3NormVec3(&curProj->v);
+		curDist = vec3MagnitudeSquaredVec3(&curProj->v);
 		// The first vertex will be the one with the
 		// most positive distance from the origin.
 		if(curDist > bestDist){
@@ -1785,11 +1782,11 @@ static void clipEdgeContact(
 	// The edges may not necessarily be intersecting, so we'll
 	// need to find the closest points on both line segments.
 	// This is basically copied from "segmentClosestPoints".
-	const float d11 = vec3NormVec3(&ref);
+	const float d11 = vec3MagnitudeSquaredVec3(&ref);
 	const float d21 = vec3DotVec3(&offset, &ref);
 	const float d23 = vec3DotVec3(&offset, &inc);
 	const float d31 = vec3DotVec3(&inc, &ref);
-	const float d33 = vec3NormVec3(&inc);
+	const float d33 = vec3MagnitudeSquaredVec3(&inc);
 	const float denom = d11 * d33 - d31 * d31;
 	// If the two edges are perfectly parallel, the closest
 	// points should be in the middle of the first segment.

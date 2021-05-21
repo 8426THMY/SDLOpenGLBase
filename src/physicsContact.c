@@ -534,18 +534,13 @@ static void warmStartContactPoint(
 ){
 
 	vec3 impulse;
-	#ifndef PHYSCONTACT_USE_FRICTION_JOINT
-	vec3 accumulator;
-	#endif
 
 	// Warm start the contact point using the total
 	// accumulated normal and frictional impulses.
 	vec3MultiplySOut(&physContactNormal(pm), contact->normalImpulse, &impulse);
 	#ifndef PHYSCONTACT_USE_FRICTION_JOINT
-	vec3MultiplySOut(&physContactTangent(pm, 0), contact->tangentImpulse[0], &accumulator);
-	vec3AddVec3(&impulse, &accumulator);
-	vec3MultiplySOut(&physContactTangent(pm, 1), contact->tangentImpulse[1], &accumulator);
-	vec3AddVec3(&impulse, &accumulator);
+	vec3Fmaf(contact->tangentImpulse[0], &physContactTangent(pm, 0), &impulse);
+	vec3Fmaf(contact->tangentImpulse[1], &physContactTangent(pm, 1), &impulse);
 	#endif
 
 
@@ -723,7 +718,7 @@ static void solveTangents(
 	// Clamp our accumulated impulse for the first tangent.
 	oldImpulse = contact->tangentImpulse[0];
 	contact->tangentImpulse[0] = clampFloat(oldImpulse + lambda, -maxFriction, maxFriction);
-	vec3MultiplySOut(&physContactTangent(pm, 0), contact->tangentImpulse[0] - oldImpulse, &temp);
+	vec3MultiplySOut(&physContactTangent(pm, 0), contact->tangentImpulse[0] - oldImpulse, &impulse);
 
 
 	// lambda = -(JV + b)/(JM^(-1)J^T)
@@ -734,11 +729,8 @@ static void solveTangents(
 	// Clamp our accumulated impulse for the second tangent.
 	oldImpulse = contact->tangentImpulse[1];
 	contact->tangentImpulse[1] = clampFloat(oldImpulse + lambda, -maxFriction, maxFriction);
-	vec3MultiplySOut(&physContactTangent(pm, 1), contact->tangentImpulse[1] - oldImpulse, &impulse);
+	vec3Fmaf(contact->tangentImpulse[1] - oldImpulse, &physContactTangent(pm, 1), &impulse);
 
-
-	// Sum the two tangential impulses.
-	vec3AddVec3(&impulse, &temp);
 
 	// Apply the frictional impulse to the rigid bodies.
 	physRigidBodyApplyImpulseInverse(bodyA, &contact->rA, &impulse);

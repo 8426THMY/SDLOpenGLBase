@@ -24,6 +24,47 @@
 #warning "Texture groups should store scrolling information (maybe other things too?) per-animation."
 
 
+#if 0
+memoryPool g_shaderManager;
+memoryPool g_sceneManager;
+
+
+typedef uint_least8_t renderTargetType_t;
+// Describes how to render a scene.
+typedef struct renderTarget {
+    camera cam;
+
+    // Common graphics options.
+    // Anti-aliasing?
+    // Filtering mode?
+    // Stuff like this.
+
+    // We can render either to a
+    // texture or part of the screen.
+    union {
+        rectangle viewport;
+        texture tex;
+    } target;
+    renderTargetType_t type;
+} renderTarget;
+
+/*
+** Contains the information required to render
+** a scene from a particular point of view.
+**
+** Almost all of the data here is able
+** to be manipulated from within a scene.
+*/
+typedef struct renderer {
+    // Array of shaders that the scenes
+    // we're rendering can choose from.
+    shader **shaders;
+    scene *scn;
+    renderTarget target;
+} renderer;
+#endif
+
+
 int main(int argc, char **argv){
 	program prg;
 

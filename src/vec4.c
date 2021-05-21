@@ -506,45 +506,135 @@ vec4 vec4DivideByVec4FastC(vec4 v1, const vec4 v2){
 }
 
 
+// Multiply "u" by "x" and add it to "v"!
+void vec4Fmaf(const float x, const vec4 *const restrict u, vec4 *const restrict v){
+	#ifdef FP_FAST_FMAF
+	v->x = fmaf(x, u->x, v->x);
+	v->y = fmaf(x, u->y, v->y);
+	v->z = fmaf(x, u->z, v->z);
+	v->w = fmaf(x, u->w, v->w);
+	#else
+	v->x += x*u->x;
+	v->y += x*u->y;
+	v->z += x*u->z;
+	v->w += x*u->w;
+	#endif
+}
+
+// Multiply "u" by "x", add it to "v" and store the result in "out"!
+void vec4FmafOut(const float x, const vec4 *const restrict u, const vec4 *const restrict v, vec4 *const restrict out){
+	#ifdef FP_FAST_FMAF
+	out->x = fmaf(x, u->x, v->x);
+	out->y = fmaf(x, u->y, v->y);
+	out->z = fmaf(x, u->z, v->z);
+	out->w = fmaf(x, u->w, v->w);
+	#else
+	out->x = x*u->x + v->x;
+	out->y = x*u->y + v->y;
+	out->z = x*u->z + v->z;
+	out->w = x*u->w + v->w;
+	#endif
+}
+
+// Multiply "u" by "x", add it to "v" and return the result!
+vec4 vec4FmafC(const float x, const vec4 u, const vec4 v){
+	const vec4 out = {
+	#ifdef FP_FAST_FMAF
+		.x = fmaf(x, u.x, v.x),
+		.y = fmaf(x, u.y, v.y),
+		.z = fmaf(x, u.z, v.z),
+		.w = fmaf(x, u.w, v.w)
+	#else
+		.x = x*u.x + v.x,
+		.y = x*u.y + v.y,
+		.z = x*u.z + v.z,
+		.w = x*u.w + v.w
+	#endif
+	};
+	return(out);
+}
+
+
 // Find the magnitude (length) of a vec4 stored as four floats!
 float vec4Magnitude(const float x, const float y, const float z, const float w){
-	return(sqrtf(vec4Norm(x, y, z, w)));
+	return(sqrtf(vec4MagnitudeSquared(x, y, z, w)));
 }
 
 // Find the magnitude (length) of a vec4!
 float vec4MagnitudeVec4(const vec4 *const restrict v){
-	return(sqrtf(vec4NormVec4(v)));
+	return(sqrtf(vec4MagnitudeSquaredVec4(v)));
 }
 
 // Find the magnitude (length) of a vec4!
 float vec4MagnitudeVec4C(const vec4 v){
-	return(sqrtf(vec4NormVec4C(v)));
+	return(sqrtf(vec4MagnitudeSquaredVec4C(v)));
+}
+
+// Find the squared magnitude of a vec4 stored as four floats!
+float vec4MagnitudeSquared(const float x, const float y, const float z, const float w){
+	return(x * x + y * y + z * z + w * w);
+}
+
+// Find the squared magnitude of a vec4!
+float vec4MagnitudeSquaredVec4(const vec4 *const restrict v){
+	return(v->x * v->x + v->y * v->y + v->z * v->z + v->w * v->w);
+}
+
+// Find the squared magnitude of a vec4!
+float vec4MagnitudeSquaredVec4C(const vec4 v){
+	return(v.x * v.x + v.y * v.y + v.z * v.z + v.w * v.w);
 }
 
 // Find the distance between a vec4 and one stored as four floats!
+float vec4Distance(const vec4 *const restrict v, const float x, const float y, const float z, const float w){
+	vec4 dist;
+	vec4SubtractFromOut(v, x, y, z, w, &dist);
+	return(vec4MagnitudeVec4(&dist));
+}
+
+// Find the distance between a vec4 and one stored as four floats!
+float vec4DistanceC(const vec4 v, const float x, const float y, const float z, const float w){
+	const vec4 dist = vec4SubtractFromC(v, x, y, z, w);
+	return(vec4MagnitudeVec4C(dist));
+}
+
+// Find the squared distance between a vec4 and one stored as four floats!
 float vec4DistanceSquared(const vec4 *const restrict v, const float x, const float y, const float z, const float w){
 	vec4 dist;
 	vec4SubtractFromOut(v, x, y, z, w, &dist);
-	return(vec4NormVec4(&dist));
+	return(vec4MagnitudeSquaredVec4(&dist));
 }
 
-// Find the distance between a vec4 and one stored as four floats!
+// Find the squared distance between a vec4 and one stored as four floats!
 float vec4DistanceSquaredC(const vec4 v, const float x, const float y, const float z, const float w){
 	const vec4 dist = vec4SubtractFromC(v, x, y, z, w);
-	return(vec4NormVec4C(dist));
+	return(vec4MagnitudeSquaredVec4C(dist));
 }
 
 // Find the distance between two vec4s!
+float vec4DistanceVec4(const vec4 *const restrict v1, const vec4 *const restrict v2){
+	vec4 dist;
+	vec4SubtractVec4FromOut(v1, v2, &dist);
+	return(vec4MagnitudeVec4(&dist));
+}
+
+// Find the distance between two vec4s!
+float vec4DistanceVec4C(const vec4 v1, const vec4 v2){
+	const vec4 dist = vec4SubtractVec4FromC(v1, v2);
+	return(vec4MagnitudeVec4C(dist));
+}
+
+// Find the squared distance between two vec4s!
 float vec4DistanceSquaredVec4(const vec4 *const restrict v1, const vec4 *const restrict v2){
 	vec4 dist;
 	vec4SubtractVec4FromOut(v1, v2, &dist);
-	return(vec4NormVec4(&dist));
+	return(vec4MagnitudeSquaredVec4(&dist));
 }
 
-// Find the distance between two vec4s!
+// Find the squared distance between two vec4s!
 float vec4DistanceSquaredVec4C(const vec4 v1, const vec4 v2){
 	const vec4 dist = vec4SubtractVec4FromC(v1, v2);
-	return(vec4NormVec4C(dist));
+	return(vec4MagnitudeSquaredVec4C(dist));
 }
 
 
@@ -571,21 +661,6 @@ float vec4DotVec4(const vec4 *const restrict v1, const vec4 *const restrict v2){
 // Find the dot product of two vec4s!
 float vec4DotVec4C(const vec4 v1, const vec4 v2){
 	return(v1.x * v2.x + v1.y * v2.y + v1.z * v2.z + v1.w * v2.w);
-}
-
-// Find the norm of a vec4 stored as four floats!
-float vec4Norm(const float x, const float y, const float z, const float w){
-	return(x * x + y * y + z * z + w * w);
-}
-
-// Find the norm of a vec4!
-float vec4NormVec4(const vec4 *const restrict v){
-	return(v->x * v->x + v->y * v->y + v->z * v->z + v->w * v->w);
-}
-
-// Find the norm of a vec4!
-float vec4NormVec4C(const vec4 v){
-	return(v.x * v.x + v.y * v.y + v.z * v.z + v.w * v.w);
 }
 
 

@@ -43,7 +43,8 @@ void billboardState(const billboard *const restrict billboardData, const camera 
 
 	// Lock some axes to prevent billboarding around them.
 	}else if(flagsAreSet(billboardData->flags, BILLBOARD_LOCK_XYZ)){
-		vec3 eye, target, up;
+		vec3 up;
+		vec3 forward;
 		vec3 trans;
 		mat4 rot;
 
@@ -56,23 +57,21 @@ void billboardState(const billboard *const restrict billboardData, const camera 
 
 		// Set the eye and target vectors.
 		if(flagsAreSet(billboardData->flags, BILLBOARD_TARGET_SPRITE)){
-			eye = *cam->target;
-			target = cam->pos;
+			vec3InitSet(&forward, cam->viewMatrix.m[0][2], cam->viewMatrix.m[1][2], cam->viewMatrix.m[2][2]);
 		}else if(billboardData->target != NULL){
-			eye = centroid;
-			target = *billboardData->target;
+			vec3SubtractVec3FromOut(billboardData->target, &centroid, &forward);
 		}else{
-			eye = centroid;
-			target = cam->pos;
+			vec3SubtractVec3FromOut(&cam->pos, &centroid, &forward);
 		}
 
 		// Prevent the renderable from rotating on some axes.
 		if(flagsAreUnset(billboardData->flags, BILLBOARD_LOCK_X)){
-			target.y = eye.y;
+			forward.y = 0.f;
 		}
 		if(flagsAreUnset(billboardData->flags, BILLBOARD_LOCK_Y)){
-			target.x = eye.x;
+			forward.x = 0.f;
 		}
+		vec3NormalizeVec3Fast(&forward);
 		if(flagsAreUnset(billboardData->flags, BILLBOARD_LOCK_Z)){
 			vec3InitSet(&up, 0.f, 1.f, 0.f);
 		}
@@ -89,7 +88,7 @@ void billboardState(const billboard *const restrict billboardData, const camera 
 		}
 
 		// Rotate the matrix to face the target and move it back to where it was.
-		mat4RotateToFace(&rot, &eye, &target, &up);
+		mat4RotateForward(&rot, &forward, &up);
 		mat4MultiplyByMat4(&rootState, rot);
 		*((vec3 *)rootState.m[3]) = trans;
 

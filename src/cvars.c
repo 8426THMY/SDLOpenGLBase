@@ -24,7 +24,7 @@ void c_exit(commandSystem *const restrict cmdSys, const size_t argc, const char 
 }
 
 void c_mousemove(commandSystem *const restrict cmdSys, const size_t argc, const char **const restrict argv){
-	if(argc > 0){
+	if(argc == 2){
 		#ifdef C_MOUSEMOVE_FAST
 		// If the first character is greater than the command limit,
 		// it must be a flag byte and not a numerical value.
@@ -36,9 +36,7 @@ void c_mousemove(commandSystem *const restrict cmdSys, const size_t argc, const 
 		}else{
 		#endif
 			cv_mouse_dx += strtol(argv[0], NULL, 10);
-			if(argc > 1){
-				cv_mouse_dy += strtol(argv[1], NULL, 10);
-			}
+			cv_mouse_dy += strtol(argv[1], NULL, 10);
 		#ifdef C_MOUSEMOVE_FAST
 		}
 		#endif
@@ -47,13 +45,20 @@ void c_mousemove(commandSystem *const restrict cmdSys, const size_t argc, const 
 
 
 #ifdef C_MOUSEMOVE_FAST
+/*
+** Convert a signed integer back from the special
+** string format used for the command system.
+*/
 static int mouseMotionStrToInt(const char *str){
 	unsigned int curIndex = 0;
 	const char flagChar = *str - COMMAND_SPECIAL_CHAR_LIMIT;
 	int i;
 
 	memcpy(&i, &str[1], sizeof(i));
+	// Reconstruct each byte of the original integer.
 	for(; curIndex < sizeof(i); ++curIndex, ++str){
+		// If the flag for this byte is set, add 60*2^(8(n-1))
+		// to it, where n is the index of the modified byte.
 		if(flagChar & 1 << curIndex){
 			i -= COMMAND_SPECIAL_CHAR_LIMIT << (curIndex << 3);
 		}

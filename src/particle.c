@@ -28,11 +28,8 @@ void particleInit(particle *const restrict part){
 
 
 void particleUpdate(particle *const restrict part, const float time){
-	vec3 velocityDelta;
-
 	// Integrate the particle's position using symplectic Euler.
-	vec3MultiplySOut(&part->velocity, time, &velocityDelta);
-	vec3AddVec3(&part->state.pos, &velocityDelta);
+	vec3Fmaf(time, &part->velocity, &part->state.pos);
 
 	// Update the texture group animation, among other things.
 }
