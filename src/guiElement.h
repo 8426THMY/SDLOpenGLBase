@@ -9,7 +9,7 @@
 #include "transform.h"
 
 #include "sprite.h"
-#include "renderable.h"
+#include "model.h"
 #include "object.h"
 
 #include "utilTypes.h"
@@ -29,7 +29,7 @@ typedef struct guiElement {
 	// store any type of GUI element.
 	union {
 		guiPanel panel;
-		renderable render;
+		model mdl;
 		guiText text;
 		object *obj;
 	} data;

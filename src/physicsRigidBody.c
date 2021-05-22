@@ -28,19 +28,20 @@ void physRigidBodyDefInit(physicsRigidBodyDef *const restrict bodyDef){
 }
 
 void physRigidBodyInit(physicsRigidBody *const restrict body, const physicsRigidBodyDef *const restrict bodyDef){
-	const physicsCollider *curCollider = bodyDef->colliders;
+	physicsCollider *curCollider = NULL;
+	const physicsCollider *curColliderDef = bodyDef->colliders;
 
 	body->base = bodyDef;
 
 	body->colliders = NULL;
 	// Instantiate the rigid body's colliders.
-	while(curCollider != NULL){
-		body->colliders = modulePhysicsColliderPrepend(&body->colliders);
-		if(body->colliders == NULL){
+	while(curColliderDef != NULL){
+		curCollider = modulePhysicsColliderInsertAfter(&body->colliders, curCollider);
+		if(curCollider == NULL){
 			/** MALLOC FAILED **/
 		}
-		physColliderInstantiate(body->colliders, curCollider, body);
-		curCollider = modulePhysicsColliderNext(curCollider);
+		physColliderInstantiate(curCollider, curColliderDef, body);
+		curColliderDef = modulePhysicsColliderNext(curColliderDef);
 	}
 
 	body->mass = bodyDef->mass;

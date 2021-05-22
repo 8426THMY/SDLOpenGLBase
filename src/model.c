@@ -1,6 +1,10 @@
 #include "model.h"
 
 
+#define GLEW_STATIC
+#include <GL/glew.h>
+
+
 #include <stdio.h>
 #include <string.h>
 
@@ -32,13 +36,13 @@
 
 // This mesh is only used by the default model.
 // It cannot be accessed from outside this file.
-mesh mdlMeshDefault;
+mesh mdlDefMeshDefault;
 
 // By default, the error model only has a name.
 // We need to set up the other data the hard way.
-model g_mdlDefault = {
+modelDef g_mdlDefDefault = {
 	.name      = "error",
-	.meshes    = &mdlMeshDefault,
+	.meshes    = &mdlDefMeshDefault,
 	.texGroups = &g_texGroupArrayDefault,
 	.numMeshes = 1,
 	.skele     = &g_skeleDefault
@@ -63,38 +67,70 @@ typedef struct meshData {
 #warning "What if we aren't using the global memory manager?"
 
 
+// Forward-declare any helper functions!
+static void prepareShaderBones(
+	const skeleton *const restrict mdlSkele, const skeleton *const restrict objSkele,
+	const mat4 *const restrict animStates, GLuint boneStatesID
+);
+
+
+// Initialize a model from a model definition.
+void modelInit(model *const restrict mdl, const modelDef *const restrict mdlDef){
+	mdl->mdlDef = mdlDef;
+
+	// Allocate an array of texture group states for the model.
+	// Note that "mdl->numMeshes" is always greater than zero.
+	mdl->texStates = memoryManagerGlobalAlloc(mdlDef->numMeshes * sizeof(*mdl->texStates));
+	if(mdl->texStates == NULL){
+		/** MALLOC FAILED **/
+	}else{
+		const textureGroup **curTexGroup = (const textureGroup **)mdlDef->texGroups;
+		textureGroupState *curTexState = mdl->texStates;
+		const textureGroupState *const lastTexState = &curTexState[mdlDef->numMeshes];
+		do {
+			texGroupStateInit(curTexState, *curTexGroup);
+
+			++curTexGroup;
+			++curTexState;
+		} while(curTexState < lastTexState);
+	}
+
+	//billboardInit(&render->billboardData);
+}
+
+
 /*
-** Load an OBJ using the model specified by "mdlPath" and return a pointer to it.
+** Load an OBJ using the model specified by "mdlDefPath" and return a pointer to it.
 ** If the model could not be loaded, return a pointer to the default model.
 */
-model *modelOBJLoad(const char *const restrict mdlPath, const size_t mdlPathLength){
-	model *mdl;
+modelDef *modelDefOBJLoad(const char *const restrict mdlDefPath, const size_t mdlDefPathLength){
+	modelDef *mdlDef;
 
-	FILE *mdlFile;
-	char mdlFullPath[FILE_MAX_PATH_LENGTH];
+	FILE *mdlDefFile;
+	char mdlDefFullPath[FILE_MAX_PATH_LENGTH];
 
 
 	#ifdef TEMP_MODULE_FIND
 	// If the model has already been loaded, return a pointer to it!
-	if((mdl = moduleModelFind(mdlPath)) != &g_mdlDefault){
-		return(mdl);
+	if((mdlDef = moduleModelDefFind(mdlDefPath)) != &g_mdlDefDefault){
+		return(mdlDef);
 	}
 	#else
-	mdl = &g_mdlDefault;
+	mdlDef = &g_mdlDefDefault;
 	#endif
 
 
 	// Generate the full path for the model!
 	fileGenerateFullResourcePath(
 		MODEL_PATH_PREFIX, MODEL_PATH_PREFIX_LENGTH,
-		mdlPath, mdlPathLength,
-		mdlFullPath
+		mdlDefPath, mdlDefPathLength,
+		mdlDefFullPath
 	);
 
 
 	// Load the model!
-	mdlFile = fopen(mdlFullPath, "r");
-	if(mdlFile != NULL){
+	mdlDefFile = fopen(mdlDefFullPath, "r");
+	if(mdlDefFile != NULL){
 		meshVertexIndex_t tempPositionsSize = 0;
 		meshVertexIndex_t tempPositionsCapacity = BASE_POSITION_CAPACITY;
 		vec3 *tempPositions;
@@ -143,7 +179,7 @@ model *modelOBJLoad(const char *const restrict mdlPath, const size_t mdlPathLeng
 		}
 
 
-		while((line = fileReadLine(mdlFile, &lineBuffer[0], &lineLength)) != NULL){
+		while((line = fileReadLine(mdlDefFile, &lineBuffer[0], &lineLength)) != NULL){
 			// Vertex position.
 			if(lineLength >= 7 && memcmp(line, "v ", 2) == 0){
 				vec3 newPosition;
@@ -420,7 +456,7 @@ model *modelOBJLoad(const char *const restrict mdlPath, const size_t mdlPathLeng
 			}
 		}
 
-		fclose(mdlFile);
+		fclose(mdlDefFile);
 
 
 		// There's no point keeping the model if no meshes were loaded.
@@ -446,28 +482,28 @@ model *modelOBJLoad(const char *const restrict mdlPath, const size_t mdlPathLeng
 				mesh *curMesh;
 				textureGroup **curTexGroup;
 
-				mdl = moduleModelAlloc();
-				if(mdl == NULL){
+				mdlDef = moduleModelDefAlloc();
+				if(mdlDef == NULL){
 					/** MALLOC FAILED **/
 				}
-				mdl->name = memoryManagerGlobalAlloc(mdlPathLength + 1);
-				if(mdl->name == NULL){
+				mdlDef->name = memoryManagerGlobalAlloc(mdlDefPathLength + 1);
+				if(mdlDef->name == NULL){
 					/** MALLOC FAILED **/
 				}
-				memcpy(mdl->name, mdlPath, mdlPathLength + 1);
-				mdl->meshes = memoryManagerGlobalAlloc(numMeshes * sizeof(*mdl->meshes));
-				if(mdl->meshes == NULL){
+				memcpy(mdlDef->name, mdlDefPath, mdlDefPathLength + 1);
+				mdlDef->meshes = memoryManagerGlobalAlloc(numMeshes * sizeof(*mdlDef->meshes));
+				if(mdlDef->meshes == NULL){
 					/** MALLOC FAILED **/
 				}
-				mdl->texGroups = memoryManagerGlobalAlloc(numMeshes * sizeof(*mdl->texGroups));
-				if(mdl->texGroups == NULL){
+				mdlDef->texGroups = memoryManagerGlobalAlloc(numMeshes * sizeof(*mdlDef->texGroups));
+				if(mdlDef->texGroups == NULL){
 					/** MALLOC FAILED **/
 				}
-				mdl->numMeshes = numMeshes;
-				mdl->skele = &g_skeleDefault;
+				mdlDef->numMeshes = numMeshes;
+				mdlDef->skele = &g_skeleDefault;
 
-				curMesh = mdl->meshes;
-				curTexGroup = mdl->texGroups;
+				curMesh = mdlDef->meshes;
+				curTexGroup = mdlDef->texGroups;
 				// Generate buffer objects for each valid
 				// mesh and load their texture groups.
 				for(curMeshData = tempMeshData; curMeshData < lastMeshData; ++curMeshData){
@@ -511,49 +547,49 @@ model *modelOBJLoad(const char *const restrict mdlPath, const size_t mdlPathLeng
 		printf(
 			"Unable to open model file!\n"
 			"Path: %s\n",
-			mdlFullPath
+			mdlDefFullPath
 		);
 	}
 
 
-	return(mdl);
+	return(mdlDef);
 }
 
 /** When loading bone states, they need to be done in order.     **/
 /** Additionally, we should ensure bone states are specified     **/
 /** after "time". If we skip some frames, we should interpolate. **/
 /*
-** Load an SMD using the model specified by "mdlPath" and return a pointer to it.
+** Load an SMD using the model specified by "mdlDefPath" and return a pointer to it.
 ** If the model could not be loaded, return a pointer to the default model.
 */
-model *modelSMDLoad(const char *const restrict mdlPath, const size_t mdlPathLength){
-	model *mdl;
+modelDef *modelDefSMDLoad(const char *const restrict mdlDefPath, const size_t mdlDefPathLength){
+	modelDef *mdlDef;
 
-	FILE *mdlFile;
-	char mdlFullPath[FILE_MAX_PATH_LENGTH];
+	FILE *mdlDefFile;
+	char mdlDefFullPath[FILE_MAX_PATH_LENGTH];
 
 
 	#ifdef TEMP_MODULE_FIND
 	// If the model has already been loaded, return a pointer to it!
-	if((mdl = moduleModelFind(mdlPath)) != &g_mdlDefault){
-		return(mdl);
+	if((mdlDef = moduleModelDefFind(mdlDefPath)) != &g_mdlDefDefault){
+		return(mdlDef);
 	}
 	#else
-	mdl = &g_mdlDefault;
+	mdlDef = &g_mdlDefDefault;
 	#endif
 
 
 	// Generate the full path for the model!
 	fileGenerateFullResourcePath(
 		MODEL_PATH_PREFIX, MODEL_PATH_PREFIX_LENGTH,
-		mdlPath, mdlPathLength,
-		mdlFullPath
+		mdlDefPath, mdlDefPathLength,
+		mdlDefFullPath
 	);
 
 
 	// Load the model!
-	mdlFile = fopen(mdlFullPath, "r");
-	if(mdlFile != NULL){
+	mdlDefFile = fopen(mdlDefFullPath, "r");
+	if(mdlDefFile != NULL){
 		return_t success = 1;
 
 		size_t tempBonesSize = 0;
@@ -589,7 +625,7 @@ model *modelSMDLoad(const char *const restrict mdlPath, const size_t mdlPathLeng
 		}
 
 
-		while(success && (line = fileReadLine(mdlFile, &lineBuffer[0], &lineLength)) != NULL){
+		while(success && (line = fileReadLine(mdlDefFile, &lineBuffer[0], &lineLength)) != NULL){
 			if(dataType == 0){
 				if(strcmp(line, "nodes") == 0){
 					dataType = 1;
@@ -605,7 +641,7 @@ model *modelSMDLoad(const char *const restrict mdlPath, const size_t mdlPathLeng
 						"Path: %s\n"
 						"Line: %s\n"
 						"Error: Unexpected identifier!\n",
-						mdlFullPath, line
+						mdlDefFullPath, line
 					);
 
 					success = 0;
@@ -658,7 +694,7 @@ model *modelSMDLoad(const char *const restrict mdlPath, const size_t mdlPathLeng
 								"Path: %s\n"
 								"Line: %s\n"
 								"Error: Found node %u when expecting node "PRINTF_SIZE_T"!\n",
-								mdlFullPath, line, boneID, tempBonesSize
+								mdlDefFullPath, line, boneID, tempBonesSize
 							);
 
 							success = 0;
@@ -675,7 +711,7 @@ model *modelSMDLoad(const char *const restrict mdlPath, const size_t mdlPathLeng
 									"Path: %s\n"
 									"Line: %s\n"
 									"Error: Frame timestamps do not increment sequentially!\n",
-									mdlFullPath, line
+									mdlDefFullPath, line
 								);
 
 								success = 0;
@@ -724,7 +760,7 @@ model *modelSMDLoad(const char *const restrict mdlPath, const size_t mdlPathLeng
 									"Path: %s\n"
 									"Line: %s\n"
 									"Error: Found skeletal data for bone %u, which doesn't exist!\n",
-									mdlFullPath, line, boneID
+									mdlDefFullPath, line, boneID
 								);
 
 								success = 0;
@@ -830,7 +866,7 @@ model *modelSMDLoad(const char *const restrict mdlPath, const size_t mdlPathLeng
 											"Path: %s\n"
 											"Line: %s\n"
 											"Error: Vertex has too many links! All extra links will be ignored.\n",
-											mdlFullPath, line
+											mdlDefFullPath, line
 										);
 
 										numLinks = VERTEX_MAX_WEIGHTS;
@@ -847,7 +883,7 @@ model *modelSMDLoad(const char *const restrict mdlPath, const size_t mdlPathLeng
 												"Path: %s\n"
 												"Line: %s\n"
 												"Error: Vertex link bone doesn't exist! The parent bone will be used instead.\n",
-												mdlFullPath, line
+												mdlDefFullPath, line
 											);
 
 										// If we're loading the parent bone, remember its position!
@@ -907,7 +943,7 @@ model *modelSMDLoad(const char *const restrict mdlPath, const size_t mdlPathLeng
 										"Path: %s\n"
 										"Line: %s\n"
 										"Error: Vertex has no links! The parent bone will be used.\n",
-										mdlFullPath, line
+										mdlDefFullPath, line
 									);
 
 									tempVertex.boneIDs[0] = parentBoneID;
@@ -987,7 +1023,7 @@ model *modelSMDLoad(const char *const restrict mdlPath, const size_t mdlPathLeng
 									"Path: %s\n"
 									"Line: %s\n"
 									"Error: Vertex parent bone doesn't exist!\n",
-									mdlFullPath, line
+									mdlDefFullPath, line
 								);
 
 								success = 0;
@@ -1004,7 +1040,7 @@ model *modelSMDLoad(const char *const restrict mdlPath, const size_t mdlPathLeng
 			}
 		}
 
-		fclose(mdlFile);
+		fclose(mdlDefFile);
 
 
 		// There's no point keeping the model if no meshes were loaded.
@@ -1030,41 +1066,41 @@ model *modelSMDLoad(const char *const restrict mdlPath, const size_t mdlPathLeng
 				mesh *curMesh;
 				textureGroup **curTexGroup;
 
-				mdl = moduleModelAlloc();
-				if(mdl == NULL){
+				mdlDef = moduleModelDefAlloc();
+				if(mdlDef == NULL){
 					/** MALLOC FAILED **/
 				}
-				mdl->name = memoryManagerGlobalAlloc(mdlPathLength + 1);
-				if(mdl->name == NULL){
+				mdlDef->name = memoryManagerGlobalAlloc(mdlDefPathLength + 1);
+				if(mdlDef->name == NULL){
 					/** MALLOC FAILED **/
 				}
-				memcpy(mdl->name, mdlPath, mdlPathLength + 1);
-				mdl->meshes = memoryManagerGlobalAlloc(numMeshes * sizeof(*mdl->meshes));
-				if(mdl->meshes == NULL){
+				memcpy(mdlDef->name, mdlDefPath, mdlDefPathLength + 1);
+				mdlDef->meshes = memoryManagerGlobalAlloc(numMeshes * sizeof(*mdlDef->meshes));
+				if(mdlDef->meshes == NULL){
 					/** MALLOC FAILED **/
 				}
-				mdl->texGroups = memoryManagerGlobalAlloc(numMeshes * sizeof(*mdl->texGroups));
-				if(mdl->texGroups == NULL){
+				mdlDef->texGroups = memoryManagerGlobalAlloc(numMeshes * sizeof(*mdlDef->texGroups));
+				if(mdlDef->texGroups == NULL){
 					/** MALLOC FAILED **/
 				}
-				mdl->numMeshes = numMeshes;
+				mdlDef->numMeshes = numMeshes;
 				// Initialise the model's skeleton!
 				if(tempBonesSize > 0){
 					tempBones = memoryManagerGlobalResize(tempBones, sizeof(*tempBones) * tempBonesSize);
 					if(tempBones != NULL){
 						/** MALLOC FAILED **/
 					}
-					mdl->skele = moduleSkeletonAlloc();
-					if(mdl->skele != NULL){
+					mdlDef->skele = moduleSkeletonAlloc();
+					if(mdlDef->skele != NULL){
 						/** MALLOC FAILED **/
 					}
-					skeleInitSet(mdl->skele, mdl->name, mdlPathLength, tempBones, tempBonesSize);
+					skeleInitSet(mdlDef->skele, mdlDef->name, mdlDefPathLength, tempBones, tempBonesSize);
 				}else{
-					mdl->skele = &g_skeleDefault;
+					mdlDef->skele = &g_skeleDefault;
 				}
 
-				curMesh = mdl->meshes;
-				curTexGroup = mdl->texGroups;
+				curMesh = mdlDef->meshes;
+				curTexGroup = mdlDef->texGroups;
 				// Generate buffer objects for each valid
 				// mesh and load their texture groups.
 				for(curMeshData = tempMeshData; curMeshData < lastMeshData; ++curMeshData){
@@ -1106,31 +1142,78 @@ model *modelSMDLoad(const char *const restrict mdlPath, const size_t mdlPathLeng
 		printf(
 			"Unable to open model file!\n"
 			"Path: %s\n",
-			mdlFullPath
+			mdlDefFullPath
 		);
 	}
 
 
-	return(mdl);
+	return(mdlDef);
 }
 
 
-// This should never be called on the default model!
+// Update a model's current state.
+void modelUpdate(model *const restrict mdl, const float time){
+	textureGroupState *curTexState = mdl->texStates;
+	const textureGroupState *const lastTexState = &curTexState[mdl->mdlDef->numMeshes];
+	do {
+		texGroupStateUpdate(curTexState, time);
+		++curTexState;
+	} while(curTexState < lastTexState);
+}
+
+#warning "We probably shouldn't have the OpenGL drawing stuff split up so much."
+void modelDraw(
+	const model *const restrict mdl, const skeleton *const restrict objSkele,
+	const mat4 *const restrict animStates, const meshShader *const restrict shader
+){
+
+	const mesh *curMesh = mdl->mdlDef->meshes;
+	const mesh *const lastMesh = &curMesh[mdl->mdlDef->numMeshes];
+	const textureGroupState *curTexState = mdl->texStates;
+
+	prepareShaderBones(mdl->mdlDef->skele, objSkele, animStates, shader->boneStatesID);
+
+	glActiveTexture(GL_TEXTURE0);
+	// Render each of the model's meshes!
+	do {
+		const textureGroupFrame *const texFrame = texGroupStateGetFrame(curTexState);
+
+		// Bind the mesh we're using!
+		glBindVertexArray(curMesh->vertexArrayID);
+		// Bind the texture we're using!
+		glBindTexture(GL_TEXTURE_2D, texFrame->tex->id);
+		glUniform1fv(shader->uvOffsetsID, 4, (GLfloat *)&texFrame->bounds);
+		// Draw the model!
+		glDrawElements(GL_TRIANGLES, curMesh->numIndices, GL_UNSIGNED_INT, NULL);
+
+		++curMesh;
+		++curTexState;
+	} while(curMesh < lastMesh);
+}
+
+
 void modelDelete(model *const restrict mdl){
+	if(mdl->texStates != NULL){
+		memoryManagerGlobalFree(mdl->texStates);
+	}
+}
+
+// This should never be called on the default model!
+void modelDefDelete(modelDef *const restrict mdlDef){
 	// Only free the name if it's in use.
-	if(mdl->name != NULL){
-		memoryManagerGlobalFree(mdl->name);
+	if(mdlDef->name != NULL){
+		memoryManagerGlobalFree(mdlDef->name);
 	}
 
 	// Free the model's meshes and texture groups.
-	if(mdl->numMeshes > 0){
-		mesh *curMesh = mdl->meshes;
-		const mesh *const lastMesh = &curMesh[mdl->numMeshes];
+	if(mdlDef->numMeshes > 0){
+		mesh *curMesh = mdlDef->meshes;
+		const mesh *const lastMesh = &curMesh[mdlDef->numMeshes];
 		for(; curMesh < lastMesh; ++curMesh){
 			meshDelete(curMesh);
 		}
-		memoryManagerGlobalFree(mdl->meshes);
-		memoryManagerGlobalFree(mdl->texGroups);
+		memoryManagerGlobalFree(mdlDef->meshes);
+		memoryManagerGlobalFree(mdlDef->texGroups);
 	}
 }
 
@@ -1274,12 +1357,44 @@ return_t modelSetup(){
 		14,  5,  9
 	};
 
-	meshGenerateBuffers(&mdlMeshDefault, vertices, sizeof(vertices)/sizeof(*vertices), indices, sizeof(indices)/sizeof(*indices));
+	meshGenerateBuffers(&mdlDefMeshDefault, vertices, sizeof(vertices)/sizeof(*vertices), indices, sizeof(indices)/sizeof(*indices));
 
 
 	return(1);
 }
 
 void modelCleanup(){
-	meshDelete(&mdlMeshDefault);
+	meshDelete(&mdlDefMeshDefault);
+}
+
+
+// Check which bones are used by the model and send their matrices to the shader.
+static void prepareShaderBones(
+	const skeleton *const restrict mdlSkele, const skeleton *const restrict objSkele,
+	const mat4 *const restrict animStates, GLuint boneStatesID
+){
+
+	const bone *curBone = mdlSkele->bones;
+	const bone *const lastBone = &curBone[mdlSkele->numBones];
+
+	#warning "We send each bone to the shader one by one, which may result in a lot of graphics API calls."
+	#warning "Depending on how fast these API calls are, it might be better to write to an array of matrices and send them all at once."
+	#warning "It would be possible to make shaders store this array, although this wouldn't work if we later build a render queue."
+	// Search the object's skeleton for bones shared by the
+	// model's skeleton and copy them into a new array.
+	//
+	// We're allowed to increment the uniform location ID, as
+ 	// the IDs for array elements are guaranteed to be sequential.
+	for(; curBone < lastBone; ++curBone, ++boneStatesID){
+		const boneIndex_t boneID = skeleFindBone(objSkele, curBone->name);
+		// If this bone appeared in an animation, convert the
+		// bone state to a matrix so it can be sent to the shader!
+		if(!valueIsInvalid(boneID, boneIndex_t)){
+			glUniformMatrix4fv(boneStatesID, 1, GL_FALSE, (GLfloat *)&animStates[boneID]);
+
+		// Otherwise, use the root's transformation!
+		}else{
+			glUniformMatrix4fv(boneStatesID, 1, GL_FALSE, (GLfloat *)animStates);
+		}
+	}
 }

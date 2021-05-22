@@ -11,7 +11,7 @@
 
 
 #define MODULE_OBJECT
-#define MODULE_OBJECT_SETUP_FAIL 8
+#define MODULE_OBJECT_SETUP_FAIL 7
 
 #define MODULE_OBJECTDEF_ELEMENT_SIZE sizeof(objectDef)
 #define MODULE_OBJECT_ELEMENT_SIZE    sizeof(object)

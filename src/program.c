@@ -15,8 +15,8 @@
 #include "moduleSkeleton.h"
 #include "moduleModel.h"
 #include "modulePhysics.h"
-#include "moduleRenderable.h"
 #include "moduleObject.h"
+#include "moduleParticle.h"
 
 #include "timer.h"
 #include "utilMath.h"
@@ -555,24 +555,23 @@ static return_t initResources(program *const restrict prg){
 
 	/** TEMPORARY OBJECT STUFF **/
 	#if 0
-	model *mdl;
-	renderableDef *renderDef;// = moduleRenderableDefAlloc();
+	modelDef *mdlDef;
 	objectDef *objDef;// = moduleObjectDefAlloc();
 	object *obj;// = moduleObjectAlloc();
 	#else
-	model *mdl;
-	renderableDef *renderDef = moduleRenderableDefAlloc();
+	modelDef *mdlDef;
 	objectDef *objDef = moduleObjectDefAlloc();
 	object *obj = moduleObjectAlloc();
 	skeletonAnimDef *animDef;
 
 
-	//mdl = modelSMDLoad("soldier_reference.smd", sizeof("soldier_reference.smd") - 1);
-	mdl = modelSMDLoad("scout_reference.smd", sizeof("scout_reference.smd") - 1);
-	renderableDefInit(renderDef, mdl, NULL);
+	//mdlDef = modelDefSMDLoad("soldier_reference.smd", sizeof("soldier_reference.smd") - 1);
+	mdlDef = modelDefSMDLoad("scout_reference.smd", sizeof("scout_reference.smd") - 1);
 	objectDefInit(objDef);
-	objDef->skele = mdl->skele;
-	objDef->renderables = renderDef;
+	objDef->skele = mdlDef->skele;
+	objDef->mdlDefs = memoryManagerGlobalAlloc(sizeof(*objDef->mdlDefs));
+	*objDef->mdlDefs = mdlDef;
+	objDef->numModels = 1;
 
 	objectInit(obj, objDef);
 	obj->state.pos = vec3InitSetC(-1.f, -2.f, -3.f);
@@ -606,9 +605,9 @@ static return_t initResources(program *const restrict prg){
 	objDef->physBoneIDs = memoryManagerGlobalAlloc(sizeof(*objDef->physBoneIDs));
 	*objDef->physBoneIDs = 0;
 	objDef->numBodies = 1;
-	renderDef = moduleRenderableDefAlloc();
-	renderableDefInit(renderDef, &g_mdlDefault, NULL);
-	objDef->renderables = renderDef;
+	objDef->mdlDefs = memoryManagerGlobalAlloc(sizeof(*objDef->mdlDefs));
+	*objDef->mdlDefs = &g_mdlDefDefault;
+	objDef->numModels = 1;
 
 	// Set up an instance.
 	obj = moduleObjectAlloc();
@@ -630,16 +629,16 @@ static return_t initResources(program *const restrict prg){
 
 
 		// Create the base physics object.
-		mdl = modelOBJLoad("cubeQuads.obj", sizeof("cubeQuads.obj") - 1);
+		mdlDef = modelDefOBJLoad("cubeQuads.obj", sizeof("cubeQuads.obj") - 1);
 		objDef = moduleObjectDefAlloc();
 		objectDefInit(objDef);
 		physRigidBodyDefLoad(&objDef->physBodies, "cube.tdp", sizeof("cube.tdp") - 1);
 		objDef->physBoneIDs = memoryManagerGlobalAlloc(sizeof(*objDef->physBoneIDs));
 		*objDef->physBoneIDs = 0;
 		objDef->numBodies = 1;
-		renderDef = moduleRenderableDefAlloc();
-		renderableDefInit(renderDef, mdl, NULL);
-		objDef->renderables = renderDef;
+		objDef->mdlDefs = memoryManagerGlobalAlloc(sizeof(*objDef->mdlDefs));
+		*objDef->mdlDefs = mdlDef;
+		objDef->numModels = 1;
 
 		// Set up an instance.
 		obj = moduleObjectAlloc();
@@ -665,9 +664,9 @@ static return_t initResources(program *const restrict prg){
 		objDef->physBoneIDs = memoryManagerGlobalAlloc(sizeof(*objDef->physBoneIDs));
 		*objDef->physBoneIDs = 0;
 		objDef->numBodies = 1;
-		renderDef = moduleRenderableDefAlloc();
-		renderableDefInit(renderDef, mdl, NULL);
-		objDef->renderables = renderDef;
+		objDef->mdlDefs = memoryManagerGlobalAlloc(sizeof(*objDef->mdlDefs));
+		*objDef->mdlDefs = mdlDef;
+		objDef->numModels = 1;
 
 		// Set up an instance.
 		obj = moduleObjectAlloc();
@@ -722,16 +721,16 @@ static return_t initResources(program *const restrict prg){
 	#else
 	/** EVEN MORE TEMPORARY PHYSICS STUFF **/
 	// Create the base physics object.
-	mdl = modelOBJLoad("cubeQuads.obj", sizeof("cubeQuads.obj") - 1);
+	mdlDef = modelDefOBJLoad("cubeQuads.obj", sizeof("cubeQuads.obj") - 1);
 	objDef = moduleObjectDefAlloc();
 	objectDefInit(objDef);
 	physRigidBodyDefLoad(&objDef->physBodies, "cube.tdp", sizeof("cube.tdp") - 1);
 	objDef->physBoneIDs = memoryManagerGlobalAlloc(sizeof(*objDef->physBoneIDs));
 	*objDef->physBoneIDs = 0;
 	objDef->numBodies = 1;
-	renderDef = moduleRenderableDefAlloc();
-	renderableDefInit(renderDef, mdl, NULL);
-	objDef->renderables = renderDef;
+	objDef->mdlDefs = memoryManagerGlobalAlloc(sizeof(*objDef->mdlDefs));
+	*objDef->mdlDefs = mdlDef;
+	objDef->numModels = 1;
 
 	size_t i;
 	// Set up instances.
@@ -754,9 +753,9 @@ static return_t initResources(program *const restrict prg){
 	objDef->physBoneIDs = memoryManagerGlobalAlloc(sizeof(*objDef->physBoneIDs));
 	*objDef->physBoneIDs = 0;
 	objDef->numBodies = 1;
-	renderDef = moduleRenderableDefAlloc();
-	renderableDefInit(renderDef, mdl, NULL);
-	objDef->renderables = renderDef;
+	objDef->mdlDefs = memoryManagerGlobalAlloc(sizeof(*objDef->mdlDefs));
+	*objDef->mdlDefs = mdlDef;
+	objDef->numModels = 1;
 
 	// Set up an instance.
 	obj = moduleObjectAlloc();
@@ -912,11 +911,6 @@ static return_t setupModules(){
 		return(MODULE_MODEL_SETUP_FAIL);
 	}
 	#endif
-	#ifdef MODULE_RENDERABLE
-	if(!moduleRenderableSetup()){
-		return(MODULE_RENDERABLE_SETUP_FAIL);
-	}
-	#endif
 	#ifdef MODULE_OBJECT
 	if(!moduleObjectSetup()){
 		return(MODULE_OBJECT_SETUP_FAIL);
@@ -965,10 +959,6 @@ static void cleanupModules(){
 	#ifdef MODULE_OBJECT
 	puts("Cleaning up objects...");
 	moduleObjectCleanup();
-	#endif
-	#ifdef MODULE_RENDERABLE
-	puts("Cleaning up renderables...");
-	moduleRenderableCleanup();
 	#endif
 	#ifdef MODULE_MODEL
 	puts("Cleaning up models...");

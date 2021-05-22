@@ -5,9 +5,11 @@
 #include <GL/glew.h>
 
 #include "memoryManager.h"
-#include "moduleRenderable.h"
 #include "moduleSkeleton.h"
+#include "moduleModel.h"
 #include "modulePhysics.h"
+
+#include "mat4.h"
 
 /** TEMPORARY DEBUG DRAW STUFF **/
 #include "debugDraw.h"
@@ -32,15 +34,17 @@ void objectDefInit(objectDef *objDef){
 	objDef->physBoneIDs = NULL;
 	objDef->numBodies = 0;
 
-	objDef->renderables = NULL;
+	objDef->mdlDefs = NULL;
+	objDef->numModels = 0;
 }
 
 #warning "Can we allocate all of our memory in one go?"
 void objectInit(object *const restrict obj, const objectDef *const restrict objDef){
+	physicsRigidBody *curBody = NULL;
 	const physicsRigidBodyDef *curBodyDef = objDef->physBodies;
 	const boneIndex_t *curPhysBoneID = objDef->physBoneIDs;
-	physicsRigidBody *lastBody = NULL;
-	const renderableDef *curRenderable = objDef->renderables;
+	const modelDef **curMdlDef = objDef->mdlDefs;
+
 
 	obj->objDef = objDef;
 
@@ -52,27 +56,31 @@ void objectInit(object *const restrict obj, const objectDef *const restrict objD
 	obj->physBodies = NULL;
 	// Instantiate the object's physics rigid bodies.
 	while(curBodyDef != NULL){
-		lastBody = modulePhysicsBodyInsertAfter(&obj->physBodies, lastBody);
-		if(lastBody == NULL){
+		curBody = modulePhysicsBodyInsertAfter(&obj->physBodies, curBody);
+		if(curBody == NULL){
 			/** MALLOC FAILED **/
 		}
-		physRigidBodyInit(lastBody, curBodyDef);
-		objectPrepareRigidBody(obj, lastBody, *curPhysBoneID);
+		physRigidBodyInit(curBody, curBodyDef);
+		objectPrepareRigidBody(obj, curBody, *curPhysBoneID);
 
 		curBodyDef = modulePhysicsBodyDefNext(curBodyDef);
 		++curPhysBoneID;
 	}
 
-	obj->renderables = NULL;
-	// Instantiate the object's default renderables.
-	while(curRenderable != NULL){
-		obj->renderables = moduleRenderablePrepend(&obj->renderables);
-		if(obj->renderables == NULL){
-			/** MALLOC FAILED **/
-		}
-		renderableInit(obj->renderables, curRenderable);
+	obj->mdls = NULL;
+	if(curMdlDef != NULL){
+		model *curMdl = NULL;
+		const modelDef **const lastMdlDef = &curMdlDef[objDef->numModels];
+		// Instantiate the object's default models.
+		do {
+			curMdl = moduleModelInsertAfter(&obj->mdls, curMdl);
+			if(curMdl == NULL){
+				/** MALLOC FAILED **/
+			}
+			modelInit(curMdl, *curMdlDef);
 
-		curRenderable = moduleRenderableDefNext(curRenderable);
+			++curMdlDef;
+		} while(curMdlDef < lastMdlDef);
 	}
 }
 
@@ -210,11 +218,11 @@ void objectUpdate(object *const restrict obj, const float time){
 
 	updateBones(obj, time);
 
-	renderable *curRenderable = obj->renderables;
-	// Animate each of the renderables.
-	while(curRenderable != NULL){
-		renderableUpdate(curRenderable, time);
-		curRenderable = moduleRenderableNext(curRenderable);
+	model *curMdl = obj->mdls;
+	// Animate each of the models.
+	while(curMdl != NULL){
+		modelUpdate(curMdl, time);
+		curMdl = moduleModelNext(curMdl);
 	}
 }
 
@@ -225,7 +233,7 @@ void objectDraw(
 	const meshShader *const restrict shader, const float time
 ){
 
-	const renderable *curRenderable;
+	const model *curMdl;
 
 	#warning "Could we store these in the skeleton object and allocate them in the same call as the bone states?"
 	#warning "We could possibly use a global bone states array."
@@ -251,7 +259,7 @@ void objectDraw(
 	}
 
 
-	// Send the new model-view-projection matrix to the shader!
+	// Send the new model view projection matrix to the shader!
 	#warning "Maybe do this outside since it applies to all objects?"
 	/*const mat4 test = mat4RotateC(mat4InitTranslateC(2.f, 1.f, -1.f), 2.f, 1.f, -1.f);
 	const vec3 axis = {.x = 0.f, .y = 1.f, .z = 0.f};
@@ -284,11 +292,11 @@ void objectDraw(
 	glUniformMatrix4fv(shader->vpMatrixID, 1, GL_FALSE, (GLfloat *)&cam->viewProjectionMatrix);
 
 
-	curRenderable = obj->renderables;
-	// Draw each of the renderables.
-	while(curRenderable != NULL){
-		renderableDraw(curRenderable, obj->skeleState.skele, animStates, shader);
-		curRenderable = moduleRenderableNext(curRenderable);
+	curMdl = obj->mdls;
+	// Draw each of the models.
+	while(curMdl != NULL){
+		modelDraw(curMdl, obj->skeleState.skele, animStates, shader);
+		curMdl = moduleModelNext(curMdl);
 	}
 }
 
@@ -313,7 +321,9 @@ void objectDelete(object *const restrict obj){
 		} while(numBodies > 0);
 	}
 
-	moduleRenderableFreeArray(&obj->renderables);
+	if(obj->mdls != NULL){
+		moduleModelFreeArray(&obj->mdls);
+	}
 }
 
 /** We don't currently have a way of freeing the stuff that's commented out. **/
@@ -328,7 +338,9 @@ void objectDefDelete(objectDef *const restrict objDef){
 		memoryManagerGlobalFree(objDef->physBoneIDs);
 	}
 
-	moduleRenderableDefFreeArray(&objDef->renderables);
+	if(objDef->mdlDefs != NULL){
+		memoryManagerGlobalFree(objDef->mdlDefs);
+	}
 }
 
 
