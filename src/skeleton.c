@@ -85,6 +85,7 @@ void skeleInitSet(
 		// Make sure we invert each bone's state!
 		for(; curBone < lastBone; ++curBone){
 			transformStateInvert(&curBone->invGlobalBind, &curBone->invGlobalBind);
+			//quatRotateVec3Fast(&curBone->invGlobalBind.rot, &curBone->invGlobalBind.pos);
 		}
 
 		skele->bones = bones;
@@ -107,10 +108,10 @@ void skeleAnimDefInit(skeletonAnimDef *const restrict animDef){
 	animDef->numBones = 0;
 }
 
-void skeleAnimInit(skeletonAnim *const restrict anim, skeletonAnimDef *const restrict animDef, const float intensity){
+void skeleAnimInit(skeletonAnim *const restrict anim, skeletonAnimDef *const restrict animDef, const float speed, const float intensity){
 	anim->animDef = animDef;
 
-	animationInit(&anim->animData, ANIMATION_LOOP_INDEFINITELY);
+	animationInit(&anim->animData, speed, ANIMATION_LOOP_INDEFINITELY);
 	anim->interpTime = 0.f;
 	anim->intensity = intensity;
 }
@@ -359,7 +360,7 @@ skeletonAnimDef *skeleAnimSMDLoad(const char *const restrict skeleAnimPath, cons
 
 								//The Source Engine uses Z as its up axis, so we need to fix that with the root bone.
 								if(boneID == 0 && strcmp(skeleAnimPath, "soldier_animations_anims_new/a_flinch01.smd") != 0){
-									transformState rotateUp = {
+									boneState rotateUp = {
 										.pos.x = 0.f, .pos.y = 0.f, .pos.z = 0.f,
 										.rot.x = -0.70710678118654752440084436210485f, .rot.y = 0.f, .rot.z = 0.f, .rot.w = 0.70710678118654752440084436210485f,
 										.scale.x = 1.f, .scale.y = 1.f, .scale.z = 1.f
@@ -369,6 +370,9 @@ skeletonAnimDef *skeleAnimSMDLoad(const char *const restrict skeleAnimPath, cons
 
 								// Set the bone's scale!
 								vec3InitSet(&currentState->scale, 1.f, 1.f, 1.f);
+								if(boneID == 10){
+									vec3InitSet(&currentState->scale, 1.f, 1.f, 4.f);
+								}
 							}else{
 								printf(
 									"Error loading skeletal animtion!\n"
@@ -488,7 +492,7 @@ void skeleStateGenerateBoneState(
 			/** TEMPORARY **/
 			// Remove the bind pose's "contribution" to the animation.
 			if(strcmp(curAnim->animDef->name, "soldier_animations_anims_new/a_flinch01.smd") != 0){
-				transformStateUndoPrepend(&skeleState->skele->bones[boneID].localBind, &animState, &animState);
+				transformStateUndoPrepend(&animState, &skeleState->skele->bones[boneID].localBind, &animState);
 			}
 			// Set the animation's intensity by blending from the identity state.
 			transformStateInterpSet(&g_transformIdentity, &animState, curAnim->intensity, &animState);

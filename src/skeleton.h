@@ -89,7 +89,7 @@ void skeleInitSet(
 	const size_t nameLength, bone *const restrict bones, const boneIndex_t numBones
 );
 void skeleAnimDefInit(skeletonAnimDef *animDef);
-void skeleAnimInit(skeletonAnim *const restrict anim, skeletonAnimDef *const restrict animDef, const float intensity);
+void skeleAnimInit(skeletonAnim *const restrict anim, skeletonAnimDef *const restrict animDef, const float speed, const float intensity);
 void skeleStateInit(skeletonState *const restrict skeleState, skeleton *const restrict skele);
 
 skeletonAnimDef *skeleAnimSMDLoad(const char *const restrict skeleAnimPath, const size_t skeleAnimPathLength);

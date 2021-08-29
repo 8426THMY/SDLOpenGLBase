@@ -365,7 +365,6 @@ void *memTreeRealloc(memoryTree *const restrict tree, void *const restrict block
 
 		// If this block is not the first, we might be able to merge left.
 		if(!listNodeIsFirst(newBlock->prevSize)){
-			//#error "Why is prevSize wrong?"
 			memTreeListNode *const leftBlock = listNodeGetPrevList(newBlock, listNodeGetSize(newBlock->prevSize));
 			// We can only merge it if the block to its left is free.
 			if(!listNodeIsActive(leftBlock->prevSize)){

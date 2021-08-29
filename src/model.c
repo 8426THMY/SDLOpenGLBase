@@ -743,15 +743,15 @@ modelDef *modelDefSMDLoad(const char *const restrict mdlDefPath, const size_t md
 									vec3InitSet(&currentBone->localBind.scale, 1.f, 1.f, 1.f);
 
 
-									// Set the inverse bind state!
-									currentBone->invGlobalBind = currentBone->localBind;
 									// If this bone has a parent, append its state to its parent's state!
 									if(!valueIsInvalid(currentBone->parent, boneIndex_t)){
 										transformStateAppend(
-											&currentBone->invGlobalBind,
+											&currentBone->localBind,
 											&tempBones[currentBone->parent].invGlobalBind,
 											&currentBone->invGlobalBind
 										);
+									}else{
+										currentBone->invGlobalBind = currentBone->localBind;
 									}
 								}
 							}else{

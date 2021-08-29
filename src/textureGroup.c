@@ -87,7 +87,7 @@ void texGroupStateInit(textureGroupState *const restrict texGroupState, const te
 	texGroupState->texGroup = texGroup;
 
 	texGroupState->currentAnim = 0;
-	animationInit(&texGroupState->texGroupAnim, ANIMATION_LOOP_INDEFINITELY);
+	animationInit(&texGroupState->texGroupAnim, 1.f, ANIMATION_LOOP_INDEFINITELY);
 }
 
 

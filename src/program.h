@@ -26,7 +26,6 @@ typedef struct program {
 	commandSystem cmdSys;
 	commandBuffer cmdBuffer;
 	inputManager inputMngr;
-	const Uint8 *keyStates;
 
 	meshShader objectShader;
 	spriteShader spriteShader;

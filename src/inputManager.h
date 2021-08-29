@@ -2,6 +2,7 @@
 #define inputManager_h
 
 
+#include <stdint.h>
 #include <string.h>
 
 #include "utilTypes.h"
@@ -29,12 +30,15 @@ typedef struct inputBinding {
 	size_t bindingLength;
 } inputBinding;
 
+typedef uint8_t keyState_t;
 // Stores and manages the user's key bindings.
 typedef struct inputManager {
 	// Array of keyboard bindings.
 	inputBinding keyboardBinds[INPUT_NUM_KEYBOARD_KEYS];
 	// Array of mouse bindings.
 	inputBinding mouseBinds[INPUT_NUM_MOUSE_BUTTONS];
+	// Stores the current state of each keyboard key.
+	const keyState_t *keyStates;
 } inputManager;
 
 

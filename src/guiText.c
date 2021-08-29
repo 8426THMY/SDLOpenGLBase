@@ -17,7 +17,7 @@ void guiTextInit(guiText *const restrict gui, const textFont *const restrict fon
 	textBufferInit(&gui->buffer, bufferSize);
 	gui->font = font;
 
-	gui->width  =
+	gui->width  = 0.f;
 	gui->height = 0.f;
 }
 

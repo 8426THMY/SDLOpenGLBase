@@ -8,6 +8,7 @@
 
 void cameraInit(camera *const restrict cam){
 	vec3InitZero(&cam->pos);
+	quatInitIdentity(&cam->rot);
 
 	vec3InitSet(&cam->up, 0.f, 1.f, 0.f);
 	cam->fov = FOV_DEFAULT;

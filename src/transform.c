@@ -15,7 +15,8 @@ void transformStateInit(transformState *trans){
 
 /*
 ** Append "trans2" to "trans1". This is equivalent to left-
-** multiplying "trans2" by "trans1" as if they're matrices.
+** multiplying "trans1" by "trans2" as if they're matrices:
+**     T = T_2 * T_1.
 */
 void transformStateAppend(const transformState *const trans1, const transformState *const trans2, transformState *const out){
 	vec3 pos;
@@ -33,26 +34,47 @@ void transformStateAppend(const transformState *const trans1, const transformSta
 }
 
 /*
-** Remove the effect of prepending "trans1" to "trans2".
-** This is equivalent to right-multiplying "trans2" by
-** the inverse of "trans1" as if they're matrices.
+** Prepend "trans2" to "trans1". This is equivalent to right-
+** multiplying "trans1" by "trans2" as if they're matrices:
+**     T = T_1 * T_2.
+** It can be used as an inverse to our append function:
+**     T = prepend(append(T_0, T), invert(T_0)).
+*/
+void transformStatePrepend(const transformState *const trans1, const transformState *const trans2, transformState *const out){
+	// Generate the new position!
+	vec3AddVec3Out(&trans1->pos, &trans2->pos, &out->pos);
+	quatRotateVec3Fast(&trans2->rot, &out->pos);
+	vec3MultiplyVec3(&out->pos, &trans2->scale);
+	// Generate the new orientation!
+	quatMultiplyQuatByOut(trans2->rot, trans1->rot, &out->rot);
+	// A slight error will build up if we don't normalize the rotation.
+	quatNormalizeQuat(&out->rot);
+	// Generate the new scale!
+	vec3MultiplyVec3Out(&trans1->scale, &trans2->scale, &out->scale);
+}
+
+/*
+** Remove the effect of prepending "trans2" to "trans1".
+** This is equivalent to right-multiplying "trans1" by
+** the inverse of "trans2" as if they're matrices:
+**     T = T_1 * T_2^(-1).
 */
 void transformStateUndoPrepend(const transformState *const trans1, const transformState *const trans2, transformState *const out){
 	transformState inverse;
-	vec3DivideSByFastOut(&trans1->scale, 1.f, &inverse.scale);
-	quatConjugateOut(&trans1->rot, &inverse.rot);
+	quatConjugateOut(&trans2->rot, &inverse.rot);
+	vec3DivideSByFastOut(&trans2->scale, 1.f, &inverse.scale);
 
 	// Recover the original position!
-	vec3SubtractVec3FromOut(&trans2->pos, &trans1->pos, &inverse.pos);
-	quatRotateVec3Fast(&inverse.rot, &inverse.pos);
-	vec3MultiplyVec3Out(&inverse.pos, &inverse.scale, &out->pos);
+	vec3SubtractVec3FromOut(&trans1->pos, &trans2->pos, &out->pos);
+	quatRotateVec3Fast(&inverse.rot, &out->pos);
+	vec3MultiplyVec3(&out->pos, &inverse.scale);
 
 	// Recover the original orientation!
-	quatMultiplyQuatByOut(inverse.rot, trans2->rot, &out->rot);
-	quatNormalizeQuatFast(&out->rot);
+	quatMultiplyQuatByOut(inverse.rot, trans1->rot, &out->rot);
+	quatNormalizeQuat(&out->rot);
 
 	// Recover the original scale!
-	vec3MultiplyVec3Out(&trans2->scale, &inverse.scale, &out->scale);
+	vec3MultiplyVec3Out(&trans1->scale, &inverse.scale, &out->scale);
 }
 
 // Interpolate between two states and store the result in "out"!
@@ -82,6 +104,13 @@ void transformStateInterpAdd(const transformState *const trans1, const transform
 
 // Invert all three components of a transformation state.
 void transformStateInvert(const transformState *const trans, transformState *const out){
+	/*// Invert the transform's position!
+	vec3NegateOut(&trans->pos, &out->pos);
+	// Invert the transform's rotation!
+	quatConjugateOut(&trans->rot, &out->rot);
+	// Invert its scale by storing the reciprocal of each value!
+	vec3DivideSByOut(&trans->scale, 1.f, &out->scale);*/
+
 	// Invert the transform's rotation!
 	quatConjugateOut(&trans->rot, &out->rot);
 

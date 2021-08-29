@@ -142,6 +142,112 @@ mat3 mat3InitEulerZXYC(const float x, const float y, const float z){
 	return(m);
 }
 
+// Initialize a matrix from XYZ Euler angles (in radians)!
+void mat3InitEulerVec3XYZ(mat3 *const restrict m, const vec3 *const restrict v){
+	const float cx = cosf(v->x);
+	const float sx = sinf(v->x);
+	const float cy = cosf(v->y);
+	const float sy = sinf(v->y);
+	const float cz = cosf(v->z);
+	const float sz = sinf(v->z);
+	const float sxsy = sx * sy;
+	const float cxsy = cx * sy;
+
+	m->m[0][0] = cy*cz;
+	m->m[0][1] = cy*sz;
+	m->m[0][2] = -sy;
+
+	m->m[1][0] = sxsy*cz - cx*sz;
+	m->m[1][1] = sxsy*sz + cx*cz;
+	m->m[1][2] = sx*cy;
+
+	m->m[2][0] = cxsy*cz + sx*sz;
+	m->m[2][1] = cxsy*sz - sx*cz;
+	m->m[2][2] = cx*cy;
+}
+
+// Initialize a matrix from ZXY Euler angles (in radians)!
+void mat3InitEulerVec3ZXY(mat3 *const restrict m, const vec3 *const restrict v){
+	const float cx = cosf(v->x);
+	const float sx = sinf(v->x);
+	const float cy = cosf(v->y);
+	const float sy = sinf(v->y);
+	const float cz = cosf(v->z);
+	const float sz = sinf(v->z);
+	const float sxsy = sx * sy;
+	const float sxcy = sx * cy;
+
+	m->m[0][0] = sxsy*sz + cy*cz;
+	m->m[0][1] = cx*sz;
+	m->m[0][2] = sxcy*sz - sy*cz;
+
+	m->m[1][0] = sxsy*cz - cy*sz;
+	m->m[1][1] = cx*cz;
+	m->m[1][2] = sxcy*cz + sy*sz;
+
+	m->m[2][0] = cx*sy;
+	m->m[2][1] = -sx;
+	m->m[2][2] = cx*cy;
+}
+
+// Initialize a matrix from XYZ Euler angles (in radians)!
+mat3 mat3InitEulerVec3XYZC(const vec3 v){
+	const float cx = cosf(v.x);
+	const float sx = sinf(v.x);
+	const float cy = cosf(v.y);
+	const float sy = sinf(v.y);
+	const float cz = cosf(v.z);
+	const float sz = sinf(v.z);
+	const float sxsy = sx * sy;
+	const float cxsy = cx * sy;
+
+	const mat3 m = {
+		.m[0][0] = cy*cz,
+		.m[0][1] = cy*sz,
+		.m[0][2] = -sy,
+
+		.m[1][0] = sxsy*cz - cx*sz,
+		.m[1][1] = sxsy*sz + cx*cz,
+		.m[1][2] = sx*cy,
+
+		.m[2][0] = cxsy*cz + sx*sz,
+		.m[2][1] = cxsy*sz - sx*cz,
+		.m[2][2] = cx*cy
+	};
+
+
+	return(m);
+}
+
+// Initialize a matrix from ZXY Euler angles (in radians)!
+mat3 mat3InitEulerVec3ZXYC(const vec3 v){
+	const float cx = cosf(v.x);
+	const float sx = sinf(v.x);
+	const float cy = cosf(v.y);
+	const float sy = sinf(v.y);
+	const float cz = cosf(v.z);
+	const float sz = sinf(v.z);
+	const float sxsy = sx * sy;
+	const float sxcy = sx * cy;
+
+	const mat3 m = {
+		.m[0][0] = sxsy*sz + cy*cz,
+		.m[0][1] = cx*sz,
+		.m[0][2] = sxcy*sz - sy*cz,
+
+		.m[1][0] = sxsy*cz - cy*sz,
+		.m[1][1] = cx*cz,
+		.m[1][2] = sxcy*cz + sy*sz,
+
+		.m[2][0] = cx*sy,
+		.m[2][1] = -sx,
+		.m[2][2] = cx*cy
+	};
+
+
+	return(m);
+}
+
 // Initialise a matrix to a rotation matrix!
 void mat3InitRotateQuat(mat3 *const restrict m, const quat *const restrict q){
 	const float xx = q->x * q->x;

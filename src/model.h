@@ -34,6 +34,7 @@ typedef struct model {
 
 void modelInit(model *const restrict mdl, const modelDef *const restrict mdlDef);
 
+#warning "The '.c' file is a bit messy. It would be nice to move the loading code out."
 modelDef *modelDefOBJLoad(const char *const restrict mdlDefPath, const size_t mdlDefPathLength);
 modelDef *modelDefSMDLoad(const char *const restrict mdlDefPath, const size_t mdlDefPathLength);
 

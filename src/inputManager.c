@@ -52,6 +52,8 @@ void inputMngrInit(inputManager *const restrict inputMngr){
 		curBind->id = id;
 		curBind->binding = NULL;
 	}
+
+	inputMngr->keyStates = SDL_GetKeyboardState(NULL);
 }
 
 
@@ -154,6 +156,7 @@ void inputMngrTakeInput(inputManager *const restrict inputMngr, commandBuffer *c
 			// The total movement gets added to the buffer when a different
 			// command is issued, and these deltas get reset. This lets us
 			// handle mouse movement between other keypresses.
+			///#error "Can we do mouse input correctly (that is, use ordered mouse input and commands)? I've forgotten."
 			case SDL_MOUSEMOTION:
 				mouseDeltaX += event.motion.xrel;
 				mouseDeltaY += event.motion.yrel;

@@ -181,8 +181,8 @@ void programClose(program *const restrict prg){
 }
 
 
-/** Note: Some of this stuff should be inside the update function! **/
 static void input(program *const restrict prg){
+	#warning "We should deal with this using SDL2 events instead."
 	// If the aspect ratio doesn't match the window size you get
 	// weird results, especially if you haven't resized the window.
 	// Additionally, you may need to recalculate the perspective matrix
@@ -229,7 +229,8 @@ static vec3 cVelocity = {.x = 0.f, .y = 0.f, .z = 0.f};
 #include "utilMath.h"
 static void updateCameras(program *const restrict prg){
 	/** TEMPORARY CAMERA STUFF! **/
-	#warning "Everything here should be handled by a camera controller structure."
+	#warning "Everything here should be handled by a game-specific camera controller structure."
+	#warning "Some sample camera controllers are in the 'ideas' folder."
 	mat3 rotMatrix;
 
 	cPitch -= 0.022f * 9.f * cv_mouse_dy * DEG_TO_RAD;
@@ -245,16 +246,16 @@ static void updateCameras(program *const restrict prg){
 		float control;
 		float newSpeed;
 
-		if(prg->keyStates[SDL_SCANCODE_A]){
+		if(prg->inputMngr.keyStates[SDL_SCANCODE_A]){
 			vec3SubtractVec3From(&wishdir, (vec3 *)&rotMatrix.m[0]);
 		}
-		if(prg->keyStates[SDL_SCANCODE_D]){
+		if(prg->inputMngr.keyStates[SDL_SCANCODE_D]){
 			vec3AddVec3(&wishdir, (vec3 *)&rotMatrix.m[0]);
 		}
-		if(prg->keyStates[SDL_SCANCODE_W]){
+		if(prg->inputMngr.keyStates[SDL_SCANCODE_W]){
 			vec3SubtractVec3From(&wishdir, (vec3 *)&rotMatrix.m[2]);
 		}
-		if(prg->keyStates[SDL_SCANCODE_S]){
+		if(prg->inputMngr.keyStates[SDL_SCANCODE_S]){
 			vec3AddVec3(&wishdir, (vec3 *)&rotMatrix.m[2]);
 		}
 
@@ -297,33 +298,33 @@ object *controlObj = NULL;
 static void updateObjects(program *const restrict prg){
 	/** TEMPORARY PHYSICS STUFF! **/
 	if(controlPhys != NULL){
-		if(prg->keyStates[SDL_SCANCODE_J]){
+		if(prg->inputMngr.keyStates[SDL_SCANCODE_J]){
 			vec3 F = vec3InitSetC(-40.f * controlPhys->mass, 0.f, 0.f);
 			physRigidBodyApplyLinearForce(controlPhys, &F);
 		}
-		if(prg->keyStates[SDL_SCANCODE_L]){
+		if(prg->inputMngr.keyStates[SDL_SCANCODE_L]){
 			vec3 F = vec3InitSetC(40.f * controlPhys->mass, 0.f, 0.f);
 			physRigidBodyApplyLinearForce(controlPhys, &F);
 		}
-		if(prg->keyStates[SDL_SCANCODE_I]){
+		if(prg->inputMngr.keyStates[SDL_SCANCODE_I]){
 			vec3 F = vec3InitSetC(0.f, 40.f * controlPhys->mass, 0.f);
 			physRigidBodyApplyLinearForce(controlPhys, &F);
 		}
-		if(prg->keyStates[SDL_SCANCODE_K]){
+		if(prg->inputMngr.keyStates[SDL_SCANCODE_K]){
 			vec3 F = vec3InitSetC(0.f, -40.f * controlPhys->mass, 0.f);
 			physRigidBodyApplyLinearForce(controlPhys, &F);
 		}
-		if(prg->keyStates[SDL_SCANCODE_U]){
+		if(prg->inputMngr.keyStates[SDL_SCANCODE_U]){
 			vec3 F = vec3InitSetC(0.f, 0.f, -40.f * controlPhys->mass);
 			physRigidBodyApplyLinearForce(controlPhys, &F);
 		}
-		if(prg->keyStates[SDL_SCANCODE_O]){
+		if(prg->inputMngr.keyStates[SDL_SCANCODE_O]){
 			vec3 F = vec3InitSetC(0.f, 0.f, 40.f * controlPhys->mass);
 			physRigidBodyApplyLinearForce(controlPhys, &F);
 		}
 	}
 	if(controlObj != NULL){
-		controlObj->state.rot = mat4ToQuatC(mat4RotateToFaceC(controlObj->state.pos, prg->cam.pos, vec3InitSetC(0.f, 1.f, 0.f)));
+		//controlObj->state.rot = mat4ToQuatC(mat4RotateToFaceC(controlObj->state.pos, prg->cam.pos, vec3InitSetC(0.f, 1.f, 0.f)));
 	}
 
 	MEMSINGLELIST_LOOP_BEGIN(g_objectManager, curObj, object)
@@ -375,29 +376,29 @@ static void update(program *const restrict prg){
 
 
 	/** TEMPORARY GUI UPDATE STUFF! **/
-	if(prg->keyStates[SDL_SCANCODE_LEFT]){
+	if(prg->inputMngr.keyStates[SDL_SCANCODE_LEFT]){
 		gui.root.pos.x -= 100.f * prg->step.updateDelta;
 	}
-	if(prg->keyStates[SDL_SCANCODE_RIGHT]){
+	if(prg->inputMngr.keyStates[SDL_SCANCODE_RIGHT]){
 		gui.root.pos.x += 100.f * prg->step.updateDelta;
 	}
-	if(prg->keyStates[SDL_SCANCODE_UP]){
+	if(prg->inputMngr.keyStates[SDL_SCANCODE_UP]){
 		gui.root.pos.y += 100.f * prg->step.updateDelta;
 	}
-	if(prg->keyStates[SDL_SCANCODE_DOWN]){
+	if(prg->inputMngr.keyStates[SDL_SCANCODE_DOWN]){
 		gui.root.pos.y -= 100.f * prg->step.updateDelta;
 	}
 
-	if(prg->keyStates[SDL_SCANCODE_A]){
+	if(prg->inputMngr.keyStates[SDL_SCANCODE_A]){
 		gui.root.scale.x -= 100.f * prg->step.updateDelta;
 	}
-	if(prg->keyStates[SDL_SCANCODE_D]){
+	if(prg->inputMngr.keyStates[SDL_SCANCODE_D]){
 		gui.root.scale.x += 100.f * prg->step.updateDelta;
 	}
-	if(prg->keyStates[SDL_SCANCODE_W]){
+	if(prg->inputMngr.keyStates[SDL_SCANCODE_W]){
 		gui.root.scale.y -= 100.f * prg->step.updateDelta;
 	}
-	if(prg->keyStates[SDL_SCANCODE_S]){
+	if(prg->inputMngr.keyStates[SDL_SCANCODE_S]){
 		gui.root.scale.y += 100.f * prg->step.updateDelta;
 	}
 
@@ -419,13 +420,13 @@ static void render(program *const restrict prg){
 
 	/** TEMPORARY PARTICLE RENDER STUFF! **/
 	glUseProgram(prg->spriteShader.programID);
-	particleSysDraw(&partSys, &prg->cam, &prg->spriteShader, prg->step.renderDelta);
+	//particleSysDraw(&partSys, &prg->cam, &prg->spriteShader, prg->step.renderDelta);
 
 	/** TEMPORARY GUI RENDER STUFF! **/
 	glUseProgram(prg->spriteShader.programID);
 	/** Do we need this? **/
 	glClear(GL_DEPTH_BUFFER_BIT);
-	guiElementDraw(&gui, prg->windowWidth, prg->windowHeight, &prg->spriteShader);
+	//guiElementDraw(&gui, prg->windowWidth, prg->windowHeight, &prg->spriteShader);
 
 
 	#ifndef PRG_ENABLE_EFFICIENT_RENDERING
@@ -494,7 +495,6 @@ static return_t initLibs(program *const restrict prg){
 	#warning "Although we don't use SDL's timers, it does, so this might break stuff somewhere."
 	timeEndPeriod(1);
 	#endif
-	prg->keyStates = SDL_GetKeyboardState(NULL);
 	//SDL_ShowCursor(SDL_DISABLE);
 
 
@@ -574,9 +574,9 @@ static return_t initResources(program *const restrict prg){
 	objDef->numModels = 1;
 
 	objectInit(obj, objDef);
-	obj->state.pos = vec3InitSetC(-1.f, -2.f, -3.f);
-	obj->state.rot = quatInitEulerXYZC(45.f * DEG_TO_RAD, 10.f * DEG_TO_RAD, 23.f * DEG_TO_RAD);
-	obj->state.scale.z = 0.1f;
+	//obj->state.pos = vec3InitSetC(0.f, -2.f, 2.f);//vec3InitSetC(-1.f, -2.f, -3.f);
+	//obj->state.rot = quatInitEulerXYZC(45.f * DEG_TO_RAD, 10.f * DEG_TO_RAD, 23.f * DEG_TO_RAD);
+	//obj->state.scale.z = 0.1f;
 	controlObj = obj;
 
 	// Temporary animation stuff.
@@ -585,13 +585,13 @@ static return_t initResources(program *const restrict prg){
 	//animDef = skeleAnimSMDLoad("soldier_animations_anims_old/a_runN_LOSER.smd", sizeof("soldier_animations_anims_old/a_runN_LOSER.smd") - 1);
 	if(animDef != NULL){
 		obj->skeleState.anims = moduleSkeletonAnimPrepend(&obj->skeleState.anims);
-		skeleAnimInit(obj->skeleState.anims, animDef, 0.5f);
+		skeleAnimInit(obj->skeleState.anims, animDef, 0.f, 1.f);
 	}
 
 	animDef = skeleAnimSMDLoad("soldier_animations_anims_old/stand_MELEE.smd", sizeof("soldier_animations_anims_old/stand_MELEE.smd") - 1);
 	if(animDef != NULL){
 		obj->skeleState.anims = moduleSkeletonAnimPrepend(&obj->skeleState.anims);
-		skeleAnimInit(obj->skeleState.anims, animDef, 0.5f);
+		skeleAnimInit(obj->skeleState.anims, animDef, 0.f, 0.f);
 	}
 	#endif
 

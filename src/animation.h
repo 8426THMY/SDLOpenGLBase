@@ -21,6 +21,7 @@ typedef struct animationFrameData {
 
 // Stores information required for an instance of any sort of animation.
 typedef struct animationData {
+	float speed;
 	float animTime;
 	size_t currentFrame;
 	// Number of times the animation has looped.
@@ -29,7 +30,7 @@ typedef struct animationData {
 
 
 void animFrameDataInit(animationFrameData *const restrict frameData);
-void animationInit(animationData *const restrict animData, const size_t playNum);
+void animationInit(animationData *const restrict animData, const float speed, const size_t playNum);
 
 void animationUpdate(animationData *const restrict animData, const animationFrameData *const restrict frameData, const float time);
 float animationGetFrameProgress(const animationData *const restrict animData, const animationFrameData *const restrict frameData);

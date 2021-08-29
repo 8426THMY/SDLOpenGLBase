@@ -21,6 +21,9 @@
 #define GUI_ELEMENT_NUM_TYPES 2
 
 
+/**#error "Work on GUIs a bit. How about a GUI animation system?"
+#error "Maybe even better, let users specify an 'update' function for guiElements that manages the state machine."
+#error "So it would handle any animations when creating or deleting it, as well as the creation and deletion of children."**/
 typedef uint_least8_t guiElementType_t;
 
 typedef struct guiElement guiElement;

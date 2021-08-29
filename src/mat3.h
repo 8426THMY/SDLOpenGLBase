@@ -23,6 +23,10 @@ void mat3InitEulerXYZ(mat3 *const restrict m, const float x, const float y, cons
 void mat3InitEulerZXY(mat3 *const restrict m, const float x, const float y, const float z);
 mat3 mat3InitEulerXYZC(const float x, const float y, const float z);
 mat3 mat3InitEulerZXYC(const float x, const float y, const float z);
+void mat3InitEulerVec3XYZ(mat3 *const restrict m, const vec3 *const restrict v);
+void mat3InitEulerVec3ZXY(mat3 *const restrict m, const vec3 *const restrict v);
+mat3 mat3InitEulerVec3XYZC(const vec3 v);
+mat3 mat3InitEulerVec3ZXYC(const vec3 v);
 void mat3InitRotateQuat(mat3 *const restrict m, const quat *const restrict q);
 mat3 mat3InitRotateQuatC(const quat q);
 void mat3InitScale(mat3 *const restrict m, const float x, const float y, const float z);

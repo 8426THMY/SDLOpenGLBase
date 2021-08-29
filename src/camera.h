@@ -3,6 +3,7 @@
 
 
 #include "vec3.h"
+#include "quat.h"
 #include "mat4.h"
 
 #include "utilTypes.h"
@@ -30,6 +31,9 @@
 */
 typedef struct camera {
 	vec3 pos;
+	// This is mostly just used for
+	// interpolation between frames.
+	quat rot;
 
 	vec3 up;
 	float fov;

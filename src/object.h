@@ -62,10 +62,11 @@ typedef struct object {
 	skeletonState skeleState;
 	// Controls the object's position, orientation and scale.
 	// This transformation is applied to the root bone during animation.
-	transformState state;
+	#warning "This is a terrible way of doing it. The root bone should have its own dedicated transform, and this state should control everything."
+	boneState state;
 	// Array of custom transformations to apply to each non-root bone.
 	// This can be used by physics or to simply move the object.
-	transformState *boneTransforms;
+	boneState *boneTransforms;
 
 	collider *colliders;
 	// Doubly linked list of rigid bodies. This is usually inserted into an
