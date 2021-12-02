@@ -1,5 +1,5 @@
 # SDLOpenGLBase
-An graphical application framework built using SDL2 and the OpenGL graphics API. This is very far from completion, meaning most of the code is temporary, but I am working on it actively. Despite that, I will probably only push major changes to Github, so updates will likely be rare.
+A graphical application framework built using SDL2 and the OpenGL graphics API. This is very far from completion, meaning most of the code is temporary, but I am working on it actively. Despite that, I will probably only push major changes to Github, so updates will likely be rare.
 
 Features that exist currently:
 
