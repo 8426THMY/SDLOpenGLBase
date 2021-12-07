@@ -54,7 +54,7 @@
 #define MEMFREELIST_LOOP_BEGIN(allocator, node, type)           \
 {                                                               \
 	memoryRegion *allocator##_region_##node = allocator.region; \
-	type *node = (void *)(allocator##_region_##node->start);    \
+	type *node = (void *)allocator##_region_##node->start;      \
 	for(;;){                                                    \
 
 #define MEMFREELIST_LOOP_END(allocator, node)                            \
@@ -104,8 +104,6 @@ void memFreeListClear(memoryFreeList *const restrict freeList);
 #ifdef MEMORYREGION_EXTEND_ALLOCATORS
 void *memFreeListExtend(memoryFreeList *const restrict freeList, void *memory, const size_t memorySize);
 #endif
-
-void memFreeListDelete(memoryFreeList *const restrict freeList, void (*freeFunc)(void *block));
 
 
 #endif

@@ -109,7 +109,7 @@ void memFreeListClear(memoryFreeList *const restrict freeList){
 
 	// Loop through every region in the allocator.
 	for(;;){
-		memoryRegion *nextRegion = region->next;
+		memoryRegion *const nextRegion = region->next;
 
 		// If this is not the last region, make this region's
 		// last block point to the first in the next region.
@@ -130,7 +130,7 @@ void memFreeListClear(memoryFreeList *const restrict freeList){
 #ifdef MEMORYREGION_EXTEND_ALLOCATORS
 void *memFreeListExtend(memoryFreeList *const restrict freeList, void *const restrict memory, const size_t memorySize){
 	if(memory != NULL){
-		memoryRegion *newRegion = memoryGetRegionFromSize(memory, memorySize);
+		memoryRegion *const newRegion = memoryGetRegionFromSize(memory, memorySize);
 		// Add the new region to the end of the list!
 		memoryRegionAppend(&freeList->region, newRegion, memory);
 		// Set up its memory!
@@ -142,15 +142,3 @@ void *memFreeListExtend(memoryFreeList *const restrict freeList, void *const res
 	return(memory);
 }
 #endif
-
-
-void memFreeListDelete(memoryFreeList *const restrict freeList, void (*freeFunc)(void *block)){
-	memoryRegion *region = freeList->region;
-	// Free every memory region in the allocator.
-	while(region != NULL){
-		memoryRegion *next = region->next;
-
-		(*freeFunc)(memFreeListRegionStart(region));
-		region = next;
-	}
-}

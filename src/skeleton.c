@@ -371,7 +371,7 @@ skeletonAnimDef *skeleAnimSMDLoad(const char *const restrict skeleAnimPath, cons
 								// Set the bone's scale!
 								vec3InitSet(&currentState->scale, 1.f, 1.f, 1.f);
 								if(boneID == 10){
-									vec3InitSet(&currentState->scale, 1.f, 1.f, 4.f);
+									//vec3InitSet(&currentState->scale, 1.f, 1.f, 4.f);
 								}
 							}else{
 								printf(

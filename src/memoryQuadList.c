@@ -35,11 +35,12 @@ void *memQuadListInit(memoryQuadList *const restrict quadList, void *const restr
 		quadList->blockSize = memQuadListGetBlockSize(blockSize);
 
 		region = memoryGetRegionFromSize(memory, memorySize);
-		region->start = memQuadListBlockFreeFlagGetNext(memory);
+		//region->start = (void *)memQuadListBlockFreeFlagGetNext(memory);
+		region->start = memory;
 		region->next = NULL;
 		memQuadListClearLastRegion(quadList, region);
 
-		quadList->nextFreeBlock = memQuadListBlockFreeFlagGetNext(memory);
+		quadList->nextFreeBlock = (void *)memQuadListBlockFreeFlagGetNext(memory);
 		#ifdef MEMQUADLIST_COUNT_USED_BLOCKS
 		quadList->usedBlocks = 0;
 		#endif
@@ -225,16 +226,20 @@ void memQuadListClearRegion(memoryQuadList *const restrict quadList, memoryRegio
 
 	// Set the flag and next pointer for each block!
 	while(nextBlock < (void *)region){
-		*memQuadListBlockFreeNextGetFlag(currentBlock) = flag;
-		memQuadListBlockFreeGetNext(currentBlock) = nextBlock;
+		//*memQuadListBlockFreeNextGetFlag(currentBlock) = flag;
+		//memQuadListBlockFreeGetNext(currentBlock) = nextBlock;
+		memQuadListBlockFreeGetFlag(currentBlock) = flag;
+		*memQuadListBlockFreeFlagGetNext(currentBlock) = (void *)memQuadListBlockFreeFlagGetNext(nextBlock);
 
 		currentBlock = nextBlock;
 		nextBlock = memQuadListBlockGetNextBlock(currentBlock, blockSize);
 	}
 
 	// Set the flag and next pointer for the last block!
-	*memQuadListBlockFreeNextGetFlag(currentBlock) = flag;
-	memQuadListBlockFreeGetNext(currentBlock) = next;
+	//*memQuadListBlockFreeNextGetFlag(currentBlock) = flag;
+	//memQuadListBlockFreeGetNext(currentBlock) = next;
+	memQuadListBlockFreeGetFlag(currentBlock) = flag;
+	*memQuadListBlockFreeFlagGetNext(currentBlock) = next;
 }
 
 /*
@@ -248,16 +253,20 @@ void memQuadListClearLastRegion(memoryQuadList *const restrict quadList, memoryR
 
 	// Set the flag and next pointer for each block!
 	while(nextBlock < (void *)region){
-		*memQuadListBlockFreeNextGetFlag(currentBlock) = MEMQUADLIST_FLAG_INVALID;
-		memQuadListBlockFreeGetNext(currentBlock) = nextBlock;
+		//*memQuadListBlockFreeNextGetFlag(currentBlock) = MEMQUADLIST_FLAG_INVALID;
+		//memQuadListBlockFreeGetNext(currentBlock) = nextBlock;
+		memQuadListBlockFreeGetFlag(currentBlock) = MEMQUADLIST_FLAG_INVALID;
+		*memQuadListBlockFreeFlagGetNext(currentBlock) = (void *)memQuadListBlockFreeFlagGetNext(nextBlock);
 
 		currentBlock = nextBlock;
 		nextBlock = memQuadListBlockGetNextBlock(currentBlock, blockSize);
 	}
 
 	// Set the flag and next pointer for the last block!
-	*memQuadListBlockFreeNextGetFlag(currentBlock) = MEMQUADLIST_FLAG_INVALID;
-	memQuadListBlockFreeGetNext(currentBlock) = NULL;
+	//*memQuadListBlockFreeNextGetFlag(currentBlock) = MEMQUADLIST_FLAG_INVALID;
+	//memQuadListBlockFreeGetNext(currentBlock) = NULL;
+	memQuadListBlockFreeGetFlag(currentBlock) = MEMQUADLIST_FLAG_INVALID;
+	*memQuadListBlockFreeFlagGetNext(currentBlock) = NULL;
 }
 
 /*
@@ -266,7 +275,8 @@ void memQuadListClearLastRegion(memoryQuadList *const restrict quadList, memoryR
 */
 void memQuadListClear(memoryQuadList *const restrict quadList){
 	memoryRegion *region = quadList->region;
-	quadList->nextFreeBlock = region->start;
+	//quadList->nextFreeBlock = region->start;
+	quadList->nextFreeBlock = (void *)memQuadListBlockFreeFlagGetNext(region->start);
 	#ifdef MEMQUADLIST_COUNT_USED_BLOCKS
 	quadList->usedBlocks = 0;
 	#endif
@@ -278,7 +288,8 @@ void memQuadListClear(memoryQuadList *const restrict quadList){
 		// If this is not the last region, make this region's
 		// last block point to the first in the next region.
 		if(nextRegion != NULL){
-			memQuadListClearRegion(quadList, region, MEMQUADLIST_FLAG_INVALID, nextRegion->start);
+			//memQuadListClearRegion(quadList, region, MEMQUADLIST_FLAG_INVALID, nextRegion->start);
+			memQuadListClearRegion(quadList, region, MEMQUADLIST_FLAG_INVALID, (void *)memQuadListBlockFreeFlagGetNext(nextRegion->start));
 
 		// Otherwise, make it point to NULL and break the loop.
 		}else{
@@ -298,25 +309,13 @@ void *memQuadListExtend(memoryQuadList *const restrict quadList, void *const res
 		memoryRegion *const newRegion = memoryGetRegionFromSize(memory, memorySize);
 		// Add the new region to the end of the list!
 		memoryRegionAppend(&quadList->region, newRegion, memory);
-		newRegion->start = memQuadListBlockFreeFlagGetNext(memory);
+		//newRegion->start = (void *)memQuadListBlockFreeFlagGetNext(memory);
 		// Set up its memory!
 		memQuadListClearLastRegion(quadList, newRegion);
 
-		quadList->nextFreeBlock = memQuadListBlockFreeFlagGetNext(memory);
+		quadList->nextFreeBlock = (void *)memQuadListBlockFreeFlagGetNext(memory);
 	}
 
 	return(memory);
 }
 #endif
-
-
-void memQuadListDelete(memoryQuadList *const restrict quadList, void (*const freeFunc)(void *block)){
-	memoryRegion *region = quadList->region;
-	// Free every memory region in the allocator.
-	while(region != NULL){
-		memoryRegion *const next = region->next;
-
-		(*freeFunc)(memQuadListRegionStart(region));
-		region = next;
-	}
-}

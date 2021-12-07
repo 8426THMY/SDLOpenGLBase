@@ -41,17 +41,17 @@ void moduleSkeletonCleanup(){
 	MEMSINGLELIST_LOOP_BEGIN(g_skeleAnimManager, i, skeletonAnim)
 		moduleSkeletonAnimFree(NULL, i, NULL);
 	MEMSINGLELIST_LOOP_END(g_skeleAnimManager, i)
-	memSingleListDelete(&g_skeleAnimManager, memoryManagerGlobalFree);
+	memoryManagerGlobalDeleteRegions(g_skeleAnimManager.region);
 	// skeletonAnimDef
 	MEMPOOL_LOOP_BEGIN(g_skeleAnimDefManager, i, skeletonAnimDef)
 		moduleSkeletonAnimDefFree(i);
 	MEMPOOL_LOOP_END(g_skeleAnimDefManager, i)
-	memPoolDelete(&g_skeleAnimDefManager, memoryManagerGlobalFree);
+	memoryManagerGlobalDeleteRegions(g_skeleAnimDefManager.region);
 	// skeleton
 	MEMPOOL_LOOP_BEGIN(g_skeletonManager, i, skeleton)
 		moduleSkeletonFree(i);
 	MEMPOOL_LOOP_END(g_skeletonManager, i)
-	memPoolDelete(&g_skeletonManager, memoryManagerGlobalFree);
+	memoryManagerGlobalDeleteRegions(g_skeletonManager.region);
 }
 
 

@@ -8,6 +8,10 @@
 #include "utilMemory.h"
 
 
+// This is a nice abstraction for when we need to free a stack.
+#define memStackMemory(stack) ((stack)->bottom)
+
+
 // Example stack diagram:
 //                                    top
 //                                     |
@@ -26,8 +30,6 @@ void *memStackInit(memoryStack *const restrict stack, void *const restrict memor
 
 void *memStackAlloc(memoryStack *const restrict stack, const size_t blockSize);
 void memStackFreeLast(memoryStack *const restrict stack);
-
-void memStackDelete(memoryStack *const restrict stack);
 
 
 #endif

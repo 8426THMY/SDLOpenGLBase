@@ -23,7 +23,7 @@ void moduleTexGroupCleanup(){
 	MEMPOOL_LOOP_BEGIN(g_texGroupManager, i, textureGroup)
 		moduleTexGroupFree(i);
 	MEMPOOL_LOOP_END(g_texGroupManager, i)
-	memPoolDelete(&g_texGroupManager, memoryManagerGlobalFree);
+	memoryManagerGlobalDeleteRegions(g_texGroupManager.region);
 }
 
 

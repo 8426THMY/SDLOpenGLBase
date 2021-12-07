@@ -7,6 +7,27 @@
 #include "mat4.h"
 
 
+/*
+** A transform state is a representation of a rigid
+** transformation that is more amenable to interpolation.
+**
+** The only caveat currently is that when combining two or
+** more transformations (for instance, in a skeleton), we
+** cannot correctly handle the propagation of non-uniform
+** scaling. One possible solution to this is to introduce
+** an additional "stretch quaternion" component; however,
+** the problem then is that actually combining two scale
+** and stretch quaternion pairs becomes very difficult
+** without using something like the affine decomposition
+** technique developed by Ken Shoemake in Graphics Gems IV.
+**
+** Non-uniform scaling causes issues elsewhere, however.
+** For instance, collision detection for colliders such
+** as spheres and capsules, which cannot be trivially
+** replaced by general hulls, become much harder to handle.
+** Interestingly, despite supporting non-uniform scaling to
+** some degree, Unity specifically ignores it in such cases.
+*/
 typedef struct transformState {
 	vec3 pos;
 	quat rot;

@@ -26,7 +26,7 @@ void moduleTextureCleanup(){
 		moduleTextureFree(i);
 	MEMPOOL_LOOP_END(g_textureManager, i)
 	textureCleanup();
-	memPoolDelete(&g_textureManager, memoryManagerGlobalFree);
+	memoryManagerGlobalDeleteRegions(g_textureManager.region);
 }
 
 

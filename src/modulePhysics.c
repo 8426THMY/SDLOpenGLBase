@@ -67,37 +67,37 @@ void modulePhysicsCleanup(){
 	MEMDOUBLELIST_LOOP_BEGIN(g_physRigidBodyManager, i, physicsRigidBody)
 		modulePhysicsBodyFree(NULL, i);
 	MEMDOUBLELIST_LOOP_END(g_physRigidBodyManager, i)
-	memDoubleListDelete(&g_physRigidBodyManager, memoryManagerGlobalFree);
+	memoryManagerGlobalDeleteRegions(g_physRigidBodyManager.region);
 	// physicsRigidBodyDef
 	MEMSINGLELIST_LOOP_BEGIN(g_physRigidBodyDefManager, i, physicsRigidBodyDef)
 		modulePhysicsBodyDefFree(NULL, i, NULL);
 	MEMSINGLELIST_LOOP_END(g_physRigidBodyDefManager, i)
-	memSingleListDelete(&g_physRigidBodyDefManager, memoryManagerGlobalFree);
+	memoryManagerGlobalDeleteRegions(g_physRigidBodyDefManager.region);
 	// physicsCollider
 	MEMSINGLELIST_LOOP_BEGIN(g_physColliderManager, i, physicsCollider)
 		modulePhysicsColliderFree(NULL, i, NULL);
 	MEMSINGLELIST_LOOP_END(g_physColliderManager, i)
-	memSingleListDelete(&g_physColliderManager, memoryManagerGlobalFree);
+	memoryManagerGlobalDeleteRegions(g_physColliderManager.region);
 	// physicsJointPair
 	MEMDOUBLELIST_LOOP_BEGIN(g_physJointPairManager, i, physicsJointPair)
 		modulePhysicsJointPairFree(NULL, i);
 	MEMDOUBLELIST_LOOP_END(g_physJointPairManager, i)
-	memDoubleListDelete(&g_physJointPairManager, memoryManagerGlobalFree);
+	memoryManagerGlobalDeleteRegions(g_physJointPairManager.region);
 	// physicsSeparationPair
 	MEMDOUBLELIST_LOOP_BEGIN(g_physSeparationPairManager, i, physicsSeparationPair)
 		modulePhysicsSeparationPairFree(NULL, i);
 	MEMDOUBLELIST_LOOP_END(g_physSeparationPairManager, i)
-	memDoubleListDelete(&g_physSeparationPairManager, memoryManagerGlobalFree);
+	memoryManagerGlobalDeleteRegions(g_physSeparationPairManager.region);
 	// physicsContactPair
 	MEMDOUBLELIST_LOOP_BEGIN(g_physContactPairManager, i, physicsContactPair)
 		modulePhysicsContactPairFree(NULL, i);
 	MEMDOUBLELIST_LOOP_END(g_physContactPairManager, i)
-	memDoubleListDelete(&g_physContactPairManager, memoryManagerGlobalFree);
+	memoryManagerGlobalDeleteRegions(g_physContactPairManager.region);
 	// aabbNode
 	MEMPOOL_LOOP_BEGIN(g_aabbNodeManager, i, aabbNode)
 		modulePhysicsAABBNodeFree(i);
 	MEMPOOL_LOOP_END(g_aabbNodeManager, i)
-	memPoolDelete(&g_aabbNodeManager, memoryManagerGlobalFree);
+	memoryManagerGlobalDeleteRegions(g_aabbNodeManager.region);
 }
 
 

@@ -182,12 +182,12 @@ void orthonormalBasis(const vec3 *const restrict v1, vec3 *const restrict v2, ve
 	// square root of 1 over 3. In three dimensions, at least one component
 	// of any unit vector must be greater than or equal to this number.
 	if(fabsf(v1->x) >= SQRT_ONE_THIRD){
-		vec3InitSet(v2, v1->y, -v1->x, 0.f);
+		const float invLength = invSqrt(v1->x*v1->x + v1->y*v1->y);
+		vec3InitSet(v2, v1->y*invLength, -v1->x*invLength, 0.f);
 	}else{
-		vec3InitSet(v2, 0.f, v1->z, -v1->y);
+		const float invLength = invSqrt(v1->y*v1->y + v1->z*v1->z);
+		vec3InitSet(v2, 0.f, v1->z*invLength, -v1->y*invLength);
 	}
-
-	vec3NormalizeVec3(v2);
 	vec3CrossVec3Out(v1, v2, v3);
 }
 
@@ -202,12 +202,12 @@ void orthonormalBasisFast(const vec3 *const restrict v1, vec3 *const restrict v2
 	// square root of 1 over 3. In three dimensions, at least one component
 	// of any unit vector must be greater than or equal to this number.
 	if(fabsf(v1->x) >= SQRT_ONE_THIRD){
-		vec3InitSet(v2, v1->y, -v1->x, 0.f);
+		const float invLength = invSqrtFast(v1->x*v1->x + v1->y*v1->y);
+		vec3InitSet(v2, v1->y*invLength, -v1->x*invLength, 0.f);
 	}else{
-		vec3InitSet(v2, 0.f, v1->z, -v1->y);
+		const float invLength = invSqrtFast(v1->y*v1->y + v1->z*v1->z);
+		vec3InitSet(v2, 0.f, v1->z*invLength, -v1->y*invLength);
 	}
-
-	vec3NormalizeVec3Fast(v2);
 	vec3CrossVec3Out(v1, v2, v3);
 }
 

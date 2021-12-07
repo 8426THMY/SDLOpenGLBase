@@ -39,11 +39,26 @@ void memoryManagerGlobalFree(void *const restrict block){
 }
 
 
+/*
+** Free a sequence of memory regions that were
+** allocated using the global memory manager.
+*/
+void memoryManagerGlobalDeleteRegions(memoryRegion *region){
+	// Free every memory region in the allocator.
+	while(region != NULL){
+		memoryRegion *const next = region->next;
+
+		memoryManagerGlobalFree(region->start);
+		region = next;
+	}
+}
+
 // Free memory used by the global memory manager.
 void memoryManagerGlobalDelete(){
-    memTreeDelete(&g_memManager, memoryFree);
+	memoryDeleteRegions(g_memManager.region);
 }
 #endif
+
 
 #ifdef MEMORY_USE_MODULE_MANAGER
 // Allocate memory for the memory manager.
@@ -79,8 +94,22 @@ void memoryManagerFree(memoryManager *const restrict memMngr, void *const restri
 }
 
 
+/*
+** Free a sequence of memory regions that
+** were allocated using a memory manager.
+*/
+void memoryManagerDeleteRegions(memoryManager *const restrict memMngr, memoryRegion *region){
+	// Free every memory region in the allocator.
+	while(region != NULL){
+		memoryRegion *const next = region->next;
+
+		memoryManagerFree(memMngr, region->start);
+		region = next;
+	}
+}
+
 // Free memory used by the memory manager.
 void memoryManagerDelete(memoryManager *const restrict memMngr){
-    memTreeDelete(memMngr, memoryFree);
+	memoryDeleteRegions(memMngr->region);
 }
 #endif

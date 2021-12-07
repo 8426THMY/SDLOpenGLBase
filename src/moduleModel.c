@@ -34,13 +34,13 @@ void moduleModelCleanup(){
 	MEMSINGLELIST_LOOP_BEGIN(g_modelManager, i, model)
 		moduleModelFree(NULL, i, NULL);
 	MEMSINGLELIST_LOOP_END(g_modelManager, i)
-	memSingleListDelete(&g_modelManager, memoryManagerGlobalFree);
+	memoryManagerGlobalDeleteRegions(g_modelManager.region);
 	// modelDef
 	MEMPOOL_LOOP_BEGIN(g_modelDefManager, i, modelDef)
 		moduleModelDefFree(i);
 	MEMPOOL_LOOP_END(g_modelDefManager, i)
 	modelCleanup();
-	memPoolDelete(&g_modelDefManager, memoryManagerGlobalFree);
+	memoryManagerGlobalDeleteRegions(g_modelDefManager.region);
 }
 
 

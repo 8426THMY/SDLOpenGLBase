@@ -585,19 +585,20 @@ static return_t initResources(program *const restrict prg){
 	//animDef = skeleAnimSMDLoad("soldier_animations_anims_old/a_runN_LOSER.smd", sizeof("soldier_animations_anims_old/a_runN_LOSER.smd") - 1);
 	if(animDef != NULL){
 		obj->skeleState.anims = moduleSkeletonAnimPrepend(&obj->skeleState.anims);
-		skeleAnimInit(obj->skeleState.anims, animDef, 0.f, 1.f);
+		skeleAnimInit(obj->skeleState.anims, animDef, 0.f, 0.f);//1.f, 0.5f);
 	}
 
 	animDef = skeleAnimSMDLoad("soldier_animations_anims_old/stand_MELEE.smd", sizeof("soldier_animations_anims_old/stand_MELEE.smd") - 1);
 	if(animDef != NULL){
 		obj->skeleState.anims = moduleSkeletonAnimPrepend(&obj->skeleState.anims);
-		skeleAnimInit(obj->skeleState.anims, animDef, 0.f, 0.f);
+		skeleAnimInit(obj->skeleState.anims, animDef, 0.f, 0.f);//1.f, 0.5f);
 	}
 	#endif
 
 
 	/** TEMPORARY PHYSICS STUFF **/
 	physIslandInit(&island);
+	#if 0
 	// Create the base physics object.
 	objDef = moduleObjectDefAlloc();
 	objectDefInit(objDef);
@@ -771,6 +772,7 @@ static return_t initResources(program *const restrict prg){
 	objectPreparePhysics(obj);
 	physRigidBodyIgnoreLinear(obj->physBodies);physRigidBodyIgnoreSimulation(obj->physBodies);
 	physIslandInsertRigidBody(&island, obj->physBodies);
+	#endif
 	#endif
 
 

@@ -23,7 +23,7 @@ void moduleCommandCleanup(){
 	MEMDOUBLELIST_LOOP_BEGIN(g_cmdTokManager, i, commandTokenized)
 		moduleCmdTokFree(NULL, i);
 	MEMDOUBLELIST_LOOP_END(g_cmdTokManager, i)
-	memDoubleListDelete(&g_cmdTokManager, memoryManagerGlobalFree);
+	memoryManagerGlobalDeleteRegions(g_cmdTokManager.region);
 }
 
 

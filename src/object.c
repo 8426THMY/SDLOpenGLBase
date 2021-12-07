@@ -475,9 +475,17 @@ static void updateBones(object *const restrict obj, const float time){
 **     4. Multiply them as matrices to preserve effects such as skewing.
 **     5. Multiply by the global inverse bind pose to return to local space.
 */
-#error "Skeletal animation: Try not to use matrices, as they probably take up too much space and are too slow to send to the shader."
+/**#error "Skeletal animation: Try not to use matrices, as they probably take up too much space and are too slow to send to the shader."
+#error "That being said, we really only need to send 4x3 matrices, which should save a lot of time."
 #error "We propagate scaling correctly for user transformations, but we do it in a strange way with animations."
 #error "It would be nice if we could use the precalculated global inverse bind pose here."
+///https://www.gamedev.net/forums/topic.asp?topic_id=339800
+///Ken Shoemake's Polar Decomposition (Graphics Gems IV)
+///https://github.com/erich666/GraphicsGems/tree/master/gemsiv/polar_decomp
+///Non-Uniform Bone Scaling From Art Pipeline to Real-Time Rendering
+#error "To fix this, we need to use stretch quaternions: see Ken Shoemake's affine decomposition and 'non-uniform.pdf'."
+#error "Ideally, we would encode uniform scaling in quaternions, and only do extra work if we have to."
+#error "However, I'm not sure if it's easy to propagate this correctly."**/
 static void prepareBoneMatrices(
 	const skeletonState *const restrict skeleState,
 	const boneState *const restrict rootState,
@@ -505,11 +513,52 @@ static void prepareBoneMatrices(
 
 	// In order to properly support propagation of scale in animations
 	// and user transformations, we need to apply them as matrices.
-	transformStateToMat4(userAccumulator, &tempMatrix);
+	/*transformStateToMat4(userAccumulator, &tempMatrix);
 	transformStateToMat4(&tempBone, curState);
 	mat4MultiplyMat4ByOut(tempMatrix, *curState, curState);
 	transformStateToMat4(&curSkeleBone->invGlobalBind, &tempMatrix);
-	mat4MultiplyMat4ByOut(*curState, tempMatrix, curState);
+	mat4MultiplyMat4ByOut(*curState, tempMatrix, curState);*/
+	///#error "To do this properly, it looks like we need to do some diagonalization."
+	/*******************************************************************/
+	/**
+	(T_2*R_2*S_2)*(T_1*R_1*S_1)
+	t = t_2 + R_2*S_2*t_1
+	R = R_2*R_1
+	s = s_2*s_1
+
+	(T_2*R_2*Q_2*S_2*Q_2^T)*(T_1*R_1*Q_1*S_1*Q_1^T)
+	t = t_2 + R_2*(Q_2*S_2*Q_2^T)*t_1
+	R = R_2*R_1
+	Q*S*Q^T = (Q_2*S_2*Q_2^T)*(Q_1*S_1*Q_1^T)
+	**/
+	mat4 mtest1, mtest2, test;
+	static float w = 0.f;
+	w += 0.01f;
+	mat4InitIdentity(&mtest1);
+	mat4Scale(&mtest1, 1.f, 1.f, 1.f);
+	//mat4Translate(&mtest1, 1.f, 2.f, 3.f);
+	//mat4RotateByEulerXYZ(&mtest1, -10.f*(3.14159265f/180.f), 0.f, 45.f*(3.14159265f/180.f));
+	mat4RotateByEulerXYZ(&mtest1, -10.f*(3.14159265f/180.f), 0.f, w);
+	mtest2 = mat4InvertC(mtest1);
+	printf("%f, %f, %f, %f\n%f, %f, %f, %f\n%f, %f, %f, %f\n%f, %f, %f, %f\n\n",
+		mtest2.m[0][0], mtest2.m[1][0], mtest2.m[2][0], mtest2.m[3][0],
+		mtest2.m[0][1], mtest2.m[1][1], mtest2.m[2][1], mtest2.m[3][1],
+		mtest2.m[0][2], mtest2.m[1][2], mtest2.m[2][2], mtest2.m[3][2],
+		mtest2.m[0][3], mtest2.m[1][3], mtest2.m[2][3], mtest2.m[3][3]
+	);
+	mat4Scale(&mtest1, 0.5f, 2.f, 3.f);
+	mat4MultiplyMat4ByOut(mtest2, mtest1, &test);
+	printf("%f, %f, %f, %f\n%f, %f, %f, %f\n%f, %f, %f, %f\n%f, %f, %f, %f\n\n",
+		test.m[0][0], test.m[1][0], test.m[2][0], test.m[3][0],
+		test.m[0][1], test.m[1][1], test.m[2][1], test.m[3][1],
+		test.m[0][2], test.m[1][2], test.m[2][2], test.m[3][2],
+		test.m[0][3], test.m[1][3], test.m[2][3], test.m[3][3]
+	);
+	quat qt = mat4ToQuatAltC(test);
+	printf("%f, %f, %f, %f\n\n", qt.x, qt.y, qt.z, qt.w);
+	mat4 test2 = quatToMat4C(qt);
+	//test = test2;
+	*curState = test;
 
 
 	++curObjBone;
@@ -529,10 +578,11 @@ static void prepareBoneMatrices(
 		}
 		transformStateUndoPrepend(curObjBone, userAccumulator, &tempBone);
 
-		transformStateToMat4(userAccumulator, &tempMatrix);
+		/*transformStateToMat4(userAccumulator, &tempMatrix);
 		transformStateToMat4(&tempBone, curState);
 		mat4MultiplyMat4ByOut(tempMatrix, *curState, curState);
 		transformStateToMat4(&curSkeleBone->invGlobalBind, &tempMatrix);
-		mat4MultiplyMat4ByOut(*curState, tempMatrix, curState);
+		mat4MultiplyMat4ByOut(*curState, tempMatrix, curState);*/
+		*curState = test;
 	}
 }

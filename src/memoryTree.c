@@ -574,18 +574,6 @@ void *memTreeExtend(memoryTree *const restrict tree, void *const restrict memory
 #endif
 
 
-void memTreeDelete(memoryTree *const restrict tree, void (*const freeFunc)(void *block)){
-	memoryRegion *region = tree->region;
-	// Free every memory region in the allocator.
-	while(region != NULL){
-		memoryRegion *next = region->next;
-
-		(*freeFunc)(memTreeRegionStart(region));
-		region = next;
-	}
-}
-
-
 #ifdef MEMTREE_DEBUG
 void memTreePrintAllSizes(memoryTree *const restrict tree){
 	memoryRegion *region = tree->region;

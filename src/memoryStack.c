@@ -61,9 +61,3 @@ void memStackFreeLast(memoryStack *const restrict stack){
 	stack->top = lastBlockFooter - lastBlockSize;
 	stack->size += lastBlockSize + MEMSTACK_BLOCK_FOOTER_SIZE;
 }
-
-
-// Free the entire stack's memory.
-void memStackDelete(memoryStack *const restrict stack){
-	memoryFree(stack->bottom);
-}

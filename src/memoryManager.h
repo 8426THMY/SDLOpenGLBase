@@ -31,6 +31,7 @@ void *memoryManagerGlobalExtend(const size_t memorySize);
 #endif
 void memoryManagerGlobalFree(void *const restrict block);
 
+void memoryManagerGlobalDeleteRegions(memoryRegion *region);
 void memoryManagerGlobalDelete();
 
 
@@ -50,6 +51,7 @@ void *memoryManagerExtend(memoryManager *const restrict memMngr, const size_t me
 #endif
 void memoryManagerFree(memoryManager *const restrict memMngr, void *const restrict block);
 
+void memoryManagerDeleteRegions(memoryManager *const restrict memMngr, memoryRegion *region);
 void memoryManagerDelete(memoryManager *const restrict memMngr);
 #endif
 

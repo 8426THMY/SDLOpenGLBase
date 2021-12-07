@@ -15,61 +15,83 @@
 #endif
 
 
-void *memoryLowLevelAlloc(const size_t memorySize){
 #ifdef _WIN32
-	return(HeapAlloc(GetProcessHeap(), MEMORY_WIN32_HEAP_FLAGS, memorySize));
+void *memoryLowLevelAlloc(const size_t bytes){
+	return(HeapAlloc(GetProcessHeap(), MEMORY_WIN32_HEAP_FLAGS, bytes));
+}
 #else
-	return(sbrk(memorySize));
+void *memoryLowLevelAlloc(const size_t bytes){
+	// It's not a good idea to mix brk with malloc and friends.
+	//return(sbrk(bytes));
+
+    int fd = open("/dev/zero", O_RDWR);
+    void *p = mmap(0, bytes, PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0);
+    close(fd);
+
+    return(p);
+}
+#endif
+
+#ifdef _WIN32
+void *memoryLowLevelRealloc(void *const restrict block, const size_t bytes){
+	return(HeapReAlloc(GetProcessHeap(), MEMORY_WIN32_HEAP_FLAGS, block, bytes));
+}
+#else
+void *memoryLowLevelRealloc(void *const restrict block, const size_t bytes_old, const size_t bytes_new){
+	// It's not a good idea to mix brk with malloc and friends.
+	//if(brk((byte_t *)block + bytes) == 0){
+	//	return(block);
+	//}
+	//return(NULL);
+
+    return(mremap(block, bytes_old, bytes_new, MREMAP_MAYMOVE | MREMAP_FIXED));
+}
 #endif
 }
 
-void *memoryLowLevelRealloc(void *block, const size_t memorySize){
 #ifdef _WIN32
-	return(HeapReAlloc(GetProcessHeap(), MEMORY_WIN32_HEAP_FLAGS, block, memorySize));
-#else
-	if(brk((byte_t *)block + memorySize) == 0){
-		return(block);
-	}
-	return(NULL);
-#endif
-}
-
-return_t memoryLowLevelFree(void *block){
-#ifdef _WIN32
+int memoryLowLevelFree(void *const restrict block){
 	return(HeapFree(GetProcessHeap(), MEMORY_WIN32_HEAP_FLAGS, block));
-#else
-	return(brk(block));
-#endif
 }
+#else
+int memoryLowLevelFree(void *const restrict block, const size_t bytes){
+	// It's not a good idea to mix brk with malloc and friends.
+	//return(brk(block));
+
+    return(munmap(block, bytes));
+}
+#endif
 #endif
 
 
 void *memoryAlloc(const size_t size){
-	#ifndef MEMORY_LOW_LEVEL
-		return(malloc(size));
-	#else
-		return(memoryLowLevelAlloc(size));
-	#endif
+#ifndef MEMORY_LOW_LEVEL
+	return(malloc(size));
+#else
+	return(memoryLowLevelAlloc(size));
+#endif
 }
 
-void *memoryRealloc(void *block, const size_t size){
-	#ifndef MEMORY_LOW_LEVEL
-		return(realloc(block, size));
-	#else
-		return(memoryLowLevelRealloc(block, size));
-	#endif
+#if defined(_WIN32) || !defined(MEMORY_LOW_LEVEL)
+void *memoryRealloc(void *const restrict block, const size_t size){
+	return(realloc(block, size));
 }
 
-void memoryFree(void *block){
-	#ifndef MEMORY_LOW_LEVEL
-		free(block);
-	#else
-		memoryLowLevelFree(block);
-	#endif
+void memoryFree(void *const restrict block){
+	free(block);
+}
+#else
+void *memoryRealloc(void *const restrict block, const size_t oldSize, const size_t newSize){
+	return(memoryLowLevelRealloc(block, oldSize, newSize));
 }
 
+void memoryFree(void *const restrict block, const size_t size){
+	memoryLowLevelFree(block, size);
+}
+#endif
 
-void memoryRegionAppend(memoryRegion **region, memoryRegion *newRegion, void *memory){
+
+void memoryRegionAppend(memoryRegion **region, memoryRegion *const newRegion, void *const memory){
 	newRegion->start = memory;
 	// Find the last memory region.
 	while(*region != NULL){
@@ -80,13 +102,13 @@ void memoryRegionAppend(memoryRegion **region, memoryRegion *newRegion, void *me
 	newRegion->next = NULL;
 }
 
-void memoryRegionInsertBefore(memoryRegion **region, memoryRegion *newRegion, void *memory){
+void memoryRegionInsertBefore(memoryRegion **region, memoryRegion *const newRegion, void *const memory){
 	newRegion->start = memory;
 	newRegion->next = *region;
 	*region = newRegion;
 }
 
-void memoryRegionInsertAfter(memoryRegion *region, memoryRegion *newRegion, void *memory){
+void memoryRegionInsertAfter(memoryRegion *region, memoryRegion *const newRegion, void *const memory){
 	newRegion->start = memory;
 	newRegion->next = region->next;
 	region->next = newRegion;
@@ -94,16 +116,19 @@ void memoryRegionInsertAfter(memoryRegion *region, memoryRegion *newRegion, void
 
 
 /*
-** This assumes that the region's start points
-** to the beginning of the allocated block,
-** which is not the case for many allocators.
+** Free a sequence of memory regions that were
+** allocated using the regular memory functions.
 */
-void memoryAllocatorDelete(memoryRegion *region){
+void memoryDeleteRegions(memoryRegion *region){
 	// Free every memory region in the allocator.
 	while(region != NULL){
-		memoryRegion *next = region->next;
+		memoryRegion *const next = region->next;
 
+		#if defined(_WIN32) || !defined(MEMORY_LOW_LEVEL)
 		memoryFree(region->start);
+		#else
+		memoryFree(region->start, memoryRegionFullSize(region));
+		#endif
 		region = next;
 	}
 }

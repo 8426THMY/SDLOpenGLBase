@@ -44,6 +44,11 @@
 // Return the amount of memory required for a region of "size" bytes.
 #define memoryGetRequiredSize(size) ((size) + sizeof(memoryRegion))
 
+// Get the size of the data controlled by a memory region.
+#define memoryRegionDataSize(region) ((uintptr_t)memorySubPointer((region)->start, (region)))
+// Get the total size of a memory region.
+#define memoryRegionFullSize(region) (((uintptr_t)memorySubPointer((region)->start, (region))) + sizeof(memoryRegion))
+
 // This can be used to exit from memory allocator loops early.
 #define memoryLoopExit(allocator, node) goto allocator##_EXIT_LOOP_##node
 
@@ -81,14 +86,19 @@ typedef struct memoryRegion {
 
 
 void *memoryAlloc(const size_t size);
-void *memoryRealloc(void *block, const size_t size);
-void memoryFree(void *block);
+#if defined(_WIN32) || !defined(MEMORY_LOW_LEVEL)
+void *memoryRealloc(void *const restrict block, const size_t size);
+void memoryFree(void *const restrict block);
+#else
+void *memoryRealloc(void *const restrict block, const size_t oldSize, const size_t newSize);
+void memoryFree(void *const restrict block, const size_t size);
+#endif
 
-void memoryRegionAppend(memoryRegion **const restrict region, memoryRegion *const restrict newRegion, void *const restrict memory);
-void memoryRegionInsertBefore(memoryRegion **const restrict region, memoryRegion *const restrict newRegion, void *const restrict memory);
-void memoryRegionInsertAfter(memoryRegion *const restrict region, memoryRegion *const restrict newRegion, void *const restrict memory);
+void memoryRegionAppend(memoryRegion **region, memoryRegion *const newRegion, void *const memory);
+void memoryRegionInsertBefore(memoryRegion **region, memoryRegion *const newRegion, void *const memory);
+void memoryRegionInsertAfter(memoryRegion *region, memoryRegion *const newRegion, void *const memory);
 
-void memoryAllocatorDelete(memoryRegion *const restrict region);
+void memoryDeleteRegions(memoryRegion *region);
 
 
 #endif

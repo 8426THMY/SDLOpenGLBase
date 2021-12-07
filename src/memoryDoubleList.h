@@ -119,7 +119,7 @@
 {                                                                                               \
 	memoryRegion *allocator##_region_##node = allocator.region;                                 \
 	size_t allocator##_remaining_##node = allocator.usedBlocks;                                 \
-	type *node = (void *)(allocator##_region_##node->start);                                    \
+	type *node = (void *)memDoubleListBlockFreeFlagGetNext(allocator##_region_##node->start);   \
 	for(;;){                                                                                    \
 		const uintptr_t allocator##_flag_##node = memDoubleListBlockUsedDataGetFlagValue(node); \
 		if(allocator##_flag_##node == MEMDOUBLELIST_FLAG_ACTIVE){                               \
@@ -128,26 +128,26 @@
 #define MEMDOUBLELIST_LOOP_INACTIVE(node)                                 \
 		}else if(allocator##_flag_##node == MEMDOUBLELIST_FLAG_INACTIVE){ \
 
-#define MEMDOUBLELIST_LOOP_END(allocator, node)                           \
-		}                                                                 \
-		if(allocator##_remaining_##node <= 0){                            \
-			break;                                                        \
-		}                                                                 \
-		node = memDoubleListBlockGetNextBlock(node, allocator.blockSize); \
-		if((void *)node >= (void *)allocator##_region_##node){            \
-			allocator##_region_##node = allocator##_region_##node->next;  \
-			if(allocator##_region_##node == NULL){                        \
-				break;                                                    \
-			}                                                             \
-			node = (void *)allocator##_region_##node->start;              \
-		}                                                                 \
-	}                                                                     \
+#define MEMDOUBLELIST_LOOP_END(allocator, node)                                                 \
+		}                                                                                       \
+		if(allocator##_remaining_##node <= 0){                                                  \
+			break;                                                                              \
+		}                                                                                       \
+		node = memDoubleListBlockGetNextBlock(node, allocator.blockSize);                       \
+		if((void *)node >= (void *)allocator##_region_##node){                                  \
+			allocator##_region_##node = allocator##_region_##node->next;                        \
+			if(allocator##_region_##node == NULL){                                              \
+				break;                                                                          \
+			}                                                                                   \
+			node = (void *)memDoubleListBlockFreeFlagGetNext(allocator##_region_##node->start); \
+		}                                                                                       \
+	}                                                                                           \
 }
 #else
 #define MEMDOUBLELIST_LOOP_BEGIN(allocator, node, type)                                         \
 {                                                                                               \
 	memoryRegion *allocator##_region_##node = allocator.region;                                 \
-	type *node = (void *)(allocator##_region_##node->start);                                    \
+	type *node = (void *)memDoubleListBlockFreeFlagGetNext(allocator##_region_##node->start);   \
 	for(;;){                                                                                    \
 		const uintptr_t allocator##_flag_##node = memDoubleListBlockUsedDataGetFlagValue(node); \
 		if(allocator##_flag_##node == MEMDOUBLELIST_FLAG_ACTIVE){
@@ -155,19 +155,19 @@
 #define MEMDOUBLELIST_LOOP_INACTIVE(node)                                 \
 		}else if(allocator##_flag_##node == MEMDOUBLELIST_FLAG_INACTIVE){ \
 
-#define MEMDOUBLELIST_LOOP_END(allocator, node)                           \
-		}else if(allocator##_flag_##node == MEMDOUBLELIST_FLAG_INVALID){  \
-			break;                                                        \
-		}                                                                 \
-		node = memDoubleListBlockGetNextBlock(node, allocator.blockSize); \
-		if((void *)node >= (void *)allocator##_region_##node){            \
-			allocator##_region_##node = allocator##_region_##node->next;  \
-			if(allocator##_region_##node == NULL){                        \
-				break;                                                    \
-			}                                                             \
-			node = (void *)allocator##_region_##node->start;              \
-		}                                                                 \
-	}                                                                     \
+#define MEMDOUBLELIST_LOOP_END(allocator, node)                                                 \
+		}else if(allocator##_flag_##node == MEMDOUBLELIST_FLAG_INVALID){                        \
+			break;                                                                              \
+		}                                                                                       \
+		node = memDoubleListBlockGetNextBlock(node, allocator.blockSize);                       \
+		if((void *)node >= (void *)allocator##_region_##node){                                  \
+			allocator##_region_##node = allocator##_region_##node->next;                        \
+			if(allocator##_region_##node == NULL){                                              \
+				break;                                                                          \
+			}                                                                                   \
+			node = (void *)memDoubleListBlockFreeFlagGetNext(allocator##_region_##node->start); \
+		}                                                                                       \
+	}                                                                                           \
 }
 #endif
 
@@ -214,8 +214,6 @@ void memDoubleListClear(memoryDoubleList *const restrict doubleList);
 #ifdef MEMORYREGION_EXTEND_ALLOCATORS
 void *memDoubleListExtend(memoryDoubleList *const restrict doubleList, void *const restrict memory, const size_t memorySize);
 #endif
-
-void memDoubleListDelete(memoryDoubleList *const restrict doubleList, void (*const freeFunc)(void *block));
 
 
 #endif
