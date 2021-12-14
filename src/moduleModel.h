@@ -38,10 +38,9 @@ void moduleModelDefClear();
 model *moduleModelAlloc();
 model *moduleModelPrepend(model **const restrict start);
 model *moduleModelAppend(model **const restrict start);
-model *moduleModelInsertBefore(model **const restrict start, model *const restrict prevData);
-model *moduleModelInsertAfter(model **const restrict start, model *const restrict data);
+model *moduleModelInsertAfter(model **const restrict start, model *const restrict prev);
 model *moduleModelNext(const model *const restrict render);
-void moduleModelFree(model **const restrict start, model *const restrict render, model *const restrict prevData);
+void moduleModelFree(model **const restrict start, model *const restrict render, model *const restrict prev);
 void moduleModelFreeArray(model **const restrict start);
 void moduleModelClear();
 

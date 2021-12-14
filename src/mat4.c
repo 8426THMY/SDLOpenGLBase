@@ -1213,7 +1213,6 @@ void mat4RotateByAxisAngle(mat4 *const restrict m, const vec4 *const restrict v)
 	vec3 normalAxis;
 	vec3 tempAxis;
 	mat3 rotMatrix;
-	const mat4 tempMatrix = *m;
 
 	// Normalize the axis!
 	vec3NormalizeFast(v->x, v->y, v->z, &normalAxis);
@@ -1233,21 +1232,7 @@ void mat4RotateByAxisAngle(mat4 *const restrict m, const vec4 *const restrict v)
 	rotMatrix.m[2][2] = tempAxis.z * normalAxis.z + c;
 
 	// Now rotate our matrix by it!
-	m->m[0][0] = rotMatrix.m[0][0] * tempMatrix.m[0][0] + rotMatrix.m[1][0] * tempMatrix.m[0][1] + rotMatrix.m[2][0] * tempMatrix.m[0][2];
-	m->m[0][1] = rotMatrix.m[0][1] * tempMatrix.m[0][0] + rotMatrix.m[1][1] * tempMatrix.m[0][1] + rotMatrix.m[2][1] * tempMatrix.m[0][2];
-	m->m[0][2] = rotMatrix.m[0][2] * tempMatrix.m[0][0] + rotMatrix.m[1][2] * tempMatrix.m[0][1] + rotMatrix.m[2][2] * tempMatrix.m[0][2];
-
-	m->m[1][0] = rotMatrix.m[0][0] * tempMatrix.m[1][0] + rotMatrix.m[1][0] * tempMatrix.m[1][1] + rotMatrix.m[2][0] * tempMatrix.m[1][2];
-	m->m[1][1] = rotMatrix.m[0][1] * tempMatrix.m[1][0] + rotMatrix.m[1][1] * tempMatrix.m[1][1] + rotMatrix.m[2][1] * tempMatrix.m[1][2];
-	m->m[1][2] = rotMatrix.m[0][2] * tempMatrix.m[1][0] + rotMatrix.m[1][2] * tempMatrix.m[1][1] + rotMatrix.m[2][2] * tempMatrix.m[1][2];
-
-	m->m[2][0] = rotMatrix.m[0][0] * tempMatrix.m[2][0] + rotMatrix.m[1][0] * tempMatrix.m[2][1] + rotMatrix.m[2][0] * tempMatrix.m[2][2];
-	m->m[2][1] = rotMatrix.m[0][1] * tempMatrix.m[2][0] + rotMatrix.m[1][1] * tempMatrix.m[2][1] + rotMatrix.m[2][1] * tempMatrix.m[2][2];
-	m->m[2][2] = rotMatrix.m[0][2] * tempMatrix.m[2][0] + rotMatrix.m[1][2] * tempMatrix.m[2][1] + rotMatrix.m[2][2] * tempMatrix.m[2][2];
-
-	m->m[3][0] = rotMatrix.m[0][0] * tempMatrix.m[3][0] + rotMatrix.m[1][0] * tempMatrix.m[3][1] + rotMatrix.m[2][0] * tempMatrix.m[3][2];
-	m->m[3][1] = rotMatrix.m[0][1] * tempMatrix.m[3][0] + rotMatrix.m[1][1] * tempMatrix.m[3][1] + rotMatrix.m[2][1] * tempMatrix.m[3][2];
-	m->m[3][2] = rotMatrix.m[0][2] * tempMatrix.m[3][0] + rotMatrix.m[1][2] * tempMatrix.m[3][1] + rotMatrix.m[2][2] * tempMatrix.m[3][2];
+	mat4MultiplyByMat3(m, rotMatrix);
 }
 
 // Rotate a matrix by an axis and an angle!
@@ -1276,30 +1261,7 @@ mat4 mat4RotateByAxisAngleC(const mat4 m, const vec4 v){
 	};
 
 	// Now rotate our matrix by it!
-	const mat4 out = {
-		.m[0][0] = rotMatrix.m[0][0] * m.m[0][0] + rotMatrix.m[1][0] * m.m[0][1] + rotMatrix.m[2][0] * m.m[0][2],
-		.m[0][1] = rotMatrix.m[0][1] * m.m[0][0] + rotMatrix.m[1][1] * m.m[0][1] + rotMatrix.m[2][1] * m.m[0][2],
-		.m[0][2] = rotMatrix.m[0][2] * m.m[0][0] + rotMatrix.m[1][2] * m.m[0][1] + rotMatrix.m[2][2] * m.m[0][2],
-		.m[0][3] = m.m[0][3],
-
-		.m[1][0] = rotMatrix.m[0][0] * m.m[1][0] + rotMatrix.m[1][0] * m.m[1][1] + rotMatrix.m[2][0] * m.m[1][2],
-		.m[1][1] = rotMatrix.m[0][1] * m.m[1][0] + rotMatrix.m[1][1] * m.m[1][1] + rotMatrix.m[2][1] * m.m[1][2],
-		.m[1][2] = rotMatrix.m[0][2] * m.m[1][0] + rotMatrix.m[1][2] * m.m[1][1] + rotMatrix.m[2][2] * m.m[1][2],
-		.m[1][3] = m.m[1][3],
-
-		.m[2][0] = rotMatrix.m[0][0] * m.m[2][0] + rotMatrix.m[1][0] * m.m[2][1] + rotMatrix.m[2][0] * m.m[2][2],
-		.m[2][1] = rotMatrix.m[0][1] * m.m[2][0] + rotMatrix.m[1][1] * m.m[2][1] + rotMatrix.m[2][1] * m.m[2][2],
-		.m[2][2] = rotMatrix.m[0][2] * m.m[2][0] + rotMatrix.m[1][2] * m.m[2][1] + rotMatrix.m[2][2] * m.m[2][2],
-		.m[2][3] = m.m[2][3],
-
-		.m[3][0] = rotMatrix.m[0][0] * m.m[3][0] + rotMatrix.m[1][0] * m.m[3][1] + rotMatrix.m[2][0] * m.m[3][2],
-		.m[3][1] = rotMatrix.m[0][1] * m.m[3][0] + rotMatrix.m[1][1] * m.m[3][1] + rotMatrix.m[2][1] * m.m[3][2],
-		.m[3][2] = rotMatrix.m[0][2] * m.m[3][0] + rotMatrix.m[1][2] * m.m[3][1] + rotMatrix.m[2][2] * m.m[3][2],
-		.m[3][3] = m.m[3][3]
-	};
-
-
-	return(out);
+	return(mat4MultiplyByMat3C(m, rotMatrix));
 }
 
 // Rotate a matrix by a quaternion!
@@ -1313,7 +1275,6 @@ void mat4RotateByQuat(mat4 *const restrict m, const quat *const restrict q){
 	const float yw = q->y * q->w;
 	const float zz = q->z * q->z;
 	const float zw = q->z * q->w;
-	const mat4 tempMatrix = *m;
 
 	// Convert the quaternion to a rotation matrix!
 	const mat3 rotMatrix = {
@@ -1331,21 +1292,7 @@ void mat4RotateByQuat(mat4 *const restrict m, const quat *const restrict q){
 	};
 
 	// Now rotate our matrix by it!
-	m->m[0][0] = rotMatrix.m[0][0] * tempMatrix.m[0][0] + rotMatrix.m[1][0] * tempMatrix.m[0][1] + rotMatrix.m[2][0] * tempMatrix.m[0][2];
-	m->m[0][1] = rotMatrix.m[0][1] * tempMatrix.m[0][0] + rotMatrix.m[1][1] * tempMatrix.m[0][1] + rotMatrix.m[2][1] * tempMatrix.m[0][2];
-	m->m[0][2] = rotMatrix.m[0][2] * tempMatrix.m[0][0] + rotMatrix.m[1][2] * tempMatrix.m[0][1] + rotMatrix.m[2][2] * tempMatrix.m[0][2];
-
-	m->m[1][0] = rotMatrix.m[0][0] * tempMatrix.m[1][0] + rotMatrix.m[1][0] * tempMatrix.m[1][1] + rotMatrix.m[2][0] * tempMatrix.m[1][2];
-	m->m[1][1] = rotMatrix.m[0][1] * tempMatrix.m[1][0] + rotMatrix.m[1][1] * tempMatrix.m[1][1] + rotMatrix.m[2][1] * tempMatrix.m[1][2];
-	m->m[1][2] = rotMatrix.m[0][2] * tempMatrix.m[1][0] + rotMatrix.m[1][2] * tempMatrix.m[1][1] + rotMatrix.m[2][2] * tempMatrix.m[1][2];
-
-	m->m[2][0] = rotMatrix.m[0][0] * tempMatrix.m[2][0] + rotMatrix.m[1][0] * tempMatrix.m[2][1] + rotMatrix.m[2][0] * tempMatrix.m[2][2];
-	m->m[2][1] = rotMatrix.m[0][1] * tempMatrix.m[2][0] + rotMatrix.m[1][1] * tempMatrix.m[2][1] + rotMatrix.m[2][1] * tempMatrix.m[2][2];
-	m->m[2][2] = rotMatrix.m[0][2] * tempMatrix.m[2][0] + rotMatrix.m[1][2] * tempMatrix.m[2][1] + rotMatrix.m[2][2] * tempMatrix.m[2][2];
-
-	m->m[3][0] = rotMatrix.m[0][0] * tempMatrix.m[3][0] + rotMatrix.m[1][0] * tempMatrix.m[3][1] + rotMatrix.m[2][0] * tempMatrix.m[3][2];
-	m->m[3][1] = rotMatrix.m[0][1] * tempMatrix.m[3][0] + rotMatrix.m[1][1] * tempMatrix.m[3][1] + rotMatrix.m[2][1] * tempMatrix.m[3][2];
-	m->m[3][2] = rotMatrix.m[0][2] * tempMatrix.m[3][0] + rotMatrix.m[1][2] * tempMatrix.m[3][1] + rotMatrix.m[2][2] * tempMatrix.m[3][2];
+	mat4MultiplyByMat3(m, rotMatrix);
 }
 
 // Rotate a matrix by a quaternion!
@@ -1376,30 +1323,7 @@ mat4 mat4RotateByQuatC(const mat4 m, const quat q){
 	};
 
 	// Now rotate our matrix by it!
-	const mat4 out = {
-		.m[0][0] = rotMatrix.m[0][0] * m.m[0][0] + rotMatrix.m[1][0] * m.m[0][1] + rotMatrix.m[2][0] * m.m[0][2],
-		.m[0][1] = rotMatrix.m[0][1] * m.m[0][0] + rotMatrix.m[1][1] * m.m[0][1] + rotMatrix.m[2][1] * m.m[0][2],
-		.m[0][2] = rotMatrix.m[0][2] * m.m[0][0] + rotMatrix.m[1][2] * m.m[0][1] + rotMatrix.m[2][2] * m.m[0][2],
-		.m[0][3] = m.m[0][3],
-
-		.m[1][0] = rotMatrix.m[0][0] * m.m[1][0] + rotMatrix.m[1][0] * m.m[1][1] + rotMatrix.m[2][0] * m.m[1][2],
-		.m[1][1] = rotMatrix.m[0][1] * m.m[1][0] + rotMatrix.m[1][1] * m.m[1][1] + rotMatrix.m[2][1] * m.m[1][2],
-		.m[1][2] = rotMatrix.m[0][2] * m.m[1][0] + rotMatrix.m[1][2] * m.m[1][1] + rotMatrix.m[2][2] * m.m[1][2],
-		.m[1][3] = m.m[1][3],
-
-		.m[2][0] = rotMatrix.m[0][0] * m.m[2][0] + rotMatrix.m[1][0] * m.m[2][1] + rotMatrix.m[2][0] * m.m[2][2],
-		.m[2][1] = rotMatrix.m[0][1] * m.m[2][0] + rotMatrix.m[1][1] * m.m[2][1] + rotMatrix.m[2][1] * m.m[2][2],
-		.m[2][2] = rotMatrix.m[0][2] * m.m[2][0] + rotMatrix.m[1][2] * m.m[2][1] + rotMatrix.m[2][2] * m.m[2][2],
-		.m[2][3] = m.m[2][3],
-
-		.m[3][0] = rotMatrix.m[0][0] * m.m[3][0] + rotMatrix.m[1][0] * m.m[3][1] + rotMatrix.m[2][0] * m.m[3][2],
-		.m[3][1] = rotMatrix.m[0][1] * m.m[3][0] + rotMatrix.m[1][1] * m.m[3][1] + rotMatrix.m[2][1] * m.m[3][2],
-		.m[3][2] = rotMatrix.m[0][2] * m.m[3][0] + rotMatrix.m[1][2] * m.m[3][1] + rotMatrix.m[2][2] * m.m[3][2],
-		.m[3][3] = m.m[3][3]
-	};
-
-
-	return(out);
+	return(mat4MultiplyByMat3C(m, rotMatrix));
 }
 
 // Rotate a matrix on the X-axis!

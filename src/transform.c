@@ -135,14 +135,27 @@ void transformStateToMat4(const transformState *const restrict trans, mat4 *cons
 
 
 // Transform a vec3 by scaling it, rotating it and finally translating it.
-void transformStateTransformPosition(const transformState *const restrict trans, const vec3 *const v, vec3 *const out){
+void transformStateTransformPoint(const transformState *const restrict trans, vec3 *const restrict v){
+	vec3MultiplyVec3(v, &trans->scale);
+	quatRotateVec3Fast(&trans->rot, v);
+	vec3AddVec3(v, &trans->pos);
+}
+
+// Transform a vec3 by scaling it, rotating it and finally translating it.
+void transformStateTransformPointOut(const transformState *const restrict trans, const vec3 *const v, vec3 *const out){
 	vec3MultiplyVec3Out(&trans->scale, v, out);
 	quatRotateVec3Fast(&trans->rot, out);
 	vec3AddVec3(out, &trans->pos);
 }
 
 // Transform a vec3 by scaling it and rotating it, but not translating it.
-void transformStateTransformVelocity(const transformState *const restrict trans, const vec3 *const v, vec3 *const out){
+void transformStateTransformDirection(const transformState *const restrict trans, vec3 *const restrict v){
+	vec3MultiplyVec3(v, &trans->scale);
+	quatRotateVec3Fast(&trans->rot, v);
+}
+
+// Transform a vec3 by scaling it and rotating it, but not translating it.
+void transformStateTransformDirectionOut(const transformState *const restrict trans, const vec3 *const v, vec3 *const out){
 	vec3MultiplyVec3Out(&trans->scale, v, out);
 	quatRotateVec3Fast(&trans->rot, out);
 }

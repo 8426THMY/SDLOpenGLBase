@@ -195,12 +195,12 @@ physicsContactPair *modulePhysicsContactPairAppend(physicsContactPair **const re
 	#endif
 }
 
-// Insert a contact pair after the element "prevData".
-physicsContactPair *modulePhysicsContactPairInsertBefore(physicsContactPair **const restrict start, physicsContactPair *const restrict prevData){
+// Insert a contact pair before the element "next".
+physicsContactPair *modulePhysicsContactPairInsertBefore(physicsContactPair **const restrict start, physicsContactPair *const restrict next){
 	#ifndef MEMORYREGION_EXTEND_ALLOCATORS
-	return(memDoubleListInsertBefore(&g_physContactPairManager, (void **)start, (void *)prevData));
+	return(memDoubleListInsertBefore(&g_physContactPairManager, (void **)start, (void *)next));
 	#else
-	physicsContactPair *newBlock = memDoubleListInsertBefore(&g_physContactPairManager, (void **)start, (void *)prevData);
+	physicsContactPair *newBlock = memDoubleListInsertBefore(&g_physContactPairManager, (void **)start, (void *)next);
 	// If we've run out of memory, allocate some more!
 	if(newBlock == NULL){
 		if(memDoubleListExtend(
@@ -208,19 +208,19 @@ physicsContactPair *modulePhysicsContactPairInsertBefore(physicsContactPair **co
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSCONTACTPAIR_MANAGER_SIZE)),
 			MODULE_PHYSCONTACTPAIR_MANAGER_SIZE
 		)){
-			newBlock = memDoubleListInsertBefore(&g_physContactPairManager, (void **)start, (void *)prevData);
+			newBlock = memDoubleListInsertBefore(&g_physContactPairManager, (void **)start, (void *)next);
 		}
 	}
 	return(newBlock);
 	#endif
 }
 
-// Insert a contact pair after the element "data".
-physicsContactPair *modulePhysicsContactPairInsertAfter(physicsContactPair **const restrict start, physicsContactPair *const restrict data){
+// Insert a contact pair after the element "prev".
+physicsContactPair *modulePhysicsContactPairInsertAfter(physicsContactPair **const restrict start, physicsContactPair *const restrict prev){
 	#ifndef MEMORYREGION_EXTEND_ALLOCATORS
-	return(memDoubleListInsertAfter(&g_physContactPairManager, (void **)start, (void *)data));
+	return(memDoubleListInsertAfter(&g_physContactPairManager, (void **)start, (void *)prev));
 	#else
-	physicsContactPair *newBlock = memDoubleListInsertAfter(&g_physContactPairManager, (void **)start, (void *)data);
+	physicsContactPair *newBlock = memDoubleListInsertAfter(&g_physContactPairManager, (void **)start, (void *)prev);
 	// If we've run out of memory, allocate some more!
 	if(newBlock == NULL){
 		if(memDoubleListExtend(
@@ -228,7 +228,7 @@ physicsContactPair *modulePhysicsContactPairInsertAfter(physicsContactPair **con
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSCONTACTPAIR_MANAGER_SIZE)),
 			MODULE_PHYSCONTACTPAIR_MANAGER_SIZE
 		)){
-			newBlock = memDoubleListInsertAfter(&g_physContactPairManager, (void **)start, (void *)data);
+			newBlock = memDoubleListInsertAfter(&g_physContactPairManager, (void **)start, (void *)prev);
 		}
 	}
 	return(newBlock);
@@ -327,12 +327,12 @@ physicsSeparationPair *modulePhysicsSeparationPairAppend(physicsSeparationPair *
 	#endif
 }
 
-// Insert a separation pair after the element "prevData".
-physicsSeparationPair *modulePhysicsSeparationPairInsertBefore(physicsSeparationPair **const restrict start, physicsSeparationPair *const restrict prevData){
+// Insert a separation pair before the element "next".
+physicsSeparationPair *modulePhysicsSeparationPairInsertBefore(physicsSeparationPair **const restrict start, physicsSeparationPair *const restrict next){
 	#ifndef MEMORYREGION_EXTEND_ALLOCATORS
-	return(memDoubleListInsertBefore(&g_physSeparationPairManager, (void **)start, (void *)prevData));
+	return(memDoubleListInsertBefore(&g_physSeparationPairManager, (void **)start, (void *)next));
 	#else
-	physicsSeparationPair *newBlock = memDoubleListInsertBefore(&g_physSeparationPairManager, (void **)start, (void *)prevData);
+	physicsSeparationPair *newBlock = memDoubleListInsertBefore(&g_physSeparationPairManager, (void **)start, (void *)next);
 	// If we've run out of memory, allocate some more!
 	if(newBlock == NULL){
 		if(memDoubleListExtend(
@@ -340,19 +340,19 @@ physicsSeparationPair *modulePhysicsSeparationPairInsertBefore(physicsSeparation
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSCONTACTPAIR_MANAGER_SIZE)),
 			MODULE_PHYSCONTACTPAIR_MANAGER_SIZE
 		)){
-			newBlock = memDoubleListInsertBefore(&g_physSeparationPairManager, (void **)start, (void *)prevData);
+			newBlock = memDoubleListInsertBefore(&g_physSeparationPairManager, (void **)start, (void *)next);
 		}
 	}
 	return(newBlock);
 	#endif
 }
 
-// Insert a separation pair after the element "data".
-physicsSeparationPair *modulePhysicsSeparationPairInsertAfter(physicsSeparationPair **const restrict start, physicsSeparationPair *const restrict data){
+// Insert a separation pair after the element "prev".
+physicsSeparationPair *modulePhysicsSeparationPairInsertAfter(physicsSeparationPair **const restrict start, physicsSeparationPair *const restrict prev){
 	#ifndef MEMORYREGION_EXTEND_ALLOCATORS
-	return(memDoubleListInsertAfter(&g_physSeparationPairManager, (void **)start, (void *)data));
+	return(memDoubleListInsertAfter(&g_physSeparationPairManager, (void **)start, (void *)prev));
 	#else
-	physicsSeparationPair *newBlock = memDoubleListInsertAfter(&g_physSeparationPairManager, (void **)start, (void *)data);
+	physicsSeparationPair *newBlock = memDoubleListInsertAfter(&g_physSeparationPairManager, (void **)start, (void *)prev);
 	// If we've run out of memory, allocate some more!
 	if(newBlock == NULL){
 		if(memDoubleListExtend(
@@ -360,7 +360,7 @@ physicsSeparationPair *modulePhysicsSeparationPairInsertAfter(physicsSeparationP
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSCONTACTPAIR_MANAGER_SIZE)),
 			MODULE_PHYSCONTACTPAIR_MANAGER_SIZE
 		)){
-			newBlock = memDoubleListInsertAfter(&g_physSeparationPairManager, (void **)start, (void *)data);
+			newBlock = memDoubleListInsertAfter(&g_physSeparationPairManager, (void **)start, (void *)prev);
 		}
 	}
 	return(newBlock);
@@ -459,12 +459,12 @@ physicsJointPair *modulePhysicsJointPairAppend(physicsJointPair **const restrict
 	#endif
 }
 
-// Insert a joint pair after the element "prevData".
-physicsJointPair *modulePhysicsJointPairInsertBefore(physicsJointPair **const restrict start, physicsJointPair *const restrict prevData){
+// Insert a joint pair before the element "next".
+physicsJointPair *modulePhysicsJointPairInsertBefore(physicsJointPair **const restrict start, physicsJointPair *const restrict next){
 	#ifndef MEMORYREGION_EXTEND_ALLOCATORS
-	return(memDoubleListInsertBefore(&g_physJointPairManager, (void **)start, (void *)prevData));
+	return(memDoubleListInsertBefore(&g_physJointPairManager, (void **)start, (void *)next));
 	#else
-	physicsJointPair *newBlock = memDoubleListInsertBefore(&g_physJointPairManager, (void **)start, (void *)prevData);
+	physicsJointPair *newBlock = memDoubleListInsertBefore(&g_physJointPairManager, (void **)start, (void *)next);
 	// If we've run out of memory, allocate some more!
 	if(newBlock == NULL){
 		if(memDoubleListExtend(
@@ -472,19 +472,19 @@ physicsJointPair *modulePhysicsJointPairInsertBefore(physicsJointPair **const re
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSCONTACTPAIR_MANAGER_SIZE)),
 			MODULE_PHYSCONTACTPAIR_MANAGER_SIZE
 		)){
-			newBlock = memDoubleListInsertBefore(&g_physJointPairManager, (void **)start, (void *)prevData);
+			newBlock = memDoubleListInsertBefore(&g_physJointPairManager, (void **)start, (void *)next);
 		}
 	}
 	return(newBlock);
 	#endif
 }
 
-// Insert a joint pair after the element "data".
-physicsJointPair *modulePhysicsJointPairInsertAfter(physicsJointPair **const restrict start, physicsJointPair *const restrict data){
+// Insert a joint pair after the element "prev".
+physicsJointPair *modulePhysicsJointPairInsertAfter(physicsJointPair **const restrict start, physicsJointPair *const restrict prev){
 	#ifndef MEMORYREGION_EXTEND_ALLOCATORS
-	return(memDoubleListInsertAfter(&g_physJointPairManager, (void **)start, (void *)data));
+	return(memDoubleListInsertAfter(&g_physJointPairManager, (void **)start, (void *)prev));
 	#else
-	physicsJointPair *newBlock = memDoubleListInsertAfter(&g_physJointPairManager, (void **)start, (void *)data);
+	physicsJointPair *newBlock = memDoubleListInsertAfter(&g_physJointPairManager, (void **)start, (void *)prev);
 	// If we've run out of memory, allocate some more!
 	if(newBlock == NULL){
 		if(memDoubleListExtend(
@@ -492,7 +492,7 @@ physicsJointPair *modulePhysicsJointPairInsertAfter(physicsJointPair **const res
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSCONTACTPAIR_MANAGER_SIZE)),
 			MODULE_PHYSCONTACTPAIR_MANAGER_SIZE
 		)){
-			newBlock = memDoubleListInsertAfter(&g_physJointPairManager, (void **)start, (void *)data);
+			newBlock = memDoubleListInsertAfter(&g_physJointPairManager, (void **)start, (void *)prev);
 		}
 	}
 	return(newBlock);
@@ -591,12 +591,12 @@ physicsCollider *modulePhysicsColliderAppend(physicsCollider **const restrict st
 	#endif
 }
 
-// Insert a collider after the element "prevData".
-physicsCollider *modulePhysicsColliderInsertBefore(physicsCollider **const restrict start, physicsCollider *const restrict prevData){
+// Insert a collider after the element "prev".
+physicsCollider *modulePhysicsColliderInsertAfter(physicsCollider **const restrict start, physicsCollider *const restrict prev){
 	#ifndef MEMORYREGION_EXTEND_ALLOCATORS
-	return(memSingleListInsertBefore(&g_physColliderManager, (void **)start, (void *)prevData));
+	return(memSingleListInsertAfter(&g_physColliderManager, (void **)start, (void *)prev));
 	#else
-	physicsCollider *newBlock = memSingleListInsertBefore(&g_physColliderManager, (void **)start, (void *)prevData);
+	physicsCollider *newBlock = memSingleListInsertAfter(&g_physColliderManager, (void **)start, (void *)prev);
 	// If we've run out of memory, allocate some more!
 	if(newBlock == NULL){
 		if(memSingleListExtend(
@@ -604,27 +604,7 @@ physicsCollider *modulePhysicsColliderInsertBefore(physicsCollider **const restr
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSCOLLIDER_MANAGER_SIZE)),
 			MODULE_PHYSCOLLIDER_MANAGER_SIZE
 		)){
-			newBlock = memSingleListInsertBefore(&g_physColliderManager, (void **)start, (void *)prevData);
-		}
-	}
-	return(newBlock);
-	#endif
-}
-
-// Insert a collider after the element "data".
-physicsCollider *modulePhysicsColliderInsertAfter(physicsCollider **const restrict start, physicsCollider *const restrict data){
-	#ifndef MEMORYREGION_EXTEND_ALLOCATORS
-	return(memSingleListInsertAfter(&g_physColliderManager, (void **)start, (void *)data));
-	#else
-	physicsCollider *newBlock = memSingleListInsertAfter(&g_physColliderManager, (void **)start, (void *)data);
-	// If we've run out of memory, allocate some more!
-	if(newBlock == NULL){
-		if(memSingleListExtend(
-			&g_physColliderManager,
-			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSCOLLIDER_MANAGER_SIZE)),
-			MODULE_PHYSCOLLIDER_MANAGER_SIZE
-		)){
-			newBlock = memSingleListInsertAfter(&g_physColliderManager, (void **)start, (void *)data);
+			newBlock = memSingleListInsertAfter(&g_physColliderManager, (void **)start, (void *)prev);
 		}
 	}
 	return(newBlock);
@@ -636,15 +616,15 @@ physicsCollider *modulePhysicsColliderNext(const physicsCollider *const restrict
 }
 
 // Free a collider instance that has been allocated.
-void modulePhysicsColliderFreeInstance(physicsCollider **const restrict start, physicsCollider *const restrict collider, physicsCollider *const restrict prevData){
+void modulePhysicsColliderFreeInstance(physicsCollider **const restrict start, physicsCollider *const restrict collider, physicsCollider *const restrict prev){
 	physColliderDeleteInstance(collider);
-	memSingleListFree(&g_physColliderManager, (void **)start, (void *)collider, (void *)prevData);
+	memSingleListFree(&g_physColliderManager, (void **)start, (void *)collider, (void *)prev);
 }
 
 // Free a collider that has been allocated.
-void modulePhysicsColliderFree(physicsCollider **const restrict start, physicsCollider *const restrict collider, physicsCollider *const restrict prevData){
+void modulePhysicsColliderFree(physicsCollider **const restrict start, physicsCollider *const restrict collider, physicsCollider *const restrict prev){
 	physColliderDelete(collider);
-	memSingleListFree(&g_physColliderManager, (void **)start, (void *)collider, (void *)prevData);
+	memSingleListFree(&g_physColliderManager, (void **)start, (void *)collider, (void *)prev);
 }
 
 // Free an entire collider instance array.
@@ -734,12 +714,12 @@ physicsRigidBodyDef *modulePhysicsBodyDefAppend(physicsRigidBodyDef **const rest
 	#endif
 }
 
-// Insert a rigid body base after the element "prevData".
-physicsRigidBodyDef *modulePhysicsBodyDefInsertBefore(physicsRigidBodyDef **const restrict start, physicsRigidBodyDef *const restrict prevData){
+// Insert a rigid body base after the element "prev".
+physicsRigidBodyDef *modulePhysicsBodyDefInsertAfter(physicsRigidBodyDef **const restrict start, physicsRigidBodyDef *const restrict prev){
 	#ifndef MEMORYREGION_EXTEND_ALLOCATORS
-	return(memSingleListInsertBefore(&g_physRigidBodyDefManager, (void **)start, (void *)prevData));
+	return(memSingleListInsertAfter(&g_physRigidBodyDefManager, (void **)start, (void *)prev));
 	#else
-	physicsRigidBodyDef *newBlock = memSingleListInsertBefore(&g_physRigidBodyDefManager, (void **)start, (void *)prevData);
+	physicsRigidBodyDef *newBlock = memSingleListInsertAfter(&g_physRigidBodyDefManager, (void **)start, (void *)prev);
 	// If we've run out of memory, allocate some more!
 	if(newBlock == NULL){
 		if(memSingleListExtend(
@@ -747,27 +727,7 @@ physicsRigidBodyDef *modulePhysicsBodyDefInsertBefore(physicsRigidBodyDef **cons
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSRIGIDBODYDEF_MANAGER_SIZE)),
 			MODULE_PHYSRIGIDBODYDEF_MANAGER_SIZE
 		)){
-			newBlock = memSingleListInsertBefore(&g_physRigidBodyDefManager, (void **)start, (void *)prevData);
-		}
-	}
-	return(newBlock);
-	#endif
-}
-
-// Insert a rigid body base after the element "data".
-physicsRigidBodyDef *modulePhysicsBodyDefInsertAfter(physicsRigidBodyDef **const restrict start, physicsRigidBodyDef *const restrict data){
-	#ifndef MEMORYREGION_EXTEND_ALLOCATORS
-	return(memSingleListInsertAfter(&g_physRigidBodyDefManager, (void **)start, (void *)data));
-	#else
-	physicsRigidBodyDef *newBlock = memSingleListInsertAfter(&g_physRigidBodyDefManager, (void **)start, (void *)data);
-	// If we've run out of memory, allocate some more!
-	if(newBlock == NULL){
-		if(memSingleListExtend(
-			&g_physRigidBodyDefManager,
-			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSRIGIDBODYDEF_MANAGER_SIZE)),
-			MODULE_PHYSRIGIDBODYDEF_MANAGER_SIZE
-		)){
-			newBlock = memSingleListInsertAfter(&g_physRigidBodyDefManager, (void **)start, (void *)data);
+			newBlock = memSingleListInsertAfter(&g_physRigidBodyDefManager, (void **)start, (void *)prev);
 		}
 	}
 	return(newBlock);
@@ -779,9 +739,9 @@ physicsRigidBodyDef *modulePhysicsBodyDefNext(const physicsRigidBodyDef *const r
 }
 
 // Free a rigid body base that has been allocated.
-void modulePhysicsBodyDefFree(physicsRigidBodyDef **const restrict start, physicsRigidBodyDef *const restrict bodyDef, physicsRigidBodyDef *const restrict prevData){
+void modulePhysicsBodyDefFree(physicsRigidBodyDef **const restrict start, physicsRigidBodyDef *const restrict bodyDef, physicsRigidBodyDef *const restrict prev){
 	physRigidBodyDefDelete(bodyDef);
-	memSingleListFree(&g_physRigidBodyDefManager, (void **)start, (void *)bodyDef, (void *)prevData);
+	memSingleListFree(&g_physRigidBodyDefManager, (void **)start, (void *)bodyDef, (void *)prev);
 }
 
 // Free an entire rigid body base array.
@@ -862,12 +822,12 @@ physicsRigidBody *modulePhysicsBodyAppend(physicsRigidBody **const restrict star
 	#endif
 }
 
-// Insert a rigid body after the element "prevData".
-physicsRigidBody *modulePhysicsBodyInsertBefore(physicsRigidBody **const restrict start, physicsRigidBody *const restrict prevData){
+// Insert a rigid body before the element "next".
+physicsRigidBody *modulePhysicsBodyInsertBefore(physicsRigidBody **const restrict start, physicsRigidBody *const restrict next){
 	#ifndef MEMORYREGION_EXTEND_ALLOCATORS
-	return(memDoubleListInsertBefore(&g_physRigidBodyManager, (void **)start, (void *)prevData));
+	return(memDoubleListInsertBefore(&g_physRigidBodyManager, (void **)start, (void *)next));
 	#else
-	physicsRigidBody *newBlock = memDoubleListInsertBefore(&g_physRigidBodyManager, (void **)start, (void *)prevData);
+	physicsRigidBody *newBlock = memDoubleListInsertBefore(&g_physRigidBodyManager, (void **)start, (void *)next);
 	// If we've run out of memory, allocate some more!
 	if(newBlock == NULL){
 		if(memDoubleListExtend(
@@ -875,19 +835,19 @@ physicsRigidBody *modulePhysicsBodyInsertBefore(physicsRigidBody **const restric
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSRIGIDBODY_MANAGER_SIZE)),
 			MODULE_PHYSRIGIDBODY_MANAGER_SIZE
 		)){
-			newBlock = memDoubleListInsertBefore(&g_physRigidBodyManager, (void **)start, (void *)prevData);
+			newBlock = memDoubleListInsertBefore(&g_physRigidBodyManager, (void **)start, (void *)next);
 		}
 	}
 	return(newBlock);
 	#endif
 }
 
-// Insert a rigid body after the element "data".
-physicsRigidBody *modulePhysicsBodyInsertAfter(physicsRigidBody **const restrict start, physicsRigidBody *const restrict data){
+// Insert a rigid body after the element "prev".
+physicsRigidBody *modulePhysicsBodyInsertAfter(physicsRigidBody **const restrict start, physicsRigidBody *const restrict prev){
 	#ifndef MEMORYREGION_EXTEND_ALLOCATORS
-	return(memDoubleListInsertAfter(&g_physRigidBodyManager, (void **)start, (void *)data));
+	return(memDoubleListInsertAfter(&g_physRigidBodyManager, (void **)start, (void *)prev));
 	#else
-	physicsRigidBody *newBlock = memDoubleListInsertAfter(&g_physRigidBodyManager, (void **)start, (void *)data);
+	physicsRigidBody *newBlock = memDoubleListInsertAfter(&g_physRigidBodyManager, (void **)start, (void *)prev);
 	// If we've run out of memory, allocate some more!
 	if(newBlock == NULL){
 		if(memDoubleListExtend(
@@ -895,7 +855,7 @@ physicsRigidBody *modulePhysicsBodyInsertAfter(physicsRigidBody **const restrict
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSRIGIDBODY_MANAGER_SIZE)),
 			MODULE_PHYSRIGIDBODY_MANAGER_SIZE
 		)){
-			newBlock = memDoubleListInsertAfter(&g_physRigidBodyManager, (void **)start, (void *)data);
+			newBlock = memDoubleListInsertAfter(&g_physRigidBodyManager, (void **)start, (void *)prev);
 		}
 	}
 	return(newBlock);

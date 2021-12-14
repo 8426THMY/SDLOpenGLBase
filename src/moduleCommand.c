@@ -87,12 +87,12 @@ commandTokenized *moduleCmdTokAppend(commandTokenized **const restrict start){
 	#endif
 }
 
-// Insert a command after the element "prevData".
-commandTokenized *moduleCmdTokInsertBefore(commandTokenized **const restrict start, commandTokenized *const restrict prevData){
+// Insert a command before the element "next".
+commandTokenized *moduleCmdTokInsertBefore(commandTokenized **const restrict start, commandTokenized *const restrict next){
 	#ifndef MEMORYREGION_EXTEND_ALLOCATORS
-	return(memDoubleListInsertBefore(&g_cmdTokManager, (void **)start, (void *)prevData));
+	return(memDoubleListInsertBefore(&g_cmdTokManager, (void **)start, (void *)next));
 	#else
-	commandTokenized *newBlock = memDoubleListInsertBefore(&g_cmdTokManager, (void **)start, (void *)prevData);
+	commandTokenized *newBlock = memDoubleListInsertBefore(&g_cmdTokManager, (void **)start, (void *)next);
 	// If we've run out of memory, allocate some more!
 	if(newBlock == NULL){
 		if(memDoubleListExtend(
@@ -100,19 +100,19 @@ commandTokenized *moduleCmdTokInsertBefore(commandTokenized **const restrict sta
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_COMMAND_MANAGER_SIZE)),
 			MODULE_COMMAND_MANAGER_SIZE
 		)){
-			newBlock = memDoubleListInsertBefore(&g_cmdTokManager, (void **)start, (void *)prevData);
+			newBlock = memDoubleListInsertBefore(&g_cmdTokManager, (void **)start, (void *)next);
 		}
 	}
 	return(newBlock);
 	#endif
 }
 
-// Insert a command after the element "data".
-commandTokenized *moduleCmdTokInsertAfter(commandTokenized **const restrict start, commandTokenized *const restrict data){
+// Insert a command after the element "prev".
+commandTokenized *moduleCmdTokInsertAfter(commandTokenized **const restrict start, commandTokenized *const restrict prev){
 	#ifndef MEMORYREGION_EXTEND_ALLOCATORS
-	return(memDoubleListInsertAfter(&g_cmdTokManager, (void **)start, (void *)data));
+	return(memDoubleListInsertAfter(&g_cmdTokManager, (void **)start, (void *)prev));
 	#else
-	commandTokenized *newBlock = memDoubleListInsertAfter(&g_cmdTokManager, (void **)start, (void *)data);
+	commandTokenized *newBlock = memDoubleListInsertAfter(&g_cmdTokManager, (void **)start, (void *)prev);
 	// If we've run out of memory, allocate some more!
 	if(newBlock == NULL){
 		if(memDoubleListExtend(
@@ -120,7 +120,7 @@ commandTokenized *moduleCmdTokInsertAfter(commandTokenized **const restrict star
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_COMMAND_MANAGER_SIZE)),
 			MODULE_COMMAND_MANAGER_SIZE
 		)){
-			newBlock = memDoubleListInsertAfter(&g_cmdTokManager, (void **)start, (void *)data);
+			newBlock = memDoubleListInsertAfter(&g_cmdTokManager, (void **)start, (void *)prev);
 		}
 	}
 	return(newBlock);

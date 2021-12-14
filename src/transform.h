@@ -28,6 +28,7 @@
 ** Interestingly, despite supporting non-uniform scaling to
 ** some degree, Unity specifically ignores it in such cases.
 */
+/** This is a rigid transform, maybe rename it as such when we add skewing? **/
 typedef struct transformState {
 	vec3 pos;
 	quat rot;
@@ -47,8 +48,10 @@ void transformStateInterpAdd(const transformState *const trans1, const transform
 void transformStateInvert(const transformState *const trans, transformState *const out);
 void transformStateToMat4(const transformState *const restrict trans, mat4 *const restrict out);
 
-void transformStateTransformPosition(const transformState *const restrict trans, const vec3 *const v, vec3 *const out);
-void transformStateTransformVelocity(const transformState *const restrict trans, const vec3 *const v, vec3 *const out);
+void transformStateTransformPoint(const transformState *const restrict trans, vec3 *const restrict v);
+void transformStateTransformPointOut(const transformState *const restrict trans, const vec3 *const v, vec3 *const out);
+void transformStateTransformDirection(const transformState *const restrict trans, vec3 *const restrict v);
+void transformStateTransformDirectionOut(const transformState *const restrict trans, const vec3 *const v, vec3 *const out);
 
 
 extern transformState g_transformIdentity;

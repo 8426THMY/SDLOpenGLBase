@@ -98,12 +98,12 @@ objectDef *moduleObjectDefAppend(objectDef **const restrict start){
 	#endif
 }
 
-// Insert an object base after the element "prevData".
-objectDef *moduleObjectDefInsertBefore(objectDef **const restrict start, objectDef *const restrict prevData){
+// Insert an object base after the element "prev".
+objectDef *moduleObjectDefInsertAfter(objectDef **const restrict start, objectDef *const restrict prev){
 	#ifndef MEMORYREGION_EXTEND_ALLOCATORS
-	return(memSingleListInsertBefore(&g_objectDefManager, (void **)start, (void *)prevData));
+	return(memSingleListInsertAfter(&g_objectDefManager, (void **)start, (void *)prev));
 	#else
-	objectDef *newBlock = memSingleListInsertBefore(&g_objectDefManager, (void **)start, (void *)prevData);
+	objectDef *newBlock = memSingleListInsertAfter(&g_objectDefManager, (void **)start, (void *)prev);
 	// If we've run out of memory, allocate some more!
 	if(newBlock == NULL){
 		if(memSingleListExtend(
@@ -111,27 +111,7 @@ objectDef *moduleObjectDefInsertBefore(objectDef **const restrict start, objectD
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_OBJECTDEF_MANAGER_SIZE)),
 			MODULE_OBJECTDEF_MANAGER_SIZE
 		)){
-			newBlock = memSingleListInsertBefore(&g_objectDefManager, (void **)start, (void *)prevData);
-		}
-	}
-	return(newBlock);
-	#endif
-}
-
-// Insert an object base after the element "data".
-objectDef *moduleObjectDefInsertAfter(objectDef **const restrict start, objectDef *const restrict data){
-	#ifndef MEMORYREGION_EXTEND_ALLOCATORS
-	return(memSingleListInsertAfter(&g_objectDefManager, (void **)start, (void *)data));
-	#else
-	objectDef *newBlock = memSingleListInsertAfter(&g_objectDefManager, (void **)start, (void *)data);
-	// If we've run out of memory, allocate some more!
-	if(newBlock == NULL){
-		if(memSingleListExtend(
-			&g_objectDefManager,
-			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_OBJECTDEF_MANAGER_SIZE)),
-			MODULE_OBJECTDEF_MANAGER_SIZE
-		)){
-			newBlock = memSingleListInsertAfter(&g_objectDefManager, (void **)start, (void *)data);
+			newBlock = memSingleListInsertAfter(&g_objectDefManager, (void **)start, (void *)prev);
 		}
 	}
 	return(newBlock);
@@ -143,9 +123,9 @@ objectDef *moduleObjectDefNext(const objectDef *const restrict objDef){
 }
 
 // Free an object base that has been allocated.
-void moduleObjectDefFree(objectDef **const restrict start, objectDef *const restrict objDef, objectDef *const restrict prevData){
+void moduleObjectDefFree(objectDef **const restrict start, objectDef *const restrict objDef, objectDef *const restrict prev){
 	objectDefDelete(objDef);
-	memSingleListFree(&g_objectDefManager, (void **)start, (void *)objDef, (void *)prevData);
+	memSingleListFree(&g_objectDefManager, (void **)start, (void *)objDef, (void *)prev);
 }
 
 // Free an entire object base array.
@@ -226,12 +206,12 @@ object *moduleObjectAppend(object **const restrict start){
 	#endif
 }
 
-// Insert an object after the element "prevData".
-object *moduleObjectInsertBefore(object **const restrict start, object *const restrict prevData){
+// Insert an object after the element "prev".
+object *moduleObjectInsertAfter(object **const restrict start, object *const restrict prev){
 	#ifndef MEMORYREGION_EXTEND_ALLOCATORS
-	return(memSingleListInsertBefore(&g_objectManager, (void **)start, (void *)prevData));
+	return(memSingleListInsertAfter(&g_objectManager, (void **)start, (void *)prev));
 	#else
-	object *newBlock = memSingleListInsertBefore(&g_objectManager, (void **)start, (void *)prevData);
+	object *newBlock = memSingleListInsertAfter(&g_objectManager, (void **)start, (void *)prev);
 	// If we've run out of memory, allocate some more!
 	if(newBlock == NULL){
 		if(memSingleListExtend(
@@ -239,27 +219,7 @@ object *moduleObjectInsertBefore(object **const restrict start, object *const re
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_OBJECT_MANAGER_SIZE)),
 			MODULE_OBJECT_MANAGER_SIZE
 		)){
-			newBlock = memSingleListInsertBefore(&g_objectManager, (void **)start, (void *)prevData);
-		}
-	}
-	return(newBlock);
-	#endif
-}
-
-// Insert an object after the element "data".
-object *moduleObjectInsertAfter(object **const restrict start, object *const restrict data){
-	#ifndef MEMORYREGION_EXTEND_ALLOCATORS
-	return(memSingleListInsertAfter(&g_objectManager, (void **)start, (void *)data));
-	#else
-	object *newBlock = memSingleListInsertAfter(&g_objectManager, (void **)start, (void *)data);
-	// If we've run out of memory, allocate some more!
-	if(newBlock == NULL){
-		if(memSingleListExtend(
-			&g_objectManager,
-			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_OBJECT_MANAGER_SIZE)),
-			MODULE_OBJECT_MANAGER_SIZE
-		)){
-			newBlock = memSingleListInsertAfter(&g_objectManager, (void **)start, (void *)data);
+			newBlock = memSingleListInsertAfter(&g_objectManager, (void **)start, (void *)prev);
 		}
 	}
 	return(newBlock);
@@ -271,9 +231,9 @@ object *moduleObjectNext(const object *const restrict obj){
 }
 
 // Free an object that has been allocated.
-void moduleObjectFree(object **const restrict start, object *const restrict obj, object *const restrict prevData){
+void moduleObjectFree(object **const restrict start, object *const restrict obj, object *const restrict prev){
 	objectDelete(obj);
-	memSingleListFree(&g_objectManager, (void **)start, (void *)obj, (void *)prevData);
+	memSingleListFree(&g_objectManager, (void **)start, (void *)obj, (void *)prev);
 }
 
 // Free an entire object array.

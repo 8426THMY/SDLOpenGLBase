@@ -59,7 +59,7 @@ extern return_t (*const colliderLoadTable[COLLIDER_NUM_TYPES])(
 extern void (*const colliderUpdateTable[COLLIDER_NUM_TYPES])(
 	void *const restrict c, const vec3 *const restrict centroid,
 	const void *const restrict cBase, const vec3 *const restrict baseCentroid,
-	const transformState *const restrict trans, colliderAABB *const restrict aabb
+	transformState trans, colliderAABB *const restrict aabb
 );
 
 extern void (*const colliderDeleteInstanceTable[COLLIDER_NUM_TYPES])(

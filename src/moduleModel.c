@@ -139,12 +139,12 @@ model *moduleModelAppend(model **const restrict start){
 	#endif
 }
 
-// Insert an model after the element "prevData".
-model *moduleModelInsertBefore(model **const restrict start, model *const restrict prevData){
+// Insert an model after the element "prev".
+model *moduleModelInsertAfter(model **const restrict start, model *const restrict prev){
 	#ifndef MEMORYREGION_EXTEND_ALLOCATORS
-	return(memSingleListInsertBefore(&g_modelManager, (void **)start, (void *)prevData));
+	return(memSingleListInsertAfter(&g_modelManager, (void **)start, (void *)prev));
 	#else
-	model *newBlock = memSingleListInsertBefore(&g_modelManager, (void **)start, (void *)prevData);
+	model *newBlock = memSingleListInsertAfter(&g_modelManager, (void **)start, (void *)prev);
 	// If we've run out of memory, allocate some more!
 	if(newBlock == NULL){
 		if(memSingleListExtend(
@@ -152,27 +152,7 @@ model *moduleModelInsertBefore(model **const restrict start, model *const restri
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_MODEL_MANAGER_SIZE)),
 			MODULE_MODEL_MANAGER_SIZE
 		)){
-			newBlock = memSingleListInsertBefore(&g_modelManager, (void **)start, (void *)prevData);
-		}
-	}
-	return(newBlock);
-	#endif
-}
-
-// Insert an model after the element "data".
-model *moduleModelInsertAfter(model **const restrict start, model *const restrict data){
-	#ifndef MEMORYREGION_EXTEND_ALLOCATORS
-	return(memSingleListInsertAfter(&g_modelManager, (void **)start, (void *)data));
-	#else
-	model *newBlock = memSingleListInsertAfter(&g_modelManager, (void **)start, (void *)data);
-	// If we've run out of memory, allocate some more!
-	if(newBlock == NULL){
-		if(memSingleListExtend(
-			&g_modelManager,
-			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_MODEL_MANAGER_SIZE)),
-			MODULE_MODEL_MANAGER_SIZE
-		)){
-			newBlock = memSingleListInsertAfter(&g_modelManager, (void **)start, (void *)data);
+			newBlock = memSingleListInsertAfter(&g_modelManager, (void **)start, (void *)prev);
 		}
 	}
 	return(newBlock);
@@ -184,9 +164,9 @@ model *moduleModelNext(const model *const restrict mdl){
 }
 
 // Free an model that has been allocated.
-void moduleModelFree(model **const restrict start, model *const restrict mdl, model *const restrict prevData){
+void moduleModelFree(model **const restrict start, model *const restrict mdl, model *const restrict prev){
 	modelDelete(mdl);
-	memSingleListFree(&g_modelManager, (void **)start, (void *)mdl, (void *)prevData);
+	memSingleListFree(&g_modelManager, (void **)start, (void *)mdl, (void *)prev);
 }
 
 // Free an entire model array.

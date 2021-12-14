@@ -23,7 +23,11 @@
 #warning "We should go back to using the total memory size as input for init and extend, too."
 
 
-void *memSingleListInit(memorySingleList *const restrict singleList, void *const restrict memory, const size_t memorySize, const size_t blockSize){
+void *memSingleListInit(
+	memorySingleList *const restrict singleList,
+	void *const restrict memory, const size_t memorySize, const size_t blockSize
+){
+
 	// Make sure the user isn't being difficult.
 	if(memory != NULL){
 		memoryRegion *region;
@@ -120,8 +124,16 @@ void *memSingleListAppend(memorySingleList *const restrict singleList, void **co
 	return(newBlock);
 }
 
-// Prepend a new block before another in an array list.
-void *memSingleListInsertBefore(memorySingleList *const restrict singleList, void **const restrict start, void *prevData){
+/*
+** Append a new block after the element with data segment "prev"
+** of the array list that begins at "start". If "prev" is a NULL
+** pointer, we should insert at the beginning of the array list.
+*/
+void *memSingleListInsertAfter(
+	memorySingleList *const restrict singleList,
+	void **const restrict start, void *const prev
+){
+
 	void *const newBlock = singleList->nextFreeBlock;
 
 	if(newBlock != NULL){
@@ -131,59 +143,20 @@ void *memSingleListInsertBefore(memorySingleList *const restrict singleList, voi
 		++singleList->usedBlocks;
 		#endif
 
-		// If a previous block exists, make it point to the new block.
-		if(prevData != NULL){
-			prevData = memSingleListBlockUsedDataGetNext(prevData);
+		// Insert after "prev" if it exists.
+		if(prev != NULL){
+			void **const nextBlock = memSingleListBlockUsedDataGetNext(prev);
 
-			*memSingleListBlockUsedDataGetNext(newBlock) = memSingleListBlockUsedGetNext(prevData);
-			memSingleListBlockUsedGetNext(prevData) = newBlock;
+			// Make the new block point to the one after it.
+			*memSingleListBlockUsedDataGetNext(newBlock) = *nextBlock;
+			// Make the block we're inserting after point to the new block.
+			*nextBlock = newBlock;
 
-		// Otherwise, the new block should be at the beginning of the list.
+		// If no element to insert after was specified,
+		// insert a block at the beginning of the array list.
 		}else{
 			*memSingleListBlockUsedDataGetNext(newBlock) = *start;
-			// The pointer to the beginning of the
-			// list should now point to the new block.
 			*start = newBlock;
-		}
-	}
-
-	return(newBlock);
-}
-
-// Append a new block after another in an array list.
-void *memSingleListInsertAfter(memorySingleList *const restrict singleList, void **const restrict start, void *data){
-	void *const newBlock = singleList->nextFreeBlock;
-
-	if(newBlock != NULL){
-		// Move the free pointer to the next free block.
-		singleList->nextFreeBlock = memSingleListBlockFreeGetNext(newBlock);
-		#ifdef MEMSINGLELIST_COUNT_USED_BLOCKS
-		++singleList->usedBlocks;
-		#endif
-
-		// Fix up the previous block's pointer if it exists.
-		if(data != NULL){
-			data = memSingleListBlockUsedDataGetNext(data);
-
-			*memSingleListBlockUsedDataGetNext(newBlock) = memSingleListBlockUsedGetNext(data);
-			memSingleListBlockUsedGetNext(data) = newBlock;
-
-		// Otherwise, use the starting block to insert the new one.
-		}else{
-			void *startBlock = *start;
-
-			// If there's a starting block, insert the new one after it.
-			if(startBlock != NULL){
-				startBlock = memSingleListBlockUsedDataGetNext(startBlock);
-
-				*memSingleListBlockUsedDataGetNext(newBlock) = memSingleListBlockUsedGetNext(startBlock);
-				memSingleListBlockUsedGetNext(startBlock) = newBlock;
-
-			// Otherwise, just start a new array list.
-			}else{
-				*memSingleListBlockUsedDataGetNext(newBlock) = NULL;
-				*start = newBlock;
-			}
 		}
 	}
 
@@ -195,12 +168,16 @@ void *memSingleListInsertAfter(memorySingleList *const restrict singleList, void
 ** This function assumes that the user is looping
 ** through the list and thus knows the previous block.
 */
-void memSingleListFree(memorySingleList *const restrict singleList, void **const restrict start, void *const restrict data, void *const restrict prevData){
+void memSingleListFree(
+	memorySingleList *const restrict singleList,
+	void **const restrict start, void *const restrict data, void *const restrict prev
+){
+
 	void *const block = memSingleListBlockUsedDataGetNext(data);
 
 	// If there is a previous block, fix its pointer.
-	if(prevData != NULL){
-		*memSingleListBlockUsedDataGetNext(prevData) = memSingleListBlockUsedGetNext(block);
+	if(prev != NULL){
+		*memSingleListBlockUsedDataGetNext(prev) = memSingleListBlockUsedGetNext(block);
 
 	// Otherwise, set the start pointer if it was specified.
 	}else if(start != NULL){
@@ -240,7 +217,11 @@ void memSingleListFreeArray(memorySingleList *const restrict singleList, void *c
 ** Initialise every block in a region, setting the flag
 ** to "flag" and the last block's next pointer to "next".
 */
-void memSingleListClearRegion(memorySingleList *const restrict singleList, memoryRegion *const restrict region, const byte_t flag, void *const restrict next){
+void memSingleListClearRegion(
+	memorySingleList *const restrict singleList,
+	memoryRegion *const restrict region, const byte_t flag, void *const restrict next
+){
+
 	const size_t blockSize = singleList->blockSize;
 	void *currentBlock = region->start;
 	void *nextBlock = memSingleListBlockGetNextBlock(currentBlock, blockSize);

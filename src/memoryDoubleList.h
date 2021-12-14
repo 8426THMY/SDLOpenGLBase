@@ -196,18 +196,33 @@ typedef struct memoryDoubleList {
 } memoryDoubleList;
 
 
-void *memDoubleListInit(memoryDoubleList *const restrict doubleList, void *const memory, const size_t memorySize, const size_t blockSize);
+void *memDoubleListInit(
+	memoryDoubleList *const restrict doubleList,
+	void *const memory, const size_t memorySize, const size_t blockSize
+);
 
 void *memDoubleListAlloc(memoryDoubleList *const restrict doubleList);
 void *memDoubleListPrepend(memoryDoubleList *const restrict doubleList, void **const restrict start);
 void *memDoubleListAppend(memoryDoubleList *const restrict doubleList, void **const restrict start);
-void *memDoubleListInsertBefore(memoryDoubleList *const restrict doubleList, void **const restrict start, void *prevData);
-void *memDoubleListInsertAfter(memoryDoubleList *const restrict doubleList, void **const restrict start, void *data);
+void *memDoubleListInsertBefore(
+	memoryDoubleList *const restrict doubleList,
+	void **const restrict start, void *const next
+);
+void *memDoubleListInsertAfter(
+	memoryDoubleList *const restrict doubleList,
+	void **const restrict start, void *const prev
+);
 
-void memDoubleListFree(memoryDoubleList *const restrict doubleList, void **const restrict start, void *const restrict data);
+void memDoubleListFree(
+	memoryDoubleList *const restrict doubleList,
+	void **const restrict start, void *const restrict data
+);
 void memDoubleListFreeArray(memoryDoubleList *const restrict doubleList, void *const restrict start);
 
-void memDoubleListClearRegion(memoryDoubleList *const restrict doubleList, memoryRegion *const restrict region, const byte_t flag, void *const next);
+void memDoubleListClearRegion(
+	memoryDoubleList *const restrict doubleList,
+	memoryRegion *const restrict region, const byte_t flag, void *const next
+);
 void memDoubleListClearLastRegion(memoryDoubleList *const restrict doubleList, memoryRegion *const restrict region);
 void memDoubleListClear(memoryDoubleList *const restrict doubleList);
 

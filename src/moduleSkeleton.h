@@ -47,10 +47,9 @@ void moduleSkeletonAnimDefClear();
 skeletonAnim *moduleSkeletonAnimAlloc();
 skeletonAnim *moduleSkeletonAnimPrepend(skeletonAnim **const restrict start);
 skeletonAnim *moduleSkeletonAnimAppend(skeletonAnim **const restrict start);
-skeletonAnim *moduleSkeletonAnimInsertBefore(skeletonAnim **const restrict start, skeletonAnim *const restrict prevData);
-skeletonAnim *moduleSkeletonAnimInsertAfter(skeletonAnim **const restrict start, skeletonAnim *const restrict data);
+skeletonAnim *moduleSkeletonAnimInsertAfter(skeletonAnim **const restrict start, skeletonAnim *const restrict prev);
 skeletonAnim *moduleSkeletonAnimNext(const skeletonAnim *const restrict animInst);
-void moduleSkeletonAnimFree(skeletonAnim **const restrict start, skeletonAnim *const restrict animInst, skeletonAnim *const restrict prevData);
+void moduleSkeletonAnimFree(skeletonAnim **const restrict start, skeletonAnim *const restrict animInst, skeletonAnim *const restrict prev);
 void moduleSkeletonAnimFreeArray(skeletonAnim **const restrict start);
 void moduleSkeletonAnimClear();
 

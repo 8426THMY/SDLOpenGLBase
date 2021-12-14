@@ -543,17 +543,23 @@ return_t colliderHullLoad(
 void colliderHullUpdate(
 	void *const restrict hull, const vec3 *const restrict hullCentroid,
 	const void *const restrict base, const vec3 *const restrict baseCentroid,
-	const transformState *const restrict trans, colliderAABB *const restrict aabb
+	transformState trans, colliderAABB *const restrict aabb
 ){
 
 	vec3 *curFeature = ((colliderHull *)hull)->vertices;
 	const vec3 *baseFeature = ((colliderHull *)base)->vertices;
 	const vec3 *lastFeature = &curFeature[((colliderHull *)hull)->numVertices];
+	mat4 transMatrix;
 
 	// Compute the collider's new centroid!
-	vec3MultiplyVec3Out(&(((colliderHull *)base)->centroid), &trans->scale, &(((colliderHull *)hull)->centroid));
-	quatRotateVec3Fast(&trans->rot, &(((colliderHull *)hull)->centroid));
-	vec3AddVec3(&(((colliderHull *)hull)->centroid), &trans->pos);
+	//vec3MultiplyVec3Out(&(((colliderHull *)base)->centroid), &trans->scale, &(((colliderHull *)hull)->centroid));
+	//quatRotateVec3Fast(&trans->rot, &(((colliderHull *)hull)->centroid));
+	//vec3AddVec3(&(((colliderHull *)hull)->centroid), &trans->pos);
+	transformStateTransformPoint(&trans, &(((colliderHull *)hull)->centroid));
+
+	// It's generally faster to transform by a matrix rather than a transformState.
+	trans.pos = *hullCentroid;
+	transformStateToMat4(&trans, &transMatrix);
 
 	// We can only update the hull's vertices if it actually has any.
 	if(curFeature < lastFeature){
@@ -561,9 +567,10 @@ void colliderHullUpdate(
 
 		// Transform the first vertex and use it for the bounding box.
 		vec3SubtractVec3FromOut(baseFeature, baseCentroid, curFeature);
-		vec3MultiplyVec3(curFeature, &trans->scale);
-		quatRotateVec3Fast(&trans->rot, curFeature);
-		vec3AddVec3(curFeature, hullCentroid);
+		mat4MultiplyVec3By(&transMatrix, curFeature);
+		//vec3MultiplyVec3(curFeature, &trans->scale);
+		//quatRotateVec3Fast(&trans->rot, curFeature);
+		//vec3AddVec3(curFeature, hullCentroid);
 
 		tempAABB.min = tempAABB.max = *curFeature;
 
@@ -573,9 +580,10 @@ void colliderHullUpdate(
 		// Transform the remaining vertices!
 		for(; curFeature < lastFeature; ++curFeature, ++baseFeature){
 			vec3SubtractVec3FromOut(baseFeature, baseCentroid, curFeature);
-			vec3MultiplyVec3(curFeature, &trans->scale);
-			quatRotateVec3Fast(&trans->rot, curFeature);
-			vec3AddVec3(curFeature, hullCentroid);
+			mat4MultiplyVec3By(&transMatrix, curFeature);
+			//vec3MultiplyVec3(curFeature, &trans->scale);
+			//quatRotateVec3Fast(&trans->rot, curFeature);
+			//vec3AddVec3(curFeature, hullCentroid);
 
 			// If this vertex exceeds the bounds of
 			// our current bounding box, we should
@@ -605,11 +613,16 @@ void colliderHullUpdate(
 		baseFeature = ((colliderHull *)base)->normals;
 		lastFeature = &curFeature[((colliderHull *)hull)->numFaces];
 
+		// Create a new matrix for the normals.
+		vec3InitZero(&trans.pos);
+		transformStateToMat4(&trans, &transMatrix);
+
 		// The hull's faces have been rotated, so we
 		// need to scale and rotate their normals.
 		for(; curFeature < lastFeature; ++curFeature, ++baseFeature){
-			vec3MultiplyVec3(curFeature, &trans->scale);
-			quatRotateVec3FastOut(&trans->rot, baseFeature, curFeature);
+			//vec3MultiplyVec3(curFeature, &trans->scale);
+			//quatRotateVec3FastOut(&trans->rot, baseFeature, curFeature);
+			mat4MultiplyVec3By(&transMatrix, curFeature);
 			vec3NormalizeVec3Fast(curFeature);
 		}
 
@@ -1749,7 +1762,7 @@ static void clipEdgeContact(
 	const colliderHullEdge *const refEdge = &hullA->edges[edgeData->edgeA];
 	const vec3 *const refStart = &hullA->vertices[refEdge->startVertexIndex];
 	const vec3 *const refEnd   = &hullA->vertices[refEdge->endVertexIndex];
-	vec3 ref = {
+	const vec3 ref = {
 		.x = refEnd->x - refStart->x,
 		.y = refEnd->y - refStart->y,
 		.z = refEnd->z - refStart->z

@@ -154,13 +154,23 @@ void cmdBufferAddCommand(
 				commandTokenized *cmdInsert = cmdBuffer->cmdListEnd;
 				commandTokenized *cmdNew;
 				// Commands are sorted by their timestamps, so the new command
-				// should be inserted before the first one whose timestamp is greater.
+				// should be inserted after the first one whose timestamp is lesser.
+				// Note that we start looping from the end of the command buffer.
 				while(cmdInsert != NULL && timestamp < cmdInsert->timestamp){
-					cmdInsert = moduleCmdTokNext(cmdInsert);
+					cmdInsert = moduleCmdTokPrev(cmdInsert);
 				}
 
-				// Insert the new command into the command buffer's list.
-				cmdNew = moduleCmdTokInsertAfter(&cmdBuffer->cmdList, cmdInsert);
+				// If "cmdInsert" is NULL and the list is not empty, then we've
+				// looped all the way back to the beginning. Although this case
+				// is now handled by "memoryDoubleListInsertAfter()", we handle
+				// it here just to clearly acknowledge that this case can arise.
+				if(cmdInsert == NULL && cmdBuffer->cmdList != NULL){
+					cmdNew = moduleCmdTokPrepend(&cmdBuffer->cmdList);
+
+				// Otherwise, just insert the new command into the list normally.
+				}else{
+					cmdNew = moduleCmdTokInsertAfter(&cmdBuffer->cmdList, cmdInsert);
+				}
 				if(cmdNew == NULL){
 					/** MALLOC FAILED **/
 				}

@@ -33,20 +33,18 @@ void moduleObjectCleanup();
 objectDef *moduleObjectDefAlloc();
 objectDef *moduleObjectDefPrepend(objectDef **const restrict start);
 objectDef *moduleObjectDefAppend(objectDef **const restrict start);
-objectDef *moduleObjectDefInsertBefore(objectDef **const restrict start, objectDef *const restrict prevData);
-objectDef *moduleObjectDefInsertAfter(objectDef **const restrict start, objectDef *const restrict data);
+objectDef *moduleObjectDefInsertAfter(objectDef **const restrict start, objectDef *const restrict prev);
 objectDef *moduleObjectDefNext(const objectDef *const restrict objDef);
-void moduleObjectDefFree(objectDef **const restrict start, objectDef *const restrict objDef, objectDef *const restrict prevData);
+void moduleObjectDefFree(objectDef **const restrict start, objectDef *const restrict objDef, objectDef *const restrict prev);
 void moduleObjectDefFreeArray(objectDef **const restrict start);
 void moduleObjectDefClear();
 
 object *moduleObjectAlloc();
 object *moduleObjectPrepend(object **const restrict start);
 object *moduleObjectAppend(object **const restrict start);
-object *moduleObjectInsertBefore(object **const restrict start, object *const restrict prevData);
-object *moduleObjectInsertAfter(object **const restrict start, object *const restrict data);
+object *moduleObjectInsertAfter(object **const restrict start, object *const restrict prev);
 object *moduleObjectNext(const object *const restrict obj);
-void moduleObjectFree(object **const restrict start, object *const restrict obj, object *const restrict prevData);
+void moduleObjectFree(object **const restrict start, object *const restrict obj, object *const restrict prev);
 void moduleObjectFreeArray(object **const restrict start);
 void moduleObjectClear();
 
