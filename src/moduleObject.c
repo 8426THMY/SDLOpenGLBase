@@ -13,13 +13,13 @@ return_t moduleObjectSetup(){
 		memSingleListInit(
 			&g_objectDefManager,
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_OBJECTDEF_MANAGER_SIZE)),
-			MODULE_OBJECTDEF_MANAGER_SIZE, MODULE_OBJECTDEF_ELEMENT_SIZE
+			memoryGetRequiredSize(MODULE_OBJECTDEF_MANAGER_SIZE), MODULE_OBJECTDEF_ELEMENT_SIZE
 		) != NULL &&
 		// object
 		memSingleListInit(
 			&g_objectManager,
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_OBJECT_MANAGER_SIZE)),
-			MODULE_OBJECT_MANAGER_SIZE, MODULE_OBJECT_ELEMENT_SIZE
+			memoryGetRequiredSize(MODULE_OBJECT_MANAGER_SIZE), MODULE_OBJECT_ELEMENT_SIZE
 		) != NULL
 	);
 }
@@ -49,7 +49,7 @@ objectDef *moduleObjectDefAlloc(){
 		if(memSingleListExtend(
 			&g_objectDefManager,
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_OBJECTDEF_MANAGER_SIZE)),
-			MODULE_OBJECTDEF_MANAGER_SIZE
+			memoryGetRequiredSize(MODULE_OBJECTDEF_MANAGER_SIZE)
 		)){
 			newBlock = memSingleListAlloc(&g_objectDefManager);
 		}
@@ -69,7 +69,7 @@ objectDef *moduleObjectDefPrepend(objectDef **const restrict start){
 		if(memSingleListExtend(
 			&g_objectDefManager,
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_OBJECTDEF_MANAGER_SIZE)),
-			MODULE_OBJECTDEF_MANAGER_SIZE
+			memoryGetRequiredSize(MODULE_OBJECTDEF_MANAGER_SIZE)
 		)){
 			newBlock = memSingleListPrepend(&g_objectDefManager, (void **)start);
 		}
@@ -89,7 +89,7 @@ objectDef *moduleObjectDefAppend(objectDef **const restrict start){
 		if(memSingleListExtend(
 			&g_objectDefManager,
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_OBJECTDEF_MANAGER_SIZE)),
-			MODULE_OBJECTDEF_MANAGER_SIZE
+			memoryGetRequiredSize(MODULE_OBJECTDEF_MANAGER_SIZE)
 		)){
 			newBlock = memSingleListAppend(&g_objectDefManager, (void **)start);
 		}
@@ -109,7 +109,7 @@ objectDef *moduleObjectDefInsertAfter(objectDef **const restrict start, objectDe
 		if(memSingleListExtend(
 			&g_objectDefManager,
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_OBJECTDEF_MANAGER_SIZE)),
-			MODULE_OBJECTDEF_MANAGER_SIZE
+			memoryGetRequiredSize(MODULE_OBJECTDEF_MANAGER_SIZE)
 		)){
 			newBlock = memSingleListInsertAfter(&g_objectDefManager, (void **)start, (void *)prev);
 		}
@@ -157,7 +157,7 @@ object *moduleObjectAlloc(){
 		if(memSingleListExtend(
 			&g_objectManager,
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_OBJECT_MANAGER_SIZE)),
-			MODULE_OBJECT_MANAGER_SIZE
+			memoryGetRequiredSize(MODULE_OBJECT_MANAGER_SIZE)
 		)){
 			newBlock = memSingleListAlloc(&g_objectManager);
 		}
@@ -177,7 +177,7 @@ object *moduleObjectPrepend(object **const restrict start){
 		if(memSingleListExtend(
 			&g_objectManager,
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_OBJECT_MANAGER_SIZE)),
-			MODULE_OBJECT_MANAGER_SIZE
+			memoryGetRequiredSize(MODULE_OBJECT_MANAGER_SIZE)
 		)){
 			newBlock = memSingleListPrepend(&g_objectManager, (void **)start);
 		}
@@ -197,7 +197,7 @@ object *moduleObjectAppend(object **const restrict start){
 		if(memSingleListExtend(
 			&g_objectManager,
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_OBJECT_MANAGER_SIZE)),
-			MODULE_OBJECT_MANAGER_SIZE
+			memoryGetRequiredSize(MODULE_OBJECT_MANAGER_SIZE)
 		)){
 			newBlock = memSingleListAppend(&g_objectManager, (void **)start);
 		}
@@ -217,7 +217,7 @@ object *moduleObjectInsertAfter(object **const restrict start, object *const res
 		if(memSingleListExtend(
 			&g_objectManager,
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_OBJECT_MANAGER_SIZE)),
-			MODULE_OBJECT_MANAGER_SIZE
+			memoryGetRequiredSize(MODULE_OBJECT_MANAGER_SIZE)
 		)){
 			newBlock = memSingleListInsertAfter(&g_objectManager, (void **)start, (void *)prev);
 		}

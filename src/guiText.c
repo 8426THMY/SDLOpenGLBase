@@ -44,7 +44,7 @@ void guiTextDraw(
 		// Stores the x and y coordinates for position of the current character,
 		float cursor[2] = {0.f, 0.f};
 		mat4 rootTransform;
-		transformStateToMat4(&gui->root, &rootTransform);
+		transformRigidToMat4(&gui->root, &rootTransform);
 
 
 		// Send the font's image type and colours to the shader!
@@ -118,7 +118,7 @@ void guiTextDraw(
 				#warning "It's mostly fine like this, but we need to round positions and scales like with panels."
 				curState->state = rootTransform;
 				// Set the sprite's position and scale.
-				mat4TranslatePre(&curState->state, translateX, translateY, 0.f);
+				mat4TranslateTransformPre(&curState->state, translateX, translateY, 0.f);
 				mat4ScalePre(&curState->state, curWidth, curGlyph.uvOffsets.h * curAtlas->height, 1.f);
 				curState->uvOffsets = curGlyph.uvOffsets;
 

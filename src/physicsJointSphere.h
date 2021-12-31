@@ -70,7 +70,7 @@ typedef struct physicsJointSphere {
 
 	// Effective masses for the point-to-point
 	// (K1) and angular (K2, K3) constraints.
-	mat3 linearMass;
+	mat3 linearInvMass;
 	#ifndef PHYSJOINTSPHERE_ANGULAR_CONSTRAINT_EULER
 	float swingInvMass;
 	float twistInvMass;

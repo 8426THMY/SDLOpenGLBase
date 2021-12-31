@@ -49,7 +49,7 @@ void physRigidBodyInit(physicsRigidBody *const restrict body, const physicsRigid
 
 	mat3InvertOut(bodyDef->inertia,	&body->invInertiaLocal);
 
-	transformStateInit(&body->state);
+	transformAffineInit(&body->state);
 
 	vec3InitZero(&body->linearVelocity);
 	vec3InitZero(&body->angularVelocity);

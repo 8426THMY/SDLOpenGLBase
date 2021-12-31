@@ -669,14 +669,14 @@ void vec2RadToDeg(vec2 *const restrict v){
 
 // Perform linear interpolation between two vec2s and store the result in "out"!
 void vec2Lerp(const vec2 *const restrict v1, const vec2 *const restrict v2, const float time, vec2 *const restrict out){
-	out->x = lerpFloatFast(v1->x, v2->x, time);
-	out->y = lerpFloatFast(v1->y, v2->y, time);
+	out->x = floatLerpFast(v1->x, v2->x, time);
+	out->y = floatLerpFast(v1->y, v2->y, time);
 }
 
 // Perform linear interpolation between two vec2s!
 vec2 vec2LerpC(vec2 v1, const vec2 v2, const float time){
-	v1.x = lerpFloatFast(v1.x, v2.x, time);
-	v1.y = lerpFloatFast(v1.y, v2.y, time);
+	v1.x = floatLerpFast(v1.x, v2.x, time);
+	v1.y = floatLerpFast(v1.y, v2.y, time);
 
 	return(v1);
 }
@@ -687,8 +687,8 @@ vec2 vec2LerpC(vec2 v1, const vec2 v2, const float time){
 ** accepts the starting point and the difference between it and the ending point.
 */
 void vec2LerpDiff(const vec2 *const restrict v, const vec2 *offset, const float time, vec2 *const restrict out){
-	out->x = lerpDiffFast(v->x, offset->x, time);
-	out->y = lerpDiffFast(v->y, offset->y, time);
+	out->x = floatLerpDiffFast(v->x, offset->x, time);
+	out->y = floatLerpDiffFast(v->y, offset->y, time);
 }
 
 /*
@@ -697,8 +697,8 @@ void vec2LerpDiff(const vec2 *const restrict v, const vec2 *offset, const float 
 ** accepts the starting point and the difference between it and the ending point.
 */
 vec2 vec2LerpDiffC(vec2 v, const vec2 offset, const float time){
-	v.x = lerpDiffFast(v.x, offset.x, time);
-	v.y = lerpDiffFast(v.y, offset.y, time);
+	v.x = floatLerpDiffFast(v.x, offset.x, time);
+	v.y = floatLerpDiffFast(v.y, offset.y, time);
 
 	return(v);
 }
@@ -709,8 +709,8 @@ vec2 vec2LerpDiffC(vec2 v, const vec2 offset, const float time){
 ** and return a vec2 composed of these minima in "out".
 */
 void vec2Min(const vec2 *const restrict v1, const vec2 *const restrict v2, vec2 *const restrict out){
-	out->x = minFloatFast(v1->x, v2->x);
-	out->y = minFloatFast(v1->y, v2->y);
+	out->x = floatMinFast(v1->x, v2->x);
+	out->y = floatMinFast(v1->y, v2->y);
 }
 
 /*
@@ -718,8 +718,8 @@ void vec2Min(const vec2 *const restrict v1, const vec2 *const restrict v2, vec2 
 ** axis and return a vec2 composed of these minima.
 */
 vec2 vec2MinC(vec2 v1, const vec2 v2){
-	v1.x = minFloatFast(v1.x, v2.x);
-	v1.y = minFloatFast(v1.y, v2.y);
+	v1.x = floatMinFast(v1.x, v2.x);
+	v1.y = floatMinFast(v1.y, v2.y);
 
 	return(v1);
 }
@@ -729,8 +729,8 @@ vec2 vec2MinC(vec2 v1, const vec2 v2){
 ** and return a vec2 composed of these maxima in "out".
 */
 void vec2Max(const vec2 *const restrict v1, const vec2 *const restrict v2, vec2 *const restrict out){
-	out->x = maxFloatFast(v1->x, v2->x);
-	out->y = maxFloatFast(v1->y, v2->y);
+	out->x = floatMaxFast(v1->x, v2->x);
+	out->y = floatMaxFast(v1->y, v2->y);
 }
 
 /*
@@ -738,8 +738,8 @@ void vec2Max(const vec2 *const restrict v1, const vec2 *const restrict v2, vec2 
 ** axis and return a vec2 composed of these maxima.
 */
 vec2 vec2MaxC(vec2 v1, const vec2 v2){
-	v1.x = maxFloatFast(v1.x, v2.x);
-	v1.y = maxFloatFast(v1.y, v2.y);
+	v1.x = floatMaxFast(v1.x, v2.x);
+	v1.y = floatMaxFast(v1.y, v2.y);
 
 	return(v1);
 }

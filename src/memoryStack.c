@@ -12,9 +12,6 @@
 #define memStackBlockGetPrevBlockFooter(top) ((size_t *)memorySubPointer(top, MEMSTACK_BLOCK_FOOTER_SIZE))
 
 
-#warning "What if the beginning or end of a memory region is not aligned?"
-
-
 void *memStackInit(memoryStack *const restrict stack, void *const restrict memory, const size_t stackSize){
 	stack->top = memory;
 	stack->size = stackSize;

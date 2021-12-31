@@ -21,10 +21,6 @@
 #define memDoubleListBlockMakeInvalid(next) memDoubleListBlockSetFlag(next, MEMDOUBLELIST_FLAG_INVALID)
 
 
-#warning "What if the beginning or end of a memory region is not aligned?"
-#warning "We should go back to using the total memory size as input for init and extend, too."
-
-
 void *memDoubleListInit(
 	memoryDoubleList *const restrict doubleList,
 	void *const memory, const size_t memorySize, const size_t blockSize

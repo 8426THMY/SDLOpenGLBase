@@ -41,7 +41,7 @@ typedef struct guiElement {
 	guiElementType_t type;
 
 	// Stores the spatial configuration of the element.
-	transformState root;
+	transformRigid root;
 
 	guiElement *parent;
 	#warning "Children are not currently implemented."

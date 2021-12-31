@@ -45,9 +45,6 @@ texture g_texDefault = {
 };
 
 
-#warning "What if we aren't using the global memory manager?"
-
-
 void textureInit(texture *const restrict tex){
 	tex->name = NULL;
 

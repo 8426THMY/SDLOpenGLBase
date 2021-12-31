@@ -5,9 +5,6 @@ memoryPool g_modelDefManager;
 memorySingleList g_modelManager;
 
 
-#warning "What if we aren't using the global memory manager?"
-
-
 return_t moduleModelSetup(){
 	// The module's setup will be successful if we
 	// can allocate enough memory for our manager
@@ -17,13 +14,13 @@ return_t moduleModelSetup(){
 		memPoolInit(
 			&g_modelDefManager,
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_MODELDEF_MANAGER_SIZE)),
-			MODULE_MODELDEF_MANAGER_SIZE, MODULE_MODELDEF_ELEMENT_SIZE
+			memoryGetRequiredSize(MODULE_MODELDEF_MANAGER_SIZE), MODULE_MODELDEF_ELEMENT_SIZE
 		) != NULL &&
 		// model
 		memSingleListInit(
 			&g_modelManager,
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_MODEL_MANAGER_SIZE)),
-			MODULE_MODEL_MANAGER_SIZE, MODULE_MODEL_ELEMENT_SIZE
+			memoryGetRequiredSize(MODULE_MODEL_MANAGER_SIZE), MODULE_MODEL_ELEMENT_SIZE
 		) != NULL &&
 		modelSetup()
 	);
@@ -55,7 +52,7 @@ modelDef *moduleModelDefAlloc(){
 		if(memPoolExtend(
 			&g_modelDefManager,
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_MODELDEF_MANAGER_SIZE)),
-			MODULE_MODELDEF_MANAGER_SIZE
+			memoryGetRequiredSize(MODULE_MODELDEF_MANAGER_SIZE)
 		)){
 			newBlock = memPoolAlloc(&g_modelDefManager);
 		}
@@ -90,7 +87,7 @@ model *moduleModelAlloc(){
 		if(memSingleListExtend(
 			&g_modelManager,
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_MODEL_MANAGER_SIZE)),
-			MODULE_MODEL_MANAGER_SIZE
+			memoryGetRequiredSize(MODULE_MODEL_MANAGER_SIZE)
 		)){
 			newBlock = memSingleListAlloc(&g_modelManager);
 		}
@@ -110,7 +107,7 @@ model *moduleModelPrepend(model **const restrict start){
 		if(memSingleListExtend(
 			&g_modelManager,
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_MODEL_MANAGER_SIZE)),
-			MODULE_MODEL_MANAGER_SIZE
+			memoryGetRequiredSize(MODULE_MODEL_MANAGER_SIZE)
 		)){
 			newBlock = memSingleListPrepend(&g_modelManager, (void **)start);
 		}
@@ -130,7 +127,7 @@ model *moduleModelAppend(model **const restrict start){
 		if(memSingleListExtend(
 			&g_modelManager,
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_MODEL_MANAGER_SIZE)),
-			MODULE_MODEL_MANAGER_SIZE
+			memoryGetRequiredSize(MODULE_MODEL_MANAGER_SIZE)
 		)){
 			newBlock = memSingleListAppend(&g_modelManager, (void **)start);
 		}
@@ -150,7 +147,7 @@ model *moduleModelInsertAfter(model **const restrict start, model *const restric
 		if(memSingleListExtend(
 			&g_modelManager,
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_MODEL_MANAGER_SIZE)),
-			MODULE_MODEL_MANAGER_SIZE
+			memoryGetRequiredSize(MODULE_MODEL_MANAGER_SIZE)
 		)){
 			newBlock = memSingleListInsertAfter(&g_modelManager, (void **)start, (void *)prev);
 		}

@@ -42,7 +42,7 @@ void cameraUpdateProjectionMatrix(camera *const restrict cam, const float window
 	}else if(flagsAreSet(cam->flags, CAMERA_TYPE_FIXED_SIZE)){
 		mat4Orthographic(&cam->projectionMatrix, 0.f, windowWidth, -windowHeight, 0.f, -CAMERA_Z_THRESHOLD, CAMERA_Z_THRESHOLD);
 	}else{
-		cam->projectionMatrix = g_mat4Identity;
+		mat4InitIdentity(&cam->projectionMatrix);
 	}
 }
 

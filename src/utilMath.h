@@ -7,6 +7,7 @@
 
 #include "vec2.h"
 #include "vec3.h"
+#include "quat.h"
 
 
 // Used to convert from degrees to radians.
@@ -14,12 +15,14 @@
 // Used to convert from radians to degrees.
 #define RAD_TO_DEG (180.f/M_PI)
 
+#define SQRT_ONE_THIRD 0.57735026918962576f
+
 // Note that these are prone to double evaluation,
 // so the equivalent functions should be used to prevent this.
-#define minFloatFast(x, y) (((x) < (y)) ? (x) : (y))
-#define maxFloatFast(x, y) (((x) > (y)) ? (x) : (y))
-#define minUintFast(x, y) (((x) < (y)) ? (x) : (y))
-#define maxUintFast(x, y) (((x) > (y)) ? (x) : (y))
+#define floatMinFast(x, y) (((x) < (y)) ? (x) : (y))
+#define floatMaxFast(x, y) (((x) > (y)) ? (x) : (y))
+#define uintMinFast(x, y) (((x) < (y)) ? (x) : (y))
+#define uintMaxFast(x, y) (((x) > (y)) ? (x) : (y))
 
 // According to Mark Harris in his 2015 blog GPU Pro Tip: Lerp Faster in C++,
 // we can achieve better performance and accuracy by using two fmas here.
@@ -27,11 +30,11 @@
 // Note that these are prone to double evaluation,
 // so the equivalent functions should be used to prevent this.
 #ifdef FP_FAST_FMAF
-	#define lerpFloatFast(x, y, t) fmaf(t, y, fmaf(-t, x, x))
-	#define lerpDiffFast(x, y, t) fmaf(t, y, x)
+	#define floatLerpFast(x, y, t) fmaf(t, y, fmaf(-t, x, x))
+	#define floatLerpDiffFast(x, y, t) fmaf(t, y, x)
 #else
-	#define lerpFloatFast(x, y, t) ((x) + (t)*((y) - (x)))
-	#define lerpDiffFast(x, y, t) ((x) + (t)*(y))
+	#define floatLerpFast(x, y, t) ((x) + (t)*((y) - (x)))
+	#define floatLerpDiffFast(x, y, t) ((x) + (t)*(y))
 #endif
 
 // This should only be used on ancient hardware!
@@ -57,15 +60,15 @@ typedef union bitDouble {
 } bitDouble;
 
 
-float minFloat(const float x, const float y);
-float maxFloat(const float x, const float y);
-float clampFloat(const float x, const float min, const float max);
-unsigned int minUint(const unsigned int x, const unsigned int y);
-unsigned int maxUint(const unsigned int x, const unsigned int y);
-unsigned int clampUint(const unsigned int x, const unsigned int min, const unsigned int max);
+float floatMin(const float x, const float y);
+float floatMax(const float x, const float y);
+float floatClamp(const float x, const float min, const float max);
+unsigned int uintMin(const unsigned int x, const unsigned int y);
+unsigned int uintMax(const unsigned int x, const unsigned int y);
+unsigned int uintClamp(const unsigned int x, const unsigned int min, const unsigned int max);
 
-float lerpFloat(const float x, const float y, const float t);
-float lerpDiff(const float x, const float y, const float t);
+float floatLerp(const float x, const float y, const float t);
+float floatLerpDiff(const float x, const float y, const float t);
 
 float copySign(const float x, const float y);
 float copySignZero(const float x, const float y);
@@ -95,6 +98,12 @@ void pointPlaneProject(const vec3 *const restrict point, const vec3 *const restr
 
 float clampEllipseDistanceFast(const float Ex, const float Ey, const float Ea, const float Eb);
 float clampEllipseDistanceNormalFast(const float Ex, const float Ey, const float Ea, const float Eb, vec2 *const restrict normal);
+
+void diagonalizeMat3Symmetric(
+	float a00, float a01, float a02,
+	float a11, float a12, float a22,
+	vec3 *const restrict evals, quat *const restrict Q
+);
 
 
 #endif

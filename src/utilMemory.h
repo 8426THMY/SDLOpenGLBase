@@ -37,8 +37,8 @@
 // does is subtracts the size of the object from its size.
 #define memoryGetRegionSize(size) ((size) - sizeof(memoryRegion))
 // Return a pointer to a memory region object using the total size of the region.
-// Note the assumption that the size of the region doesn't include the size of the memoryRegion object.
-#define memoryGetRegionFromSize(start, size) ((memoryRegion *)memoryAddPointer(start, size))
+// Note the assumption that the size of the region includes the size of the memoryRegion object.
+#define memoryGetRegionFromSize(start, size) ((memoryRegion *)memoryAddPointer(start, memoryGetRegionSize(size)))
 // Return a pointer to a memory region object using the number of blocks in the region.
 #define memoryGetRegionFromBlocks(start, blocks, size) ((memoryRegion *)memoryAddPointer(start, (blocks) * (size)))
 // Return the amount of memory required for a region of "size" bytes.

@@ -38,6 +38,7 @@ void mat2TransposeOut(const mat2 m, mat2 *const restrict out);
 mat2 mat2TransposeC(const mat2 m);
 float mat2Determinant(const mat2 *const restrict m);
 float mat2DeterminantC(const mat2 m);
+float mat2DeterminantColumns(const float *const restrict r0, const float *const restrict r1);
 void mat2Invert(mat2 *const restrict m);
 void mat2InvertOut(const mat2 m, mat2 *const restrict out);
 mat2 mat2InvertC(const mat2 m);

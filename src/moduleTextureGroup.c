@@ -4,9 +4,6 @@
 memoryPool g_texGroupManager;
 
 
-#warning "What if we aren't using the global memory manager?"
-
-
 return_t moduleTexGroupSetup(){
 	// The module's setup will be successful if we
 	// can allocate enough memory for our manager.
@@ -14,7 +11,7 @@ return_t moduleTexGroupSetup(){
 		memPoolInit(
 			&g_texGroupManager,
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_TEXGROUP_MANAGER_SIZE)),
-			MODULE_TEXGROUP_MANAGER_SIZE, MODULE_TEXGROUP_ELEMENT_SIZE
+			memoryGetRequiredSize(MODULE_TEXGROUP_MANAGER_SIZE), MODULE_TEXGROUP_ELEMENT_SIZE
 		) != NULL
 	);
 }
@@ -38,7 +35,7 @@ textureGroup *moduleTexGroupAlloc(){
 		if(memPoolExtend(
 			&g_texGroupManager,
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_TEXGROUP_MANAGER_SIZE)),
-			MODULE_TEXGROUP_MANAGER_SIZE
+			memoryGetRequiredSize(MODULE_TEXGROUP_MANAGER_SIZE)
 		)){
 			newBlock = memPoolAlloc(&g_texGroupManager);
 		}

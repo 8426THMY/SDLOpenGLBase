@@ -4,9 +4,6 @@
 memoryDoubleList g_cmdTokManager;
 
 
-#warning "What if we aren't using the global memory manager?"
-
-
 return_t moduleCommandSetup(){
 	// The module's setup will be successful if we
 	// can allocate enough memory for our manager.
@@ -14,7 +11,7 @@ return_t moduleCommandSetup(){
 		memDoubleListInit(
 			&g_cmdTokManager,
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_COMMAND_MANAGER_SIZE)),
-			MODULE_COMMAND_MANAGER_SIZE, MODULE_COMMAND_ELEMENT_SIZE
+			memoryGetRequiredSize(MODULE_COMMAND_MANAGER_SIZE), MODULE_COMMAND_ELEMENT_SIZE
 		) != NULL
 	);
 }
@@ -38,7 +35,7 @@ commandTokenized *moduleCmdTokAlloc(){
 		if(memDoubleListExtend(
 			&g_cmdTokManager,
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_COMMAND_MANAGER_SIZE)),
-			MODULE_COMMAND_MANAGER_SIZE
+			memoryGetRequiredSize(MODULE_COMMAND_MANAGER_SIZE)
 		)){
 			newBlock = memDoubleListAlloc(&g_cmdTokManager);
 		}
@@ -58,7 +55,7 @@ commandTokenized *moduleCmdTokPrepend(commandTokenized **const restrict start){
 		if(memDoubleListExtend(
 			&g_cmdTokManager,
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_COMMAND_MANAGER_SIZE)),
-			MODULE_COMMAND_MANAGER_SIZE
+			memoryGetRequiredSize(MODULE_COMMAND_MANAGER_SIZE)
 		)){
 			newBlock = memDoubleListPrepend(&g_cmdTokManager, (void **)start);
 		}
@@ -78,7 +75,7 @@ commandTokenized *moduleCmdTokAppend(commandTokenized **const restrict start){
 		if(memDoubleListExtend(
 			&g_cmdTokManager,
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_COMMAND_MANAGER_SIZE)),
-			MODULE_COMMAND_MANAGER_SIZE
+			memoryGetRequiredSize(MODULE_COMMAND_MANAGER_SIZE)
 		)){
 			newBlock = memDoubleListAppend(&g_cmdTokManager, (void **)start);
 		}
@@ -98,7 +95,7 @@ commandTokenized *moduleCmdTokInsertBefore(commandTokenized **const restrict sta
 		if(memDoubleListExtend(
 			&g_cmdTokManager,
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_COMMAND_MANAGER_SIZE)),
-			MODULE_COMMAND_MANAGER_SIZE
+			memoryGetRequiredSize(MODULE_COMMAND_MANAGER_SIZE)
 		)){
 			newBlock = memDoubleListInsertBefore(&g_cmdTokManager, (void **)start, (void *)next);
 		}
@@ -118,7 +115,7 @@ commandTokenized *moduleCmdTokInsertAfter(commandTokenized **const restrict star
 		if(memDoubleListExtend(
 			&g_cmdTokManager,
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_COMMAND_MANAGER_SIZE)),
-			MODULE_COMMAND_MANAGER_SIZE
+			memoryGetRequiredSize(MODULE_COMMAND_MANAGER_SIZE)
 		)){
 			newBlock = memDoubleListInsertAfter(&g_cmdTokManager, (void **)start, (void *)prev);
 		}

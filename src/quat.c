@@ -794,18 +794,18 @@ quat quatMultiplyQuatByC(const quat q1, const quat q2){
 	return(out);
 }
 
-// Multiply conj(q2)*q1 (undo a rotation of "q2" from "q1")!
+// Multiply q2*conj(q1)!
 void quatMultiplyConjByQuat(quat *const restrict q1, const quat q2){
 	quat tempQuat = *q1;
 
-	q1->x = q2.w * tempQuat.x - q2.x * tempQuat.w - q2.y * tempQuat.z + q2.z * tempQuat.y;
-	q1->y = q2.w * tempQuat.y - q2.y * tempQuat.w - q2.z * tempQuat.x + q2.x * tempQuat.z;
-	q1->z = q2.w * tempQuat.z - q2.z * tempQuat.w - q2.x * tempQuat.y + q2.y * tempQuat.x;
-	q1->w = q2.w * tempQuat.w + q2.x * tempQuat.x + q2.y * tempQuat.y + q2.z * tempQuat.z;
+	q1->x = -q2.w * tempQuat.x + q2.x * tempQuat.w - q2.y * tempQuat.z + q2.z * tempQuat.y;
+	q1->y = -q2.w * tempQuat.y + q2.y * tempQuat.w - q2.z * tempQuat.x + q2.x * tempQuat.z;
+	q1->z = -q2.w * tempQuat.z + q2.z * tempQuat.w - q2.x * tempQuat.y + q2.y * tempQuat.x;
+	q1->w =  q2.w * tempQuat.w + q2.x * tempQuat.x + q2.y * tempQuat.y + q2.z * tempQuat.z;
 }
 
 // Multiply conj(q1)*q2 (undo a rotation of "q1" from "q2")!
-void quatMultiplyQuatConjBy(quat *const restrict q1, const quat q2){
+void quatMultiplyQuatByConj(quat *const restrict q1, const quat q2){
 	quat tempQuat = *q1;
 
 	q1->x = tempQuat.w * q2.x - tempQuat.x * q2.w - tempQuat.y * q2.z + tempQuat.z * q2.y;
@@ -814,8 +814,18 @@ void quatMultiplyQuatConjBy(quat *const restrict q1, const quat q2){
 	q1->w = tempQuat.w * q2.w + tempQuat.x * q2.x + tempQuat.y * q2.y + tempQuat.z * q2.z;
 }
 
+// Multiply conj(q2)*q1 (undo a rotation of "q2" from "q1")!
+void quatMultiplyByQuatConj(quat *const restrict q1, const quat q2){
+	quat tempQuat = *q1;
+
+	q1->x = q2.w * tempQuat.x - q2.x * tempQuat.w - q2.y * tempQuat.z + q2.z * tempQuat.y;
+	q1->y = q2.w * tempQuat.y - q2.y * tempQuat.w - q2.z * tempQuat.x + q2.x * tempQuat.z;
+	q1->z = q2.w * tempQuat.z - q2.z * tempQuat.w - q2.x * tempQuat.y + q2.y * tempQuat.x;
+	q1->w = q2.w * tempQuat.w + q2.x * tempQuat.x + q2.y * tempQuat.y + q2.z * tempQuat.z;
+}
+
 // Multiply conj(q2)*q1 (undo a rotation of "q2" from "q1") and store the result in "out"!
-void quatMultiplyConjByQuatOut(const quat q1, const quat q2, quat *const restrict out){
+void quatMultiplyByQuatConjOut(const quat q1, const quat q2, quat *const restrict out){
 	out->x = q2.w * q1.x - q2.x * q1.w - q2.y * q1.z + q2.z * q1.y;
 	out->y = q2.w * q1.y - q2.y * q1.w - q2.z * q1.x + q2.x * q1.z;
 	out->z = q2.w * q1.z - q2.z * q1.w - q2.x * q1.y + q2.y * q1.x;
@@ -823,7 +833,7 @@ void quatMultiplyConjByQuatOut(const quat q1, const quat q2, quat *const restric
 }
 
 // Multiply conj(q2)*q1 (undo a rotation of "q2" from "q1")!
-quat quatMultiplyConjByQuatC(const quat q1, const quat q2){
+quat quatMultiplyByQuatConjC(const quat q1, const quat q2){
 	const quat out = {
 		.x = q2.w * q1.x - q2.x * q1.w - q2.y * q1.z + q2.z * q1.y,
 		.y = q2.w * q1.y - q2.y * q1.w - q2.z * q1.x + q2.x * q1.z,
@@ -834,7 +844,7 @@ quat quatMultiplyConjByQuatC(const quat q1, const quat q2){
 }
 
 // Multiply q1*conj(q2)!
-void quatMultiplyQuatByConj(quat *const restrict q1, const quat q2){
+void quatMultiplyQuatConjBy(quat *const restrict q1, const quat q2){
 	quat tempQuat = *q1;
 
 	q1->x = -tempQuat.w * q2.x + tempQuat.x * q2.w - tempQuat.y * q2.z + tempQuat.z * q2.y;
@@ -843,18 +853,8 @@ void quatMultiplyQuatByConj(quat *const restrict q1, const quat q2){
 	q1->w =  tempQuat.w * q2.w + tempQuat.x * q2.x + tempQuat.y * q2.y + tempQuat.z * q2.z;
 }
 
-// Multiply q2*conj(q1)!
-void quatMultiplyByQuatConj(quat *const restrict q1, const quat q2){
-	quat tempQuat = *q1;
-
-	q1->x = -q2.w * tempQuat.x + q2.x * tempQuat.w - q2.y * tempQuat.z + q2.z * tempQuat.y;
-	q1->y = -q2.w * tempQuat.y + q2.y * tempQuat.w - q2.z * tempQuat.x + q2.x * tempQuat.z;
-	q1->z = -q2.w * tempQuat.z + q2.z * tempQuat.w - q2.x * tempQuat.y + q2.y * tempQuat.x;
-	q1->w =  q2.w * tempQuat.w + q2.x * tempQuat.x + q2.y * tempQuat.y + q2.z * tempQuat.z;
-}
-
 // Multiply q1*conj(q2) and store the result in "out"!
-void quatMultiplyQuatByConjOut(const quat q1, const quat q2, quat *const restrict out){
+void quatMultiplyQuatConjByOut(const quat q1, const quat q2, quat *const restrict out){
 	out->x = -q1.w * q2.x + q1.x * q2.w - q1.y * q2.z + q1.z * q2.y;
 	out->y = -q1.w * q2.y + q1.y * q2.w - q1.z * q2.x + q1.x * q2.z;
 	out->z = -q1.w * q2.z + q1.z * q2.w - q1.x * q2.y + q1.y * q2.x;
@@ -862,7 +862,7 @@ void quatMultiplyQuatByConjOut(const quat q1, const quat q2, quat *const restric
 }
 
 // Multiply q1*conj(q2)!
-quat quatMultiplyQuatByConjC(const quat q1, const quat q2){
+quat quatMultiplyQuatConjByC(const quat q1, const quat q2){
 	const quat out = {
 		.x = -q1.w * q2.x + q1.x * q2.w - q1.y * q2.z + q1.z * q2.y,
 		.y = -q1.w * q2.y + q1.y * q2.w - q1.z * q2.x + q1.x * q2.z,
@@ -918,7 +918,7 @@ vec3 quatRotateVec3C(const quat q, vec3 v){
 }
 
 // Undo a quaternion rotation on a vec3!
-void quatRotateVec3Inverse(const quat *const restrict q, vec3 *const restrict v){
+void quatRotateVec3Conj(const quat *const restrict q, vec3 *const restrict v){
 	float qvDot = vec3DotVec3(v, (const vec3 *const restrict)&q->x);
 	const float qNorm = q->w * q->w - vec3MagnitudeSquaredVec3((const vec3 *const restrict)&q->x);
 	vec3 qvCross;
@@ -933,7 +933,7 @@ void quatRotateVec3Inverse(const quat *const restrict q, vec3 *const restrict v)
 }
 
 // Undo a quaternion rotation on a vec3!
-void quatRotateVec3InverseOut(const quat *const restrict q, const vec3 *const restrict v, vec3 *const restrict out){
+void quatRotateVec3ConjOut(const quat *const restrict q, const vec3 *const restrict v, vec3 *const restrict out){
 	float qvDot = vec3DotVec3(v, (const vec3 *const restrict)&q->x);
 	const float qNorm = q->w * q->w - vec3MagnitudeSquaredVec3((const vec3 *const restrict)&q->x);
 	vec3 qvCross;
@@ -948,7 +948,7 @@ void quatRotateVec3InverseOut(const quat *const restrict q, const vec3 *const re
 }
 
 // Undo a quaternion rotation on a vec3!
-vec3 quatRotateVec3InverseC(const quat q, vec3 v){
+vec3 quatRotateVec3ConjC(const quat q, vec3 v){
 	float qvDot = vec3DotVec3C(v, *((const vec3 *)&q.x));
 	const float qNorm = q.w * q.w - vec3MagnitudeSquaredVec3C(*((const vec3 *)&q.x));
 	const vec3 qvCross = vec3MultiplySC(vec3CrossVec3C(*((const vec3 *)&q.x), v), -q.w - q.w);
@@ -1009,9 +1009,13 @@ vec3 quatRotateVec3FastC(const quat q, vec3 v){
 }
 
 // Undo a quaternion rotation on a vec3!
-void quatRotateVec3InverseFast(const quat *const restrict q, vec3 *const restrict v){
+void quatRotateVec3ConjFast(const quat *const restrict q, vec3 *const restrict v){
 	vec3 qvCross;
 	vec3CrossVec3Out((const vec3 *const restrict)&q->x, v, &qvCross);
+	// It would perhaps be clearer if we reversed the order
+	// of the cross products, but it actually suffices to
+	// treat the quaternion's conjugate as (-w, x, y, z).
+	// The final expression can be shown to be identical.
 	qvCross.x -= q->w * v->x;
 	qvCross.y -= q->w * v->y;
 	qvCross.z -= q->w * v->z;
@@ -1023,9 +1027,13 @@ void quatRotateVec3InverseFast(const quat *const restrict q, vec3 *const restric
 }
 
 // Undo a quaternion rotation on a vec3!
-void quatRotateVec3InverseFastOut(const quat *const restrict q, const vec3 *const restrict v, vec3 *const restrict out){
+void quatRotateVec3ConjFastOut(const quat *const restrict q, const vec3 *const restrict v, vec3 *const restrict out){
 	vec3 qvCross;
 	vec3CrossVec3Out((const vec3 *const restrict)&q->x, v, &qvCross);
+	// It would perhaps be clearer if we reversed the order
+	// of the cross products, but it actually suffices to
+	// treat the quaternion's conjugate as (-w, x, y, z).
+	// The final expression can be shown to be identical.
 	qvCross.x -= q->w * v->x;
 	qvCross.y -= q->w * v->y;
 	qvCross.z -= q->w * v->z;
@@ -1037,8 +1045,12 @@ void quatRotateVec3InverseFastOut(const quat *const restrict q, const vec3 *cons
 }
 
 // Undo a quaternion rotation on a vec3!
-vec3 quatRotateVec3InverseFastC(const quat q, vec3 v){
+vec3 quatRotateVec3ConjFastC(const quat q, vec3 v){
 	vec3 qvCross = vec3CrossVec3C(*((const vec3 *)&q.x), v);
+	// It would perhaps be clearer if we reversed the order
+	// of the cross products, but it actually suffices to
+	// treat the quaternion's conjugate as (-w, x, y, z).
+	// The final expression can be shown to be identical.
 	qvCross.x -= q.w * v.x;
 	qvCross.y -= q.w * v.y;
 	qvCross.z -= q.w * v.z;
@@ -1730,10 +1742,10 @@ quat quatRotateByVec3EulerZXYC(const quat q, const vec3 v){
 
 // Perform linear interpolation between two quaternions!
 void quatLerp(quat *const restrict q1, const quat *const restrict q2, const float time){
-	q1->x = lerpFloatFast(q1->x, q2->x, time);
-	q1->y = lerpFloatFast(q1->y, q2->y, time);
-	q1->z = lerpFloatFast(q1->z, q2->z, time);
-	q1->w = lerpFloatFast(q1->w, q2->w, time);
+	q1->x = floatLerpFast(q1->x, q2->x, time);
+	q1->y = floatLerpFast(q1->y, q2->y, time);
+	q1->z = floatLerpFast(q1->z, q2->z, time);
+	q1->w = floatLerpFast(q1->w, q2->w, time);
 
 	// It's nice to be safe... but it isn't very fast.
 	quatNormalizeQuat(q1);
@@ -1741,10 +1753,10 @@ void quatLerp(quat *const restrict q1, const quat *const restrict q2, const floa
 
 // Perform linear interpolation between two quaternions and store the result in "out"!
 void quatLerpOut(const quat *const restrict q1, const quat *const restrict q2, const float time, quat *const restrict out){
-	out->x = lerpFloatFast(q1->x, q2->x, time);
-	out->y = lerpFloatFast(q1->y, q2->y, time);
-	out->z = lerpFloatFast(q1->z, q2->z, time);
-	out->w = lerpFloatFast(q1->w, q2->w, time);
+	out->x = floatLerpFast(q1->x, q2->x, time);
+	out->y = floatLerpFast(q1->y, q2->y, time);
+	out->z = floatLerpFast(q1->z, q2->z, time);
+	out->w = floatLerpFast(q1->w, q2->w, time);
 
 	// It's nice to be safe... but it isn't very fast.
 	quatNormalizeQuat(out);
@@ -1752,10 +1764,10 @@ void quatLerpOut(const quat *const restrict q1, const quat *const restrict q2, c
 
 // Perform linear interpolation between two quaternions!
 quat quatLerpC(quat q1, const quat q2, const float time){
-	q1.x = lerpFloatFast(q1.x, q2.x, time);
-	q1.y = lerpFloatFast(q1.y, q2.y, time);
-	q1.z = lerpFloatFast(q1.z, q2.z, time);
-	q1.w = lerpFloatFast(q1.w, q2.w, time);
+	q1.x = floatLerpFast(q1.x, q2.x, time);
+	q1.y = floatLerpFast(q1.y, q2.y, time);
+	q1.z = floatLerpFast(q1.z, q2.z, time);
+	q1.w = floatLerpFast(q1.w, q2.w, time);
 
 	// It's nice to be safe... but it isn't very fast.
 	return(quatNormalizeQuatC(q1));
@@ -1767,10 +1779,10 @@ quat quatLerpC(quat q1, const quat q2, const float time){
 ** the starting orientation and the difference between it and the ending orientation.
 */
 void quatLerpDiff(quat *const restrict q, const quat *const restrict offset, const float time){
-	q->x = lerpDiffFast(q->x, offset->x, time);
-	q->y = lerpDiffFast(q->y, offset->y, time);
-	q->z = lerpDiffFast(q->z, offset->z, time);
-	q->w = lerpDiffFast(q->w, offset->w, time);
+	q->x = floatLerpDiffFast(q->x, offset->x, time);
+	q->y = floatLerpDiffFast(q->y, offset->y, time);
+	q->z = floatLerpDiffFast(q->z, offset->z, time);
+	q->w = floatLerpDiffFast(q->w, offset->w, time);
 
 	// It's nice to be safe... but it isn't very fast.
 	quatNormalizeQuat(q);
@@ -1782,10 +1794,10 @@ void quatLerpDiff(quat *const restrict q, const quat *const restrict offset, con
 ** the starting orientation and the difference between it and the ending orientation.
 */
 void quatLerpDiffOut(const quat *const restrict q, const quat *const restrict offset, const float time, quat *const restrict out){
-	out->x = lerpDiffFast(q->x, offset->x, time);
-	out->y = lerpDiffFast(q->y, offset->y, time);
-	out->z = lerpDiffFast(q->z, offset->z, time);
-	out->w = lerpDiffFast(q->w, offset->w, time);
+	out->x = floatLerpDiffFast(q->x, offset->x, time);
+	out->y = floatLerpDiffFast(q->y, offset->y, time);
+	out->z = floatLerpDiffFast(q->z, offset->z, time);
+	out->w = floatLerpDiffFast(q->w, offset->w, time);
 
 	// It's nice to be safe... but it isn't very fast.
 	quatNormalizeQuat(out);
@@ -1797,10 +1809,10 @@ void quatLerpDiffOut(const quat *const restrict q, const quat *const restrict of
 ** the starting orientation and the difference between it and the ending orientation.
 */
 quat quatLerpDiffC(quat q, const quat offset, const float time){
-	q.x = lerpDiffFast(q.x, offset.x, time);
-	q.y = lerpDiffFast(q.y, offset.y, time);
-	q.z = lerpDiffFast(q.z, offset.z, time);
-	q.w = lerpDiffFast(q.w, offset.w, time);
+	q.x = floatLerpDiffFast(q.x, offset.x, time);
+	q.y = floatLerpDiffFast(q.y, offset.y, time);
+	q.z = floatLerpDiffFast(q.z, offset.z, time);
+	q.w = floatLerpDiffFast(q.w, offset.w, time);
 
 	// It's nice to be safe... but it isn't very fast.
 	return(quatNormalizeQuatC(q));
@@ -2513,7 +2525,7 @@ void quatSwingTwist(const quat *const restrict q, const vec3 *const restrict v, 
 
 	// By construction, q = s*t. We have "t", so to find
 	// "s" we can just multiply "q" by the conjugate of "t".
-	quatMultiplyQuatByConjOut(*q, *t, s);
+	quatMultiplyQuatConjByOut(*q, *t, s);
 
 	// Note that if the dot product is negative, we need to invert
 	// the twist quaternion to keep the direction consistent.
@@ -2539,7 +2551,7 @@ void quatSwingTwistC(const quat q, const vec3 v, quat *const restrict t, quat *c
 
 	// By construction, q = s*t. We have "t", so to find
 	// "s" we can just multiply "q" by the conjugate of "t".
-	*s = quatMultiplyQuatByConjC(q, *t);
+	*s = quatMultiplyQuatConjByC(q, *t);
 
 	// Note that if the dot product is negative, we need to invert
 	// the twist quaternion to keep the direction consistent.
@@ -2571,7 +2583,7 @@ void quatSwingTwistFast(const quat *const restrict q, const vec3 *const restrict
 	quatInitSet(t, v->x*u, v->y*u, v->z*u, q->w*l);
 	// By construction, q = s*t. We have "t", so to find
 	// "s" we can just multiply "q" by the conjugate of "t".
-	quatMultiplyQuatByConjOut(*q, *t, s);
+	quatMultiplyQuatConjByOut(*q, *t, s);
 
 	// Note that if the dot product is negative, we need to invert
 	// the twist quaternion to keep the direction consistent.
@@ -2591,7 +2603,7 @@ void quatSwingTwistFastC(const quat q, const vec3 v, quat *const restrict t, qua
 	*t = quatInitSetC(v.x*u, v.y*u, v.z*u, q.w*l);
 	// By construction, q = s*t. We have "t", so to find
 	// "s" we can just multiply "q" by the conjugate of "t".
-	*s = quatMultiplyQuatByConjC(q, *t);
+	*s = quatMultiplyQuatConjByC(q, *t);
 
 	// Note that if the dot product is negative, we need to invert
 	// the twist quaternion to keep the direction consistent.
@@ -2620,7 +2632,7 @@ void quatSwingTwistFaster(const quat *const restrict q, const vec3 *const restri
 	quatInitSet(t, v->x*u, v->y*u, v->z*u, q->w*l);
 	// By construction, q = s*t. We have "t", so to find
 	// "s" we can just multiply "q" by the conjugate of "t".
-	quatMultiplyQuatByConjOut(*q, *t, s);
+	quatMultiplyQuatConjByOut(*q, *t, s);
 }
 
 void quatSwingTwistFasterC(const quat q, const vec3 v, quat *const restrict t, quat *const restrict s){
@@ -2634,7 +2646,7 @@ void quatSwingTwistFasterC(const quat q, const vec3 v, quat *const restrict t, q
 	*t = quatInitSetC(v.x*u, v.y*u, v.z*u, q.w*l);
 	// By construction, q = s*t. We have "t", so to find
 	// "s" we can just multiply "q" by the conjugate of "t".
-	*s = quatMultiplyQuatByConjC(q, *t);
+	*s = quatMultiplyQuatConjByC(q, *t);
 }
 
 

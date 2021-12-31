@@ -12,10 +12,6 @@
 #define memPoolBlockUsedDataGetFlag(block) memPoolBlockDataGetFlag(block)
 
 
-#warning "What if the beginning or end of a memory region is not aligned?"
-#warning "We should go back to using the total memory size as input for init and extend, too."
-
-
 void *memPoolInit(memoryPool *const restrict pool, void *const restrict memory, const size_t memorySize, const size_t blockSize){
 	// Make sure the user isn't being difficult.
 	if(memory != NULL){

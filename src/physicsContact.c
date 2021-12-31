@@ -201,9 +201,9 @@ void physManifoldInit(
 		// need the untransformed contact points and normal.
 		#ifdef PHYSCONTACT_STABILISER_GAUSS_SEIDEL
 		vec3SubtractVec3FromOut(&cmContact->pA, bodyACentroid, &curHalfway);
-		quatRotateVec3InverseFastOut(bodyARot, &curHalfway, &pmContact->rAlocal);
+		quatRotateVec3ConjFastOut(bodyARot, &curHalfway, &pmContact->rAlocal);
 		vec3SubtractVec3FromOut(&cmContact->pB, bodyBCentroid, &curHalfway);
-		quatRotateVec3InverseFastOut(bodyBRot, &curHalfway, &pmContact->rBlocal);
+		quatRotateVec3ConjFastOut(bodyBRot, &curHalfway, &pmContact->rBlocal);
 		#endif
 
 		// Find the average contact normal.
@@ -251,7 +251,7 @@ void physManifoldInit(
 	#endif
 
 	#ifdef PHYSCONTACT_STABILISER_GAUSS_SEIDEL
-	quatRotateVec3InverseFastOut(bodyARot, &normal, &pm->normalA);
+	quatRotateVec3ConjFastOut(bodyARot, &normal, &pm->normalA);
 	#endif
 
 	physContactFriction(pm) = combineFriction(cA->friction, cB->friction);
@@ -347,7 +347,7 @@ void physManifoldPersist(
 	physContactNormal(pm) = normal;
 
 	#ifdef PHYSCONTACT_STABILISER_GAUSS_SEIDEL
-	quatRotateVec3InverseFastOut(bodyARot, &normal, &pm->normalA);
+	quatRotateVec3ConjFastOut(bodyARot, &normal, &pm->normalA);
 	#endif
 
 	physContactFriction(pm) = combineFriction(cA->friction, cB->friction);
@@ -375,9 +375,9 @@ void physManifoldPersist(
 		// need the untransformed contact points and normal.
 		#ifdef PHYSCONTACT_STABILISER_GAUSS_SEIDEL
 		vec3SubtractVec3FromOut(&cmContact->pA, bodyACentroid, &curHalfway);
-		quatRotateVec3InverseFastOut(bodyARot, &curHalfway, &pmContact->rAlocal);
+		quatRotateVec3ConjFastOut(bodyARot, &curHalfway, &pmContact->rAlocal);
 		vec3SubtractVec3FromOut(&cmContact->pB, bodyBCentroid, &curHalfway);
-		quatRotateVec3InverseFastOut(bodyBRot, &curHalfway, &pmContact->rBlocal);
+		quatRotateVec3ConjFastOut(bodyBRot, &curHalfway, &pmContact->rBlocal);
 		#endif
 
 		#ifdef PHYSCONTACT_STABILISER_BAUMGARTE
@@ -717,7 +717,7 @@ static void solveTangents(
 	// -f < lambda < f
 	// Clamp our accumulated impulse for the first tangent.
 	oldImpulse = contact->tangentImpulse[0];
-	contact->tangentImpulse[0] = clampFloat(oldImpulse + lambda, -maxFriction, maxFriction);
+	contact->tangentImpulse[0] = floatClamp(oldImpulse + lambda, -maxFriction, maxFriction);
 	vec3MultiplySOut(&physContactTangent(pm, 0), contact->tangentImpulse[0] - oldImpulse, &impulse);
 
 
@@ -728,7 +728,7 @@ static void solveTangents(
 	// -f < lambda < f
 	// Clamp our accumulated impulse for the second tangent.
 	oldImpulse = contact->tangentImpulse[1];
-	contact->tangentImpulse[1] = clampFloat(oldImpulse + lambda, -maxFriction, maxFriction);
+	contact->tangentImpulse[1] = floatClamp(oldImpulse + lambda, -maxFriction, maxFriction);
 	vec3Fmaf(contact->tangentImpulse[1] - oldImpulse, &physContactTangent(pm, 1), &impulse);
 
 
@@ -771,7 +771,7 @@ static void solveNormal(
 	// C' >= 0
 	// Clamp our accumulated impulse in the normal direction.
 	oldImpulse = contact->normalImpulse;
-	contact->normalImpulse = maxFloat(0.f, oldImpulse + lambda);
+	contact->normalImpulse = floatMax(0.f, oldImpulse + lambda);
 	vec3MultiplySOut(&physContactNormal(pm), contact->normalImpulse - oldImpulse, &impulse);
 
 	// Apply the correctional impulse.
@@ -840,7 +840,7 @@ float solvePosition(
 		// doubles as a check to ensure we don't divide by zero.
 		if(effectiveMass > 0.f){
 			// Finish clamping the constraint value.
-			vec3MultiplyS(&normal, minFloat(constraint, PHYSCONSTRAINT_MAX_LINEAR_CORRECTION)/effectiveMass);
+			vec3MultiplyS(&normal, floatMin(constraint, PHYSCONSTRAINT_MAX_LINEAR_CORRECTION)/effectiveMass);
 
 			// Apply the correctional impulse.
 			physRigidBodyApplyImpulsePositionInverse(bodyA, &rA, &normal);

@@ -97,7 +97,7 @@ void programLoop(program *const restrict prg){
 			// Make sure we don't exceed our framerate cap!
 			if(curTime >= nextRender){
 				// Get our progress through the current update!
-				prg->step.renderDelta = clampFloat(
+				prg->step.renderDelta = floatClamp(
 					1.f - (nextUpdate - curTime) * prg->step.updateTickrate, 0.f, 1.f
 				);
 				render(prg);
@@ -118,14 +118,14 @@ void programLoop(program *const restrict prg){
 		}
 
 		// Sleep until the next update or render.
-		sleepUntilFloat(minFloat(nextUpdate, nextRender));
+		sleepUntilFloat(floatMin(nextUpdate, nextRender));
 		#else
 		}else{
 			// If there are no updates between the next render, start rendering now
 			// and sleep until the normal render time before swapping the buffers.
 			if(nextRender < nextUpdate){
-				const float nextRenderTime = maxFloat(nextRender, curTime);
-				prg->step.renderDelta = clampFloat(
+				const float nextRenderTime = floatMax(nextRender, curTime);
+				prg->step.renderDelta = floatClamp(
 					1.f - (nextUpdate - nextRenderTime) * prg->step.updateTickrate, 0.f, 1.f
 				);
 				render(prg);
@@ -585,13 +585,13 @@ static return_t initResources(program *const restrict prg){
 	//animDef = skeleAnimSMDLoad("soldier_animations_anims_old/a_runN_LOSER.smd", sizeof("soldier_animations_anims_old/a_runN_LOSER.smd") - 1);
 	if(animDef != NULL){
 		obj->skeleState.anims = moduleSkeletonAnimPrepend(&obj->skeleState.anims);
-		skeleAnimInit(obj->skeleState.anims, animDef, 0.f, 0.f);//1.f, 0.5f);
+		skeleAnimInit(obj->skeleState.anims, animDef, 1.f, 0.5f);
 	}
 
 	animDef = skeleAnimSMDLoad("soldier_animations_anims_old/stand_MELEE.smd", sizeof("soldier_animations_anims_old/stand_MELEE.smd") - 1);
 	if(animDef != NULL){
 		obj->skeleState.anims = moduleSkeletonAnimPrepend(&obj->skeleState.anims);
-		skeleAnimInit(obj->skeleState.anims, animDef, 0.f, 0.f);//1.f, 0.5f);
+		skeleAnimInit(obj->skeleState.anims, animDef, 1.f, 0.5f);
 	}
 	#endif
 
@@ -878,7 +878,6 @@ static return_t initResources(program *const restrict prg){
 }
 
 // Set up the allocators for our modules.
-#warning "What if we aren't using the global memory manager?"
 static return_t setupModules(){
 	puts("Beginning setup...\n");
 	memoryManagerGlobalInit(MEMORY_HEAPSIZE);

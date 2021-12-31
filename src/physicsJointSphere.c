@@ -282,9 +282,9 @@ void physJointSpherePresolve(
 		&((physicsJointSphere *)joint)->twistAxis, &((physicsJointSphere *)joint)->twistBias
 	);
 	// b2 = C2/dt <= 0
-	((physicsJointSphere *)joint)->swingBias = minFloat(0.f, ((physicsJointSphere *)joint)->swingBias * frequency);
+	((physicsJointSphere *)joint)->swingBias = floatMin(0.f, ((physicsJointSphere *)joint)->swingBias * frequency);
 	// b3 = C3/dt <= 0
-	((physicsJointSphere *)joint)->twistBias = minFloat(0.f, ((physicsJointSphere *)joint)->twistBias * frequency);
+	((physicsJointSphere *)joint)->twistBias = floatMin(0.f, ((physicsJointSphere *)joint)->twistBias * frequency);
 
 	calculateInverseAngularMass(
 		bodyA, bodyB,
@@ -301,9 +301,9 @@ void physJointSpherePresolve(
 		&((physicsJointSphere *)joint)->angularBias
 	);
 	// b = C/dt <= 0
-	((physicsJointSphere *)joint)->angularBias.x = minFloat(0.f, ((physicsJointSphere *)joint)->angularBias.x * frequency);
-	((physicsJointSphere *)joint)->angularBias.y = minFloat(0.f, ((physicsJointSphere *)joint)->angularBias.y * frequency);
-	((physicsJointSphere *)joint)->angularBias.z = minFloat(0.f, ((physicsJointSphere *)joint)->angularBias.z * frequency);
+	((physicsJointSphere *)joint)->angularBias.x = floatMin(0.f, ((physicsJointSphere *)joint)->angularBias.x * frequency);
+	((physicsJointSphere *)joint)->angularBias.y = floatMin(0.f, ((physicsJointSphere *)joint)->angularBias.y * frequency);
+	((physicsJointSphere *)joint)->angularBias.z = floatMin(0.f, ((physicsJointSphere *)joint)->angularBias.z * frequency);
 
 	calculateInverseAngularMass(
 		bodyA, bodyB,
@@ -314,8 +314,13 @@ void physJointSpherePresolve(
 
 	calculateLinearMass(
 		((physicsJointSphere *)joint)->rA, ((physicsJointSphere *)joint)->rB,
-		bodyA, bodyB, &((physicsJointSphere *)joint)->linearMass
+		bodyA, bodyB, &((physicsJointSphere *)joint)->linearInvMass
 	);
+	// The performance of solving using Cramer's rule seems similar
+	// to inverting. However, since we do our velocity solve step
+	// multiple times using the same matrix for sequential impulse,
+	// it's much faster to invert it here when we're presolving.
+	mat3Invert(&((physicsJointSphere *)joint)->linearInvMass);
 
 	#ifdef PHYSJOINTSPHERE_WARM_START
 	physJointSphereWarmStart((physicsJointSphere *)joint, bodyA, bodyB);
@@ -355,7 +360,7 @@ void physJointSphereSolveVelocity(
 
 			// Clamp the accumulated swing impulse magnitude.
 			oldImpulse = ((physicsJointSphere *)joint)->swingImpulse;
-			((physicsJointSphere *)joint)->swingImpulse = minFloat(0.f, oldImpulse + lambda);
+			((physicsJointSphere *)joint)->swingImpulse = floatMin(0.f, oldImpulse + lambda);
 			lambda = ((physicsJointSphere *)joint)->swingImpulse - oldImpulse;
 
 			// Calculate the swing impulse.
@@ -372,7 +377,7 @@ void physJointSphereSolveVelocity(
 
 			// Clamp the accumulated twist impulse magnitude.
 			oldImpulse = ((physicsJointSphere *)joint)->twistImpulse;
-			((physicsJointSphere *)joint)->twistImpulse = minFloat(0.f, oldImpulse + lambda);
+			((physicsJointSphere *)joint)->twistImpulse = floatMin(0.f, oldImpulse + lambda);
 			lambda = ((physicsJointSphere *)joint)->twistImpulse - oldImpulse;
 
 			// Calculate the twist impulse and add it to the swing impulse.
@@ -387,7 +392,7 @@ void physJointSphereSolveVelocity(
 			) * ((physicsJointSphere *)joint)->angularInvMass.x;
 
 			oldImpulse = ((physicsJointSphere *)joint)->angularImpulse.x;
-			((physicsJointSphere *)joint)->angularImpulse.x = minFloat(0.f, oldImpulse + lambda);
+			((physicsJointSphere *)joint)->angularImpulse.x = floatMin(0.f, oldImpulse + lambda);
 			lambda = ((physicsJointSphere *)joint)->angularImpulse.x - oldImpulse;
 
 			vec3MultiplySOut(&((physicsJointSphere *)joint)->angularAxisX, lambda, &impulse);
@@ -401,7 +406,7 @@ void physJointSphereSolveVelocity(
 			) * ((physicsJointSphere *)joint)->angularInvMass.y;
 
 			oldImpulse = ((physicsJointSphere *)joint)->angularImpulse.y;
-			((physicsJointSphere *)joint)->angularImpulse.y = minFloat(0.f, oldImpulse + lambda);
+			((physicsJointSphere *)joint)->angularImpulse.y = floatMin(0.f, oldImpulse + lambda);
 			lambda = ((physicsJointSphere *)joint)->angularImpulse.y - oldImpulse;
 
 			vec3Fmaf(lambda, &((physicsJointSphere *)joint)->angularAxisY, &impulse);
@@ -415,7 +420,7 @@ void physJointSphereSolveVelocity(
 			) * ((physicsJointSphere *)joint)->angularInvMass.z;
 
 			oldImpulse = ((physicsJointSphere *)joint)->angularImpulse.z;
-			((physicsJointSphere *)joint)->angularImpulse.z = minFloat(0.f, oldImpulse + lambda);
+			((physicsJointSphere *)joint)->angularImpulse.z = floatMin(0.f, oldImpulse + lambda);
 			lambda = ((physicsJointSphere *)joint)->angularImpulse.z - oldImpulse;
 
 			vec3Fmaf(lambda, &((physicsJointSphere *)joint)->angularAxisZ, &impulse);
@@ -447,10 +452,10 @@ void physJointSphereSolveVelocity(
 		vec3SubtractFromVec3(&relativeVelocity, &impulse);
 
 
-		// Solve for lambda using Cramer's rule:
+		// Solve for the linear impulse:
 		// JV = v_relative,
 		// K1*lambda = -JV.
-		mat3Solve(&((physicsJointSphere *)joint)->linearMass, &relativeVelocity, &impulse);
+		mat3MultiplyVec3ByOut(&((physicsJointSphere *)joint)->linearInvMass, &relativeVelocity, &impulse);
 		vec3AddVec3(&((physicsJointSphere *)joint)->linearImpulse, &impulse);
 
 		// Apply the correctional impulse.
@@ -492,8 +497,8 @@ return_t physJointSphereSolvePosition(
 			&impulse, &swingAngle,
 			&twistImpulse, &twistAngle
 		);
-		swingAngle = clampFloat(swingAngle - PHYSCONSTRAINT_ANGULAR_SLOP, 0.f, PHYSCONSTRAINT_MAX_ANGULAR_CORRECTION);
-		twistAngle = clampFloat(twistAngle - PHYSCONSTRAINT_ANGULAR_SLOP, 0.f, PHYSCONSTRAINT_MAX_ANGULAR_CORRECTION);
+		swingAngle = floatClamp(swingAngle - PHYSCONSTRAINT_ANGULAR_SLOP, 0.f, PHYSCONSTRAINT_MAX_ANGULAR_CORRECTION);
+		twistAngle = floatClamp(twistAngle - PHYSCONSTRAINT_ANGULAR_SLOP, 0.f, PHYSCONSTRAINT_MAX_ANGULAR_CORRECTION);
 
 		// Calculate the angular error.
 		// These angles are always positive.
@@ -526,9 +531,9 @@ return_t physJointSphereSolvePosition(
 			&impulse, &angularImpulseY, &angularImpulseZ,
 			&angularBias
 		);
-		angularBias.x = clampFloat(angularBias.x - PHYSCONSTRAINT_ANGULAR_SLOP, 0.f, PHYSCONSTRAINT_MAX_ANGULAR_CORRECTION);
-		angularBias.y = clampFloat(angularBias.y - PHYSCONSTRAINT_ANGULAR_SLOP, 0.f, PHYSCONSTRAINT_MAX_ANGULAR_CORRECTION);
-		angularBias.z = clampFloat(angularBias.z - PHYSCONSTRAINT_ANGULAR_SLOP, 0.f, PHYSCONSTRAINT_MAX_ANGULAR_CORRECTION);
+		angularBias.x = floatClamp(angularBias.x - PHYSCONSTRAINT_ANGULAR_SLOP, 0.f, PHYSCONSTRAINT_MAX_ANGULAR_CORRECTION);
+		angularBias.y = floatClamp(angularBias.y - PHYSCONSTRAINT_ANGULAR_SLOP, 0.f, PHYSCONSTRAINT_MAX_ANGULAR_CORRECTION);
+		angularBias.z = floatClamp(angularBias.z - PHYSCONSTRAINT_ANGULAR_SLOP, 0.f, PHYSCONSTRAINT_MAX_ANGULAR_CORRECTION);
 
 		// Calculate the angular error.
 		// These angles are always positive.
@@ -756,7 +761,7 @@ static void calculateBias(
 
 	// Get the relative orientation from body A to body B:
 	// qAB = conj(A)*B.
-	quatMultiplyConjByQuatOut(bodyB->state.rot, bodyA->state.rot, &qAB);
+	quatMultiplyByQuatConjOut(bodyB->state.rot, bodyA->state.rot, &qAB);
 	// Decompose the relative orientation into swing and twist components.
 	vec3InitSet(twistAxis, 1.f, 0.f, 0.f);
 	quatSwingTwistFaster(&qAB, twistAxis, &twist, &swing);
@@ -806,7 +811,7 @@ static void calculateBias(
 
 	// Get the relative orientation from body A to body B:
 	// qAB = conj(A)*B.
-	quatMultiplyConjByQuatOut(bodyB->state.rot, bodyA->state.rot, &qAB);
+	quatMultiplyByQuatConjOut(bodyB->state.rot, bodyA->state.rot, &qAB);
 	// Decompose the relative orientation into x, y and z components.
 	quatToEulerAnglesZXY(qAB, &angles);
 	// If an angle is negative, we should negate its constraint axis.
@@ -903,7 +908,7 @@ static float calculateAngularLimit(
 	// Bring the constraint axis from body B's space to global space.
 	quatRotateVec3Fast(rotA, axis);
 
-	return(maxFloat(
+	return(floatMax(
 		angularLimits[0] - angle,
 		angle - angularLimits[1]
 	));

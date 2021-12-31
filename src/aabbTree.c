@@ -366,8 +366,8 @@ static aabbNode *balanceNode(aabbTree *const restrict tree, aabbNode *const rest
 				colliderAABBCombine(&left->aabb, &grandRight->aabb, &node->aabb);
 				colliderAABBCombine(&node->aabb, &grandLeft->aabb, &right->aabb);
 
-				node->height  = maxUintFast(left->height, grandRight->height) + 1;
-				right->height = maxUintFast(node->height, grandLeft->height) + 1;
+				node->height  = uintMaxFast(left->height, grandRight->height) + 1;
+				right->height = uintMaxFast(node->height, grandLeft->height) + 1;
 			}else{
 				right->data.children.right = grandRight;
 				node->data.children.right  = grandLeft;
@@ -376,8 +376,8 @@ static aabbNode *balanceNode(aabbTree *const restrict tree, aabbNode *const rest
 				colliderAABBCombine(&left->aabb, &grandLeft->aabb, &node->aabb);
 				colliderAABBCombine(&node->aabb, &grandRight->aabb, &right->aabb);
 
-				node->height  = maxUintFast(left->height, grandLeft->height) + 1;
-				right->height = maxUintFast(node->height, grandRight->height) + 1;
+				node->height  = uintMaxFast(left->height, grandLeft->height) + 1;
+				right->height = uintMaxFast(node->height, grandRight->height) + 1;
 			}
 
 
@@ -413,8 +413,8 @@ static aabbNode *balanceNode(aabbTree *const restrict tree, aabbNode *const rest
 				colliderAABBCombine(&right->aabb, &grandRight->aabb, &node->aabb);
 				colliderAABBCombine(&node->aabb, &grandLeft->aabb, &left->aabb);
 
-				node->height = maxUintFast(right->height, grandRight->height) + 1;
-				left->height = maxUintFast(node->height, grandLeft->height) + 1;
+				node->height = uintMaxFast(right->height, grandRight->height) + 1;
+				left->height = uintMaxFast(node->height, grandLeft->height) + 1;
 			}else{
 				left->data.children.left = grandRight;
 				node->data.children.left = grandLeft;
@@ -423,8 +423,8 @@ static aabbNode *balanceNode(aabbTree *const restrict tree, aabbNode *const rest
 				colliderAABBCombine(&right->aabb, &grandLeft->aabb, &node->aabb);
 				colliderAABBCombine(&node->aabb, &grandRight->aabb, &left->aabb);
 
-				node->height = maxUintFast(right->height, grandLeft->height) + 1;
-				left->height = maxUintFast(node->height, grandRight->height) + 1;
+				node->height = uintMaxFast(right->height, grandLeft->height) + 1;
+				left->height = uintMaxFast(node->height, grandRight->height) + 1;
 			}
 
 
@@ -450,7 +450,7 @@ static void balanceHierarchy(aabbTree *const restrict tree, aabbNode *node){
 
 		// Fix up the node's properties to represent its new children.
 		colliderAABBCombine(&left->aabb, &right->aabb, &node->aabb);
-		node->height = maxUintFast(left->height, right->height) + 1;
+		node->height = uintMaxFast(left->height, right->height) + 1;
 
 		// Continue to the node's parent.
 		node = node->parent;

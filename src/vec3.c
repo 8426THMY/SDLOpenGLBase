@@ -811,7 +811,7 @@ vec3 vec3NegateC(vec3 v){
 void vec3Orthogonal(const vec3 *const restrict v, vec3 *const restrict out){
 	// At least one component is always greater
 	// than 1/sqrt(3) if 'v' is unit length.
-	if(fabsf(v->x) >= 0.57735026f){
+	if(fabsf(v->x) >= SQRT_ONE_THIRD){
 		vec3InitSet(out, v->y, -v->x, 0.f);
 	}else{
 		vec3InitSet(out, 0.f, v->z, -v->y);
@@ -826,7 +826,7 @@ void vec3Orthogonal(const vec3 *const restrict v, vec3 *const restrict out){
 vec3 vec3OrthogonalC(const vec3 v){
 	// At least one component is always greater
 	// than 1/sqrt(3) if 'v' is unit length.
-	if(fabsf(v.x) >= 0.57735026f){
+	if(fabsf(v.x) >= SQRT_ONE_THIRD){
 		return(vec3InitSetC(v.y, -v.x, 0.f));
 	}
 	return(vec3InitSetC(0.f, v.z, -v.y));
@@ -1024,16 +1024,16 @@ void vec3RotateByEulerZXYOut(const vec3 *const restrict v, const float x, const 
 
 // Perform linear interpolation between two vec3s and store the result in "out"!
 void vec3Lerp(const vec3 *const restrict v1, const vec3 *const restrict v2, const float time, vec3 *const restrict out){
-	out->x = lerpFloatFast(v1->x, v2->x, time);
-	out->y = lerpFloatFast(v1->y, v2->y, time);
-	out->z = lerpFloatFast(v1->z, v2->z, time);
+	out->x = floatLerpFast(v1->x, v2->x, time);
+	out->y = floatLerpFast(v1->y, v2->y, time);
+	out->z = floatLerpFast(v1->z, v2->z, time);
 }
 
 // Perform linear interpolation between two vec3s!
 vec3 vec3LerpC(vec3 v1, const vec3 v2, const float time){
-	v1.x = lerpFloatFast(v1.x, v2.x, time);
-	v1.y = lerpFloatFast(v1.y, v2.y, time);
-	v1.z = lerpFloatFast(v1.z, v2.z, time);
+	v1.x = floatLerpFast(v1.x, v2.x, time);
+	v1.y = floatLerpFast(v1.y, v2.y, time);
+	v1.z = floatLerpFast(v1.z, v2.z, time);
 
 	return(v1);
 }
@@ -1044,9 +1044,9 @@ vec3 vec3LerpC(vec3 v1, const vec3 v2, const float time){
 ** accepts the starting point and the difference between it and the ending point.
 */
 void vec3LerpDiff(const vec3 *const restrict v, const vec3 *offset, const float time, vec3 *const restrict out){
-	out->x = lerpDiffFast(v->x, offset->x, time);
-	out->y = lerpDiffFast(v->y, offset->y, time);
-	out->z = lerpDiffFast(v->z, offset->z, time);
+	out->x = floatLerpDiffFast(v->x, offset->x, time);
+	out->y = floatLerpDiffFast(v->y, offset->y, time);
+	out->z = floatLerpDiffFast(v->z, offset->z, time);
 }
 
 /*
@@ -1055,9 +1055,9 @@ void vec3LerpDiff(const vec3 *const restrict v, const vec3 *offset, const float 
 ** accepts the starting point and the difference between it and the ending point.
 */
 vec3 vec3LerpDiffC(vec3 v, const vec3 offset, const float time){
-	v.x = lerpDiffFast(v.x, offset.x, time);
-	v.y = lerpDiffFast(v.y, offset.y, time);
-	v.z = lerpDiffFast(v.z, offset.z, time);
+	v.x = floatLerpDiffFast(v.x, offset.x, time);
+	v.y = floatLerpDiffFast(v.y, offset.y, time);
+	v.z = floatLerpDiffFast(v.z, offset.z, time);
 
 	return(v);
 }
@@ -1068,9 +1068,9 @@ vec3 vec3LerpDiffC(vec3 v, const vec3 offset, const float time){
 ** and return a vec3 composed of these minima in "out".
 */
 void vec3Min(const vec3 *const restrict v1, const vec3 *const restrict v2, vec3 *const restrict out){
-	out->x = minFloatFast(v1->x, v2->x);
-	out->y = minFloatFast(v1->y, v2->y);
-	out->z = minFloatFast(v1->z, v2->z);
+	out->x = floatMinFast(v1->x, v2->x);
+	out->y = floatMinFast(v1->y, v2->y);
+	out->z = floatMinFast(v1->z, v2->z);
 }
 
 /*
@@ -1078,9 +1078,9 @@ void vec3Min(const vec3 *const restrict v1, const vec3 *const restrict v2, vec3 
 ** axis and return a vec3 composed of these minima.
 */
 vec3 vec3MinC(vec3 v1, const vec3 v2){
-	v1.x = minFloatFast(v1.x, v2.x);
-	v1.y = minFloatFast(v1.y, v2.y);
-	v1.z = minFloatFast(v1.z, v2.z);
+	v1.x = floatMinFast(v1.x, v2.x);
+	v1.y = floatMinFast(v1.y, v2.y);
+	v1.z = floatMinFast(v1.z, v2.z);
 
 	return(v1);
 }
@@ -1090,9 +1090,9 @@ vec3 vec3MinC(vec3 v1, const vec3 v2){
 ** and return a vec3 composed of these maxima in "out".
 */
 void vec3Max(const vec3 *const restrict v1, const vec3 *const restrict v2, vec3 *const restrict out){
-	out->x = maxFloatFast(v1->x, v2->x);
-	out->y = maxFloatFast(v1->y, v2->y);
-	out->z = maxFloatFast(v1->z, v2->z);
+	out->x = floatMaxFast(v1->x, v2->x);
+	out->y = floatMaxFast(v1->y, v2->y);
+	out->z = floatMaxFast(v1->z, v2->z);
 }
 
 /*
@@ -1100,9 +1100,9 @@ void vec3Max(const vec3 *const restrict v1, const vec3 *const restrict v2, vec3 
 ** axis and return a vec3 composed of these maxima.
 */
 vec3 vec3MaxC(vec3 v1, const vec3 v2){
-	v1.x = maxFloatFast(v1.x, v2.x);
-	v1.y = maxFloatFast(v1.y, v2.y);
-	v1.z = maxFloatFast(v1.z, v2.z);
+	v1.x = floatMaxFast(v1.x, v2.x);
+	v1.y = floatMaxFast(v1.y, v2.y);
+	v1.z = floatMaxFast(v1.z, v2.z);
 
 	return(v1);
 }

@@ -21,9 +21,6 @@
 #define BASE_ANIM_FRAME_CAPACITY 1
 
 
-#warning "What if we aren't using the global memory manager?"
-
-
 static textureGroupFrame texGroupFrameDefault = {
 	.tex = &g_texDefault,
 	.bounds.x = 0.f,
@@ -173,7 +170,7 @@ textureGroup *texGroupLoad(const char *const restrict texGroupPath, const size_t
 				}else if(memcmp(&line[1], "s ", 2) == 0){
 					// Find the first and last indices for the sequence.
 					unsigned int curIndex = strtoul(&line[2], &line, 10);
-					unsigned int lastIndex = maxUint(strtoul(line, &line, 10), curIndex);
+					unsigned int lastIndex = uintMax(strtoul(line, &line, 10), curIndex);
 
 					char *texPath;
 					size_t texPathLength;

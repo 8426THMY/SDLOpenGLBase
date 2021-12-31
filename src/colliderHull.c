@@ -165,9 +165,6 @@ static void clipEdgeContact(
 );
 
 
-#warning "What if we aren't using the global memory manager?"
-
-
 void colliderHullInit(colliderHull *hull){
 	// Clear the hull's data so it's ready for use.
 	memset(hull, 0, sizeof(*hull));
@@ -543,7 +540,7 @@ return_t colliderHullLoad(
 void colliderHullUpdate(
 	void *const restrict hull, const vec3 *const restrict hullCentroid,
 	const void *const restrict base, const vec3 *const restrict baseCentroid,
-	transformState trans, colliderAABB *const restrict aabb
+	transformAffine trans, colliderAABB *const restrict aabb
 ){
 
 	vec3 *curFeature = ((colliderHull *)hull)->vertices;
@@ -555,11 +552,11 @@ void colliderHullUpdate(
 	//vec3MultiplyVec3Out(&(((colliderHull *)base)->centroid), &trans->scale, &(((colliderHull *)hull)->centroid));
 	//quatRotateVec3Fast(&trans->rot, &(((colliderHull *)hull)->centroid));
 	//vec3AddVec3(&(((colliderHull *)hull)->centroid), &trans->pos);
-	transformStateTransformPoint(&trans, &(((colliderHull *)hull)->centroid));
+	transformAffineTransformPoint(&trans, &(((colliderHull *)hull)->centroid));
 
-	// It's generally faster to transform by a matrix rather than a transformState.
+	// It's generally faster to transform by a matrix rather than a transformAffine.
 	trans.pos = *hullCentroid;
-	transformStateToMat4(&trans, &transMatrix);
+	transformAffineToMat4(&trans, &transMatrix);
 
 	// We can only update the hull's vertices if it actually has any.
 	if(curFeature < lastFeature){
@@ -615,7 +612,7 @@ void colliderHullUpdate(
 
 		// Create a new matrix for the normals.
 		vec3InitZero(&trans.pos);
-		transformStateToMat4(&trans, &transMatrix);
+		transformAffineToMat4(&trans, &transMatrix);
 
 		// The hull's faces have been rotated, so we
 		// need to scale and rotate their normals.
@@ -965,7 +962,7 @@ static void clipManifoldSHC(
 	const collisionData *const restrict cd, contactManifold *const restrict cm
 ){
 
-	const float bestFaceSeparation = maxFloatFast(cd->faceA.separation, cd->faceB.separation);
+	const float bestFaceSeparation = floatMaxFast(cd->faceA.separation, cd->faceB.separation);
 
 	// If the greatest separation occurs on an edge normal, clip using
 	// the edges. These bias terms will ensure that face contacts are

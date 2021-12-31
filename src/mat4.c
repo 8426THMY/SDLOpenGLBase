@@ -428,7 +428,7 @@ mat4 mat4InitEulerVec3ZXYC(const vec3 v){
 ** Initialise a matrix to a rotation matrix!
 ** This assumes that "q" is normalized.
 */
-void mat4InitRotateQuat(mat4 *const restrict m, const quat *const restrict q){
+void mat4InitQuat(mat4 *const restrict m, const quat *const restrict q){
 	const float xx = q->x * q->x;
 	const float xy = q->x * q->y;
 	const float xz = q->x * q->z;
@@ -465,7 +465,7 @@ void mat4InitRotateQuat(mat4 *const restrict m, const quat *const restrict q){
 ** Initialise a matrix to a rotation matrix!
 ** This assumes that "q" is normalized.
 */
-mat4 mat4InitRotateQuatC(const quat q){
+mat4 mat4InitQuatC(const quat q){
 	const float xx = q.x * q.x;
 	const float xy = q.x * q.y;
 	const float xz = q.x * q.z;
@@ -621,6 +621,125 @@ void mat4InitScaleVec4(mat4 *const restrict m, const vec4 *const restrict v){
 // Initialise a matrix to a scale matrix using a vec4!
 mat4 mat4InitScaleVec4C(const vec4 v){
 	return(mat4InitScale4C(v.x, v.y, v.z, v.w));
+}
+
+// Given a quaternion and a vector, construct the shear matrix QVQ^T.
+void mat4InitShearQuat(
+	mat4 *const restrict m,
+	const quat *const restrict q, const vec3 *const restrict v
+){
+
+	const float xx = q->x * q->x;
+	const float xy = q->x * q->y;
+	const float xz = q->x * q->z;
+	const float xw = q->x * q->w;
+	const float yy = q->y * q->y;
+	const float yz = q->y * q->z;
+	const float yw = q->y * q->w;
+	const float zz = q->z * q->z;
+	const float zw = q->z * q->w;
+
+	// Convert the quaternion Q to a rotation matrix!
+	const mat3 rotMatrix = {
+		.m[0][0] = 1.f - 2.f * (yy + zz),
+		.m[0][1] = 2.f * (xy + zw),
+		.m[0][2] = 2.f * (xz - yw),
+
+		.m[1][0] = 2.f * (xy - zw),
+		.m[1][1] = 1.f - 2.f * (xx + zz),
+		.m[1][2] = 2.f * (yz + xw),
+
+		.m[2][0] = 2.f * (xz + yw),
+		.m[2][1] = 2.f * (yz - xw),
+		.m[2][2] = 1.f - 2.f * (xx + yy)
+	};
+
+	float cx = v->x*rotMatrix.m[0][0];
+	float cy = v->y*rotMatrix.m[1][0];
+	float cz = v->z*rotMatrix.m[2][0];
+
+	// Return m = QVQ^T, where Q is our rotation matrix and V is
+	// the scale matrix with elements of v along its diagonal.
+	m->m[0][0] = rotMatrix.m[0][0]*cx + rotMatrix.m[1][0]*cy + rotMatrix.m[2][0]*cz;
+	m->m[0][1] = rotMatrix.m[0][1]*cx + rotMatrix.m[1][1]*cy + rotMatrix.m[2][1]*cz;
+	m->m[0][2] = rotMatrix.m[0][2]*cx + rotMatrix.m[1][2]*cy + rotMatrix.m[2][2]*cz;
+	m->m[0][3] = 0.f;
+	cx = v->x*rotMatrix.m[0][1];
+	cy = v->y*rotMatrix.m[1][1];
+	cz = v->z*rotMatrix.m[2][1];
+	m->m[1][0] = m->m[0][1];
+	m->m[1][1] = rotMatrix.m[0][1]*cx + rotMatrix.m[1][1]*cy + rotMatrix.m[2][1]*cz;
+	m->m[1][2] = rotMatrix.m[0][2]*cx + rotMatrix.m[1][2]*cy + rotMatrix.m[2][2]*cz;
+	m->m[1][3] = 0.f;
+	m->m[2][0] = m->m[0][2];
+	m->m[2][1] = m->m[1][2];
+	m->m[2][2] = rotMatrix.m[0][2]*v->x*rotMatrix.m[0][2] +
+	             rotMatrix.m[1][2]*v->y*rotMatrix.m[1][2] +
+	             rotMatrix.m[2][2]*v->z*rotMatrix.m[2][2];
+	m->m[2][3] = 0.f;
+	m->m[3][0] = 0.f;
+	m->m[3][1] = 0.f;
+	m->m[3][2] = 0.f;
+	m->m[3][3] = 1.f;
+}
+
+// Given a quaternion and a vector, construct the shear matrix QVQ^T.
+mat4 mat4InitShearQuatC(const quat q, const vec3 v){
+	const float xx = q.x * q.x;
+	const float xy = q.x * q.y;
+	const float xz = q.x * q.z;
+	const float xw = q.x * q.w;
+	const float yy = q.y * q.y;
+	const float yz = q.y * q.z;
+	const float yw = q.y * q.w;
+	const float zz = q.z * q.z;
+	const float zw = q.z * q.w;
+
+	// Convert the quaternion Q to a rotation matrix!
+	const mat3 rotMatrix = {
+		.m[0][0] = 1.f - 2.f * (yy + zz),
+		.m[0][1] = 2.f * (xy + zw),
+		.m[0][2] = 2.f * (xz - yw),
+
+		.m[1][0] = 2.f * (xy - zw),
+		.m[1][1] = 1.f - 2.f * (xx + zz),
+		.m[1][2] = 2.f * (yz + xw),
+
+		.m[2][0] = 2.f * (xz + yw),
+		.m[2][1] = 2.f * (yz - xw),
+		.m[2][2] = 1.f - 2.f * (xx + yy)
+	};
+
+	float cx = v.x*rotMatrix.m[0][0];
+	float cy = v.y*rotMatrix.m[1][0];
+	float cz = v.z*rotMatrix.m[2][0];
+	mat4 m;
+
+	// Return m = QVQ^T, where Q is our rotation matrix and V is
+	// the scale matrix with elements of v along its diagonal.
+	m.m[0][0] = rotMatrix.m[0][0]*cx + rotMatrix.m[1][0]*cy + rotMatrix.m[2][0]*cz;
+	m.m[0][1] = rotMatrix.m[0][1]*cx + rotMatrix.m[1][1]*cy + rotMatrix.m[2][1]*cz;
+	m.m[0][2] = rotMatrix.m[0][2]*cx + rotMatrix.m[1][2]*cy + rotMatrix.m[2][2]*cz;
+	m.m[0][3] = 0.f;
+	cx = v.x*rotMatrix.m[0][1];
+	cy = v.y*rotMatrix.m[1][1];
+	cz = v.z*rotMatrix.m[2][1];
+	m.m[1][0] = m.m[0][1];
+	m.m[1][1] = rotMatrix.m[0][1]*cx + rotMatrix.m[1][1]*cy + rotMatrix.m[2][1]*cz;
+	m.m[1][2] = rotMatrix.m[0][2]*cx + rotMatrix.m[1][2]*cy + rotMatrix.m[2][2]*cz;
+	m.m[1][3] = 0.f;
+	m.m[2][0] = m.m[0][2];
+	m.m[2][1] = m.m[1][2];
+	m.m[2][2] = rotMatrix.m[0][2]*v.x*rotMatrix.m[0][2] +
+	            rotMatrix.m[1][2]*v.y*rotMatrix.m[1][2] +
+	            rotMatrix.m[2][2]*v.z*rotMatrix.m[2][2];
+	m.m[2][3] = 0.f;
+	m.m[3][0] = 0.f;
+	m.m[3][1] = 0.f;
+	m.m[3][2] = 0.f;
+	m.m[3][3] = 1.f;
+
+	return(m);
 }
 
 
@@ -1156,6 +1275,32 @@ void mat4TranslateTransformVec3(mat4 *const restrict m, const vec3 *const restri
 // Left-multiply a transformation matrix by a translation matrix stored as a vec3!
 mat4 mat4TranslateTransformVec3C(const mat4 m, const vec3 v){
 	return(mat4TranslateTransformC(m, v.x, v.y, v.z));
+}
+
+// Right-multiply a transformation matrix by a translation matrix stored as three floats!
+void mat4TranslateTransformPre(mat4 *const restrict m, const float x, const float y, const float z){
+	m->m[3][0] = m->m[0][0] * x + m->m[1][0] * y + m->m[2][0] * z + m->m[3][0];
+	m->m[3][1] = m->m[0][1] * x + m->m[1][1] * y + m->m[2][1] * z + m->m[3][1];
+	m->m[3][2] = m->m[0][2] * x + m->m[1][2] * y + m->m[2][2] * z + m->m[3][2];
+}
+
+// Right-multiply a transformation matrix by a translation matrix stored as three floats!
+mat4 mat4TranslateTransformPreC(mat4 m, const float x, const float y, const float z){
+	m.m[3][0] = m.m[0][0] * x + m.m[1][0] * y + m.m[2][0] * z + m.m[3][0];
+	m.m[3][1] = m.m[0][1] * x + m.m[1][1] * y + m.m[2][1] * z + m.m[3][1];
+	m.m[3][2] = m.m[0][2] * x + m.m[1][2] * y + m.m[2][2] * z + m.m[3][2];
+
+	return(m);
+}
+
+// Right-multiply a transformation matrix by a translation matrix stored as a vec3!
+void mat4TranslateTransformPreVec3(mat4 *const restrict m, const vec3 *const restrict v){
+	mat4TranslateTransformPre(m, v->x, v->y, v->z);
+}
+
+// Right-multiply a transformation matrix by a translation matrix stored as a vec3!
+mat4 mat4TranslateTransformPreVec3C(const mat4 m, const vec3 v){
+	return(mat4TranslateTransformPreC(m, v.x, v.y, v.z));
 }
 
 
@@ -1908,200 +2053,160 @@ void mat4Invert(mat4 *const restrict m){
 	const mat4 tempMatrix = *m;
 
 	// We need to use these values twice, but we only need to calculate them once.
-	const float f0 =  tempMatrix.m[1][1] * tempMatrix.m[2][2] * tempMatrix.m[3][3] - tempMatrix.m[1][1] * tempMatrix.m[2][3] * tempMatrix.m[3][2] -
-	                  tempMatrix.m[2][1] * tempMatrix.m[1][2] * tempMatrix.m[3][3] + tempMatrix.m[2][1] * tempMatrix.m[1][3] * tempMatrix.m[3][2] +
-	                  tempMatrix.m[3][1] * tempMatrix.m[1][2] * tempMatrix.m[2][3] - tempMatrix.m[3][1] * tempMatrix.m[1][3] * tempMatrix.m[2][2];
-	const float f1 = -tempMatrix.m[1][0] * tempMatrix.m[2][2] * tempMatrix.m[3][3] + tempMatrix.m[1][0] * tempMatrix.m[2][3] * tempMatrix.m[3][2] +
-	                  tempMatrix.m[2][0] * tempMatrix.m[1][2] * tempMatrix.m[3][3] - tempMatrix.m[2][0] * tempMatrix.m[1][3] * tempMatrix.m[3][2] -
-	                  tempMatrix.m[3][0] * tempMatrix.m[1][2] * tempMatrix.m[2][3] + tempMatrix.m[3][0] * tempMatrix.m[1][3] * tempMatrix.m[2][2];
-	const float f2 =  tempMatrix.m[1][0] * tempMatrix.m[2][1] * tempMatrix.m[3][3] - tempMatrix.m[1][0] * tempMatrix.m[2][3] * tempMatrix.m[3][1] -
-	                  tempMatrix.m[2][0] * tempMatrix.m[1][1] * tempMatrix.m[3][3] + tempMatrix.m[2][0] * tempMatrix.m[1][3] * tempMatrix.m[3][1] +
-	                  tempMatrix.m[3][0] * tempMatrix.m[1][1] * tempMatrix.m[2][3] - tempMatrix.m[3][0] * tempMatrix.m[1][3] * tempMatrix.m[2][1];
-	const float f3 = -tempMatrix.m[1][0] * tempMatrix.m[2][1] * tempMatrix.m[3][2] + tempMatrix.m[1][0] * tempMatrix.m[2][2] * tempMatrix.m[3][1] +
-	                  tempMatrix.m[2][0] * tempMatrix.m[1][1] * tempMatrix.m[3][2] - tempMatrix.m[2][0] * tempMatrix.m[1][2] * tempMatrix.m[3][1] -
-	                  tempMatrix.m[3][0] * tempMatrix.m[1][1] * tempMatrix.m[2][2] + tempMatrix.m[3][0] * tempMatrix.m[1][2] * tempMatrix.m[2][1];
+	// These values represent 2x2 minors on the lower half of our matrix.
+	const float f0 = tempMatrix.m[2][2] * tempMatrix.m[3][3] - tempMatrix.m[3][2] * tempMatrix.m[2][3];
+	const float f1 = tempMatrix.m[1][2] * tempMatrix.m[3][3] - tempMatrix.m[3][2] * tempMatrix.m[1][3];
+	const float f2 = tempMatrix.m[1][2] * tempMatrix.m[2][3] - tempMatrix.m[2][2] * tempMatrix.m[1][3];
+	const float f3 = tempMatrix.m[0][2] * tempMatrix.m[3][3] - tempMatrix.m[3][2] * tempMatrix.m[0][3];
+	const float f4 = tempMatrix.m[0][2] * tempMatrix.m[2][3] - tempMatrix.m[2][2] * tempMatrix.m[0][3];
+	const float f5 = tempMatrix.m[0][2] * tempMatrix.m[1][3] - tempMatrix.m[1][2] * tempMatrix.m[0][3];
+	// These values represent the cofactors c_(0,0), c_(0,1), c_(0,2) and c_(0,3).
+	const float c00 =   tempMatrix.m[1][1] * f0 - tempMatrix.m[2][1] * f1 + tempMatrix.m[3][1] * f2;
+	const float c01 = -(tempMatrix.m[0][1] * f0 - tempMatrix.m[2][1] * f3 + tempMatrix.m[3][1] * f4);
+	const float c02 =   tempMatrix.m[0][1] * f1 - tempMatrix.m[1][1] * f3 + tempMatrix.m[3][1] * f5;
+	const float c03 = -(tempMatrix.m[0][1] * f2 - tempMatrix.m[1][1] * f4 + tempMatrix.m[2][1] * f5);
 	// Find the determinant of the matrix!
-	float invDet = tempMatrix.m[0][0] * f0 + tempMatrix.m[0][1] * f1 + tempMatrix.m[0][2] * f2 + tempMatrix.m[0][3] * f3;
+	float invDet = tempMatrix.m[0][0] * c00 + tempMatrix.m[1][0] * c01 + tempMatrix.m[2][0] * c02 + tempMatrix.m[3][0] * c03;
 
 	// Make sure we don't divide by 0!
 	if(invDet != 0.f){
+		// These values represent 2x2 minors on the upper half of our matrix.
+		const float g0 = tempMatrix.m[2][0] * tempMatrix.m[3][1] - tempMatrix.m[3][0] * tempMatrix.m[2][1];
+		const float g1 = tempMatrix.m[1][0] * tempMatrix.m[3][1] - tempMatrix.m[3][0] * tempMatrix.m[1][1];
+		const float g2 = tempMatrix.m[1][0] * tempMatrix.m[2][1] - tempMatrix.m[2][0] * tempMatrix.m[1][1];
+		const float g3 = tempMatrix.m[0][0] * tempMatrix.m[3][1] - tempMatrix.m[3][0] * tempMatrix.m[0][1];
+		const float g4 = tempMatrix.m[0][0] * tempMatrix.m[2][1] - tempMatrix.m[2][0] * tempMatrix.m[0][1];
+		const float g5 = tempMatrix.m[0][0] * tempMatrix.m[1][1] - tempMatrix.m[1][0] * tempMatrix.m[0][1];
+
 		invDet = 1.f / invDet;
 
 		// Now use the determinant to find the inverse of the matrix!
-		m->m[0][0] =  f0 * invDet;
-		m->m[0][1] = -tempMatrix.m[0][1] * tempMatrix.m[2][2] * tempMatrix.m[3][3] + tempMatrix.m[0][1] * tempMatrix.m[2][3] * tempMatrix.m[3][2] +
-		              tempMatrix.m[2][1] * tempMatrix.m[0][2] * tempMatrix.m[3][3] - tempMatrix.m[2][1] * tempMatrix.m[0][3] * tempMatrix.m[3][2] -
-		              tempMatrix.m[3][1] * tempMatrix.m[0][2] * tempMatrix.m[2][3] + tempMatrix.m[3][1] * tempMatrix.m[0][3] * tempMatrix.m[2][2];
-		m->m[0][2] =  tempMatrix.m[0][1] * tempMatrix.m[1][2] * tempMatrix.m[3][3] - tempMatrix.m[0][1] * tempMatrix.m[1][3] * tempMatrix.m[3][2] -
-		              tempMatrix.m[1][1] * tempMatrix.m[0][2] * tempMatrix.m[3][3] + tempMatrix.m[1][1] * tempMatrix.m[0][3] * tempMatrix.m[3][2] +
-		              tempMatrix.m[3][1] * tempMatrix.m[0][2] * tempMatrix.m[1][3] - tempMatrix.m[3][1] * tempMatrix.m[0][3] * tempMatrix.m[1][2];
-		m->m[0][3] = -tempMatrix.m[0][1] * tempMatrix.m[1][2] * tempMatrix.m[2][3] + tempMatrix.m[0][1] * tempMatrix.m[1][3] * tempMatrix.m[2][2] +
-		              tempMatrix.m[1][1] * tempMatrix.m[0][2] * tempMatrix.m[2][3] - tempMatrix.m[1][1] * tempMatrix.m[0][3] * tempMatrix.m[2][2] -
-		              tempMatrix.m[2][1] * tempMatrix.m[0][2] * tempMatrix.m[1][3] + tempMatrix.m[2][1] * tempMatrix.m[0][3] * tempMatrix.m[1][2];
-		m->m[1][0] =  f1 * invDet;
-		m->m[1][1] =  tempMatrix.m[0][0] * tempMatrix.m[2][2] * tempMatrix.m[3][3] - tempMatrix.m[0][0] * tempMatrix.m[2][3] * tempMatrix.m[3][2] -
-		              tempMatrix.m[2][0] * tempMatrix.m[0][2] * tempMatrix.m[3][3] + tempMatrix.m[2][0] * tempMatrix.m[0][3] * tempMatrix.m[3][2] +
-		              tempMatrix.m[3][0] * tempMatrix.m[0][2] * tempMatrix.m[2][3] - tempMatrix.m[3][0] * tempMatrix.m[0][3] * tempMatrix.m[2][2];
-		m->m[1][2] = -tempMatrix.m[0][0] * tempMatrix.m[1][2] * tempMatrix.m[3][3] + tempMatrix.m[0][0] * tempMatrix.m[1][3] * tempMatrix.m[3][2] +
-		              tempMatrix.m[1][0] * tempMatrix.m[0][2] * tempMatrix.m[3][3] - tempMatrix.m[1][0] * tempMatrix.m[0][3] * tempMatrix.m[3][2] -
-		              tempMatrix.m[3][0] * tempMatrix.m[0][2] * tempMatrix.m[1][3] + tempMatrix.m[3][0] * tempMatrix.m[0][3] * tempMatrix.m[1][2];
-		m->m[1][3] =  tempMatrix.m[0][0] * tempMatrix.m[1][2] * tempMatrix.m[2][3] - tempMatrix.m[0][0] * tempMatrix.m[1][3] * tempMatrix.m[2][2] -
-		              tempMatrix.m[1][0] * tempMatrix.m[0][2] * tempMatrix.m[2][3] + tempMatrix.m[1][0] * tempMatrix.m[0][3] * tempMatrix.m[2][2] +
-		              tempMatrix.m[2][0] * tempMatrix.m[0][2] * tempMatrix.m[1][3] - tempMatrix.m[2][0] * tempMatrix.m[0][3] * tempMatrix.m[1][2];
-		m->m[2][0] =  f2 * invDet;
-		m->m[2][1] = -tempMatrix.m[0][0] * tempMatrix.m[2][1] * tempMatrix.m[3][3] + tempMatrix.m[0][0] * tempMatrix.m[2][3] * tempMatrix.m[3][1] +
-		              tempMatrix.m[2][0] * tempMatrix.m[0][1] * tempMatrix.m[3][3] - tempMatrix.m[2][0] * tempMatrix.m[0][3] * tempMatrix.m[3][1] -
-		              tempMatrix.m[3][0] * tempMatrix.m[0][1] * tempMatrix.m[2][3] + tempMatrix.m[3][0] * tempMatrix.m[0][3] * tempMatrix.m[2][1];
-		m->m[2][2] =  tempMatrix.m[0][0] * tempMatrix.m[1][1] * tempMatrix.m[3][3] - tempMatrix.m[0][0] * tempMatrix.m[1][3] * tempMatrix.m[3][1] -
-		              tempMatrix.m[1][0] * tempMatrix.m[0][1] * tempMatrix.m[3][3] + tempMatrix.m[1][0] * tempMatrix.m[0][3] * tempMatrix.m[3][1] +
-		              tempMatrix.m[3][0] * tempMatrix.m[0][1] * tempMatrix.m[1][3] - tempMatrix.m[3][0] * tempMatrix.m[0][3] * tempMatrix.m[1][1];
-		m->m[2][3] = -tempMatrix.m[0][0] * tempMatrix.m[1][1] * tempMatrix.m[2][3] + tempMatrix.m[0][0] * tempMatrix.m[1][3] * tempMatrix.m[2][1] +
-		              tempMatrix.m[1][0] * tempMatrix.m[0][1] * tempMatrix.m[2][3] - tempMatrix.m[1][0] * tempMatrix.m[0][3] * tempMatrix.m[2][1] -
-		              tempMatrix.m[2][0] * tempMatrix.m[0][1] * tempMatrix.m[1][3] + tempMatrix.m[2][0] * tempMatrix.m[0][3] * tempMatrix.m[1][1];
-		m->m[3][0] =  f3 * invDet;
-		m->m[3][1] =  tempMatrix.m[0][0] * tempMatrix.m[2][1] * tempMatrix.m[3][2] - tempMatrix.m[0][0] * tempMatrix.m[2][2] * tempMatrix.m[3][1] -
-		              tempMatrix.m[2][0] * tempMatrix.m[0][1] * tempMatrix.m[3][2] + tempMatrix.m[2][0] * tempMatrix.m[0][2] * tempMatrix.m[3][1] +
-		              tempMatrix.m[3][0] * tempMatrix.m[0][1] * tempMatrix.m[2][2] - tempMatrix.m[3][0] * tempMatrix.m[0][2] * tempMatrix.m[2][1];
-		m->m[3][2] = -tempMatrix.m[0][0] * tempMatrix.m[1][1] * tempMatrix.m[3][2] + tempMatrix.m[0][0] * tempMatrix.m[1][2] * tempMatrix.m[3][1] +
-		              tempMatrix.m[1][0] * tempMatrix.m[0][1] * tempMatrix.m[3][2] - tempMatrix.m[1][0] * tempMatrix.m[0][2] * tempMatrix.m[3][1] -
-		              tempMatrix.m[3][0] * tempMatrix.m[0][1] * tempMatrix.m[1][2] + tempMatrix.m[3][0] * tempMatrix.m[0][2] * tempMatrix.m[1][1];
-		m->m[3][3] =  tempMatrix.m[0][0] * tempMatrix.m[1][1] * tempMatrix.m[2][2] - tempMatrix.m[0][0] * tempMatrix.m[1][2] * tempMatrix.m[2][1] -
-		              tempMatrix.m[1][0] * tempMatrix.m[0][1] * tempMatrix.m[2][2] + tempMatrix.m[1][0] * tempMatrix.m[0][2] * tempMatrix.m[2][1] +
-		              tempMatrix.m[2][0] * tempMatrix.m[0][1] * tempMatrix.m[1][2] - tempMatrix.m[2][0] * tempMatrix.m[0][2] * tempMatrix.m[1][1];
+		// In terms of the adjugate, m^(-1) = adj(m)/det(m), where
+		//     adj(m)_(i,j) = c_(j,i).
+		m->m[0][0] = c00 * invDet;
+		m->m[0][1] = c01 * invDet;
+		m->m[0][2] = c02 * invDet;
+		m->m[0][3] = c03 * invDet;
+		m->m[1][0] = -(tempMatrix.m[1][0] * f0 - tempMatrix.m[2][0] * f1 + tempMatrix.m[3][0] * f2) * invDet;
+		m->m[1][1] =  (tempMatrix.m[0][0] * f0 - tempMatrix.m[2][0] * f3 + tempMatrix.m[3][0] * f4) * invDet;
+		m->m[1][2] = -(tempMatrix.m[0][0] * f1 - tempMatrix.m[1][0] * f3 + tempMatrix.m[3][0] * f5) * invDet;
+		m->m[1][3] =  (tempMatrix.m[0][0] * f2 - tempMatrix.m[1][0] * f4 + tempMatrix.m[2][0] * f5) * invDet;
+		// For these entries, we now expand along the bottom row of the 3x3 submatrix!
+		m->m[2][0] =  (tempMatrix.m[1][3] * g0 - tempMatrix.m[2][3] * g1 + tempMatrix.m[3][3] * g2) * invDet;
+		m->m[2][1] = -(tempMatrix.m[0][3] * g0 - tempMatrix.m[2][3] * g3 + tempMatrix.m[3][3] * g4) * invDet;
+		m->m[2][2] =  (tempMatrix.m[0][3] * g1 - tempMatrix.m[1][3] * g3 + tempMatrix.m[3][3] * g5) * invDet;
+		m->m[2][3] = -(tempMatrix.m[0][3] * g2 - tempMatrix.m[1][3] * g4 + tempMatrix.m[2][3] * g5) * invDet;
+		m->m[3][0] = -(tempMatrix.m[1][2] * g0 - tempMatrix.m[2][2] * g1 + tempMatrix.m[3][2] * g2) * invDet;
+		m->m[3][1] =  (tempMatrix.m[0][2] * g0 - tempMatrix.m[2][2] * g3 + tempMatrix.m[3][2] * g4) * invDet;
+		m->m[3][2] = -(tempMatrix.m[0][2] * g1 - tempMatrix.m[1][2] * g3 + tempMatrix.m[3][2] * g5) * invDet;
+		m->m[3][3] =  (tempMatrix.m[0][2] * g2 - tempMatrix.m[1][2] * g4 + tempMatrix.m[2][2] * g5) * invDet;
 	}
 }
 
 // Invert a matrix and store the result in "out"!
 void mat4InvertOut(const mat4 m, mat4 *const restrict out){
 	// We need to use these values twice, but we only need to calculate them once.
-	const float f0 =  m.m[1][1] * m.m[2][2] * m.m[3][3] - m.m[1][1] * m.m[2][3] * m.m[3][2] -
-	                  m.m[2][1] * m.m[1][2] * m.m[3][3] + m.m[2][1] * m.m[1][3] * m.m[3][2] +
-	                  m.m[3][1] * m.m[1][2] * m.m[2][3] - m.m[3][1] * m.m[1][3] * m.m[2][2];
-	const float f1 = -m.m[1][0] * m.m[2][2] * m.m[3][3] + m.m[1][0] * m.m[2][3] * m.m[3][2] +
-	                  m.m[2][0] * m.m[1][2] * m.m[3][3] - m.m[2][0] * m.m[1][3] * m.m[3][2] -
-	                  m.m[3][0] * m.m[1][2] * m.m[2][3] + m.m[3][0] * m.m[1][3] * m.m[2][2];
-	const float f2 =  m.m[1][0] * m.m[2][1] * m.m[3][3] - m.m[1][0] * m.m[2][3] * m.m[3][1] -
-	                  m.m[2][0] * m.m[1][1] * m.m[3][3] + m.m[2][0] * m.m[1][3] * m.m[3][1] +
-	                  m.m[3][0] * m.m[1][1] * m.m[2][3] - m.m[3][0] * m.m[1][3] * m.m[2][1];
-	const float f3 = -m.m[1][0] * m.m[2][1] * m.m[3][2] + m.m[1][0] * m.m[2][2] * m.m[3][1] +
-	                  m.m[2][0] * m.m[1][1] * m.m[3][2] - m.m[2][0] * m.m[1][2] * m.m[3][1] -
-	                  m.m[3][0] * m.m[1][1] * m.m[2][2] + m.m[3][0] * m.m[1][2] * m.m[2][1];
+	// These values represent 2x2 minors on the lower half of our matrix.
+	const float f0 = m.m[2][2] * m.m[3][3] - m.m[3][2] * m.m[2][3];
+	const float f1 = m.m[1][2] * m.m[3][3] - m.m[3][2] * m.m[1][3];
+	const float f2 = m.m[1][2] * m.m[2][3] - m.m[2][2] * m.m[1][3];
+	const float f3 = m.m[0][2] * m.m[3][3] - m.m[3][2] * m.m[0][3];
+	const float f4 = m.m[0][2] * m.m[2][3] - m.m[2][2] * m.m[0][3];
+	const float f5 = m.m[0][2] * m.m[1][3] - m.m[1][2] * m.m[0][3];
+	// These values represent the cofactors c_(0,0), c_(0,1), c_(0,2) and c_(0,3).
+	const float c00 =   m.m[1][1] * f0 - m.m[2][1] * f1 + m.m[3][1] * f2;
+	const float c01 = -(m.m[0][1] * f0 - m.m[2][1] * f3 + m.m[3][1] * f4);
+	const float c02 =   m.m[0][1] * f1 - m.m[1][1] * f3 + m.m[3][1] * f5;
+	const float c03 = -(m.m[0][1] * f2 - m.m[1][1] * f4 + m.m[2][1] * f5);
 	// Find the determinant of the matrix!
-	float invDet = m.m[0][0] * f0 + m.m[0][1] * f1 + m.m[0][2] * f2 + m.m[0][3] * f3;
+	float invDet = m.m[0][0] * c00 + m.m[1][0] * c01 + m.m[2][0] * c02 + m.m[3][0] * c03;
 
 	// Make sure we don't divide by 0!
 	if(invDet != 0.f){
+		// These values represent 2x2 minors on the upper half of our matrix.
+		const float g0 = m.m[2][0] * m.m[3][1] - m.m[3][0] * m.m[2][1];
+		const float g1 = m.m[1][0] * m.m[3][1] - m.m[3][0] * m.m[1][1];
+		const float g2 = m.m[1][0] * m.m[2][1] - m.m[2][0] * m.m[1][1];
+		const float g3 = m.m[0][0] * m.m[3][1] - m.m[3][0] * m.m[0][1];
+		const float g4 = m.m[0][0] * m.m[2][1] - m.m[2][0] * m.m[0][1];
+		const float g5 = m.m[0][0] * m.m[1][1] - m.m[1][0] * m.m[0][1];
+
 		invDet = 1.f / invDet;
 
 		// Now use the determinant to find the inverse of the matrix!
-		out->m[0][0] =  f0 * invDet;
-		out->m[0][1] = -m.m[0][1] * m.m[2][2] * m.m[3][3] + m.m[0][1] * m.m[2][3] * m.m[3][2] +
-		                m.m[2][1] * m.m[0][2] * m.m[3][3] - m.m[2][1] * m.m[0][3] * m.m[3][2] -
-		                m.m[3][1] * m.m[0][2] * m.m[2][3] + m.m[3][1] * m.m[0][3] * m.m[2][2];
-		out->m[0][2] =  m.m[0][1] * m.m[1][2] * m.m[3][3] - m.m[0][1] * m.m[1][3] * m.m[3][2] -
-		                m.m[1][1] * m.m[0][2] * m.m[3][3] + m.m[1][1] * m.m[0][3] * m.m[3][2] +
-		                m.m[3][1] * m.m[0][2] * m.m[1][3] - m.m[3][1] * m.m[0][3] * m.m[1][2];
-		out->m[0][3] = -m.m[0][1] * m.m[1][2] * m.m[2][3] + m.m[0][1] * m.m[1][3] * m.m[2][2] +
-		                m.m[1][1] * m.m[0][2] * m.m[2][3] - m.m[1][1] * m.m[0][3] * m.m[2][2] -
-		                m.m[2][1] * m.m[0][2] * m.m[1][3] + m.m[2][1] * m.m[0][3] * m.m[1][2];
-		out->m[1][0] =  f1 * invDet;
-		out->m[1][1] =  m.m[0][0] * m.m[2][2] * m.m[3][3] - m.m[0][0] * m.m[2][3] * m.m[3][2] -
-		                m.m[2][0] * m.m[0][2] * m.m[3][3] + m.m[2][0] * m.m[0][3] * m.m[3][2] +
-		                m.m[3][0] * m.m[0][2] * m.m[2][3] - m.m[3][0] * m.m[0][3] * m.m[2][2];
-		out->m[1][2] = -m.m[0][0] * m.m[1][2] * m.m[3][3] + m.m[0][0] * m.m[1][3] * m.m[3][2] +
-		                m.m[1][0] * m.m[0][2] * m.m[3][3] - m.m[1][0] * m.m[0][3] * m.m[3][2] -
-		                m.m[3][0] * m.m[0][2] * m.m[1][3] + m.m[3][0] * m.m[0][3] * m.m[1][2];
-		out->m[1][3] =  m.m[0][0] * m.m[1][2] * m.m[2][3] - m.m[0][0] * m.m[1][3] * m.m[2][2] -
-		                m.m[1][0] * m.m[0][2] * m.m[2][3] + m.m[1][0] * m.m[0][3] * m.m[2][2] +
-		                m.m[2][0] * m.m[0][2] * m.m[1][3] - m.m[2][0] * m.m[0][3] * m.m[1][2];
-		out->m[2][0] =  f2 * invDet;
-		out->m[2][1] = -m.m[0][0] * m.m[2][1] * m.m[3][3] + m.m[0][0] * m.m[2][3] * m.m[3][1] +
-		                m.m[2][0] * m.m[0][1] * m.m[3][3] - m.m[2][0] * m.m[0][3] * m.m[3][1] -
-		                m.m[3][0] * m.m[0][1] * m.m[2][3] + m.m[3][0] * m.m[0][3] * m.m[2][1];
-		out->m[2][2] =  m.m[0][0] * m.m[1][1] * m.m[3][3] - m.m[0][0] * m.m[1][3] * m.m[3][1] -
-		                m.m[1][0] * m.m[0][1] * m.m[3][3] + m.m[1][0] * m.m[0][3] * m.m[3][1] +
-		                m.m[3][0] * m.m[0][1] * m.m[1][3] - m.m[3][0] * m.m[0][3] * m.m[1][1];
-		out->m[2][3] = -m.m[0][0] * m.m[1][1] * m.m[2][3] + m.m[0][0] * m.m[1][3] * m.m[2][1] +
-		                m.m[1][0] * m.m[0][1] * m.m[2][3] - m.m[1][0] * m.m[0][3] * m.m[2][1] -
-		                m.m[2][0] * m.m[0][1] * m.m[1][3] + m.m[2][0] * m.m[0][3] * m.m[1][1];
-		out->m[3][0] =  f3 * invDet;
-		out->m[3][1] =  m.m[0][0] * m.m[2][1] * m.m[3][2] - m.m[0][0] * m.m[2][2] * m.m[3][1] -
-		                m.m[2][0] * m.m[0][1] * m.m[3][2] + m.m[2][0] * m.m[0][2] * m.m[3][1] +
-		                m.m[3][0] * m.m[0][1] * m.m[2][2] - m.m[3][0] * m.m[0][2] * m.m[2][1];
-		out->m[3][2] = -m.m[0][0] * m.m[1][1] * m.m[3][2] + m.m[0][0] * m.m[1][2] * m.m[3][1] +
-		                m.m[1][0] * m.m[0][1] * m.m[3][2] - m.m[1][0] * m.m[0][2] * m.m[3][1] -
-		                m.m[3][0] * m.m[0][1] * m.m[1][2] + m.m[3][0] * m.m[0][2] * m.m[1][1];
-		out->m[3][3] =  m.m[0][0] * m.m[1][1] * m.m[2][2] - m.m[0][0] * m.m[1][2] * m.m[2][1] -
-		                m.m[1][0] * m.m[0][1] * m.m[2][2] + m.m[1][0] * m.m[0][2] * m.m[2][1] +
-		                m.m[2][0] * m.m[0][1] * m.m[1][2] - m.m[2][0] * m.m[0][2] * m.m[1][1];
+		// In terms of the adjugate, m^(-1) = adj(m)/det(m), where
+		//     adj(m)_(i,j) = c_(j,i).
+		out->m[0][0] = c00 * invDet;
+		out->m[0][1] = c01 * invDet;
+		out->m[0][2] = c02 * invDet;
+		out->m[0][3] = c03 * invDet;
+		out->m[1][0] = -(m.m[1][0] * f0 - m.m[2][0] * f1 + m.m[3][0] * f2) * invDet;
+		out->m[1][1] =  (m.m[0][0] * f0 - m.m[2][0] * f3 + m.m[3][0] * f4) * invDet;
+		out->m[1][2] = -(m.m[0][0] * f1 - m.m[1][0] * f3 + m.m[3][0] * f5) * invDet;
+		out->m[1][3] =  (m.m[0][0] * f2 - m.m[1][0] * f4 + m.m[2][0] * f5) * invDet;
+		// For these entries, we now expand along the bottom row of the 3x3 submatrix!
+		out->m[2][0] =  (m.m[1][3] * g0 - m.m[2][3] * g1 + m.m[3][3] * g2) * invDet;
+		out->m[2][1] = -(m.m[0][3] * g0 - m.m[2][3] * g3 + m.m[3][3] * g4) * invDet;
+		out->m[2][2] =  (m.m[0][3] * g1 - m.m[1][3] * g3 + m.m[3][3] * g5) * invDet;
+		out->m[2][3] = -(m.m[0][3] * g2 - m.m[1][3] * g4 + m.m[2][3] * g5) * invDet;
+		out->m[3][0] = -(m.m[1][2] * g0 - m.m[2][2] * g1 + m.m[3][2] * g2) * invDet;
+		out->m[3][1] =  (m.m[0][2] * g0 - m.m[2][2] * g3 + m.m[3][2] * g4) * invDet;
+		out->m[3][2] = -(m.m[0][2] * g1 - m.m[1][2] * g3 + m.m[3][2] * g5) * invDet;
+		out->m[3][3] =  (m.m[0][2] * g2 - m.m[1][2] * g4 + m.m[2][2] * g5) * invDet;
 	}
 }
 
 // Invert a matrix!
 mat4 mat4InvertC(const mat4 m){
 	// We need to use these values twice, but we only need to calculate them once.
-	const float f0 =  m.m[1][1] * m.m[2][2] * m.m[3][3] - m.m[1][1] * m.m[2][3] * m.m[3][2] -
-	                  m.m[2][1] * m.m[1][2] * m.m[3][3] + m.m[2][1] * m.m[1][3] * m.m[3][2] +
-	                  m.m[3][1] * m.m[1][2] * m.m[2][3] - m.m[3][1] * m.m[1][3] * m.m[2][2];
-	const float f1 = -m.m[1][0] * m.m[2][2] * m.m[3][3] + m.m[1][0] * m.m[2][3] * m.m[3][2] +
-	                  m.m[2][0] * m.m[1][2] * m.m[3][3] - m.m[2][0] * m.m[1][3] * m.m[3][2] -
-	                  m.m[3][0] * m.m[1][2] * m.m[2][3] + m.m[3][0] * m.m[1][3] * m.m[2][2];
-	const float f2 =  m.m[1][0] * m.m[2][1] * m.m[3][3] - m.m[1][0] * m.m[2][3] * m.m[3][1] -
-	                  m.m[2][0] * m.m[1][1] * m.m[3][3] + m.m[2][0] * m.m[1][3] * m.m[3][1] +
-	                  m.m[3][0] * m.m[1][1] * m.m[2][3] - m.m[3][0] * m.m[1][3] * m.m[2][1];
-	const float f3 = -m.m[1][0] * m.m[2][1] * m.m[3][2] + m.m[1][0] * m.m[2][2] * m.m[3][1] +
-	                  m.m[2][0] * m.m[1][1] * m.m[3][2] - m.m[2][0] * m.m[1][2] * m.m[3][1] -
-	                  m.m[3][0] * m.m[1][1] * m.m[2][2] + m.m[3][0] * m.m[1][2] * m.m[2][1];
+	// These values represent 2x2 minors on the lower half of our matrix.
+	const float f0 = m.m[2][2] * m.m[3][3] - m.m[3][2] * m.m[2][3];
+	const float f1 = m.m[1][2] * m.m[3][3] - m.m[3][2] * m.m[1][3];
+	const float f2 = m.m[1][2] * m.m[2][3] - m.m[2][2] * m.m[1][3];
+	const float f3 = m.m[0][2] * m.m[3][3] - m.m[3][2] * m.m[0][3];
+	const float f4 = m.m[0][2] * m.m[2][3] - m.m[2][2] * m.m[0][3];
+	const float f5 = m.m[0][2] * m.m[1][3] - m.m[1][2] * m.m[0][3];
+	// These values represent the cofactors c_(0,0), c_(0,1), c_(0,2) and c_(0,3).
+	const float c00 =   m.m[1][1] * f0 - m.m[2][1] * f1 + m.m[3][1] * f2;
+	const float c01 = -(m.m[0][1] * f0 - m.m[2][1] * f3 + m.m[3][1] * f4);
+	const float c02 =   m.m[0][1] * f1 - m.m[1][1] * f3 + m.m[3][1] * f5;
+	const float c03 = -(m.m[0][1] * f2 - m.m[1][1] * f4 + m.m[2][1] * f5);
 	// Find the determinant of the matrix!
-	float invDet = m.m[0][0] * f0 + m.m[0][1] * f1 + m.m[0][2] * f2 + m.m[0][3] * f3;
+	float invDet = m.m[0][0] * c00 + m.m[1][0] * c01 + m.m[2][0] * c02 + m.m[3][0] * c03;
 
 	// Make sure we don't divide by 0!
 	if(invDet != 0.f){
+		// These values represent 2x2 minors on the upper half of our matrix.
+		const float g0 = m.m[2][0] * m.m[3][1] - m.m[3][0] * m.m[2][1];
+		const float g1 = m.m[1][0] * m.m[3][1] - m.m[3][0] * m.m[1][1];
+		const float g2 = m.m[1][0] * m.m[2][1] - m.m[2][0] * m.m[1][1];
+		const float g3 = m.m[0][0] * m.m[3][1] - m.m[3][0] * m.m[0][1];
+		const float g4 = m.m[0][0] * m.m[2][1] - m.m[2][0] * m.m[0][1];
+		const float g5 = m.m[0][0] * m.m[1][1] - m.m[1][0] * m.m[0][1];
 		mat4 out;
 
 		invDet = 1.f / invDet;
 
 		// Now use the determinant to find the inverse of the matrix!
-		out.m[0][0] =  f0 * invDet;
-		out.m[0][1] = -m.m[0][1] * m.m[2][2] * m.m[3][3] + m.m[0][1] * m.m[2][3] * m.m[3][2] +
-		               m.m[2][1] * m.m[0][2] * m.m[3][3] - m.m[2][1] * m.m[0][3] * m.m[3][2] -
-		               m.m[3][1] * m.m[0][2] * m.m[2][3] + m.m[3][1] * m.m[0][3] * m.m[2][2];
-		out.m[0][2] =  m.m[0][1] * m.m[1][2] * m.m[3][3] - m.m[0][1] * m.m[1][3] * m.m[3][2] -
-		               m.m[1][1] * m.m[0][2] * m.m[3][3] + m.m[1][1] * m.m[0][3] * m.m[3][2] +
-		               m.m[3][1] * m.m[0][2] * m.m[1][3] - m.m[3][1] * m.m[0][3] * m.m[1][2];
-		out.m[0][3] = -m.m[0][1] * m.m[1][2] * m.m[2][3] + m.m[0][1] * m.m[1][3] * m.m[2][2] +
-		               m.m[1][1] * m.m[0][2] * m.m[2][3] - m.m[1][1] * m.m[0][3] * m.m[2][2] -
-		               m.m[2][1] * m.m[0][2] * m.m[1][3] + m.m[2][1] * m.m[0][3] * m.m[1][2];
-		out.m[1][0] =  f1 * invDet;
-		out.m[1][1] =  m.m[0][0] * m.m[2][2] * m.m[3][3] - m.m[0][0] * m.m[2][3] * m.m[3][2] -
-		               m.m[2][0] * m.m[0][2] * m.m[3][3] + m.m[2][0] * m.m[0][3] * m.m[3][2] +
-		               m.m[3][0] * m.m[0][2] * m.m[2][3] - m.m[3][0] * m.m[0][3] * m.m[2][2];
-		out.m[1][2] = -m.m[0][0] * m.m[1][2] * m.m[3][3] + m.m[0][0] * m.m[1][3] * m.m[3][2] +
-		               m.m[1][0] * m.m[0][2] * m.m[3][3] - m.m[1][0] * m.m[0][3] * m.m[3][2] -
-		               m.m[3][0] * m.m[0][2] * m.m[1][3] + m.m[3][0] * m.m[0][3] * m.m[1][2];
-		out.m[1][3] =  m.m[0][0] * m.m[1][2] * m.m[2][3] - m.m[0][0] * m.m[1][3] * m.m[2][2] -
-		               m.m[1][0] * m.m[0][2] * m.m[2][3] + m.m[1][0] * m.m[0][3] * m.m[2][2] +
-		               m.m[2][0] * m.m[0][2] * m.m[1][3] - m.m[2][0] * m.m[0][3] * m.m[1][2];
-		out.m[2][0] =  f2 * invDet;
-		out.m[2][1] = -m.m[0][0] * m.m[2][1] * m.m[3][3] + m.m[0][0] * m.m[2][3] * m.m[3][1] +
-		               m.m[2][0] * m.m[0][1] * m.m[3][3] - m.m[2][0] * m.m[0][3] * m.m[3][1] -
-		               m.m[3][0] * m.m[0][1] * m.m[2][3] + m.m[3][0] * m.m[0][3] * m.m[2][1];
-		out.m[2][2] =  m.m[0][0] * m.m[1][1] * m.m[3][3] - m.m[0][0] * m.m[1][3] * m.m[3][1] -
-		               m.m[1][0] * m.m[0][1] * m.m[3][3] + m.m[1][0] * m.m[0][3] * m.m[3][1] +
-		               m.m[3][0] * m.m[0][1] * m.m[1][3] - m.m[3][0] * m.m[0][3] * m.m[1][1];
-		out.m[2][3] = -m.m[0][0] * m.m[1][1] * m.m[2][3] + m.m[0][0] * m.m[1][3] * m.m[2][1] +
-		               m.m[1][0] * m.m[0][1] * m.m[2][3] - m.m[1][0] * m.m[0][3] * m.m[2][1] -
-		               m.m[2][0] * m.m[0][1] * m.m[1][3] + m.m[2][0] * m.m[0][3] * m.m[1][1];
-		out.m[3][0] =  f3 * invDet;
-		out.m[3][1] =  m.m[0][0] * m.m[2][1] * m.m[3][2] - m.m[0][0] * m.m[2][2] * m.m[3][1] -
-		               m.m[2][0] * m.m[0][1] * m.m[3][2] + m.m[2][0] * m.m[0][2] * m.m[3][1] +
-		               m.m[3][0] * m.m[0][1] * m.m[2][2] - m.m[3][0] * m.m[0][2] * m.m[2][1];
-		out.m[3][2] = -m.m[0][0] * m.m[1][1] * m.m[3][2] + m.m[0][0] * m.m[1][2] * m.m[3][1] +
-		               m.m[1][0] * m.m[0][1] * m.m[3][2] - m.m[1][0] * m.m[0][2] * m.m[3][1] -
-		               m.m[3][0] * m.m[0][1] * m.m[1][2] + m.m[3][0] * m.m[0][2] * m.m[1][1];
-		out.m[3][3] =  m.m[0][0] * m.m[1][1] * m.m[2][2] - m.m[0][0] * m.m[1][2] * m.m[2][1] -
-		               m.m[1][0] * m.m[0][1] * m.m[2][2] + m.m[1][0] * m.m[0][2] * m.m[2][1] +
-		               m.m[2][0] * m.m[0][1] * m.m[1][2] - m.m[2][0] * m.m[0][2] * m.m[1][1];
+		// In terms of the adjugate, m^(-1) = adj(m)/det(m), where
+		//     adj(m)_(i,j) = c_(j,i).
+		out.m[0][0] = c00 * invDet;
+		out.m[0][1] = c01 * invDet;
+		out.m[0][2] = c02 * invDet;
+		out.m[0][3] = c03 * invDet;
+		out.m[1][0] = -(m.m[1][0] * f0 - m.m[2][0] * f1 + m.m[3][0] * f2) * invDet;
+		out.m[1][1] =  (m.m[0][0] * f0 - m.m[2][0] * f3 + m.m[3][0] * f4) * invDet;
+		out.m[1][2] = -(m.m[0][0] * f1 - m.m[1][0] * f3 + m.m[3][0] * f5) * invDet;
+		out.m[1][3] =  (m.m[0][0] * f2 - m.m[1][0] * f4 + m.m[2][0] * f5) * invDet;
+		// For these entries, we now expand along the bottom row of the 3x3 submatrix!
+		out.m[2][0] =  (m.m[1][3] * g0 - m.m[2][3] * g1 + m.m[3][3] * g2) * invDet;
+		out.m[2][1] = -(m.m[0][3] * g0 - m.m[2][3] * g3 + m.m[3][3] * g4) * invDet;
+		out.m[2][2] =  (m.m[0][3] * g1 - m.m[1][3] * g3 + m.m[3][3] * g5) * invDet;
+		out.m[2][3] = -(m.m[0][3] * g2 - m.m[1][3] * g4 + m.m[2][3] * g5) * invDet;
+		out.m[3][0] = -(m.m[1][2] * g0 - m.m[2][2] * g1 + m.m[3][2] * g2) * invDet;
+		out.m[3][1] =  (m.m[0][2] * g0 - m.m[2][2] * g3 + m.m[3][2] * g4) * invDet;
+		out.m[3][2] = -(m.m[0][2] * g1 - m.m[1][2] * g3 + m.m[3][2] * g5) * invDet;
+		out.m[3][3] =  (m.m[0][2] * g2 - m.m[1][2] * g4 + m.m[2][2] * g5) * invDet;
 
 		return(out);
 	}
@@ -2115,66 +2220,53 @@ return_t mat4CanInvert(mat4 *const restrict m){
 	const mat4 tempMatrix = *m;
 
 	// We need to use these values twice, but we only need to calculate them once.
-	const float f0 =  tempMatrix.m[1][1] * tempMatrix.m[2][2] * tempMatrix.m[3][3] - tempMatrix.m[1][1] * tempMatrix.m[2][3] * tempMatrix.m[3][2] -
-	                  tempMatrix.m[2][1] * tempMatrix.m[1][2] * tempMatrix.m[3][3] + tempMatrix.m[2][1] * tempMatrix.m[1][3] * tempMatrix.m[3][2] +
-	                  tempMatrix.m[3][1] * tempMatrix.m[1][2] * tempMatrix.m[2][3] - tempMatrix.m[3][1] * tempMatrix.m[1][3] * tempMatrix.m[2][2];
-	const float f1 = -tempMatrix.m[1][0] * tempMatrix.m[2][2] * tempMatrix.m[3][3] + tempMatrix.m[1][0] * tempMatrix.m[2][3] * tempMatrix.m[3][2] +
-	                  tempMatrix.m[2][0] * tempMatrix.m[1][2] * tempMatrix.m[3][3] - tempMatrix.m[2][0] * tempMatrix.m[1][3] * tempMatrix.m[3][2] -
-	                  tempMatrix.m[3][0] * tempMatrix.m[1][2] * tempMatrix.m[2][3] + tempMatrix.m[3][0] * tempMatrix.m[1][3] * tempMatrix.m[2][2];
-	const float f2 =  tempMatrix.m[1][0] * tempMatrix.m[2][1] * tempMatrix.m[3][3] - tempMatrix.m[1][0] * tempMatrix.m[2][3] * tempMatrix.m[3][1] -
-	                  tempMatrix.m[2][0] * tempMatrix.m[1][1] * tempMatrix.m[3][3] + tempMatrix.m[2][0] * tempMatrix.m[1][3] * tempMatrix.m[3][1] +
-	                  tempMatrix.m[3][0] * tempMatrix.m[1][1] * tempMatrix.m[2][3] - tempMatrix.m[3][0] * tempMatrix.m[1][3] * tempMatrix.m[2][1];
-	const float f3 = -tempMatrix.m[1][0] * tempMatrix.m[2][1] * tempMatrix.m[3][2] + tempMatrix.m[1][0] * tempMatrix.m[2][2] * tempMatrix.m[3][1] +
-	                  tempMatrix.m[2][0] * tempMatrix.m[1][1] * tempMatrix.m[3][2] - tempMatrix.m[2][0] * tempMatrix.m[1][2] * tempMatrix.m[3][1] -
-	                  tempMatrix.m[3][0] * tempMatrix.m[1][1] * tempMatrix.m[2][2] + tempMatrix.m[3][0] * tempMatrix.m[1][2] * tempMatrix.m[2][1];
+	// These values represent 2x2 minors on the lower half of our matrix.
+	const float f0 = tempMatrix.m[2][2] * tempMatrix.m[3][3] - tempMatrix.m[3][2] * tempMatrix.m[2][3];
+	const float f1 = tempMatrix.m[1][2] * tempMatrix.m[3][3] - tempMatrix.m[3][2] * tempMatrix.m[1][3];
+	const float f2 = tempMatrix.m[1][2] * tempMatrix.m[2][3] - tempMatrix.m[2][2] * tempMatrix.m[1][3];
+	const float f3 = tempMatrix.m[0][2] * tempMatrix.m[3][3] - tempMatrix.m[3][2] * tempMatrix.m[0][3];
+	const float f4 = tempMatrix.m[0][2] * tempMatrix.m[2][3] - tempMatrix.m[2][2] * tempMatrix.m[0][3];
+	const float f5 = tempMatrix.m[0][2] * tempMatrix.m[1][3] - tempMatrix.m[1][2] * tempMatrix.m[0][3];
+	// These values represent the cofactors c_(0,0), c_(0,1), c_(0,2) and c_(0,3).
+	const float c00 =   tempMatrix.m[1][1] * f0 - tempMatrix.m[2][1] * f1 + tempMatrix.m[3][1] * f2;
+	const float c01 = -(tempMatrix.m[0][1] * f0 - tempMatrix.m[2][1] * f3 + tempMatrix.m[3][1] * f4);
+	const float c02 =   tempMatrix.m[0][1] * f1 - tempMatrix.m[1][1] * f3 + tempMatrix.m[3][1] * f5;
+	const float c03 = -(tempMatrix.m[0][1] * f2 - tempMatrix.m[1][1] * f4 + tempMatrix.m[2][1] * f5);
 	// Find the determinant of the matrix!
-	float invDet = tempMatrix.m[0][0] * f0 + tempMatrix.m[0][1] * f1 + tempMatrix.m[0][2] * f2 + tempMatrix.m[0][3] * f3;
+	float invDet = tempMatrix.m[0][0] * c00 + tempMatrix.m[1][0] * c01 + tempMatrix.m[2][0] * c02 + tempMatrix.m[3][0] * c03;
 
 	// Make sure we don't divide by 0!
 	if(invDet != 0.f){
+		// These values represent 2x2 minors on the upper half of our matrix.
+		const float g0 = tempMatrix.m[2][0] * tempMatrix.m[3][1] - tempMatrix.m[3][0] * tempMatrix.m[2][1];
+		const float g1 = tempMatrix.m[1][0] * tempMatrix.m[3][1] - tempMatrix.m[3][0] * tempMatrix.m[1][1];
+		const float g2 = tempMatrix.m[1][0] * tempMatrix.m[2][1] - tempMatrix.m[2][0] * tempMatrix.m[1][1];
+		const float g3 = tempMatrix.m[0][0] * tempMatrix.m[3][1] - tempMatrix.m[3][0] * tempMatrix.m[0][1];
+		const float g4 = tempMatrix.m[0][0] * tempMatrix.m[2][1] - tempMatrix.m[2][0] * tempMatrix.m[0][1];
+		const float g5 = tempMatrix.m[0][0] * tempMatrix.m[1][1] - tempMatrix.m[1][0] * tempMatrix.m[0][1];
+
 		invDet = 1.f / invDet;
 
 		// Now use the determinant to find the inverse of the matrix!
-		m->m[0][0] =  f0 * invDet;
-		m->m[0][1] = -tempMatrix.m[0][1] * tempMatrix.m[2][2] * tempMatrix.m[3][3] + tempMatrix.m[0][1] * tempMatrix.m[2][3] * tempMatrix.m[3][2] +
-		              tempMatrix.m[2][1] * tempMatrix.m[0][2] * tempMatrix.m[3][3] - tempMatrix.m[2][1] * tempMatrix.m[0][3] * tempMatrix.m[3][2] -
-		              tempMatrix.m[3][1] * tempMatrix.m[0][2] * tempMatrix.m[2][3] + tempMatrix.m[3][1] * tempMatrix.m[0][3] * tempMatrix.m[2][2];
-		m->m[0][2] =  tempMatrix.m[0][1] * tempMatrix.m[1][2] * tempMatrix.m[3][3] - tempMatrix.m[0][1] * tempMatrix.m[1][3] * tempMatrix.m[3][2] -
-		              tempMatrix.m[1][1] * tempMatrix.m[0][2] * tempMatrix.m[3][3] + tempMatrix.m[1][1] * tempMatrix.m[0][3] * tempMatrix.m[3][2] +
-		              tempMatrix.m[3][1] * tempMatrix.m[0][2] * tempMatrix.m[1][3] - tempMatrix.m[3][1] * tempMatrix.m[0][3] * tempMatrix.m[1][2];
-		m->m[0][3] = -tempMatrix.m[0][1] * tempMatrix.m[1][2] * tempMatrix.m[2][3] + tempMatrix.m[0][1] * tempMatrix.m[1][3] * tempMatrix.m[2][2] +
-		              tempMatrix.m[1][1] * tempMatrix.m[0][2] * tempMatrix.m[2][3] - tempMatrix.m[1][1] * tempMatrix.m[0][3] * tempMatrix.m[2][2] -
-		              tempMatrix.m[2][1] * tempMatrix.m[0][2] * tempMatrix.m[1][3] + tempMatrix.m[2][1] * tempMatrix.m[0][3] * tempMatrix.m[1][2];
-		m->m[1][0] =  f1 * invDet;
-		m->m[1][1] =  tempMatrix.m[0][0] * tempMatrix.m[2][2] * tempMatrix.m[3][3] - tempMatrix.m[0][0] * tempMatrix.m[2][3] * tempMatrix.m[3][2] -
-		              tempMatrix.m[2][0] * tempMatrix.m[0][2] * tempMatrix.m[3][3] + tempMatrix.m[2][0] * tempMatrix.m[0][3] * tempMatrix.m[3][2] +
-		              tempMatrix.m[3][0] * tempMatrix.m[0][2] * tempMatrix.m[2][3] - tempMatrix.m[3][0] * tempMatrix.m[0][3] * tempMatrix.m[2][2];
-		m->m[1][2] = -tempMatrix.m[0][0] * tempMatrix.m[1][2] * tempMatrix.m[3][3] + tempMatrix.m[0][0] * tempMatrix.m[1][3] * tempMatrix.m[3][2] +
-		              tempMatrix.m[1][0] * tempMatrix.m[0][2] * tempMatrix.m[3][3] - tempMatrix.m[1][0] * tempMatrix.m[0][3] * tempMatrix.m[3][2] -
-		              tempMatrix.m[3][0] * tempMatrix.m[0][2] * tempMatrix.m[1][3] + tempMatrix.m[3][0] * tempMatrix.m[0][3] * tempMatrix.m[1][2];
-		m->m[1][3] =  tempMatrix.m[0][0] * tempMatrix.m[1][2] * tempMatrix.m[2][3] - tempMatrix.m[0][0] * tempMatrix.m[1][3] * tempMatrix.m[2][2] -
-		              tempMatrix.m[1][0] * tempMatrix.m[0][2] * tempMatrix.m[2][3] + tempMatrix.m[1][0] * tempMatrix.m[0][3] * tempMatrix.m[2][2] +
-		              tempMatrix.m[2][0] * tempMatrix.m[0][2] * tempMatrix.m[1][3] - tempMatrix.m[2][0] * tempMatrix.m[0][3] * tempMatrix.m[1][2];
-		m->m[2][0] =  f2 * invDet;
-		m->m[2][1] = -tempMatrix.m[0][0] * tempMatrix.m[2][1] * tempMatrix.m[3][3] + tempMatrix.m[0][0] * tempMatrix.m[2][3] * tempMatrix.m[3][1] +
-		              tempMatrix.m[2][0] * tempMatrix.m[0][1] * tempMatrix.m[3][3] - tempMatrix.m[2][0] * tempMatrix.m[0][3] * tempMatrix.m[3][1] -
-		              tempMatrix.m[3][0] * tempMatrix.m[0][1] * tempMatrix.m[2][3] + tempMatrix.m[3][0] * tempMatrix.m[0][3] * tempMatrix.m[2][1];
-		m->m[2][2] =  tempMatrix.m[0][0] * tempMatrix.m[1][1] * tempMatrix.m[3][3] - tempMatrix.m[0][0] * tempMatrix.m[1][3] * tempMatrix.m[3][1] -
-		              tempMatrix.m[1][0] * tempMatrix.m[0][1] * tempMatrix.m[3][3] + tempMatrix.m[1][0] * tempMatrix.m[0][3] * tempMatrix.m[3][1] +
-		              tempMatrix.m[3][0] * tempMatrix.m[0][1] * tempMatrix.m[1][3] - tempMatrix.m[3][0] * tempMatrix.m[0][3] * tempMatrix.m[1][1];
-		m->m[2][3] = -tempMatrix.m[0][0] * tempMatrix.m[1][1] * tempMatrix.m[2][3] + tempMatrix.m[0][0] * tempMatrix.m[1][3] * tempMatrix.m[2][1] +
-		              tempMatrix.m[1][0] * tempMatrix.m[0][1] * tempMatrix.m[2][3] - tempMatrix.m[1][0] * tempMatrix.m[0][3] * tempMatrix.m[2][1] -
-		              tempMatrix.m[2][0] * tempMatrix.m[0][1] * tempMatrix.m[1][3] + tempMatrix.m[2][0] * tempMatrix.m[0][3] * tempMatrix.m[1][1];
-		m->m[3][0] =  f3 * invDet;
-		m->m[3][1] =  tempMatrix.m[0][0] * tempMatrix.m[2][1] * tempMatrix.m[3][2] - tempMatrix.m[0][0] * tempMatrix.m[2][2] * tempMatrix.m[3][1] -
-		              tempMatrix.m[2][0] * tempMatrix.m[0][1] * tempMatrix.m[3][2] + tempMatrix.m[2][0] * tempMatrix.m[0][2] * tempMatrix.m[3][1] +
-		              tempMatrix.m[3][0] * tempMatrix.m[0][1] * tempMatrix.m[2][2] - tempMatrix.m[3][0] * tempMatrix.m[0][2] * tempMatrix.m[2][1];
-		m->m[3][2] = -tempMatrix.m[0][0] * tempMatrix.m[1][1] * tempMatrix.m[3][2] + tempMatrix.m[0][0] * tempMatrix.m[1][2] * tempMatrix.m[3][1] +
-		              tempMatrix.m[1][0] * tempMatrix.m[0][1] * tempMatrix.m[3][2] - tempMatrix.m[1][0] * tempMatrix.m[0][2] * tempMatrix.m[3][1] -
-		              tempMatrix.m[3][0] * tempMatrix.m[0][1] * tempMatrix.m[1][2] + tempMatrix.m[3][0] * tempMatrix.m[0][2] * tempMatrix.m[1][1];
-		m->m[3][3] =  tempMatrix.m[0][0] * tempMatrix.m[1][1] * tempMatrix.m[2][2] - tempMatrix.m[0][0] * tempMatrix.m[1][2] * tempMatrix.m[2][1] -
-		              tempMatrix.m[1][0] * tempMatrix.m[0][1] * tempMatrix.m[2][2] + tempMatrix.m[1][0] * tempMatrix.m[0][2] * tempMatrix.m[2][1] +
-		              tempMatrix.m[2][0] * tempMatrix.m[0][1] * tempMatrix.m[1][2] - tempMatrix.m[2][0] * tempMatrix.m[0][2] * tempMatrix.m[1][1];
+		// In terms of the adjugate, m^(-1) = adj(m)/det(m), where
+		//     adj(m)_(i,j) = c_(j,i).
+		m->m[0][0] = c00 * invDet;
+		m->m[0][1] = c01 * invDet;
+		m->m[0][2] = c02 * invDet;
+		m->m[0][3] = c03 * invDet;
+		m->m[1][0] = -(tempMatrix.m[1][0] * f0 - tempMatrix.m[2][0] * f1 + tempMatrix.m[3][0] * f2) * invDet;
+		m->m[1][1] =  (tempMatrix.m[0][0] * f0 - tempMatrix.m[2][0] * f3 + tempMatrix.m[3][0] * f4) * invDet;
+		m->m[1][2] = -(tempMatrix.m[0][0] * f1 - tempMatrix.m[1][0] * f3 + tempMatrix.m[3][0] * f5) * invDet;
+		m->m[1][3] =  (tempMatrix.m[0][0] * f2 - tempMatrix.m[1][0] * f4 + tempMatrix.m[2][0] * f5) * invDet;
+		// For these entries, we now expand along the bottom row of the 3x3 submatrix!
+		m->m[2][0] =  (tempMatrix.m[1][3] * g0 - tempMatrix.m[2][3] * g1 + tempMatrix.m[3][3] * g2) * invDet;
+		m->m[2][1] = -(tempMatrix.m[0][3] * g0 - tempMatrix.m[2][3] * g3 + tempMatrix.m[3][3] * g4) * invDet;
+		m->m[2][2] =  (tempMatrix.m[0][3] * g1 - tempMatrix.m[1][3] * g3 + tempMatrix.m[3][3] * g5) * invDet;
+		m->m[2][3] = -(tempMatrix.m[0][3] * g2 - tempMatrix.m[1][3] * g4 + tempMatrix.m[2][3] * g5) * invDet;
+		m->m[3][0] = -(tempMatrix.m[1][2] * g0 - tempMatrix.m[2][2] * g1 + tempMatrix.m[3][2] * g2) * invDet;
+		m->m[3][1] =  (tempMatrix.m[0][2] * g0 - tempMatrix.m[2][2] * g3 + tempMatrix.m[3][2] * g4) * invDet;
+		m->m[3][2] = -(tempMatrix.m[0][2] * g1 - tempMatrix.m[1][2] * g3 + tempMatrix.m[3][2] * g5) * invDet;
+		m->m[3][3] =  (tempMatrix.m[0][2] * g2 - tempMatrix.m[1][2] * g4 + tempMatrix.m[2][2] * g5) * invDet;
 
 
 		return(1);
@@ -2190,64 +2282,53 @@ return_t mat4CanInvert(mat4 *const restrict m){
 */
 return_t mat4CanInvertOut(const mat4 m, mat4 *const restrict out){
 	// We need to use these values twice, but we only need to calculate them once.
-	const float f0 =  m.m[1][1] * m.m[2][2] * m.m[3][3] - m.m[1][1] * m.m[2][3] * m.m[3][2] -
-	                  m.m[2][1] * m.m[1][2] * m.m[3][3] + m.m[2][1] * m.m[1][3] * m.m[3][2] +
-	                  m.m[3][1] * m.m[1][2] * m.m[2][3] - m.m[3][1] * m.m[1][3] * m.m[2][2];
-	const float f1 = -m.m[1][0] * m.m[2][2] * m.m[3][3] + m.m[1][0] * m.m[2][3] * m.m[3][2] +
-	                  m.m[2][0] * m.m[1][2] * m.m[3][3] - m.m[2][0] * m.m[1][3] * m.m[3][2] -
-	                  m.m[3][0] * m.m[1][2] * m.m[2][3] + m.m[3][0] * m.m[1][3] * m.m[2][2];
-	const float f2 =  m.m[1][0] * m.m[2][1] * m.m[3][3] - m.m[1][0] * m.m[2][3] * m.m[3][1] -
-	                  m.m[2][0] * m.m[1][1] * m.m[3][3] + m.m[2][0] * m.m[1][3] * m.m[3][1] +
-	                  m.m[3][0] * m.m[1][1] * m.m[2][3] - m.m[3][0] * m.m[1][3] * m.m[2][1];
-	const float f3 = -m.m[1][0] * m.m[2][1] * m.m[3][2] + m.m[1][0] * m.m[2][2] * m.m[3][1] +
-	                  m.m[2][0] * m.m[1][1] * m.m[3][2] - m.m[2][0] * m.m[1][2] * m.m[3][1] -
-	                  m.m[3][0] * m.m[1][1] * m.m[2][2] + m.m[3][0] * m.m[1][2] * m.m[2][1];
+	// These values represent 2x2 minors on the lower half of our matrix.
+	const float f0 = m.m[2][2] * m.m[3][3] - m.m[3][2] * m.m[2][3];
+	const float f1 = m.m[1][2] * m.m[3][3] - m.m[3][2] * m.m[1][3];
+	const float f2 = m.m[1][2] * m.m[2][3] - m.m[2][2] * m.m[1][3];
+	const float f3 = m.m[0][2] * m.m[3][3] - m.m[3][2] * m.m[0][3];
+	const float f4 = m.m[0][2] * m.m[2][3] - m.m[2][2] * m.m[0][3];
+	const float f5 = m.m[0][2] * m.m[1][3] - m.m[1][2] * m.m[0][3];
+	// These values represent the cofactors c_(0,0), c_(0,1), c_(0,2) and c_(0,3).
+	const float c00 =   m.m[1][1] * f0 - m.m[2][1] * f1 + m.m[3][1] * f2;
+	const float c01 = -(m.m[0][1] * f0 - m.m[2][1] * f3 + m.m[3][1] * f4);
+	const float c02 =   m.m[0][1] * f1 - m.m[1][1] * f3 + m.m[3][1] * f5;
+	const float c03 = -(m.m[0][1] * f2 - m.m[1][1] * f4 + m.m[2][1] * f5);
 	// Find the determinant of the matrix!
-	float invDet = m.m[0][0] * f0 + m.m[0][1] * f1 + m.m[0][2] * f2 + m.m[0][3] * f3;
+	float invDet = m.m[0][0] * c00 + m.m[1][0] * c01 + m.m[2][0] * c02 + m.m[3][0] * c03;
 
+	// Make sure we don't divide by 0!
 	if(invDet != 0.f){
+		// These values represent 2x2 minors on the upper half of our matrix.
+		const float g0 = m.m[2][0] * m.m[3][1] - m.m[3][0] * m.m[2][1];
+		const float g1 = m.m[1][0] * m.m[3][1] - m.m[3][0] * m.m[1][1];
+		const float g2 = m.m[1][0] * m.m[2][1] - m.m[2][0] * m.m[1][1];
+		const float g3 = m.m[0][0] * m.m[3][1] - m.m[3][0] * m.m[0][1];
+		const float g4 = m.m[0][0] * m.m[2][1] - m.m[2][0] * m.m[0][1];
+		const float g5 = m.m[0][0] * m.m[1][1] - m.m[1][0] * m.m[0][1];
+
 		invDet = 1.f / invDet;
 
-		out->m[0][0] =  f0 * invDet;
-		out->m[0][1] = -m.m[0][1] * m.m[2][2] * m.m[3][3] + m.m[0][1] * m.m[2][3] * m.m[3][2] +
-		                m.m[2][1] * m.m[0][2] * m.m[3][3] - m.m[2][1] * m.m[0][3] * m.m[3][2] -
-		                m.m[3][1] * m.m[0][2] * m.m[2][3] + m.m[3][1] * m.m[0][3] * m.m[2][2];
-		out->m[0][2] =  m.m[0][1] * m.m[1][2] * m.m[3][3] - m.m[0][1] * m.m[1][3] * m.m[3][2] -
-		                m.m[1][1] * m.m[0][2] * m.m[3][3] + m.m[1][1] * m.m[0][3] * m.m[3][2] +
-		                m.m[3][1] * m.m[0][2] * m.m[1][3] - m.m[3][1] * m.m[0][3] * m.m[1][2];
-		out->m[0][3] = -m.m[0][1] * m.m[1][2] * m.m[2][3] + m.m[0][1] * m.m[1][3] * m.m[2][2] +
-		                m.m[1][1] * m.m[0][2] * m.m[2][3] - m.m[1][1] * m.m[0][3] * m.m[2][2] -
-		                m.m[2][1] * m.m[0][2] * m.m[1][3] + m.m[2][1] * m.m[0][3] * m.m[1][2];
-		out->m[1][0] =  f1 * invDet;
-		out->m[1][1] =  m.m[0][0] * m.m[2][2] * m.m[3][3] - m.m[0][0] * m.m[2][3] * m.m[3][2] -
-		                m.m[2][0] * m.m[0][2] * m.m[3][3] + m.m[2][0] * m.m[0][3] * m.m[3][2] +
-		                m.m[3][0] * m.m[0][2] * m.m[2][3] - m.m[3][0] * m.m[0][3] * m.m[2][2];
-		out->m[1][2] = -m.m[0][0] * m.m[1][2] * m.m[3][3] + m.m[0][0] * m.m[1][3] * m.m[3][2] +
-		                m.m[1][0] * m.m[0][2] * m.m[3][3] - m.m[1][0] * m.m[0][3] * m.m[3][2] -
-		                m.m[3][0] * m.m[0][2] * m.m[1][3] + m.m[3][0] * m.m[0][3] * m.m[1][2];
-		out->m[1][3] =  m.m[0][0] * m.m[1][2] * m.m[2][3] - m.m[0][0] * m.m[1][3] * m.m[2][2] -
-		                m.m[1][0] * m.m[0][2] * m.m[2][3] + m.m[1][0] * m.m[0][3] * m.m[2][2] +
-		                m.m[2][0] * m.m[0][2] * m.m[1][3] - m.m[2][0] * m.m[0][3] * m.m[1][2];
-		out->m[2][0] =  f2 * invDet;
-		out->m[2][1] = -m.m[0][0] * m.m[2][1] * m.m[3][3] + m.m[0][0] * m.m[2][3] * m.m[3][1] +
-		                m.m[2][0] * m.m[0][1] * m.m[3][3] - m.m[2][0] * m.m[0][3] * m.m[3][1] -
-		                m.m[3][0] * m.m[0][1] * m.m[2][3] + m.m[3][0] * m.m[0][3] * m.m[2][1];
-		out->m[2][2] =  m.m[0][0] * m.m[1][1] * m.m[3][3] - m.m[0][0] * m.m[1][3] * m.m[3][1] -
-		                m.m[1][0] * m.m[0][1] * m.m[3][3] + m.m[1][0] * m.m[0][3] * m.m[3][1] +
-		                m.m[3][0] * m.m[0][1] * m.m[1][3] - m.m[3][0] * m.m[0][3] * m.m[1][1];
-		out->m[2][3] = -m.m[0][0] * m.m[1][1] * m.m[2][3] + m.m[0][0] * m.m[1][3] * m.m[2][1] +
-		                m.m[1][0] * m.m[0][1] * m.m[2][3] - m.m[1][0] * m.m[0][3] * m.m[2][1] -
-		                m.m[2][0] * m.m[0][1] * m.m[1][3] + m.m[2][0] * m.m[0][3] * m.m[1][1];
-		out->m[3][0] =  f3 * invDet;
-		out->m[3][1] =  m.m[0][0] * m.m[2][1] * m.m[3][2] - m.m[0][0] * m.m[2][2] * m.m[3][1] -
-		                m.m[2][0] * m.m[0][1] * m.m[3][2] + m.m[2][0] * m.m[0][2] * m.m[3][1] +
-		                m.m[3][0] * m.m[0][1] * m.m[2][2] - m.m[3][0] * m.m[0][2] * m.m[2][1];
-		out->m[3][2] = -m.m[0][0] * m.m[1][1] * m.m[3][2] + m.m[0][0] * m.m[1][2] * m.m[3][1] +
-		                m.m[1][0] * m.m[0][1] * m.m[3][2] - m.m[1][0] * m.m[0][2] * m.m[3][1] -
-		                m.m[3][0] * m.m[0][1] * m.m[1][2] + m.m[3][0] * m.m[0][2] * m.m[1][1];
-		out->m[3][3] =  m.m[0][0] * m.m[1][1] * m.m[2][2] - m.m[0][0] * m.m[1][2] * m.m[2][1] -
-		                m.m[1][0] * m.m[0][1] * m.m[2][2] + m.m[1][0] * m.m[0][2] * m.m[2][1] +
-		                m.m[2][0] * m.m[0][1] * m.m[1][2] - m.m[2][0] * m.m[0][2] * m.m[1][1];
+		// Now use the determinant to find the inverse of the matrix!
+		// In terms of the adjugate, m^(-1) = adj(m)/det(m), where
+		//     adj(m)_(i,j) = c_(j,i).
+		out->m[0][0] = c00 * invDet;
+		out->m[0][1] = c01 * invDet;
+		out->m[0][2] = c02 * invDet;
+		out->m[0][3] = c03 * invDet;
+		out->m[1][0] = -(m.m[1][0] * f0 - m.m[2][0] * f1 + m.m[3][0] * f2) * invDet;
+		out->m[1][1] =  (m.m[0][0] * f0 - m.m[2][0] * f3 + m.m[3][0] * f4) * invDet;
+		out->m[1][2] = -(m.m[0][0] * f1 - m.m[1][0] * f3 + m.m[3][0] * f5) * invDet;
+		out->m[1][3] =  (m.m[0][0] * f2 - m.m[1][0] * f4 + m.m[2][0] * f5) * invDet;
+		// For these entries, we now expand along the bottom row of the 3x3 submatrix!
+		out->m[2][0] =  (m.m[1][3] * g0 - m.m[2][3] * g1 + m.m[3][3] * g2) * invDet;
+		out->m[2][1] = -(m.m[0][3] * g0 - m.m[2][3] * g3 + m.m[3][3] * g4) * invDet;
+		out->m[2][2] =  (m.m[0][3] * g1 - m.m[1][3] * g3 + m.m[3][3] * g5) * invDet;
+		out->m[2][3] = -(m.m[0][3] * g2 - m.m[1][3] * g4 + m.m[2][3] * g5) * invDet;
+		out->m[3][0] = -(m.m[1][2] * g0 - m.m[2][2] * g1 + m.m[3][2] * g2) * invDet;
+		out->m[3][1] =  (m.m[0][2] * g0 - m.m[2][2] * g3 + m.m[3][2] * g4) * invDet;
+		out->m[3][2] = -(m.m[0][2] * g1 - m.m[1][2] * g3 + m.m[3][2] * g5) * invDet;
+		out->m[3][3] =  (m.m[0][2] * g2 - m.m[1][2] * g4 + m.m[2][2] * g5) * invDet;
 
 
 		return(1);
@@ -2501,7 +2582,7 @@ mat4 mat4PerspectiveC(const float fov, const float aspectRatio, const float near
 /*
 ** Convert a 4x4 matrix to a quaternion and store the result in "out"!
 ** For this to work, we assume that "m" is a special orthogonal matrix.
-** Implementation derived by Mike Day in Converting a Rotation Matrix to a Quaternion.
+** Implementation by Mike Day from Converting a Rotation Matrix to a Quaternion.
 */
 void mat4ToQuat(const mat4 *const restrict m, quat *const restrict out){
 	float t;
@@ -2526,8 +2607,8 @@ void mat4ToQuat(const mat4 *const restrict m, quat *const restrict out){
 }
 
 /*
-** Convert a 4x4 matrix to a quaternion!
-** Implementation derived by Mike Day in Converting a Rotation Matrix to a Quaternion.
+** Convert a 4x4 pure rotation matrix to a quaternion!
+** Implementation by Mike Day from Converting a Rotation Matrix to a Quaternion.
 */
 quat mat4ToQuatC(const mat4 m){
 	float t;

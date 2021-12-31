@@ -23,10 +23,6 @@
 #define memQuadListBlockMakeInvalid(next) memQuadListBlockSetFlag(next, MEMQUADLIST_FLAG_INVALID)
 
 
-#warning "What if the beginning or end of a memory region is not aligned?"
-#warning "We should go back to using the total memory size as input for init and extend, too."
-
-
 void *memQuadListInit(memoryQuadList *const restrict quadList, void *const restrict memory, const size_t memorySize, const size_t blockSize){
 	// Make sure the user isn't being difficult.
 	if(memory != NULL){

@@ -4,9 +4,6 @@
 #include "memoryManager.h"
 
 
-#warning "What if we aren't using the global memory manager?"
-
-
 // This is used by "error" objects
 // which require animation data.
 float g_animTimeDefault = 0.f;

@@ -10,9 +10,6 @@ memorySingleList g_physRigidBodyDefManager;
 memoryDoubleList g_physRigidBodyManager;
 
 
-#warning "What if we aren't using the global memory manager?"
-
-
 return_t modulePhysicsSetup(){
 	// The module's setup will be successful if we
 	// can allocate enough memory for our managers.
@@ -21,43 +18,43 @@ return_t modulePhysicsSetup(){
 		memPoolInit(
 			&g_aabbNodeManager,
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_AABBNODE_MANAGER_SIZE)),
-			MODULE_AABBNODE_MANAGER_SIZE, MODULE_AABBNODE_ELEMENT_SIZE
+			memoryGetRequiredSize(MODULE_AABBNODE_MANAGER_SIZE), MODULE_AABBNODE_ELEMENT_SIZE
 		) != NULL &&
 		// physicsContactPair
 		memDoubleListInit(
 			&g_physContactPairManager,
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSCONTACTPAIR_MANAGER_SIZE)),
-			MODULE_PHYSCONTACTPAIR_MANAGER_SIZE, MODULE_PHYSCONTACTPAIR_ELEMENT_SIZE
+			memoryGetRequiredSize(MODULE_PHYSCONTACTPAIR_MANAGER_SIZE), MODULE_PHYSCONTACTPAIR_ELEMENT_SIZE
 		) != NULL &&
 		// physicsSeparationPair
 		memDoubleListInit(
 			&g_physSeparationPairManager,
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSSEPARATIONPAIR_MANAGER_SIZE)),
-			MODULE_PHYSSEPARATIONPAIR_MANAGER_SIZE, MODULE_PHYSSEPARATIONPAIR_ELEMENT_SIZE
+			memoryGetRequiredSize(MODULE_PHYSSEPARATIONPAIR_MANAGER_SIZE), MODULE_PHYSSEPARATIONPAIR_ELEMENT_SIZE
 		) != NULL &&
 		// physicsJointPair
 		memDoubleListInit(
 			&g_physJointPairManager,
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSJOINTPAIR_MANAGER_SIZE)),
-			MODULE_PHYSJOINTPAIR_MANAGER_SIZE, MODULE_PHYSJOINTPAIR_ELEMENT_SIZE
+			memoryGetRequiredSize(MODULE_PHYSJOINTPAIR_MANAGER_SIZE), MODULE_PHYSJOINTPAIR_ELEMENT_SIZE
 		) != NULL &&
 		// physicsCollider
 		memSingleListInit(
 			&g_physColliderManager,
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSCOLLIDER_MANAGER_SIZE)),
-			MODULE_PHYSCOLLIDER_MANAGER_SIZE, MODULE_PHYSCOLLIDER_ELEMENT_SIZE
+			memoryGetRequiredSize(MODULE_PHYSCOLLIDER_MANAGER_SIZE), MODULE_PHYSCOLLIDER_ELEMENT_SIZE
 		) != NULL &&
 		// physicsRigidBodyDef
 		memSingleListInit(
 			&g_physRigidBodyDefManager,
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSRIGIDBODYDEF_MANAGER_SIZE)),
-			MODULE_PHYSRIGIDBODYDEF_MANAGER_SIZE, MODULE_PHYSRIGIDBODYDEF_ELEMENT_SIZE
+			memoryGetRequiredSize(MODULE_PHYSRIGIDBODYDEF_MANAGER_SIZE), MODULE_PHYSRIGIDBODYDEF_ELEMENT_SIZE
 		) != NULL &&
 		// physicsRigidBody
 		memDoubleListInit(
 			&g_physRigidBodyManager,
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSRIGIDBODY_MANAGER_SIZE)),
-			MODULE_PHYSRIGIDBODY_MANAGER_SIZE, MODULE_PHYSRIGIDBODY_ELEMENT_SIZE
+			memoryGetRequiredSize(MODULE_PHYSRIGIDBODY_MANAGER_SIZE), MODULE_PHYSRIGIDBODY_ELEMENT_SIZE
 		) != NULL
 	);
 }
@@ -112,7 +109,7 @@ aabbNode *modulePhysicsAABBNodeAlloc(){
 		if(memPoolExtend(
 			&g_aabbNodeManager,
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_AABBNODE_MANAGER_SIZE)),
-			MODULE_AABBNODE_MANAGER_SIZE
+			memoryGetRequiredSize(MODULE_AABBNODE_MANAGER_SIZE)
 		)){
 			newBlock = memPoolAlloc(&g_aabbNodeManager);
 		}
@@ -146,7 +143,7 @@ physicsContactPair *modulePhysicsContactPairAlloc(){
 		if(memDoubleListExtend(
 			&g_physContactPairManager,
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSCONTACTPAIR_MANAGER_SIZE)),
-			MODULE_PHYSCONTACTPAIR_MANAGER_SIZE
+			memoryGetRequiredSize(MODULE_PHYSCONTACTPAIR_MANAGER_SIZE)
 		)){
 			newBlock = memDoubleListAlloc(&g_physContactPairManager);
 		}
@@ -166,7 +163,7 @@ physicsContactPair *modulePhysicsContactPairPrepend(physicsContactPair **const r
 		if(memDoubleListExtend(
 			&g_physContactPairManager,
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSCONTACTPAIR_MANAGER_SIZE)),
-			MODULE_PHYSCONTACTPAIR_MANAGER_SIZE
+			memoryGetRequiredSize(MODULE_PHYSCONTACTPAIR_MANAGER_SIZE)
 		)){
 			newBlock = memDoubleListPrepend(&g_physContactPairManager, (void **)start);
 		}
@@ -186,7 +183,7 @@ physicsContactPair *modulePhysicsContactPairAppend(physicsContactPair **const re
 		if(memDoubleListExtend(
 			&g_physContactPairManager,
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSCONTACTPAIR_MANAGER_SIZE)),
-			MODULE_PHYSCONTACTPAIR_MANAGER_SIZE
+			memoryGetRequiredSize(MODULE_PHYSCONTACTPAIR_MANAGER_SIZE)
 		)){
 			newBlock = memDoubleListAppend(&g_physContactPairManager, (void **)start);
 		}
@@ -206,7 +203,7 @@ physicsContactPair *modulePhysicsContactPairInsertBefore(physicsContactPair **co
 		if(memDoubleListExtend(
 			&g_physContactPairManager,
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSCONTACTPAIR_MANAGER_SIZE)),
-			MODULE_PHYSCONTACTPAIR_MANAGER_SIZE
+			memoryGetRequiredSize(MODULE_PHYSCONTACTPAIR_MANAGER_SIZE)
 		)){
 			newBlock = memDoubleListInsertBefore(&g_physContactPairManager, (void **)start, (void *)next);
 		}
@@ -226,7 +223,7 @@ physicsContactPair *modulePhysicsContactPairInsertAfter(physicsContactPair **con
 		if(memDoubleListExtend(
 			&g_physContactPairManager,
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSCONTACTPAIR_MANAGER_SIZE)),
-			MODULE_PHYSCONTACTPAIR_MANAGER_SIZE
+			memoryGetRequiredSize(MODULE_PHYSCONTACTPAIR_MANAGER_SIZE)
 		)){
 			newBlock = memDoubleListInsertAfter(&g_physContactPairManager, (void **)start, (void *)prev);
 		}
@@ -278,7 +275,7 @@ physicsSeparationPair *modulePhysicsSeparationPairAlloc(){
 		if(memDoubleListExtend(
 			&g_physSeparationPairManager,
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSCONTACTPAIR_MANAGER_SIZE)),
-			MODULE_PHYSCONTACTPAIR_MANAGER_SIZE
+			memoryGetRequiredSize(MODULE_PHYSCONTACTPAIR_MANAGER_SIZE)
 		)){
 			newBlock = memDoubleListAlloc(&g_physSeparationPairManager);
 		}
@@ -298,7 +295,7 @@ physicsSeparationPair *modulePhysicsSeparationPairPrepend(physicsSeparationPair 
 		if(memDoubleListExtend(
 			&g_physSeparationPairManager,
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSCONTACTPAIR_MANAGER_SIZE)),
-			MODULE_PHYSCONTACTPAIR_MANAGER_SIZE
+			memoryGetRequiredSize(MODULE_PHYSCONTACTPAIR_MANAGER_SIZE)
 		)){
 			newBlock = memDoubleListPrepend(&g_physSeparationPairManager, (void **)start);
 		}
@@ -318,7 +315,7 @@ physicsSeparationPair *modulePhysicsSeparationPairAppend(physicsSeparationPair *
 		if(memDoubleListExtend(
 			&g_physSeparationPairManager,
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSCONTACTPAIR_MANAGER_SIZE)),
-			MODULE_PHYSCONTACTPAIR_MANAGER_SIZE
+			memoryGetRequiredSize(MODULE_PHYSCONTACTPAIR_MANAGER_SIZE)
 		)){
 			newBlock = memDoubleListAppend(&g_physSeparationPairManager, (void **)start);
 		}
@@ -338,7 +335,7 @@ physicsSeparationPair *modulePhysicsSeparationPairInsertBefore(physicsSeparation
 		if(memDoubleListExtend(
 			&g_physSeparationPairManager,
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSCONTACTPAIR_MANAGER_SIZE)),
-			MODULE_PHYSCONTACTPAIR_MANAGER_SIZE
+			memoryGetRequiredSize(MODULE_PHYSCONTACTPAIR_MANAGER_SIZE)
 		)){
 			newBlock = memDoubleListInsertBefore(&g_physSeparationPairManager, (void **)start, (void *)next);
 		}
@@ -358,7 +355,7 @@ physicsSeparationPair *modulePhysicsSeparationPairInsertAfter(physicsSeparationP
 		if(memDoubleListExtend(
 			&g_physSeparationPairManager,
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSCONTACTPAIR_MANAGER_SIZE)),
-			MODULE_PHYSCONTACTPAIR_MANAGER_SIZE
+			memoryGetRequiredSize(MODULE_PHYSCONTACTPAIR_MANAGER_SIZE)
 		)){
 			newBlock = memDoubleListInsertAfter(&g_physSeparationPairManager, (void **)start, (void *)prev);
 		}
@@ -410,7 +407,7 @@ physicsJointPair *modulePhysicsJointPairAlloc(){
 		if(memDoubleListExtend(
 			&g_physJointPairManager,
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSCONTACTPAIR_MANAGER_SIZE)),
-			MODULE_PHYSCONTACTPAIR_MANAGER_SIZE
+			memoryGetRequiredSize(MODULE_PHYSCONTACTPAIR_MANAGER_SIZE)
 		)){
 			newBlock = memDoubleListAlloc(&g_physJointPairManager);
 		}
@@ -430,7 +427,7 @@ physicsJointPair *modulePhysicsJointPairPrepend(physicsJointPair **const restric
 		if(memDoubleListExtend(
 			&g_physJointPairManager,
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSCONTACTPAIR_MANAGER_SIZE)),
-			MODULE_PHYSCONTACTPAIR_MANAGER_SIZE
+			memoryGetRequiredSize(MODULE_PHYSCONTACTPAIR_MANAGER_SIZE)
 		)){
 			newBlock = memDoubleListPrepend(&g_physJointPairManager, (void **)start);
 		}
@@ -450,7 +447,7 @@ physicsJointPair *modulePhysicsJointPairAppend(physicsJointPair **const restrict
 		if(memDoubleListExtend(
 			&g_physJointPairManager,
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSCONTACTPAIR_MANAGER_SIZE)),
-			MODULE_PHYSCONTACTPAIR_MANAGER_SIZE
+			memoryGetRequiredSize(MODULE_PHYSCONTACTPAIR_MANAGER_SIZE)
 		)){
 			newBlock = memDoubleListAppend(&g_physJointPairManager, (void **)start);
 		}
@@ -470,7 +467,7 @@ physicsJointPair *modulePhysicsJointPairInsertBefore(physicsJointPair **const re
 		if(memDoubleListExtend(
 			&g_physJointPairManager,
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSCONTACTPAIR_MANAGER_SIZE)),
-			MODULE_PHYSCONTACTPAIR_MANAGER_SIZE
+			memoryGetRequiredSize(MODULE_PHYSCONTACTPAIR_MANAGER_SIZE)
 		)){
 			newBlock = memDoubleListInsertBefore(&g_physJointPairManager, (void **)start, (void *)next);
 		}
@@ -490,7 +487,7 @@ physicsJointPair *modulePhysicsJointPairInsertAfter(physicsJointPair **const res
 		if(memDoubleListExtend(
 			&g_physJointPairManager,
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSCONTACTPAIR_MANAGER_SIZE)),
-			MODULE_PHYSCONTACTPAIR_MANAGER_SIZE
+			memoryGetRequiredSize(MODULE_PHYSCONTACTPAIR_MANAGER_SIZE)
 		)){
 			newBlock = memDoubleListInsertAfter(&g_physJointPairManager, (void **)start, (void *)prev);
 		}
@@ -542,7 +539,7 @@ physicsCollider *modulePhysicsColliderAlloc(){
 		if(memSingleListExtend(
 			&g_physColliderManager,
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSCOLLIDER_MANAGER_SIZE)),
-			MODULE_PHYSCOLLIDER_MANAGER_SIZE
+			memoryGetRequiredSize(MODULE_PHYSCOLLIDER_MANAGER_SIZE)
 		)){
 			newBlock = memSingleListAlloc(&g_physColliderManager);
 		}
@@ -562,7 +559,7 @@ physicsCollider *modulePhysicsColliderPrepend(physicsCollider **const restrict s
 		if(memSingleListExtend(
 			&g_physColliderManager,
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSCOLLIDER_MANAGER_SIZE)),
-			MODULE_PHYSCOLLIDER_MANAGER_SIZE
+			memoryGetRequiredSize(MODULE_PHYSCOLLIDER_MANAGER_SIZE)
 		)){
 			newBlock = memSingleListPrepend(&g_physColliderManager, (void **)start);
 		}
@@ -582,7 +579,7 @@ physicsCollider *modulePhysicsColliderAppend(physicsCollider **const restrict st
 		if(memSingleListExtend(
 			&g_physColliderManager,
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSCOLLIDER_MANAGER_SIZE)),
-			MODULE_PHYSCOLLIDER_MANAGER_SIZE
+			memoryGetRequiredSize(MODULE_PHYSCOLLIDER_MANAGER_SIZE)
 		)){
 			newBlock = memSingleListAppend(&g_physColliderManager, (void **)start);
 		}
@@ -602,7 +599,7 @@ physicsCollider *modulePhysicsColliderInsertAfter(physicsCollider **const restri
 		if(memSingleListExtend(
 			&g_physColliderManager,
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSCOLLIDER_MANAGER_SIZE)),
-			MODULE_PHYSCOLLIDER_MANAGER_SIZE
+			memoryGetRequiredSize(MODULE_PHYSCOLLIDER_MANAGER_SIZE)
 		)){
 			newBlock = memSingleListInsertAfter(&g_physColliderManager, (void **)start, (void *)prev);
 		}
@@ -665,7 +662,7 @@ physicsRigidBodyDef *modulePhysicsBodyDefAlloc(){
 		if(memSingleListExtend(
 			&g_physRigidBodyDefManager,
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSRIGIDBODYDEF_MANAGER_SIZE)),
-			MODULE_PHYSRIGIDBODYDEF_MANAGER_SIZE
+			memoryGetRequiredSize(MODULE_PHYSRIGIDBODYDEF_MANAGER_SIZE)
 		)){
 			newBlock = memSingleListAlloc(&g_physRigidBodyDefManager);
 		}
@@ -685,7 +682,7 @@ physicsRigidBodyDef *modulePhysicsBodyDefPrepend(physicsRigidBodyDef **const res
 		if(memSingleListExtend(
 			&g_physRigidBodyDefManager,
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSRIGIDBODYDEF_MANAGER_SIZE)),
-			MODULE_PHYSRIGIDBODYDEF_MANAGER_SIZE
+			memoryGetRequiredSize(MODULE_PHYSRIGIDBODYDEF_MANAGER_SIZE)
 		)){
 			newBlock = memSingleListPrepend(&g_physRigidBodyDefManager, (void **)start);
 		}
@@ -705,7 +702,7 @@ physicsRigidBodyDef *modulePhysicsBodyDefAppend(physicsRigidBodyDef **const rest
 		if(memSingleListExtend(
 			&g_physRigidBodyDefManager,
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSRIGIDBODYDEF_MANAGER_SIZE)),
-			MODULE_PHYSRIGIDBODYDEF_MANAGER_SIZE
+			memoryGetRequiredSize(MODULE_PHYSRIGIDBODYDEF_MANAGER_SIZE)
 		)){
 			newBlock = memSingleListAppend(&g_physRigidBodyDefManager, (void **)start);
 		}
@@ -725,7 +722,7 @@ physicsRigidBodyDef *modulePhysicsBodyDefInsertAfter(physicsRigidBodyDef **const
 		if(memSingleListExtend(
 			&g_physRigidBodyDefManager,
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSRIGIDBODYDEF_MANAGER_SIZE)),
-			MODULE_PHYSRIGIDBODYDEF_MANAGER_SIZE
+			memoryGetRequiredSize(MODULE_PHYSRIGIDBODYDEF_MANAGER_SIZE)
 		)){
 			newBlock = memSingleListInsertAfter(&g_physRigidBodyDefManager, (void **)start, (void *)prev);
 		}
@@ -773,7 +770,7 @@ physicsRigidBody *modulePhysicsBodyAlloc(){
 		if(memDoubleListExtend(
 			&g_physRigidBodyManager,
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSRIGIDBODY_MANAGER_SIZE)),
-			MODULE_PHYSRIGIDBODY_MANAGER_SIZE
+			memoryGetRequiredSize(MODULE_PHYSRIGIDBODY_MANAGER_SIZE)
 		)){
 			newBlock = memDoubleListAlloc(&g_physRigidBodyManager);
 		}
@@ -793,7 +790,7 @@ physicsRigidBody *modulePhysicsBodyPrepend(physicsRigidBody **const restrict sta
 		if(memDoubleListExtend(
 			&g_physRigidBodyManager,
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSRIGIDBODY_MANAGER_SIZE)),
-			MODULE_PHYSRIGIDBODY_MANAGER_SIZE
+			memoryGetRequiredSize(MODULE_PHYSRIGIDBODY_MANAGER_SIZE)
 		)){
 			newBlock = memDoubleListPrepend(&g_physRigidBodyManager, (void **)start);
 		}
@@ -813,7 +810,7 @@ physicsRigidBody *modulePhysicsBodyAppend(physicsRigidBody **const restrict star
 		if(memDoubleListExtend(
 			&g_physRigidBodyManager,
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSRIGIDBODY_MANAGER_SIZE)),
-			MODULE_PHYSRIGIDBODY_MANAGER_SIZE
+			memoryGetRequiredSize(MODULE_PHYSRIGIDBODY_MANAGER_SIZE)
 		)){
 			newBlock = memDoubleListAppend(&g_physRigidBodyManager, (void **)start);
 		}
@@ -833,7 +830,7 @@ physicsRigidBody *modulePhysicsBodyInsertBefore(physicsRigidBody **const restric
 		if(memDoubleListExtend(
 			&g_physRigidBodyManager,
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSRIGIDBODY_MANAGER_SIZE)),
-			MODULE_PHYSRIGIDBODY_MANAGER_SIZE
+			memoryGetRequiredSize(MODULE_PHYSRIGIDBODY_MANAGER_SIZE)
 		)){
 			newBlock = memDoubleListInsertBefore(&g_physRigidBodyManager, (void **)start, (void *)next);
 		}
@@ -853,7 +850,7 @@ physicsRigidBody *modulePhysicsBodyInsertAfter(physicsRigidBody **const restrict
 		if(memDoubleListExtend(
 			&g_physRigidBodyManager,
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSRIGIDBODY_MANAGER_SIZE)),
-			MODULE_PHYSRIGIDBODY_MANAGER_SIZE
+			memoryGetRequiredSize(MODULE_PHYSRIGIDBODY_MANAGER_SIZE)
 		)){
 			newBlock = memDoubleListInsertAfter(&g_physRigidBodyManager, (void **)start, (void *)prev);
 		}

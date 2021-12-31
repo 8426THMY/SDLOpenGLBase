@@ -115,8 +115,8 @@
 **
 ** bn = B/dt * Cn(x),
 **
-** C_linear'  : [[J1V]_0 + b1, [J1V]_1 + b2],
-** C_angular' : J2V + b3,
+** C_linear'  : J1*V + [b1, b2]^T,
+** C_angular' : J2*V + b3,
 **
 ** where B is the Baumgarte constant.
 **
@@ -361,7 +361,7 @@ static void calculateEffectiveMass(
 
 	// Calculate the inverse limit and motor effective mass.
 	// The motor and both limits have the same effective mass.
-	joint->limitMotorMass = 1.f / (invMass + vec3DotVec3(&IArAu1, rAa) + vec3DotVec3(&IBrBu1, rBa));
+	joint->limitMotorInvMass = 1.f / (invMass + vec3DotVec3(&IArAu1, rAa) + vec3DotVec3(&IBrBu1, rBa));
 
 
 	// K = JM^(-1)J^T
@@ -375,17 +375,15 @@ static void calculateEffectiveMass(
 	mat3MultiplyVec3ByOut(invInertiaB, rBu2, &IBrBu2);
 
 	// Calculate the inverse linear effective mass.
-	joint->linearMass.m[0][0] = invMass + vec3DotVec3(&IArAu1, rAu1) + vec3DotVec3(&IBrBu1, rBu1);
-	joint->linearMass.m[0][1] =
-	joint->linearMass.m[1][0] = vec3DotVec3(&IArAu1, rAu2) + vec3DotVec3(&IBrBu1, rBu2);
-	joint->linearMass.m[1][1] = invMass + vec3DotVec3(&IArAu2, rAu2) + vec3DotVec3(&IBrBu2, rBu2);
-	#warning "Don't invert the effective mass here. It's faster to instead use Cramer's rule or something later."
-	///mat2Invert(&joint->linearMass);
+	joint->linearInvMass.m[0][0] = invMass + vec3DotVec3(&IArAu1, rAu1) + vec3DotVec3(&IBrBu1, rBu1);
+	joint->linearInvMass.m[0][1] =
+	joint->linearInvMass.m[1][0] = vec3DotVec3(&IArAu1, rAu2) + vec3DotVec3(&IBrBu1, rBu2);
+	joint->linearInvMass.m[1][1] = invMass + vec3DotVec3(&IArAu2, rAu2) + vec3DotVec3(&IBrBu2, rBu2);
+	mat2Invert(&joint->linearInvMass);
 
 
 	// JM^(-1)J^T = IA^(-1) + IB^(-1)
 	// Calculate the inverse angular effective mass.
-    mat3AddMat3Out(invInertiaA, invInertiaB, &joint->angularMass);
-	#warning "Don't invert the effective mass here. It's faster to instead use Cramer's rule or something later."
-	///mat3Invert(&joint->angularMass);
+    mat3AddMat3Out(invInertiaA, invInertiaB, &joint->angularInvMass);
+	mat3Invert(&joint->angularInvMass);
 }

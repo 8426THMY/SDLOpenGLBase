@@ -64,9 +64,6 @@ typedef struct meshData {
 } meshData;
 
 
-#warning "What if we aren't using the global memory manager?"
-
-
 // Forward-declare any helper functions!
 static void prepareShaderBones(
 	const skeleton *const restrict mdlSkele, const skeleton *const restrict objSkele,
@@ -740,12 +737,13 @@ modelDef *modelDefSMDLoad(const char *const restrict mdlDefPath, const size_t md
 									quatInitEulerXYZ(&currentBone->localBind.rot, x, y, z);
 
 									// Set the bone's scale!
+									quatInitIdentity(&currentBone->localBind.stretchRot);
 									vec3InitSet(&currentBone->localBind.scale, 1.f, 1.f, 1.f);
 
 
 									// If this bone has a parent, append its state to its parent's state!
 									if(!valueIsInvalid(currentBone->parent, boneIndex_t)){
-										transformStateAppend(
+										transformAffineAppend(
 											&currentBone->localBind,
 											&tempBones[currentBone->parent].invGlobalBind,
 											&currentBone->invGlobalBind

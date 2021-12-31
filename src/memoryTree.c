@@ -126,9 +126,6 @@
 #define treeNodeMakeRed(nodeParent) (treeNodeSetColour(nodeParent, TREE_NODE_COLOUR_RED))
 
 
-#warning "What if the beginning or end of a memory region is not aligned?"
-
-
 static void splitBlock(memoryTree *const restrict tree, memTreeListNode *const restrict block, const size_t blockSize, const size_t newSize);
 
 static void treeInsert(memoryTree *const restrict tree, memTreeNode *node, const size_t nodeSize);

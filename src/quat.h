@@ -6,6 +6,11 @@
 #include "vec4.h"
 
 
+/*
+** Note that the 'w' component is at the end of
+** the data structure. This lets us more efficiently
+** treat the imaginary component as a vector.
+*/
 typedef vec4 quat;
 
 
@@ -87,26 +92,26 @@ void quatMultiplyByQuat(quat *const restrict q1, const quat q2);
 void quatMultiplyQuatByOut(const quat q1, const quat q2, quat *const restrict out);
 quat quatMultiplyQuatByC(const quat q1, const quat q2);
 void quatMultiplyConjByQuat(quat *const restrict q1, const quat q2);
-void quatMultiplyQuatConjBy(quat *const restrict q1, const quat q2);
-void quatMultiplyConjByQuatOut(const quat q1, const quat q2, quat *const restrict out);
-quat quatMultiplyConjByQuatC(const quat q1, const quat q2);
 void quatMultiplyQuatByConj(quat *const restrict q1, const quat q2);
 void quatMultiplyByQuatConj(quat *const restrict q1, const quat q2);
-void quatMultiplyQuatByConjOut(const quat q1, const quat q2, quat *const restrict out);
-quat quatMultiplyQuatByConjC(const quat q1, const quat q2);
+void quatMultiplyByQuatConjOut(const quat q1, const quat q2, quat *const restrict out);
+quat quatMultiplyByQuatConjC(const quat q1, const quat q2);
+void quatMultiplyQuatConjBy(quat *const restrict q1, const quat q2);
+void quatMultiplyQuatConjByOut(const quat q1, const quat q2, quat *const restrict out);
+quat quatMultiplyQuatConjByC(const quat q1, const quat q2);
 
 void quatRotateVec3(const quat *const restrict q, vec3 *const restrict v);
 void quatRotateVec3Out(const quat *const restrict q, const vec3 *const restrict v, vec3 *const restrict out);
 vec3 quatRotateVec3C(const quat q, vec3 v);
-void quatRotateVec3Inverse(const quat *const restrict q, vec3 *const restrict v);
-void quatRotateVec3InverseOut(const quat *const restrict q, const vec3 *const restrict v, vec3 *const restrict out);
-vec3 quatRotateVec3InverseC(const quat q, vec3 v);
+void quatRotateVec3Conj(const quat *const restrict q, vec3 *const restrict v);
+void quatRotateVec3ConjOut(const quat *const restrict q, const vec3 *const restrict v, vec3 *const restrict out);
+vec3 quatRotateVec3ConjC(const quat q, vec3 v);
 void quatRotateVec3Fast(const quat *const restrict q, vec3 *const restrict v);
 void quatRotateVec3FastOut(const quat *const restrict q, const vec3 *const restrict v, vec3 *const restrict out);
 vec3 quatRotateVec3FastC(const quat q, vec3 v);
-void quatRotateVec3InverseFast(const quat *const restrict q, vec3 *const restrict v);
-void quatRotateVec3InverseFastOut(const quat *const restrict q, const vec3 *const restrict v, vec3 *const restrict out);
-vec3 quatRotateVec3InverseFastC(const quat q, vec3 v);
+void quatRotateVec3ConjFast(const quat *const restrict q, vec3 *const restrict v);
+void quatRotateVec3ConjFastOut(const quat *const restrict q, const vec3 *const restrict v, vec3 *const restrict out);
+vec3 quatRotateVec3ConjFastC(const quat q, vec3 v);
 
 void quatBasisX(const quat *const restrict q, vec3 *const restrict out);
 vec3 quatBasisXC(const quat q);

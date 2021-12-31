@@ -21,7 +21,7 @@
 
 // Stores the various positional data for a
 // bone as offsets from its parent's data.
-typedef transformState boneState;
+typedef transformAffine boneState;
 typedef uint_least8_t boneIndex_t;
 
 typedef struct bone {
@@ -82,21 +82,30 @@ typedef struct skeletonState {
 } skeletonState;
 
 
-void boneInit(bone *const restrict bone, char *const restrict name, const boneIndex_t parent, const boneState *const restrict state);
+void boneInit(
+	bone *const restrict bone,
+	char *const restrict name, const boneIndex_t parent,
+	const boneState *const restrict state
+);
 void skeleInit(skeleton *const restrict skele);
 void skeleInitSet(
 	skeleton *const restrict skele, const char *const restrict name,
 	const size_t nameLength, bone *const restrict bones, const boneIndex_t numBones
 );
 void skeleAnimDefInit(skeletonAnimDef *animDef);
-void skeleAnimInit(skeletonAnim *const restrict anim, skeletonAnimDef *const restrict animDef, const float speed, const float intensity);
+void skeleAnimInit(
+	skeletonAnim *const restrict anim, skeletonAnimDef *const restrict animDef,
+	const float speed, const float intensity
+);
 void skeleStateInit(skeletonState *const restrict skeleState, skeleton *const restrict skele);
 
 skeletonAnimDef *skeleAnimSMDLoad(const char *const restrict skeleAnimPath, const size_t skeleAnimPathLength);
 
 void skeleAnimUpdate(skeletonAnim *const restrict anim, const float time);
-void skeleStateGenerateBoneState(
-	const skeletonState *const restrict skeleState, const boneIndex_t boneID, const char *const restrict boneName, boneState *const restrict out
+void skeleStatePrependAnimationStates(
+	boneState *const restrict out,
+	const skeletonState *const restrict skeleState,
+	const boneIndex_t boneID, const char *const restrict boneName
 );
 
 boneIndex_t skeleFindBone(const skeleton *const restrict skele, const char *const restrict name);

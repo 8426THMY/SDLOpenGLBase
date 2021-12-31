@@ -6,11 +6,6 @@ memoryPool g_skeleAnimDefManager;
 memorySingleList g_skeleAnimManager;
 
 
-#warning "How are we going to store animations? How about bones?"
-
-#warning "What if we aren't using the global memory manager?"
-
-
 return_t moduleSkeletonSetup(){
 	// The module's setup will be successful if we
 	// can allocate enough memory for our managers.
@@ -19,19 +14,19 @@ return_t moduleSkeletonSetup(){
 		memPoolInit(
 			&g_skeletonManager,
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_SKELETON_MANAGER_SIZE)),
-			MODULE_SKELETON_MANAGER_SIZE, MODULE_SKELETON_ELEMENT_SIZE
+			memoryGetRequiredSize(MODULE_SKELETON_MANAGER_SIZE), MODULE_SKELETON_ELEMENT_SIZE
 		) != NULL &&
 		// skeletonAnimDef
 		memPoolInit(
 			&g_skeleAnimDefManager,
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_SKELEANIMDEF_MANAGER_SIZE)),
-			MODULE_SKELEANIMDEF_MANAGER_SIZE, MODULE_SKELEANIMDEF_ELEMENT_SIZE
+			memoryGetRequiredSize(MODULE_SKELEANIMDEF_MANAGER_SIZE), MODULE_SKELEANIMDEF_ELEMENT_SIZE
 		) != NULL &&
 		// skeletonAnim
 		memSingleListInit(
 			&g_skeleAnimManager,
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_SKELEANIM_MANAGER_SIZE)),
-			MODULE_SKELEANIM_MANAGER_SIZE, MODULE_SKELEANIM_ELEMENT_SIZE
+			memoryGetRequiredSize(MODULE_SKELEANIM_MANAGER_SIZE), MODULE_SKELEANIM_ELEMENT_SIZE
 		) != NULL
 	);
 }
@@ -66,7 +61,7 @@ skeleton *moduleSkeletonAlloc(){
 		if(memPoolExtend(
 			&g_skeletonManager,
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_SKELETON_MANAGER_SIZE)),
-			MODULE_SKELETON_MANAGER_SIZE
+			memoryGetRequiredSize(MODULE_SKELETON_MANAGER_SIZE)
 		)){
 			newBlock = memPoolAlloc(&g_skeletonManager);
 		}
@@ -101,7 +96,7 @@ skeletonAnimDef *moduleSkeletonAnimDefAlloc(){
 		if(memPoolExtend(
 			&g_skeleAnimDefManager,
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_SKELEANIMDEF_MANAGER_SIZE)),
-			MODULE_SKELEANIMDEF_MANAGER_SIZE
+			memoryGetRequiredSize(MODULE_SKELEANIMDEF_MANAGER_SIZE)
 		)){
 			newBlock = memPoolAlloc(&g_skeleAnimDefManager);
 		}
@@ -136,7 +131,7 @@ skeletonAnim *moduleSkeletonAnimAlloc(){
 		if(memSingleListExtend(
 			&g_skeleAnimManager,
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_SKELEANIM_MANAGER_SIZE)),
-			MODULE_SKELEANIM_MANAGER_SIZE
+			memoryGetRequiredSize(MODULE_SKELEANIM_MANAGER_SIZE)
 		)){
 			newBlock = memSingleListAlloc(&g_skeleAnimManager);
 		}
@@ -156,7 +151,7 @@ skeletonAnim *moduleSkeletonAnimPrepend(skeletonAnim **const restrict start){
 		if(memSingleListExtend(
 			&g_skeleAnimManager,
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_SKELEANIM_MANAGER_SIZE)),
-			MODULE_SKELEANIM_MANAGER_SIZE
+			memoryGetRequiredSize(MODULE_SKELEANIM_MANAGER_SIZE)
 		)){
 			newBlock = memSingleListPrepend(&g_skeleAnimManager, (void **)start);
 		}
@@ -176,7 +171,7 @@ skeletonAnim *moduleSkeletonAnimAppend(skeletonAnim **const restrict start){
 		if(memSingleListExtend(
 			&g_skeleAnimManager,
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_SKELEANIM_MANAGER_SIZE)),
-			MODULE_SKELEANIM_MANAGER_SIZE
+			memoryGetRequiredSize(MODULE_SKELEANIM_MANAGER_SIZE)
 		)){
 			newBlock = memSingleListAppend(&g_skeleAnimManager, (void **)start);
 		}
@@ -196,7 +191,7 @@ skeletonAnim *moduleSkeletonAnimInsertAfter(skeletonAnim **const restrict start,
 		if(memSingleListExtend(
 			&g_skeleAnimManager,
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_SKELEANIM_MANAGER_SIZE)),
-			MODULE_SKELEANIM_MANAGER_SIZE
+			memoryGetRequiredSize(MODULE_SKELEANIM_MANAGER_SIZE)
 		)){
 			newBlock = memSingleListInsertAfter(&g_skeleAnimManager, (void **)start, (void *)prev);
 		}

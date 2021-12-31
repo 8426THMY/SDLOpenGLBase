@@ -171,12 +171,11 @@ void physJointFrictionCalculateInverseEffectiveMass(
 	mat3MultiplyVec3ByOut(invInertiaB, &rBu2, &IBrBu2);
 
 	// Calculate the inverse linear effective mass.
-	joint->linearMass.m[0][0] = invMass + vec3DotVec3(&IArAu1, &rAu1) + vec3DotVec3(&IBrBu1, &rBu1);
-	joint->linearMass.m[0][1] =
-	joint->linearMass.m[1][0] = vec3DotVec3(&IArAu1, &rAu2) + vec3DotVec3(&IBrBu1, &rBu2);
-	joint->linearMass.m[1][1] = invMass + vec3DotVec3(&IArAu2, &rAu2) + vec3DotVec3(&IBrBu2, &rBu2);
-	#warning "Don't invert the effective mass here. It's faster to instead use Cramer's rule or something later."
-	mat2Invert(&joint->linearMass);
+	joint->linearInvMass.m[0][0] = invMass + vec3DotVec3(&IArAu1, &rAu1) + vec3DotVec3(&IBrBu1, &rBu1);
+	joint->linearInvMass.m[0][1] =
+	joint->linearInvMass.m[1][0] = vec3DotVec3(&IArAu1, &rAu2) + vec3DotVec3(&IBrBu1, &rBu2);
+	joint->linearInvMass.m[1][1] = invMass + vec3DotVec3(&IArAu2, &rAu2) + vec3DotVec3(&IBrBu2, &rBu2);
+	mat2Invert(&joint->linearInvMass);
 
 
 	// JM^(-1)J^T = (n . (IA^(-1) * n)) + (n . (IB^(-1) * n))
@@ -185,7 +184,7 @@ void physJointFrictionCalculateInverseEffectiveMass(
 	angularMass = vec3DotVec3(&IArAu1, &joint->normal);
 
 	// Calculate the inverse angular effective mass.
-	joint->invAngularMass = (angularMass > 0.f) ? 1.f/angularMass : 0.f;
+	joint->angularInvMass = (angularMass > 0.f) ? 1.f/angularMass : 0.f;
 }
 
 /*
@@ -231,7 +230,7 @@ void physJointFrictionSolveVelocity(
 		const vec2 oldImpulse = joint->linearImpulse;
 		float impulseMagnitude;
 
-		mat2MultiplyVec2By(&joint->linearMass, &lambda);
+		mat2MultiplyVec2By(&joint->linearInvMass, &lambda);
 		vec2AddVec2(&joint->linearImpulse, &lambda);
 
 		// C' <= maxFriction
@@ -259,10 +258,10 @@ void physJointFrictionSolveVelocity(
 		//        = -((wB - wA) . n)/K
 		// Calculate the magnitude for the angular impulse.
 		vec3SubtractVec3FromOut(&bodyA->angularVelocity, &bodyB->angularVelocity, &dC);
-		lambda = vec3DotVec3(&dC, &joint->normal) * joint->invAngularMass;
+		lambda = vec3DotVec3(&dC, &joint->normal) * joint->angularInvMass;
 
 		// Clamp our accumulated impulse for the angular constraint.
-		joint->angularImpulse = clampFloat(joint->angularImpulse + lambda, -maxFriction, maxFriction);
+		joint->angularImpulse = floatClamp(joint->angularImpulse + lambda, -maxFriction, maxFriction);
 		vec3MultiplySOut(&joint->normal, joint->angularImpulse - oldImpulse, &angularImpulse);
 	}
 

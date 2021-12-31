@@ -27,8 +27,8 @@ void mat3InitEulerVec3XYZ(mat3 *const restrict m, const vec3 *const restrict v);
 void mat3InitEulerVec3ZXY(mat3 *const restrict m, const vec3 *const restrict v);
 mat3 mat3InitEulerVec3XYZC(const vec3 v);
 mat3 mat3InitEulerVec3ZXYC(const vec3 v);
-void mat3InitRotateQuat(mat3 *const restrict m, const quat *const restrict q);
-mat3 mat3InitRotateQuatC(const quat q);
+void mat3InitQuat(mat3 *const restrict m, const quat *const restrict q);
+mat3 mat3InitQuatC(const quat q);
 void mat3InitScale(mat3 *const restrict m, const float x, const float y, const float z);
 mat3 mat3InitScaleC(const float x, const float y, const float z);
 void mat3InitScaleVec3(mat3 *const restrict m, const vec3 *const restrict v);
@@ -37,6 +37,11 @@ void mat3InitDiagonal(mat3 *const restrict m, const float x);
 mat3 mat3InitDiagonalC(const float x);
 void mat3InitSkew(mat3 *const restrict m, const vec3 *const restrict v);
 mat3 mat3InitSkewC(const vec3 v);
+void mat3InitShearQuat(
+	mat3 *const restrict m,
+	const quat *const restrict q, const vec3 *const restrict v
+);
+mat3 mat3InitShearQuatC(const quat q, const vec3 v);
 
 void mat3AddMat3(mat3 *const restrict m1, const mat3 *const restrict m2);
 void mat3AddMat3Out(const mat3 *const restrict m1, const mat3 *const restrict m2, mat3 *const restrict out);
@@ -88,12 +93,12 @@ void mat3TransposeOut(const mat3 m, mat3 *const restrict out);
 mat3 mat3TransposeC(const mat3 m);
 float mat3Determinant(const mat3 *const restrict m);
 float mat3DeterminantC(const mat3 m);
+float mat3DeterminantColumns(const float *const restrict r0, const float *const restrict r1, const float *const restrict r2);
 void mat3Invert(mat3 *const restrict m);
 void mat3InvertOut(const mat3 m, mat3 *const restrict out);
 mat3 mat3InvertC(const mat3 m);
 return_t mat3CanInvert(mat3 *const restrict m);
 return_t mat3CanInvertOut(const mat3 *const restrict m, mat3 *const restrict out);
-return_t mat3CanInvertC(const mat3 m, mat3 *const restrict out);
 
 void mat3Solve(const mat3 *const restrict A, const vec3 *const restrict b, vec3 *const restrict x);
 vec3 mat3SolveC(const mat3 A, const vec3 b);

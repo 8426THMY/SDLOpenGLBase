@@ -16,7 +16,7 @@ void particleDefInit(particleDef *const restrict partDef){
 }
 
 void particleInit(particle *const restrict part){
-	transformStateInit(&part->state);
+	transformRigidInit(&part->state);
 	vec3InitZero(&part->velocity);
 
 	part->currentAnim = 0;

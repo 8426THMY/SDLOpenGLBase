@@ -98,7 +98,7 @@ return_t colliderHullLoad(
 void colliderHullUpdate(
 	void *const restrict hull, const vec3 *const restrict hullCentroid,
 	const void *const restrict base, const vec3 *const restrict baseCentroid,
-	transformState trans, colliderAABB *const restrict aabb
+	transformAffine trans, colliderAABB *const restrict aabb
 );
 
 const vec3 *colliderHullSupport(const colliderHull *const restrict hull, const vec3 *const restrict dir);

@@ -8,53 +8,61 @@
 
 
 /*
-** A transform state is a representation of a rigid
-** transformation that is more amenable to interpolation.
-**
-** The only caveat currently is that when combining two or
-** more transformations (for instance, in a skeleton), we
-** cannot correctly handle the propagation of non-uniform
-** scaling. One possible solution to this is to introduce
-** an additional "stretch quaternion" component; however,
-** the problem then is that actually combining two scale
-** and stretch quaternion pairs becomes very difficult
-** without using something like the affine decomposition
-** technique developed by Ken Shoemake in Graphics Gems IV.
-**
-** Non-uniform scaling causes issues elsewhere, however.
-** For instance, collision detection for colliders such
-** as spheres and capsules, which cannot be trivially
-** replaced by general hulls, become much harder to handle.
-** Interestingly, despite supporting non-uniform scaling to
-** some degree, Unity specifically ignores it in such cases.
+** Stores all the information necessary to represent
+** a rigid transformation plus a uniform scaling.
 */
-/** This is a rigid transform, maybe rename it as such when we add skewing? **/
-typedef struct transformState {
+typedef struct transformRigid {
 	vec3 pos;
 	quat rot;
 	vec3 scale;
-} transformState;
+} transformRigid;
+
+/*
+** To correctly handle non-uniform scaling, we introduce
+** a "stretch quaternion" that rotates us so that we can
+** easily perform our scaling along the x, y and z axes.
+**
+** This is usually only necessary for things like skeletons,
+** where we may want to add extra flare to their animations.
+** However, it cannot be used with most colliders, such as
+** spheres and capsules. The one exception to this is hulls.
+*/
+typedef struct transformAffine {
+	vec3 pos;
+	quat rot;
+	quat stretchRot;
+	vec3 scale;
+} transformAffine;
 
 
-void transformStateInit(transformState *const restrict trans);
+void transformRigidInit(transformRigid *const restrict trans);
+void transformAffineInit(transformAffine *const restrict trans);
 
 // All of these functions come from bones.
-void transformStateAppend(const transformState *const trans1, const transformState *const trans2, transformState *const out);
-void transformStatePrepend(const transformState *const trans1, const transformState *const trans2, transformState *const out);
-void transformStateUndoPrepend(const transformState *const trans1, const transformState *const trans2, transformState *const out);
-void transformStateInterpSet(const transformState *const trans1, const transformState *const trans2, const float time, transformState *const out);
-void transformStateInterpAdd(const transformState *const trans1, const transformState *const trans2, const float time, transformState *const out);
+void transformRigidAppend(const transformRigid *const trans1, const transformRigid *const trans2, transformRigid *const out);
+void transformAffineAppend(const transformAffine *const trans1, const transformAffine *const trans2, transformAffine *const out);
+void transformRigidInterpSet(const transformRigid *const trans1, const transformRigid *const trans2, const float time, transformRigid *const out);
+void transformAffineInterpSet(const transformAffine *const trans1, const transformAffine *const trans2, const float time, transformAffine *const out);
+void transformRigidInterpAdd(const transformRigid *const trans1, const transformRigid *const trans2, const float time, transformRigid *const out);
+void transformAffineInterpAdd(const transformAffine *const trans1, const transformAffine *const trans2, const float time, transformAffine *const out);
 
-void transformStateInvert(const transformState *const trans, transformState *const out);
-void transformStateToMat4(const transformState *const restrict trans, mat4 *const restrict out);
+void transformRigidInvert(const transformRigid *const trans, transformRigid *const out);
+void transformAffineInvert(const transformAffine *const trans, transformAffine *const out);
+void transformRigidToMat4(const transformRigid *const restrict trans, mat4 *const restrict out);
+void transformAffineToMat4(const transformAffine *const restrict trans, mat4 *const restrict out);
 
-void transformStateTransformPoint(const transformState *const restrict trans, vec3 *const restrict v);
-void transformStateTransformPointOut(const transformState *const restrict trans, const vec3 *const v, vec3 *const out);
-void transformStateTransformDirection(const transformState *const restrict trans, vec3 *const restrict v);
-void transformStateTransformDirectionOut(const transformState *const restrict trans, const vec3 *const v, vec3 *const out);
+void transformRigidTransformPoint(const transformRigid *const restrict trans, vec3 *const restrict v);
+void transformAffineTransformPoint(const transformAffine *const restrict trans, vec3 *const restrict v);
+void transformRigidTransformPointOut(const transformRigid *const restrict trans, const vec3 *const v, vec3 *const out);
+void transformAffineTransformPointOut(const transformAffine *const restrict trans, const vec3 *const v, vec3 *const out);
+void transformRigidTransformDirection(const transformRigid *const restrict trans, vec3 *const restrict v);
+void transformAffineTransformDirection(const transformAffine *const restrict trans, vec3 *const restrict v);
+void transformRigidTransformDirectionOut(const transformRigid *const restrict trans, const vec3 *const v, vec3 *const out);
+void transformAffineTransformDirectionOut(const transformAffine *const restrict trans, const vec3 *const v, vec3 *const out);
 
 
-extern transformState g_transformIdentity;
+extern transformRigid g_transformRigidIdentity;
+extern transformAffine g_transformAffineIdentity;
 
 
 #endif

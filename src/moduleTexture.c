@@ -4,9 +4,6 @@
 memoryPool g_textureManager;
 
 
-#warning "What if we aren't using the global memory manager?"
-
-
 return_t moduleTextureSetup(){
 	// The module's setup will be successful if we
 	// can allocate enough memory for our manager
@@ -15,7 +12,7 @@ return_t moduleTextureSetup(){
 		memPoolInit(
 			&g_textureManager,
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_TEXTURE_MANAGER_SIZE)),
-			MODULE_TEXTURE_MANAGER_SIZE, MODULE_TEXTURE_ELEMENT_SIZE
+			memoryGetRequiredSize(MODULE_TEXTURE_MANAGER_SIZE), MODULE_TEXTURE_ELEMENT_SIZE
 		) != NULL &&
 		textureSetup()
 	);
@@ -41,7 +38,7 @@ texture *moduleTextureAlloc(){
 		if(memPoolExtend(
 			&g_textureManager,
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_TEXTURE_MANAGER_SIZE)),
-			MODULE_TEXTURE_MANAGER_SIZE
+			memoryGetRequiredSize(MODULE_TEXTURE_MANAGER_SIZE)
 		)){
 			newBlock = memPoolAlloc(&g_textureManager);
 		}

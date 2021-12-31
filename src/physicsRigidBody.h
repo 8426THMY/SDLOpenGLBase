@@ -93,7 +93,7 @@ typedef struct physicsRigidBody {
 	// Defines the body's spacial configuration.
 	// The position stored here should not be
 	// confused with the rigid body's centroid!
-	transformState state;
+	transformAffine state;
 
 	// Defines the body's physical configuration.
 	vec3 linearVelocity;

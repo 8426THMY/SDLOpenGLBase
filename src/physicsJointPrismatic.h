@@ -63,9 +63,9 @@ typedef struct physicsJointPrismatic {
 	vec3 rBu2;
 
 	// Linear and angular effective masses.
-	mat2 linearMass;
-	mat3 angularMass;
-	float limitMotorMass;
+	mat2 linearInvMass;
+	mat3 angularInvMass;
+	float limitMotorInvMass;
 
 	// Accumulated impulses used for warm starting.
 	vec2 linearImpulse;

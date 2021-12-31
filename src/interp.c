@@ -54,7 +54,7 @@ void interpQuatGenRenderState(const interpQuat *const restrict iQuat, const floa
 }
 
 // Interpolate between the three components of an interpTransform!
-void interpTransGenRenderState(const interpTransform *const restrict iTrans, const float time, transformState *const restrict out){
+void interpTransGenRenderState(const interpTransform *const restrict iTrans, const float time, transformRigid *const restrict out){
 	interpVec3GenRenderState(&iTrans->pos, time, &out->pos);
 	interpQuatGenRenderState(&iTrans->rot, time, &out->rot);
 	interpVec3GenRenderState(&iTrans->scale, time, &out->scale);

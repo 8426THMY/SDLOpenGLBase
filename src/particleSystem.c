@@ -407,7 +407,7 @@ static void drawParticles(
 		const textureGroupFrame *const texFrame = texGroupStateGetFrame(&texState);
 
 		// Convert the particle's state to a matrix!
-		transformStateToMat4(&curParticle->state, &curState->state);
+		transformRigidToMat4(&curParticle->state, &curState->state);
 		// Get the particle's UV coordinates!
 		curState->uvOffsets = texFrame->bounds;
 

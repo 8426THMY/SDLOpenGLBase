@@ -19,10 +19,6 @@
 #define memSingleListBlockMakeInvalid(next) memSingleListBlockSetFlag(next, MEMSINGLELIST_FLAG_INVALID)
 
 
-#warning "What if the beginning or end of a memory region is not aligned?"
-#warning "We should go back to using the total memory size as input for init and extend, too."
-
-
 void *memSingleListInit(
 	memorySingleList *const restrict singleList,
 	void *const restrict memory, const size_t memorySize, const size_t blockSize

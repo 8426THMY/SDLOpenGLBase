@@ -44,7 +44,7 @@ void interpQuatUpdateNextState(interpQuat *iQuat);*/
 void interpFloatGenRenderState(const interpFloat *const restrict iFloat, const float time, float *const restrict out);
 void interpVec3GenRenderState(const interpVec3 *const restrict iVec3, const float time, vec3 *const restrict out);
 void interpQuatGenRenderState(const interpQuat *const restrict iQuat, const float time, quat *const restrict out);
-void interpTransGenRenderState(const interpTransform *const restrict iTrans, const float time, transformState *const restrict out);
+void interpTransGenRenderState(const interpTransform *const restrict iTrans, const float time, transformRigid *const restrict out);
 
 void interpFloatMoveToNextState(interpFloat *const restrict iFloat);
 void interpVec3MoveToNextState(interpVec3 *const restrict iVec3);

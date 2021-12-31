@@ -32,8 +32,8 @@ void mat4InitEulerVec3XYZ(mat4 *const restrict m, const vec3 *const restrict v);
 void mat4InitEulerVec3ZXY(mat4 *const restrict m, const vec3 *const restrict v);
 mat4 mat4InitEulerVec3XYZC(const vec3 v);
 mat4 mat4InitEulerVec3ZXYC(const vec3 v);
-void mat4InitRotateQuat(mat4 *const restrict m, const quat *const restrict q);
-mat4 mat4InitRotateQuatC(const quat q);
+void mat4InitQuat(mat4 *const restrict m, const quat *const restrict q);
+mat4 mat4InitQuatC(const quat q);
 void mat4InitScale(mat4 *const restrict m, const float x, const float y, const float z);
 mat4 mat4InitScaleC(const float x, const float y, const float z);
 void mat4InitScale4(mat4 *const restrict m, const float x, const float y, const float z, const float w);
@@ -42,6 +42,11 @@ void mat4InitScaleVec3(mat4 *const restrict m, const vec3 *const restrict v);
 mat4 mat4InitScaleVec3C(const vec3 v);
 void mat4InitScaleVec4(mat4 *const restrict m, const vec4 *const restrict v);
 mat4 mat4InitScaleVec4C(const vec4 v);
+void mat4InitShearQuat(
+	mat4 *const restrict m,
+	const quat *const restrict q, const vec3 *const restrict v
+);
+mat4 mat4InitShearQuatC(const quat q, const vec3 v);
 
 void mat4AddMat4(mat4 *const restrict m1, const mat4 *const restrict m2);
 void mat4AddMat4Out(const mat4 *const restrict m1, const mat4 *const restrict m2, mat4 *const restrict out);
@@ -82,6 +87,10 @@ void mat4TranslateTransform(mat4 *const restrict m, const float x, const float y
 mat4 mat4TranslateTransformC(mat4 m, const float x, const float y, const float z);
 void mat4TranslateTransformVec3(mat4 *const restrict m, const vec3 *const restrict v);
 mat4 mat4TranslateTransformVec3C(const mat4 m, const vec3 v);
+void mat4TranslateTransformPre(mat4 *const restrict m, const float x, const float y, const float z);
+mat4 mat4TranslateTransformPreC(mat4 m, const float x, const float y, const float z);
+void mat4TranslateTransformPreVec3(mat4 *const restrict m, const vec3 *const restrict v);
+mat4 mat4TranslateTransformPreVec3C(const mat4 m, const vec3 v);
 
 void mat4RotateByEulerXYZ(mat4 *const restrict m, const float x, const float y, const float z);
 void mat4RotateByEulerZXY(mat4 *const restrict m, const float x, const float y, const float z);
