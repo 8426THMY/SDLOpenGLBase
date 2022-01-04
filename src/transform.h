@@ -8,61 +8,61 @@
 
 
 /*
-** Stores all the information necessary to represent
-** a rigid transformation plus a uniform scaling.
-*/
-typedef struct transformRigid {
-	vec3 pos;
-	quat rot;
-	vec3 scale;
-} transformRigid;
-
-/*
 ** To correctly handle non-uniform scaling, we introduce
 ** a "stretch quaternion" that rotates us so that we can
 ** easily perform our scaling along the x, y and z axes.
+**
+** Our transformation is equivalent to the matrix
+**     A = TRQSQ^T,
+** where
 **
 ** This is usually only necessary for things like skeletons,
 ** where we may want to add extra flare to their animations.
 ** However, it cannot be used with most colliders, such as
 ** spheres and capsules. The one exception to this is hulls.
 */
-typedef struct transformAffine {
+typedef struct transform {
 	vec3 pos;
 	quat rot;
-	quat stretchRot;
 	vec3 scale;
-} transformAffine;
+	quat shear;
+} transform;
 
 
-void transformRigidInit(transformRigid *const restrict trans);
-void transformAffineInit(transformAffine *const restrict trans);
+void transformInit(transform *const restrict trans);
+transform transformInitC();
 
-// All of these functions come from bones.
-void transformRigidAppend(const transformRigid *const trans1, const transformRigid *const trans2, transformRigid *const out);
-void transformAffineAppend(const transformAffine *const trans1, const transformAffine *const trans2, transformAffine *const out);
-void transformRigidInterpSet(const transformRigid *const trans1, const transformRigid *const trans2, const float time, transformRigid *const out);
-void transformAffineInterpSet(const transformAffine *const trans1, const transformAffine *const trans2, const float time, transformAffine *const out);
-void transformRigidInterpAdd(const transformRigid *const trans1, const transformRigid *const trans2, const float time, transformRigid *const out);
-void transformAffineInterpAdd(const transformAffine *const trans1, const transformAffine *const trans2, const float time, transformAffine *const out);
+void transformAppendP1(transform *const restrict trans1, const transform *const restrict trans2);
+void transformAppendP2(const transform *const restrict trans1, transform *const restrict trans2);
+void transformAppendOut(
+	const transform *const restrict trans1, const transform *const restrict trans2,
+	transform *const restrict out
+);
+transform transformAppendC(const transform trans1, const transform trans2);
 
-void transformRigidInvert(const transformRigid *const trans, transformRigid *const out);
-void transformAffineInvert(const transformAffine *const trans, transformAffine *const out);
-void transformRigidToMat4(const transformRigid *const restrict trans, mat4 *const restrict out);
-void transformAffineToMat4(const transformAffine *const restrict trans, mat4 *const restrict out);
+void transformInterpSet(const transform *const trans1, const transform *const trans2, const float time, transform *const out);
+transform transformInterpSetC(const transform trans1, const transform trans2, const float time);
+void transformInterpAdd(const transform *const trans1, const transform *const trans2, const float time, transform *const out);
+transform transformInterpAddC(const transform trans1, const transform trans2, const float time);
 
-void transformRigidTransformPoint(const transformRigid *const restrict trans, vec3 *const restrict v);
-void transformAffineTransformPoint(const transformAffine *const restrict trans, vec3 *const restrict v);
-void transformRigidTransformPointOut(const transformRigid *const restrict trans, const vec3 *const v, vec3 *const out);
-void transformAffineTransformPointOut(const transformAffine *const restrict trans, const vec3 *const v, vec3 *const out);
-void transformRigidTransformDirection(const transformRigid *const restrict trans, vec3 *const restrict v);
-void transformAffineTransformDirection(const transformAffine *const restrict trans, vec3 *const restrict v);
-void transformRigidTransformDirectionOut(const transformRigid *const restrict trans, const vec3 *const v, vec3 *const out);
-void transformAffineTransformDirectionOut(const transformAffine *const restrict trans, const vec3 *const v, vec3 *const out);
+void transformInvert(transform *const restrict trans);
+void transformInvertOut(const transform *const restrict trans, transform *const restrict out);
+transform transformInvertC(const transform trans);
+
+void transformToMat4(const transform *const restrict trans, mat4 *const restrict out);
+mat4 transformToMat4C(const transform trans);
+void transformToMat3(const transform *const restrict trans, mat3 *const restrict out);
+mat3 transformToMat3C(const transform trans);
+
+void transformTransformPoint(const transform *const restrict trans, vec3 *const restrict v);
+void transformTransformPointOut(const transform *const restrict trans, const vec3 *const v, vec3 *const out);
+vec3 transformTransformPointC(const transform trans, const vec3 v);
+void transformTransformDirection(const transform *const restrict trans, vec3 *const restrict v);
+void transformTransformDirectionOut(const transform *const restrict trans, const vec3 *const v, vec3 *const out);
+vec3 transformTransformDirectionC(const transform trans, const vec3 v);
 
 
-extern transformRigid g_transformRigidIdentity;
-extern transformAffine g_transformAffineIdentity;
+extern transform g_transformIdentity;
 
 
 #endif

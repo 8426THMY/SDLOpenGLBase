@@ -31,7 +31,7 @@ void (*const guiElementDeleteTable[GUI_ELEMENT_NUM_TYPES])(guiElement *const res
 void guiElementInit(guiElement *const restrict gui, const guiElementType_t type){
 	gui->type = type;
 
-	transformRigidInit(&gui->root);
+	transformInit(&gui->state);
 
 	gui->parent = NULL;
 	gui->children = NULL;

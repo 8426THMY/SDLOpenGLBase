@@ -89,7 +89,7 @@ void billboardState(const billboard *const restrict billboardData, const camera 
 
 		// Rotate the matrix to face the target and move it back to where it was.
 		mat4RotateForward(&rot, &forward, &up);
-		mat4MultiplyByMat4(&rootState, rot);
+		mat4MultiplyMat4P2(rot, &rootState);
 		*((vec3 *)rootState.m[3]) = trans;
 
 	// If we're not using sprites or locking any axes, just use scale billboarding.

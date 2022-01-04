@@ -9,6 +9,11 @@
 #include "physicsRigidBody.h"
 
 
+// Any frictional impulse must be greater in magnitude than this.
+// If the magnitude is too close to 0, we can get a singularity.
+#define IMPULSE_EPSILON 0.000001f
+
+
 /*
 ** ----------------------------------------------------------------------
 **
@@ -165,10 +170,10 @@ void physJointFrictionCalculateInverseEffectiveMass(
 	vec3CrossVec3Out(&joint->rB, &joint->tangents[0], &rBu1);
 	vec3CrossVec3Out(&joint->rB, &joint->tangents[1], &rBu2);
 
-	mat3MultiplyVec3ByOut(invInertiaA, &rAu1, &IArAu1);
-	mat3MultiplyVec3ByOut(invInertiaA, &rAu2, &IArAu2);
-	mat3MultiplyVec3ByOut(invInertiaB, &rBu1, &IBrBu1);
-	mat3MultiplyVec3ByOut(invInertiaB, &rBu2, &IBrBu2);
+	mat3MultiplyVec3Out(invInertiaA, &rAu1, &IArAu1);
+	mat3MultiplyVec3Out(invInertiaA, &rAu2, &IArAu2);
+	mat3MultiplyVec3Out(invInertiaB, &rBu1, &IBrBu1);
+	mat3MultiplyVec3Out(invInertiaB, &rBu2, &IBrBu2);
 
 	// Calculate the inverse linear effective mass.
 	joint->linearInvMass.m[0][0] = invMass + vec3DotVec3(&IArAu1, &rAu1) + vec3DotVec3(&IBrBu1, &rBu1);
@@ -180,7 +185,7 @@ void physJointFrictionCalculateInverseEffectiveMass(
 
 	// JM^(-1)J^T = (n . (IA^(-1) * n)) + (n . (IB^(-1) * n))
 	mat3AddMat3Out(invInertiaA, invInertiaB, &totalInertia);
-	mat3MultiplyVec3ByOut(&totalInertia, &joint->normal, &IArAu1);
+	mat3MultiplyVec3Out(&totalInertia, &joint->normal, &IArAu1);
 	angularMass = vec3DotVec3(&IArAu1, &joint->normal);
 
 	// Calculate the inverse angular effective mass.
@@ -230,14 +235,14 @@ void physJointFrictionSolveVelocity(
 		const vec2 oldImpulse = joint->linearImpulse;
 		float impulseMagnitude;
 
-		mat2MultiplyVec2By(&joint->linearInvMass, &lambda);
+		mat2MultiplyVec2(&joint->linearInvMass, &lambda);
 		vec2AddVec2(&joint->linearImpulse, &lambda);
 
 		// C' <= maxFriction
 		// If our accumulated impulse magnitude is larger than the
 		// total force friction is allowed to apply, we need to clamp it.
 		impulseMagnitude = vec2DotVec2(&joint->linearImpulse, &joint->linearImpulse);
-		if(impulseMagnitude > maxFriction * maxFriction){
+		if(impulseMagnitude > IMPULSE_EPSILON && impulseMagnitude > maxFriction * maxFriction){
 			// Normalize the vector and multiply by maxFriction at the same time.
 			vec2MultiplyS(&joint->linearImpulse, maxFriction * invSqrtFast(impulseMagnitude));
 			vec2SubtractVec2FromOut(&joint->linearImpulse, &oldImpulse, &lambda);

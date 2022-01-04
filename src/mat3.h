@@ -27,6 +27,8 @@ void mat3InitEulerVec3XYZ(mat3 *const restrict m, const vec3 *const restrict v);
 void mat3InitEulerVec3ZXY(mat3 *const restrict m, const vec3 *const restrict v);
 mat3 mat3InitEulerVec3XYZC(const vec3 v);
 mat3 mat3InitEulerVec3ZXYC(const vec3 v);
+void mat3InitAxisAngle(mat3 *const restrict m, const vec4 *const restrict v);
+mat3 mat3InitAxisAngleC(const vec4 v);
 void mat3InitQuat(mat3 *const restrict m, const quat *const restrict q);
 mat3 mat3InitQuatC(const quat q);
 void mat3InitScale(mat3 *const restrict m, const float x, const float y, const float z);
@@ -39,24 +41,24 @@ void mat3InitSkew(mat3 *const restrict m, const vec3 *const restrict v);
 mat3 mat3InitSkewC(const vec3 v);
 void mat3InitShearQuat(
 	mat3 *const restrict m,
-	const quat *const restrict q, const vec3 *const restrict v
+	const vec3 *const restrict v, const quat *const restrict q
 );
-mat3 mat3InitShearQuatC(const quat q, const vec3 v);
+mat3 mat3InitShearQuatC(const vec3 v, const quat q);
 
 void mat3AddMat3(mat3 *const restrict m1, const mat3 *const restrict m2);
 void mat3AddMat3Out(const mat3 *const restrict m1, const mat3 *const restrict m2, mat3 *const restrict out);
 mat3 mat3AddMat3C(const mat3 m1, const mat3 m2);
 
-void mat3MultiplyVec3By(const mat3 *const restrict m, vec3 *const restrict v);
-void mat3MultiplyVec3ByOut(const mat3 *const restrict m, const vec3 *const restrict v, vec3 *const restrict out);
-vec3 mat3MultiplyVec3ByC(const mat3 m, vec3 v);
-void mat3MultiplyByVec3(const mat3 *const restrict m, vec3 *const restrict v);
-void mat3MultiplyByVec3Out(const mat3 *const restrict m, const vec3 *const restrict v, vec3 *const restrict out);
-vec3 mat3MultiplyByVec3C(const mat3 m, const vec3 v);
-void mat3MultiplyMat3By(mat3 *const restrict m1, const mat3 m2);
-void mat3MultiplyByMat3(mat3 *const restrict m1, const mat3 m2);
-void mat3MultiplyMat3ByOut(const mat3 m1, const mat3 m2, mat3 *const restrict out);
-mat3 mat3MultiplyMat3ByC(const mat3 m1, const mat3 m2);
+void mat3MultiplyVec3(const mat3 *const restrict m, vec3 *const restrict v);
+void mat3MultiplyVec3Out(const mat3 *const restrict m, const vec3 *const restrict v, vec3 *const restrict out);
+vec3 mat3MultiplyVec3C(const mat3 m, vec3 v);
+void vec3MultiplyMat3(vec3 *const restrict v, const mat3 *const restrict m);
+void vec3MultiplyMat3Out(const vec3 *const restrict v, const mat3 *const restrict m, vec3 *const restrict out);
+vec3 vec3MultiplyMat3C(const vec3 v, const mat3 m);
+void mat3MultiplyMat3P1(mat3 *const restrict m1, const mat3 m2);
+void mat3MultiplyMat3P2(const mat3 m1, mat3 *const restrict m2);
+void mat3MultiplyMat3Out(const mat3 m1, const mat3 m2, mat3 *const restrict out);
+mat3 mat3MultiplyMat3C(const mat3 m1, const mat3 m2);
 
 void mat3RotateByEulerXYZ(mat3 *const restrict m, const float x, const float y, const float z);
 void mat3RotateByEulerZXY(mat3 *const restrict m, const float x, const float y, const float z);
@@ -104,6 +106,12 @@ void mat3Solve(const mat3 *const restrict A, const vec3 *const restrict b, vec3 
 vec3 mat3SolveC(const mat3 A, const vec3 b);
 return_t mat3CanSolve(const mat3 *const restrict A, const vec3 *const restrict b, vec3 *const restrict x);
 return_t mat3CanSolveC(const mat3 A, const vec3 b, vec3 *const restrict x);
+
+void mat3DiagonalizeSymmetric(
+	float a00, float a01, float a02,
+	float a11, float a12, float a22,
+	vec3 *const restrict evals, quat *const restrict Q
+);
 
 void mat3ToQuat(const mat3 *const restrict m, quat *const restrict out);
 quat mat3ToQuatC(const mat3 m);

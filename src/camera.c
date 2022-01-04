@@ -54,7 +54,7 @@ void cameraUpdateViewProjectionMatrix(camera *const restrict cam, const float wi
 
 	// Update the view projection matrix if either of its components have changed.
 	if(flagsAreSet(cam->flags, CAMERA_UPDATE_FLAG)){
-		mat4MultiplyMat4ByOut(cam->projectionMatrix, cam->viewMatrix, &cam->viewProjectionMatrix);
+		mat4MultiplyMat4Out(cam->projectionMatrix, cam->viewMatrix, &cam->viewProjectionMatrix);
 		flagsUnset(cam->flags, CAMERA_UPDATE_FLAG);
 	}
 }

@@ -356,8 +356,8 @@ static void calculateEffectiveMass(
 
 
 	// JM^(-1)J^T = mA^(-1) + mB^(-1) + (((rA + d) X a) . (IA^(-1) * ((rA + d) X a))) + ((rB X a) . (IB^(-1) * (rB X a)))
-	mat3MultiplyVec3ByOut(invInertiaA, rAa, &IArAu1);
-	mat3MultiplyVec3ByOut(invInertiaB, rBa, &IBrBu1);
+	mat3MultiplyVec3Out(invInertiaA, rAa, &IArAu1);
+	mat3MultiplyVec3Out(invInertiaB, rBa, &IBrBu1);
 
 	// Calculate the inverse limit and motor effective mass.
 	// The motor and both limits have the same effective mass.
@@ -369,10 +369,10 @@ static void calculateEffectiveMass(
 	// [K]_01 =                     (((rA + d) X u1) . (IA^(-1) * ((rA + d) X u2))) + ((rB X u1) . (IB^(-1) * (rB X u2)))
 	// [K]_10 = [K]_01
 	// [K]_11 = mA^(-1) + mB^(-1) + (((rA + d) X u2) . (IA^(-1) * ((rA + d) X u2))) + ((rB X u2) . (IB^(-1) * (rB X u2)))
-	mat3MultiplyVec3ByOut(invInertiaA, rAu1, &IArAu1);
-	mat3MultiplyVec3ByOut(invInertiaA, rAu2, &IArAu2);
-	mat3MultiplyVec3ByOut(invInertiaB, rBu1, &IBrBu1);
-	mat3MultiplyVec3ByOut(invInertiaB, rBu2, &IBrBu2);
+	mat3MultiplyVec3Out(invInertiaA, rAu1, &IArAu1);
+	mat3MultiplyVec3Out(invInertiaA, rAu2, &IArAu2);
+	mat3MultiplyVec3Out(invInertiaB, rBu1, &IBrBu1);
+	mat3MultiplyVec3Out(invInertiaB, rBu2, &IBrBu2);
 
 	// Calculate the inverse linear effective mass.
 	joint->linearInvMass.m[0][0] = invMass + vec3DotVec3(&IArAu1, rAu1) + vec3DotVec3(&IBrBu1, rBu1);

@@ -803,10 +803,12 @@ vec3 vec3NegateC(vec3 v){
 
 
 /*
-** Generate a vector that is orthogonal to the
-** input vector and store the result in "out"!
+** Generate a vector that is orthogonal (perhaps not orthonormal)
+** to the input vector and store the result in "out"!
 **
-** Note that the output vector is not normalized in general.
+** This is adapted from Erin Catto's code for generating an
+** orthonormal basis. See the function "orthonormalBasisFast"
+** in "utilMath.c" for more details.
 */
 void vec3Orthogonal(const vec3 *const restrict v, vec3 *const restrict out){
 	// At least one component is always greater
@@ -819,9 +821,12 @@ void vec3Orthogonal(const vec3 *const restrict v, vec3 *const restrict out){
 }
 
 /*
-** Generate a vector that is orthogonal to the input vector.
+** Generate a vector that is orthogonal (perhaps not orthonormal)
+** to the input vector and return the result!
 **
-** Note that the output vector is not normalized in general.
+** This is adapted from Erin Catto's code for generating an
+** orthonormal basis. See the function "orthonormalBasisFast"
+** in "utilMath.c" for more details.
 */
 vec3 vec3OrthogonalC(const vec3 v){
 	// At least one component is always greater
@@ -833,14 +838,54 @@ vec3 vec3OrthogonalC(const vec3 v){
 }
 
 /*
+** Generate a vector that is orthonormal to the
+** input vector and store the result in "out"!
+**
+** This is adapted from Erin Catto's code for generating an
+** orthonormal basis. See the function "orthonormalBasisFast"
+** in "utilMath.c" for more details.
+*/
+void vec3Orthonormal(const vec3 *const restrict v, vec3 *const restrict out){
+	// At least one component is always greater
+	// than 1/sqrt(3) if 'v' is unit length.
+	if(fabsf(v->x) >= SQRT_ONE_THIRD){
+		const float invLength = invSqrtFast(v->x*v->x + v->y*v->y);
+		vec3InitSet(out, v->y*invLength, -v->x*invLength, 0.f);
+	}else{
+		const float invLength = invSqrtFast(v->y*v->y + v->z*v->z);
+		vec3InitSet(out, 0.f, v->z*invLength, -v->y*invLength);
+	}
+}
+
+/*
+** Generate a vector that is orthonormal to the
+** input vector and store return the result!
+**
+** This is adapted from Erin Catto's code for generating an
+** orthonormal basis. See the function "orthonormalBasisFast"
+** in "utilMath.c" for more details.
+*/
+vec3 vec3OrthonormalC(const vec3 v){
+	// At least one component is always greater
+	// than 1/sqrt(3) if 'v' is unit length.
+	if(fabsf(v.x) >= SQRT_ONE_THIRD){
+		const float invLength = invSqrtFast(v.x*v.x + v.y*v.y);
+		return(vec3InitSetC(v.y*invLength, -v.x*invLength, 0.f));
+	}else{
+		const float invLength = invSqrtFast(v.y*v.y + v.z*v.z);
+		return(vec3InitSetC(0.f, v.z*invLength, -v.y*invLength));
+	}
+}
+
+/*
 ** Generate a vector that is orthogonal to the
 ** input vector and store the result in "out"!
 **
-** Note that this is basically copied from Pixar's
-** code for generating an orthonormal basis.
-** See "orthonormalBasisFaster" in "utilMath.c".
+** Note that this is basically copied from Duff et al.'s
+** code for generating an orthonormal basis. For more details,
+** check the function "orthonormalBasisFaster" in "utilMath.c".
 */
-void vec3Orthonormal(const vec3 *const restrict v, vec3 *const restrict out){
+void vec3OrthonormalFast(const vec3 *const restrict v, vec3 *const restrict out){
 	const float sign = copySign(1.f, v->z);
 	const float a = -1.f/(sign + v->z);
 	const float b = v->x*v->y*a;
@@ -850,11 +895,11 @@ void vec3Orthonormal(const vec3 *const restrict v, vec3 *const restrict out){
 /*
 ** Generate a vector that is orthogonal to the input vector.
 **
-** Note that this is basically copied from Pixar's
-** code for generating an orthonormal basis.
-** See "orthonormalBasisFaster" in "utilMath.c".
+** Note that this is basically copied from Duff et al.'s
+** code for generating an orthonormal basis. For more details,
+** check the function "orthonormalBasisFaster" in "utilMath.c".
 */
-vec3 vec3OrthonormalC(const vec3 v){
+vec3 vec3OrthonormalFastC(const vec3 v){
 	const float sign = copySign(1.f, v.z);
 	const float a = -1.f/(sign + v.z);
 	const float b = v.x*v.y*a;
@@ -1068,9 +1113,9 @@ vec3 vec3LerpDiffC(vec3 v, const vec3 offset, const float time){
 ** and return a vec3 composed of these minima in "out".
 */
 void vec3Min(const vec3 *const restrict v1, const vec3 *const restrict v2, vec3 *const restrict out){
-	out->x = floatMinFast(v1->x, v2->x);
-	out->y = floatMinFast(v1->y, v2->y);
-	out->z = floatMinFast(v1->z, v2->z);
+	out->x = floatMin(v1->x, v2->x);
+	out->y = floatMin(v1->y, v2->y);
+	out->z = floatMin(v1->z, v2->z);
 }
 
 /*
@@ -1090,9 +1135,9 @@ vec3 vec3MinC(vec3 v1, const vec3 v2){
 ** and return a vec3 composed of these maxima in "out".
 */
 void vec3Max(const vec3 *const restrict v1, const vec3 *const restrict v2, vec3 *const restrict out){
-	out->x = floatMaxFast(v1->x, v2->x);
-	out->y = floatMaxFast(v1->y, v2->y);
-	out->z = floatMaxFast(v1->z, v2->z);
+	out->x = floatMax(v1->x, v2->x);
+	out->y = floatMax(v1->y, v2->y);
+	out->z = floatMax(v1->z, v2->z);
 }
 
 /*

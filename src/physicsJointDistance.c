@@ -323,9 +323,9 @@ static float calculateEffectiveMass(
 
 	// JM^(-1)J^T = mA^(-1) + mB^(-1) + ((rA X d) . (IA^(-1) * (rA X d))) + ((rB X d) . (IB^(-1) * (rB X d)))
 	vec3CrossVec3Out(rA, rAB, &rAd);
-	mat3MultiplyVec3ByOut(&bodyA->invInertiaGlobal, &rAd, &IArAd);
+	mat3MultiplyVec3Out(&bodyA->invInertiaGlobal, &rAd, &IArAd);
 	vec3CrossVec3Out(rB, rAB, &rBd);
-	mat3MultiplyVec3ByOut(&bodyB->invInertiaGlobal, &rBd, &IBrBd);
+	mat3MultiplyVec3Out(&bodyB->invInertiaGlobal, &rBd, &IBrBd);
 	// We don't take the inverse just yet, as we
 	// need this when calculating the bias term.
 	return(bodyA->invMass + bodyB->invMass + vec3DotVec3(&rAd, &IArAd) + vec3DotVec3(&rBd, &IBrBd));

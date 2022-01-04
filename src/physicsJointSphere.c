@@ -455,7 +455,7 @@ void physJointSphereSolveVelocity(
 		// Solve for the linear impulse:
 		// JV = v_relative,
 		// K1*lambda = -JV.
-		mat3MultiplyVec3ByOut(&((physicsJointSphere *)joint)->linearInvMass, &relativeVelocity, &impulse);
+		mat3MultiplyVec3Out(&((physicsJointSphere *)joint)->linearInvMass, &relativeVelocity, &impulse);
 		vec3AddVec3(&((physicsJointSphere *)joint)->linearImpulse, &impulse);
 
 		// Apply the correctional impulse.
@@ -701,11 +701,11 @@ static void calculateInverseAngularMass(
 	mat3AddMat3Out(&bodyA->invInertiaGlobal, &bodyB->invInertiaGlobal, &invInertiaSum);
 
 	// Swing inverse effective mass (K2).
-	mat3MultiplyVec3ByOut(&invInertiaSum, swingAxis, &IABa);
+	mat3MultiplyVec3Out(&invInertiaSum, swingAxis, &IABa);
 	*swingInvMass = 1.f / vec3DotVec3(swingAxis, &IABa);
 
 	// Twist inverse effective mass (K3).
-	mat3MultiplyVec3ByOut(&invInertiaSum, twistAxis, &IABa);
+	mat3MultiplyVec3Out(&invInertiaSum, twistAxis, &IABa);
 	*twistInvMass = 1.f / vec3DotVec3(twistAxis, &IABa);
 }
 #else
@@ -723,15 +723,15 @@ static void calculateInverseAngularMass(
 	// by a matrix whose columns are given by the constraint axes.
 
 	// Inverse effective mass for the x-axis.
-	mat3MultiplyVec3ByOut(&invInertiaSum, angularAxisX, &IABa);
+	mat3MultiplyVec3Out(&invInertiaSum, angularAxisX, &IABa);
 	angularInvMass->x = 1.f / vec3DotVec3(angularAxisX, &IABa);
 
 	// Inverse effective mass for the y-axis.
-	mat3MultiplyVec3ByOut(&invInertiaSum, angularAxisY, &IABa);
+	mat3MultiplyVec3Out(&invInertiaSum, angularAxisY, &IABa);
 	angularInvMass->y = 1.f / vec3DotVec3(angularAxisY, &IABa);
 
 	// Inverse effective mass for the z-axis.
-	mat3MultiplyVec3ByOut(&invInertiaSum, angularAxisZ, &IABa);
+	mat3MultiplyVec3Out(&invInertiaSum, angularAxisZ, &IABa);
 	angularInvMass->z = 1.f / vec3DotVec3(angularAxisZ, &IABa);
 }
 #endif
@@ -761,7 +761,7 @@ static void calculateBias(
 
 	// Get the relative orientation from body A to body B:
 	// qAB = conj(A)*B.
-	quatMultiplyByQuatConjOut(bodyB->state.rot, bodyA->state.rot, &qAB);
+	quatConjMultiplyQuatOut(bodyA->state.rot, bodyB->state.rot, &qAB);
 	// Decompose the relative orientation into swing and twist components.
 	vec3InitSet(twistAxis, 1.f, 0.f, 0.f);
 	quatSwingTwistFaster(&qAB, twistAxis, &twist, &swing);
@@ -811,7 +811,7 @@ static void calculateBias(
 
 	// Get the relative orientation from body A to body B:
 	// qAB = conj(A)*B.
-	quatMultiplyByQuatConjOut(bodyB->state.rot, bodyA->state.rot, &qAB);
+	quatConjMultiplyQuatOut(bodyA->state.rot, bodyB->state.rot, &qAB);
 	// Decompose the relative orientation into x, y and z components.
 	quatToEulerAnglesZXY(qAB, &angles);
 	// If an angle is negative, we should negate its constraint axis.

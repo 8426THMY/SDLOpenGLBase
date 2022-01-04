@@ -201,9 +201,9 @@ void physManifoldInit(
 		// need the untransformed contact points and normal.
 		#ifdef PHYSCONTACT_STABILISER_GAUSS_SEIDEL
 		vec3SubtractVec3FromOut(&cmContact->pA, bodyACentroid, &curHalfway);
-		quatRotateVec3ConjFastOut(bodyARot, &curHalfway, &pmContact->rAlocal);
+		quatConjRotateVec3FastOut(bodyARot, &curHalfway, &pmContact->rAlocal);
 		vec3SubtractVec3FromOut(&cmContact->pB, bodyBCentroid, &curHalfway);
-		quatRotateVec3ConjFastOut(bodyBRot, &curHalfway, &pmContact->rBlocal);
+		quatConjRotateVec3FastOut(bodyBRot, &curHalfway, &pmContact->rBlocal);
 		#endif
 
 		// Find the average contact normal.
@@ -251,7 +251,7 @@ void physManifoldInit(
 	#endif
 
 	#ifdef PHYSCONTACT_STABILISER_GAUSS_SEIDEL
-	quatRotateVec3ConjFastOut(bodyARot, &normal, &pm->normalA);
+	quatConjRotateVec3FastOut(bodyARot, &normal, &pm->normalA);
 	#endif
 
 	physContactFriction(pm) = combineFriction(cA->friction, cB->friction);
@@ -347,7 +347,7 @@ void physManifoldPersist(
 	physContactNormal(pm) = normal;
 
 	#ifdef PHYSCONTACT_STABILISER_GAUSS_SEIDEL
-	quatRotateVec3ConjFastOut(bodyARot, &normal, &pm->normalA);
+	quatConjRotateVec3FastOut(bodyARot, &normal, &pm->normalA);
 	#endif
 
 	physContactFriction(pm) = combineFriction(cA->friction, cB->friction);
@@ -375,9 +375,9 @@ void physManifoldPersist(
 		// need the untransformed contact points and normal.
 		#ifdef PHYSCONTACT_STABILISER_GAUSS_SEIDEL
 		vec3SubtractVec3FromOut(&cmContact->pA, bodyACentroid, &curHalfway);
-		quatRotateVec3ConjFastOut(bodyARot, &curHalfway, &pmContact->rAlocal);
+		quatConjRotateVec3FastOut(bodyARot, &curHalfway, &pmContact->rAlocal);
 		vec3SubtractVec3FromOut(&cmContact->pB, bodyBCentroid, &curHalfway);
-		quatRotateVec3ConjFastOut(bodyBRot, &curHalfway, &pmContact->rBlocal);
+		quatConjRotateVec3FastOut(bodyBRot, &curHalfway, &pmContact->rBlocal);
 		#endif
 
 		#ifdef PHYSCONTACT_STABILISER_BAUMGARTE
@@ -566,9 +566,9 @@ static float calculateEffectiveMass(
 
 	// JM^(-1)J^T = mA^(-1) + mB^(-1) + ((rA X n) . (IA^(-1) * (rA X n))) + ((rB X n) . (IB^(-1) * (rB X n)))
 	vec3CrossVec3Out(pointA, normal, &rAn);
-	mat3MultiplyVec3ByOut(invInertiaA, &rAn, &IArAn);
+	mat3MultiplyVec3Out(invInertiaA, &rAn, &IArAn);
 	vec3CrossVec3Out(pointB, normal, &rBn);
-	mat3MultiplyVec3ByOut(invInertiaB, &rBn, &IBrBn);
+	mat3MultiplyVec3Out(invInertiaB, &rBn, &IBrBn);
 	return(invMass + vec3DotVec3(&rAn, &IArAn) + vec3DotVec3(&rBn, &IBrBn));
 }
 

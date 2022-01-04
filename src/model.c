@@ -737,17 +737,21 @@ modelDef *modelDefSMDLoad(const char *const restrict mdlDefPath, const size_t md
 									quatInitEulerXYZ(&currentBone->localBind.rot, x, y, z);
 
 									// Set the bone's scale!
-									quatInitIdentity(&currentBone->localBind.stretchRot);
+									quatInitIdentity(&currentBone->localBind.shear);
 									vec3InitSet(&currentBone->localBind.scale, 1.f, 1.f, 1.f);
 
 
-									// If this bone has a parent, append its state to its parent's state!
+									// If this bone has a parent, its global bind pose is
+									// given by appending its parent's global bind pose.
+									// We invert these after computing them for each bone.
 									if(!valueIsInvalid(currentBone->parent, boneIndex_t)){
-										transformAffineAppend(
-											&currentBone->localBind,
+										transformAppendOut(
 											&tempBones[currentBone->parent].invGlobalBind,
+											&currentBone->localBind,
 											&currentBone->invGlobalBind
 										);
+
+									// If the bone has no parent, just use the local bind pose.
 									}else{
 										currentBone->invGlobalBind = currentBone->localBind;
 									}
@@ -1092,6 +1096,7 @@ modelDef *modelDefSMDLoad(const char *const restrict mdlDefPath, const size_t md
 					if(mdlDef->skele != NULL){
 						/** MALLOC FAILED **/
 					}
+					// This function will invert the global bind pose.
 					skeleInitSet(mdlDef->skele, mdlDef->name, mdlDefPathLength, tempBones, tempBonesSize);
 				}else{
 					mdlDef->skele = &g_skeleDefault;

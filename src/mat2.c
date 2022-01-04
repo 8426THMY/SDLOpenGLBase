@@ -68,22 +68,25 @@ mat2 mat2AddMat2C(const mat2 m1, const mat2 m2){
 }
 
 
-// Multiply a vec2 by a matrix (m*v)!
-void mat2MultiplyVec2By(const mat2 *const restrict m, vec2 *const restrict v){
+// Left-multiply a column vector by a matrix (m*v)!
+void mat2MultiplyVec2(const mat2 *const restrict m, vec2 *const restrict v){
 	const vec2 temp = *v;
 
 	v->x = m->m[0][0] * temp.x + m->m[1][0] * temp.y;
 	v->y = m->m[0][1] * temp.x + m->m[1][1] * temp.y;
 }
 
-// Multiply a vec2 by a matrix (m*v) and store the result in "out"! This assumes that "out" isn't "v".
-void mat2MultiplyVec2ByOut(const mat2 *const restrict m, const vec2 *const restrict v, vec2 *const restrict out){
+/*
+** Left-multiply a column vector by a matrix (m*v) and store the result in "out"!
+** This assumes that "out" isn't "v".
+*/
+void mat2MultiplyVec2Out(const mat2 *const restrict m, const vec2 *const restrict v, vec2 *const restrict out){
 	out->x = m->m[0][0] * v->x + m->m[1][0] * v->y;
 	out->y = m->m[0][1] * v->x + m->m[1][1] * v->y;
 }
 
-// Multiply a vec2 by a matrix (m*v)!
-vec2 mat2MultiplyVec2ByC(const mat2 m, const vec2 v){
+// Left-multiply a column vector by a matrix (m*v) and return the result!
+vec2 mat2MultiplyVec2C(const mat2 m, const vec2 v){
 	const vec2 out = {
 		.x = m.m[0][0] * v.x + m.m[1][0] * v.y,
 		.y = m.m[0][1] * v.x + m.m[1][1] * v.y
@@ -92,22 +95,22 @@ vec2 mat2MultiplyVec2ByC(const mat2 m, const vec2 v){
 	return(out);
 }
 
-// Multiply a matrix by a vec2 (v*m)!
-void mat2MultiplyByVec2(const mat2 *const restrict m, vec2 *const restrict v){
+// Right-multiply a row vector by a matrix (v^T*m)!
+void vec2MultiplyMat2(vec2 *const restrict v, const mat2 *const restrict m){
 	const vec2 temp = *v;
 
 	v->x = temp.x * m->m[0][0] + temp.y * m->m[0][1];
 	v->y = temp.x * m->m[1][0] + temp.y * m->m[1][1];
 }
 
-// Multiply a matrix by a vec2 (v*m) and store the result in "out"!
-void mat2MultiplyByVec2Out(const mat2 *const restrict m, const vec2 *const restrict v, vec2 *const restrict out){
+// Right-multiply a row vector by a matrix (v^T*m) and store the result in "out"!
+void vec2MultiplyMat2Out(const vec2 *const restrict v, const mat2 *const restrict m, vec2 *const restrict out){
 	out->x = v->x * m->m[0][0] + v->y * m->m[0][1];
 	out->y = v->x * m->m[1][0] + v->y * m->m[1][1];
 }
 
-// Multiply a matrix by a vec2 (v*m)!
-vec2 mat2MultiplyByVec2C(const mat2 m, const vec2 v){
+// Right-multiply a row vector by a matrix (v^T*m) and return the result!
+vec2 vec2MultiplyMat2C(const vec2 v, const mat2 m){
 	const vec2 out = {
 		.x = v.x * m.m[0][0] + v.y * m.m[0][1],
 		.y = v.x * m.m[1][0] + v.y * m.m[1][1]
@@ -116,8 +119,8 @@ vec2 mat2MultiplyByVec2C(const mat2 m, const vec2 v){
 	return(out);
 }
 
-// Right-multiply "m1" by "m2" (m1*m2)!
-void mat2MultiplyMat2By(mat2 *const restrict m1, const mat2 m2){
+// Left-multiply "m2" by "m1" (m1*m2) and store the result in "m1"!
+void mat2MultiplyMat2P1(mat2 *const restrict m1, const mat2 m2){
 	const mat2 tempMatrix = *m1;
 
 	m1->m[0][0] = tempMatrix.m[0][0] * m2.m[0][0] + tempMatrix.m[1][0] * m2.m[0][1];
@@ -127,19 +130,19 @@ void mat2MultiplyMat2By(mat2 *const restrict m1, const mat2 m2){
 	m1->m[1][1] = tempMatrix.m[0][1] * m2.m[1][0] + tempMatrix.m[1][1] * m2.m[1][1];
 }
 
-// Left-multiply "m1" by "m2" (m2*m1)!
-void mat2MultiplyByMat2(mat2 *const restrict m1, const mat2 m2){
-	const mat2 tempMatrix = *m1;
+// Left-multiply "m2" by "m1" (m1*m2) and store the result in "m2"!
+void mat2MultiplyMat2P2(const mat2 m1, mat2 *const restrict m2){
+	const mat2 tempMatrix = *m2;
 
-	m1->m[0][0] = m2.m[0][0] * tempMatrix.m[0][0] + m2.m[1][0] * tempMatrix.m[0][1];
-	m1->m[0][1] = m2.m[0][1] * tempMatrix.m[0][0] + m2.m[1][1] * tempMatrix.m[0][1];
+	m2->m[0][0] = m1.m[0][0] * tempMatrix.m[0][0] + m1.m[1][0] * tempMatrix.m[0][1];
+	m2->m[0][1] = m1.m[0][1] * tempMatrix.m[0][0] + m1.m[1][1] * tempMatrix.m[0][1];
 
-	m1->m[1][0] = m2.m[0][0] * tempMatrix.m[1][0] + m2.m[1][0] * tempMatrix.m[1][1];
-	m1->m[1][1] = m2.m[0][1] * tempMatrix.m[1][0] + m2.m[1][1] * tempMatrix.m[1][1];
+	m2->m[1][0] = m1.m[0][0] * tempMatrix.m[1][0] + m1.m[1][0] * tempMatrix.m[1][1];
+	m2->m[1][1] = m1.m[0][1] * tempMatrix.m[1][0] + m1.m[1][1] * tempMatrix.m[1][1];
 }
 
-// Right-multiply "m1" by "m2" (m1*m2) and store the result in "out"!
-void mat2MultiplyMat2ByOut(const mat2 m1, const mat2 m2, mat2 *const restrict out){
+// Left-multiply "m2" by "m1" (m1*m2) and store the result in "out"!
+void mat2MultiplyMat2Out(const mat2 m1, const mat2 m2, mat2 *const restrict out){
 	out->m[0][0] = m1.m[0][0] * m2.m[0][0] + m1.m[1][0] * m2.m[0][1];
 	out->m[0][1] = m1.m[0][1] * m2.m[0][0] + m1.m[1][1] * m2.m[0][1];
 
@@ -147,8 +150,8 @@ void mat2MultiplyMat2ByOut(const mat2 m1, const mat2 m2, mat2 *const restrict ou
 	out->m[1][1] = m1.m[0][1] * m2.m[1][0] + m1.m[1][1] * m2.m[1][1];
 }
 
-// Right-multiply "m1" by "m2" (m1*m2)!
-mat2 mat2MultiplyMat2ByC(const mat2 m1, const mat2 m2){
+// Left-multiply "m2" by "m1" (m1*m2) and return the result!
+mat2 mat2MultiplyMat2C(const mat2 m1, const mat2 m2){
 	const mat2 out = {
 		.m[0][0] = m1.m[0][0] * m2.m[0][0] + m1.m[1][0] * m2.m[0][1],
 		.m[0][1] = m1.m[0][1] * m2.m[0][0] + m1.m[1][1] * m2.m[0][1],

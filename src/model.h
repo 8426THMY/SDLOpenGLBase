@@ -16,6 +16,8 @@ typedef struct modelDef {
 	// Models use an individual mesh
 	// for each separate texture group.
 	mesh *meshes;
+	// This is an array of texture group pointers, one per mesh.
+	// The texture groups are stored in their respective allocator.
 	textureGroup **texGroups;
 	size_t numMeshes;
 

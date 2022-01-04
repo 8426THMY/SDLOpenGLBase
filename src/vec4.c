@@ -868,10 +868,10 @@ vec4 vec4LerpDiffC(vec4 v, const vec4 offset, const float time){
 ** and return a vec4 composed of these minima in "out".
 */
 void vec4Min(const vec4 *const restrict v1, const vec4 *const restrict v2, vec4 *out){
-	out->x = floatMinFast(v1->x, v2->x);
-	out->y = floatMinFast(v1->y, v2->y);
-	out->z = floatMinFast(v1->z, v2->z);
-	out->w = floatMinFast(v1->w, v2->w);
+	out->x = floatMin(v1->x, v2->x);
+	out->y = floatMin(v1->y, v2->y);
+	out->z = floatMin(v1->z, v2->z);
+	out->w = floatMin(v1->w, v2->w);
 }
 
 /*
@@ -892,10 +892,10 @@ vec4 vec4MinC(vec4 v1, const vec4 v2){
 ** and return a vec4 composed of these maxima in "out".
 */
 void vec4Max(const vec4 *const restrict v1, const vec4 *const restrict v2, vec4 *out){
-	out->x = floatMaxFast(v1->x, v2->x);
-	out->y = floatMaxFast(v1->y, v2->y);
-	out->z = floatMaxFast(v1->z, v2->z);
-	out->w = floatMaxFast(v1->w, v2->w);
+	out->x = floatMax(v1->x, v2->x);
+	out->y = floatMax(v1->y, v2->y);
+	out->z = floatMax(v1->z, v2->z);
+	out->w = floatMax(v1->w, v2->w);
 }
 
 /*

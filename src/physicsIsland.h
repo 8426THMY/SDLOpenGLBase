@@ -24,6 +24,8 @@
 
 
 #warning "We should investigate how Randy Gaul and Erin Catto handle physics islands."
+#include "mat4.h"
+extern mat4 projMatTest;
 
 
 typedef struct physicsIsland {

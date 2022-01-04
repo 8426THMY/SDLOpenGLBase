@@ -21,8 +21,6 @@ typedef struct debugMesh {
 
 	GLuint indexBufferID;
 	debugVertexIndex_t numIndices;
-
-	GLuint drawMode;
 } debugMesh;
 
 typedef struct debugShader {
@@ -48,8 +46,9 @@ static void debugMeshDrawBuffers(
 static void debugMeshDelete(const debugMesh *const restrict meshData);
 
 
-debugDrawInfo debugDrawInfoInit(const unsigned int fillMode, const vec3 colour, const float size){
+debugDrawInfo debugDrawInfoInit(const unsigned int drawMode, const unsigned int fillMode, const vec3 colour, const float size){
 	const debugDrawInfo info = {
+		.drawMode = drawMode,
 		.fillMode = fillMode,
 		.colour = colour,
 		.size = size
@@ -129,7 +128,6 @@ void debugDrawSkeleton(const skeletonState *const restrict skeleState, const deb
 	// Generate temporary buffers for the mesh data.
 	debugMeshGenerateBuffers(&meshData, vertices, numBones, indices, meshData.numIndices);
 	// Draw the mesh from the buffers.
-	meshData.drawMode = GL_LINES;
 	debugMeshDrawBuffers(&meshData, &info, vpMatrix);
 	// Now that we've drawn the mesh, we can destroy the buffers.
 	debugMeshDelete(&meshData);
@@ -186,7 +184,6 @@ void debugDrawColliderAABB(const colliderAABB *aabb, const debugDrawInfo info, c
 	// Generate temporary buffers for the mesh data.
 	debugMeshGenerateBuffers(&meshData, vertices, 8, indices, 36);
 	// Draw the mesh from the buffers.
-	meshData.drawMode = GL_TRIANGLES;
 	debugMeshDrawBuffers(&meshData, &info, vpMatrix);
 	// Now that we've drawn the mesh, we can destroy the buffers.
 	debugMeshDelete(&meshData);
@@ -285,7 +282,6 @@ void debugDrawColliderHull(const colliderHull *const restrict hull, const debugD
 	// Generate temporary buffers for the mesh data.
 	debugMeshGenerateBuffers(&meshData, hull->vertices, hull->numVertices, indices, meshData.numIndices);
 	// Draw the mesh from the buffers.
-	meshData.drawMode = GL_TRIANGLES;
 	debugMeshDrawBuffers(&meshData, &info, vpMatrix);
 	// Now that we've drawn the mesh, we can destroy the buffers.
 	debugMeshDelete(&meshData);
@@ -351,7 +347,7 @@ static void debugMeshDrawBuffers(
 
 	glUniform3fv(debugDrawShader.colourID, 1, (GLfloat *)&info->colour);
 	glUniformMatrix4fv(debugDrawShader.vpMatrixID, 1, GL_FALSE, (GLfloat *)vpMatrix);
-	glDrawElements(meshData->drawMode, meshData->numIndices, GL_UNSIGNED_INT, NULL);
+	glDrawElements(info->drawMode, meshData->numIndices, GL_UNSIGNED_INT, NULL);
 
 	// Restore the default settings.
 	switch(info->fillMode){

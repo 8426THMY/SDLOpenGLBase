@@ -709,8 +709,8 @@ vec2 vec2LerpDiffC(vec2 v, const vec2 offset, const float time){
 ** and return a vec2 composed of these minima in "out".
 */
 void vec2Min(const vec2 *const restrict v1, const vec2 *const restrict v2, vec2 *const restrict out){
-	out->x = floatMinFast(v1->x, v2->x);
-	out->y = floatMinFast(v1->y, v2->y);
+	out->x = floatMin(v1->x, v2->x);
+	out->y = floatMin(v1->y, v2->y);
 }
 
 /*
@@ -729,8 +729,8 @@ vec2 vec2MinC(vec2 v1, const vec2 v2){
 ** and return a vec2 composed of these maxima in "out".
 */
 void vec2Max(const vec2 *const restrict v1, const vec2 *const restrict v2, vec2 *const restrict out){
-	out->x = floatMaxFast(v1->x, v2->x);
-	out->y = floatMaxFast(v1->y, v2->y);
+	out->x = floatMax(v1->x, v2->x);
+	out->y = floatMax(v1->y, v2->y);
 }
 
 /*

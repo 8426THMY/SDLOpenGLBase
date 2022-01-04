@@ -65,6 +65,7 @@ typedef struct renderer {
 #endif
 
 
+#include "transform.h"
 int main(int argc, char **argv){
 	program prg;
 

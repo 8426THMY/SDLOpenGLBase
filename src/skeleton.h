@@ -11,7 +11,6 @@
 #include "transform.h"
 
 #include "animation.h"
-#include "state.h"
 
 
 #define SKELETON_MAX_BONES 128
@@ -21,7 +20,7 @@
 
 // Stores the various positional data for a
 // bone as offsets from its parent's data.
-typedef transformAffine boneState;
+typedef transform boneState;
 typedef uint_least8_t boneIndex_t;
 
 typedef struct bone {
@@ -102,7 +101,7 @@ void skeleStateInit(skeletonState *const restrict skeleState, skeleton *const re
 skeletonAnimDef *skeleAnimSMDLoad(const char *const restrict skeleAnimPath, const size_t skeleAnimPathLength);
 
 void skeleAnimUpdate(skeletonAnim *const restrict anim, const float time);
-void skeleStatePrependAnimationStates(
+void skeleStatePrependAnimations(
 	boneState *const restrict out,
 	const skeletonState *const restrict skeleState,
 	const boneIndex_t boneID, const char *const restrict boneName

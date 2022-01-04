@@ -59,15 +59,15 @@ void guiPanelDraw(
 
 	const rectangle *offsets = gui->data.panel.uvCoords;
 	const float cornerPos[2] = {
-		floorf(gui->root.pos.x),
-		floorf(gui->root.pos.y)
+		floorf(gui->state.pos.x),
+		floorf(gui->state.pos.y)
 	};
 	const float bodyPos[2] = {
 		cornerPos[0] + roundf(offsets[2].w * borderFrame->tex->width),
 		cornerPos[1] - roundf(offsets[2].h * borderFrame->tex->height)
 	};
-	const float bodyWidth  = roundf(gui->root.scale.x);
-	const float bodyHeight = roundf(gui->root.scale.y);
+	const float bodyWidth  = roundf(gui->state.scale.x);
+	const float bodyHeight = roundf(gui->state.scale.y);
 	float tempHeight;
 
 

@@ -86,8 +86,7 @@ void skeleInitSet(
 
 		// Make sure we invert each bone's state!
 		for(; curBone < lastBone; ++curBone){
-			transformAffineInvert(&curBone->invGlobalBind, &curBone->invGlobalBind);
-			//quatRotateVec3Fast(&curBone->invGlobalBind.rot, &curBone->invGlobalBind.pos);
+			transformInvert(&curBone->invGlobalBind);
 		}
 
 		skele->bones = bones;
@@ -365,7 +364,7 @@ skeletonAnimDef *skeleAnimSMDLoad(const char *const restrict skeleAnimPath, cons
 								quatInitEulerXYZ(&currentState->rot, x, y, z);
 
 								// Set the bone's scale!
-								quatInitIdentity(&currentState->stretchRot);
+								quatInitIdentity(&currentState->shear);
 								vec3InitSet(&currentState->scale, 1.f, 1.f, 1.f);
 
 								//The Source Engine uses Z as its up axis, so we need to fix that with the root bone.
@@ -469,10 +468,12 @@ void skeleAnimUpdate(skeletonAnim *const restrict anim, const float time){
 #warning "If interpolation is turned off, we don't need to call the transform functions."
 /*
 ** For each animation in the skeleton state, compute the local
-** transformations on the specified bone and prepend them to "out".
+** transformations on the specified bone and apply them to "state".
+** The input state will generally be the global bind pose, so these
+** tranformations are prepended to it.
 */
-void skeleStatePrependAnimationStates(
-	boneState *const restrict out,
+void skeleStatePrependAnimations(
+	boneState *const restrict state,
 	const skeletonState *const restrict skeleState,
 	const boneIndex_t boneID, const char *const restrict boneName
 ){
@@ -490,7 +491,7 @@ void skeleStatePrependAnimationStates(
 
 			// Interpolate between the current
 			// and next frames of the animation.
-			transformAffineInterpSet(
+			transformInterpSet(
 				&curAnim->animDef->frames[currentFrame][animBoneID],
 				&curAnim->animDef->frames[nextFrame][animBoneID],
 				curAnim->interpTime,
@@ -501,12 +502,12 @@ void skeleStatePrependAnimationStates(
 			// Remove the bind pose's "contribution" to the animation.
 			if(strcmp(curAnim->animDef->name, "soldier_animations_anims_new/a_flinch01.smd") != 0){
 				boneState invLocalBind;
-				transformAffineInvert(&skeleState->skele->bones[boneID].localBind, &invLocalBind);
-				transformAffineAppend(&animState, &invLocalBind, &animState);
+				transformInvertOut(&skeleState->skele->bones[boneID].localBind, &invLocalBind);
+				transformAppendP2(&invLocalBind, &animState);
 			}
 			// Set the animation's intensity by blending from the identity state.
-			transformAffineInterpSet(&g_transformAffineIdentity, &animState, curAnim->intensity, &animState);
-			transformAffineAppend(&animState, out, out);
+			transformInterpSet(&g_transformIdentity, &animState, curAnim->intensity, &animState);
+			transformAppendP1(state, &animState);
 		}
 
 		// Continue to the next animation in the list.

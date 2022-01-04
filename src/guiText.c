@@ -44,7 +44,7 @@ void guiTextDraw(
 		// Stores the x and y coordinates for position of the current character,
 		float cursor[2] = {0.f, 0.f};
 		mat4 rootTransform;
-		transformRigidToMat4(&gui->root, &rootTransform);
+		transformToMat4(&gui->state, &rootTransform);
 
 
 		// Send the font's image type and colours to the shader!
@@ -106,7 +106,7 @@ void guiTextDraw(
 
 
 				// If we've exceeded the width of the text box, move onto the next line.
-				if((translateX + curWidth)*gui->root.scale.x > text.width){
+				if((translateX + curWidth)*gui->state.scale.x > text.width){
 					translateX -= cursor[0];
 					cursor[0] = 0.f;
 					cursor[1] -= 48.f;//advanceY * format.size;

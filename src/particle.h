@@ -23,7 +23,7 @@ typedef struct particle {
 	#warning "Can we store this somewhere else? Perhaps in a particle equivalent of spriteState?"
 	float camDistance;
 
-	transformRigid state;
+	transform state;
 	vec3 velocity;
 
 	// The particle definition stores the actual

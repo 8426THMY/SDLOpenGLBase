@@ -24,7 +24,7 @@
 #define uintMinFast(x, y) (((x) < (y)) ? (x) : (y))
 #define uintMaxFast(x, y) (((x) > (y)) ? (x) : (y))
 
-// According to Mark Harris in his 2015 blog GPU Pro Tip: Lerp Faster in C++,
+// According to Mark Harris in his 2015 blog "GPU Pro Tip: Lerp Faster in C++",
 // we can achieve better performance and accuracy by using two fmas here.
 //
 // Note that these are prone to double evaluation,
@@ -98,12 +98,6 @@ void pointPlaneProject(const vec3 *const restrict point, const vec3 *const restr
 
 float clampEllipseDistanceFast(const float Ex, const float Ey, const float Ea, const float Eb);
 float clampEllipseDistanceNormalFast(const float Ex, const float Ey, const float Ea, const float Eb, vec2 *const restrict normal);
-
-void diagonalizeMat3Symmetric(
-	float a00, float a01, float a02,
-	float a11, float a12, float a22,
-	vec3 *const restrict evals, quat *const restrict Q
-);
 
 
 #endif

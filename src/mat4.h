@@ -32,6 +32,8 @@ void mat4InitEulerVec3XYZ(mat4 *const restrict m, const vec3 *const restrict v);
 void mat4InitEulerVec3ZXY(mat4 *const restrict m, const vec3 *const restrict v);
 mat4 mat4InitEulerVec3XYZC(const vec3 v);
 mat4 mat4InitEulerVec3ZXYC(const vec3 v);
+void mat4InitAxisAngle(mat4 *const restrict m, const vec4 *const restrict v);
+mat4 mat4InitAxisAngleC(const vec4 v);
 void mat4InitQuat(mat4 *const restrict m, const quat *const restrict q);
 mat4 mat4InitQuatC(const quat q);
 void mat4InitScale(mat4 *const restrict m, const float x, const float y, const float z);
@@ -44,36 +46,36 @@ void mat4InitScaleVec4(mat4 *const restrict m, const vec4 *const restrict v);
 mat4 mat4InitScaleVec4C(const vec4 v);
 void mat4InitShearQuat(
 	mat4 *const restrict m,
-	const quat *const restrict q, const vec3 *const restrict v
+	const vec3 *const restrict v, const quat *const restrict q
 );
-mat4 mat4InitShearQuatC(const quat q, const vec3 v);
+mat4 mat4InitShearQuatC(const vec3 v, const quat q);
 
 void mat4AddMat4(mat4 *const restrict m1, const mat4 *const restrict m2);
 void mat4AddMat4Out(const mat4 *const restrict m1, const mat4 *const restrict m2, mat4 *const restrict out);
 mat4 mat4AddMat4C(const mat4 m1, const mat4 m2);
 
-void mat4MultiplyVec3By(const mat4 *const restrict m, vec3 *const restrict v);
-void mat4MultiplyVec3ByOut(const mat4 *const restrict m, const vec3 *const restrict v, vec3 *const restrict out);
-vec3 mat4MultiplyVec3ByC(const mat4 m, const vec3 v);
-void mat4MultiplyByVec3(const mat4 *const restrict m, vec3 *const restrict v);
-void mat4MultiplyByVec3Out(const mat4 *const restrict m, const vec3 *const restrict v, vec3 *const restrict out);
-vec3 mat4MultiplyByVec3C(const mat4 m, const vec3 v);
-void mat4MultiplyVec4By(const mat4 *const restrict m, vec4 *const restrict v);
-void mat4MultiplyVec4ByOut(const mat4 *const restrict m, const vec4 *const restrict v, vec4 *const restrict out);
-vec4 mat4MultiplyVec4ByC(const mat4 m, const vec4 v);
-void mat4MultiplyByVec4(const mat4 *const restrict m, vec4 *const restrict v);
-void mat4MultiplyByVec4Out(const mat4 *const restrict m, const vec4 *const restrict v, vec4 *const restrict out);
-vec4 mat4MultiplyByVec4C(const mat4 m, const vec4 v);
-void mat4MultiplyMat3By(mat4 *const restrict m1, const mat3 m2);
-void mat4MultiplyMat3ByOut(const mat4 m1, const mat3 m2, mat4 *const restrict out);
-mat4 mat4MultiplyMat3ByC(const mat4 m1, const mat3 m2);
-void mat4MultiplyByMat3(mat4 *const restrict m1, const mat3 m2);
-void mat4MultiplyByMat3Out(const mat4 m1, const mat3 m2, mat4 *const restrict out);
-mat4 mat4MultiplyByMat3C(const mat4 m1, const mat3 m2);
-void mat4MultiplyMat4By(mat4 *const restrict m1, const mat4 m2);
-void mat4MultiplyByMat4(mat4 *const restrict m1, const mat4 m2);
-void mat4MultiplyMat4ByOut(const mat4 m1, const mat4 m2, mat4 *const restrict out);
-mat4 mat4MultiplyMat4ByC(const mat4 m1, const mat4 m2);
+void mat4MultiplyVec3(const mat4 *const restrict m, vec3 *const restrict v);
+void mat4MultiplyVec3Out(const mat4 *const restrict m, const vec3 *const restrict v, vec3 *const restrict out);
+vec3 mat4MultiplyVec3C(const mat4 m, const vec3 v);
+void vec3MultiplyMat4(vec3 *const restrict v, const mat4 *const restrict m);
+void vec3MultiplyMat4Out(const vec3 *const restrict v, const mat4 *const restrict m, vec3 *const restrict out);
+vec3 vec3MultiplyMat4C(const vec3 v, const mat4 m);
+void mat4MultiplyVec4(const mat4 *const restrict m, vec4 *const restrict v);
+void mat4MultiplyVec4Out(const mat4 *const restrict m, const vec4 *const restrict v, vec4 *const restrict out);
+vec4 mat4MultiplyVec4C(const mat4 m, const vec4 v);
+void vec4MultiplyMat4(vec4 *const restrict v, const mat4 *const restrict m);
+void vec4MultiplyMat4Out(const vec4 *const restrict v, const mat4 *const restrict m, vec4 *const restrict out);
+vec4 vec4MultiplyMat4C(const vec4 v, const mat4 m);
+void mat4MultiplyMat3(mat4 *const restrict m1, const mat3 m2);
+void mat4MultiplyMat3Out(const mat4 m1, const mat3 m2, mat4 *const restrict out);
+mat4 mat4MultiplyMat3C(const mat4 m1, const mat3 m2);
+void mat3MultiplyMat4(const mat3 m1, mat4 *const restrict m2);
+void mat3MultiplyMat4Out(const mat3 m1, const mat4 m2, mat4 *const restrict out);
+mat4 mat3MultiplyMat4C(const mat3 m1, const mat4 m2);
+void mat4MultiplyMat4P1(mat4 *const restrict m1, const mat4 m2);
+void mat4MultiplyMat4P2(const mat4 m1, mat4 *const restrict m2);
+void mat4MultiplyMat4Out(const mat4 m1, const mat4 m2, mat4 *const restrict out);
+mat4 mat4MultiplyMat4C(const mat4 m1, const mat4 m2);
 
 void mat4Translate(mat4 *const restrict m, const float x, const float y, const float z);
 mat4 mat4TranslateC(mat4 m, const float x, const float y, const float z);

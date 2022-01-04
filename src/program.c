@@ -377,29 +377,29 @@ static void update(program *const restrict prg){
 
 	/** TEMPORARY GUI UPDATE STUFF! **/
 	if(prg->inputMngr.keyStates[SDL_SCANCODE_LEFT]){
-		gui.root.pos.x -= 100.f * prg->step.updateDelta;
+		gui.state.pos.x -= 100.f * prg->step.updateDelta;
 	}
 	if(prg->inputMngr.keyStates[SDL_SCANCODE_RIGHT]){
-		gui.root.pos.x += 100.f * prg->step.updateDelta;
+		gui.state.pos.x += 100.f * prg->step.updateDelta;
 	}
 	if(prg->inputMngr.keyStates[SDL_SCANCODE_UP]){
-		gui.root.pos.y += 100.f * prg->step.updateDelta;
+		gui.state.pos.y += 100.f * prg->step.updateDelta;
 	}
 	if(prg->inputMngr.keyStates[SDL_SCANCODE_DOWN]){
-		gui.root.pos.y -= 100.f * prg->step.updateDelta;
+		gui.state.pos.y -= 100.f * prg->step.updateDelta;
 	}
 
 	if(prg->inputMngr.keyStates[SDL_SCANCODE_A]){
-		gui.root.scale.x -= 100.f * prg->step.updateDelta;
+		gui.state.scale.x -= 100.f * prg->step.updateDelta;
 	}
 	if(prg->inputMngr.keyStates[SDL_SCANCODE_D]){
-		gui.root.scale.x += 100.f * prg->step.updateDelta;
+		gui.state.scale.x += 100.f * prg->step.updateDelta;
 	}
 	if(prg->inputMngr.keyStates[SDL_SCANCODE_W]){
-		gui.root.scale.y -= 100.f * prg->step.updateDelta;
+		gui.state.scale.y -= 100.f * prg->step.updateDelta;
 	}
 	if(prg->inputMngr.keyStates[SDL_SCANCODE_S]){
-		gui.root.scale.y += 100.f * prg->step.updateDelta;
+		gui.state.scale.y += 100.f * prg->step.updateDelta;
 	}
 
 	guiElementUpdate(&gui, prg->step.updateTime);
@@ -426,7 +426,7 @@ static void render(program *const restrict prg){
 	glUseProgram(prg->spriteShader.programID);
 	/** Do we need this? **/
 	glClear(GL_DEPTH_BUFFER_BIT);
-	//guiElementDraw(&gui, prg->windowWidth, prg->windowHeight, &prg->spriteShader);
+	//guiElementDraw(&gui, prg->windowWidth, prg->windowHeight, &prg->spriteShader);s
 
 
 	#ifndef PRG_ENABLE_EFFICIENT_RENDERING
@@ -580,7 +580,6 @@ static return_t initResources(program *const restrict prg){
 	controlObj = obj;
 
 	// Temporary animation stuff.
-	#warning "Playing 'soldier_animations_anims_old/a_runN_LOSER.smd' on the Scout makes his left arm flip."
 	animDef = skeleAnimSMDLoad("soldier_animations_anims_old/a_runN_MELEE.smd", sizeof("soldier_animations_anims_old/a_runN_MELEE.smd") - 1);
 	//animDef = skeleAnimSMDLoad("soldier_animations_anims_old/a_runN_LOSER.smd", sizeof("soldier_animations_anims_old/a_runN_LOSER.smd") - 1);
 	if(animDef != NULL){
@@ -598,7 +597,7 @@ static return_t initResources(program *const restrict prg){
 
 	/** TEMPORARY PHYSICS STUFF **/
 	physIslandInit(&island);
-	#if 0
+	#if 1
 	// Create the base physics object.
 	objDef = moduleObjectDefAlloc();
 	objectDefInit(objDef);
@@ -624,7 +623,7 @@ static return_t initResources(program *const restrict prg){
 	physRigidBodyIgnoreLinear(obj->physBodies);physRigidBodyIgnoreSimulation(obj->physBodies);
 	physIslandInsertRigidBody(&island, obj->physBodies);
 
-	#if 1
+	#if 0
 	{
 		physicsRigidBody *egg, *cube;
 
@@ -803,9 +802,9 @@ static return_t initResources(program *const restrict prg){
 	textFontLoad(&fontIBM, SPRITE_IMAGE_TYPE_MSDF, atlasArray, "./resource/fonts/PxPlus_IBM_BIOS.ttf", "./resource/fonts/PxPlus_IBM_BIOS-msdf-temp.csv");
 
 	guiElementInit(&gui, GUI_ELEMENT_TYPE_TEXT);
-	gui.root.pos.x = 0.f;
-	gui.root.pos.y = 0.f;
-	gui.root.scale.x = gui.root.scale.y = 0.5f;
+	gui.state.pos.x = 0.f;
+	gui.state.pos.y = 0.f;
+	gui.state.scale.x = gui.state.scale.y = 0.5f;
 	guiTextInit(&gui.data.text, &fontIBM, sizeof("The quick brown fox jumps over the lazy dog!"));
 	textBufferWrite(&gui.data.text.buffer, "The quick brown fox jumps over the lazy dog!", sizeof("The quick brown fox jumps over the lazy dog!"));
 
@@ -817,9 +816,9 @@ static return_t initResources(program *const restrict prg){
 	#else
 	guiElementSetup();
 	guiElementInit(&gui, GUI_ELEMENT_TYPE_PANEL);
-	gui.root.pos.x = 0.f;
-	gui.root.pos.y = 0.f;
-	gui.root.scale.x = gui.root.scale.y = 100.f;
+	gui.state.pos.x = 0.f;
+	gui.state.pos.y = 0.f;
+	gui.state.scale.x = gui.state.scale.y = 100.f;
 	guiPanelInit(&gui.data.panel);
 
 	gui.data.panel.borderTexState.texGroup = texGroupLoad("gui/border.tdg", sizeof("gui/border.tdg") - 1);

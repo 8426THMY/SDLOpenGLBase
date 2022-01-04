@@ -15,7 +15,7 @@ return_t (*const colliderLoadTable[COLLIDER_NUM_TYPES])(
 void (*const colliderUpdateTable[COLLIDER_NUM_TYPES])(
 	void *const restrict c, const vec3 *const restrict centroid,
 	const void *const restrict cBase, const vec3 *const restrict baseCentroid,
-	transformAffine trans, colliderAABB *const restrict aabb
+	const transform *const restrict trans, colliderAABB *const restrict aabb
 ) = {
 
 	colliderHullUpdate
@@ -55,10 +55,10 @@ return_t colliderLoad(
 void colliderUpdate(
 	collider *const restrict c, const vec3 *const restrict centroid,
 	const collider *const restrict cBase, const vec3 *const restrict baseCentroid,
-	const transformAffine *const restrict trans, colliderAABB *const restrict aabb
+	const transform *const restrict trans, colliderAABB *const restrict aabb
 ){
 
-	colliderUpdateTable[c->type]((void *)(&c->data), centroid, (void *)(&cBase->data), baseCentroid, *trans, aabb);
+	colliderUpdateTable[c->type]((void *)(&c->data), centroid, (void *)(&cBase->data), baseCentroid, trans, aabb);
 }
 
 

@@ -246,9 +246,9 @@ static void initializeParticle(const particleSystem *const restrict partSys, par
 		} while(curInitializer <= partSysDef->lastInitializer);
 	}
 
-	// Prepend the particle system's state.
+	// Append the particle system's state.
 	vec3AddVec3(&part->state.pos, &partSys->pos);
-	quatMultiplyByQuat(&part->state.rot, partSys->rot);
+	quatMultiplyQuatP2(partSys->rot, &part->state.rot);
 
 	#warning "If we do this, we'll need to scale the result of operators."
 	#warning "Is this correct, though?"
@@ -407,7 +407,7 @@ static void drawParticles(
 		const textureGroupFrame *const texFrame = texGroupStateGetFrame(&texState);
 
 		// Convert the particle's state to a matrix!
-		transformRigidToMat4(&curParticle->state, &curState->state);
+		transformToMat4(&curParticle->state, &curState->state);
 		// Get the particle's UV coordinates!
 		curState->uvOffsets = texFrame->bounds;
 

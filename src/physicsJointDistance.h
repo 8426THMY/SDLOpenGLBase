@@ -53,9 +53,9 @@ typedef struct physicsJointDistance {
 	float damping;
 
 	// The "magic" constants from Erin Catto's
-	// talk on soft constraints during GDC, 2011.
-	// The bias is simply a Baumgarte term with
-	// a special value for beta.
+	// GDC 2011 talk on soft constraints. The
+	// bias is simply a Baumgarte term with a
+	// special value for beta.
 	//
 	// gamma = 1/(hk + c)
 	// beta  = hk/(hk + c)

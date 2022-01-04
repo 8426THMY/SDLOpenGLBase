@@ -46,9 +46,7 @@ typedef uint_least8_t cmdTimestamp_t;
 /*
 ** Console commands/variables and aliases are all stored in a trie.
 ** We store commands as generic void pointers, as they can be either
-** a function pointer for commands/variables or a string pointer for
-** aliases. If the node stores an alias, the least significant bit
-** of the command pointer will be set to '1'.
+** a function pointer for commands or a string pointer for aliases.
 */
 typedef struct commandNode commandNode;
 typedef struct commandNode {
@@ -58,6 +56,9 @@ typedef struct commandNode {
 	// This will be a NULL pointer if
 	// no command ends at this node.
 	command cmd;
+	// Stores whether the command
+	// is a function or a variable.
+	flags_t type;
 } commandNode, commandSystem;
 
 /*
@@ -99,7 +100,7 @@ typedef struct commandBuffer {
 
 void cmdSysInit(commandSystem *const restrict cmdSys);
 return_t cmdSysAdd(commandSystem *node, const char *restrict name, const command cmd);
-const command cmdSysFind(const commandSystem *node, const char *restrict name);
+const commandNode *cmdSysFind(const commandSystem *node, const char *restrict name);
 void cmdSysDelete(commandSystem *const restrict cmdSys);
 
 void cmdBufferInit(commandBuffer *const restrict cmdBuf);
