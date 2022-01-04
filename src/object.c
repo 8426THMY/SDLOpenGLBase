@@ -424,6 +424,11 @@ static void updateBones(object *const restrict obj, const float time){
 	}
 	#else
 	*curObjBone = curSkeleBone->localBind;
+		quatConjugateOut(&curObjBone->rot, &curObjBone->shear);
+		static float testyAngle = 0.f;
+		curObjBone->scale.y = expf(-2.f*testyAngle)*cos(2.f*3.14159265f*testyAngle)*cos(2.f*3.14159265f*testyAngle) + 1.f/4.f;
+		curObjBone->pos.y *= curObjBone->scale.y;
+		testyAngle += 0.005f;
 	// Prepend the total animation transformations to the bind pose.
 	skeleStatePrependAnimations(curObjBone, &obj->skeleState, 0, curSkeleBone->name);
 	#endif

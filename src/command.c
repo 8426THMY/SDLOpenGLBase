@@ -8,18 +8,22 @@
 #include "moduleCommand.h"
 
 
-#define COMMAND_FREE ((uintptr_t)NULL)
-
-#define COMMAND_TYPE_FUNCTION 0x00
-#define COMMAND_TYPE_VARIABLE 0x01
+#define COMMAND_TYPE_FREE     0x00
+#define COMMAND_TYPE_FUNCTION 0x01
+#define COMMAND_TYPE_VARIABLE 0x02
 
 #define cmdValidCharacter(c)      ((c) == '+' || (c) == '-' || (c) == '_' || isalpha(c))
 #define cmdWhitespaceCharacter(c) ((c) == ' ' || (c) == '\t')
 
 
 // Forward-declare any helper functions!
+static return_t cmdSysAdd(
+	commandSystem *node, const char *restrict name,
+	const command cmd, const flags_t type
+);
+
 static void cmdNodeInit(commandNode *const restrict cmdNode, const char value);
-static return_t cmdNodeValid(const char *const restrict name, const command cmd);
+static return_t cmdNodeValid(const char *const restrict name, const flags_t type);
 static commandNode *cmdNodeNext(const commandNode *const node, const char c);
 static commandNode *cmdNodeAddChild(commandNode *const node, const char c);
 
@@ -38,34 +42,19 @@ void cmdSysInit(commandSystem *const restrict cmdSys){
 	cmdSys->value = '\0';
 	cmdSys->children = NULL;
 	cmdSys->numChildren = 0;
-	cmdSys->cmd = COMMAND_FREE;
-	cmdSys->type = COMMAND_TYPE_FUNCTION;
+	cmdSys->type = COMMAND_TYPE_FREE;
 }
 
-return_t cmdSysAdd(commandSystem *node, const char *restrict name, const command cmd){
-	if(cmdNodeValid(name, cmd)){
-		char c = *name;
-		// Go through each character in the command name,
-		// adding any nodes that don't already exist.
-		//
-		// Command names are not case sensitive,
-		// so we store them in lower case.
-		do {
-			if((node = cmdNodeAddChild(node, tolower(c))) == NULL){
-				/** REALLOC FAILED **/
-			}
-			++name;
-			c = *name;
-		} while(c != '\0');
+// Add a function to a command system!
+return_t cmdSysAddFunction(commandSystem *const cmdSys, const char *const restrict name, const commandFunction func){
+	const command cmd = {.func = func};
+	return(cmdSysAdd(cmdSys, name, cmd, COMMAND_TYPE_FUNCTION));
+}
 
-		// Only overwrite the node if it's not already in use.
-		if(node->cmd == COMMAND_FREE){
-			node->cmd = cmd;
-			return(1);
-		}
-	}
-
-	return(0);
+// Add a variable to a command system!
+return_t cmdSysAddVariable(commandSystem *const cmdSys, const char *const restrict name, const commandVariable var){
+	const command cmd = {.var = var};
+	return(cmdSysAdd(cmdSys, name, cmd, COMMAND_TYPE_VARIABLE));
 }
 
 const commandNode *cmdSysFind(const commandSystem *node, const char *restrict name){
@@ -93,7 +82,7 @@ void cmdSysDelete(commandSystem *const restrict cmdSys){
 	}
 	// If the node stores a string buffer, make sure we free it too.
 	if(cmdSys->type == COMMAND_TYPE_VARIABLE){
-		memoryManagerGlobalFree((void *)cmdSys->cmd);
+		memoryManagerGlobalFree(cmdSys->cmd.var);
 	}
 }
 
@@ -215,11 +204,11 @@ void cmdBufferExecute(commandBuffer *const restrict cmdBuffer, commandSystem *co
 		}else{
 			const commandNode *const node = cmdSysFind(cmdSys, cmdTok->argv[0]);
 			// Note that "node" is only NULL if "cmdSys" is NULL.
-			if(node != NULL && node->cmd != COMMAND_FREE){
+			if(node != NULL && node->type != COMMAND_TYPE_FREE){
 				// Execute the command if it's a function.
 				if(node->type == COMMAND_TYPE_FUNCTION){
 					// The first argument stores the command's name, so we should skip it.
-					((commandFunction)node->cmd)(cmdSys, cmdTok->argc - 1, &cmdTok->argv[1]);
+					node->cmd.func(cmdSys, cmdTok->argc - 1, &cmdTok->argv[1]);
 
 				// If the command was a variable, we should tokenize
 				// it and then insert it into the command buffer.
@@ -230,7 +219,7 @@ void cmdBufferExecute(commandBuffer *const restrict cmdBuffer, commandSystem *co
 					cmdBuffer->cmdListEnd = cmdTok;
 					cmdBufferAddCommand(
 						cmdBuffer,
-						(const char *)node->cmd, strlen((const char *)node->cmd),
+						node->cmd.var, strlen(node->cmd.var),
 						cmdTok->timestamp, cmdTok->delay
 					);
 				}
@@ -260,17 +249,49 @@ void cmdBufferDelete(commandBuffer *const restrict cmdBuffer){
 }
 
 
+// Add a new command to a command system!
+return_t cmdSysAdd(
+	commandSystem *node, const char *restrict name,
+	const command cmd, const flags_t type
+){
+
+	if(cmdNodeValid(name, type)){
+		char c = *name;
+		// Go through each character in the command name,
+		// adding any nodes that don't already exist.
+		//
+		// Command names are not case sensitive,
+		// so we store them in lower case.
+		do {
+			if((node = cmdNodeAddChild(node, tolower(c))) == NULL){
+				/** REALLOC FAILED **/
+			}
+			++name;
+			c = *name;
+		} while(c != '\0');
+
+		// Only overwrite the node if it's not already in use.
+		if(node->type == COMMAND_TYPE_FREE){
+			node->cmd = cmd;
+			node->type = type;
+			return(1);
+		}
+	}
+
+	return(0);
+}
+
+
 static void cmdNodeInit(commandNode *const restrict cmdNode, const char value){
 	cmdNode->value = value;
 	cmdNode->children = NULL;
 	cmdNode->numChildren = 0;
-	cmdNode->cmd = COMMAND_FREE;
-	cmdNode->type = COMMAND_TYPE_FUNCTION;
+	cmdNode->type = COMMAND_TYPE_FREE;
 }
 
 // Check if the name of a command node we want to add is valid.
-static return_t cmdNodeValid(const char *name, const command cmd){
-	if(name == NULL || cmd == COMMAND_FREE || *name == '\0'){
+static return_t cmdNodeValid(const char *name, const flags_t type){
+	if(name == NULL || type == COMMAND_TYPE_FREE || *name == '\0'){
 		return(0);
 	}else{
 		char c = *name;

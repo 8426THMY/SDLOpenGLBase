@@ -40,36 +40,47 @@
 
 
 typedef size_t commandNodeIndex_t;
-typedef uintptr_t command;
-typedef uint_least8_t cmdTimestamp_t;
+
+/*
+** Command functions take in a tokenized
+** array of strings as their arguments.
+*/
+typedef struct commandSystem commandSystem;
+typedef void (*commandFunction)(
+	commandSystem *const restrict cmdSys,
+	const size_t argc, const char **const restrict argv
+);
+// User variables are stored as strings.
+typedef char * commandVariable;
+// The C standard does not enforce any sort of rules on the size of
+// of data pointers versus function pointers, so the safest way to
+// define a command is to use a union rather than any single type.
+typedef union command {
+	commandFunction func;
+	commandVariable var;
+} command;
 
 /*
 ** Console commands/variables and aliases are all stored in a trie.
 ** We store commands as generic void pointers, as they can be either
 ** a function pointer for commands or a string pointer for aliases.
 */
-typedef struct commandNode commandNode;
-typedef struct commandNode {
+typedef struct commandSystem {
 	char value;
-	commandNode *children;
+	commandSystem *children;
 	commandNodeIndex_t numChildren;
-	// This will be a NULL pointer if
-	// no command ends at this node.
+	// This will be a NULL pointer if no command ends at this node.
+	// We can't store the type of command in the least significant
+	// bit of this pointer as we usually would, as it may already
+	// be set for certain function pointers.
 	command cmd;
 	// Stores whether the command
 	// is a function or a variable.
 	flags_t type;
-} commandNode, commandSystem;
+} commandSystem, commandNode;
 
-/*
-** Command functions take in a tokenized
-** array of strings as their arguments.
-*/
-typedef void (*commandFunction)(
-	commandSystem *const restrict cmdSys,
-	const size_t argc, const char **const restrict argv
-);
 
+typedef uint_least8_t cmdTimestamp_t;
 
 // Tokenized command.
 typedef struct commandTokenized {
@@ -99,8 +110,9 @@ typedef struct commandBuffer {
 
 
 void cmdSysInit(commandSystem *const restrict cmdSys);
-return_t cmdSysAdd(commandSystem *node, const char *restrict name, const command cmd);
-const commandNode *cmdSysFind(const commandSystem *node, const char *restrict name);
+return_t cmdSysAddFunction(commandSystem *const cmdSys, const char *const restrict name, const commandFunction func);
+return_t cmdSysAddVariable(commandSystem *const cmdSys, const char *const restrict name, const commandVariable var);
+const commandNode *cmdSysFind(const commandSystem *cmdSys, const char *restrict name);
 void cmdSysDelete(commandSystem *const restrict cmdSys);
 
 void cmdBufferInit(commandBuffer *const restrict cmdBuf);

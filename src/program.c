@@ -64,8 +64,8 @@ return_t programInit(program *const restrict prg, char *const restrict prgDir){
 	inputMngrInit(&prg->inputMngr);
 
 	// Add the commands for our default list of cvars.
-	cmdSysAdd(&prg->cmdSys, "exit", (command)&c_exit);
-	cmdSysAdd(&prg->cmdSys, "mousemove", (command)&c_mousemove);
+	cmdSysAddFunction(&prg->cmdSys, "exit", &c_exit);
+	cmdSysAddFunction(&prg->cmdSys, "mousemove", &c_mousemove);
 
 	inputMngrKeyboardBind(&prg->inputMngr, SDL_SCANCODE_ESCAPE, "exit", sizeof("exit") - 1);
 
@@ -524,7 +524,7 @@ static return_t initLibs(program *const restrict prg){
 	return(1);
 }
 
-static return_t initResources(program *const restrict prg){
+static return_t initResources(program *const restrict prg){printf("%u, %u, %u, %u, %u\n\n", &initResources, &programLoop, &render, &update, &mat4MultiplyMat3);
 	printf("Beginning to initialize resources...\n");
 
 	const GLuint objVertexShaderID      = shaderLoad("./resource/shaders/vertexShader.gls",         GL_VERTEX_SHADER);
