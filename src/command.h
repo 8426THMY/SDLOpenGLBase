@@ -9,9 +9,19 @@
 
 
 // These settings mirror the Source engine.
-#define COMMAND_MAX_LENGTH 256
-#define COMMAND_MAX_BUFFER_LENGTH 8192
-#define COMMAND_MAX_ARGUMENTS 64
+#ifndef COMMAND_MAX_LENGTH
+	#define COMMAND_MAX_LENGTH 256
+#endif
+#ifndef COMMAND_MAX_BUFFER_LENGTH
+	#define COMMAND_MAX_BUFFER_LENGTH 8192
+#endif
+#ifndef COMMAND_MAX_ARGUMENTS
+	#define COMMAND_MAX_ARGUMENTS 64
+#endif
+
+#define COMMAND_TYPE_FUNCTION 0x00
+#define COMMAND_TYPE_VARIABLE 0x01
+#define COMMAND_TYPE_FREE     0xFF
 
 // Any character code less than this
 // may be used by the command system.
@@ -110,9 +120,16 @@ typedef struct commandBuffer {
 
 
 void cmdSysInit(commandSystem *const restrict cmdSys);
-return_t cmdSysAddFunction(commandSystem *const cmdSys, const char *const restrict name, const commandFunction func);
-return_t cmdSysAddVariable(commandSystem *const cmdSys, const char *const restrict name, const commandVariable var);
-const commandNode *cmdSysFind(const commandSystem *cmdSys, const char *restrict name);
+return_t cmdSysAddFunction(
+	commandSystem *const restrict cmdSys,
+	const char *const restrict name, const commandFunction func
+);
+return_t cmdSysAddVariable(
+	commandSystem *const restrict cmdSys,
+	const char *const restrict name, const commandVariable var
+);
+commandNode *cmdSysFind(commandSystem *restrict cmdSys, const char *restrict name);
+return_t cmdSysRemove(commandSystem *restrict cmdSys, const char *const restrict name);
 void cmdSysDelete(commandSystem *const restrict cmdSys);
 
 void cmdBufferInit(commandBuffer *const restrict cmdBuf);
