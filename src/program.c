@@ -48,7 +48,7 @@ return_t programInit(program *const restrict prg, char *const restrict prgDir){
 	// we're looking for resources in the correct directory.
 	fileSetWorkingDirectory(prgDir, NULL);
 
-	timestepInit(&prg->step, UPDATE_RATE, FRAME_RATE);
+	timestepInit(&prg->step, UPDATE_RATE, FRAME_RATE, 1.f);
 	// Initialize our timing system.
 	timerInit();
 
@@ -89,7 +89,7 @@ void programLoop(program *const restrict prg){
 		if(curTime >= nextUpdate){
 			input(prg);
 			update(prg);
-			nextUpdate += prg->step.updateTime;
+			nextUpdate += prg->step.updateTimeScaled;
 
 			++updates;
 		#ifndef PRG_ENABLE_EFFICIENT_RENDERING
@@ -98,7 +98,8 @@ void programLoop(program *const restrict prg){
 			if(curTime >= nextRender){
 				// Get our progress through the current update!
 				prg->step.renderDelta = floatClamp(
-					1.f - (nextUpdate - curTime) * prg->step.updateTickrate, 0.f, 1.f
+					1.f - (nextUpdate - curTime) * prg->step.updateTickrateScaled,
+					0.f, 1.f
 				);
 				render(prg);
 				nextRender = curTime + prg->step.renderTime;
@@ -126,7 +127,8 @@ void programLoop(program *const restrict prg){
 			if(nextRender < nextUpdate){
 				const float nextRenderTime = floatMax(nextRender, curTime);
 				prg->step.renderDelta = floatClamp(
-					1.f - (nextUpdate - nextRenderTime) * prg->step.updateTickrate, 0.f, 1.f
+					1.f - (nextUpdate - nextRenderTime) * prg->step.updateTickrateScaled,
+					0.f, 1.f
 				);
 				render(prg);
 
@@ -223,6 +225,11 @@ static void input(program *const restrict prg){
 }
 
 /** TEMPORARY CAMERA STUFF! **/
+#define CAMERA_FRICTION_WISH  10.f
+#define CAMERA_FRICTION       10.f
+#define CAMERA_MAX_SPEED      20.f
+#define CAMERA_ACCEL          4.f
+#define CAMERA_ACCEL_FRICTION 2.f
 static float cPitch = 0.f;
 static float cYaw = 0.f;
 static vec3 cVelocity = {.x = 0.f, .y = 0.f, .z = 0.f};
@@ -240,11 +247,6 @@ static void updateCameras(program *const restrict prg){
 	/** Mega modified Quake 3 movement code. **/
 	{
 		vec3 wishdir = {.x = 0.f, .y = 0.f, .z = 0.f};
-		float wishspeed;
-		float addspeed;
-		float speed;
-		float control;
-		float newSpeed;
 
 		if(prg->inputMngr.keyStates[SDL_SCANCODE_A]){
 			vec3SubtractVec3From(&wishdir, (vec3 *)&rotMatrix.m[0]);
@@ -259,33 +261,45 @@ static void updateCameras(program *const restrict prg){
 			vec3AddVec3(&wishdir, (vec3 *)&rotMatrix.m[2]);
 		}
 
-		wishspeed = vec3MagnitudeVec3(&wishdir);
-		if(wishspeed > 0.f){
-			vec3DivideByS(&wishdir, wishspeed);
-			wishspeed = 0.2f;
-		}
-		addspeed = wishspeed - cVelocity.x*wishdir.x - cVelocity.y*wishdir.y - cVelocity.z*wishdir.z;
-		if(addspeed > 0.f){
-			float accelspeed = 10.f * wishspeed * 1.f * prg->step.updateDelta;
-			if(accelspeed > addspeed){
-				accelspeed = addspeed;
+		// pMoveFriction
+		{
+			const float speed = vec3MagnitudeVec3(&cVelocity);
+			const float control = (speed < 0.5f) ? 0.5f : speed;
+			float newSpeed = speed;
+
+			if(wishdir.x != 0.f || wishdir.y != 0.f || wishdir.z != 0.f){
+				newSpeed -= control * prg->step.updateDelta * CAMERA_FRICTION_WISH;
+			}else{
+				newSpeed -= control * prg->step.updateDelta * CAMERA_FRICTION;
 			}
-			vec3Fmaf(accelspeed, &wishdir, &cVelocity);
+
+			if(newSpeed < 0.f){
+				vec3InitZero(&cVelocity);
+			}else{
+				if(speed > 0.f){
+					newSpeed /= speed;
+				}
+				vec3MultiplyS(&cVelocity, newSpeed);
+			}
 		}
 
-		speed = vec3MagnitudeVec3(&cVelocity);
-		control = (speed < 0.5f) ? 0.5f : speed;
-		if(wishspeed > 0.1f){
-			newSpeed = speed - control * prg->step.updateDelta * 2.f;
-		}else{
-			newSpeed = speed - control * prg->step.updateDelta * 2.f;
+		// pMoveGround
+		if(wishdir.x != 0.f || wishdir.y != 0.f || wishdir.z != 0.f){
+			const float wishspeed = CAMERA_MAX_SPEED;
+			float addspeed;
+
+			vec3NormalizeVec3(&wishdir);
+
+			addspeed = wishspeed - cVelocity.x*wishdir.x - cVelocity.y*wishdir.y - cVelocity.z*wishdir.z;
+			if(addspeed > 0.f){
+				float accelspeed = CAMERA_ACCEL * wishspeed * CAMERA_ACCEL_FRICTION * prg->step.updateDelta;
+				if(accelspeed > addspeed){
+					accelspeed = addspeed;
+				}
+				vec3Fmaf(accelspeed, &wishdir, &cVelocity);
+			}
 		}
-		if(newSpeed < 0.f || speed <= 0.f){
-			vec3InitZero(&cVelocity);
-		}else{
-			vec3MultiplyS(&cVelocity, newSpeed/speed);
-		}
-		vec3AddVec3(&prg->cam.pos, &cVelocity);
+		vec3Fmaf(prg->step.updateDelta, &cVelocity, &prg->cam.pos);
 	}
 
 	mat4View(&prg->cam.viewMatrix, &prg->cam.pos, &rotMatrix);
@@ -524,7 +538,7 @@ static return_t initLibs(program *const restrict prg){
 	return(1);
 }
 
-static return_t initResources(program *const restrict prg){printf("%u, %u, %u, %u, %u\n\n", &initResources, &programLoop, &render, &update, &mat4MultiplyMat3);
+static return_t initResources(program *const restrict prg){
 	printf("Beginning to initialize resources...\n");
 
 	const GLuint objVertexShaderID      = shaderLoad("./resource/shaders/vertexShader.gls",         GL_VERTEX_SHADER);
@@ -580,18 +594,19 @@ static return_t initResources(program *const restrict prg){printf("%u, %u, %u, %
 	controlObj = obj;
 
 	// Temporary animation stuff.
-	animDef = skeleAnimSMDLoad("soldier_animations_anims_old/a_runN_MELEE.smd", sizeof("soldier_animations_anims_old/a_runN_MELEE.smd") - 1);
+	animDef = skeleAnimSMDLoad("soldier_animations_anims_old/layer_taunt07.smd", sizeof("soldier_animations_anims_old/layer_taunt07.smd") - 1);
+	//animDef = skeleAnimSMDLoad("soldier_animations_anims_old/a_runN_MELEE.smd", sizeof("soldier_animations_anims_old/a_runN_MELEE.smd") - 1);
 	//animDef = skeleAnimSMDLoad("soldier_animations_anims_old/a_runN_LOSER.smd", sizeof("soldier_animations_anims_old/a_runN_LOSER.smd") - 1);
 	if(animDef != NULL){
 		obj->skeleState.anims = moduleSkeletonAnimPrepend(&obj->skeleState.anims);
-		skeleAnimInit(obj->skeleState.anims, animDef, 1.f, 0.5f);
+		skeleAnimInit(obj->skeleState.anims, animDef, 1.f, 1.f);
 	}
 
-	animDef = skeleAnimSMDLoad("soldier_animations_anims_old/stand_MELEE.smd", sizeof("soldier_animations_anims_old/stand_MELEE.smd") - 1);
+	/*animDef = skeleAnimSMDLoad("soldier_animations_anims_old/stand_MELEE.smd", sizeof("soldier_animations_anims_old/stand_MELEE.smd") - 1);
 	if(animDef != NULL){
 		obj->skeleState.anims = moduleSkeletonAnimPrepend(&obj->skeleState.anims);
 		skeleAnimInit(obj->skeleState.anims, animDef, 1.f, 0.5f);
-	}
+	}*/
 	#endif
 
 
@@ -623,7 +638,7 @@ static return_t initResources(program *const restrict prg){printf("%u, %u, %u, %
 	physRigidBodyIgnoreLinear(obj->physBodies);physRigidBodyIgnoreSimulation(obj->physBodies);
 	physIslandInsertRigidBody(&island, obj->physBodies);
 
-	#if 0
+	#if 1
 	{
 		physicsRigidBody *egg, *cube;
 
@@ -686,10 +701,10 @@ static return_t initResources(program *const restrict prg){printf("%u, %u, %u, %
 
 		{
 			physicsJointPair *joint = modulePhysicsJointPairAlloc();
-			const vec3 anchorA = vec3InitZeroC();
+			const vec3 anchorA = egg->base->centroid;
 			const vec3 anchorB = vec3InitSetC(-2.5f, 0.f, 0.f);
 			physJointPairInit(joint, egg, cube, NULL, NULL);
-			physJointSphereInit(&joint->joint.data.sphere, &anchorA, &anchorB, 0.f, 0.f, -M_PI_4, M_PI_4, -M_PI_4, M_PI_4);
+			physJointSphereInit(&joint->joint.data.sphere, &anchorA, &anchorB, 0.f, 0.f, -M_PI, M_PI, -M_PI, M_PI);
 			joint->joint.type = PHYSJOINT_TYPE_SPHERE;
 			/*physicsJointPair *joint = modulePhysicsJointPairAlloc();
 			const vec3 anchorA = vec3InitZeroC();

@@ -228,10 +228,11 @@ return_t physJointDistanceSolvePosition(const void *const restrict joint, physic
 		vec3 rAB;
 
 		// Transform the anchor points using the bodies' new scales and rotations.
-		vec3MultiplyVec3Out(&bodyA->state.scale, &((physicsJointDistance *)joint)->anchorA, &rA);
-		quatRotateVec3Fast(&bodyA->state.rot, &rA);
-		vec3MultiplyVec3Out(&bodyB->state.scale, &((physicsJointDistance *)joint)->anchorB, &rB);
-		quatRotateVec3Fast(&bodyB->state.rot, &rB);
+		// We subtract the local centroid positions to get them relative to the centroids.
+		vec3SubtractVec3FromOut(&((physicsJointDistance *)joint)->anchorA, &bodyA->base->centroid, &rA);
+		transformDirection(&bodyA->state, &rA);
+		vec3SubtractVec3FromOut(&((physicsJointDistance *)joint)->anchorB, &bodyB->base->centroid, &rB);
+		transformDirection(&bodyB->state, &rB);
 
 		// Find the relative position of the two bodies.
 		// d = (pB - pA)
@@ -279,10 +280,11 @@ static void updateConstraintData(
 	float distance;
 
 	// Transform the anchor points using the bodies' new scales and rotations.
-	vec3MultiplyVec3Out(&bodyA->state.scale, &joint->anchorA, &joint->rA);
-	quatRotateVec3Fast(&bodyA->state.rot, &joint->rA);
-	vec3MultiplyVec3Out(&bodyB->state.scale, &joint->anchorB, &joint->rB);
-	quatRotateVec3Fast(&bodyB->state.rot, &joint->rB);
+	// We subtract the local centroid positions to get them relative to the centroids.
+	vec3SubtractVec3FromOut(&joint->anchorA, &bodyA->base->centroid, &joint->rA);
+	transformDirection(&bodyA->state, &joint->rA);
+	vec3SubtractVec3FromOut(&joint->anchorB, &bodyB->base->centroid, &joint->rB);
+	transformDirection(&bodyB->state, &joint->rB);
 
 	// Find the relative position of the two bodies.
 	// d = (pB - pA)

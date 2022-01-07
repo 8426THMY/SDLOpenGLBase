@@ -25,6 +25,7 @@ typedef struct physicsJointSphereDef {
 	// reference to the ball and socket.
 	vec3 anchorA;
 	vec3 anchorB;
+	quat rotOffsetB;
 
 	// Stores the minimum and maximum angular
 	// limits (in that order) for each axis.
@@ -38,8 +39,9 @@ typedef struct physicsJointSphere {
 	// reference to the ball and socket.
 	vec3 anchorA;
 	vec3 anchorB;
-	// These points are in global space, but they
-	// are still relative to the centres of mass.
+	quat rotOffsetB;
+	// These points are in global space,
+	// relative to the centres of mass.
 	vec3 rA;
 	vec3 rB;
 

@@ -4,7 +4,9 @@
 
 #include "settingsPhysics.h"
 
+#include "vec2.h"
 #include "vec3.h"
+#include "quat.h"
 #include "mat2.h"
 #include "mat3.h"
 #include "utilTypes.h"
@@ -25,9 +27,11 @@
 typedef struct physicsJointPrismaticDef {
 	// These points define where the joint is connected to the
 	// respective colliders. They should be untransformed and
-	// relative to the bodies' centres of mass.
+	// relative to the bodies' reference positions (origins).
 	vec3 anchorA;
 	vec3 anchorB;
+	// Initial offset in orientation from rigid body A to B.
+	quat rotOffsetAB;
 
 	// This is a unit vector in the direction of
 	// the axis the bodies should slide along.
@@ -38,16 +42,21 @@ typedef struct physicsJointPrismatic {
 	// These points are in local space.
 	vec3 anchorA;
 	vec3 anchorB;
+	// Initial offset in orientation from rigid body A to B.
+	quat rotOffsetAB;
 
 	// These store the constraint axis and
 	// its tangent vectors in local space.
 	vec3 axisLocal;
 	vec3 tangentsLocal[2];
-	// These store them in global space.
+	// These store them in global space,
+	// with respect to the centres of mass.
 	vec3 axisGlobal;
 	vec3 tangentsGlobal[2];
 
 	// Used for the limit and motor constraints.
+	// These vectors are stored with respect to
+	// the rigid bodies' centres of mass.
 	// ((rA + d) X a)
 	vec3 rAa;
 	// (rB X a)

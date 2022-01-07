@@ -690,16 +690,15 @@ void physRigidBodySetScale(physicsRigidBody *const restrict body, const vec3 sca
 }
 
 
+// Compute the rigid body's centroid from its transform position.
 void physRigidBodyCentroidFromPosition(physicsRigidBody *const restrict body){
-	vec3MultiplyVec3Out(&body->base->centroid, &body->state.scale, &body->centroid);
-	quatRotateVec3Fast(&body->state.rot, &body->centroid);
-	vec3AddVec3(&body->centroid, &body->state.pos);
+	transformPointOut(&body->state, &body->base->centroid, &body->centroid);
 }
 
+// Compute the rigid body's transform position from its centroid.
 void physRigidBodyPositionFromCentroid(physicsRigidBody *const restrict body){
 	vec3NegateOut(&body->base->centroid, &body->state.pos);
-	vec3MultiplyVec3(&body->state.pos, &body->state.scale);
-	quatRotateVec3Fast(&body->state.rot, &body->state.pos);
+	transformDirection(&body->state, &body->state.pos);
 	vec3AddVec3(&body->state.pos, &body->centroid);
 }
 

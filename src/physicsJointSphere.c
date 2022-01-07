@@ -4,6 +4,7 @@
 #include "physicsRigidBody.h"
 
 #include "vec2.h"
+#include "quat.h"
 #include "utilMath.h"
 
 
@@ -144,7 +145,20 @@
 **
 ** ----------------------------------------------------------------------
 */
+#warning "This joint tends to break at angular limits greater than or equal to pi/2."
 #warning "We still need to implement some sort of restitution."
+/**
+How do we handle the axes for the biases? Should they just be the cardinal axes?
+This would perhaps make sense, as we are using relative orientations.
+https://github.com/erincatto/box2d/blob/master/src/dynamics/b2_revolute_joint.cpp
+https://github.com/bulletphysics/bullet3/blob/master/src/BulletDynamics/ConstraintSolver/btConeTwistConstraint.cpp
+https://github.com/kovertopz/jReactPhysics3D/blob/master/src/main/java/net/smert/jreactphysics3d/constraint/BallAndSocketJoint.java
+https://github.com/dtecta/motion-toolkit
+https://github.com/DigitalRune/DigitalRune/blob/master/Source/DigitalRune.Physics/Constraints/TwistSwingLimit.cs
+Maybe investigate the generic 6-DOF constraints in Bullet.
+The way they handle angle limits might be better than just swing-twist.
+https://www.gamedev.net/forums/topic/589924-most-efficient-method-of-implementing-6dof-objects/
+**/
 
 
 // Forward-declare any helper functions!
@@ -561,10 +575,10 @@ return_t physJointSphereSolvePosition(
 		vec3 constraint;
 		mat3 linearMass;
 
-		vec3MultiplyVec3Out(&bodyA->state.scale, &((physicsJointSphere *)joint)->anchorA, &rA);
-		quatRotateVec3Fast(&bodyA->state.rot, &rA);
-		vec3MultiplyVec3Out(&bodyB->state.scale, &((physicsJointSphere *)joint)->anchorB, &rB);
-		quatRotateVec3Fast(&bodyB->state.rot, &rB);
+		vec3SubtractVec3FromOut(&((physicsJointSphere *)joint)->anchorA, &bodyA->base->centroid, &rA);
+		transformDirection(&bodyA->state, &rA);
+		vec3SubtractVec3FromOut(&((physicsJointSphere *)joint)->anchorB, &bodyB->base->centroid, &rB);
+		transformDirection(&bodyB->state, &rB);
 
 		// Calculate the displacement from the ball to the socket:
 		// -C1 = (pA + rA) - (pB - rB).
@@ -604,10 +618,10 @@ static void updateConstraintData(
 ){
 
 	// Transform the axis points using the bodies' new scales and rotations.
-	vec3MultiplyVec3Out(&bodyA->state.scale, &joint->anchorA, &joint->rA);
-	quatRotateVec3Fast(&bodyA->state.rot, &joint->rA);
-	vec3MultiplyVec3Out(&bodyB->state.scale, &joint->anchorB, &joint->rB);
-	quatRotateVec3Fast(&bodyB->state.rot, &joint->rB);
+	vec3SubtractVec3FromOut(&joint->anchorA, &bodyA->base->centroid, &joint->rA);
+	transformDirection(&bodyA->state, &joint->rA);
+	vec3SubtractVec3FromOut(&joint->anchorB, &bodyB->base->centroid, &joint->rB);
+	transformDirection(&bodyB->state, &joint->rB);
 }
 
 /*
@@ -871,7 +885,7 @@ static float calculateSwingLimit(
 	float swingLimit;
 
 	// Note that the swing axis is identical to the quaternion's imaginary
-	// part except for a factor of sin(theta/2), we we can use either here.
+	// part except for a factor of sin(theta/2), so we can use either here.
 	swingLimit = clampEllipseDistanceNormalFast(
 		swing->z, swing->y,
 		(swing->z > 0.f) ? angularLimitsZ[1] : -angularLimitsZ[0],

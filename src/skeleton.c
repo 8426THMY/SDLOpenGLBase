@@ -503,11 +503,11 @@ void skeleStatePrependAnimations(
 			if(strcmp(curAnim->animDef->name, "soldier_animations_anims_new/a_flinch01.smd") != 0){
 				boneState invLocalBind;
 				transformInvertOut(&skeleState->skele->bones[boneID].localBind, &invLocalBind);
-				transformAppendP2(&invLocalBind, &animState);
+				transformMultiplyP2(&invLocalBind, &animState);
 			}
 			// Set the animation's intensity by blending from the identity state.
 			transformInterpSet(&g_transformIdentity, &animState, curAnim->intensity, &animState);
-			transformAppendP1(state, &animState);
+			transformMultiplyP1(state, &animState);
 		}
 
 		// Continue to the next animation in the list.

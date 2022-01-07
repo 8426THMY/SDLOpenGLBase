@@ -100,17 +100,17 @@ void objectPrepareRigidBody(object *const restrict obj, physicsRigidBody *const 
 
 		// Apply the current skeleton's local bind pose and any user transformations.
 		if(boneID == 0){
-			transformAppendOut(&obj->state, &skeleBone->localBind, &body->state);
+			transformMultiplyOut(&obj->state, &skeleBone->localBind, &body->state);
 		}else{
 			/** THIS SHOULD USE THE BONETRANSFORMS! **/
-			///transformAppendOut(&skeleBone->localBind, curTransform, &body->state);
+			///transformMultiplyOut(&skeleBone->localBind, curTransform, &body->state);
 			body->state = skeleBone->localBind;
 		}
 		// Transform the bone using each animation.
 		skeleStatePrependAnimations(&body->state, &obj->skeleState, boneID, skeleBone->name);
 		// Add the the bone's transformations to its parent's if it has one.
 		if(!valueIsInvalid(skeleBone->parent, boneIndex_t)){
-			transformAppendP2(&obj->skeleState.bones[skeleBone->parent], &body->state);
+			transformMultiplyP2(&obj->skeleState.bones[skeleBone->parent], &body->state);
 		}
 	}
 	// Add the rigid body's colliders to the island.
@@ -152,7 +152,7 @@ void objectPreparePhysics(object *const restrict obj){
 	if(curPhysBoneID < lastPhysBoneID && *curPhysBoneID == 0){
 		if(physRigidBodyIsSimulated(curBody)){
 			// Apply the accumulated animation state to the accumulated user transformations.
-			transformAppendOut(userAccumulator, animAccumulator, &curBody->state);
+			transformMultiplyOut(userAccumulator, animAccumulator, &curBody->state);
 			// Make sure the rigid body actually stays where we've placed it.
 			physRigidBodyCentroidFromPosition(curBody);
 
@@ -175,10 +175,10 @@ void objectPreparePhysics(object *const restrict obj){
 		// Add the parent's transformations if the bone has a parent.
 		if(!valueIsInvalid(curSkeleBone->parent, boneIndex_t)){
 			/** THIS SHOULD USE THE BONETRANSFORMS! **/
-			///transformAppendOut(&accumulators[curSkeleBone->parent], curTransform, userAccumulator);
-			transformAppendOut(&accumulators[curSkeleBone->parent], &g_transformIdentity, userAccumulator);
+			///transformMultiplyOut(&accumulators[curSkeleBone->parent], curTransform, userAccumulator);
+			transformMultiplyOut(&accumulators[curSkeleBone->parent], &g_transformIdentity, userAccumulator);
 			// Apply the parent's transformation to the bone's bind pose.
-			transformAppendOut(&curSkeleBone->localBind, &accumulators[obj->skeleState.skele->numBones + curSkeleBone->parent], animAccumulator);
+			transformMultiplyOut(&curSkeleBone->localBind, &accumulators[obj->skeleState.skele->numBones + curSkeleBone->parent], animAccumulator);
 		}else{
 			/** THIS SHOULD USE THE BONETRANSFORMS! **/
 			///*userAccumulator = *curTransform;
@@ -191,7 +191,7 @@ void objectPreparePhysics(object *const restrict obj){
 		if(curPhysBoneID < lastPhysBoneID && *curPhysBoneID == boneID){
 			if(physRigidBodyIsSimulated(curBody)){
 				// Apply the accumulated animation state to the accumulated user transformations.
-				transformAppendOut(userAccumulator, animAccumulator, &curBody->state);
+				transformMultiplyOut(userAccumulator, animAccumulator, &curBody->state);
 				// Make sure the rigid body actually stays where we've placed it.
 				physRigidBodyCentroidFromPosition(curBody);
 
@@ -410,7 +410,7 @@ static void updateBones(object *const restrict obj, const float time){
 		skeleStatePrependAnimations(animAccumulator, &obj->skeleState, 0, curSkeleBone->name);
 
 		// Apply the accumulated user transformations to the accumulated animation state.
-		transformAppendOut(userAccumulator, animAccumulator, curObjBone);
+		transformMultiplyOut(userAccumulator, animAccumulator, curObjBone);
 
 		if(curPhysBoneID < lastPhysBoneID && *curPhysBoneID == 0){
 			// Copy the bone's state over to the rigid body.
@@ -424,11 +424,11 @@ static void updateBones(object *const restrict obj, const float time){
 	}
 	#else
 	*curObjBone = curSkeleBone->localBind;
-		quatConjugateOut(&curObjBone->rot, &curObjBone->shear);
+		/*transform testyThingy = g_transformIdentity;
 		static float testyAngle = 0.f;
-		curObjBone->scale.y = expf(-2.f*testyAngle)*cos(2.f*3.14159265f*testyAngle)*cos(2.f*3.14159265f*testyAngle) + 1.f/4.f;
-		curObjBone->pos.y *= curObjBone->scale.y;
+		testyThingy.scale.y = expf(-2.f*testyAngle)*cos(2.f*3.14159265f*testyAngle)*cos(2.f*3.14159265f*testyAngle) + 1.f/4.f;
 		testyAngle += 0.005f;
+		transformMultiplyP2(&testyThingy, curObjBone);*/
 	// Prepend the total animation transformations to the bind pose.
 	skeleStatePrependAnimations(curObjBone, &obj->skeleState, 0, curSkeleBone->name);
 	#endif
@@ -458,11 +458,11 @@ static void updateBones(object *const restrict obj, const float time){
 		}else{
 			if(!valueIsInvalid(curSkeleBone->parent, boneIndex_t)){
 				/** THIS SHOULD USE THE BONETRANSFORMS! **/
-				///transformAppendOut(&accumulators[curSkeleBone->parent], curTransform, userAccumulator);
-				transformAppendOut(&accumulators[curSkeleBone->parent], &g_transformIdentity, userAccumulator);
-				//transformAppendOut(&accumulators[curSkeleBone->parent], &test, userAccumulator);
+				///transformMultiplyOut(&accumulators[curSkeleBone->parent], curTransform, userAccumulator);
+				transformMultiplyOut(&accumulators[curSkeleBone->parent], &g_transformIdentity, userAccumulator);
+				//transformMultiplyOut(&accumulators[curSkeleBone->parent], &test, userAccumulator);
 				// Apply the parent's transformation to the bone's bind pose.
-				transformAppendOut(&accumulators[obj->skeleState.skele->numBones + curSkeleBone->parent], &curSkeleBone->localBind, animAccumulator);
+				transformMultiplyOut(&accumulators[obj->skeleState.skele->numBones + curSkeleBone->parent], &curSkeleBone->localBind, animAccumulator);
 			}else{
 				/** THIS SHOULD USE THE BONETRANSFORMS! **/
 				///*userAccumulator = *curTransform;
@@ -473,7 +473,7 @@ static void updateBones(object *const restrict obj, const float time){
 			skeleStatePrependAnimations(animAccumulator, &obj->skeleState, i, curSkeleBone->name);
 
 			// Apply the accumulated user transformations to the accumulated animation state.
-			transformAppendOut(userAccumulator, animAccumulator, curObjBone);
+			transformMultiplyOut(userAccumulator, animAccumulator, curObjBone);
 
 			if(curPhysBoneID < lastPhysBoneID && *curPhysBoneID == i){
 				// Copy the bone's state over to the rigid body.
@@ -488,7 +488,7 @@ static void updateBones(object *const restrict obj, const float time){
 		#else
 		if(!valueIsInvalid(curSkeleBone->parent, boneIndex_t)){
 			// Append the parent's transformation to this bone's local bind pose.
-			transformAppendOut(&obj->skeleState.bones[curSkeleBone->parent], &curSkeleBone->localBind, curObjBone);
+			transformMultiplyOut(&obj->skeleState.bones[curSkeleBone->parent], &curSkeleBone->localBind, curObjBone);
 			// Prepend the total animation transformations.
 			skeleStatePrependAnimations(curObjBone, &obj->skeleState, i, curSkeleBone->name);
 		}
@@ -542,7 +542,7 @@ static void prepareBoneMatrices(
 	// Undo the accumulated user transformations to restore
 	// the unaltered global animation state for this bone.
 	transformInvertOut(userAccumulator, &tempBone);
-	transformAppendP1(&tempBone, curObjBone);
+	transformMultiplyP1(&tempBone, curObjBone);
 
 	// In order to properly support propagation of scale in animations
 	// and user transformations, we need to apply them as matrices.
@@ -552,7 +552,7 @@ static void prepareBoneMatrices(
 	transformToMat4(&curSkeleBone->invGlobalBind, &tempMatrix);
 	mat4MultiplyMat4Out(*curState, tempMatrix, curState);
 	#else
-	transformAppendOut(curObjBone, &curSkeleBone->invGlobalBind, &tempBone);
+	transformMultiplyOut(curObjBone, &curSkeleBone->invGlobalBind, &tempBone);
 	transformToMat4(&tempBone, curState);
 	#endif
 
@@ -568,15 +568,15 @@ static void prepareBoneMatrices(
 
 		if(!valueIsInvalid(curSkeleBone->parent, boneIndex_t)){
 			/** THIS SHOULD USE THE BONETRANSFORMS! **/
-			///transformAppendOut(&accumulators[curSkeleBone->parent], curTransform, userAccumulator);
-			transformAppendOut(&accumulators[curSkeleBone->parent], &g_transformIdentity, userAccumulator);
+			///transformMultiplyOut(&accumulators[curSkeleBone->parent], curTransform, userAccumulator);
+			transformMultiplyOut(&accumulators[curSkeleBone->parent], &g_transformIdentity, userAccumulator);
 		}else{
 			/** THIS SHOULD USE THE BONETRANSFORMS! **/
 			///*userAccumulator = *curTransform;
 			transformInit(userAccumulator);
 		}
 		transformInvertOut(userAccumulator, &tempBone);
-		transformAppendP1(&tempBone, curObjBone);
+		transformMultiplyP1(&tempBone, curObjBone);
 
 		transformToMat4(userAccumulator, &tempMatrix);
 		transformToMat4(&tempBone, curState);
@@ -584,7 +584,7 @@ static void prepareBoneMatrices(
 		transformToMat4(&curSkeleBone->invGlobalBind, &tempMatrix);
 		mat4MultiplyMat4Out(*curState, tempMatrix, curState);
 		#else
-		transformAppendOut(curObjBone, &curSkeleBone->invGlobalBind, &tempBone);
+		transformMultiplyOut(curObjBone, &curSkeleBone->invGlobalBind, &tempBone);
 		transformToMat4(&tempBone, curState);
 		#endif
 	}

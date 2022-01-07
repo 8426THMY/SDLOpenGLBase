@@ -33,7 +33,7 @@ transform transformInitC(){
 **     A = A_1 * A_2.
 ** This assumes that "trans2" is not "trans1".
 */
-void transformAppendP1(transform *const restrict trans1, const transform *const restrict trans2){
+void transformMultiplyP1(transform *const restrict trans1, const transform *const restrict trans2){
 	/*
 	** In terms of matrices, we may define our transformations by
 	**     A_k = T_k R_k Q_k S_k Q_k^T,
@@ -108,7 +108,7 @@ void transformAppendP1(transform *const restrict trans1, const transform *const 
 **     A = A_1 * A_2.
 ** This assumes that "trans1" is not "trans2".
 */
-void transformAppendP2(const transform *const restrict trans1, transform *const restrict trans2){
+void transformMultiplyP2(const transform *const restrict trans1, transform *const restrict trans2){
 	/*
 	** In terms of matrices, we may define our transformations by
 	**     A_k = T_k R_k Q_k S_k Q_k^T,
@@ -182,7 +182,7 @@ void transformAppendP2(const transform *const restrict trans1, transform *const 
 **     A = A_1 * A_2.
 ** This assumes that "out" is neither "trans1" nor "trans2".
 */
-void transformAppendOut(
+void transformMultiplyOut(
 	const transform *const restrict trans1, const transform *const restrict trans2,
 	transform *const restrict out
 ){
@@ -259,7 +259,7 @@ void transformAppendOut(
 ** This is equivalent to left-multiplying "trans2" by "trans1" as if they're matrices:
 **     A = A_1 * A_2.
 */
-transform transformAppendC(const transform trans1, const transform trans2){
+transform transformMultiplyC(const transform trans1, const transform trans2){
 	/*
 	** In terms of matrices, we may define our transformations by
 	**     A_k = T_k R_k Q_k S_k Q_k^T,
@@ -534,7 +534,7 @@ mat3 transformToMat3C(const transform trans){
 
 
 // Transform a vec3 by scaling it, rotating it and finally translating it.
-void transformTransformPoint(const transform *const restrict trans, vec3 *const restrict v){
+void transformPoint(const transform *const restrict trans, vec3 *const restrict v){
 	quat rot;
 
 	// (Q^T)v
@@ -549,7 +549,7 @@ void transformTransformPoint(const transform *const restrict trans, vec3 *const 
 }
 
 // Transform a vec3 by scaling it, rotating it and finally translating it.
-void transformTransformPointOut(const transform *const restrict trans, const vec3 *const v, vec3 *const out){
+void transformPointOut(const transform *const restrict trans, const vec3 *const v, vec3 *const out){
 	quat rot;
 
 	// (Q^T)v
@@ -564,7 +564,7 @@ void transformTransformPointOut(const transform *const restrict trans, const vec
 }
 
 // Transform a vec3 by scaling it, rotating it and finally translating it.
-vec3 transformTransformPointC(const transform trans, const vec3 v){
+vec3 transformPointC(const transform trans, const vec3 v){
 	// v' = Av = (TRQSQ^T)v
 	return(vec3AddVec3C(
 		trans.pos,
@@ -579,7 +579,7 @@ vec3 transformTransformPointC(const transform trans, const vec3 v){
 }
 
 // Transform a vec3 by scaling it and rotating it, but not translating it.
-void transformTransformDirection(const transform *const restrict trans, vec3 *const restrict v){
+void transformDirection(const transform *const restrict trans, vec3 *const restrict v){
 	quat rot;
 
 	// (Q^T)v
@@ -592,7 +592,7 @@ void transformTransformDirection(const transform *const restrict trans, vec3 *co
 }
 
 // Transform a vec3 by scaling it and rotating it, but not translating it.
-void transformTransformDirectionOut(const transform *const restrict trans, const vec3 *const v, vec3 *const out){
+void transformDirectionOut(const transform *const restrict trans, const vec3 *const v, vec3 *const out){
 	quat rot;
 
 	// (Q^T)v
@@ -605,7 +605,7 @@ void transformTransformDirectionOut(const transform *const restrict trans, const
 }
 
 // Transform a vec3 by scaling it and rotating it, but not translating it.
-vec3 transformTransformDirectionC(const transform trans, const vec3 v){
+vec3 transformDirectionC(const transform trans, const vec3 v){
 	// v' = (RQSQ^T)v
 	return(quatRotateVec3FastC(
 		quatMultiplyQuatC(trans.rot, trans.shear),

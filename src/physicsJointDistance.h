@@ -19,7 +19,7 @@
 typedef struct physicsJointDistanceDef {
 	// These points define where the joint is connected to the
 	// respective colliders. They should be untransformed and
-	// relative to the bodies' centres of mass.
+	// relative to the bodies' reference positions (origins).
 	vec3 anchorA;
 	vec3 anchorB;
 
@@ -39,11 +39,12 @@ typedef struct physicsJointDistanceDef {
 } physicsJointDistanceDef;
 
 typedef struct physicsJointDistance {
-	// These points are in local space.
+	// These points are in local space, with respect
+	// to the bodies reference positions (origins).
 	vec3 anchorA;
 	vec3 anchorB;
-	// These points are in global space, but they
-	// are still relative to the centres of mass.
+	// These points are in global space,
+	// relative to the centres of mass.
 	vec3 rA;
 	vec3 rB;
 	vec3 rAB;

@@ -7,6 +7,10 @@ typedef struct timestep {
 	float updateRate;
 	float renderRate;
 
+	// Seconds per update/render.
+	float updateDelta;
+	float renderDelta;
+
 	// Updates/renders per millisecond.
 	float updateTickrate;
 	float renderTickrate;
@@ -15,15 +19,21 @@ typedef struct timestep {
 	float updateTime;
 	float renderTime;
 
-	// This is really just the inverse update rate.
-	float updateDelta;
-	// This is the time to interpolate
-	// for when we're rendering the scene.
-	float renderDelta;
+	// Coefficient for the speed at which time flows.
+	// This lets us control the program's speed while
+	// keeping the update logic and deltas the same.
+	float timeSpeed;
+	float updateTimeScaled;
+	float updateTickrateScaled;
 } timestep;
 
 
-void timestepInit(timestep *const restrict step, const float updateRate, const float renderRate);
+void timestepInit(
+	timestep *const restrict step,
+	const float updateRate, const float renderRate,
+	const float timeSpeed
+);
+void timestepSetTimeSpeed(timestep *const restrict step, const float timeSpeed);
 
 
 #endif

@@ -32,13 +32,13 @@ typedef struct transform {
 void transformInit(transform *const restrict trans);
 transform transformInitC();
 
-void transformAppendP1(transform *const restrict trans1, const transform *const restrict trans2);
-void transformAppendP2(const transform *const restrict trans1, transform *const restrict trans2);
-void transformAppendOut(
+void transformMultiplyP1(transform *const restrict trans1, const transform *const restrict trans2);
+void transformMultiplyP2(const transform *const restrict trans1, transform *const restrict trans2);
+void transformMultiplyOut(
 	const transform *const restrict trans1, const transform *const restrict trans2,
 	transform *const restrict out
 );
-transform transformAppendC(const transform trans1, const transform trans2);
+transform transformMultiplyC(const transform trans1, const transform trans2);
 
 void transformInterpSet(const transform *const trans1, const transform *const trans2, const float time, transform *const out);
 transform transformInterpSetC(const transform trans1, const transform trans2, const float time);
@@ -54,12 +54,12 @@ mat4 transformToMat4C(const transform trans);
 void transformToMat3(const transform *const restrict trans, mat3 *const restrict out);
 mat3 transformToMat3C(const transform trans);
 
-void transformTransformPoint(const transform *const restrict trans, vec3 *const restrict v);
-void transformTransformPointOut(const transform *const restrict trans, const vec3 *const v, vec3 *const out);
-vec3 transformTransformPointC(const transform trans, const vec3 v);
-void transformTransformDirection(const transform *const restrict trans, vec3 *const restrict v);
-void transformTransformDirectionOut(const transform *const restrict trans, const vec3 *const v, vec3 *const out);
-vec3 transformTransformDirectionC(const transform trans, const vec3 v);
+void transformPoint(const transform *const restrict trans, vec3 *const restrict v);
+void transformPointOut(const transform *const restrict trans, const vec3 *const v, vec3 *const out);
+vec3 transformPointC(const transform trans, const vec3 v);
+void transformDirection(const transform *const restrict trans, vec3 *const restrict v);
+void transformDirectionOut(const transform *const restrict trans, const vec3 *const v, vec3 *const out);
+vec3 transformDirectionC(const transform trans, const vec3 v);
 
 
 extern transform g_transformIdentity;

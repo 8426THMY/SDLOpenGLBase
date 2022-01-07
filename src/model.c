@@ -745,7 +745,7 @@ modelDef *modelDefSMDLoad(const char *const restrict mdlDefPath, const size_t md
 									// given by appending its parent's global bind pose.
 									// We invert these after computing them for each bone.
 									if(!valueIsInvalid(currentBone->parent, boneIndex_t)){
-										transformAppendOut(
+										transformMultiplyOut(
 											&tempBones[currentBone->parent].invGlobalBind,
 											&currentBone->localBind,
 											&currentBone->invGlobalBind

@@ -543,7 +543,6 @@ void colliderHullUpdate(
 	const transform *const restrict trans, colliderAABB *const restrict aabb
 ){
 
-	#if 1
 	vec3 *curFeature = ((colliderHull *)hull)->vertices;
 	const vec3 *baseFeature = ((colliderHull *)base)->vertices;
 	const vec3 *lastFeature = &curFeature[((colliderHull *)hull)->numVertices];
@@ -626,85 +625,6 @@ void colliderHullUpdate(
 	}else if(aabb != NULL){
 		memset(aabb, 0.f, sizeof(*aabb));
 	}
-	#else
-	vec3 *curFeature = ((colliderHull *)hull)->vertices;
-	const vec3 *baseFeature = ((colliderHull *)base)->vertices;
-	const vec3 *lastFeature = &curFeature[((colliderHull *)hull)->numVertices];
-
-	// Compute the collider's new centroid!
-	vec3MultiplyVec3Out(&(((colliderHull *)base)->centroid), &trans->scale, &(((colliderHull *)hull)->centroid));
-	quatRotateVec3Fast(&trans->rot, &(((colliderHull *)hull)->centroid));
-	vec3AddVec3(&(((colliderHull *)hull)->centroid), &trans->pos);
-
-	// We can only update the hull's vertices if it actually has any.
-	if(curFeature < lastFeature){
-		colliderAABB tempAABB;
-
-		// Transform the first vertex and use it for the bounding box.
-		vec3SubtractVec3FromOut(baseFeature, baseCentroid, curFeature);
-		vec3MultiplyVec3(curFeature, &trans->scale);
-		quatRotateVec3Fast(&trans->rot, curFeature);
-		vec3AddVec3(curFeature, hullCentroid);
-
-		tempAABB.min = tempAABB.max = *curFeature;
-
-		++curFeature;
-		++baseFeature;
-
-		// Transform the remaining vertices!
-		for(; curFeature < lastFeature; ++curFeature, ++baseFeature){
-			vec3SubtractVec3FromOut(baseFeature, baseCentroid, curFeature);
-			vec3MultiplyVec3(curFeature, &trans->scale);
-			quatRotateVec3Fast(&trans->rot, curFeature);
-			vec3AddVec3(curFeature, hullCentroid);
-
-			// If this vertex exceeds the bounds of
-			// our current bounding box, we should
-			// update the bounding box to contain it.
-			// Left and right.
-			if(curFeature->x < tempAABB.min.x){
-				tempAABB.min.x = curFeature->x;
-			}else if(curFeature->x > tempAABB.max.x){
-				tempAABB.max.x = curFeature->x;
-			}
-			// Up and down.
-			if(curFeature->y < tempAABB.min.y){
-				tempAABB.min.y = curFeature->y;
-			}else if(curFeature->y > tempAABB.max.y){
-				tempAABB.max.y = curFeature->y;
-			}
-			// Front and back.
-			if(curFeature->z < tempAABB.min.z){
-				tempAABB.min.z = curFeature->z;
-			}else if(curFeature->z > tempAABB.max.z){
-				tempAABB.max.z = curFeature->z;
-			}
-		}
-
-
-		curFeature = ((colliderHull *)hull)->normals;
-		baseFeature = ((colliderHull *)base)->normals;
-		lastFeature = &curFeature[((colliderHull *)hull)->numFaces];
-
-		// The hull's faces have been rotated, so we
-		// need to scale and rotate their normals.
-		for(; curFeature < lastFeature; ++curFeature, ++baseFeature){
-			vec3MultiplyVec3(curFeature, &trans->scale);
-			quatRotateVec3FastOut(&trans->rot, baseFeature, curFeature);
-			vec3NormalizeVec3Fast(curFeature);
-		}
-
-
-		if(aabb != NULL){
-			*aabb = tempAABB;
-		}
-
-	// If the hull has no vertices but we
-	// want a bounding box, initialise it.
-	}else if(aabb != NULL){
-		memset(aabb, 0.f, sizeof(*aabb));
-	}
-	#endif
 }
 
 

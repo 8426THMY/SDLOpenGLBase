@@ -63,7 +63,7 @@ void physColliderUpdate(physicsCollider *const restrict collider){
 */
 return_t physColliderPermitCollision(physicsCollider *const colliderA, physicsCollider *const colliderB){
 	// We only want to run the narrowphase on two colliders once,
-	// so we do it when "colliderA" has the lower address.
+	// so we do it when "colliderA" has the greater address.
 	return(colliderA > colliderB && colliderA->owner != colliderB->owner);
 }
 
