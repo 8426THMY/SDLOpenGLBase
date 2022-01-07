@@ -59,9 +59,9 @@ void billboardState(const billboard *const restrict billboardData, const camera 
 		if(flagsAreSet(billboardData->flags, BILLBOARD_TARGET_SPRITE)){
 			vec3InitSet(&forward, cam->viewMatrix.m[0][2], cam->viewMatrix.m[1][2], cam->viewMatrix.m[2][2]);
 		}else if(billboardData->target != NULL){
-			vec3SubtractVec3FromOut(billboardData->target, &centroid, &forward);
+			vec3SubtractVec3Out(billboardData->target, &centroid, &forward);
 		}else{
-			vec3SubtractVec3FromOut(&cam->pos, &centroid, &forward);
+			vec3SubtractVec3Out(&cam->pos, &centroid, &forward);
 		}
 
 		// Prevent the renderable from rotating on some axes.

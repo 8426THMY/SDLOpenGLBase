@@ -1655,7 +1655,7 @@ mat4 mat4RotateForwardC(const vec3 forward, const vec3 worldUp){
 void mat4RotateToFace(mat4 *const restrict m, const vec3 *const restrict eye, const vec3 *const restrict target, const vec3 *const restrict worldUp){
 	vec3 right, up, forward;
 	// Get the forward vector!
-	vec3SubtractVec3FromOut(target, eye, &forward);
+	vec3SubtractVec3Out(target, eye, &forward);
 	vec3NormalizeVec3Fast(&forward);
 	// Get the right vector!
 	vec3CrossVec3Out(worldUp, &forward, &right);
@@ -1688,7 +1688,7 @@ void mat4RotateToFace(mat4 *const restrict m, const vec3 *const restrict eye, co
 
 // Generate a rotation matrix that faces a target!
 mat4 mat4RotateToFaceC(const vec3 eye, const vec3 target, const vec3 worldUp){
-	const vec3 forward = vec3NormalizeVec3FastC(vec3SubtractVec3FromC(target, eye));
+	const vec3 forward = vec3NormalizeVec3FastC(vec3SubtractVec3C(target, eye));
 	const vec3 right   = vec3NormalizeVec3FastC(vec3CrossVec3C(worldUp, forward));
 	const vec3 up      = vec3NormalizeVec3FastC(vec3CrossVec3C(forward, right));
 
@@ -2357,7 +2357,7 @@ mat4 mat4ViewC(const vec3 pos, const mat3 rot){
 void mat4ViewLookAt(mat4 *const restrict m, const vec3 *const restrict eye, const vec3 *const restrict target, const vec3 *const restrict worldUp){
 	vec3 right, up, forward;
 	// Get the forward vector!
-	vec3SubtractVec3FromOut(eye, target, &forward);
+	vec3SubtractVec3Out(eye, target, &forward);
 	vec3NormalizeVec3Fast(&forward);
 	// Get the right vector!
 	vec3CrossVec3Out(worldUp, &forward, &right);
@@ -2390,7 +2390,7 @@ void mat4ViewLookAt(mat4 *const restrict m, const vec3 *const restrict eye, cons
 
 // Generate a look-at matrix!
 mat4 mat4ViewLookAtC(const vec3 eye, const vec3 target, const vec3 worldUp){
-	const vec3 forward = vec3NormalizeVec3FastC(vec3SubtractVec3FromC(eye, target));
+	const vec3 forward = vec3NormalizeVec3FastC(vec3SubtractVec3C(eye, target));
 	const vec3 right   = vec3NormalizeVec3FastC(vec3CrossVec3C(worldUp, forward));
 	const vec3 up      = vec3NormalizeVec3FastC(vec3CrossVec3C(forward, right));
 

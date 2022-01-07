@@ -252,7 +252,7 @@ void physJointSphereInit(
 
 #ifdef PHYSJOINTSPHERE_WARM_START
 void physJointSphereWarmStart(const physicsJointSphere *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB){
-	vec3 angularImpulse;
+	/**vec3 angularImpulse;
 
 	#ifndef PHYSJOINTSPHERE_ANGULAR_CONSTRAINT_EULER
 	// The angular impulse is the sum of the swing and twist impulses.
@@ -265,7 +265,7 @@ void physJointSphereWarmStart(const physicsJointSphere *const restrict joint, ph
 	vec3MultiplySOut(&joint->angularAxisX, joint->angularImpulse.x, &angularImpulse);
 	vec3Fmaf(joint->angularImpulse.y, &joint->angularAxisY, &angularImpulse);
 	vec3Fmaf(joint->angularImpulse.z, &joint->angularAxisZ, &angularImpulse);
-	#endif
+	#endif**/vec3 angularImpulse = vec3InitZeroC();
 
 	// Apply the accumulated impulses.
 	physRigidBodyApplyImpulseBoostInverse(bodyA, &joint->rA, &joint->linearImpulse, &angularImpulse);
@@ -355,12 +355,12 @@ void physJointSphereSolveVelocity(
 
 
 	// Solve the angular swing and twist constraints.
-	{
+	/**{
 		float lambda;
 		float oldImpulse;
 
 		// w_relative = wB - wA
-		vec3SubtractVec3FromOut(&bodyB->angularVelocity, &bodyA->angularVelocity, &relativeVelocity);
+		vec3SubtractVec3Out(&bodyB->angularVelocity, &bodyA->angularVelocity, &relativeVelocity);
 
 
 		#ifndef PHYSJOINTSPHERE_ANGULAR_CONSTRAINT_EULER
@@ -445,7 +445,7 @@ void physJointSphereSolveVelocity(
 		// Apply the correctional impulse.
 		physRigidBodyApplyAngularImpulseInverse(bodyA, impulse);
 		physRigidBodyApplyAngularImpulse(bodyB, impulse);
-	}
+	}**/
 
 
 	// Solve the linear point-to-point constraint last,
@@ -463,7 +463,7 @@ void physJointSphereSolveVelocity(
 		vec3AddVec3(&relativeVelocity, &bodyB->linearVelocity);
 		// Calculate the relative velocity between the ball and socket.
 		// Note that we actually compute -v_relative here.
-		vec3SubtractFromVec3(&relativeVelocity, &impulse);
+		vec3SubtractVec3P2(&impulse, &relativeVelocity);
 
 
 		// Solve for the linear impulse:
@@ -495,7 +495,7 @@ return_t physJointSphereSolvePosition(
 
 
 	// Solve the angular constraints.
-	#ifndef PHYSJOINTSPHERE_ANGULAR_CONSTRAINT_EULER
+	/**#ifndef PHYSJOINTSPHERE_ANGULAR_CONSTRAINT_EULER
 	{
 		float swingAngle;
 		vec3 twistImpulse;
@@ -565,7 +565,7 @@ return_t physJointSphereSolvePosition(
 		physRigidBodyApplyAngularImpulsePositionInverse(bodyA, impulse);
 		physRigidBodyApplyAngularImpulsePosition(bodyB, impulse);
 	}
-	#endif
+	#endif**/
 
 
 	// Solve the linear point-to-point constraint.
@@ -575,16 +575,16 @@ return_t physJointSphereSolvePosition(
 		vec3 constraint;
 		mat3 linearMass;
 
-		vec3SubtractVec3FromOut(&((physicsJointSphere *)joint)->anchorA, &bodyA->base->centroid, &rA);
+		vec3SubtractVec3Out(&((physicsJointSphere *)joint)->anchorA, &bodyA->base->centroid, &rA);
 		transformDirection(&bodyA->state, &rA);
-		vec3SubtractVec3FromOut(&((physicsJointSphere *)joint)->anchorB, &bodyB->base->centroid, &rB);
+		vec3SubtractVec3Out(&((physicsJointSphere *)joint)->anchorB, &bodyB->base->centroid, &rB);
 		transformDirection(&bodyB->state, &rB);
 
 		// Calculate the displacement from the ball to the socket:
 		// -C1 = (pA + rA) - (pB - rB).
 		vec3AddVec3Out(&bodyA->centroid, &rA, &constraint);
-		vec3SubtractVec3From(&constraint, &bodyB->centroid);
-		vec3SubtractVec3From(&constraint, &rB);
+		vec3SubtractVec3P1(&constraint, &bodyB->centroid);
+		vec3SubtractVec3P1(&constraint, &rB);
 		linearError = vec3MagnitudeVec3(&constraint);
 
 		// Solve for the impulse:
@@ -599,8 +599,8 @@ return_t physJointSphereSolvePosition(
 
 
 	return(
-		linearError <= PHYSCONSTRAINT_LINEAR_SLOP &&
-		angularError <= PHYSCONSTRAINT_LINEAR_SLOP
+		linearError <= PHYSCONSTRAINT_LINEAR_SLOP/** &&
+		angularError <= PHYSCONSTRAINT_LINEAR_SLOP**/
 	);
 	#else
 	return(1);
@@ -618,9 +618,9 @@ static void updateConstraintData(
 ){
 
 	// Transform the axis points using the bodies' new scales and rotations.
-	vec3SubtractVec3FromOut(&joint->anchorA, &bodyA->base->centroid, &joint->rA);
+	vec3SubtractVec3Out(&joint->anchorA, &bodyA->base->centroid, &joint->rA);
 	transformDirection(&bodyA->state, &joint->rA);
-	vec3SubtractVec3FromOut(&joint->anchorB, &bodyB->base->centroid, &joint->rB);
+	vec3SubtractVec3Out(&joint->anchorB, &bodyB->base->centroid, &joint->rB);
 	transformDirection(&bodyB->state, &joint->rB);
 }
 
@@ -710,7 +710,7 @@ static void calculateInverseAngularMass(
 	float *const restrict swingInvMass, float *const restrict twistInvMass
 ){
 
-	mat3 invInertiaSum;
+	/**mat3 invInertiaSum;
 	vec3 IABa;
 	mat3AddMat3Out(&bodyA->invInertiaGlobal, &bodyB->invInertiaGlobal, &invInertiaSum);
 
@@ -720,7 +720,7 @@ static void calculateInverseAngularMass(
 
 	// Twist inverse effective mass (K3).
 	mat3MultiplyVec3Out(&invInertiaSum, twistAxis, &IABa);
-	*twistInvMass = 1.f / vec3DotVec3(twistAxis, &IABa);
+	*twistInvMass = 1.f / vec3DotVec3(twistAxis, &IABa);**/
 }
 #else
 static void calculateInverseAngularMass(
@@ -729,7 +729,7 @@ static void calculateInverseAngularMass(
 	vec3 *const restrict angularInvMass
 ){
 
-	mat3 invInertiaSum;
+	/**mat3 invInertiaSum;
 	vec3 IABa;
 	mat3AddMat3Out(&bodyA->invInertiaGlobal, &bodyB->invInertiaGlobal, &invInertiaSum);
 
@@ -746,7 +746,7 @@ static void calculateInverseAngularMass(
 
 	// Inverse effective mass for the z-axis.
 	mat3MultiplyVec3Out(&invInertiaSum, angularAxisZ, &IABa);
-	angularInvMass->z = 1.f / vec3DotVec3(angularAxisZ, &IABa);
+	angularInvMass->z = 1.f / vec3DotVec3(angularAxisZ, &IABa);**/
 }
 #endif
 
@@ -769,7 +769,7 @@ static void calculateBias(
 	// in "updateConstraintData", but doing
 	// it here just makes things easier.
 
-	quat qAB;
+	/**quat qAB;
 	quat swing, twist;
 	float twistAngle;
 
@@ -805,7 +805,15 @@ static void calculateBias(
 		twistAngle, &bodyA->state.rot,
 		angularLimitsX,
 		twistAxis
-	);
+	);**/
+
+	quat qAB;
+	quat swing, twist;
+
+	// Get the relative orientation from body A to body B:
+	// qAB = B*conj(A).
+	quatMultiplyQuatConjOut(bodyB->state.rot, bodyA->state.rot, &qAB);
+
 }
 #else
 static void calculateBias(
@@ -820,7 +828,7 @@ static void calculateBias(
 	// Ideally, we would calculate the axes in "updateConstraintData",
 	// but doing it here just makes things easier.
 
-	quat qAB;
+	/**quat qAB;
 	vec3 angles;
 
 	// Get the relative orientation from body A to body B:
@@ -847,7 +855,7 @@ static void calculateBias(
 		angles.z, &bodyA->state.rot,
 		angularLimitsZ,
 		angularAxisZ
-	);
+	);**/
 }
 #endif
 
@@ -863,7 +871,7 @@ static float calculateSwingLimit(
 	vec3 *const restrict swingAxis
 ){
 
-	#ifndef PHYSJOINTSPHERE_SWING_USE_ELLIPSE_NORMAL
+	/**#ifndef PHYSJOINTSPHERE_SWING_USE_ELLIPSE_NORMAL
 	// Note that when there is no relative rotation,
 	// the swing axis will be parallel to the twist axis.
 	//
@@ -902,7 +910,7 @@ static float calculateSwingLimit(
 	quatRotateVec3Fast(rotA, swingAxis);
 
 	return(quatAngle(swing) - swingLimit);
-	#endif
+	#endif**/return(0.f);
 }
 #endif
 
@@ -920,10 +928,10 @@ static float calculateAngularLimit(
 ){
 
 	// Bring the constraint axis from body B's space to global space.
-	quatRotateVec3Fast(rotA, axis);
+	/**quatRotateVec3Fast(rotA, axis);
 
 	return(floatMax(
 		angularLimits[0] - angle,
 		angle - angularLimits[1]
-	));
+	));**/return(0.f);
 }

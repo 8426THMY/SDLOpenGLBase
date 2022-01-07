@@ -44,11 +44,11 @@ void vec3SubtractFromS(vec3 *const restrict v, const float x);
 void vec3SubtractFromSOut(const vec3 *const restrict v, const float x, vec3 *const restrict out);
 #define vec3SubtractFromSP (vec3SubtractFromSOut(v, x, out), out)
 vec3 vec3SubtractFromSC(vec3 v, const float x);
-void vec3SubtractVec3From(vec3 *const restrict v1, const vec3 *const restrict v2);
-void vec3SubtractFromVec3(vec3 *const restrict v1, const vec3 *const restrict v2);
-void vec3SubtractVec3FromOut(const vec3 *const restrict v1, const vec3 *const restrict v2, vec3 *const restrict out);
-#define vec3SubtractVec3FromP(v1, v2, out) (vec3SubtractVec3FromOut(v1, v2, out), out)
-vec3 vec3SubtractVec3FromC(vec3 v1, const vec3 v2);
+void vec3SubtractVec3P1(vec3 *const restrict v1, const vec3 *const restrict v2);
+void vec3SubtractVec3P2(const vec3 *const restrict v1, vec3 *const restrict v2);
+void vec3SubtractVec3Out(const vec3 *const restrict v1, const vec3 *const restrict v2, vec3 *const restrict out);
+#define vec3SubtractVec3P(v1, v2, out) (vec3SubtractVec3Out(v1, v2, out), out)
+vec3 vec3SubtractVec3C(vec3 v1, const vec3 v2);
 
 void vec3MultiplyS(vec3 *const restrict v, const float x);
 void vec3MultiplySOut(const vec3 *const restrict v, const float x, vec3 *const restrict out);
@@ -70,16 +70,16 @@ void vec3DivideSByFast(vec3 *const restrict v, const float x);
 void vec3DivideSByFastOut(const vec3 *const restrict v, const float x, vec3 *const restrict out);
 #define vec3DivideSByFastP(v, x, out) (vec3DivideSByFastOut(v, x, out), out)
 vec3 vec3DivideSByFastC(vec3 v, const float x);
-void vec3DivideByVec3(vec3 *const restrict v1, const vec3 *const restrict v2);
-void vec3DivideVec3By(vec3 *const restrict v1, const vec3 *const restrict v2);
-void vec3DivideByVec3Out(const vec3 *const restrict v1, const vec3 *const restrict v2, vec3 *const restrict out);
-#define vec3DivideByVec3P(v1, v2, out) (vec3DivideByVec3Out(v1, v2, out), out)
-vec3 vec3DivideByVec3C(vec3 v1, const vec3 v2);
-void vec3DivideByVec3Fast(vec3 *const restrict v1, const vec3 *const restrict v2);
-void vec3DivideVec3ByFast(vec3 *const restrict v1, const vec3 *const restrict v2);
-void vec3DivideByVec3FastOut(const vec3 *const restrict v1, const vec3 *const restrict v2, vec3 *const restrict out);
-#define vec3DivideByVec3FastP(v1, v2, out) (vec3DivideByVec3FastOut(v1, v2, out), out)
-vec3 vec3DivideByVec3FastC(vec3 v1, const vec3 v2);
+void vec3DivideVec3P1(vec3 *const restrict v1, const vec3 *const restrict v2);
+void vec3DivideVec3P2(const vec3 *const restrict v1, vec3 *const restrict v2);
+void vec3DivideVec3Out(const vec3 *const restrict v1, const vec3 *const restrict v2, vec3 *const restrict out);
+#define vec3DivideVec3P(v1, v2, out) (vec3DivideVec3Out(v1, v2, out), out)
+vec3 vec3DivideVec3C(vec3 v1, const vec3 v2);
+void vec3DivideVec3FastP1(vec3 *const restrict v1, const vec3 *const restrict v2);
+void vec3DivideVec3FastP2(const vec3 *const restrict v1, vec3 *const restrict v2);
+void vec3DivideVec3FastOut(const vec3 *const restrict v1, const vec3 *const restrict v2, vec3 *const restrict out);
+#define vec3DivideVec3FastP(v1, v2, out) (vec3DivideVec3FastOut(v1, v2, out), out)
+vec3 vec3DivideVec3FastC(vec3 v1, const vec3 v2);
 
 void vec3Fmaf(const float x, const vec3 *const restrict u, vec3 *const restrict v);
 void vec3FmafOut(const float x, const vec3 *const restrict u, const vec3 *const restrict v, vec3 *const restrict out);
@@ -116,8 +116,8 @@ vec3 vec3CrossVec3FloatC(const vec3 v, const float x, const float y, const float
 void vec3CrossFloatVec3(const float x, const float y, const float z, const vec3 *const restrict v, vec3 *const restrict out);
 #define vec3CrossFloatVec3P(x, y, z, v, out) (vec3CrossFloatVec3(x, y, z, v, out), out)
 vec3 vec3CrossFloatVec3C(const float x, const float y, const float z, const vec3 v);
-void vec3CrossByVec3(vec3 *const restrict v1, const vec3 *const restrict v2);
-void vec3CrossVec3By(vec3 *const restrict v1, const vec3 *const restrict v2);
+void vec3CrossVec3P1(vec3 *const restrict v1, const vec3 *const restrict v2);
+void vec3CrossVec3P2(const vec3 *const restrict v1, vec3 *const restrict v2);
 void vec3CrossVec3Out(const vec3 *const restrict v1, const vec3 *const restrict v2, vec3 *const restrict out);
 #define vec3CrossVec3P(v1, v2, out) (vec3CrossVec3Out(v1, v2, out), out)
 vec3 vec3CrossVec3C(const vec3 v1, const vec3 v2);

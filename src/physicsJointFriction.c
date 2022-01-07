@@ -220,7 +220,7 @@ void physJointFrictionSolveVelocity(
 	vec3CrossVec3Out(&bodyB->angularVelocity, &joint->rB, &relativeVelocity);
 	vec3AddVec3(&relativeVelocity, &bodyB->linearVelocity);
 	// Calculate the relative velocity between the two points.
-	vec3SubtractVec3From(&relativeVelocity, &linearImpulse);
+	vec3SubtractVec3P1(&relativeVelocity, &linearImpulse);
 
 
 	{
@@ -245,7 +245,7 @@ void physJointFrictionSolveVelocity(
 		if(impulseMagnitude > IMPULSE_EPSILON && impulseMagnitude > maxFriction * maxFriction){
 			// Normalize the vector and multiply by maxFriction at the same time.
 			vec2MultiplyS(&joint->linearImpulse, maxFriction * invSqrtFast(impulseMagnitude));
-			vec2SubtractVec2FromOut(&joint->linearImpulse, &oldImpulse, &lambda);
+			vec2SubtractVec2Out(&joint->linearImpulse, &oldImpulse, &lambda);
 		}
 
 		// Add the impulse magnitudes for both tangent directions.
@@ -262,7 +262,7 @@ void physJointFrictionSolveVelocity(
 		// lambda = -JV/(JM^(-1)J^T)
 		//        = -((wB - wA) . n)/K
 		// Calculate the magnitude for the angular impulse.
-		vec3SubtractVec3FromOut(&bodyA->angularVelocity, &bodyB->angularVelocity, &dC);
+		vec3SubtractVec3Out(&bodyA->angularVelocity, &bodyB->angularVelocity, &dC);
 		lambda = vec3DotVec3(&dC, &joint->normal) * joint->angularInvMass;
 
 		// Clamp our accumulated impulse for the angular constraint.

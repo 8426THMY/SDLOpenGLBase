@@ -77,7 +77,7 @@ float cameraDistanceSquared(const camera *const restrict cam, const vec3 *const 
 */
 float cameraSignedDistance(const camera *const restrict cam, const vec3 *const restrict target){
 	vec3 tc;
-	vec3SubtractVec3FromOut(&cam->pos, target, &tc);
+	vec3SubtractVec3Out(&cam->pos, target, &tc);
 	// The dot product of the camera's backward vector
 	// and the vector from the target to the camera is
 	// negative if the target is behind the camera.
@@ -93,7 +93,7 @@ float cameraSignedDistance(const camera *const restrict cam, const vec3 *const r
 */
 float cameraSignedDistanceSquared(const camera *const restrict cam, const vec3 *const restrict target){
 	vec3 tc;
-	vec3SubtractVec3FromOut(&cam->pos, target, &tc);
+	vec3SubtractVec3Out(&cam->pos, target, &tc);
 	// The dot product of the camera's backward vector
 	// and the vector from the target to the camera is
 	// negative if the target is behind the camera.

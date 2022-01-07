@@ -198,7 +198,7 @@ void physJointDistanceSolveVelocity(void *const restrict joint, physicsRigidBody
 	vec3CrossVec3Out(&bodyB->angularVelocity, &((physicsJointDistance *)joint)->rB, &relativeVelocity);
 	vec3AddVec3(&relativeVelocity, &bodyB->linearVelocity);
 	// Calculate the relative velocity between the two points.
-	vec3SubtractVec3From(&relativeVelocity, &impulse);
+	vec3SubtractVec3P1(&relativeVelocity, &impulse);
 
 
 	// lambda = -(JV + b)/(JM^(-1)J^T)
@@ -229,17 +229,17 @@ return_t physJointDistanceSolvePosition(const void *const restrict joint, physic
 
 		// Transform the anchor points using the bodies' new scales and rotations.
 		// We subtract the local centroid positions to get them relative to the centroids.
-		vec3SubtractVec3FromOut(&((physicsJointDistance *)joint)->anchorA, &bodyA->base->centroid, &rA);
+		vec3SubtractVec3Out(&((physicsJointDistance *)joint)->anchorA, &bodyA->base->centroid, &rA);
 		transformDirection(&bodyA->state, &rA);
-		vec3SubtractVec3FromOut(&((physicsJointDistance *)joint)->anchorB, &bodyB->base->centroid, &rB);
+		vec3SubtractVec3Out(&((physicsJointDistance *)joint)->anchorB, &bodyB->base->centroid, &rB);
 		transformDirection(&bodyB->state, &rB);
 
 		// Find the relative position of the two bodies.
 		// d = (pB - pA)
 		//   = (cB + rB - cA - rA)
 		vec3AddVec3Out(&bodyB->centroid, &rB, &rAB);
-		vec3SubtractVec3From(&rAB, &bodyA->centroid);
-		vec3SubtractVec3From(&rAB, &rA);
+		vec3SubtractVec3P1(&rAB, &bodyA->centroid);
+		vec3SubtractVec3P1(&rAB, &rA);
 
 		{
 			const float effectiveMass = calculateEffectiveMass(&rA, &rB, &rAB, bodyA, bodyB);
@@ -281,17 +281,17 @@ static void updateConstraintData(
 
 	// Transform the anchor points using the bodies' new scales and rotations.
 	// We subtract the local centroid positions to get them relative to the centroids.
-	vec3SubtractVec3FromOut(&joint->anchorA, &bodyA->base->centroid, &joint->rA);
+	vec3SubtractVec3Out(&joint->anchorA, &bodyA->base->centroid, &joint->rA);
 	transformDirection(&bodyA->state, &joint->rA);
-	vec3SubtractVec3FromOut(&joint->anchorB, &bodyB->base->centroid, &joint->rB);
+	vec3SubtractVec3Out(&joint->anchorB, &bodyB->base->centroid, &joint->rB);
 	transformDirection(&bodyB->state, &joint->rB);
 
 	// Find the relative position of the two bodies.
 	// d = (pB - pA)
 	//   = (cB + rB - cA - rA)
 	vec3AddVec3Out(&bodyB->centroid, &joint->rB, &joint->rAB);
-	vec3SubtractVec3From(&joint->rAB, &bodyA->centroid);
-	vec3SubtractVec3From(&joint->rAB, &joint->rA);
+	vec3SubtractVec3P1(&joint->rAB, &bodyA->centroid);
+	vec3SubtractVec3P1(&joint->rAB, &joint->rA);
 
 	// When we calculate the effective mass, we
 	// need to normalize the relative position.

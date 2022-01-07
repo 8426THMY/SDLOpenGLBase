@@ -200,29 +200,29 @@ vec3 vec3SubtractFromSC(vec3 v, const float x){
 	return(v);
 }
 
-// Subtract "v2" from "v1"!
-void vec3SubtractVec3From(vec3 *const restrict v1, const vec3 *const restrict v2){
+// Subtract "v2" from "v1" and store the result in "v1"!
+void vec3SubtractVec3P1(vec3 *const restrict v1, const vec3 *const restrict v2){
 	v1->x -= v2->x;
 	v1->y -= v2->y;
 	v1->z -= v2->z;
 }
 
-// Subtract "v1" from "v2"!
-void vec3SubtractFromVec3(vec3 *const restrict v1, const vec3 *const restrict v2){
-	v1->x = v2->x - v1->x;
-	v1->y = v2->y - v1->y;
-	v1->z = v2->z - v1->z;
+// Subtract "v1" from "v2" and store the result in "v2"!
+void vec3SubtractVec3P2(const vec3 *const restrict v1, vec3 *const restrict v2){
+	v2->x = v1->x - v2->x;
+	v2->y = v1->y - v2->y;
+	v2->z = v1->z - v2->z;
 }
 
 // Subtract "v2" from "v1" and store the result in "out"!
-void vec3SubtractVec3FromOut(const vec3 *const restrict v1, const vec3 *const restrict v2, vec3 *const restrict out){
+void vec3SubtractVec3Out(const vec3 *const restrict v1, const vec3 *const restrict v2, vec3 *const restrict out){
 	out->x = v1->x - v2->x;
 	out->y = v1->y - v2->y;
 	out->z = v1->z - v2->z;
 }
 
-// Subtract "v2" from "v1"!
-vec3 vec3SubtractVec3FromC(vec3 v1, const vec3 v2){
+// Subtract "v2" from "v1" and return the result!
+vec3 vec3SubtractVec3C(vec3 v1, const vec3 v2){
 	v1.x -= v2.x;
 	v1.y -= v2.y;
 	v1.z -= v2.z;
@@ -362,29 +362,29 @@ vec3 vec3DivideSByFastC(vec3 v, const float x){
 	return(v);
 }
 
-// Divide "v1" by "v2"!
-void vec3DivideByVec3(vec3 *const restrict v1, const vec3 *const restrict v2){
+// Divide "v1" by "v2" and store the result in "v1"!
+void vec3DivideVec3P1(vec3 *const restrict v1, const vec3 *const restrict v2){
 	v1->x = (v2->x != 0.f) ? v1->x / v2->x : 0.f;
 	v1->y = (v2->y != 0.f) ? v1->y / v2->y : 0.f;
 	v1->z = (v2->z != 0.f) ? v1->z / v2->z : 0.f;
 }
 
-// Divide "v2" by "v1"!
-void vec3DivideVec3By(vec3 *const restrict v1, const vec3 *const restrict v2){
-	v1->x = (v2->x != 0.f) ? v1->x / v2->x : 0.f;
-	v1->y = (v2->y != 0.f) ? v1->y / v2->y : 0.f;
-	v1->z = (v2->z != 0.f) ? v1->z / v2->z : 0.f;
+// Divide "v1" by "v2" and store the result in "v2"!
+void vec3DivideVec3P2(const vec3 *const restrict v1, vec3 *const restrict v2){
+	v2->x = (v2->x != 0.f) ? v1->x / v2->x : 0.f;
+	v2->y = (v2->y != 0.f) ? v1->y / v2->y : 0.f;
+	v2->z = (v2->z != 0.f) ? v1->z / v2->z : 0.f;
 }
 
 // Divide "v1" by "v2" and store the result in "out"!
-void vec3DivideByVec3Out(const vec3 *const restrict v1, const vec3 *const restrict v2, vec3 *const restrict out){
+void vec3DivideVec3Out(const vec3 *const restrict v1, const vec3 *const restrict v2, vec3 *const restrict out){
 	out->x = (v2->x != 0.f) ? v1->x / v2->x : 0.f;
 	out->y = (v2->y != 0.f) ? v1->y / v2->y : 0.f;
 	out->z = (v2->z != 0.f) ? v1->z / v2->z : 0.f;
 }
 
-// Divide "v1" by "v2"!
-vec3 vec3DivideByVec3C(vec3 v1, const vec3 v2){
+// Divide "v1" by "v2" and return the result!
+vec3 vec3DivideVec3C(vec3 v1, const vec3 v2){
 	v1.x = (v2.x != 0.f) ? v1.x / v2.x : 0.f;
 	v1.y = (v2.y != 0.f) ? v1.y / v2.y : 0.f;
 	v1.z = (v2.z != 0.f) ? v1.z / v2.z : 0.f;
@@ -393,23 +393,25 @@ vec3 vec3DivideByVec3C(vec3 v1, const vec3 v2){
 }
 
 /*
-** Divide "v1" by "v2"! Unlike the regular version, this
-** does not check to prevent against divide-by-zero errors.
+** Divide "v1" by "v2" and store the result in "v1"!
+** Unlike the regular version, this does not check
+** to prevent against divide-by-zero errors.
 */
-void vec3DivideByVec3Fast(vec3 *const restrict v1, const vec3 *const restrict v2){
+void vec3DivideVec3FastP1(vec3 *const restrict v1, const vec3 *const restrict v2){
 	v1->x /= v2->x;
 	v1->y /= v2->y;
 	v1->z /= v2->z;
 }
 
 /*
-** Divide "v1" by "v2"! Unlike the regular version, this
-** does not check to prevent against divide-by-zero errors.
+** Divide "v1" by "v2" and store the result in "v2"!
+** Unlike the regular version, this does not check
+** to prevent against divide-by-zero errors.
 */
-void vec3DivideVec3ByFast(vec3 *const restrict v1, const vec3 *const restrict v2){
-	v1->x = v2->x / v1->x;
-	v1->y = v2->y / v1->y;
-	v1->z = v2->z / v1->z;
+void vec3DivideVec3FastP2(const vec3 *const restrict v1, vec3 *const restrict v2){
+	v2->x = v1->x / v2->x;
+	v2->y = v1->y / v2->y;
+	v2->z = v1->z / v2->z;
 }
 
 /*
@@ -417,17 +419,18 @@ void vec3DivideVec3ByFast(vec3 *const restrict v1, const vec3 *const restrict v2
 ** Unlike the regular version, this does not check
 ** to prevent against divide-by-zero errors.
 */
-void vec3DivideByVec3FastOut(const vec3 *const restrict v1, const vec3 *const restrict v2, vec3 *const restrict out){
+void vec3DivideVec3FastOut(const vec3 *const restrict v1, const vec3 *const restrict v2, vec3 *const restrict out){
 	out->x = v1->x / v2->x;
 	out->y = v1->y / v2->y;
 	out->z = v1->z / v2->z;
 }
 
 /*
-** Divide "v1" by "v2"! Unlike the regular version, this
-** does not check to prevent against divide-by-zero errors.
+** Divide "v1" by "v2" and return the result!
+** Unlike the regular version, this does not check
+** to prevent against divide-by-zero errors.
 */
-vec3 vec3DivideByVec3FastC(vec3 v1, const vec3 v2){
+vec3 vec3DivideVec3FastC(vec3 v1, const vec3 v2){
 	v1.x /= v2.x;
 	v1.y /= v2.y;
 	v1.z /= v2.z;
@@ -538,26 +541,26 @@ float vec3DistanceSquaredC(const vec3 v, const float x, const float y, const flo
 // Find the distance between two vec3s!
 float vec3DistanceVec3(const vec3 *const restrict v1, const vec3 *const restrict v2){
 	vec3 dist;
-	vec3SubtractVec3FromOut(v1, v2, &dist);
+	vec3SubtractVec3Out(v1, v2, &dist);
 	return(vec3MagnitudeVec3(&dist));
 }
 
 // Find the distance between two vec3s!
 float vec3DistanceVec3C(const vec3 v1, const vec3 v2){
-	const vec3 dist = vec3SubtractVec3FromC(v1, v2);
+	const vec3 dist = vec3SubtractVec3C(v1, v2);
 	return(vec3MagnitudeVec3C(dist));
 }
 
 // Find the squared distance between two vec3s!
 float vec3DistanceSquaredVec3(const vec3 *const restrict v1, const vec3 *const restrict v2){
 	vec3 dist;
-	vec3SubtractVec3FromOut(v1, v2, &dist);
+	vec3SubtractVec3Out(v1, v2, &dist);
 	return(vec3MagnitudeSquaredVec3(&dist));
 }
 
 // Find the squared distance between two vec3s!
 float vec3DistanceSquaredVec3C(const vec3 v1, const vec3 v2){
-	const vec3 dist = vec3SubtractVec3FromC(v1, v2);
+	const vec3 dist = vec3SubtractVec3C(v1, v2);
 	return(vec3MagnitudeSquaredVec3C(dist));
 }
 
@@ -642,7 +645,7 @@ vec3 vec3CrossFloatVec3C(const float x, const float y, const float z, const vec3
 }
 
 // Find the cross product of two vec3s (v1 x v2) and store the result in "v1"!
-void vec3CrossByVec3(vec3 *const restrict v1, const vec3 *const restrict v2){
+void vec3CrossVec3P1(vec3 *const restrict v1, const vec3 *const restrict v2){
 	const vec3 temp = *v1;
 
 	v1->x = temp.y * v2->z - temp.z * v2->y;
@@ -650,13 +653,13 @@ void vec3CrossByVec3(vec3 *const restrict v1, const vec3 *const restrict v2){
 	v1->z = temp.x * v2->y - temp.y * v2->x;
 }
 
-// Find the cross product of two vec3s (v2 x v1) and store the result in "v1"!
-void vec3CrossVec3By(vec3 *const restrict v1, const vec3 *const restrict v2){
-	const vec3 temp = *v1;
+// Find the cross product of two vec3s (v1 x v2) and store the result in "v2"!
+void vec3CrossVec3P2(const vec3 *const restrict v1, vec3 *const restrict v2){
+	const vec3 temp = *v2;
 
-	v1->x = v2->y * temp.z - v2->z * temp.y;
-	v1->y = v2->z * temp.x - v2->x * temp.z;
-	v1->z = v2->x * temp.y - v2->y * temp.x;
+	v2->x = v1->y * temp.z - v1->z * temp.y;
+	v2->y = v1->z * temp.x - v1->x * temp.z;
+	v2->z = v1->x * temp.y - v1->y * temp.x;
 }
 
 // Find the cross product of two vec3s (v1 x v2) and store the result in "out"!
@@ -666,7 +669,7 @@ void vec3CrossVec3Out(const vec3 *const restrict v1, const vec3 *const restrict 
 	out->z = v1->x * v2->y - v1->y * v2->x;
 }
 
-// Find the cross product of two vec3s (v1 x v2)!
+// Find the cross product of two vec3s (v1 x v2) and return the result!
 vec3 vec3CrossVec3C(const vec3 v1, const vec3 v2){
 	vec3 out;
 

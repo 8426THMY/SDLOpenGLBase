@@ -469,8 +469,8 @@ return_t colliderHullLoad(
 
 
 			A = &tempHull.vertices[firstEdgeStartIndex];
-			vec3SubtractVec3FromOut(&tempHull.vertices[firstEdgeEndIndex], A, &AB);
-			vec3SubtractVec3FromOut(&tempHull.vertices[lastEdgeStartIndex], A, &AC);
+			vec3SubtractVec3Out(&tempHull.vertices[firstEdgeEndIndex], A, &AB);
+			vec3SubtractVec3Out(&tempHull.vertices[lastEdgeStartIndex], A, &AC);
 			// Calculate the current face's normal.
 			vec3CrossVec3Out(&AB, &AC, &curNormal);
 			vec3NormalizeVec3FastOut(&curNormal, &tempHull.normals[tempHull.numFaces]);
@@ -562,7 +562,7 @@ void colliderHullUpdate(
 		colliderAABB tempAABB;
 
 		// Transform the first vertex and use it for the bounding box.
-		vec3SubtractVec3FromOut(baseFeature, baseCentroid, curFeature);
+		vec3SubtractVec3Out(baseFeature, baseCentroid, curFeature);
 		mat3MultiplyVec3(&transMatrix, curFeature);
 		// Translate by the centroid manually.
 		vec3AddVec3(curFeature, hullCentroid);
@@ -574,7 +574,7 @@ void colliderHullUpdate(
 
 		// Transform the remaining vertices!
 		for(; curFeature < lastFeature; ++curFeature, ++baseFeature){
-			vec3SubtractVec3FromOut(baseFeature, baseCentroid, curFeature);
+			vec3SubtractVec3Out(baseFeature, baseCentroid, curFeature);
 			mat3MultiplyVec3(&transMatrix, curFeature);
 			// Translate by the centroid manually.
 			vec3AddVec3(curFeature, hullCentroid);
@@ -781,7 +781,7 @@ static void generateInertiaWeighted(
 		float zz;
 		const float curWeight = *vertexWeights;
 
-		vec3SubtractVec3FromOut(curVertex, centroid, &offset);
+		vec3SubtractVec3Out(curVertex, centroid, &offset);
 		xx = offset.x * offset.x;
 		yy = offset.y * offset.y;
 		zz = offset.z * offset.z;
@@ -848,7 +848,7 @@ static void generateInertia(const colliderHull *const restrict hull, mat3 *const
 		float yy;
 		float zz;
 
-		vec3SubtractVec3FromOut(curVertex, centroid, &offset);
+		vec3SubtractVec3Out(curVertex, centroid, &offset);
 		xx = offset.x * offset.x;
 		yy = offset.y * offset.y;
 		zz = offset.z * offset.z;
@@ -930,8 +930,8 @@ static return_t edgeSeparation(
 	const vec3 *const startVertexB = &hullB->vertices[edgeB->startVertexIndex];
 	vec3 invEdgeB;
 
-	vec3SubtractVec3FromOut(startVertexA, &hullA->vertices[edgeA->endVertexIndex], &invEdgeA);
-	vec3SubtractVec3FromOut(startVertexB, &hullB->vertices[edgeB->endVertexIndex], &invEdgeB);
+	vec3SubtractVec3Out(startVertexA, &hullA->vertices[edgeA->endVertexIndex], &invEdgeA);
+	vec3SubtractVec3Out(startVertexB, &hullB->vertices[edgeB->endVertexIndex], &invEdgeB);
 
 
 	return(
@@ -1077,14 +1077,14 @@ static float edgeDistSquared(
 
 
 	vec3MultiplyS(&edgeNormal, invSqrt(edgeNormalMagnitude));
-	vec3SubtractVec3FromOut(pA, centroid, &offset);
+	vec3SubtractVec3Out(pA, centroid, &offset);
 	// If the edge normal does not point from
 	// object A to object B, we need to invert it.
 	if(vec3DotVec3(&edgeNormal, &offset) < 0.f){
 		vec3Negate(&edgeNormal);
 	}
 
-	vec3SubtractVec3FromOut(pB, pA, &offset);
+	vec3SubtractVec3Out(pB, pA, &offset);
 	// Return the distance between the edges.
 	return(vec3DotVec3(&edgeNormal, &offset));
 }
@@ -1174,13 +1174,13 @@ static return_t noSeparatingEdge(
 		colliderEdgeIndex_t b;
 
 		// Get the inverse of edge 1's normal.
-		vec3SubtractVec3FromOut(startVertexA, &hullA->vertices[edgeA->endVertexIndex], &invEdgeA);
+		vec3SubtractVec3Out(startVertexA, &hullA->vertices[edgeA->endVertexIndex], &invEdgeA);
 
 		for(b = 0; b < hullB->numEdges; ++edgeB, ++b){
 			const vec3 *startVertexB = &hullB->vertices[edgeB->startVertexIndex];
 			vec3 invEdgeB;
 			// Get the inverse of edge 2's normal
-			vec3SubtractVec3FromOut(startVertexB, &hullB->vertices[edgeB->endVertexIndex], &invEdgeB);
+			vec3SubtractVec3Out(startVertexB, &hullB->vertices[edgeB->endVertexIndex], &invEdgeB);
 
 			// We only need to compare two edges if they
 			// form a face on the Minkowski difference.
@@ -1755,7 +1755,7 @@ static void clipEdgeContact(
 		.x = refEnd->x - refStart->x,
 		.y = refEnd->y - refStart->y,
 		.z = refEnd->z - refStart->z
-	};//*vec3SubtractVec3FromP(refEnd, refStart, &ref);
+	};//*vec3SubtractVec3P(refEnd, refStart, &ref);
 
 	const colliderHullEdge *const incEdge = &hullB->edges[edgeData->edgeB];
 	const vec3 *const incStart = &hullB->vertices[incEdge->startVertexIndex];
@@ -1764,18 +1764,18 @@ static void clipEdgeContact(
 		.x = incEnd->x - incStart->x,
 		.y = incEnd->y - incStart->y,
 		.z = incEnd->z - incStart->z
-	};//*vec3SubtractVec3FromP(incEnd, incStart, &inc);
+	};//*vec3SubtractVec3P(incEnd, incStart, &inc);
 
 	const vec3 offset = {
 		.x = refStart->x - incStart->x,
 		.y = refStart->y - incStart->y,
 		.z = refStart->z - incStart->z
-	};//*vec3SubtractVec3FromP(refStart, incStart, &offset);
+	};//*vec3SubtractVec3P(refStart, incStart, &offset);
 	const vec3 normalDir = {
 		.x = refStart->x - hullA->centroid.x,
 		.y = refStart->y - hullA->centroid.y,
 		.z = refStart->z - hullA->centroid.z
-	};//*vec3SubtractVec3FromP(refStart, &hullA->centroid, &normalDir);
+	};//*vec3SubtractVec3P(refStart, &hullA->centroid, &normalDir);
 
 	contactPoint *const contact = &cm->contacts[0];
 	vec3 normal;

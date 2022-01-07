@@ -449,38 +449,106 @@ quat quatSubtractFromSC(quat q, const float x){
 	return(q);
 }
 
-// Subtract "v" from "q"!
-void quatSubtractVec4From(quat *const restrict q, const vec4 *const restrict v){
+// Subtract "v" from "q" and store the result in "q"!
+void quatSubtractVec4P1(quat *const restrict q, const vec4 *const restrict v){
 	q->x -= v->x;
 	q->y -= v->y;
 	q->z -= v->z;
 	q->w -= v->w;
 }
 
-// Subtract "q" from "v"!
-void quatSubtractFromVec4(quat *const restrict q, const vec4 *const restrict v){
-	q->x = v->x - q->x;
-	q->y = v->y - q->y;
-	q->z = v->z - q->z;
-	q->w = v->w - q->w;
+// Subtract "v" from "q" and store the result in "v"!
+void quatSubtractVec4P2(const quat *const restrict q, vec4 *const restrict v){
+	v->x = q->x - v->x;
+	v->y = q->y - v->y;
+	v->z = q->z - v->z;
+	v->w = q->w - v->w;
 }
 
 // Subtract "v" from "q" and store the result in "out"!
-void quatSubtractVec4FromOut(const quat *const restrict q, const vec4 *const restrict v, quat *const restrict out){
+void quatSubtractVec4Out(const quat *const restrict q, const vec4 *const restrict v, quat *const restrict out){
 	out->x = q->x - v->x;
 	out->y = q->y - v->y;
 	out->z = q->z - v->z;
 	out->w = q->w - v->w;
 }
 
-// Subtract "v" from "q"!
-quat quatSubtractVec4FromC(quat q, const vec4 v){
+// Subtract "v" from "q" and return the result!
+quat quatSubtractVec4C(quat q, const vec4 v){
 	q.x -= v.x;
 	q.y -= v.y;
 	q.z -= v.z;
 	q.w -= v.w;
 
 	return(q);
+}
+
+// Subtract "q" from "v" and store the result in "v"!
+void vec4SubtractQuatP1(vec4 *const restrict v, const quat *const restrict q){
+	v->x -= q->x;
+	v->y -= q->y;
+	v->z -= q->z;
+	v->w -= q->w;
+}
+
+// Subtract "q" from "v" and store the result in "v"!
+void vec4SubtractQuatP2(const vec4 *const restrict v, quat *const restrict q){
+	q->x = v->x - q->x;
+	q->y = v->y - q->y;
+	q->z = v->z - q->z;
+	q->w = v->w - q->w;
+}
+
+// Subtract "q" from "v" and store the result in "out"!
+void vec4SubtractQuatOut(const vec4 *const restrict v, const quat *const restrict q, vec4 *const restrict out){
+	out->x = v->x - q->x;
+	out->y = v->y - q->y;
+	out->z = v->z - q->z;
+	out->w = v->w - q->w;
+}
+
+// Subtract "q" from "v" and return the result!
+vec4 vec4SubtractQuatC(vec4 v, const quat q){
+	v.x -= q.x;
+	v.y -= q.y;
+	v.z -= q.z;
+	v.w -= q.w;
+
+	return(v);
+}
+
+// Subtract "q2" from "q1" and store the result in "q1"!
+void quatSubtractQuatP1(quat *const restrict q1, const quat *const restrict q2){
+	q1->x -= q2->x;
+	q1->y -= q2->y;
+	q1->z -= q2->z;
+	q1->w -= q2->w;
+}
+
+// Subtract "q2" from "q1" and store the result in "q2"!
+void quatSubtractQuatP2(const quat *const restrict q1, quat *const restrict q2){
+	q2->x = q1->x - q2->x;
+	q2->y = q1->y - q2->y;
+	q2->z = q1->z - q2->z;
+	q2->w = q1->w - q2->w;
+}
+
+// Subtract "q2" from "q1" and store the result in "out"!
+void quatSubtractQuatOut(const quat *const restrict q1, const quat *const restrict q2, quat *const restrict out){
+	out->x = q1->x - q2->x;
+	out->y = q1->y - q2->y;
+	out->z = q1->z - q2->z;
+	out->w = q1->w - q2->w;
+}
+
+// Subtract "q2" from "q1" and return the result!
+quat quatSubtractQuatC(quat q1, const quat q2){
+	q1.x -= q2.x;
+	q1.y -= q2.y;
+	q1.z -= q2.z;
+	q1.w -= q2.w;
+
+	return(q1);
 }
 
 
@@ -630,24 +698,32 @@ quat quatDivideSByFastC(quat q, const float x){
 	return(q);
 }
 
-// Divide "q" by "v"!
-void quatDivideByVec4(quat *const restrict q, const vec4 *const restrict v){
+// Divide "q" by "v" and store the result in "q"!
+void quatDivideVec4P1(quat *const restrict q, const vec4 *const restrict v){
 	q->x = (v->x != 0.f) ? q->x / v->x : 0.f;
 	q->y = (v->y != 0.f) ? q->y / v->y : 0.f;
 	q->z = (v->z != 0.f) ? q->z / v->z : 0.f;
 	q->w = (v->w != 0.f) ? q->w / v->w : 0.f;
 }
 
+// Divide "q" by "v" and store the result in "v"!
+void quatDivideVec4P2(const quat *const restrict q, vec4 *const restrict v){
+	v->x = (v->x != 0.f) ? q->x / v->x : 0.f;
+	v->y = (v->y != 0.f) ? q->y / v->y : 0.f;
+	v->z = (v->z != 0.f) ? q->z / v->z : 0.f;
+	v->w = (v->w != 0.f) ? q->w / v->w : 0.f;
+}
+
 // Divide "q" by "v" and store the result in "out"!
-void quatDivideByVec4Out(const quat *const restrict q, const vec4 *const restrict v, quat *const restrict out){
+void quatDivideVec4Out(const quat *const restrict q, const vec4 *const restrict v, quat *const restrict out){
 	out->x = (v->x != 0.f) ? q->x / v->x : 0.f;
 	out->y = (v->y != 0.f) ? q->y / v->y : 0.f;
 	out->z = (v->z != 0.f) ? q->z / v->z : 0.f;
 	out->w = (v->w != 0.f) ? q->w / v->w : 0.f;
 }
 
-// Divide "q" by "v"!
-quat quatDivideByVec4C(quat q, const vec4 v){
+// Divide "q" by "v" and return the result!
+quat quatDivideVec4C(quat q, const vec4 v){
 	q.x = (v.x != 0.f) ? q.x / v.x : 0.f;
 	q.y = (v.y != 0.f) ? q.y / v.y : 0.f;
 	q.z = (v.z != 0.f) ? q.z / v.z : 0.f;
@@ -656,8 +732,16 @@ quat quatDivideByVec4C(quat q, const vec4 v){
 	return(q);
 }
 
-// Divide "v" by "q"!
-void quatDivideVec4By(quat *const restrict q, const vec4 *const restrict v){
+// Divide "v" by "q" and store the result in "v"!
+void vec4DivideQuatP1(vec4 *const restrict v, const quat *const restrict q){
+	v->x = (q->x != 0.f) ? v->x / q->x : 0.f;
+	v->y = (q->y != 0.f) ? v->y / q->y : 0.f;
+	v->z = (q->z != 0.f) ? v->z / q->z : 0.f;
+	v->w = (q->w != 0.f) ? v->w / q->w : 0.f;
+}
+
+// Divide "v" by "q" and store the result in "q"!
+void vec4DivideQuatP2(const vec4 *const restrict v, quat *const restrict q){
 	q->x = (q->x != 0.f) ? v->x / q->x : 0.f;
 	q->y = (q->y != 0.f) ? v->y / q->y : 0.f;
 	q->z = (q->z != 0.f) ? v->z / q->z : 0.f;
@@ -665,28 +749,63 @@ void quatDivideVec4By(quat *const restrict q, const vec4 *const restrict v){
 }
 
 // Divide "v" by "q" and store the result in "out"!
-void quatDivideVec4ByOut(const quat *const restrict q, const vec4 *const restrict v, quat *const restrict out){
+void vec4DivideQuatOut(const vec4 *const restrict v, const quat *const restrict q, vec4 *const restrict out){
 	out->x = (q->x != 0.f) ? v->x / q->x : 0.f;
 	out->y = (q->y != 0.f) ? v->y / q->y : 0.f;
 	out->z = (q->z != 0.f) ? v->z / q->z : 0.f;
 	out->w = (q->w != 0.f) ? v->w / q->w : 0.f;
 }
 
-// Divide "v" by "q"!
-quat quatDivideVec4ByC(quat q, const vec4 v){
-	q.x = (q.x != 0.f) ? v.x / q.x : 0.f;
-	q.y = (q.y != 0.f) ? v.y / q.y : 0.f;
-	q.z = (q.z != 0.f) ? v.z / q.z : 0.f;
-	q.w = (q.w != 0.f) ? v.w / q.w : 0.f;
+// Divide "v" by "q" and return the result!
+vec4 vec4DivideQuatC(vec4 v, const quat q){
+	v.x = (q.x != 0.f) ? v.x / q.x : 0.f;
+	v.y = (q.y != 0.f) ? v.y / q.y : 0.f;
+	v.z = (q.z != 0.f) ? v.z / q.z : 0.f;
+	v.w = (q.w != 0.f) ? v.w / q.w : 0.f;
 
-	return(q);
+	return(v);
+}
+
+// Divide "q1" by "q2" and store the result in "q1"!
+void quatDivideQuatP1(quat *const restrict q1, const quat *const restrict q2){
+	q1->x = (q2->x != 0.f) ? q1->x / q2->x : 0.f;
+	q1->y = (q2->y != 0.f) ? q1->y / q2->y : 0.f;
+	q1->z = (q2->z != 0.f) ? q1->z / q2->z : 0.f;
+	q1->w = (q2->w != 0.f) ? q1->w / q2->w : 0.f;
+}
+
+// Divide "q1" by "q2" and store the result in "q2"!
+void quatDivideQuatP2(const quat *const restrict q1, quat *const restrict q2){
+	q2->x = (q2->x != 0.f) ? q1->x / q2->x : 0.f;
+	q2->y = (q2->y != 0.f) ? q1->y / q2->y : 0.f;
+	q2->z = (q2->z != 0.f) ? q1->z / q2->z : 0.f;
+	q2->w = (q2->w != 0.f) ? q1->w / q2->w : 0.f;
+}
+
+// Divide "q1" by "q2" and store the result in "out"!
+void quatDivideQuatOut(const quat *const restrict q1, const quat *const restrict q2, quat *const restrict out){
+	out->x = (q2->x != 0.f) ? q1->x / q2->x : 0.f;
+	out->y = (q2->y != 0.f) ? q1->y / q2->y : 0.f;
+	out->z = (q2->z != 0.f) ? q1->z / q2->z : 0.f;
+	out->w = (q2->w != 0.f) ? q1->w / q2->w : 0.f;
+}
+
+// Divide "q1" by "q2" and return the result!
+quat quatDivideQuatC(quat q1, const quat q2){
+	q1.x = (q2.x != 0.f) ? q1.x / q2.x : 0.f;
+	q1.y = (q2.y != 0.f) ? q1.y / q2.y : 0.f;
+	q1.z = (q2.z != 0.f) ? q1.z / q2.z : 0.f;
+	q1.w = (q2.w != 0.f) ? q1.w / q2.w : 0.f;
+
+	return(q1);
 }
 
 /*
-** Divide "q" by "v"! Unlike the regular version, this
-** does not check to prevent against divide-by-zero errors.
+** Divide "q" by "v" and store the result in "q"!
+** Unlike the regular version, this does not check
+** to prevent against divide-by-zero errors.
 */
-void quatDivideByVec4Fast(quat *const restrict q, const vec4 *const restrict v){
+void quatDivideVec4FastP1(quat *const restrict q, const vec4 *const restrict v){
 	q->x /= v->x;
 	q->y /= v->y;
 	q->z /= v->z;
@@ -694,11 +813,23 @@ void quatDivideByVec4Fast(quat *const restrict q, const vec4 *const restrict v){
 }
 
 /*
+** Divide "q" by "v" and store the result in "v"!
+** Unlike the regular version, this does not check
+** to prevent against divide-by-zero errors.
+*/
+void quatDivideVec4FastP2(const quat *const restrict q, vec4 *const restrict v){
+	v->x = q->x / v->x;
+	v->y = q->y / v->y;
+	v->z = q->z / v->z;
+	v->w = q->w / v->w;
+}
+
+/*
 ** Divide "q" by "v" and store the result in "out"!
 ** Unlike the regular version, this does not check
 ** to prevent against divide-by-zero errors.
 */
-void quatDivideByVec4FastOut(const quat *const restrict q, const vec4 *const restrict v, quat *const restrict out){
+void quatDivideVec4FastOut(const quat *const restrict q, const vec4 *const restrict v, quat *const restrict out){
 	out->x = q->x / v->x;
 	out->y = q->y / v->y;
 	out->z = q->z / v->z;
@@ -706,10 +837,11 @@ void quatDivideByVec4FastOut(const quat *const restrict q, const vec4 *const res
 }
 
 /*
-** Divide "q" by "v"! Unlike the regular version, this
-** does not check to prevent against divide-by-zero errors.
+** Divide "q" by "v" and return the result!
+** Unlike the regular version, this does not check
+** to prevent against divide-by-zero errors.
 */
-quat quatDivideByVec4FastC(quat q, const vec4 v){
+quat quatDivideVec4FastC(quat q, const vec4 v){
 	q.x /= v.x;
 	q.y /= v.y;
 	q.z /= v.z;
@@ -719,10 +851,23 @@ quat quatDivideByVec4FastC(quat q, const vec4 v){
 }
 
 /*
-** Divide "v" by "q"! Unlike the regular version, this
-** does not check to prevent against divide-by-zero errors.
+** Divide "v" by "q" and store the result in "v"!
+** Unlike the regular version, this does not check
+** to prevent against divide-by-zero errors.
 */
-void quatDivideVec4ByFast(quat *const restrict q, const vec4 *const restrict v){
+void vec4DivideQuatFastP1(vec4 *const restrict v, const quat *const restrict q){
+	v->x /= q->x;
+	v->y /= q->y;
+	v->z /= q->z;
+	v->w /= q->w;
+}
+
+/*
+** Divide "v" by "q" and store the result in "q"!
+** Unlike the regular version, this does not check
+** to prevent against divide-by-zero errors.
+*/
+void vec4DivideQuatFastP2(const vec4 *const restrict v, quat *const restrict q){
 	q->x = v->x / q->x;
 	q->y = v->y / q->y;
 	q->z = v->z / q->z;
@@ -734,7 +879,7 @@ void quatDivideVec4ByFast(quat *const restrict q, const vec4 *const restrict v){
 ** Unlike the regular version, this does not check
 ** to prevent against divide-by-zero errors.
 */
-void quatDivideVec4ByFastOut(const quat *const restrict q, const vec4 *const restrict v, quat *const restrict out){
+void vec4DivideQuatFastOut(const vec4 *const restrict v, const quat *const restrict q, vec4 *const restrict out){
 	out->x = v->x / q->x;
 	out->y = v->y / q->y;
 	out->z = v->z / q->z;
@@ -742,16 +887,67 @@ void quatDivideVec4ByFastOut(const quat *const restrict q, const vec4 *const res
 }
 
 /*
-** Divide "v" by "q"! Unlike the regular version, this
-** does not check to prevent against divide-by-zero errors.
+** Divide "q" by "v" and return the result!
+** Unlike the regular version, this does not check
+** to prevent against divide-by-zero errors.
 */
-quat quatDivideVec4ByFastC(quat q, const vec4 v){
-	q.x = v.x / q.x;
-	q.y = v.y / q.y;
-	q.z = v.z / q.z;
-	q.w = v.w / q.w;
+vec4 vec4DivideQuatFastC(vec4 v, const quat q){
+	v.x /= q.x;
+	v.y /= q.y;
+	v.z /= q.z;
+	v.w /= q.w;
 
-	return(q);
+	return(v);
+}
+
+/*
+** Divide "q1" by "q2" and store the result in "q1"!
+** Unlike the regular version, this does not check
+** to prevent against divide-by-zero errors.
+*/
+void quatDivideQuatFastP1(quat *const restrict q1, const quat *const restrict q2){
+	q1->x /= q2->x;
+	q1->y /= q2->y;
+	q1->z /= q2->z;
+	q1->w /= q2->w;
+}
+
+/*
+** Divide "q1" by "q2" and store the result in "q2"!
+** Unlike the regular version, this does not check
+** to prevent against divide-by-zero errors.
+*/
+void quatDivideQuatFastP2(const quat *const restrict q1, quat *const restrict q2){
+	q2->x = q1->x / q2->x;
+	q2->y = q1->y / q2->y;
+	q2->z = q1->z / q2->z;
+	q2->w = q1->w / q2->w;
+}
+
+/*
+** Divide "q1" by "q2" and store the result in "out"!
+** Unlike the regular version, this does not check
+** to prevent against divide-by-zero errors.
+*/
+void quatDivideQuatFastOut(const quat *const restrict q1, const quat *const restrict q2, quat *const restrict out){
+	out->x = q1->x / q2->x;
+	out->y = q1->y / q2->y;
+	out->z = q1->z / q2->z;
+	out->w = q1->w / q2->w;
+}
+
+/*
+** Divide "q1" by "q2" and return the result!
+** Unlike the regular version, this does not check
+** to prevent against divide-by-zero errors.
+*/
+quat quatDivideQuatFastC(quat q1, const quat q2){
+	q1.x /= q2.x;
+	q1.y /= q2.y;
+	q1.z /= q2.z;
+	q1.w /= q2.w;
+
+	return(q1);
 }
 
 
@@ -794,7 +990,10 @@ quat quatMultiplyQuatC(const quat q1, const quat q2){
 	return(out);
 }
 
-// Multiply q1*conj(q2) and store the result in "q1"!
+/*
+** Multiply q1*conj(q2) and store the result in "q1"!
+** This is the rotation that must be applied to q2 to bring it to q1.
+*/
 void quatMultiplyQuatConjP1(quat *const restrict q1, const quat q2){
 	const quat tempQuat = *q1;
 
@@ -804,7 +1003,10 @@ void quatMultiplyQuatConjP1(quat *const restrict q1, const quat q2){
 	q1->w =  tempQuat.w * q2.w + tempQuat.x * q2.x + tempQuat.y * q2.y + tempQuat.z * q2.z;
 }
 
-// Multiply q1*conj(q2) and store the result in "q2"!
+/*
+** Multiply q1*conj(q2) and store the result in "q2"!
+** This is the rotation that must be applied to q2 to bring it to q1.
+*/
 void quatMultiplyQuatConjP2(const quat q1, quat *const restrict q2){
 	const quat tempQuat = *q2;
 
@@ -814,7 +1016,10 @@ void quatMultiplyQuatConjP2(const quat q1, quat *const restrict q2){
 	q2->w =  q1.w * tempQuat.w + q1.x * tempQuat.x + q1.y * tempQuat.y + q1.z * tempQuat.z;
 }
 
-// Multiply q1*conj(q2) and store the result in "out"!
+/*
+** Multiply q1*conj(q2) and store the result in "out"!
+** This is the rotation that must be applied to q2 to bring it to q1.
+*/
 void quatMultiplyQuatConjOut(const quat q1, const quat q2, quat *const restrict out){
 	out->x = -q1.w * q2.x + q1.x * q2.w - q1.y * q2.z + q1.z * q2.y;
 	out->y = -q1.w * q2.y + q1.y * q2.w - q1.z * q2.x + q1.x * q2.z;
@@ -822,7 +1027,10 @@ void quatMultiplyQuatConjOut(const quat q1, const quat q2, quat *const restrict 
 	out->w =  q1.w * q2.w + q1.x * q2.x + q1.y * q2.y + q1.z * q2.z;
 }
 
-// Multiply q1*conj(q2) and return the result!
+/*
+** Multiply q1*conj(q2) and return the result!
+** This is the rotation that must be applied to "q2" to bring it to "q1".
+*/
 quat quatMultiplyQuatConjC(const quat q1, const quat q2){
 	const quat out = {
 		.x = -q1.w * q2.x + q1.x * q2.w - q1.y * q2.z + q1.z * q2.y,
@@ -833,7 +1041,10 @@ quat quatMultiplyQuatConjC(const quat q1, const quat q2){
 	return(out);
 }
 
-// Multiply conj(q1)*q2 (undo a rotation of "q1" from "q2") and store the result in "q1"!
+/*
+** Multiply conj(q1)*q2 and store the result in "q1"!
+** This is the orientation that, when rotated by "q1", is taken to "q2".
+*/
 void quatConjMultiplyQuatP1(quat *const restrict q1, const quat q2){
 	const quat tempQuat = *q1;
 
@@ -843,7 +1054,10 @@ void quatConjMultiplyQuatP1(quat *const restrict q1, const quat q2){
 	q1->w = tempQuat.w * q2.w + tempQuat.x * q2.x + tempQuat.y * q2.y + tempQuat.z * q2.z;
 }
 
-// Multiply conj(q1)*q2 (undo a rotation of "q1" from "q2") and store the result in "q2"!
+/*
+** Multiply conj(q1)*q2 and store the result in "q2"!
+** This is the orientation that, when rotated by "q1", is taken to "q2".
+*/
 void quatConjMultiplyQuatP2(const quat q1, quat *const restrict q2){
 	const quat tempQuat = *q2;
 
@@ -853,7 +1067,10 @@ void quatConjMultiplyQuatP2(const quat q1, quat *const restrict q2){
 	q2->w = q1.w * tempQuat.w + q1.x * tempQuat.x + q1.y * tempQuat.y + q1.z * tempQuat.z;
 }
 
-// Multiply conj(q1)*q2 (undo a rotation of "q1" from "q2") and store the result in "out"!
+/*
+** Multiply conj(q1)*q2 and store the result in "out"!
+** This is the orientation that, when rotated by "q1", is taken to "q2".
+*/
 void quatConjMultiplyQuatOut(const quat q1, const quat q2, quat *const restrict out){
 	out->x = q1.w * q2.x - q1.x * q2.w - q1.y * q2.z + q1.z * q2.y;
 	out->y = q1.w * q2.y - q1.y * q2.w - q1.z * q2.x + q1.x * q2.z;
@@ -861,7 +1078,10 @@ void quatConjMultiplyQuatOut(const quat q1, const quat q2, quat *const restrict 
 	out->w = q1.w * q2.w + q1.x * q2.x + q1.y * q2.y + q1.z * q2.z;
 }
 
-// Multiply conj(q1)*q2 (undo a rotation of "q1" from "q2") and return the result!
+/*
+** Multiply conj(q1)*q2 and return the result!
+** This is the orientation that, when rotated by "q1", is taken to "q2".
+*/
 quat quatConjMultiplyQuatC(const quat q1, const quat q2){
 	const quat out = {
 		.x = q1.w * q2.x - q1.x * q2.w - q1.y * q2.z + q1.z * q2.y,
@@ -972,7 +1192,7 @@ void quatRotateVec3Fast(const quat *const restrict q, vec3 *const restrict v){
 	qvCross.x += q->w * v->x;
 	qvCross.y += q->w * v->y;
 	qvCross.z += q->w * v->z;
-	vec3CrossVec3By(&qvCross, (const vec3 *const restrict)&q->x);
+	vec3CrossVec3P2((const vec3 *const restrict)&q->x, &qvCross);
 
 	v->x += 2.f*qvCross.x;
 	v->y += 2.f*qvCross.y;
@@ -986,7 +1206,7 @@ void quatRotateVec3FastOut(const quat *const restrict q, const vec3 *const restr
 	qvCross.x += q->w * v->x;
 	qvCross.y += q->w * v->y;
 	qvCross.z += q->w * v->z;
-	vec3CrossVec3By(&qvCross, (const vec3 *const restrict)&q->x);
+	vec3CrossVec3P2((const vec3 *const restrict)&q->x, &qvCross);
 
 	out->x = 2.f*qvCross.x + v->x;
 	out->y = 2.f*qvCross.y + v->y;
@@ -1019,7 +1239,7 @@ void quatConjRotateVec3Fast(const quat *const restrict q, vec3 *const restrict v
 	qvCross.x -= q->w * v->x;
 	qvCross.y -= q->w * v->y;
 	qvCross.z -= q->w * v->z;
-	vec3CrossVec3By(&qvCross, (const vec3 *const restrict)&q->x);
+	vec3CrossVec3P2((const vec3 *const restrict)&q->x, &qvCross);
 
 	v->x += 2.f*qvCross.x;
 	v->y += 2.f*qvCross.y;
@@ -1037,7 +1257,7 @@ void quatConjRotateVec3FastOut(const quat *const restrict q, const vec3 *const r
 	qvCross.x -= q->w * v->x;
 	qvCross.y -= q->w * v->y;
 	qvCross.z -= q->w * v->z;
-	vec3CrossVec3By(&qvCross, (const vec3 *const restrict)&q->x);
+	vec3CrossVec3P2((const vec3 *const restrict)&q->x, &qvCross);
 
 	out->x = 2.f*qvCross.x + v->x;
 	out->y = 2.f*qvCross.y + v->y;

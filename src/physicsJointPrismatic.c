@@ -290,9 +290,9 @@ static void updateConstraintData(
 	float axisSeparation;
 
 	// Transform the anchor points using the bodies' new scales and rotations.
-	vec3SubtractVec3FromOut(&joint->anchorA, &bodyA->base->centroid, &rA);
+	vec3SubtractVec3Out(&joint->anchorA, &bodyA->base->centroid, &rA);
 	transformDirection(&bodyA->state, &rA);
-	vec3SubtractVec3FromOut(&joint->anchorB, &bodyB->base->centroid, &rB);
+	vec3SubtractVec3Out(&joint->anchorB, &bodyB->base->centroid, &rB);
 	transformDirection(&bodyB->state, &rB);
 
 	// Find the relative position of the two bodies.
@@ -301,7 +301,7 @@ static void updateConstraintData(
 	// We don't subtract rA yet, as we'll just be adding it back.
 	d = bodyB->centroid;
 	vec3AddVec3(&d, &rB);
-	vec3SubtractVec3From(&d, &bodyA->centroid);
+	vec3SubtractVec3P1(&d, &bodyA->centroid);
 
 
 	// Transform the constraint axis and its tangents to body A's
@@ -321,7 +321,7 @@ static void updateConstraintData(
 
 
 	// Now we can subtract rA.
-	vec3SubtractVec3From(&d, &rA);
+	vec3SubtractVec3P1(&d, &rA);
 	// Calculate the rigid bodies' separation along the constraint axis.
 	axisSeparation = vec3DotVec3(&d, &joint->axisGlobal);
 	/** Do stuff **/

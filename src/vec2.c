@@ -174,26 +174,26 @@ vec2 vec2SubtractFromSC(vec2 v, const float x){
 	return(v);
 }
 
-// Subtract "v2" from "v1"!
-void vec2SubtractVec2From(vec2 *const restrict v1, const vec2 *const restrict v2){
+// Subtract "v2" from "v1" and store the result in "v1"!
+void vec2SubtractVec2P1(vec2 *const restrict v1, const vec2 *const restrict v2){
 	v1->x -= v2->x;
 	v1->y -= v2->y;
 }
 
-// Subtract "v1" from "v2"!
-void vec2SubtractFromVec2(vec2 *const restrict v1, const vec2 *const restrict v2){
-	v1->x = v2->x - v1->x;
-	v1->y = v2->y - v1->y;
+// Subtract "v2" from "v1" and store the result in "v2"!
+void vec2SubtractVec2P2(const vec2 *const restrict v1, vec2 *const restrict v2){
+	v2->x = v1->x - v2->x;
+	v2->y = v1->y - v2->y;
 }
 
 // Subtract "v2" from "v1" and store the result in "out"!
-void vec2SubtractVec2FromOut(const vec2 *const restrict v1, const vec2 *const restrict v2, vec2 *const restrict out){
+void vec2SubtractVec2Out(const vec2 *const restrict v1, const vec2 *const restrict v2, vec2 *const restrict out){
 	out->x = v1->x - v2->x;
 	out->y = v1->y - v2->y;
 }
 
-// Subtract "v2" from "v1"!
-vec2 vec2SubtractVec2FromC(vec2 v1, const vec2 v2){
+// Subtract "v2" from "v1" and return the result!
+vec2 vec2SubtractVec2C(vec2 v1, const vec2 v2){
 	v1.x -= v2.x;
 	v1.y -= v2.y;
 
@@ -317,26 +317,26 @@ vec2 vec2DivideSByFastC(vec2 v, const float x){
 	return(v);
 }
 
-// Divide "v" by "v"!
-void vec2DivideByVec2(vec2 *const restrict v1, const vec2 *const restrict v2){
+// Divide "v1" by "v2" and store the result in "v1"!
+void vec2DivideVec2P1(vec2 *const restrict v1, const vec2 *const restrict v2){
 	v1->x = (v2->x != 0.f) ? v1->x / v2->x : 0.f;
 	v1->y = (v2->y != 0.f) ? v1->y / v2->y : 0.f;
 }
 
-// Divide "v2" by "v1"!
-void vec2DivideVec2By(vec2 *const restrict v1, const vec2 *const restrict v2){
-	v1->x = (v1->x != 0.f) ? v2->x / v1->x : 0.f;
-	v1->y = (v1->y != 0.f) ? v2->y / v1->y : 0.f;
+// Divide "v1" by "v2" and store the result in "v2"!
+void vec2DivideVec2P2(const vec2 *const restrict v1, vec2 *const restrict v2){
+	v2->x = (v2->x != 0.f) ? v1->x / v2->x : 0.f;
+	v2->y = (v2->y != 0.f) ? v1->y / v2->y : 0.f;
 }
 
 // Divide "v1" by "v2" and store the result in "out"!
-void vec2DivideByVec2Out(const vec2 *const restrict v1, const vec2 *const restrict v2, vec2 *const restrict out){
+void vec2DivideVec2Out(const vec2 *const restrict v1, const vec2 *const restrict v2, vec2 *const restrict out){
 	out->x = (v2->x != 0.f) ? v1->x / v2->x : 0.f;
 	out->y = (v2->y != 0.f) ? v1->y / v2->y : 0.f;
 }
 
-// Divide "v1" by "v2"!
-vec2 vec2DivideByVec2C(vec2 v1, const vec2 v2){
+// Divide "v1" by "v2" and return the result!
+vec2 vec2DivideVec2C(vec2 v1, const vec2 v2){
 	v1.x = (v2.x != 0.f) ? v1.x / v2.x : 0.f;
 	v1.y = (v2.y != 0.f) ? v1.y / v2.y : 0.f;
 
@@ -344,21 +344,23 @@ vec2 vec2DivideByVec2C(vec2 v1, const vec2 v2){
 }
 
 /*
-** Divide "v1" by "v2"! Unlike the regular version, this
-** does not check to prevent against divide-by-zero errors.
+** Divide "v1" by "v2" and store the result in "v1"!
+** Unlike the regular version, this does not check
+** to prevent against divide-by-zero errors.
 */
-void vec2DivideByVec2Fast(vec2 *const restrict v1, const vec2 *const restrict v2){
+void vec2DivideVec2FastP1(vec2 *const restrict v1, const vec2 *const restrict v2){
 	v1->x /= v2->x;
 	v1->y /= v2->y;
 }
 
 /*
-** Divide "v2" by "v1"! Unlike the regular version, this
-** does not check to prevent against divide-by-zero errors.
+** Divide "v1" by "v2" and store the result in "v2"!
+** Unlike the regular version, this does not check
+** to prevent against divide-by-zero errors.
 */
-void vec2DivideVec2ByFast(vec2 *const restrict v1, const vec2 *const restrict v2){
-	v1->x = v2->x / v1->x;
-	v1->y = v2->y / v1->y;
+void vec2DivideVec2FastP2(const vec2 *const restrict v1, vec2 *const restrict v2){
+	v2->x = v1->x / v2->x;
+	v2->y = v1->y / v2->y;
 }
 
 /*
@@ -366,16 +368,17 @@ void vec2DivideVec2ByFast(vec2 *const restrict v1, const vec2 *const restrict v2
 ** Unlike the regular version, this does not check
 ** to prevent against divide-by-zero errors.
 */
-void vec2DivideByVec2FastOut(const vec2 *const restrict v1, const vec2 *const restrict v2, vec2 *const restrict out){
+void vec2DivideVec2FastOut(const vec2 *const restrict v1, const vec2 *const restrict v2, vec2 *const restrict out){
 	out->x = v1->x / v2->x;
 	out->y = v1->y / v2->y;
 }
 
 /*
-** Divide "v1" by "v2"! Unlike the regular version, this
-** does not check to prevent against divide-by-zero errors.
+** Divide "v1" by "v2" and return the result!
+** Unlike the regular version, this does not check
+** to prevent against divide-by-zero errors.
 */
-vec2 vec2DivideByVec2FastC(vec2 v1, const vec2 v2){
+vec2 vec2DivideVec2FastC(vec2 v1, const vec2 v2){
 	v1.x = v1.x / v2.x;
 	v1.y = v1.y / v2.y;
 
@@ -479,26 +482,26 @@ float vec2DistanceSquaredC(const vec2 v, const float x, const float y){
 // Find the distance between two vec2s!
 float vec2DistanceVec2(const vec2 *const restrict v1, const vec2 *const restrict v2){
 	vec2 dist;
-	vec2SubtractVec2FromOut(v1, v2, &dist);
+	vec2SubtractVec2Out(v1, v2, &dist);
 	return(vec2MagnitudeVec2(&dist));
 }
 
 // Find the distance between two vec2s!
 float vec2DistanceVec2C(const vec2 v1, const vec2 v2){
-	const vec2 dist = vec2SubtractVec2FromC(v1, v2);
+	const vec2 dist = vec2SubtractVec2C(v1, v2);
 	return(vec2MagnitudeVec2C(dist));
 }
 
 // Find the squared distance between two vec2s!
 float vec2DistanceSquaredVec2(const vec2 *const restrict v1, const vec2 *const restrict v2){
 	vec2 dist;
-	vec2SubtractVec2FromOut(v1, v2, &dist);
+	vec2SubtractVec2Out(v1, v2, &dist);
 	return(vec2MagnitudeSquaredVec2(&dist));
 }
 
 // Find the squared distance between two vec2s!
 float vec2DistanceSquaredVec2C(const vec2 v1, const vec2 v2){
-	const vec2 dist = vec2SubtractVec2FromC(v1, v2);
+	const vec2 dist = vec2SubtractVec2C(v1, v2);
 	return(vec2MagnitudeSquaredVec2C(dist));
 }
 

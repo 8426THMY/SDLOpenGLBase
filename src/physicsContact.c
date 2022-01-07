@@ -190,8 +190,8 @@ void physManifoldInit(
 		vec3AddVec3Out(&cmContact->pA, &cmContact->pB, &curHalfway);
 		vec3MultiplyS(&curHalfway, 0.5f);
 		// We use the point halfway between the contact points when resolving collision.
-		vec3SubtractVec3FromOut(&curHalfway, bodyACentroid, &pmContact->rA);
-		vec3SubtractVec3FromOut(&curHalfway, bodyBCentroid, &pmContact->rB);
+		vec3SubtractVec3Out(&curHalfway, bodyACentroid, &pmContact->rA);
+		vec3SubtractVec3Out(&curHalfway, bodyBCentroid, &pmContact->rB);
 
 		#ifdef PHYSCONTACT_USE_FRICTION_JOINT
 		vec3AddVec3(&halfway, &curHalfway);
@@ -200,9 +200,9 @@ void physManifoldInit(
 		// When we're using non-linear Guass-Seidel, we
 		// need the untransformed contact points and normal.
 		#ifdef PHYSCONTACT_STABILISER_GAUSS_SEIDEL
-		vec3SubtractVec3FromOut(&cmContact->pA, bodyACentroid, &curHalfway);
+		vec3SubtractVec3Out(&cmContact->pA, bodyACentroid, &curHalfway);
 		quatConjRotateVec3FastOut(bodyARot, &curHalfway, &pmContact->rAlocal);
-		vec3SubtractVec3FromOut(&cmContact->pB, bodyBCentroid, &curHalfway);
+		vec3SubtractVec3Out(&cmContact->pB, bodyBCentroid, &curHalfway);
 		quatConjRotateVec3FastOut(bodyBRot, &curHalfway, &pmContact->rBlocal);
 		#endif
 
@@ -243,8 +243,8 @@ void physManifoldInit(
 	#ifdef PHYSCONTACT_USE_FRICTION_JOINT
 	// Get the average point halfway between contact points.
 	vec3DivideByS(&halfway, cm->numContacts);
-	vec3SubtractVec3FromOut(&halfway, bodyACentroid, &pm->frictionJoint.rA);
-	vec3SubtractVec3FromOut(&halfway, bodyBCentroid, &pm->frictionJoint.rB);
+	vec3SubtractVec3Out(&halfway, bodyACentroid, &pm->frictionJoint.rA);
+	vec3SubtractVec3Out(&halfway, bodyBCentroid, &pm->frictionJoint.rB);
 
 	vec2InitZero(&pm->frictionJoint.linearImpulse);
 	pm->frictionJoint.angularImpulse = 0.f;
@@ -364,8 +364,8 @@ void physManifoldPersist(
 		vec3AddVec3Out(&cmContact->pA, &cmContact->pB, &curHalfway);
 		vec3MultiplyS(&curHalfway, 0.5f);
 		// We use the point halfway between the contact points when resolving collision.
-		vec3SubtractVec3FromOut(&curHalfway, bodyACentroid, &pmContact->rA);
-		vec3SubtractVec3FromOut(&curHalfway, bodyBCentroid, &pmContact->rB);
+		vec3SubtractVec3Out(&curHalfway, bodyACentroid, &pmContact->rA);
+		vec3SubtractVec3Out(&curHalfway, bodyBCentroid, &pmContact->rB);
 
 		#ifdef PHYSCONTACT_USE_FRICTION_JOINT
 		vec3AddVec3(&halfway, &curHalfway);
@@ -374,9 +374,9 @@ void physManifoldPersist(
 		// When we're using non-linear Guass-Seidel, we
 		// need the untransformed contact points and normal.
 		#ifdef PHYSCONTACT_STABILISER_GAUSS_SEIDEL
-		vec3SubtractVec3FromOut(&cmContact->pA, bodyACentroid, &curHalfway);
+		vec3SubtractVec3Out(&cmContact->pA, bodyACentroid, &curHalfway);
 		quatConjRotateVec3FastOut(bodyARot, &curHalfway, &pmContact->rAlocal);
-		vec3SubtractVec3FromOut(&cmContact->pB, bodyBCentroid, &curHalfway);
+		vec3SubtractVec3Out(&cmContact->pB, bodyBCentroid, &curHalfway);
 		quatConjRotateVec3FastOut(bodyBRot, &curHalfway, &pmContact->rBlocal);
 		#endif
 
@@ -411,8 +411,8 @@ void physManifoldPersist(
 	#ifdef PHYSCONTACT_USE_FRICTION_JOINT
 	// Get the average point halfway between contact points.
 	vec3DivideByS(&halfway, cm->numContacts);
-	vec3SubtractVec3FromOut(&halfway, bodyACentroid, &pm->frictionJoint.rA);
-	vec3SubtractVec3FromOut(&halfway, bodyBCentroid, &pm->frictionJoint.rB);
+	vec3SubtractVec3Out(&halfway, bodyACentroid, &pm->frictionJoint.rA);
+	vec3SubtractVec3Out(&halfway, bodyBCentroid, &pm->frictionJoint.rB);
 
 	#ifdef PHYSJOINTFRICTION_WARM_START
 	physJointFrictionWarmStart(&pm->frictionJoint, cA->owner, cB->owner);
@@ -651,7 +651,7 @@ static void calculateBias(
 	vec3CrossVec3Out(&bodyB->angularVelocity, &contact->rB, &contactVelocity);
 	vec3AddVec3(&contactVelocity, &bodyB->linearVelocity);
 	// Calculate the relative velocity between the two points.
-	vec3SubtractVec3From(&contactVelocity, &tempVelocity);
+	vec3SubtractVec3P1(&contactVelocity, &tempVelocity);
 
 	// After the contact, we want the following relative velocity v':
 	// v' >= -e * (v_relative . n)
@@ -707,7 +707,7 @@ static void solveTangents(
 	vec3CrossVec3Out(&bodyB->angularVelocity, &contact->rB, &contactVelocity);
 	vec3AddVec3(&contactVelocity, &bodyB->linearVelocity);
 	// Calculate the relative velocity between the two points.
-	vec3SubtractVec3From(&contactVelocity, &temp);
+	vec3SubtractVec3P1(&contactVelocity, &temp);
 
 
 	// lambda = -(JV + b)/(JM^(-1)J^T)
@@ -761,7 +761,7 @@ static void solveNormal(
 	vec3CrossVec3Out(&bodyB->angularVelocity, &contact->rB, &contactVelocity);
 	vec3AddVec3(&contactVelocity, &bodyB->linearVelocity);
 	// Calculate the relative velocity between the two points.
-	vec3SubtractVec3From(&contactVelocity, &impulse);
+	vec3SubtractVec3P1(&contactVelocity, &impulse);
 
 
 	// lambda = -(JV + b)/(JM^(-1)J^T)
@@ -809,7 +809,7 @@ float solvePosition(
 
 	// With the contact points now in global space,
 	// we can find the new separation between them.
-	vec3SubtractVec3From(&rB, &rA);
+	vec3SubtractVec3P1(&rB, &rA);
 	separation = vec3DotVec3(&rB, &normal) - PHYSCONTACT_SEPARATION_BIAS_TOTAL;
 
 	constraint = -PHYSCONTACT_BAUMGARTE_BIAS * (separation + PHYSCONSTRAINT_LINEAR_SLOP);
@@ -820,8 +820,8 @@ float solvePosition(
 
 		// Calculate the transformed contact points'
 		// offsets from their bodies' centres of mass.
-		vec3SubtractVec3FromOut(&rB, &bodyA->centroid, &rA);
-		vec3SubtractVec3From(&rB, &bodyB->centroid);
+		vec3SubtractVec3Out(&rB, &bodyA->centroid, &rA);
+		vec3SubtractVec3P1(&rB, &bodyB->centroid);
 
 		// JA = (IA * (rA X n)) . (rA X n)
 		// JB = (IB * (rB X n)) . (rB X n)

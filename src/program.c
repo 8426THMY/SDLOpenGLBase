@@ -249,13 +249,13 @@ static void updateCameras(program *const restrict prg){
 		vec3 wishdir = {.x = 0.f, .y = 0.f, .z = 0.f};
 
 		if(prg->inputMngr.keyStates[SDL_SCANCODE_A]){
-			vec3SubtractVec3From(&wishdir, (vec3 *)&rotMatrix.m[0]);
+			vec3SubtractVec3P1(&wishdir, (vec3 *)&rotMatrix.m[0]);
 		}
 		if(prg->inputMngr.keyStates[SDL_SCANCODE_D]){
 			vec3AddVec3(&wishdir, (vec3 *)&rotMatrix.m[0]);
 		}
 		if(prg->inputMngr.keyStates[SDL_SCANCODE_W]){
-			vec3SubtractVec3From(&wishdir, (vec3 *)&rotMatrix.m[2]);
+			vec3SubtractVec3P1(&wishdir, (vec3 *)&rotMatrix.m[2]);
 		}
 		if(prg->inputMngr.keyStates[SDL_SCANCODE_S]){
 			vec3AddVec3(&wishdir, (vec3 *)&rotMatrix.m[2]);
@@ -704,10 +704,10 @@ static return_t initResources(program *const restrict prg){
 			const vec3 anchorA = egg->base->centroid;
 			const vec3 anchorB = vec3InitSetC(-2.5f, 0.f, 0.f);
 			physJointPairInit(joint, egg, cube, NULL, NULL);
-			physJointSphereInit(&joint->joint.data.sphere, &anchorA, &anchorB, 0.f, 0.f, -M_PI, M_PI, -M_PI, M_PI);
+			physJointSphereInit(&joint->joint.data.sphere, &anchorA, &anchorB, 0.f, 0.f, -M_PI_4, M_PI_4, -M_PI_4, M_PI_4);
 			joint->joint.type = PHYSJOINT_TYPE_SPHERE;
 			/*physicsJointPair *joint = modulePhysicsJointPairAlloc();
-			const vec3 anchorA = vec3InitZeroC();
+			const vec3 anchorA = egg->base->centroid;
 			const vec3 anchorB = vec3InitSetC(0.f, 2.5f, 0.f);
 			physJointPairInit(joint, egg, cube, NULL, NULL);
 			physJointDistanceInit(&joint->joint.data.distance, &anchorA, &anchorB, 0.f, 1.f, 0.01f);
@@ -724,8 +724,8 @@ static return_t initResources(program *const restrict prg){
 				// Calculate the displacement from the ball to the socket:
 				// -C1 = (pA + aA) - (pB - aB).
 				vec3AddVec3Out(&egg->centroid, &aA, &constraint);
-				vec3SubtractVec3From(&constraint, &cube->centroid);
-				vec3SubtractVec3From(&constraint, &aB);
+				vec3SubtractVec3P1(&constraint, &cube->centroid);
+				vec3SubtractVec3P1(&constraint, &aB);
 				printf("%f, %f, %f\n", constraint.x, constraint.y, constraint.z);
 			}
 		}

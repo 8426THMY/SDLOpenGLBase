@@ -55,7 +55,7 @@ float colliderAABBVolume(const colliderAABB *const restrict aabb){
 	vec3 v;
 	// The bounding box is axis-aligned, so this
 	// will calculate the lengths of its sides.
-	vec3SubtractVec3FromOut(&aabb->min, &aabb->max, &v);
+	vec3SubtractVec3Out(&aabb->min, &aabb->max, &v);
 
 	// Now we can just multiply the
 	// lengths to find the volume.
@@ -67,7 +67,7 @@ float colliderAABBSurfaceArea(const colliderAABB *const restrict aabb){
 	vec3 v;
 	// The bounding box is axis-aligned, so this
 	// will calculate the lengths of its sides.
-	vec3SubtractVec3FromOut(&aabb->min, &aabb->max, &v);
+	vec3SubtractVec3Out(&aabb->min, &aabb->max, &v);
 
 	// Optimised surface area calculation.
 	// Instead of "2.f * (x * y + x * z + y * z)",
@@ -84,7 +84,7 @@ float colliderAABBSurfaceAreaHalf(const colliderAABB *const restrict aabb){
 	vec3 v;
 	// The bounding box is axis-aligned, so this
 	// will calculate the lengths of its sides.
-	vec3SubtractVec3FromOut(&aabb->min, &aabb->max, &v);
+	vec3SubtractVec3Out(&aabb->min, &aabb->max, &v);
 
 	// Optimised surface area calculation.
 	// Instead of "x * y + x * z + y * z",
@@ -103,7 +103,7 @@ float colliderAABBCombinedVolume(const colliderAABB *const restrict aabbA, const
 
 	vec3Min(&aabbA->min, &aabbB->min, &v1);
 	vec3Max(&aabbA->max, &aabbB->max, &v2);
-	vec3SubtractVec3From(&v1, &v2);
+	vec3SubtractVec3P1(&v1, &v2);
 
 	return(v1.x * v1.y * v1.z);
 }
@@ -118,7 +118,7 @@ float colliderAABBCombinedSurfaceArea(const colliderAABB *const restrict aabbA, 
 
 	vec3Min(&aabbA->min, &aabbB->min, &v1);
 	vec3Max(&aabbA->max, &aabbB->max, &v2);
-	vec3SubtractVec3From(&v1, &v2);
+	vec3SubtractVec3P1(&v1, &v2);
 
 	return(2.f * (v1.x * (v1.y + v1.z) + v1.y * v1.z));
 }
@@ -133,7 +133,7 @@ float colliderAABBCombinedSurfaceAreaHalf(const colliderAABB *const restrict aab
 
 	vec3Min(&aabbA->min, &aabbB->min, &v1);
 	vec3Max(&aabbA->max, &aabbB->max, &v2);
-	vec3SubtractVec3From(&v1, &v2);
+	vec3SubtractVec3P1(&v1, &v2);
 
 	return(v1.x * (v1.y + v1.z) + v1.y * v1.z);
 }

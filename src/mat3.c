@@ -938,7 +938,7 @@ mat3 mat3RotateZC(const mat3 m, const float z){
 void mat3RotateToFace(mat3 *const restrict m, const vec3 *const restrict eye, const vec3 *const restrict target, const vec3 *const restrict worldUp){
 	vec3 right, up, forward;
 	// Get the forward vector!
-	vec3SubtractVec3FromOut(target, eye, &forward);
+	vec3SubtractVec3Out(target, eye, &forward);
 	vec3NormalizeVec3Fast(&forward);
 	// Get the right vector!
 	vec3CrossVec3Out(worldUp, &forward, &right);
@@ -963,7 +963,7 @@ void mat3RotateToFace(mat3 *const restrict m, const vec3 *const restrict eye, co
 
 // Generate a rotation matrix that faces a target!
 mat3 mat3RotateToFaceC(const vec3 eye, const vec3 target, const vec3 worldUp){
-	const vec3 forward = vec3NormalizeVec3FastC(vec3SubtractVec3FromC(target, eye));
+	const vec3 forward = vec3NormalizeVec3FastC(vec3SubtractVec3C(target, eye));
 	const vec3 right   = vec3NormalizeVec3FastC(vec3CrossVec3C(worldUp, forward));
 	const vec3 up      = vec3NormalizeVec3FastC(vec3CrossVec3C(forward, right));
 

@@ -243,32 +243,32 @@ vec4 vec4SubtractFromSC(vec4 v, const float x){
 	return(v);
 }
 
-// Subtract "v2" from "v1"!
-void vec4SubtractVec4From(vec4 *const restrict v1, const vec4 *const restrict v2){
+// Subtract "v2" from "v1" and store the result in "v1"!
+void vec4SubtractVec4P1(vec4 *const restrict v1, const vec4 *const restrict v2){
 	v1->x -= v2->x;
 	v1->y -= v2->y;
 	v1->z -= v2->z;
 	v1->w -= v2->w;
 }
 
-// Subtract "v1" from "v2"!
-void vec4SubtractFromVec4(vec4 *const restrict v1, const vec4 *const restrict v2){
-	v1->x = v2->x - v1->x;
-	v1->y = v2->y - v1->y;
-	v1->z = v2->z - v1->z;
-	v1->w = v2->w - v1->w;
+// Subtract "v2" from "v1" and store the result in "v2"!
+void vec4SubtractVec4P2(const vec4 *const restrict v1, vec4 *const restrict v2){
+	v2->x = v1->x - v2->x;
+	v2->y = v1->y - v2->y;
+	v2->z = v1->z - v2->z;
+	v2->w = v1->w - v2->w;
 }
 
 // Subtract "v2" from "v1" and store the result in "out"!
-void vec4SubtractVec4FromOut(const vec4 *const restrict v1, const vec4 *const restrict v2, vec4 *out){
+void vec4SubtractVec4Out(const vec4 *const restrict v1, const vec4 *const restrict v2, vec4 *out){
 	out->x = v1->x - v2->x;
 	out->y = v1->y - v2->y;
 	out->z = v1->z - v2->z;
 	out->w = v1->w - v2->w;
 }
 
-// Subtract "v2" from "v1"!
-vec4 vec4SubtractVec4FromC(vec4 v1, const vec4 v2){
+// Subtract "v2" from "v1" and return the result!
+vec4 vec4SubtractVec4C(vec4 v1, const vec4 v2){
 	v1.x -= v2.x;
 	v1.y -= v2.y;
 	v1.z -= v2.z;
@@ -424,32 +424,32 @@ vec4 vec4DivideSByFastC(vec4 v, const float x){
 	return(v);
 }
 
-// Divide "v" by "v"!
-void vec4DivideByVec4(vec4 *const restrict v1, const vec4 *const restrict v2){
+// Divide "v1" by "v2" and store the result in "v1"!
+void vec4DivideVec4P1(vec4 *const restrict v1, const vec4 *const restrict v2){
 	v1->x = (v2->x != 0.f) ? v1->x / v2->x : 0.f;
 	v1->y = (v2->y != 0.f) ? v1->y / v2->y : 0.f;
 	v1->z = (v2->z != 0.f) ? v1->z / v2->z : 0.f;
 	v1->w = (v2->w != 0.f) ? v1->w / v2->w : 0.f;
 }
 
-// Divide "v2" by "v1"!
-void vec4DivideVec4By(vec4 *const restrict v1, const vec4 *const restrict v2){
-	v1->x = (v1->x != 0.f) ? v2->x / v1->x : 0.f;
-	v1->y = (v1->y != 0.f) ? v2->y / v1->y : 0.f;
-	v1->z = (v1->z != 0.f) ? v2->z / v1->z : 0.f;
-	v1->w = (v1->w != 0.f) ? v2->w / v1->w : 0.f;
+// Divide "v1" by "v2" and store the result in "v2"!
+void vec4DivideVec4P2(const vec4 *const restrict v1, vec4 *const restrict v2){
+	v2->x = (v2->x != 0.f) ? v1->x / v2->x : 0.f;
+	v2->y = (v2->y != 0.f) ? v1->y / v2->y : 0.f;
+	v2->z = (v2->z != 0.f) ? v1->z / v2->z : 0.f;
+	v2->w = (v2->w != 0.f) ? v1->w / v2->w : 0.f;
 }
 
 // Divide "v1" by "v2" and store the result in "out"!
-void vec4DivideByVec4Out(const vec4 *const restrict v1, const vec4 *const restrict v2, vec4 *out){
+void vec4DivideVec4Out(const vec4 *const restrict v1, const vec4 *const restrict v2, vec4 *out){
 	out->x = (v2->x != 0.f) ? v1->x / v2->x : 0.f;
 	out->y = (v2->y != 0.f) ? v1->y / v2->y : 0.f;
 	out->z = (v2->z != 0.f) ? v1->z / v2->z : 0.f;
 	out->w = (v2->w != 0.f) ? v1->w / v2->w : 0.f;
 }
 
-// Divide "v1" by "v2"!
-vec4 vec4DivideByVec4C(vec4 v1, const vec4 v2){
+// Divide "v1" by "v2" and return the result!
+vec4 vec4DivideVec4C(vec4 v1, const vec4 v2){
 	v1.x = (v2.x != 0.f) ? v1.x / v2.x : 0.f;
 	v1.y = (v2.y != 0.f) ? v1.y / v2.y : 0.f;
 	v1.z = (v2.z != 0.f) ? v1.z / v2.z : 0.f;
@@ -459,10 +459,11 @@ vec4 vec4DivideByVec4C(vec4 v1, const vec4 v2){
 }
 
 /*
-** Divide "v1" by "v2"! Unlike the regular version, this
-** does not check to prevent against divide-by-zero errors.
+** Divide "v1" by "v2" and store the result in "v1"!
+** Unlike the regular version, this does not check
+** to prevent against divide-by-zero errors.
 */
-void vec4DivideByVec4Fast(vec4 *const restrict v1, const vec4 *const restrict v2){
+void vec4DivideVec4FastP1(vec4 *const restrict v1, const vec4 *const restrict v2){
 	v1->x /= v2->x;
 	v1->y /= v2->y;
 	v1->z /= v2->z;
@@ -470,14 +471,15 @@ void vec4DivideByVec4Fast(vec4 *const restrict v1, const vec4 *const restrict v2
 }
 
 /*
-** Divide "v2" by "v1"! Unlike the regular version, this
-** does not check to prevent against divide-by-zero errors.
+** Divide "v1" by "v2" and store the result in "v2"!
+** Unlike the regular version, this does not check
+** to prevent against divide-by-zero errors.
 */
-void vec4DivideVec4ByFast(vec4 *const restrict v1, const vec4 *const restrict v2){
-	v1->x = v2->x / v1->x;
-	v1->y = v2->y / v1->y;
-	v1->z = v2->z / v1->z;
-	v1->w = v2->w / v1->w;
+void vec4DivideVec4FastP2(const vec4 *const restrict v1, vec4 *const restrict v2){
+	v2->x = v1->x / v2->x;
+	v2->y = v1->y / v2->y;
+	v2->z = v1->z / v2->z;
+	v2->w = v1->w / v2->w;
 }
 
 /*
@@ -485,7 +487,7 @@ void vec4DivideVec4ByFast(vec4 *const restrict v1, const vec4 *const restrict v2
 ** Unlike the regular version, this does not check
 ** to prevent against divide-by-zero errors.
 */
-void vec4DivideByVec4FastOut(const vec4 *const restrict v1, const vec4 *const restrict v2, vec4 *out){
+void vec4DivideVec4FastOut(const vec4 *const restrict v1, const vec4 *const restrict v2, vec4 *out){
 	out->x = v1->x / v2->x;
 	out->y = v1->y / v2->y;
 	out->z = v1->z / v2->z;
@@ -493,10 +495,11 @@ void vec4DivideByVec4FastOut(const vec4 *const restrict v1, const vec4 *const re
 }
 
 /*
-** Divide "v1" by "v2"! Unlike the regular version, this
-** does not check to prevent against divide-by-zero errors.
+** Divide "v1" by "v2" and return the result!
+** Unlike the regular version, this does not check
+** to prevent against divide-by-zero errors.
 */
-vec4 vec4DivideByVec4FastC(vec4 v1, const vec4 v2){
+vec4 vec4DivideVec4FastC(vec4 v1, const vec4 v2){
 	v1.x = v1.x / v2.x;
 	v1.y = v1.y / v2.y;
 	v1.z = v1.z / v2.z;
@@ -614,26 +617,26 @@ float vec4DistanceSquaredC(const vec4 v, const float x, const float y, const flo
 // Find the distance between two vec4s!
 float vec4DistanceVec4(const vec4 *const restrict v1, const vec4 *const restrict v2){
 	vec4 dist;
-	vec4SubtractVec4FromOut(v1, v2, &dist);
+	vec4SubtractVec4Out(v1, v2, &dist);
 	return(vec4MagnitudeVec4(&dist));
 }
 
 // Find the distance between two vec4s!
 float vec4DistanceVec4C(const vec4 v1, const vec4 v2){
-	const vec4 dist = vec4SubtractVec4FromC(v1, v2);
+	const vec4 dist = vec4SubtractVec4C(v1, v2);
 	return(vec4MagnitudeVec4C(dist));
 }
 
 // Find the squared distance between two vec4s!
 float vec4DistanceSquaredVec4(const vec4 *const restrict v1, const vec4 *const restrict v2){
 	vec4 dist;
-	vec4SubtractVec4FromOut(v1, v2, &dist);
+	vec4SubtractVec4Out(v1, v2, &dist);
 	return(vec4MagnitudeSquaredVec4(&dist));
 }
 
 // Find the squared distance between two vec4s!
 float vec4DistanceSquaredVec4C(const vec4 v1, const vec4 v2){
-	const vec4 dist = vec4SubtractVec4FromC(v1, v2);
+	const vec4 dist = vec4SubtractVec4C(v1, v2);
 	return(vec4MagnitudeSquaredVec4C(dist));
 }
 

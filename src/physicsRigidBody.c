@@ -294,7 +294,7 @@ void physRigidBodyDefAddCollider(
 	** I = J + m * (dE - P)
 	*/
 
-	vec3SubtractVec3FromOut(&bodyDef->centroid, centroid, &tempCentroid);
+	vec3SubtractVec3Out(&bodyDef->centroid, centroid, &tempCentroid);
 	vec3MultiplySOut(&tempCentroid, mass, &tempCentroidWeighted);
 	vec3MultiplyVec3Out(&tempCentroid, &tempCentroidWeighted, &tempCentroidSquaredWeighted);
 
@@ -453,8 +453,8 @@ void physRigidBodyApplyLinearForce(physicsRigidBody *const restrict body, const 
 // Add a rotational force to a rigid body.
 void physRigidBodyApplyAngularForce(physicsRigidBody *const restrict body, const vec3 *const restrict r, const vec3 *const restrict F){
 	vec3 torque;
-	vec3SubtractVec3FromOut(r, &body->centroid, &torque);
-	vec3CrossByVec3(&torque, F);
+	vec3SubtractVec3Out(r, &body->centroid, &torque);
+	vec3CrossVec3P1(&torque, F);
 	vec3AddVec3(&body->netTorque, &torque);
 }
 
@@ -489,7 +489,7 @@ void physRigidBodyApplyAngularImpulse(physicsRigidBody *const restrict body, vec
 void physRigidBodyApplyAngularImpulseInverse(physicsRigidBody *const restrict body, vec3 J){
 	// Angular velocity.
 	mat3MultiplyVec3(&body->invInertiaGlobal, &J);
-	vec3SubtractVec3From(&body->angularVelocity, &J);
+	vec3SubtractVec3P1(&body->angularVelocity, &J);
 }
 
 // Add a translational and rotational impulse to a rigid body.
@@ -529,7 +529,7 @@ void physRigidBodyApplyImpulseInverse(physicsRigidBody *const restrict body, con
 	// Angular velocity.
 	vec3CrossVec3Out(r, p, &impulse);
 	mat3MultiplyVec3(&body->invInertiaGlobal, &impulse);
-	vec3SubtractVec3From(&body->angularVelocity, &impulse);
+	vec3SubtractVec3P1(&body->angularVelocity, &impulse);
 }
 
 // Subtract a translational and "boosted" rotational impulse from a rigid body.
@@ -543,7 +543,7 @@ void physRigidBodyApplyImpulseBoostInverse(physicsRigidBody *const restrict body
 	vec3CrossVec3Out(r, p, &impulse);
 	vec3AddVec3(&impulse, a);
 	mat3MultiplyVec3(&body->invInertiaGlobal, &impulse);
-	vec3SubtractVec3From(&body->angularVelocity, &impulse);
+	vec3SubtractVec3P1(&body->angularVelocity, &impulse);
 }
 
 #ifdef PHYSCOLLIDER_USE_POSITIONAL_CORRECTION
@@ -568,7 +568,7 @@ void physRigidBodyApplyAngularImpulsePositionInverse(physicsRigidBody *const res
 		quat tempRot;
 		mat3MultiplyVec3(&body->invInertiaGlobal, &J);
 		quatDifferentiateOut(&body->state.rot, &J, &tempRot);
-		quatSubtractVec4From(&body->state.rot, &tempRot);
+		quatSubtractQuatP1(&body->state.rot, &tempRot);
 		quatNormalizeQuatFast(&body->state.rot);
 
 		physRigidBodyUpdateGlobalInertia(body);
@@ -610,7 +610,7 @@ void physRigidBodyApplyImpulsePositionInverse(physicsRigidBody *const restrict b
 		vec3CrossVec3Out(r, p, &impulse);
 		mat3MultiplyVec3(&body->invInertiaGlobal, &impulse);
 		quatDifferentiateOut(&body->state.rot, &impulse, &tempRot);
-		quatSubtractVec4From(&body->state.rot, &tempRot);
+		quatSubtractQuatP1(&body->state.rot, &tempRot);
 		quatNormalizeQuatFast(&body->state.rot);
 
 		physRigidBodyUpdateGlobalInertia(body);
