@@ -48,7 +48,7 @@
 **
 ** Finally, adding a potential bias term, we have
 **
-** b = b_penetration + b_restitution
+** b = b_separation + b_restitution
 **   = B/dt * C(x) + e * C'(x),
 **
 ** C' : JV + b >= 0,
@@ -199,6 +199,10 @@ void physManifoldInit(
 
 		// When we're using non-linear Guass-Seidel, we
 		// need the untransformed contact points and normal.
+		//
+		// Solving the positional constraints will obviously
+		// only affect the position and orientation, not the
+		// scale. Hence, we don't bother undoing scale here.
 		#ifdef PHYSCONTACT_STABILISER_GAUSS_SEIDEL
 		vec3SubtractVec3Out(&cmContact->pA, bodyACentroid, &curHalfway);
 		quatConjRotateVec3FastOut(bodyARot, &curHalfway, &pmContact->rAlocal);
@@ -239,7 +243,7 @@ void physManifoldInit(
 	orthonormalBasisFaster(&normal, &physContactTangent(pm, 0), &physContactTangent(pm, 1));
 	#endif
 
-	// If we're using a friction join, we initialize it here.
+	// If we're using a friction joint, we initialize it here.
 	#ifdef PHYSCONTACT_USE_FRICTION_JOINT
 	// Get the average point halfway between contact points.
 	vec3DivideByS(&halfway, cm->numContacts);
@@ -251,7 +255,7 @@ void physManifoldInit(
 	#endif
 
 	#ifdef PHYSCONTACT_STABILISER_GAUSS_SEIDEL
-	quatConjRotateVec3FastOut(bodyARot, &normal, &pm->normalA);
+	quatConjRotateVec3FastOut(bodyARot, &normal, &pm->normalLocal);
 	#endif
 
 	physContactFriction(pm) = combineFriction(cA->friction, cB->friction);
@@ -347,7 +351,7 @@ void physManifoldPersist(
 	physContactNormal(pm) = normal;
 
 	#ifdef PHYSCONTACT_STABILISER_GAUSS_SEIDEL
-	quatConjRotateVec3FastOut(bodyARot, &normal, &pm->normalA);
+	quatConjRotateVec3FastOut(bodyARot, &normal, &pm->normalLocal);
 	#endif
 
 	physContactFriction(pm) = combineFriction(cA->friction, cB->friction);
@@ -373,6 +377,10 @@ void physManifoldPersist(
 
 		// When we're using non-linear Guass-Seidel, we
 		// need the untransformed contact points and normal.
+		//
+		// Solving the positional constraints will obviously
+		// only affect the position and orientation, not the
+		// scale. Hence, we don't bother undoing scale here.
 		#ifdef PHYSCONTACT_STABILISER_GAUSS_SEIDEL
 		vec3SubtractVec3Out(&cmContact->pA, bodyACentroid, &curHalfway);
 		quatConjRotateVec3FastOut(bodyARot, &curHalfway, &pmContact->rAlocal);
@@ -633,9 +641,9 @@ static void calculateBias(
 	// Calculate the Baumgarte bias term.
 	#ifdef PHYSCONTACT_STABILISER_BAUMGARTE
 	// C(x) = (pB - pA) . n
-	tempBias = contact->separation + PHYSCONSTRAINT_LINEAR_SLOP;
+	tempBias = contact->separation + PHYSCONTACT_LINEAR_SLOP;
 	// B = Baumgarte constant
-	// b_penetration = B/dt * C(x)
+	// b_separation = B/dt * C(x)
 	contact->bias = (tempBias < 0.f) ? (PHYSCONTACT_BAUMGARTE_BIAS * frequency * tempBias) : 0.f;
 	#endif
 
@@ -666,14 +674,17 @@ static void calculateBias(
 	// Calculate the total bias.
 	if(tempBias < -PHYSCONTACT_RESTITUTION_THRESHOLD){
 	#ifdef PHYSCONTACT_STABILISER_BAUMGARTE
-		// b = b_penetration + b_restitution
-		//   = B/dt * C(x) + e * (v_relative . n)
+		// b = b_separation + b_restitution
+		//   = B/dt * C(x)  + e * (v_relative . n)
 		contact->bias += pm->restitution * tempBias;
 	#else
 		// If we're not using Baumgarte stabilisation,
 		// we only have the restitution bias here.
 		// b = e * (v_relative . n)
 		contact->bias = pm->restitution * tempBias;
+
+	// If the relative velocity is parallel to the normal,
+	// the bodies are moving away, so ignore restitution.
 	}else{
 		contact->bias = 0.f;
 	#endif
@@ -771,7 +782,7 @@ static void solveNormal(
 	// C' >= 0
 	// Clamp our accumulated impulse in the normal direction.
 	oldImpulse = contact->normalImpulse;
-	contact->normalImpulse = floatMax(0.f, oldImpulse + lambda);
+	contact->normalImpulse = floatMax(oldImpulse + lambda, 0.f);
 	vec3MultiplySOut(&physContactNormal(pm), contact->normalImpulse - oldImpulse, &impulse);
 
 	// Apply the correctional impulse.
@@ -805,17 +816,17 @@ float solvePosition(
 	quatRotateVec3FastOut(&bodyB->state.rot, &contact->rBlocal, &rB);
 	vec3AddVec3(&rB, &bodyB->centroid);
 	// We also need to update the normal.
-	quatRotateVec3FastOut(&bodyA->state.rot, &pm->normalA, &normal);
+	quatRotateVec3FastOut(&bodyA->state.rot, &pm->normalLocal, &normal);
 
 	// With the contact points now in global space,
 	// we can find the new separation between them.
-	vec3SubtractVec3P1(&rB, &rA);
-	separation = vec3DotVec3(&rB, &normal) - PHYSCONTACT_SEPARATION_BIAS_TOTAL;
+	vec3SubtractVec3P2(&rB, &rA);
+	separation = vec3DotVec3(&rA, &normal);
 
-	constraint = -PHYSCONTACT_BAUMGARTE_BIAS * (separation + PHYSCONSTRAINT_LINEAR_SLOP);
+	constraint = PHYSCONTACT_BAUMGARTE_BIAS * (separation + PHYSCONTACT_LINEAR_SLOP);
 
 	// Clamp the constraint value.
-	if(constraint > 0.f){
+	if(constraint < 0.f){
 		float effectiveMass;
 
 		// Calculate the transformed contact points'
@@ -840,7 +851,9 @@ float solvePosition(
 		// doubles as a check to ensure we don't divide by zero.
 		if(effectiveMass > 0.f){
 			// Finish clamping the constraint value.
-			vec3MultiplyS(&normal, floatMin(constraint, PHYSCONSTRAINT_MAX_LINEAR_CORRECTION)/effectiveMass);
+			// Ignoring clamping and slops, all we're doing here is
+			// multiplying the normal by the impulse magnitude, -C/K.
+			vec3MultiplyS(&normal, -floatMax(constraint, -PHYSCONTACT_MAX_LINEAR_CORRECTION)/effectiveMass);
 
 			// Apply the correctional impulse.
 			physRigidBodyApplyImpulsePositionInverse(bodyA, &rA, &normal);

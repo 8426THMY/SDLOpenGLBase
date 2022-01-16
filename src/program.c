@@ -48,7 +48,7 @@ return_t programInit(program *const restrict prg, char *const restrict prgDir){
 	// we're looking for resources in the correct directory.
 	fileSetWorkingDirectory(prgDir, NULL);
 
-	timestepInit(&prg->step, UPDATE_RATE, FRAME_RATE, 1.f);
+	timestepInit(&prg->step, PRG_UPDATE_RATE, PRG_FRAME_RATE, PRG_TIME_SPEED);
 	// Initialize our timing system.
 	timerInit();
 
@@ -196,18 +196,18 @@ static void input(program *const restrict prg){
 	// If the window has been resized, resize the viewport!
 	if(prg->windowWidth != tempX || prg->windowHeight != tempY){
 		// Make sure we preserve the aspect ratio!
-		tempX = prg->windowWidth / ASPECT_RATIO_X;
-		tempY = prg->windowHeight / ASPECT_RATIO_Y;
+		tempX = prg->windowWidth / PRG_ASPECT_RATIO_X;
+		tempY = prg->windowHeight / PRG_ASPECT_RATIO_Y;
 
 		// If the window is too tall, add bars to the top and bottom.
 		if(tempX < tempY){
-			tempY = tempX * ASPECT_RATIO_Y;
+			tempY = tempX * PRG_ASPECT_RATIO_Y;
 			glViewport(0, (prg->windowHeight - tempY) / 2, prg->windowWidth, tempY);
 			prg->windowHeight = tempY;
 
 		// If the window is too wide, add bars to the sides.
 		}else if(tempX > tempY){
-			tempX = tempY * ASPECT_RATIO_X;
+			tempX = tempY * PRG_ASPECT_RATIO_X;
 			glViewport((prg->windowWidth - tempX) / 2, 0, tempX, prg->windowHeight);
 			prg->windowWidth = tempX;
 
@@ -313,27 +313,27 @@ static void updateObjects(program *const restrict prg){
 	/** TEMPORARY PHYSICS STUFF! **/
 	if(controlPhys != NULL){
 		if(prg->inputMngr.keyStates[SDL_SCANCODE_J]){
-			vec3 F = vec3InitSetC(-40.f * controlPhys->mass, 0.f, 0.f);
+			const vec3 F = vec3InitSetC(-40.f * controlPhys->mass, 0.f, 0.f);
 			physRigidBodyApplyLinearForce(controlPhys, &F);
 		}
 		if(prg->inputMngr.keyStates[SDL_SCANCODE_L]){
-			vec3 F = vec3InitSetC(40.f * controlPhys->mass, 0.f, 0.f);
+			const vec3 F = vec3InitSetC(40.f * controlPhys->mass, 0.f, 0.f);
 			physRigidBodyApplyLinearForce(controlPhys, &F);
 		}
 		if(prg->inputMngr.keyStates[SDL_SCANCODE_I]){
-			vec3 F = vec3InitSetC(0.f, 40.f * controlPhys->mass, 0.f);
+			const vec3 F = vec3InitSetC(0.f, 40.f * controlPhys->mass, 0.f);
 			physRigidBodyApplyLinearForce(controlPhys, &F);
 		}
 		if(prg->inputMngr.keyStates[SDL_SCANCODE_K]){
-			vec3 F = vec3InitSetC(0.f, -40.f * controlPhys->mass, 0.f);
+			const vec3 F = vec3InitSetC(0.f, -40.f * controlPhys->mass, 0.f);
 			physRigidBodyApplyLinearForce(controlPhys, &F);
 		}
 		if(prg->inputMngr.keyStates[SDL_SCANCODE_U]){
-			vec3 F = vec3InitSetC(0.f, 0.f, -40.f * controlPhys->mass);
+			const vec3 F = vec3InitSetC(0.f, 0.f, -40.f * controlPhys->mass);
 			physRigidBodyApplyLinearForce(controlPhys, &F);
 		}
 		if(prg->inputMngr.keyStates[SDL_SCANCODE_O]){
-			vec3 F = vec3InitSetC(0.f, 0.f, 40.f * controlPhys->mass);
+			const vec3 F = vec3InitSetC(0.f, 0.f, 40.f * controlPhys->mass);
 			physRigidBodyApplyLinearForce(controlPhys, &F);
 		}
 	}
@@ -482,7 +482,7 @@ static return_t initLibs(program *const restrict prg){
 	prg->window = SDL_CreateWindow(
 		"NewSDLOpenGLBaseC",
 		SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-		WINDOW_DEFAULT_WIDTH, WINDOW_DEFAULT_HEIGHT,
+		PRG_WINDOW_DEFAULT_WIDTH, PRG_WINDOW_DEFAULT_HEIGHT,
 		SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE
 	);
 	if(!prg->window){
@@ -492,8 +492,8 @@ static return_t initLibs(program *const restrict prg){
 		);
 		return(0);
 	}
-	prg->windowWidth = WINDOW_DEFAULT_WIDTH;
-	prg->windowHeight = WINDOW_DEFAULT_HEIGHT;
+	prg->windowWidth = PRG_WINDOW_DEFAULT_WIDTH;
+	prg->windowHeight = PRG_WINDOW_DEFAULT_HEIGHT;
 
 	// Create an OpenGL context using SDL2!
 	if(!SDL_GL_CreateContext(prg->window)){
@@ -702,9 +702,18 @@ static return_t initResources(program *const restrict prg){
 		{
 			physicsJointPair *joint = modulePhysicsJointPairAlloc();
 			const vec3 anchorA = egg->base->centroid;
-			const vec3 anchorB = vec3InitSetC(-2.5f, 0.f, 0.f);
+			const vec3 anchorB = vec3AddVec3C(cube->base->centroid, vec3InitSetC(-2.5f, 0.f, 0.f));
+			const quat anchorRotA = quatInitIdentityC();
+			const quat anchorRotB = quatInitIdentityC();
 			physJointPairInit(joint, egg, cube, NULL, NULL);
-			physJointSphereInit(&joint->joint.data.sphere, &anchorA, &anchorB, 0.f, 0.f, -M_PI_4, M_PI_4, -M_PI_4, M_PI_4);
+			physJointSphereInit(
+				&joint->joint.data.sphere,
+				&anchorA, &anchorB,
+				&anchorRotA, &anchorRotB,
+				0.f, 0.f,
+				-M_PI_4, M_PI_4,
+				-M_PI_2, M_PI_2
+			);
 			joint->joint.type = PHYSJOINT_TYPE_SPHERE;
 			/*physicsJointPair *joint = modulePhysicsJointPairAlloc();
 			const vec3 anchorA = egg->base->centroid;

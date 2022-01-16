@@ -25,18 +25,19 @@
 */
 #define PRG_ENABLE_EFFICIENT_RENDERING
 
-#define WINDOW_DEFAULT_WIDTH  640
-#define WINDOW_DEFAULT_HEIGHT 480
-#define ASPECT_RATIO_X 4
-#define ASPECT_RATIO_Y 3
+#define PRG_WINDOW_DEFAULT_WIDTH  640
+#define PRG_WINDOW_DEFAULT_HEIGHT 480
+#define PRG_ASPECT_RATIO_X 4
+#define PRG_ASPECT_RATIO_Y 3
 
-#define FOV_DEFAULT M_PI/3
+#define PRG_FOV_DEFAULT M_PI/3
 
-#define UPDATE_RATE 125.f
-#define FRAME_RATE  125.f
+#define PRG_UPDATE_RATE 125.f
+#define PRG_FRAME_RATE  125.f
+#define PRG_TIME_SPEED  1.f
 
 // We'll probably get undefined results if this is less than or equal to 0.
-#define NUM_LOOKBACK_STATES ((size_t)UPDATE_RATE)
+#define PRG_NUM_LOOKBACK_STATES ((size_t)PRG_UPDATE_RATE)
 
 
 

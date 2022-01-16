@@ -7,6 +7,9 @@
 #include "utilMath.h"
 
 
+#define VEC4_NORMALIZE_EPSILON 0.000001f
+
+
 // Initialize the vec4's values to 0!
 void vec4InitZero(vec4 *const restrict v){
 	memset(v, 0.f, sizeof(*v));
@@ -58,6 +61,37 @@ vec4 vec4InitSetC(const float x, const float y, const float z, const float w){
 	};
 
 	return(v);
+}
+
+
+// Return whether a vec4 is sufficiently close to zero!
+return_t vec4IsZero(const float x, const float y, const float z, const float w){
+	return(
+		x < VEC4_NORMALIZE_EPSILON &&
+		y < VEC4_NORMALIZE_EPSILON &&
+		z < VEC4_NORMALIZE_EPSILON &&
+		w < VEC4_NORMALIZE_EPSILON
+	);
+}
+
+// Return whether a vec4 is sufficiently close to zero!
+return_t vec4IsZeroVec4(const vec4 *const restrict v){
+	return(
+		v->x < VEC4_NORMALIZE_EPSILON &&
+		v->y < VEC4_NORMALIZE_EPSILON &&
+		v->z < VEC4_NORMALIZE_EPSILON &&
+		v->w < VEC4_NORMALIZE_EPSILON
+	);
+}
+
+// Return whether a vec4 is sufficiently close to zero!
+return_t vec4IsZeroVec4C(const vec4 v){
+	return(
+		v.x < VEC4_NORMALIZE_EPSILON &&
+		v.y < VEC4_NORMALIZE_EPSILON &&
+		v.z < VEC4_NORMALIZE_EPSILON &&
+		v.w < VEC4_NORMALIZE_EPSILON
+	);
 }
 
 
@@ -677,16 +711,6 @@ void vec4Normalize(const float x, const float y, const float z, const float w, v
 	out->w = w * magnitude;
 }
 
-// Normalize a vec4 stored as four floats and store the result in "out"!
-void vec4NormalizeFast(const float x, const float y, const float z, const float w, vec4 *out){
-	const float magnitude = invSqrtFast(x * x + y * y + z * z + w * w);
-
-	out->x = x * magnitude;
-	out->y = y * magnitude;
-	out->z = z * magnitude;
-	out->w = w * magnitude;
-}
-
 // Normalize a vec4 stored as four floats!
 vec4 vec4NormalizeC(const float x, const float y, const float z, const float w){
 	const float magnitude = invSqrt(x * x + y * y + z * z + w * w);
@@ -698,6 +722,16 @@ vec4 vec4NormalizeC(const float x, const float y, const float z, const float w){
 	v.w = w * magnitude;
 
 	return(v);
+}
+
+// Normalize a vec4 stored as four floats and store the result in "out"!
+void vec4NormalizeFast(const float x, const float y, const float z, const float w, vec4 *out){
+	const float magnitude = invSqrtFast(x * x + y * y + z * z + w * w);
+
+	out->x = x * magnitude;
+	out->y = y * magnitude;
+	out->z = z * magnitude;
+	out->w = w * magnitude;
 }
 
 // Normalize a vec4 stored as four floats!
@@ -723,29 +757,9 @@ void vec4NormalizeVec4(vec4 *const restrict v){
 	v->w *= magnitude;
 }
 
-// Normalize a vec4!
-void vec4NormalizeVec4Fast(vec4 *const restrict v){
-	const float magnitude = invSqrtFast(v->x * v->x + v->y * v->y + v->z * v->z + v->w * v->w);
-
-	v->x *= magnitude;
-	v->y *= magnitude;
-	v->z *= magnitude;
-	v->w *= magnitude;
-}
-
 // Normalize a vec4 and store the result in "out"!
 void vec4NormalizeVec4Out(const vec4 *const restrict v, vec4 *out){
 	const float magnitude = invSqrt(v->x * v->x + v->y * v->y + v->z * v->z + v->w * v->w);
-
-	out->x = v->x * magnitude;
-	out->y = v->y * magnitude;
-	out->z = v->z * magnitude;
-	out->w = v->w * magnitude;
-}
-
-// Normalize a vec4 and store the result in "out"!
-void vec4NormalizeVec4FastOut(const vec4 *const restrict v, vec4 *out){
-	const float magnitude = invSqrtFast(v->x * v->x + v->y * v->y + v->z * v->z + v->w * v->w);
 
 	out->x = v->x * magnitude;
 	out->y = v->y * magnitude;
@@ -766,6 +780,26 @@ vec4 vec4NormalizeVec4C(vec4 v){
 }
 
 // Normalize a vec4!
+void vec4NormalizeVec4Fast(vec4 *const restrict v){
+	const float magnitude = invSqrtFast(v->x * v->x + v->y * v->y + v->z * v->z + v->w * v->w);
+
+	v->x *= magnitude;
+	v->y *= magnitude;
+	v->z *= magnitude;
+	v->w *= magnitude;
+}
+
+// Normalize a vec4 and store the result in "out"!
+void vec4NormalizeVec4FastOut(const vec4 *const restrict v, vec4 *out){
+	const float magnitude = invSqrtFast(v->x * v->x + v->y * v->y + v->z * v->z + v->w * v->w);
+
+	out->x = v->x * magnitude;
+	out->y = v->y * magnitude;
+	out->z = v->z * magnitude;
+	out->w = v->w * magnitude;
+}
+
+// Normalize a vec4!
 vec4 vec4NormalizeVec4FastC(vec4 v){
 	const float magnitude = invSqrtFast(v.x * v.x + v.y * v.y + v.z * v.z + v.w * v.w);
 
@@ -776,6 +810,109 @@ vec4 vec4NormalizeVec4FastC(vec4 v){
 
 	return(v);
 }
+
+/*
+** Try to normalize a vec4 stored as four floats
+** and return whether or not we were successful!
+*/
+return_t vec4CanNormalize(const float x, const float y, const float z, const float w, vec4 *const restrict out){
+	float magnitude = x * x + y * y + z * z + w * w;
+	if(magnitude > VEC4_NORMALIZE_EPSILON){
+		magnitude = invSqrt(magnitude);
+		out->x = x * magnitude;
+		out->y = y * magnitude;
+		out->z = z * magnitude;
+		out->w = w * magnitude;
+
+		return(1);
+	}
+
+	return(0);
+}
+
+// Try to normalize a vec4 and return whether or not we were successful!
+return_t vec4CanNormalizeVec4(vec4 *const restrict v){
+	float magnitude = v->x * v->x + v->y * v->y + v->z * v->z + v->w * v->w;
+	if(magnitude > VEC4_NORMALIZE_EPSILON){
+		magnitude = invSqrt(magnitude);
+		v->x *= magnitude;
+		v->y *= magnitude;
+		v->z *= magnitude;
+		v->w *= magnitude;
+
+		return(1);
+	}
+
+	return(0);
+}
+
+// Try to normalize a vec4 and return whether or not we were successful!
+return_t vec4CanNormalizeVec4Out(const vec4 *const restrict v, vec4 *const restrict out){
+	float magnitude = v->x * v->x + v->y * v->y + v->z * v->z + v->w * v->w;
+	if(magnitude > VEC4_NORMALIZE_EPSILON){
+		magnitude = invSqrt(magnitude);
+		out->x = v->x * magnitude;
+		out->y = v->y * magnitude;
+		out->z = v->z * magnitude;
+		out->w = v->w * magnitude;
+
+		return(1);
+	}
+
+	return(0);
+}
+
+/*
+** Try to normalize a vec4 stored as four floats
+** and return whether or not we were successful!
+*/
+return_t vec4CanNormalizeFast(const float x, const float y, const float z, const float w, vec4 *const restrict out){
+	float magnitude = x * x + y * y + z * z + w * w;
+	if(magnitude > VEC4_NORMALIZE_EPSILON){
+		magnitude = invSqrtFast(magnitude);
+		out->x = x * magnitude;
+		out->y = y * magnitude;
+		out->z = z * magnitude;
+		out->w = w * magnitude;
+
+		return(1);
+	}
+
+	return(0);
+}
+
+// Try to normalize a vec4 and return whether or not we were successful!
+return_t vec4CanNormalizeVec4Fast(vec4 *const restrict v){
+	float magnitude = v->x * v->x + v->y * v->y + v->z * v->z + v->w * v->w;
+	if(magnitude > VEC4_NORMALIZE_EPSILON){
+		magnitude = invSqrtFast(magnitude);
+		v->x *= magnitude;
+		v->y *= magnitude;
+		v->z *= magnitude;
+		v->w *= magnitude;
+
+		return(1);
+	}
+
+	return(0);
+}
+
+// Try to normalize a vec4 and return whether or not we were successful!
+return_t vec4CanNormalizeVec4FastOut(const vec4 *const restrict v, vec4 *const restrict out){
+	float magnitude = v->x * v->x + v->y * v->y + v->z * v->z + v->w * v->w;
+	if(magnitude > VEC4_NORMALIZE_EPSILON){
+		magnitude = invSqrtFast(magnitude);
+		out->x = v->x * magnitude;
+		out->y = v->y * magnitude;
+		out->z = v->z * magnitude;
+		out->w = v->w * magnitude;
+
+		return(1);
+	}
+
+	return(0);
+}
+
 
 // Negate the values of a vec4!
 void vec4Negate(vec4 *const restrict v){

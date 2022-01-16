@@ -2,6 +2,9 @@
 #define vec2_h
 
 
+#include "utilTypes.h"
+
+
 typedef struct vec2 {
 	float x;
 	float y;
@@ -12,6 +15,10 @@ void vec2InitZero(vec2 *const restrict v);
 vec2 vec2InitZeroC();
 void vec2InitSet(vec2 *const restrict v, const float x, const float y);
 vec2 vec2InitSetC(const float x, const float y);
+
+return_t vec2IsZero(const float x, const float y);
+return_t vec2IsZeroVec2(const vec2 *const restrict v);
+return_t vec2IsZeroVec2C(const vec2 v);
 
 void vec2Add(vec2 *const restrict v, const float x, const float y);
 void vec2AddOut(const vec2 *const restrict v, const float x, const float y, vec2 *const restrict out);
@@ -89,15 +96,22 @@ float vec2DotVec2(const vec2 *const restrict v1, const vec2 *const restrict v2);
 float vec2DotVec2C(const vec2 v1, const vec2 v2);
 
 void vec2Normalize(const float x, const float y, vec2 *const restrict out);
-void vec2NormalizeFast(const float x, const float y, vec2 *const restrict out);
 vec2 vec2NormalizeC(const float x, const float y);
+void vec2NormalizeFast(const float x, const float y, vec2 *const restrict out);
 vec2 vec2NormalizeFastC(const float x, const float y);
 void vec2NormalizeVec2(vec2 *const restrict v);
-void vec2NormalizeVec2Fast(vec2 *const restrict v);
 void vec2NormalizeVec2Out(const vec2 *const restrict v, vec2 *const restrict out);
-void vec2NormalizeVec2FastOut(const vec2 *const restrict v, vec2 *const restrict out);
 vec2 vec2NormalizeVec2C(vec2 v);
+void vec2NormalizeVec2Fast(vec2 *const restrict v);
+void vec2NormalizeVec2FastOut(const vec2 *const restrict v, vec2 *const restrict out);
 vec2 vec2NormalizeVec2FastC(vec2 v);
+return_t vec2CanNormalize(const float x, const float y, vec2 *const restrict out);
+return_t vec2CanNormalizeVec2(vec2 *const restrict v);
+return_t vec2CanNormalizeVec2Out(const vec2 *const restrict v, vec2 *const restrict out);
+return_t vec2CanNormalizeFast(const float x, const float y, vec2 *const restrict out);
+return_t vec2CanNormalizeVec2Fast(vec2 *const restrict v);
+return_t vec2CanNormalizeVec2FastOut(const vec2 *const restrict v, vec2 *const restrict out);
+
 void vec2Negate(vec2 *const restrict v);
 void vec2NegateOut(const vec2 *const restrict v, vec2 *const restrict out);
 vec2 vec2NegateC(vec2 v);

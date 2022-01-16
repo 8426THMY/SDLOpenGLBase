@@ -7,6 +7,9 @@
 #include "utilMath.h"
 
 
+#define VEC2_NORMALIZE_EPSILON 0.000001f
+
+
 // Initialize the vec2's values to 0!
 void vec2InitZero(vec2 *const restrict v){
 	memset(v, 0.f, sizeof(*v));
@@ -31,6 +34,31 @@ vec2 vec2InitSetC(const float x, const float y){
 	const vec2 v = {.x = x, .y = y};
 
 	return(v);
+}
+
+
+// Return whether a vec2 is sufficiently close to zero!
+return_t vec2IsZero(const float x, const float y){
+	return(
+		x < VEC2_NORMALIZE_EPSILON &&
+		y < VEC2_NORMALIZE_EPSILON
+	);
+}
+
+// Return whether a vec2 is sufficiently close to zero!
+return_t vec2IsZeroVec2(const vec2 *const restrict v){
+	return(
+		v->x < VEC2_NORMALIZE_EPSILON &&
+		v->y < VEC2_NORMALIZE_EPSILON
+	);
+}
+
+// Return whether a vec2 is sufficiently close to zero!
+return_t vec2IsZeroVec2C(const vec2 v){
+	return(
+		v.x < VEC2_NORMALIZE_EPSILON &&
+		v.y < VEC2_NORMALIZE_EPSILON
+	);
 }
 
 
@@ -540,14 +568,6 @@ void vec2Normalize(const float x, const float y, vec2 *const restrict out){
 	out->y = y * magnitude;
 }
 
-// Normalize a vec2 stored as two floats and store the result in "out"!
-void vec2NormalizeFast(const float x, const float y, vec2 *const restrict out){
-	const float magnitude = invSqrtFast(x * x + y * y);
-
-	out->x = x * magnitude;
-	out->y = y * magnitude;
-}
-
 // Normalize a vec2 stored as two floats!
 vec2 vec2NormalizeC(const float x, const float y){
 	const float magnitude = invSqrt(x * x + y * y);
@@ -557,6 +577,14 @@ vec2 vec2NormalizeC(const float x, const float y){
 	v.y = y * magnitude;
 
 	return(v);
+}
+
+// Normalize a vec2 stored as two floats and store the result in "out"!
+void vec2NormalizeFast(const float x, const float y, vec2 *const restrict out){
+	const float magnitude = invSqrtFast(x * x + y * y);
+
+	out->x = x * magnitude;
+	out->y = y * magnitude;
 }
 
 // Normalize a vec2 stored as two floats!
@@ -578,25 +606,9 @@ void vec2NormalizeVec2(vec2 *const restrict v){
 	v->y *= magnitude;
 }
 
-// Normalize a vec2!
-void vec2NormalizeVec2Fast(vec2 *const restrict v){
-	const float magnitude = invSqrtFast(v->x * v->x + v->y * v->y);
-
-	v->x *= magnitude;
-	v->y *= magnitude;
-}
-
 // Normalize a vec2 and store the result in "out"!
 void vec2NormalizeVec2Out(const vec2 *const restrict v, vec2 *const restrict out){
 	const float magnitude = invSqrt(v->x * v->x + v->y * v->y);
-
-	out->x = v->x * magnitude;
-	out->y = v->y * magnitude;
-}
-
-// Normalize a vec2 and store the result in "out"!
-void vec2NormalizeVec2FastOut(const vec2 *const restrict v, vec2 *const restrict out){
-	const float magnitude = invSqrtFast(v->x * v->x + v->y * v->y);
 
 	out->x = v->x * magnitude;
 	out->y = v->y * magnitude;
@@ -613,6 +625,22 @@ vec2 vec2NormalizeVec2C(vec2 v){
 }
 
 // Normalize a vec2!
+void vec2NormalizeVec2Fast(vec2 *const restrict v){
+	const float magnitude = invSqrtFast(v->x * v->x + v->y * v->y);
+
+	v->x *= magnitude;
+	v->y *= magnitude;
+}
+
+// Normalize a vec2 and store the result in "out"!
+void vec2NormalizeVec2FastOut(const vec2 *const restrict v, vec2 *const restrict out){
+	const float magnitude = invSqrtFast(v->x * v->x + v->y * v->y);
+
+	out->x = v->x * magnitude;
+	out->y = v->y * magnitude;
+}
+
+// Normalize a vec2!
 vec2 vec2NormalizeVec2FastC(vec2 v){
 	const float magnitude = invSqrtFast(v.x * v.x + v.y * v.y);
 
@@ -621,6 +649,97 @@ vec2 vec2NormalizeVec2FastC(vec2 v){
 
 	return(v);
 }
+
+/*
+** Try to normalize a vec2 stored as two floats
+** and return whether or not we were successful!
+*/
+return_t vec2CanNormalize(const float x, const float y, vec2 *const restrict out){
+	float magnitude = x * x + y * y;
+	if(magnitude > VEC2_NORMALIZE_EPSILON){
+		magnitude = invSqrt(magnitude);
+		out->x = x * magnitude;
+		out->y = y * magnitude;
+
+		return(1);
+	}
+
+	return(0);
+}
+
+// Try to normalize a vec2 and return whether or not we were successful!
+return_t vec2CanNormalizeVec2(vec2 *const restrict v){
+	float magnitude = v->x * v->x + v->y * v->y;
+	if(magnitude > VEC2_NORMALIZE_EPSILON){
+		magnitude = invSqrt(magnitude);
+		v->x *= magnitude;
+		v->y *= magnitude;
+
+		return(1);
+	}
+
+	return(0);
+}
+
+// Try to normalize a vec2 and return whether or not we were successful!
+return_t vec2CanNormalizeVec2Out(const vec2 *const restrict v, vec2 *const restrict out){
+	float magnitude = v->x * v->x + v->y * v->y;
+	if(magnitude > VEC2_NORMALIZE_EPSILON){
+		magnitude = invSqrt(magnitude);
+		out->x = v->x * magnitude;
+		out->y = v->y * magnitude;
+
+		return(1);
+	}
+
+	return(0);
+}
+
+/*
+** Try to normalize a vec2 stored as two floats
+** and return whether or not we were successful!
+*/
+return_t vec2CanNormalizeFast(const float x, const float y, vec2 *const restrict out){
+	float magnitude = x * x + y * y;
+	if(magnitude > VEC2_NORMALIZE_EPSILON){
+		magnitude = invSqrtFast(magnitude);
+		out->x = x * magnitude;
+		out->y = y * magnitude;
+
+		return(1);
+	}
+
+	return(0);
+}
+
+// Try to normalize a vec2 and return whether or not we were successful!
+return_t vec2CanNormalizeVec2Fast(vec2 *const restrict v){
+	float magnitude = v->x * v->x + v->y * v->y;
+	if(magnitude > VEC2_NORMALIZE_EPSILON){
+		magnitude = invSqrtFast(magnitude);
+		v->x *= magnitude;
+		v->y *= magnitude;
+
+		return(1);
+	}
+
+	return(0);
+}
+
+// Try to normalize a vec2 and return whether or not we were successful!
+return_t vec2CanNormalizeVec2FastOut(const vec2 *const restrict v, vec2 *const restrict out){
+	float magnitude = v->x * v->x + v->y * v->y;
+	if(magnitude > VEC2_NORMALIZE_EPSILON){
+		magnitude = invSqrtFast(magnitude);
+		out->x = v->x * magnitude;
+		out->y = v->y * magnitude;
+
+		return(1);
+	}
+
+	return(0);
+}
+
 
 // Negate the values of a vec2!
 void vec2Negate(vec2 *const restrict v){

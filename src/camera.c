@@ -11,7 +11,7 @@ void cameraInit(camera *const restrict cam){
 	quatInitIdentity(&cam->rot);
 
 	vec3InitSet(&cam->up, 0.f, 1.f, 0.f);
-	cam->fov = FOV_DEFAULT;
+	cam->fov = PRG_FOV_DEFAULT;
 
 	mat4InitIdentity(&cam->viewMatrix);
 	mat4InitIdentity(&cam->projectionMatrix);

@@ -247,11 +247,11 @@ return_t physJointDistanceSolvePosition(const void *const restrict joint, physic
 			// Clamp the constraint value.
 			const float constraint = floatClamp(
 				distance - ((physicsJointDistance *)joint)->distance,
-				-PHYSCONSTRAINT_MAX_LINEAR_CORRECTION,
-				PHYSCONSTRAINT_MAX_LINEAR_CORRECTION
+				-PHYSJOINT_MAX_LINEAR_CORRECTION,
+				PHYSJOINT_MAX_LINEAR_CORRECTION
 			);
 
-			if(effectiveMass > PHYSCONSTRAINT_LINEAR_SLOP && distance > PHYSCONSTRAINT_LINEAR_SLOP){
+			if(effectiveMass > PHYSJOINT_LINEAR_SLOP && distance > PHYSJOINT_LINEAR_SLOP){
 				vec3MultiplyS(&rAB, -constraint/(distance*effectiveMass));
 
 				// Apply the correctional impulse.
@@ -259,7 +259,7 @@ return_t physJointDistanceSolvePosition(const void *const restrict joint, physic
 				physRigidBodyApplyImpulsePosition(bodyB, &rB, &rAB);
 			}
 
-			return(fabsf(constraint) < PHYSCONSTRAINT_LINEAR_SLOP);
+			return(fabsf(constraint) < PHYSJOINT_LINEAR_SLOP);
 		}
 	}
 	#endif
@@ -297,7 +297,7 @@ static void updateConstraintData(
 	// need to normalize the relative position.
 	// We also use the magnitude for the bias term.
 	distance = vec3MagnitudeVec3(&joint->rAB);
-	if(distance > PHYSCONSTRAINT_LINEAR_SLOP){
+	if(distance > PHYSJOINT_LINEAR_SLOP){
 		vec3DivideByS(&joint->rAB, distance);
 	}else{
 		vec3InitZero(&joint->rAB);

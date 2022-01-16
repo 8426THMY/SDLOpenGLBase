@@ -17,12 +17,6 @@
 #include "utilTypes.h"
 
 
-// If we're using non-linear Gauss-Seidel stabilisation
-// anywhere, we'll need to define some additional functions.
-#if defined(PHYSCONTACT_STABILISER_GAUSS_SEIDEL) || defined(PHYSJOINT_USE_POSITIONAL_CORRECTION)
-	#define PHYSCOLLIDER_USE_POSITIONAL_CORRECTION
-#endif
-
 // The body should be simulated in some way.
 #define PHYSRIGIDBODY_SIMULATE_LINEAR    0x01
 #define PHYSRIGIDBODY_SIMULATE_ANGULAR   0x02
@@ -37,6 +31,11 @@
 
 #ifndef PHYSRIGIDBODY_DEFAULT_STATE
 	#define PHYSRIGIDBODY_DEFAULT_STATE (PHYSRIGIDBODY_SIMULATE | PHYSRIGIDBODY_COLLIDE)
+#endif
+
+// Use the default gravity value if none was defined.
+#ifndef PHYSRIGIDBODY_GRAVITY
+	#define PHYSRIGIDBODY_GRAVITY -9.80665f
 #endif
 
 #define physRigidBodySimulateLinear(body) flagsSet(body->flags, PHYSRIGIDBODY_SIMULATE_LINEAR)

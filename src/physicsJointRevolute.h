@@ -10,6 +10,10 @@
 #include "utilTypes.h"
 
 
+/*
+** Revolute joints, also known as hinge joints, constrain all
+** relative movement to rotation about a single, fixed axis.
+*/
 typedef struct physicsJointRevoluteDef {
 	//
 } physicsJointRevoluteDef;

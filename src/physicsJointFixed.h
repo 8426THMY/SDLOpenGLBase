@@ -10,6 +10,7 @@
 #include "utilTypes.h"
 
 
+// Fixed joints prevent any relative translational or rotational movement.
 typedef struct physJointFixedDef {
 	//
 } physicsJointFixedDef;

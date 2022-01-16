@@ -677,7 +677,7 @@ static void solveConstraints(physicsIsland *const restrict island, const float d
 		#endif
 
 		// Exit if the errors are small.
-		if(solved && separation >= PHYSCONTACT_PENETRATION_ERROR_THRESHOLD){
+		if(solved && separation >= PHYSCONTACT_LINEAR_POSITIONAL_ERROR_THRESHOLD){
 			return;
 		}
 	}

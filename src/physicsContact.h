@@ -2,6 +2,7 @@
 #define physicsContact_h
 
 
+#include "utilMath.h"
 #include "settingsPhysics.h"
 
 #include "contact.h"
@@ -10,26 +11,22 @@
 #endif
 
 
-#ifndef PHYSCONSTRAINT_LINEAR_SLOP
-	#define PHYSCONSTRAINT_LINEAR_SLOP 0.005f
+#ifndef PHYSCONTACT_LINEAR_SLOP
+	#define PHYSCONTACT_LINEAR_SLOP 0.05f
 #endif
-#ifndef PHYSCONSTRAINT_MAX_LINEAR_CORRECTION
-	#define PHYSCONSTRAINT_MAX_LINEAR_CORRECTION 0.2f
+#ifndef PHYSCONTACT_MAX_LINEAR_CORRECTION
+	#define PHYSCONTACT_MAX_LINEAR_CORRECTION 0.2f
 #endif
 
 #ifndef PHYSCONTACT_RESTITUTION_THRESHOLD
 	#define PHYSCONTACT_RESTITUTION_THRESHOLD 1.f
 #endif
-#ifndef PHYSCONTACT_SEPARATION_BIAS
-	#define PHYSCONTACT_SEPARATION_BIAS 0.f
+#ifndef PHYSCONTACT_LINEAR_POSITIONAL_ERROR_THRESHOLD
+	#define PHYSCONTACT_LINEAR_POSITIONAL_ERROR_THRESHOLD (-3.f * PHYSCONTACT_LINEAR_SLOP)
 #endif
-#define PHYSCONTACT_SEPARATION_BIAS_TOTAL (2.f * PHYSCONTACT_SEPARATION_BIAS)
 
 #ifndef PHYSCONTACT_BAUMGARTE_BIAS
-	#define PHYSCONTACT_BAUMGARTE_BIAS 0.1f
-#endif
-#ifndef PHYSCONTACT_PENETRATION_ERROR_THRESHOLD
-	#define PHYSCONTACT_PENETRATION_ERROR_THRESHOLD (-3.f * PHYSCONSTRAINT_LINEAR_SLOP)
+	#define PHYSCONTACT_BAUMGARTE_BIAS 0.2f
 #endif
 
 
@@ -55,8 +52,8 @@ typedef struct physicsContactPoint {
 	vec3 rB;
 
 	// If we're using non-linear Gauss-Seidel, we'll need to know
-	// the untransformed positions of the contact normal and contact
-	// points relative to their bodies' centres of mass.
+	// the untransformed positions of the contact points relative
+	// to their rigid bodies' centres of mass.
 	#ifdef PHYSCONTACT_STABILISER_GAUSS_SEIDEL
 	vec3 rAlocal;
 	vec3 rBlocal;
@@ -81,10 +78,9 @@ typedef struct physicsContactPoint {
 	float tangentImpulse[2];
 	#endif
 
-	// Stores the result of 1/(JM^(-1)J^T) (which is equivalent
-	// to the inverse denominator of the impulse equation)
-	// prior to collision response, as it only needs to be
-	// calculated once.
+	// Stores the result of (JM^(-1)J^T)^{-1} (which is equivalent
+	// to the inverse denominator of the impulse equation) prior
+	// to collision response, as it only needs to be calculated once.
 	float invNormalMass;
 	#ifndef PHYSCONTACT_USE_FRICTION_JOINT
 	// Same as "invNormalMass", but for tangents.
@@ -115,8 +111,10 @@ typedef struct physicsManifold {
 	physicsJointFriction frictionJoint;
 	#endif
 
+	// If we're using non-linear Gauss-Seidel, we'll
+	// need to know the untransformed contact normal.
 	#ifdef PHYSCONTACT_STABILISER_GAUSS_SEIDEL
-	vec3 normalA;
+	vec3 normalLocal;
 	#endif
 
 	#ifndef PHYSCONTACT_USE_FRICTION_JOINT

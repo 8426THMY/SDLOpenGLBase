@@ -7,6 +7,8 @@
 #include "utilMath.h"
 
 
+#define QUAT_NORMALIZE_EPSILON 0.000001f
+
 #define QUAT_SINGULARITY_THRESHOLD 0.0001f
 #define QUAT_SINGULARITY_THRESHOLD_SQUARED (QUAT_SINGULARITY_THRESHOLD*QUAT_SINGULARITY_THRESHOLD)
 // We'll do linear interpolation if the angle between
@@ -267,6 +269,15 @@ quat quatInitEulerVec3ZXYC(const vec3 v){
 }
 
 
+/*
+** Return whether a unit quaternion is sufficiently close to identity.
+** Note that we only really need the 'w' component to check this.
+*/
+return_t quatIsIdentity(const float w){
+	return(w > 1.f - QUAT_NORMALIZE_EPSILON);
+}
+
+
 // Add a quat stored as four floats to "q"!
 void quatAdd(quat *const restrict q, const float w, const float x, const float y, const float z){
 	q->x += x;
@@ -335,7 +346,7 @@ void quatAddVec4Out(const quat *const restrict q, const vec4 *const restrict v, 
 	out->w = q->w + v->w;
 }
 
-// Add "v" to "q"!
+// Add "v" to "q" and return the result!
 quat quatAddVec4C(quat q, const vec4 v){
 	q.x += v.x;
 	q.y += v.y;
@@ -343,6 +354,32 @@ quat quatAddVec4C(quat q, const vec4 v){
 	q.w += v.w;
 
 	return(q);
+}
+
+// Add "q2" to "q1"!
+void quatAddQuat(quat *const restrict q1, const quat *const restrict q2){
+	q1->x += q2->x;
+	q1->y += q2->y;
+	q1->z += q2->z;
+	q1->w += q2->w;
+}
+
+// Add "q2" to "q1" and store the result in "out"!
+void quatAddQuatOut(const quat *const restrict q1, const quat *const restrict q2, quat *const restrict out){
+	out->x = q1->x + q2->x;
+	out->y = q1->y + q2->y;
+	out->z = q1->z + q2->z;
+	out->w = q1->w + q2->w;
+}
+
+// Add "q2" to "q1" and return the result!
+quat quatAddQuatC(quat q1, const quat q2){
+	q1.x += q2.x;
+	q1.y += q2.y;
+	q1.z += q2.z;
+	q1.w += q2.w;
+
+	return(q1);
 }
 
 // Subtract a quat stored as four floats from "q"!
@@ -1482,16 +1519,6 @@ void quatNormalize(const float w, const float x, const float y, const float z, q
 	out->w = w * magnitude;
 }
 
-// Normalize a quaternion stored as four floats and store the result in "out"!
-void quatNormalizeFast(const float w, const float x, const float y, const float z, quat *const restrict out){
-	const float magnitude = invSqrtFast(w * w + x * x + y * y + z * z);
-
-	out->x = x * magnitude;
-	out->y = y * magnitude;
-	out->z = z * magnitude;
-	out->w = w * magnitude;
-}
-
 // Normalize a quaternion stored as four floats!
 quat quatNormalizeC(const float w, const float x, const float y, const float z){
 	const float magnitude = invSqrt(w * w + x * x + y * y + z * z);
@@ -1503,6 +1530,16 @@ quat quatNormalizeC(const float w, const float x, const float y, const float z){
 	q.w = w * magnitude;
 
 	return(q);
+}
+
+// Normalize a quaternion stored as four floats and store the result in "out"!
+void quatNormalizeFast(const float w, const float x, const float y, const float z, quat *const restrict out){
+	const float magnitude = invSqrtFast(w * w + x * x + y * y + z * z);
+
+	out->x = x * magnitude;
+	out->y = y * magnitude;
+	out->z = z * magnitude;
+	out->w = w * magnitude;
 }
 
 // Normalize a quaternion stored as four floats!
@@ -1528,29 +1565,9 @@ void quatNormalizeQuat(quat *const restrict q){
 	q->w *= magnitude;
 }
 
-// Normalize a quaternion!
-void quatNormalizeQuatFast(quat *const restrict q){
-	const float magnitude = invSqrtFast(q->x * q->x + q->y * q->y + q->z * q->z + q->w * q->w);
-
-	q->x *= magnitude;
-	q->y *= magnitude;
-	q->z *= magnitude;
-	q->w *= magnitude;
-}
-
 // Normalize a quaternion and store the result in "out"!
 void quatNormalizeQuatOut(const quat *const restrict q, quat *const restrict out){
 	const float magnitude = invSqrt(q->x * q->x + q->y * q->y + q->z * q->z + q->w * q->w);
-
-	out->x = q->x * magnitude;
-	out->y = q->y * magnitude;
-	out->z = q->z * magnitude;
-	out->w = q->w * magnitude;
-}
-
-// Normalize a quaternion and store the result in "out"!
-void quatNormalizeQuatFastOut(const quat *const restrict q, quat *const restrict out){
-	const float magnitude = invSqrtFast(q->x * q->x + q->y * q->y + q->z * q->z + q->w * q->w);
 
 	out->x = q->x * magnitude;
 	out->y = q->y * magnitude;
@@ -1571,6 +1588,26 @@ quat quatNormalizeQuatC(quat q){
 }
 
 // Normalize a quaternion!
+void quatNormalizeQuatFast(quat *const restrict q){
+	const float magnitude = invSqrtFast(q->x * q->x + q->y * q->y + q->z * q->z + q->w * q->w);
+
+	q->x *= magnitude;
+	q->y *= magnitude;
+	q->z *= magnitude;
+	q->w *= magnitude;
+}
+
+// Normalize a quaternion and store the result in "out"!
+void quatNormalizeQuatFastOut(const quat *const restrict q, quat *const restrict out){
+	const float magnitude = invSqrtFast(q->x * q->x + q->y * q->y + q->z * q->z + q->w * q->w);
+
+	out->x = q->x * magnitude;
+	out->y = q->y * magnitude;
+	out->z = q->z * magnitude;
+	out->w = q->w * magnitude;
+}
+
+// Normalize a quaternion!
 quat quatNormalizeQuatFastC(quat q){
 	const float magnitude = invSqrtFast(q.x * q.x + q.y * q.y + q.z * q.z + q.w * q.w);
 
@@ -1581,6 +1618,109 @@ quat quatNormalizeQuatFastC(quat q){
 
 	return(q);
 }
+
+/*
+** Try to normalize a quat stored as four floats
+** and return whether or not we were successful!
+*/
+return_t quatCanNormalize(const float w, const float x, const float y, const float z, quat *const restrict out){
+	float magnitude = w * w + x * x + y * y + z * z + w * w;
+	if(magnitude > QUAT_NORMALIZE_EPSILON){
+		magnitude = invSqrt(magnitude);
+		out->x = x * magnitude;
+		out->y = y * magnitude;
+		out->z = z * magnitude;
+		out->w = w * magnitude;
+
+		return(1);
+	}
+
+	return(0);
+}
+
+// Try to normalize a quat and return whether or not we were successful!
+return_t quatCanNormalizeQuat(quat *const restrict v){
+	float magnitude = v->x * v->x + v->y * v->y + v->z * v->z + v->w * v->w;
+	if(magnitude > QUAT_NORMALIZE_EPSILON){
+		magnitude = invSqrt(magnitude);
+		v->x *= magnitude;
+		v->y *= magnitude;
+		v->z *= magnitude;
+		v->w *= magnitude;
+
+		return(1);
+	}
+
+	return(0);
+}
+
+// Try to normalize a quat and return whether or not we were successful!
+return_t quatCanNormalizeQuatOut(const quat *const restrict v, quat *const restrict out){
+	float magnitude = v->x * v->x + v->y * v->y + v->z * v->z + v->w * v->w;
+	if(magnitude > QUAT_NORMALIZE_EPSILON){
+		magnitude = invSqrt(magnitude);
+		out->x = v->x * magnitude;
+		out->y = v->y * magnitude;
+		out->z = v->z * magnitude;
+		out->w = v->w * magnitude;
+
+		return(1);
+	}
+
+	return(0);
+}
+
+/*
+** Try to normalize a quat stored as four floats
+** and return whether or not we were successful!
+*/
+return_t quatCanNormalizeFast(const float w, const float x, const float y, const float z, quat *const restrict out){
+	float magnitude = w * w + x * x + y * y + z * z;
+	if(magnitude > QUAT_NORMALIZE_EPSILON){
+		magnitude = invSqrtFast(magnitude);
+		out->x = x * magnitude;
+		out->y = y * magnitude;
+		out->z = z * magnitude;
+		out->w = w * magnitude;
+
+		return(1);
+	}
+
+	return(0);
+}
+
+// Try to normalize a quat and return whether or not we were successful!
+return_t quatCanNormalizeQuatFast(quat *const restrict v){
+	float magnitude = v->x * v->x + v->y * v->y + v->z * v->z + v->w * v->w;
+	if(magnitude > QUAT_NORMALIZE_EPSILON){
+		magnitude = invSqrtFast(magnitude);
+		v->x *= magnitude;
+		v->y *= magnitude;
+		v->z *= magnitude;
+		v->w *= magnitude;
+
+		return(1);
+	}
+
+	return(0);
+}
+
+// Try to normalize a quat and return whether or not we were successful!
+return_t quatCanNormalizeQuatFastOut(const quat *const restrict v, quat *const restrict out){
+	float magnitude = v->x * v->x + v->y * v->y + v->z * v->z + v->w * v->w;
+	if(magnitude > QUAT_NORMALIZE_EPSILON){
+		magnitude = invSqrtFast(magnitude);
+		out->x = v->x * magnitude;
+		out->y = v->y * magnitude;
+		out->z = v->z * magnitude;
+		out->w = v->w * magnitude;
+
+		return(1);
+	}
+
+	return(0);
+}
+
 
 /*
 ** Find the conjugate of a quaternion! This is
@@ -1665,7 +1805,7 @@ quat quatNegateC(quat q){
 // Find a quaternion's normalized axis and store the result in "out"!
 void quatAxis(const quat *const restrict q, vec3 *const restrict out){
 	float scale = 1.f - q->w*q->w;
-	if(scale < QUAT_SINGULARITY_THRESHOLD_SQUARED){
+	if(scale < QUAT_NORMALIZE_EPSILON){
 		out->x = 1.f;
 		out->y = 0.f;
 		out->z = 0.f;
@@ -1682,7 +1822,7 @@ vec3 quatAxisC(const quat q){
 	vec3 v;
 
 	float scale = 1.f - q.w*q.w;
-	if(scale < QUAT_SINGULARITY_THRESHOLD_SQUARED){
+	if(scale < QUAT_NORMALIZE_EPSILON){
 		v.x = 1.f;
 		v.y = 0.f;
 		v.z = 0.f;
@@ -1697,9 +1837,25 @@ vec3 quatAxisC(const quat q){
 }
 
 // Find a quaternion's normalized axis and store the result in "out"!
+void quatAxisAlt(const quat *const restrict q, vec3 *const restrict out){
+	const float scale = invSqrt(1.f - q->w*q->w);
+	out->x = q->x*scale;
+	out->y = q->y*scale;
+	out->z = q->z*scale;
+}
+
+// Find a quaternion's normalized axis!
+vec3 quatAxisAltC(const quat q){
+	const float scale = invSqrtFast(1.f - q.w*q.w);
+	const vec3 v = vec3InitSetC(q.x*scale, q.y*scale, q.z*scale);
+
+	return(v);
+}
+
+// Find a quaternion's normalized axis and store the result in "out"!
 void quatAxisFast(const quat *const restrict q, vec3 *const restrict out){
 	float scale = 1.f - q->w*q->w;
-	if(scale < QUAT_SINGULARITY_THRESHOLD_SQUARED){
+	if(scale < QUAT_NORMALIZE_EPSILON){
 		out->x = 1.f;
 		out->y = 0.f;
 		out->z = 0.f;
@@ -1716,7 +1872,7 @@ vec3 quatAxisFastC(const quat q){
 	vec3 v;
 
 	float scale = 1.f - q.w*q.w;
-	if(scale < QUAT_SINGULARITY_THRESHOLD_SQUARED){
+	if(scale < QUAT_NORMALIZE_EPSILON){
 		v.x = 1.f;
 		v.y = 0.f;
 		v.z = 0.f;
@@ -1728,6 +1884,58 @@ vec3 quatAxisFastC(const quat q){
 	}
 
 	return(v);
+}
+
+// Find a quaternion's normalized axis and store the result in "out"!
+void quatAxisAltFast(const quat *const restrict q, vec3 *const restrict out){
+	const float scale = invSqrtFast(1.f - q->w*q->w);
+	out->x = q->x*scale;
+	out->y = q->y*scale;
+	out->z = q->z*scale;
+}
+
+// Find a quaternion's normalized axis!
+vec3 quatAxisAltFastC(const quat q){
+	const float scale = invSqrtFast(1.f - q.w*q.w);
+	const vec3 v = vec3InitSetC(q.x*scale, q.y*scale, q.z*scale);
+
+	return(v);
+}
+
+/*
+** Try and get a quaternion's normalized axis, and return whether we
+** are successful! This should only fail if "q" is close to identity.
+*/
+return_t quatCanGetAxis(const quat *const restrict q, vec3 *const restrict out){
+	float scale = 1.f - q->w*q->w;
+	if(scale > QUAT_NORMALIZE_EPSILON){
+		scale = invSqrt(scale);
+		out->x = q->x*scale;
+		out->y = q->y*scale;
+		out->z = q->z*scale;
+
+		return(1);
+	}
+
+	return(0);
+}
+
+/*
+** Try and get a quaternion's normalized axis, and return whether we
+** are successful! This should only fail if "q" is close to identity.
+*/
+return_t quatCanGetAxisFast(const quat *const restrict q, vec3 *const restrict out){
+	float scale = 1.f - q->w*q->w;
+	if(scale > QUAT_NORMALIZE_EPSILON){
+		scale = invSqrtFast(scale);
+		out->x = q->x*scale;
+		out->y = q->y*scale;
+		out->z = q->z*scale;
+
+		return(1);
+	}
+
+	return(0);
 }
 
 // Return a quaternion's angle!
@@ -1762,21 +1970,21 @@ float quatAngleAboutAxis(const float qa, const float w){
 ** This function was inspired by the one used by NVIDIA in PhysX.
 */
 void quatFromTanVector(const vec3 *const restrict v, quat *const restrict out){
-	const float vv = vec3MagnitudeSquaredVec3(v);
-	if(vv < QUAT_SINGULARITY_THRESHOLD_SQUARED){
+	const float v2 = vec3MagnitudeSquaredVec3(v);
+	if(v2 < QUAT_SINGULARITY_THRESHOLD_SQUARED){
 		quatInitIdentity(out);
 	}else{
-		const float d = 2.f / (1.f + vv);
+		const float d = 2.f / (1.f + v2);
 		quatInitSet(out, d - 1.f, v->x * d, v->y * d, v->z * d);
 	}
 }
 
 quat quatFromTanVectorC(const vec3 v){
-	const float vv = vec3MagnitudeSquaredVec3C(v);
-	if(vv < QUAT_SINGULARITY_THRESHOLD_SQUARED){
+	const float v2 = vec3MagnitudeSquaredVec3C(v);
+	if(v2 < QUAT_SINGULARITY_THRESHOLD_SQUARED){
 		return(quatInitIdentityC());
 	}else{
-		const float d = 2.f / (1.f + vv);
+		const float d = 2.f / (1.f + v2);
 		return(quatInitSetC(d - 1.f, v.x * d, v.y * d, v.z * d));
 	}
 }
@@ -1845,7 +2053,7 @@ vec3 quatToEulerAnglesZXYC(const quat q){
 // Convert a quaternion to an axis and an angle and store the result in "out"!
 void quatToAxisAngle(const quat *const restrict q, vec4 *const restrict out){
 	float scale = 1.f - q->w*q->w;
-	if(scale < QUAT_SINGULARITY_THRESHOLD_SQUARED){
+	if(scale < QUAT_NORMALIZE_EPSILON){
 		out->x = 1.f;
 		out->y = 0.f;
 		out->z = 0.f;
@@ -1863,7 +2071,7 @@ vec4 quatToAxisAngleC(const quat q){
 	vec4 v;
 
 	float scale = 1.f - q.w*q.w;
-	if(scale < QUAT_SINGULARITY_THRESHOLD_SQUARED){
+	if(scale < QUAT_NORMALIZE_EPSILON){
 		v.x = 1.f;
 		v.y = 0.f;
 		v.z = 0.f;
@@ -1881,7 +2089,7 @@ vec4 quatToAxisAngleC(const quat q){
 // Convert a quaternion to an axis and an angle and store the result in "out"!
 void quatToAxisAngleFast(const quat *const restrict q, vec4 *const restrict out){
 	float scale = 1.f - q->w*q->w;
-	if(scale < QUAT_SINGULARITY_THRESHOLD_SQUARED){
+	if(scale < QUAT_NORMALIZE_EPSILON){
 		out->x = 1.f;
 		out->y = 0.f;
 		out->z = 0.f;
@@ -1899,7 +2107,7 @@ vec4 quatToAxisAngleFastC(const quat q){
 	vec4 v;
 
 	float scale = 1.f - q.w*q.w;
-	if(scale < QUAT_SINGULARITY_THRESHOLD_SQUARED){
+	if(scale < QUAT_NORMALIZE_EPSILON){
 		v.x = 1.f;
 		v.y = 0.f;
 		v.z = 0.f;
@@ -2936,7 +3144,7 @@ void quatIntegrate(quat *const restrict q, const vec3 *const restrict w, float d
 	quatInitSet(&spin, 0.f, w->x * dt, w->y * dt, w->z * dt);
 
 	quatMultiplyQuatP1(&spin, *q);
-	quatAddVec4(q, &spin);
+	quatAddQuat(q, &spin);
 }
 
 /*
@@ -2954,7 +3162,7 @@ void quatIntegrateOut(const quat *const restrict q, const vec3 *const restrict w
 	quatInitSet(&spin, 0.f, w->x * dt, w->y * dt, w->z * dt);
 
 	quatMultiplyQuatP1(&spin, *q);
-	quatAddVec4Out(q, &spin, out);
+	quatAddQuatOut(q, &spin, out);
 }
 
 /*
@@ -2967,5 +3175,5 @@ quat quatIntegrateC(const quat q, const vec3 w, float dt){
 	dt *= 0.5f;
 	// Multiply by half the timestep to
 	// save multiplications later on.
-	return(quatAddVec4C(q, quatMultiplyQuatC(quatInitSetC(0.f, w.x * dt, w.y * dt, w.z * dt), q)));
+	return(quatAddQuatC(q, quatMultiplyQuatC(quatInitSetC(0.f, w.x * dt, w.y * dt, w.z * dt), q)));
 }

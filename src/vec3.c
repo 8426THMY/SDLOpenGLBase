@@ -7,6 +7,9 @@
 #include "utilMath.h"
 
 
+#define VEC3_NORMALIZE_EPSILON 0.000001f
+
+
 // Initialize the vec3's values to 0!
 void vec3InitZero(vec3 *const restrict v){
 	memset(v, 0.f, sizeof(*v));
@@ -36,6 +39,34 @@ vec3 vec3InitSetC(const float x, const float y, const float z){
 	};
 
 	return(v);
+}
+
+
+// Return whether a vec3 is sufficiently close to zero!
+return_t vec3IsZero(const float x, const float y, const float z){
+	return(
+		x < VEC3_NORMALIZE_EPSILON &&
+		y < VEC3_NORMALIZE_EPSILON &&
+		z < VEC3_NORMALIZE_EPSILON
+	);
+}
+
+// Return whether a vec3 is sufficiently close to zero!
+return_t vec3IsZeroVec3(const vec3 *const restrict v){
+	return(
+		v->x < VEC3_NORMALIZE_EPSILON &&
+		v->y < VEC3_NORMALIZE_EPSILON &&
+		v->z < VEC3_NORMALIZE_EPSILON
+	);
+}
+
+// Return whether a vec3 is sufficiently close to zero!
+return_t vec3IsZeroVec3C(const vec3 v){
+	return(
+		v.x < VEC3_NORMALIZE_EPSILON &&
+		v.y < VEC3_NORMALIZE_EPSILON &&
+		v.z < VEC3_NORMALIZE_EPSILON
+	);
 }
 
 
@@ -691,15 +722,6 @@ void vec3Normalize(const float x, const float y, const float z, vec3 *const rest
 }
 
 // Normalize a vec3 stored as three floats and store the result in "out"!
-void vec3NormalizeFast(const float x, const float y, const float z, vec3 *const restrict out){
-	const float magnitude = invSqrtFast(x * x + y * y + z * z);
-
-	out->x = x * magnitude;
-	out->y = y * magnitude;
-	out->z = z * magnitude;
-}
-
-// Normalize a vec3 stored as three floats and store the result in "out"!
 vec3 vec3NormalizeC(const float x, const float y, const float z){
 	const float magnitude = invSqrt(x * x + y * y + z * z);
 	vec3 v;
@@ -709,6 +731,15 @@ vec3 vec3NormalizeC(const float x, const float y, const float z){
 	v.z = z * magnitude;
 
 	return(v);
+}
+
+// Normalize a vec3 stored as three floats and store the result in "out"!
+void vec3NormalizeFast(const float x, const float y, const float z, vec3 *const restrict out){
+	const float magnitude = invSqrtFast(x * x + y * y + z * z);
+
+	out->x = x * magnitude;
+	out->y = y * magnitude;
+	out->z = z * magnitude;
 }
 
 // Normalize a vec3 stored as three floats and store the result in "out"!
@@ -732,27 +763,9 @@ void vec3NormalizeVec3(vec3 *const restrict v){
 	v->z *= magnitude;
 }
 
-// Normalize a vec3!
-void vec3NormalizeVec3Fast(vec3 *const restrict v){
-	const float magnitude = invSqrtFast(v->x * v->x + v->y * v->y + v->z * v->z);
-
-	v->x *= magnitude;
-	v->y *= magnitude;
-	v->z *= magnitude;
-}
-
 // Normalize a vec3 and store the result in "out"!
 void vec3NormalizeVec3Out(const vec3 *const restrict v, vec3 *const restrict out){
 	const float magnitude = invSqrt(v->x * v->x + v->y * v->y + v->z * v->z);
-
-	out->x = v->x * magnitude;
-	out->y = v->y * magnitude;
-	out->z = v->z * magnitude;
-}
-
-// Normalize a vec3 and store the result in "out"!
-void vec3NormalizeVec3FastOut(const vec3 *const restrict v, vec3 *const restrict out){
-	const float magnitude = invSqrtFast(v->x * v->x + v->y * v->y + v->z * v->z);
 
 	out->x = v->x * magnitude;
 	out->y = v->y * magnitude;
@@ -771,6 +784,24 @@ vec3 vec3NormalizeVec3C(vec3 v){
 }
 
 // Normalize a vec3!
+void vec3NormalizeVec3Fast(vec3 *const restrict v){
+	const float magnitude = invSqrtFast(v->x * v->x + v->y * v->y + v->z * v->z);
+
+	v->x *= magnitude;
+	v->y *= magnitude;
+	v->z *= magnitude;
+}
+
+// Normalize a vec3 and store the result in "out"!
+void vec3NormalizeVec3FastOut(const vec3 *const restrict v, vec3 *const restrict out){
+	const float magnitude = invSqrtFast(v->x * v->x + v->y * v->y + v->z * v->z);
+
+	out->x = v->x * magnitude;
+	out->y = v->y * magnitude;
+	out->z = v->z * magnitude;
+}
+
+// Normalize a vec3!
 vec3 vec3NormalizeVec3FastC(vec3 v){
 	const float magnitude = invSqrtFast(v.x * v.x + v.y * v.y + v.z * v.z);
 
@@ -780,6 +811,103 @@ vec3 vec3NormalizeVec3FastC(vec3 v){
 
 	return(v);
 }
+
+/*
+** Try to normalize a vec3 stored as three floats
+** and return whether or not we were successful!
+*/
+return_t vec3CanNormalize(const float x, const float y, const float z, vec3 *const restrict out){
+	float magnitude = x * x + y * y + z * z;
+	if(magnitude > VEC3_NORMALIZE_EPSILON){
+		magnitude = invSqrt(magnitude);
+		out->x = x * magnitude;
+		out->y = y * magnitude;
+		out->z = z * magnitude;
+
+		return(1);
+	}
+
+	return(0);
+}
+
+// Try to normalize a vec3 and return whether or not we were successful!
+return_t vec3CanNormalizeVec3(vec3 *const restrict v){
+	float magnitude = v->x * v->x + v->y * v->y + v->z * v->z;
+	if(magnitude > VEC3_NORMALIZE_EPSILON){
+		magnitude = invSqrt(magnitude);
+		v->x *= magnitude;
+		v->y *= magnitude;
+		v->z *= magnitude;
+
+		return(1);
+	}
+
+	return(0);
+}
+
+// Try to normalize a vec3 and return whether or not we were successful!
+return_t vec3CanNormalizeVec3Out(const vec3 *const restrict v, vec3 *const restrict out){
+	float magnitude = v->x * v->x + v->y * v->y + v->z * v->z;
+	if(magnitude > VEC3_NORMALIZE_EPSILON){
+		magnitude = invSqrt(magnitude);
+		out->x = v->x * magnitude;
+		out->y = v->y * magnitude;
+		out->z = v->z * magnitude;
+
+		return(1);
+	}
+
+	return(0);
+}
+
+/*
+** Try to normalize a vec3 stored as three floats
+** and return whether or not we were successful!
+*/
+return_t vec3CanNormalizeFast(const float x, const float y, const float z, vec3 *const restrict out){
+	float magnitude = x * x + y * y + z * z;
+	if(magnitude > VEC3_NORMALIZE_EPSILON){
+		magnitude = invSqrtFast(magnitude);
+		out->x = x * magnitude;
+		out->y = y * magnitude;
+		out->z = z * magnitude;
+
+		return(1);
+	}
+
+	return(0);
+}
+
+// Try to normalize a vec3 and return whether or not we were successful!
+return_t vec3CanNormalizeVec3Fast(vec3 *const restrict v){
+	float magnitude = v->x * v->x + v->y * v->y + v->z * v->z;
+	if(magnitude > VEC3_NORMALIZE_EPSILON){
+		magnitude = invSqrtFast(magnitude);
+		v->x *= magnitude;
+		v->y *= magnitude;
+		v->z *= magnitude;
+
+		return(1);
+	}
+
+	return(0);
+}
+
+// Try to normalize a vec3 and return whether or not we were successful!
+return_t vec3CanNormalizeVec3FastOut(const vec3 *const restrict v, vec3 *const restrict out){
+	float magnitude = v->x * v->x + v->y * v->y + v->z * v->z;
+	if(magnitude > VEC3_NORMALIZE_EPSILON){
+		magnitude = invSqrtFast(magnitude);
+		out->x = v->x * magnitude;
+		out->y = v->y * magnitude;
+		out->z = v->z * magnitude;
+
+		return(1);
+	}
+
+	return(0);
+}
+
 
 // Negate the values of a vec3!
 void vec3Negate(vec3 *const restrict v){

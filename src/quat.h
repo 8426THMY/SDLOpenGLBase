@@ -2,6 +2,8 @@
 #define quat_h
 
 
+#include "utilTypes.h"
+
 #include "vec3.h"
 #include "vec4.h"
 
@@ -11,7 +13,12 @@
 ** the data structure. This lets us more efficiently
 ** treat the imaginary component as a vector.
 */
-typedef vec4 quat;
+typedef struct quat {
+	float x;
+	float y;
+	float z;
+	float w;
+} quat;
 
 
 void quatInitZero(quat *const restrict q);
@@ -33,6 +40,8 @@ void quatInitEulerVec3ZXY(quat *const restrict q, const vec3 *const restrict v);
 quat quatInitEulerVec3XYZC(const vec3 v);
 quat quatInitEulerVec3ZXYC(const vec3 v);
 
+return_t quatIsIdentity(const float w);
+
 void quatAdd(quat *const restrict q, const float w, const float x, const float y, const float z);
 void quatAddOut(const quat *const restrict q, const float w, const float x, const float y, const float z, quat *const restrict out);
 quat quatAddC(quat q, const float w, const float x, const float y, const float z);
@@ -42,6 +51,9 @@ quat quatAddSC(quat q, const float x);
 void quatAddVec4(quat *const restrict q, const vec4 *const restrict v);
 void quatAddVec4Out(const quat *const restrict q, const vec4 *const restrict v, quat *const restrict out);
 quat quatAddVec4C(quat q, const vec4 v);
+void quatAddQuat(quat *const restrict q1, const quat *const restrict q2);
+void quatAddQuatOut(const quat *const restrict q1, const quat *const restrict q2, quat *const restrict out);
+quat quatAddQuatC(quat q1, const quat q2);
 void quatSubtract(quat *const restrict q, const float w, const float x, const float y, const float z);
 void quatSubtractOut(const quat *const restrict q, const float w, const float x, const float y, const float z, quat *const restrict out);
 quat quatSubtractC(quat q, const float w, const float x, const float y, const float z);
@@ -159,15 +171,22 @@ float quatDotQuat(const quat *const restrict q1, const quat *const restrict q2);
 float quatDotQuatC(const quat q1, const quat q2);
 
 void quatNormalize(const float w, const float x, const float y, const float z, quat *const restrict out);
-void quatNormalizeFast(const float w, const float x, const float y, const float z, quat *const restrict out);
 quat quatNormalizeC(const float w, const float x, const float y, const float z);
+void quatNormalizeFast(const float w, const float x, const float y, const float z, quat *const restrict out);
 quat quatNormalizeFastC(const float w, const float x, const float y, const float z);
 void quatNormalizeQuat(quat *const restrict q);
-void quatNormalizeQuatFast(quat *const restrict q);
 void quatNormalizeQuatOut(const quat *const restrict q, quat *const restrict out);
-void quatNormalizeQuatFastOut(const quat *const restrict q, quat *const restrict out);
 quat quatNormalizeQuatC(quat q);
+void quatNormalizeQuatFast(quat *const restrict q);
+void quatNormalizeQuatFastOut(const quat *const restrict q, quat *const restrict out);
 quat quatNormalizeQuatFastC(quat q);
+return_t quatCanNormalize(const float w, const float x, const float y, const float z, quat *const restrict out);
+return_t quatCanNormalizeQuat(quat *const restrict v);
+return_t quatCanNormalizeQuatOut(const quat *const restrict v, quat *const restrict out);
+return_t quatCanNormalizeFast(const float w, const float x, const float y, const float z, quat *const restrict out);
+return_t quatCanNormalizeQuatFast(quat *const restrict v);
+return_t quatCanNormalizeQuatFastOut(const quat *const restrict v, quat *const restrict out);
+
 void quatConjugate(quat *const restrict q);
 void quatConjugateOut(const quat *const restrict q, quat *const restrict out);
 quat quatConjugateC(quat q);
@@ -180,8 +199,14 @@ quat quatNegateC(quat q);
 
 void quatAxis(const quat *const restrict q, vec3 *const restrict out);
 vec3 quatAxisC(const quat q);
+void quatAxisAlt(const quat *const restrict q, vec3 *const restrict out);
+vec3 quatAxisAltC(const quat q);
 void quatAxisFast(const quat *const restrict q, vec3 *const restrict out);
 vec3 quatAxisFastC(const quat q);
+void quatAxisAltFast(const quat *const restrict q, vec3 *const restrict out);
+vec3 quatAxisAltFastC(const quat q);
+return_t quatCanGetAxis(const quat *const restrict q, vec3 *const restrict out);
+return_t quatCanGetAxisFast(const quat *const restrict q, vec3 *const restrict out);
 float quatAngle(const quat *const restrict q);
 float quatAngleC(const quat q);
 

@@ -2,6 +2,8 @@
 #define vec4_h
 
 
+#include "utilTypes.h"
+
 #include "vec3.h"
 
 
@@ -19,6 +21,10 @@ void vec4InitVec3(vec4 *const restrict v1, const vec3 *const restrict v2, const 
 vec4 vec4InitVec3C(const vec3 v, const float w);
 void vec4InitSet(vec4 *const restrict v, const float x, const float y, const float z, const float w);
 vec4 vec4InitSetC(const float x, const float y, const float z, const float w);
+
+return_t vec4IsZero(const float x, const float y, const float z, const float w);
+return_t vec4IsZeroVec4(const vec4 *const restrict v);
+return_t vec4IsZeroVec4C(const vec4 v);
 
 void vec4Add(vec4 *const restrict v, const float x, const float y, const float z, const float w);
 void vec4AddOut(const vec4 *const restrict v, const float x, const float y, const float z, const float w, vec4 *const restrict out);
@@ -96,15 +102,22 @@ float vec4DotVec4(const vec4 *const restrict v1, const vec4 *const restrict v2);
 float vec4DotVec4C(const vec4 v1, const vec4 v2);
 
 void vec4Normalize(const float x, const float y, const float z, const float w, vec4 *const restrict out);
-void vec4NormalizeFast(const float x, const float y, const float z, const float w, vec4 *const restrict out);
 vec4 vec4NormalizeC(const float x, const float y, const float z, const float w);
+void vec4NormalizeFast(const float x, const float y, const float z, const float w, vec4 *const restrict out);
 vec4 vec4NormalizeFastC(const float x, const float y, const float z, const float w);
 void vec4NormalizeVec4(vec4 *const restrict v);
-void vec4NormalizeVec4Fast(vec4 *const restrict v);
 void vec4NormalizeVec4Out(const vec4 *const restrict v, vec4 *const restrict out);
-void vec4NormalizeVec4FastOut(const vec4 *const restrict v, vec4 *const restrict out);
 vec4 vec4NormalizeVec4C(vec4 v);
+void vec4NormalizeVec4Fast(vec4 *const restrict v);
+void vec4NormalizeVec4FastOut(const vec4 *const restrict v, vec4 *const restrict out);
 vec4 vec4NormalizeVec4FastC(vec4 v);
+return_t vec4CanNormalize(const float x, const float y, const float z, const float w, vec4 *const restrict out);
+return_t vec4CanNormalizeVec4(vec4 *const restrict v);
+return_t vec4CanNormalizeVec4Out(const vec4 *const restrict v, vec4 *const restrict out);
+return_t vec4CanNormalizeFast(const float x, const float y, const float z, const float w, vec4 *const restrict out);
+return_t vec4CanNormalizeVec4Fast(vec4 *const restrict v);
+return_t vec4CanNormalizeVec4FastOut(const vec4 *const restrict v, vec4 *const restrict out);
+
 void vec4Negate(vec4 *const restrict v);
 void vec4NegateOut(const vec4 *const restrict v, vec4 *const restrict out);
 vec4 vec4NegateC(vec4 v);

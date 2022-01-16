@@ -2,6 +2,9 @@
 #define vec3_h
 
 
+#include "utilTypes.h"
+
+
 typedef struct vec3 {
 	float x;
 	float y;
@@ -15,6 +18,10 @@ vec3 vec3InitZeroC();
 void vec3InitSet(vec3 *const restrict v, const float x, const float y, const float z);
 #define vec3InitSetP(v, x, y, z) (vec3InitSet(v, x, y, z), v)
 vec3 vec3InitSetC(const float x, const float y, const float z);
+
+return_t vec3IsZero(const float x, const float y, const float z);
+return_t vec3IsZeroVec3(const vec3 *const restrict v);
+return_t vec3IsZeroVec3C(const vec3 v);
 
 void vec3Add(vec3 *const restrict v, const float x, const float y, const float z);
 void vec3AddOut(const vec3 *const restrict v, const float x, const float y, const float z, vec3 *const restrict out);
@@ -123,19 +130,26 @@ void vec3CrossVec3Out(const vec3 *const restrict v1, const vec3 *const restrict 
 vec3 vec3CrossVec3C(const vec3 v1, const vec3 v2);
 
 void vec3Normalize(const float x, const float y, const float z, vec3 *const restrict out);
-void vec3NormalizeFast(const float x, const float y, const float z, vec3 *const restrict out);
 #define vec3NormalizeP(x, y, z, out) (vec3Normalize(x, y, z, out), out)
-#define vec3NormalizeFastP(x, y, z, out) (vec3NormalizeFast(x, y, z, out), out)
 vec3 vec3NormalizeC(const float x, const float y, const float z);
+void vec3NormalizeFast(const float x, const float y, const float z, vec3 *const restrict out);
+#define vec3NormalizeFastP(x, y, z, out) (vec3NormalizeFast(x, y, z, out), out)
 vec3 vec3NormalizeFastC(const float x, const float y, const float z);
 void vec3NormalizeVec3(vec3 *const restrict v);
-void vec3NormalizeVec3Fast(vec3 *const restrict v);
 void vec3NormalizeVec3Out(const vec3 *const restrict v, vec3 *const restrict out);
-void vec3NormalizeVec3FastOut(const vec3 *const restrict v, vec3 *const restrict out);
 #define vec3NormalizeVec3P(v, out) (vec3NormalizeVec3Out(v, out), out)
-#define vec3NormalizeVec3FastP(v, out) (vec3NormalizeVec3FastOut(v, out), out)
 vec3 vec3NormalizeVec3C(vec3 v);
+void vec3NormalizeVec3Fast(vec3 *const restrict v);
+void vec3NormalizeVec3FastOut(const vec3 *const restrict v, vec3 *const restrict out);
+#define vec3NormalizeVec3FastP(v, out) (vec3NormalizeVec3FastOut(v, out), out)
 vec3 vec3NormalizeVec3FastC(vec3 v);
+return_t vec3CanNormalize(const float x, const float y, const float z, vec3 *const restrict out);
+return_t vec3CanNormalizeVec3(vec3 *const restrict v);
+return_t vec3CanNormalizeVec3Out(const vec3 *const restrict v, vec3 *const restrict out);
+return_t vec3CanNormalizeFast(const float x, const float y, const float z, vec3 *const restrict out);
+return_t vec3CanNormalizeVec3Fast(vec3 *const restrict v);
+return_t vec3CanNormalizeVec3FastOut(const vec3 *const restrict v, vec3 *const restrict out);
+
 void vec3Negate(vec3 *const restrict v);
 void vec3NegateOut(const vec3 *const restrict v, vec3 *const restrict out);
 #define vec3NegateP(v, out) (vec3NegateOut(v, out), out)

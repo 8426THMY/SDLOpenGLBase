@@ -554,7 +554,7 @@ void physRigidBodyApplyAngularImpulsePosition(physicsRigidBody *const restrict b
 		quat tempRot;
 		mat3MultiplyVec3(&body->invInertiaGlobal, &J);
 		quatDifferentiateOut(&body->state.rot, &J, &tempRot);
-		quatAddVec4(&body->state.rot, &tempRot);
+		quatAddQuat(&body->state.rot, &tempRot);
 		quatNormalizeQuatFast(&body->state.rot);
 
 		physRigidBodyUpdateGlobalInertia(body);
@@ -589,7 +589,7 @@ void physRigidBodyApplyImpulsePosition(physicsRigidBody *const restrict body, co
 		vec3CrossVec3Out(r, p, &impulse);
 		mat3MultiplyVec3(&body->invInertiaGlobal, &impulse);
 		quatDifferentiateOut(&body->state.rot, &impulse, &tempRot);
-		quatAddVec4(&body->state.rot, &tempRot);
+		quatAddQuat(&body->state.rot, &tempRot);
 		quatNormalizeQuatFast(&body->state.rot);
 
 		physRigidBodyUpdateGlobalInertia(body);
@@ -738,7 +738,7 @@ void physRigidBodyUpdateGlobalInertia(physicsRigidBody *const restrict body){
 */
 void physRigidBodyUpdate(physicsRigidBody *const restrict body, const float dt){
 	// Apply gravity.
-	const vec3 gravity = {.x = 0.f, .y = -9.80665f * body->mass, .z = 0.f};
+	const vec3 gravity = {.x = 0.f, .y = PHYSRIGIDBODY_GRAVITY * body->mass, .z = 0.f};
 	physRigidBodyApplyLinearForce(body, &gravity);
 	// Update the body's velocity.
 	physRigidBodyIntegrateVelocity(body, dt);

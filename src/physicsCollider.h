@@ -11,6 +11,12 @@
 #include "utilTypes.h"
 
 
+// If we're using non-linear Gauss-Seidel stabilisation
+// anywhere, we'll need to define some additional functions.
+#if defined(PHYSCONTACT_STABILISER_GAUSS_SEIDEL) || defined(PHYSJOINT_USE_POSITIONAL_CORRECTION)
+	#define PHYSCOLLIDER_USE_POSITIONAL_CORRECTION
+#endif
+
 #ifndef PHYSCOLLIDER_DEFAULT_MASS
 	#define PHYSCOLLIDER_DEFAULT_MASS        0.f
 #endif
