@@ -39,27 +39,34 @@
 #define PHYSJOINT_MAX_ANGULAR_CORRECTION 0.02f
 #define PHYSJOINT_ANGULAR_POSITIONAL_ERROR_THRESHOLD (3.f * PHYSJOINT_ANGULAR_SLOP)
 
-#define PHYSJOINT_RESTITUTION_THRESHOLD 1.f
-
 #define PHYSJOINTFRICTION_WARM_START
 #define PHYSJOINTDISTANCE_WARM_START
 #define PHYSJOINTFIXED_WARM_START
 #define PHYSJOINTREVOLUTE_WARM_START
 #define PHYSJOINTPRISMATIC_WARM_START
 // Warm starting the spherical joint introduces too much "bounce-back".
-// Without it, rigid bodies should "stick" to the angular limits.
-// This is what we want, we just haven't implemented restitution yet.
+// This seems to be an issue with both the angular and linear parts.
 //#define PHYSJOINTSPHERE_WARM_START
 
 #define PHYSJOINTDISTANCE_STABILISER_GAUSS_SEIDEL
 #define PHYSJOINTFIXED_STABILISER_GAUSS_SEIDEL
 #define PHYSJOINTREVOLUTE_STABILISER_GAUSS_SEIDEL
 #define PHYSJOINTPRISMATIC_STABILISER_GAUSS_SEIDEL
-#define PHYSJOINTSPHERE_STABILISER_GAUSS_SEIDEL
+// Using Gauss-Seidel with the spherical joint damps restitution too much.
+// This is mostly caused by the angular component, but the linear component
+// also contributes to the issue, albeit to a much lesser degree. However,
+// without this, very small angular limits tend to be very unstable.
+// That shouldn't be too big a deal though, as we can just use a fixed joint.
+//#define PHYSJOINTSPHERE_STABILISER_GAUSS_SEIDEL
 
-#define PHYSJOINTSPHERE_ANGULAR_CONSTRAINT_EULER
+#define PHYSJOINTDISTANCE_BAUMGARTE_BIAS  0.3f
+#define PHYSJOINTFIXED_BAUMGARTE_BIAS     0.3f
+#define PHYSJOINTREVOLUTE_BAUMGARTE_BIAS  0.3f
+#define PHYSJOINTPRISMATIC_BAUMGARTE_BIAS 0.3f
+#define PHYSJOINTSPHERE_BAUMGARTE_BIAS    0.3f
+
+//#define PHYSJOINTSPHERE_ANGULAR_CONSTRAINT_EULER
 //#define PHYSJOINTSPHERE_SWING_USE_ELLIPSE_NORMAL
-#define PHYSJOINTSPHERE_BAUMGARTE_BIAS 0.3f
 
 #define PHYSISLAND_AABBTREE_NODE_EXPAND_BY_VELOCITY
 #define PHYSISLAND_AABBTREE_NODE_PADDING 0.2f
@@ -70,7 +77,7 @@
 #define PHYSCOLLIDER_DEFAULT_RESTITUTION 1.f
 #define PHYSCOLLIDER_EXPLICIT_MASS
 
-#define PHYSRIGIDBODY_GRAVITY 0.f//-9.80665f
+#define PHYSRIGIDBODY_GRAVITY -9.80665f
 
 
 #endif

@@ -2036,7 +2036,7 @@ void mat4Invert(mat4 *const restrict m){
 		invDet = 1.f / invDet;
 
 		// Now use the determinant to find the inverse of the matrix!
-		// In terms of the adjugate, m^(-1) = adj(m)/det(m), where
+		// In terms of the adjugate, m^{-1} = adj(m)/det(m), where
 		//     adj(m)_(i,j) = c_(j,i).
 		m->m[0][0] = c00 * invDet;
 		m->m[0][1] = c01 * invDet;
@@ -2089,7 +2089,7 @@ void mat4InvertOut(const mat4 m, mat4 *const restrict out){
 		invDet = 1.f / invDet;
 
 		// Now use the determinant to find the inverse of the matrix!
-		// In terms of the adjugate, m^(-1) = adj(m)/det(m), where
+		// In terms of the adjugate, m^{-1} = adj(m)/det(m), where
 		//     adj(m)_(i,j) = c_(j,i).
 		out->m[0][0] = c00 * invDet;
 		out->m[0][1] = c01 * invDet;
@@ -2143,7 +2143,7 @@ mat4 mat4InvertC(const mat4 m){
 		invDet = 1.f / invDet;
 
 		// Now use the determinant to find the inverse of the matrix!
-		// In terms of the adjugate, m^(-1) = adj(m)/det(m), where
+		// In terms of the adjugate, m^{-1} = adj(m)/det(m), where
 		//     adj(m)_(i,j) = c_(j,i).
 		out.m[0][0] = c00 * invDet;
 		out.m[0][1] = c01 * invDet;
@@ -2203,7 +2203,7 @@ return_t mat4CanInvert(mat4 *const restrict m){
 		invDet = 1.f / invDet;
 
 		// Now use the determinant to find the inverse of the matrix!
-		// In terms of the adjugate, m^(-1) = adj(m)/det(m), where
+		// In terms of the adjugate, m^{-1} = adj(m)/det(m), where
 		//     adj(m)_(i,j) = c_(j,i).
 		m->m[0][0] = c00 * invDet;
 		m->m[0][1] = c01 * invDet;
@@ -2265,7 +2265,7 @@ return_t mat4CanInvertOut(const mat4 m, mat4 *const restrict out){
 		invDet = 1.f / invDet;
 
 		// Now use the determinant to find the inverse of the matrix!
-		// In terms of the adjugate, m^(-1) = adj(m)/det(m), where
+		// In terms of the adjugate, m^{-1} = adj(m)/det(m), where
 		//     adj(m)_(i,j) = c_(j,i).
 		out->m[0][0] = c00 * invDet;
 		out->m[0][1] = c01 * invDet;
@@ -2298,7 +2298,7 @@ return_t mat4CanInvertOut(const mat4 m, mat4 *const restrict out){
 ** Initialize a view matrix from a position and a rotation!
 ** Recall that a view matrix can be generally written as
 **
-** V = (TR)^(-1),
+** V = (TR)^{-1},
 **
 ** where R is a rotation to whatever we want to look at and
 ** T is a translation to the camera's position.
@@ -2332,7 +2332,7 @@ void mat4View(mat4 *const restrict m, const vec3 *const restrict pos, const mat3
 ** Initialize a view matrix from a position and a rotation!
 ** Recall that a view matrix can be generally written as
 **
-** V = (TR)^(-1),
+** V = (TR)^{-1},
 **
 ** where R is a rotation to whatever we want to look at and
 ** T is a translation to the camera's position.

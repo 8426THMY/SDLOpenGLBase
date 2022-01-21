@@ -21,7 +21,10 @@ void physJointRevolutePresolve(
 ** they are within the constraints imposed by the joint.
 ** This may be called multiple times with sequential impulse.
 */
-void physJointRevoluteSolveVelocity(void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB){
+void physJointRevoluteSolveVelocity(
+	void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB
+){
+
 	//
 }
 
@@ -31,7 +34,10 @@ void physJointRevoluteSolveVelocity(void *const restrict joint, physicsRigidBody
 ** This may also be called multiple times, but by returning
 ** the amount of error we'll know when to stop.
 */
-return_t physJointRevoluteSolvePosition(const void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB){
+return_t physJointRevoluteSolvePosition(
+	const void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB
+){
+
 	#ifdef PHYSJOINTREVOLUTE_STABILISER_GAUSS_SEIDEL
 	#endif
 

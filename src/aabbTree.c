@@ -75,7 +75,8 @@ void aabbTreeUpdateNode(aabbTree *const restrict tree, aabbNode *const restrict 
 
 // Remove the user's data from the tree.
 void aabbTreeRemoveNode(
-	aabbTree *const restrict tree, aabbNode *const restrict node, void (*const deallocate)(aabbNode *node, void *args), void *args
+	aabbTree *const restrict tree, aabbNode *const restrict node,
+	void (*const deallocate)(aabbNode *node, void *args), void *args
 ){
 
 	// If we are not deleting the root node, we should

@@ -57,7 +57,7 @@ static int mouseMotionStrToInt(const char *str){
 	memcpy(&i, &str[1], sizeof(i));
 	// Reconstruct each byte of the original integer.
 	for(; curIndex < sizeof(i); ++curIndex, ++str){
-		// If the flag for this byte is set, add 60*2^(8(n-1))
+		// If the flag for this byte is set, add 60*2^{8(n-1)}
 		// to it, where n is the index of the modified byte.
 		if(flagChar & 1 << curIndex){
 			i -= COMMAND_SPECIAL_CHAR_LIMIT << (curIndex << 3);

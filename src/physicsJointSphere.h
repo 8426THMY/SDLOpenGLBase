@@ -5,6 +5,7 @@
 #include "settingsPhysics.h"
 
 #include "vec3.h"
+#include "quat.h"
 #include "mat3.h"
 
 #include "utilTypes.h"
@@ -44,7 +45,7 @@ typedef struct physicsJointSphereDef {
 	///float hardness;
 	// The restitution is a real number in [0, 1], where '1'
 	// means full bounciness and '0' means no bounciness.
-	///float restitution;
+	float restitution;
 
 	// Stores the minimum and maximum angular
 	// limits (in that order) for each axis.
@@ -86,7 +87,7 @@ typedef struct physicsJointSphere {
 	///float hardness;
 	// The restitution is a real number in [0, 1], where '1'
 	// means full bounciness and '0' means no bounciness.
-	///float restitution;
+	float restitution;
 
 	// Offset of the ball (rigid body B)
 	// from the socket (rigid body A).
@@ -123,23 +124,23 @@ typedef struct physicsJointSphere {
 	vec3 angularBias;
 	#endif
 
+	// Inverse effective masses, (JMJ^T)^{-1}, for the
+	// point-to-point (K1) and angular (K2, K3, K4) constraints.
 	#ifndef PHYSJOINTSPHERE_ANGULAR_CONSTRAINT_EULER
 	float swingInvMass;
 	float twistInvMass;
 	#else
 	vec3 angularInvMass;
 	#endif
-	// Effective masses for the point-to-point
-	// (K1) and angular (K2, K3) constraints.
 	mat3 linearInvMass;
 
+	// Accumulated impulses used for warm starting.
 	#ifndef PHYSJOINTSPHERE_ANGULAR_CONSTRAINT_EULER
 	float swingImpulse;
 	float twistImpulse;
 	#else
 	vec3 angularImpulse;
 	#endif
-	// Accumulated impulses used for warm starting.
 	vec3 linearImpulse;
 } physicsJointSphere;
 
@@ -150,6 +151,7 @@ void physJointSphereInit(
 	physicsJointSphere *const restrict joint,
 	const vec3 *const restrict anchorA, const vec3 *const restrict anchorB,
 	const quat *const restrict anchorRotA, const quat *const restrict anchorRotB,
+	const float restitution,
 	const float minX, const float maxX,
 	const float minY, const float maxY,
 	const float minZ, const float maxZ
@@ -164,8 +166,12 @@ void physJointSphereWarmStart(
 void physJointSpherePresolve(
 	void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB, const float dt
 );
-void physJointSphereSolveVelocity(void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB);
-return_t physJointSphereSolvePosition(const void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB);
+void physJointSphereSolveVelocity(
+	void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB
+);
+return_t physJointSphereSolvePosition(
+	const void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB
+);
 
 
 #endif

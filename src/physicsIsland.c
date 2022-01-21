@@ -248,6 +248,7 @@ static void insertColliders(physicsIsland *const restrict island, physicsRigidBo
 // Remove a single collider from the island.
 static void removeColliderNode(physicsIsland *const restrict island, physicsCollider *const restrict collider){
 	if(collider->node != NULL){
+		// The callback function will clear the collider's node pointer.
 		aabbTreeRemoveNode(&island->tree, collider->node, &freeNodeCallback, island);
 	}
 }
@@ -290,7 +291,10 @@ static void removeJoint(physicsIsland *const restrict island, physicsJointPair *
 }
 
 
-// Updating a rigid body involves integrating its velocity.
+/*
+** Updating a rigid body involves integrating its velocity.
+** We also need to update their colliders and broadphase nodes.
+*/
 static void updateRigidBodies(physicsIsland *const restrict island, const float dt){
 	physicsRigidBody *curBody = island->bodies;
 	for(; curBody != NULL; curBody = modulePhysicsBodyNext(curBody)){
@@ -300,6 +304,9 @@ static void updateRigidBodies(physicsIsland *const restrict island, const float 
 		// we'll need to transform the colliders and re-add them to the island.
 		if(physRigidBodyIsCollidable(curBody)){
 			if(flagsAreSet(curBody->flags, PHYSRIGIDBODY_TRANSFORMED)){
+				// We transform each collider in this funciton.
+				// Note that we never transform colliders when
+				// collision is disabled for the rigid body!
 				insertColliders(island, curBody);
 				flagsUnset(curBody->flags, PHYSRIGIDBODY_COLLISION_MODIFIED);
 			}
@@ -455,6 +462,7 @@ static void freeNodeCallback(aabbNode *const restrict node, void *const restrict
 		physicsCollider *collider = node->data.leaf.value;
 		physicsContactPair *contact = collider->contacts;
 		physicsSeparationPair *separation = collider->separations;
+		aabbNode *prevNode = ((physicsIsland *)island)->tree.leaves;
 
 		// Delete all of the collider's contact pairs.
 		while(contact != NULL){
@@ -468,6 +476,26 @@ static void freeNodeCallback(aabbNode *const restrict node, void *const restrict
 			modulePhysicsSeparationPairFree(&((physicsIsland *)island)->separations, separation);
 			separation = nextSeparation;
 		}
+
+		// Remove this node from the island's linked list.
+		// If we're removing the tree's root node, we will
+		// need to fix up the beginning of the linked list.
+		#warning "This is a bad way of doing it, and possibly not even necessary."
+		#warning "Check how Randy Gaul uses his dynamic AABB tree."
+		#warning "He constructs a list of leaf nodes as part of his island when he's adding colliders to the tree."
+		#warning "To deal with the discarded nodes when removing colliders from the tree, he uses a free list."
+		if(prevNode == node){
+			((physicsIsland *)island)->tree.leaves = node->data.leaf.next;
+
+		// Otherwise, find the leaf before our node
+		// and make it point to the one after it.
+		}else{
+			while(prevNode->data.leaf.next != node){
+				prevNode = prevNode->data.leaf.next;
+			}
+			prevNode->data.leaf.next = node->data.leaf.next;
+		}
+		collider->node = NULL;
 	}
 
 	modulePhysicsAABBNodeFree(node);

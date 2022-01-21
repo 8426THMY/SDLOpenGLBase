@@ -94,8 +94,12 @@ void physJointPrismaticWarmStart(const physicsJointPrismatic *const restrict joi
 void physJointPrismaticPresolve(
 	void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB, const float dt
 );
-void physJointPrismaticSolveVelocity(void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB);
-return_t physJointPrismaticSolvePosition(const void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB);
+void physJointPrismaticSolveVelocity(
+	void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB
+);
+return_t physJointPrismaticSolvePosition(
+	const void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB
+);
 
 
 #endif

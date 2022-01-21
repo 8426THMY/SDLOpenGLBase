@@ -38,17 +38,6 @@
 	#define PHYSRIGIDBODY_GRAVITY -9.80665f
 #endif
 
-#define physRigidBodySimulateLinear(body) flagsSet(body->flags, PHYSRIGIDBODY_SIMULATE_LINEAR)
-#define physRigidBodySimulateAngular(body) flagsSet(body->flags, PHYSRIGIDBODY_SIMULATE_ANGULAR)
-#define physRigidBodySimulate(body) flagsSet(body->flags, PHYSRIGIDBODY_SIMULATE)
-
-#define physRigidBodyIgnoreLinear(body) flagsUnset(body->flags, PHYSRIGIDBODY_SIMULATE_LINEAR)
-#define physRigidBodyIgnoreAngular(body) flagsUnset(body->flags, PHYSRIGIDBODY_SIMULATE_ANGULAR)
-#define physRigidBodyIgnoreSimulation(body) flagsUnset(body->flags, PHYSRIGIDBODY_SIMULATE)
-
-#define physRigidBodyIsSimulated(body) flagsAreSet(body->flags, PHYSRIGIDBODY_SIMULATE)
-#define physRigidBodyIsCollidable(body) flagsAreSet(body->flags, PHYSRIGIDBODY_COLLIDE)
-
 
 typedef struct physicsRigidBodyDef {
 	#warning "We don't allow colliders to be added, so why not make this a normal array?"
@@ -123,8 +112,18 @@ void physRigidBodyDefAddCollider(
 	const vec3 *const restrict centroid, mat3 inertia
 );
 
+void physRigidBodySimulateLinear(physicsRigidBody *const restrict body);
+void physRigidBodySimulateAngular(physicsRigidBody *const restrict body);
+void physRigidBodySimulate(physicsRigidBody *const restrict body);
 void physRigidBodySimulateCollisions(physicsRigidBody *const restrict body);
+
+void physRigidBodyIgnoreLinear(physicsRigidBody *const restrict body);
+void physRigidBodyIgnoreAngular(physicsRigidBody *const restrict body);
+void physRigidBodyIgnoreSimulation(physicsRigidBody *const restrict body);
 void physRigidBodyIgnoreCollisions(physicsRigidBody *const restrict body);
+
+return_t physRigidBodyIsSimulated(physicsRigidBody *const restrict body);
+return_t physRigidBodyIsCollidable(physicsRigidBody *const restrict body);
 
 return_t physRigidBodyPermitCollision(const physicsRigidBody *bodyA, const physicsRigidBody *bodyB);
 

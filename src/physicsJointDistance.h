@@ -85,8 +85,12 @@ void physJointDistanceWarmStart(const physicsJointDistance *const restrict joint
 void physJointDistancePresolve(
 	void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB, const float dt
 );
-void physJointDistanceSolveVelocity(void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB);
-return_t physJointDistanceSolvePosition(const void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB);
+void physJointDistanceSolveVelocity(
+	void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB
+);
+return_t physJointDistanceSolvePosition(
+	const void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB
+);
 
 
 #endif

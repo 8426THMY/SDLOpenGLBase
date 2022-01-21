@@ -7,7 +7,7 @@
 #include "utilMath.h"
 
 
-#define VEC3_NORMALIZE_EPSILON 0.000001f
+#define MATH_NORMALIZE_EPSILON 0.000001f
 
 
 // Initialize the vec3's values to 0!
@@ -44,29 +44,17 @@ vec3 vec3InitSetC(const float x, const float y, const float z){
 
 // Return whether a vec3 is sufficiently close to zero!
 return_t vec3IsZero(const float x, const float y, const float z){
-	return(
-		x < VEC3_NORMALIZE_EPSILON &&
-		y < VEC3_NORMALIZE_EPSILON &&
-		z < VEC3_NORMALIZE_EPSILON
-	);
+	return(floatIsZero(x) && floatIsZero(y) && floatIsZero(z));
 }
 
 // Return whether a vec3 is sufficiently close to zero!
 return_t vec3IsZeroVec3(const vec3 *const restrict v){
-	return(
-		v->x < VEC3_NORMALIZE_EPSILON &&
-		v->y < VEC3_NORMALIZE_EPSILON &&
-		v->z < VEC3_NORMALIZE_EPSILON
-	);
+	return(floatIsZero(v->x) && floatIsZero(v->y) && floatIsZero(v->z));
 }
 
 // Return whether a vec3 is sufficiently close to zero!
 return_t vec3IsZeroVec3C(const vec3 v){
-	return(
-		v.x < VEC3_NORMALIZE_EPSILON &&
-		v.y < VEC3_NORMALIZE_EPSILON &&
-		v.z < VEC3_NORMALIZE_EPSILON
-	);
+	return(floatIsZero(v.x) && floatIsZero(v.y) && floatIsZero(v.z));
 }
 
 
@@ -818,7 +806,7 @@ vec3 vec3NormalizeVec3FastC(vec3 v){
 */
 return_t vec3CanNormalize(const float x, const float y, const float z, vec3 *const restrict out){
 	float magnitude = x * x + y * y + z * z;
-	if(magnitude > VEC3_NORMALIZE_EPSILON){
+	if(magnitude > MATH_NORMALIZE_EPSILON){
 		magnitude = invSqrt(magnitude);
 		out->x = x * magnitude;
 		out->y = y * magnitude;
@@ -833,7 +821,7 @@ return_t vec3CanNormalize(const float x, const float y, const float z, vec3 *con
 // Try to normalize a vec3 and return whether or not we were successful!
 return_t vec3CanNormalizeVec3(vec3 *const restrict v){
 	float magnitude = v->x * v->x + v->y * v->y + v->z * v->z;
-	if(magnitude > VEC3_NORMALIZE_EPSILON){
+	if(magnitude > MATH_NORMALIZE_EPSILON){
 		magnitude = invSqrt(magnitude);
 		v->x *= magnitude;
 		v->y *= magnitude;
@@ -848,7 +836,7 @@ return_t vec3CanNormalizeVec3(vec3 *const restrict v){
 // Try to normalize a vec3 and return whether or not we were successful!
 return_t vec3CanNormalizeVec3Out(const vec3 *const restrict v, vec3 *const restrict out){
 	float magnitude = v->x * v->x + v->y * v->y + v->z * v->z;
-	if(magnitude > VEC3_NORMALIZE_EPSILON){
+	if(magnitude > MATH_NORMALIZE_EPSILON){
 		magnitude = invSqrt(magnitude);
 		out->x = v->x * magnitude;
 		out->y = v->y * magnitude;
@@ -866,7 +854,7 @@ return_t vec3CanNormalizeVec3Out(const vec3 *const restrict v, vec3 *const restr
 */
 return_t vec3CanNormalizeFast(const float x, const float y, const float z, vec3 *const restrict out){
 	float magnitude = x * x + y * y + z * z;
-	if(magnitude > VEC3_NORMALIZE_EPSILON){
+	if(magnitude > MATH_NORMALIZE_EPSILON){
 		magnitude = invSqrtFast(magnitude);
 		out->x = x * magnitude;
 		out->y = y * magnitude;
@@ -881,7 +869,7 @@ return_t vec3CanNormalizeFast(const float x, const float y, const float z, vec3 
 // Try to normalize a vec3 and return whether or not we were successful!
 return_t vec3CanNormalizeVec3Fast(vec3 *const restrict v){
 	float magnitude = v->x * v->x + v->y * v->y + v->z * v->z;
-	if(magnitude > VEC3_NORMALIZE_EPSILON){
+	if(magnitude > MATH_NORMALIZE_EPSILON){
 		magnitude = invSqrtFast(magnitude);
 		v->x *= magnitude;
 		v->y *= magnitude;
@@ -896,7 +884,7 @@ return_t vec3CanNormalizeVec3Fast(vec3 *const restrict v){
 // Try to normalize a vec3 and return whether or not we were successful!
 return_t vec3CanNormalizeVec3FastOut(const vec3 *const restrict v, vec3 *const restrict out){
 	float magnitude = v->x * v->x + v->y * v->y + v->z * v->z;
-	if(magnitude > VEC3_NORMALIZE_EPSILON){
+	if(magnitude > MATH_NORMALIZE_EPSILON){
 		magnitude = invSqrtFast(magnitude);
 		out->x = v->x * magnitude;
 		out->y = v->y * magnitude;

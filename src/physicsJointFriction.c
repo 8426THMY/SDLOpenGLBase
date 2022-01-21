@@ -54,14 +54,14 @@
 **
 ** ----------------------------------------------------------------------
 **
-** The effective mass for the constraint is given by JM^(-1)J^T,
-** where M^(-1) is the inverse mass matrix and J^T is the transposed
+** The effective mass for the constraint is given by JM^{-1}J^T,
+** where M^{-1} is the inverse mass matrix and J^T is the transposed
 ** Jacobian.
 **
-**          [mA^(-1)    0       0       0   ]
-**          [   0    IA^(-1)    0       0   ]
-** M^(-1) = [   0       0    mB^(-1)    0   ],
-**          [   0       0       0    IB^(-1)]
+**          [mA^{-1}    0       0       0   ]
+**          [   0    IA^{-1}    0       0   ]
+** M^{-1} = [   0       0    mB^{-1}    0   ],
+**          [   0       0       0    IB^{-1}]
 **
 **        [       -u1,        -u2]
 **        [-(rA X u1), -(rA X u2)]
@@ -77,16 +77,16 @@
 ** Evaluating this expression gives us the
 ** following matrix for our linear constraints:
 **
-**               [-mA^(-1) * u1,        -mA^(-1) * u2       ]
-**               [-IA^(-1) * (rA X u1), -IA^(-1) * (rA X u2)]
-** M^(-1)*J1^T = [ mB^(-1) * u1,         mB^(-1) * u2       ]
-**               [ IB^(-1) * (rA X u1),  IB^(-1) * (rA X u2)]
+**               [-mA^{-1} * u1,        -mA^{-1} * u2       ]
+**               [-IA^{-1} * (rA X u1), -IA^{-1} * (rA X u2)]
+** M^{-1}*J1^T = [ mB^{-1} * u1,         mB^{-1} * u2       ]
+**               [ IB^{-1} * (rA X u1),  IB^{-1} * (rA X u2)]
 **
-** K = J1*M^(-1)*J1^T
-** [K]_00 = mA^(-1) + mB^(-1) + ((rA X u1) . (IA^(-1) * (rA X u1))) + ((rB X u1) . (IB^(-1) * (rB X u1))),
-** [K]_01 =                     ((rA X u1) . (IA^(-1) * (rA X u2))) + ((rB X u1) . (IB^(-1) * (rB X u2))),
-** [K]_10 =                     ((rA X u1) . (IA^(-1) * (rA X u2))) + ((rB X u1) . (IB^(-1) * (rB X u2))),
-** [K]_11 = mA^(-1) + mB^(-1) + ((rA X u2) . (IA^(-1) * (rA X u2))) + ((rB X u2) . (IB^(-1) * (rB X u2))).
+** K = J1*M^{-1}*J1^T
+** [K]_00 = mA^{-1} + mB^{-1} + ((rA X u1) . (IA^{-1} * (rA X u1))) + ((rB X u1) . (IB^{-1} * (rB X u1))),
+** [K]_01 =                     ((rA X u1) . (IA^{-1} * (rA X u2))) + ((rB X u1) . (IB^{-1} * (rB X u2))),
+** [K]_10 =                     ((rA X u1) . (IA^{-1} * (rA X u2))) + ((rB X u1) . (IB^{-1} * (rB X u2))),
+** [K]_11 = mA^{-1} + mB^{-1} + ((rA X u2) . (IA^{-1} * (rA X u2))) + ((rB X u2) . (IB^{-1} * (rB X u2))).
 **
 ** It is also worth noting that in this case, J1*V is not
 ** a scalar either. It is the following 2x1 matrix:
@@ -103,7 +103,7 @@
 **
 ** For our angular constraint, we simply get:
 **
-** J2*M^(-1)*J2^T = ((n * IA^(-1)) . n) + ((n * IB^(-1)) . n).
+** J2*M^{-1}*J2^T = ((n * IA^{-1}) . n) + ((n * IB^{-1}) . n).
 **
 ** ----------------------------------------------------------------------
 */
@@ -160,11 +160,11 @@ void physJointFrictionCalculateInverseEffectiveMass(
 	float angularMass;
 
 
-	// K = JM^(-1)J^T
-	// [K]_00 = mA^(-1) + mB^(-1) + ((rA X u1) . (IA^(-1) * (rA X u1))) + ((rB X u1) . (IB^(-1) * (rB X u1)))
-	// [K]_01 =                     ((rA X u1) . (IA^(-1) * (rA X u2))) + ((rB X u1) . (IB^(-1) * (rB X u2)))
+	// K = JM^{-1}J^T
+	// [K]_00 = mA^{-1} + mB^{-1} + ((rA X u1) . (IA^{-1} * (rA X u1))) + ((rB X u1) . (IB^{-1} * (rB X u1)))
+	// [K]_01 =                     ((rA X u1) . (IA^{-1} * (rA X u2))) + ((rB X u1) . (IB^{-1} * (rB X u2)))
 	// [K]_10 = [K]_01
-	// [K]_11 = mA^(-1) + mB^(-1) + ((rA X u2) . (IA^(-1) * (rA X u2))) + ((rB X u2) . (IB^(-1) * (rB X u2)))
+	// [K]_11 = mA^{-1} + mB^{-1} + ((rA X u2) . (IA^{-1} * (rA X u2))) + ((rB X u2) . (IB^{-1} * (rB X u2)))
 	vec3CrossVec3Out(&joint->rA, &joint->tangents[0], &rAu1);
 	vec3CrossVec3Out(&joint->rA, &joint->tangents[1], &rAu2);
 	vec3CrossVec3Out(&joint->rB, &joint->tangents[0], &rBu1);
@@ -183,7 +183,7 @@ void physJointFrictionCalculateInverseEffectiveMass(
 	mat2Invert(&joint->linearInvMass);
 
 
-	// JM^(-1)J^T = (n . (IA^(-1) * n)) + (n . (IB^(-1) * n))
+	// JM^{-1}J^T = (n . (IA^{-1} * n)) + (n . (IB^{-1} * n))
 	mat3AddMat3Out(invInertiaA, invInertiaB, &totalInertia);
 	mat3MultiplyVec3Out(&totalInertia, &joint->normal, &IArAu1);
 	angularMass = vec3DotVec3(&IArAu1, &joint->normal);
@@ -224,7 +224,7 @@ void physJointFrictionSolveVelocity(
 
 
 	{
-		// lambda    = -JV/(JM^(-1)J^T)
+		// lambda    = -JV/(JM^{-1}J^T)
 		// lambda[0] = -(v_relative . u1)/K
 		// lambda[1] = -(v_relative . u2)/K
 		// Calculate the magnitudes for the linear impulses.
@@ -259,7 +259,7 @@ void physJointFrictionSolveVelocity(
 		float lambda;
 		const float oldImpulse = joint->angularImpulse;
 
-		// lambda = -JV/(JM^(-1)J^T)
+		// lambda = -JV/(JM^{-1}J^T)
 		//        = -((wB - wA) . n)/K
 		// Calculate the magnitude for the angular impulse.
 		vec3SubtractVec3Out(&bodyA->angularVelocity, &bodyB->angularVelocity, &dC);

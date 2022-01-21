@@ -281,7 +281,7 @@ static void mouseMotionIntToStr(char *str, const int i){
 		if((unsigned char)*str < COMMAND_SPECIAL_CHAR_LIMIT){
 			*str += COMMAND_SPECIAL_CHAR_LIMIT;
 			// We need to keep track of this change in the flag byte.
-			// Just add 2^(n-1) to it, where n is the index of the modified byte.
+			// Just add 2^{n-1} to it, where n is the index of the modified byte.
 			*flagChar += curIndex;
 		}
 	}

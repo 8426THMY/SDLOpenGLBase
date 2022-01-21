@@ -1167,7 +1167,7 @@ void mat3Invert(mat3 *const restrict m){
 		invDet = 1.f / invDet;
 
 		// Now use the determinant to find the inverse of the matrix!
-		// In terms of the adjugate, m^(-1) = adj(m)/det(m), where
+		// In terms of the adjugate, m^{-1} = adj(m)/det(m), where
 		//     adj(m)_(i,j) = c_(j,i).
 		m->m[0][0] = c00 * invDet;
 		m->m[0][1] = c01 * invDet;
@@ -1196,7 +1196,7 @@ void mat3InvertOut(const mat3 m, mat3 *const restrict out){
 		invDet = 1.f / invDet;
 
 		// Now use the determinant to find the inverse of the matrix!
-		// In terms of the adjugate, m^(-1) = adj(m)/det(m), where
+		// In terms of the adjugate, m^{-1} = adj(m)/det(m), where
 		//     adj(m)_(i,j) = c_(j,i).
 		out->m[0][0] = c00 * invDet;
 		out->m[0][1] = c01 * invDet;
@@ -1227,7 +1227,7 @@ mat3 mat3InvertC(const mat3 m){
 		invDet = 1.f / invDet;
 
 		// Now use the determinant to find the inverse of the matrix!
-		// In terms of the adjugate, m^(-1) = adj(m)/det(m), where
+		// In terms of the adjugate, m^{-1} = adj(m)/det(m), where
 		//     adj(m)_(i,j) = c_(j,i).
 		out.m[0][0] = c00 * invDet;
 		out.m[0][1] = c01 * invDet;
@@ -1263,7 +1263,7 @@ return_t mat3CanInvert(mat3 *const restrict m){
 		invDet = 1.f / invDet;
 
 		// Now use the determinant to find the inverse of the matrix!
-		// In terms of the adjugate, m^(-1) = adj(m)/det(m), where
+		// In terms of the adjugate, m^{-1} = adj(m)/det(m), where
 		//     adj(m)_(i,j) = c_(j,i).
 		m->m[0][0] = c00 * invDet;
 		m->m[0][1] = c01 * invDet;
@@ -1303,7 +1303,7 @@ return_t mat3CanInvertOut(const mat3 *const restrict m, mat3 *const restrict out
 		invDet = 1.f / invDet;
 
 		// Now use the determinant to find the inverse of the matrix!
-		// In terms of the adjugate, m^(-1) = adj(m)/det(m), where
+		// In terms of the adjugate, m^{-1} = adj(m)/det(m), where
 		//     adj(m)_(i,j) = c_(j,i).
 		out->m[0][0] = c00 * invDet;
 		out->m[0][1] = c01 * invDet;

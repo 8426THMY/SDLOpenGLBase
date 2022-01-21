@@ -363,16 +363,16 @@ void transformInvert(transform *const restrict trans){
 	/*
 	** In terms of matrices, we may define our transformation by
 	**     A = TRQSQ^T,
-	** Then the inverse of A, A^(-1), is given by
-	**     A^(-1) = (TRQSQ^T)^(-1) = -QS^(-1)Q^T R^T T.
-	** Therefore, if A^(-1) = T'R'Q'S'(Q')^T, then
-	**     T'           = -QS^(-1)Q^T R^T T,
-	**     R'Q'S'(Q')^T = QS^(-1)Q^T R^T.
+	** Then the inverse of A, A^{-1}, is given by
+	**     A^{-1} = (TRQSQ^T)^{-1} = -QS^{-1}Q^T R^T T.
+	** Therefore, if A^{-1} = T'R'Q'S'(Q')^T, then
+	**     T'           = -QS^{-1}Q^T R^T T,
+	**     R'Q'S'(Q')^T = QS^{-1}Q^T R^T.
 	** Playing a similar trick to before by letting Q'' = RQ,
-	**     R'Q'S'(Q')^T = R^T Q''S^(-1)(Q'')^T,
+	**     R'Q'S'(Q')^T = R^T Q''S^{-1}(Q'')^T,
 	**     {R' = R^T,
 	**  => {Q' = RQ,
-	**     {S' = S^(-1).
+	**     {S' = S^{-1}.
 	*/
 
 	// Temporarily store the original stretch rotation.
@@ -380,7 +380,7 @@ void transformInvert(transform *const restrict trans){
 
 	// Compute the new scale!
 	{
-		// S' = S^(-1)
+		// S' = S^{-1}
 		vec3DivideSByFast(&trans->scale, 1.f);
 		// Q' = RQ
 		quatMultiplyQuatP2(trans->rot, &trans->shear);
@@ -396,11 +396,11 @@ void transformInvert(transform *const restrict trans){
 	{
 		// Q^T R^T T
 		quatConjRotateVec3Fast(&trans->shear, &trans->pos);
-		// S^(-1)Q^T R^T T
+		// S^{-1}Q^T R^T T
 		vec3MultiplyVec3(&trans->pos, &trans->scale);
-		// QS^(-1)Q^T R^T T
+		// QS^{-1}Q^T R^T T
 		quatRotateVec3Fast(&Q, &trans->pos);
-		// T' = -QS^(-1)Q^T R^T T
+		// T' = -QS^{-1}Q^T R^T T
 		vec3Negate(&trans->pos);
 	}
 }
@@ -410,21 +410,21 @@ void transformInvertOut(const transform *const restrict trans, transform *const 
 	/*
 	** In terms of matrices, we may define our transformation by
 	**     A = TRQSQ^T,
-	** Then the inverse of A, A^(-1), is given by
-	**     A^(-1) = (TRQSQ^T)^(-1) = -QS^(-1)Q^T R^T T.
-	** Therefore, if A^(-1) = T'R'Q'S'(Q')^T, then
-	**     T'           = -QS^(-1)Q^T R^T T,
-	**     R'Q'S'(Q')^T = QS^(-1)Q^T R^T.
+	** Then the inverse of A, A^{-1}, is given by
+	**     A^{-1} = (TRQSQ^T)^{-1} = -QS^{-1}Q^T R^T T.
+	** Therefore, if A^{-1} = T'R'Q'S'(Q')^T, then
+	**     T'           = -QS^{-1}Q^T R^T T,
+	**     R'Q'S'(Q')^T = QS^{-1}Q^T R^T.
 	** Playing a similar trick to before by letting Q'' = RQ,
-	**     R'Q'S'(Q')^T = R^T Q''S^(-1)(Q'')^T,
+	**     R'Q'S'(Q')^T = R^T Q''S^{-1}(Q'')^T,
 	**     {R' = R^T,
 	**  => {Q' = RQ,
-	**     {S' = S^(-1).
+	**     {S' = S^{-1}.
 	*/
 
 	// Compute the new scale!
 	{
-		// S' = S^(-1)
+		// S' = S^{-1}
 		vec3DivideSByFastOut(&trans->scale, 1.f, &out->scale);
 		// Q' = RQ
 		quatMultiplyQuatOut(trans->rot, trans->shear, &out->shear);
@@ -440,11 +440,11 @@ void transformInvertOut(const transform *const restrict trans, transform *const 
 	{
 		// Q^T R^T T
 		quatConjRotateVec3FastOut(&out->shear, &trans->pos, &out->pos);
-		// S^(-1)Q^T R^T T
+		// S^{-1}Q^T R^T T
 		vec3MultiplyVec3(&out->pos, &out->scale);
-		// QS^(-1)Q^T R^T T
+		// QS^{-1}Q^T R^T T
 		quatRotateVec3Fast(&trans->shear, &out->pos);
-		// T' = -QS^(-1)Q^T R^T T
+		// T' = -QS^{-1}Q^T R^T T
 		vec3Negate(&out->pos);
 	}
 }
@@ -453,22 +453,22 @@ transform transformInvertC(const transform trans){
 	/*
 	** In terms of matrices, we may define our transformation by
 	**     A = TRQSQ^T,
-	** Then the inverse of A, A^(-1), is given by
-	**     A^(-1) = (TRQSQ^T)^(-1) = -QS^(-1)Q^T R^T T.
-	** Therefore, if A^(-1) = T'R'Q'S'(Q')^T, then
-	**     T'           = -QS^(-1)Q^T R^T T,
-	**     R'Q'S'(Q')^T = QS^(-1)Q^T R^T.
+	** Then the inverse of A, A^{-1}, is given by
+	**     A^{-1} = (TRQSQ^T)^{-1} = -QS^{-1}Q^T R^T T.
+	** Therefore, if A^{-1} = T'R'Q'S'(Q')^T, then
+	**     T'           = -QS^{-1}Q^T R^T T,
+	**     R'Q'S'(Q')^T = QS^{-1}Q^T R^T.
 	** Playing a similar trick to before by letting Q'' = RQ,
-	**     R'Q'S'(Q')^T = R^T Q''S^(-1)(Q'')^T,
+	**     R'Q'S'(Q')^T = R^T Q''S^{-1}(Q'')^T,
 	**     {R' = R^T,
 	**  => {Q' = RQ,
-	**     {S' = S^(-1).
+	**     {S' = S^{-1}.
 	*/
 
 	transform out;
 
 	// Compute the new scale!
-	// S' = S^(-1)
+	// S' = S^{-1}
 	out.scale = vec3DivideSByFastC(trans.scale, 1.f);
 	// Q' = RQ
 	out.shear = quatMultiplyQuatC(trans.rot, trans.shear);
@@ -478,7 +478,7 @@ transform transformInvertC(const transform trans){
 	out.rot = quatConjugateC(trans.rot);
 
 	// Compute the new position!
-	// T' = -QS^(-1)Q^T R^T T
+	// T' = -QS^{-1}Q^T R^T T
 	out.pos = vec3NegateC(
 		quatRotateVec3FastC(
 			trans.shear,

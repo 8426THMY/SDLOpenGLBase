@@ -260,9 +260,12 @@ void objectDraw(
 				GL_TRIANGLES, GL_LINE, vec3InitSetC(1.f, 0.4f, 0.f), 1.f
 			), &cam->viewProjectionMatrix);
 		}
-		debugDrawColliderHull(&(obj->physBodies->colliders->global.data.hull), debugDrawInfoInit(
-			GL_TRIANGLES, GL_LINE, vec3InitSetC(1.f, 0.4f, 0.f), 1.f
-		), &cam->viewProjectionMatrix);
+		// We don't update the colliders when they aren't collidable.
+		if(physRigidBodyIsCollidable(obj->physBodies)){
+			debugDrawColliderHull(&(obj->physBodies->colliders->global.data.hull), debugDrawInfoInit(
+				GL_TRIANGLES, GL_LINE, vec3InitSetC(1.f, 0.4f, 0.f), 1.f
+			), &cam->viewProjectionMatrix);
+		}
 	}
 
 

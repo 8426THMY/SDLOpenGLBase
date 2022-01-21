@@ -54,14 +54,14 @@
 **
 ** ----------------------------------------------------------------------
 **
-** The effective mass for the constraint is given by JM^(-1)J^T,
-** where M^(-1) is the inverse mass matrix and J^T is the transposed
+** The effective mass for the constraint is given by JM^{-1}J^T,
+** where M^{-1} is the inverse mass matrix and J^T is the transposed
 ** Jacobian.
 **
-**          [mA^(-1)    0       0       0   ]
-**          [   0    IA^(-1)    0       0   ]
-** M^(-1) = [   0       0    mB^(-1)    0   ],
-**          [   0       0       0    IB^(-1)]
+**          [mA^{-1}    0       0       0   ]
+**          [   0    IA^{-1}    0       0   ]
+** M^{-1} = [   0       0    mB^{-1}    0   ],
+**          [   0       0       0    IB^{-1}]
 **
 **       [    -d   ]
 **       [-(rA X d)]
@@ -71,7 +71,7 @@
 **
 ** Evaluating this expression gives us:
 **
-** JM^(-1)J^T = mA^(-1) + mB^(-1) + ((rA X d) . (IA^(-1) * (rA X d))) + ((rB X d) . (IB^(-1) * (rB X d))).
+** JM^{-1}J^T = mA^{-1} + mB^{-1} + ((rA X d) . (IA^{-1} * (rA X d))) + ((rB X d) . (IB^{-1} * (rB X d))).
 **
 ** ----------------------------------------------------------------------
 */
@@ -181,7 +181,10 @@ void physJointDistancePresolve(
 ** they are within the constraints imposed by the joint.
 ** This may be called multiple times with sequential impulse.
 */
-void physJointDistanceSolveVelocity(void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB){
+void physJointDistanceSolveVelocity(
+	void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB
+){
+
 	float lambda;
 	vec3 impulse;
 	vec3 relativeVelocity;
@@ -201,7 +204,7 @@ void physJointDistanceSolveVelocity(void *const restrict joint, physicsRigidBody
 	vec3SubtractVec3P1(&relativeVelocity, &impulse);
 
 
-	// lambda = -(JV + b)/(JM^(-1)J^T)
+	// lambda = -(JV + b)/(JM^{-1}J^T)
 	//        = -((v_relative . d) + b)/K
 	lambda = -(vec3DotVec3(&relativeVelocity, &((physicsJointDistance *)joint)->rAB) + ((physicsJointDistance *)joint)->bias +
 	         ((physicsJointDistance *)joint)->gamma * ((physicsJointDistance *)joint)->impulse) * ((physicsJointDistance *)joint)->invEffectiveMass;
@@ -219,7 +222,10 @@ void physJointDistanceSolveVelocity(void *const restrict joint, physicsRigidBody
 ** This may also be called multiple times, but by returning
 ** the amount of error we'll know when to stop.
 */
-return_t physJointDistanceSolvePosition(const void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB){
+return_t physJointDistanceSolvePosition(
+	const void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB
+){
+
 	#ifdef PHYSJOINTDISTANCE_STABILISER_GAUSS_SEIDEL
 	// If we're not using soft constraints, we can perform positional correction.
 	if(((physicsJointDistance *)joint)->angularFrequency <= 0.f){
@@ -323,7 +329,7 @@ static float calculateEffectiveMass(
 	vec3 rBd;
 	vec3 IBrBd;
 
-	// JM^(-1)J^T = mA^(-1) + mB^(-1) + ((rA X d) . (IA^(-1) * (rA X d))) + ((rB X d) . (IB^(-1) * (rB X d)))
+	// JM^{-1}J^T = mA^{-1} + mB^{-1} + ((rA X d) . (IA^{-1} * (rA X d))) + ((rB X d) . (IB^{-1} * (rB X d)))
 	vec3CrossVec3Out(rA, rAB, &rAd);
 	mat3MultiplyVec3Out(&bodyA->invInertiaGlobal, &rAd, &IArAd);
 	vec3CrossVec3Out(rB, rAB, &rBd);

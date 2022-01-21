@@ -28,8 +28,12 @@ typedef struct physicsRigidBody physicsRigidBody;
 void physJointRevolutePresolve(
 	void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB, const float dt
 );
-void physJointRevoluteSolveVelocity(void *const restrict joint, physicsRigidBody *bodyA, physicsRigidBody *const restrict bodyB);
-return_t physJointRevoluteSolvePosition(const void *const restrict joint, physicsRigidBody *bodyA, physicsRigidBody *const restrict bodyB);
+void physJointRevoluteSolveVelocity(
+	void *const restrict joint, physicsRigidBody *bodyA, physicsRigidBody *const restrict bodyB
+);
+return_t physJointRevoluteSolvePosition(
+	const void *const restrict joint, physicsRigidBody *bodyA, physicsRigidBody *const restrict bodyB
+);
 
 
 #endif

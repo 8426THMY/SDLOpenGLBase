@@ -67,7 +67,7 @@
 ** Like usual, we can write this velocity in terms a force
 ** which we will call the constraint force F_C,
 **
-** DV = M^(-1) * F_C.
+** DV = M^{-1} * F_C.
 **
 ** We don't want our constraints to introduce energy into
 ** the system, so F_C must be perpendicular to V. However,
@@ -75,27 +75,27 @@
 ** implies that J^T is perpendicular to V. Therefore, we
 ** can say that F_C is some scalar multiple of J^T, so
 **
-** DV = lambda * M^(-1) * J^T.
+** DV = lambda * M^{-1} * J^T.
 **
 ** Plugging this into J(V + DV) + b = 0 and solving for lambda,
 **
 ** J(V + DV) + b = 0,
-** JV + J * lambda * M^(-1) * J^T + b = 0,
-** J * lambda * M^(-1) * J^T = -(JV + b),
-** lambda = -(JV + b)/(JM^(-1)J^T),
+** JV + J * lambda * M^{-1} * J^T + b = 0,
+** J * lambda * M^{-1} * J^T = -(JV + b),
+** lambda = -(JV + b)/(JM^{-1}J^T),
 **
 ** as required.
 **
 ** ----------------------------------------------------------------------
 **
-** The effective mass for the constraint is given by JM^(-1)J^T,
-** where M^(-1) is the inverse mass matrix and J^T is the transposed
+** The effective mass for the constraint is given by JM^{-1}J^T,
+** where M^{-1} is the inverse mass matrix and J^T is the transposed
 ** Jacobian.
 **
-**          [mA^(-1)    0       0       0   ]
-**          [   0    IA^(-1)    0       0   ]
-** M^(-1) = [   0       0    mB^(-1)    0   ],
-**          [   0       0       0    IB^(-1)]
+**          [mA^{-1}    0       0       0   ]
+**          [   0    IA^{-1}    0       0   ]
+** M^{-1} = [   0       0    mB^{-1}    0   ],
+**          [   0       0       0    IB^{-1}]
 **
 **       [    -n   ]
 **       [-(rA X n)]
@@ -105,7 +105,7 @@
 **
 ** Evaluating this expression gives us:
 **
-** JM^(-1)J^T = mA^(-1) + mB^(-1) + ((rA X n) . (IA^(-1) * (rA X n))) + ((rB X n) . (IB^(-1) * (rB X n))).
+** JM^{-1}J^T = mA^{-1} + mB^{-1} + ((rA X n) . (IA^{-1} * (rA X n))) + ((rB X n) . (IB^{-1} * (rB X n))).
 **
 ** ----------------------------------------------------------------------
 */
@@ -572,7 +572,7 @@ static float calculateEffectiveMass(
 	vec3 rBn;
 	vec3 IBrBn;
 
-	// JM^(-1)J^T = mA^(-1) + mB^(-1) + ((rA X n) . (IA^(-1) * (rA X n))) + ((rB X n) . (IB^(-1) * (rB X n)))
+	// JM^{-1}J^T = mA^{-1} + mB^{-1} + ((rA X n) . (IA^{-1} * (rA X n))) + ((rB X n) . (IB^{-1} * (rB X n)))
 	vec3CrossVec3Out(pointA, normal, &rAn);
 	mat3MultiplyVec3Out(invInertiaA, &rAn, &IArAn);
 	vec3CrossVec3Out(pointB, normal, &rBn);
@@ -721,7 +721,7 @@ static void solveTangents(
 	vec3SubtractVec3P1(&contactVelocity, &temp);
 
 
-	// lambda = -(JV + b)/(JM^(-1)J^T)
+	// lambda = -(JV + b)/(JM^{-1}J^T)
 	//        = -(v_relative . n)/K
 	lambda = -vec3DotVec3(&contactVelocity, &physContactTangent(pm, 0)) * contact->invTangentMass[0];
 
@@ -732,7 +732,7 @@ static void solveTangents(
 	vec3MultiplySOut(&physContactTangent(pm, 0), contact->tangentImpulse[0] - oldImpulse, &impulse);
 
 
-	// lambda = -(JV + b)/(JM^(-1)J^T)
+	// lambda = -(JV + b)/(JM^{-1}J^T)
 	//        = -(v_relative . n)/K
 	lambda = -vec3DotVec3(&contactVelocity, &physContactTangent(pm, 1)) * contact->invTangentMass[1];
 
@@ -775,7 +775,7 @@ static void solveNormal(
 	vec3SubtractVec3P1(&contactVelocity, &impulse);
 
 
-	// lambda = -(JV + b)/(JM^(-1)J^T)
+	// lambda = -(JV + b)/(JM^{-1}J^T)
 	//        = -((v_relative . n) + b)/K
 	lambda = -(vec3DotVec3(&contactVelocity, &physContactNormal(pm)) + contact->bias) * contact->invNormalMass;
 
@@ -837,8 +837,8 @@ float solvePosition(
 		// JA = (IA * (rA X n)) . (rA X n)
 		// JB = (IB * (rB X n)) . (rB X n)
 		//
-		// K = JM^(-1)J^T
-		//   = mA^(-1) + mB^(-1) + JA + JB
+		// K = JM^{-1}J^T
+		//   = mA^{-1} + mB^{-1} + JA + JB
 
 		// We use *full* non-linear Gauss-Seidel, which
 		// requires us to recompute the effective mass.

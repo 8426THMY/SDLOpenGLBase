@@ -14,8 +14,9 @@
 #define DEG_TO_RAD (M_PI/180.f)
 // Used to convert from radians to degrees.
 #define RAD_TO_DEG (180.f/M_PI)
-
 #define SQRT_ONE_THIRD 0.57735026918962576f
+
+#define MATH_NORMALIZE_EPSILON 0.000001f
 
 // Note that these are prone to double evaluation,
 // so the equivalent functions should be used to prevent this.
@@ -23,6 +24,8 @@
 #define floatMaxFast(x, y) (((x) > (y)) ? (x) : (y))
 #define uintMinFast(x, y) (((x) < (y)) ? (x) : (y))
 #define uintMaxFast(x, y) (((x) > (y)) ? (x) : (y))
+
+#define floatIsZero(x) (fabsf(x) < MATH_NORMALIZE_EPSILON)
 
 // According to Mark Harris in his 2015 blog "GPU Pro Tip: Lerp Faster in C++",
 // we can achieve better performance and accuracy by using two fmas here.

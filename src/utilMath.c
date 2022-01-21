@@ -360,6 +360,10 @@ float clampEllipseDistanceFast(const float Ex, const float Ey, const float Ea, c
 		// given simply by d = ||(x0, y0)||/L.
 		const float Ebx = Eb*Ex;
 		const float Eay = Ea*Ey;
+		// Make sure we don't divide by 0.
+		if(floatIsZero(Ebx) && floatIsZero(Eay)){
+			return(0.f);
+		}
 		return((Ea*Eb) * sqrtf((Ex*Ex + Ey*Ey)/(Ebx*Ebx + Eay*Eay)));
 	}else{
 		return(Eb);
@@ -384,6 +388,12 @@ float clampEllipseDistanceNormalFast(const float Ex, const float Ey, const float
 		// given simply by d = ||(x0, y0)||/L.
 		const float Ebx = Eb*Ex;
 		const float Eay = Ea*Ey;
+		// Make sure we don't divide by 0.
+		if(floatIsZero(Ebx) && floatIsZero(Eay)){
+			normal->x = 0.f;
+			normal->y = 1.f;
+			return(0.f);
+		}
 
 		// Using the formulae above, we can show that the
 		// normal at the intersection point is given by
@@ -394,7 +404,7 @@ float clampEllipseDistanceNormalFast(const float Ex, const float Ey, const float
 		return((Ea*Eb) * sqrtf((Ex*Ex + Ey*Ey)/(Ebx*Ebx + Eay*Eay)));
 	}else{
 		normal->x = 0.f;
-		normal->y = 1.f;
+		normal->y = (Ey < 0.f) ? -1.f : 1.f;
 
 		return(Eb);
 	}

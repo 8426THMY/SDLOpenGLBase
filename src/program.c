@@ -638,6 +638,7 @@ static return_t initResources(program *const restrict prg){
 	physRigidBodyIgnoreLinear(obj->physBodies);physRigidBodyIgnoreSimulation(obj->physBodies);
 	physIslandInsertRigidBody(&island, obj->physBodies);
 
+	#warning "Maybe test contacts to make sure there's no energy loss/gain or anything."
 	#if 1
 	{
 		physicsRigidBody *egg, *cube;
@@ -700,6 +701,8 @@ static return_t initResources(program *const restrict prg){
 
 
 		{
+			#define TEST_PHYSJOINTFIXED
+			#ifdef TEST_PHYSJOINTSPHERE
 			physicsJointPair *joint = modulePhysicsJointPairAlloc();
 			const vec3 anchorA = egg->base->centroid;
 			const vec3 anchorB = vec3AddVec3C(cube->base->centroid, vec3InitSetC(-2.5f, 0.f, 0.f));
@@ -710,33 +713,29 @@ static return_t initResources(program *const restrict prg){
 				&joint->joint.data.sphere,
 				&anchorA, &anchorB,
 				&anchorRotA, &anchorRotB,
+				0.9f,
 				0.f, 0.f,
 				-M_PI_4, M_PI_4,
 				-M_PI_2, M_PI_2
 			);
 			joint->joint.type = PHYSJOINT_TYPE_SPHERE;
-			/*physicsJointPair *joint = modulePhysicsJointPairAlloc();
+			#elif defined(TEST_PHYSJOINTDISTANCE)
+			physicsJointPair *joint = modulePhysicsJointPairAlloc();
 			const vec3 anchorA = egg->base->centroid;
-			const vec3 anchorB = vec3InitSetC(0.f, 2.5f, 0.f);
+			const vec3 anchorB = vec3AddVec3C(cube->base->centroid, vec3InitSetC(0.f, 2.5f, 0.f));
 			physJointPairInit(joint, egg, cube, NULL, NULL);
 			physJointDistanceInit(&joint->joint.data.distance, &anchorA, &anchorB, 0.f, 1.f, 0.01f);
-			joint->joint.type = PHYSJOINT_TYPE_DISTANCE;*/
-			{
-				vec3 aA, aB;
-				vec3 constraint;
-
-				vec3MultiplyVec3Out(&egg->state.scale, &anchorA, &aA);
-				quatRotateVec3Fast(&egg->state.rot, &aA);
-				vec3MultiplyVec3Out(&cube->state.scale, &anchorB, &aB);
-				quatRotateVec3Fast(&cube->state.rot, &aB);
-
-				// Calculate the displacement from the ball to the socket:
-				// -C1 = (pA + aA) - (pB - aB).
-				vec3AddVec3Out(&egg->centroid, &aA, &constraint);
-				vec3SubtractVec3P1(&constraint, &cube->centroid);
-				vec3SubtractVec3P1(&constraint, &aB);
-				printf("%f, %f, %f\n", constraint.x, constraint.y, constraint.z);
-			}
+			joint->joint.type = PHYSJOINT_TYPE_DISTANCE;
+			#elif defined(TEST_PHYSJOINTFIXED)
+			physicsJointPair *joint = modulePhysicsJointPairAlloc();
+			const vec3 anchorA = egg->base->centroid;
+			const vec3 anchorB = vec3AddVec3C(cube->base->centroid, vec3InitSetC(-2.5f, 0.f, 0.f));
+			const quat anchorRotA = quatInitIdentityC();
+			const quat anchorRotB = quatInitIdentityC();
+			physJointPairInit(joint, egg, cube, NULL, NULL);
+			physJointFixedInit(&joint->joint.data.fixed, &anchorA, &anchorB, &anchorRotA, &anchorRotB);
+			joint->joint.type = PHYSJOINT_TYPE_FIXED;
+			#endif
 		}
 		physIslandInsertRigidBody(&island, cube);
 		physIslandInsertRigidBody(&island, egg);

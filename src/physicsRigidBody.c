@@ -325,17 +325,47 @@ void physRigidBodyDefAddCollider(
 }
 
 
+void physRigidBodySimulateLinear(physicsRigidBody *const restrict body){
+	flagsSet(body->flags, PHYSRIGIDBODY_SIMULATE_LINEAR);
+}
+
+void physRigidBodySimulateAngular(physicsRigidBody *const restrict body){
+	flagsSet(body->flags, PHYSRIGIDBODY_SIMULATE_ANGULAR);
+}
+
+void physRigidBodySimulate(physicsRigidBody *const restrict body){
+	flagsSet(body->flags, PHYSRIGIDBODY_SIMULATE);
+}
+
 void physRigidBodySimulateCollisions(physicsRigidBody *const restrict body){
-	if(!physRigidBodyIsSimulated(body)){
-		flagsSet(body->flags, PHYSRIGIDBODY_COLLIDE | PHYSRIGIDBODY_COLLISION_MODIFIED);
-	}
+	flagsSet(body->flags, PHYSRIGIDBODY_COLLIDE | PHYSRIGIDBODY_COLLISION_MODIFIED);
+}
+
+
+void physRigidBodyIgnoreLinear(physicsRigidBody *const restrict body){
+	flagsUnset(body->flags, PHYSRIGIDBODY_SIMULATE_LINEAR);
+}
+
+void physRigidBodyIgnoreAngular(physicsRigidBody *const restrict body){
+	flagsUnset(body->flags, PHYSRIGIDBODY_SIMULATE_ANGULAR);
+}
+
+void physRigidBodyIgnoreSimulation(physicsRigidBody *const restrict body){
+	flagsUnset(body->flags, PHYSRIGIDBODY_SIMULATE);
 }
 
 void physRigidBodyIgnoreCollisions(physicsRigidBody *const restrict body){
-	if(physRigidBodyIsSimulated(body)){
-		flagsUnset(body->flags, PHYSRIGIDBODY_COLLIDE);
-		flagsSet(body->flags, PHYSRIGIDBODY_COLLISION_MODIFIED);
-	}
+	flagsUnset(body->flags, PHYSRIGIDBODY_COLLIDE);
+	flagsSet(body->flags, PHYSRIGIDBODY_COLLISION_MODIFIED);
+}
+
+
+return_t physRigidBodyIsSimulated(physicsRigidBody *const restrict body){
+	return(flagsAreSet(body->flags, PHYSRIGIDBODY_SIMULATE));
+}
+
+return_t physRigidBodyIsCollidable(physicsRigidBody *const restrict body){
+	return(flagsAreSet(body->flags, PHYSRIGIDBODY_COLLIDE));
 }
 
 
@@ -380,8 +410,8 @@ return_t physRigidBodyPermitCollision(const physicsRigidBody *bodyA, const physi
 ** Calculate the body's increase in velocity for
 ** the current timestep using symplectic Euler.
 **
-** v_(n + 1) = v_n + F * m^(-1) * dt
-** w_(n + 1) = w_n + T * I^(-1) * dt
+** v_(n + 1) = v_n + F * m^{-1} * dt
+** w_(n + 1) = w_n + T * I^{-1} * dt
 */
 void physRigidBodyIntegrateVelocity(physicsRigidBody *const restrict body, const float dt){
 	if(flagsAreSet(body->flags, PHYSRIGIDBODY_SIMULATE_LINEAR)){
@@ -711,17 +741,17 @@ void physRigidBodyUpdatePosition(physicsRigidBody *const restrict body){
 void physRigidBodyUpdateGlobalInertia(physicsRigidBody *const restrict body){
 	mat3 orientation;
 	mat3 invOrientation;
-	// Denote the body's orientation matrix R and it's inverse R^(-1).
+	// Denote the body's orientation matrix R and it's inverse R^{-1}.
 	quatToMat3(&body->state.rot, &orientation);
 	mat3TransposeOut(orientation, &invOrientation);
 
 	// The global inverse inertia tensor is given by
 	//
-	// I_global^(-1) = R * I_local^(-1) * R^(-1).
+	// I_global^{-1} = R * I_local^{-1} * R^{-1}.
 	//
 	// When applying impulses, we rely on the following relation:
 	//
-	// R * I_local^(-1) * R^(-1) * L_global = R * I_local^(-1) * L_local
+	// R * I_local^{-1} * R^{-1} * L_global = R * I_local^{-1} * L_local
 	// = R * w_local
 	// = w_global.
 	//

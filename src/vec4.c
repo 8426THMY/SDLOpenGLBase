@@ -7,7 +7,7 @@
 #include "utilMath.h"
 
 
-#define VEC4_NORMALIZE_EPSILON 0.000001f
+#define MATH_NORMALIZE_EPSILON 0.000001f
 
 
 // Initialize the vec4's values to 0!
@@ -66,32 +66,17 @@ vec4 vec4InitSetC(const float x, const float y, const float z, const float w){
 
 // Return whether a vec4 is sufficiently close to zero!
 return_t vec4IsZero(const float x, const float y, const float z, const float w){
-	return(
-		x < VEC4_NORMALIZE_EPSILON &&
-		y < VEC4_NORMALIZE_EPSILON &&
-		z < VEC4_NORMALIZE_EPSILON &&
-		w < VEC4_NORMALIZE_EPSILON
-	);
+	return(floatIsZero(x) && floatIsZero(y) && floatIsZero(z) && floatIsZero(w));
 }
 
 // Return whether a vec4 is sufficiently close to zero!
 return_t vec4IsZeroVec4(const vec4 *const restrict v){
-	return(
-		v->x < VEC4_NORMALIZE_EPSILON &&
-		v->y < VEC4_NORMALIZE_EPSILON &&
-		v->z < VEC4_NORMALIZE_EPSILON &&
-		v->w < VEC4_NORMALIZE_EPSILON
-	);
+	return(floatIsZero(v->x) && floatIsZero(v->y) && floatIsZero(v->z) && floatIsZero(v->w));
 }
 
 // Return whether a vec4 is sufficiently close to zero!
 return_t vec4IsZeroVec4C(const vec4 v){
-	return(
-		v.x < VEC4_NORMALIZE_EPSILON &&
-		v.y < VEC4_NORMALIZE_EPSILON &&
-		v.z < VEC4_NORMALIZE_EPSILON &&
-		v.w < VEC4_NORMALIZE_EPSILON
-	);
+	return(floatIsZero(v.x) && floatIsZero(v.y) && floatIsZero(v.z) && floatIsZero(v.w));
 }
 
 
@@ -817,7 +802,7 @@ vec4 vec4NormalizeVec4FastC(vec4 v){
 */
 return_t vec4CanNormalize(const float x, const float y, const float z, const float w, vec4 *const restrict out){
 	float magnitude = x * x + y * y + z * z + w * w;
-	if(magnitude > VEC4_NORMALIZE_EPSILON){
+	if(magnitude > MATH_NORMALIZE_EPSILON){
 		magnitude = invSqrt(magnitude);
 		out->x = x * magnitude;
 		out->y = y * magnitude;
@@ -833,7 +818,7 @@ return_t vec4CanNormalize(const float x, const float y, const float z, const flo
 // Try to normalize a vec4 and return whether or not we were successful!
 return_t vec4CanNormalizeVec4(vec4 *const restrict v){
 	float magnitude = v->x * v->x + v->y * v->y + v->z * v->z + v->w * v->w;
-	if(magnitude > VEC4_NORMALIZE_EPSILON){
+	if(magnitude > MATH_NORMALIZE_EPSILON){
 		magnitude = invSqrt(magnitude);
 		v->x *= magnitude;
 		v->y *= magnitude;
@@ -849,7 +834,7 @@ return_t vec4CanNormalizeVec4(vec4 *const restrict v){
 // Try to normalize a vec4 and return whether or not we were successful!
 return_t vec4CanNormalizeVec4Out(const vec4 *const restrict v, vec4 *const restrict out){
 	float magnitude = v->x * v->x + v->y * v->y + v->z * v->z + v->w * v->w;
-	if(magnitude > VEC4_NORMALIZE_EPSILON){
+	if(magnitude > MATH_NORMALIZE_EPSILON){
 		magnitude = invSqrt(magnitude);
 		out->x = v->x * magnitude;
 		out->y = v->y * magnitude;
@@ -868,7 +853,7 @@ return_t vec4CanNormalizeVec4Out(const vec4 *const restrict v, vec4 *const restr
 */
 return_t vec4CanNormalizeFast(const float x, const float y, const float z, const float w, vec4 *const restrict out){
 	float magnitude = x * x + y * y + z * z + w * w;
-	if(magnitude > VEC4_NORMALIZE_EPSILON){
+	if(magnitude > MATH_NORMALIZE_EPSILON){
 		magnitude = invSqrtFast(magnitude);
 		out->x = x * magnitude;
 		out->y = y * magnitude;
@@ -884,7 +869,7 @@ return_t vec4CanNormalizeFast(const float x, const float y, const float z, const
 // Try to normalize a vec4 and return whether or not we were successful!
 return_t vec4CanNormalizeVec4Fast(vec4 *const restrict v){
 	float magnitude = v->x * v->x + v->y * v->y + v->z * v->z + v->w * v->w;
-	if(magnitude > VEC4_NORMALIZE_EPSILON){
+	if(magnitude > MATH_NORMALIZE_EPSILON){
 		magnitude = invSqrtFast(magnitude);
 		v->x *= magnitude;
 		v->y *= magnitude;
@@ -900,7 +885,7 @@ return_t vec4CanNormalizeVec4Fast(vec4 *const restrict v){
 // Try to normalize a vec4 and return whether or not we were successful!
 return_t vec4CanNormalizeVec4FastOut(const vec4 *const restrict v, vec4 *const restrict out){
 	float magnitude = v->x * v->x + v->y * v->y + v->z * v->z + v->w * v->w;
-	if(magnitude > VEC4_NORMALIZE_EPSILON){
+	if(magnitude > MATH_NORMALIZE_EPSILON){
 		magnitude = invSqrtFast(magnitude);
 		out->x = v->x * magnitude;
 		out->y = v->y * magnitude;

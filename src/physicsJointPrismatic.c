@@ -61,14 +61,14 @@
 **
 ** ----------------------------------------------------------------------
 **
-** The effective mass for the constraint is given by JM^(-1)J^T,
-** where M^(-1) is the inverse mass matrix and J^T is the transposed
+** The effective mass for the constraint is given by JM^{-1}J^T,
+** where M^{-1} is the inverse mass matrix and J^T is the transposed
 ** Jacobian.
 **
-**          [mA^(-1)    0       0       0   ]
-**          [   0    IA^(-1)    0       0   ]
-** M^(-1) = [   0       0    mB^(-1)    0   ],
-**          [   0       0       0    IB^(-1)]
+**          [mA^{-1}    0       0       0   ]
+**          [   0    IA^{-1}    0       0   ]
+** M^{-1} = [   0       0    mB^{-1}    0   ],
+**          [   0       0       0    IB^{-1}]
 **
 **        [       -u1,        -u2]
 **        [-(rA X u1), -(rA X u2)]
@@ -84,16 +84,16 @@
 ** Evaluating this expression gives us the
 ** following matrix for our linear constraints:
 **
-**               [-mA^(-1) * u1,        -mA^(-1) * u2       ]
-**               [-IA^(-1) * (rA X u1), -IA^(-1) * (rA X u2)]
-** M^(-1)*J1^T = [ mB^(-1) * u1,         mB^(-1) * u2       ]
-**               [ IB^(-1) * (rA X u1),  IB^(-1) * (rA X u2)]
+**               [-mA^{-1} * u1,        -mA^{-1} * u2       ]
+**               [-IA^{-1} * (rA X u1), -IA^{-1} * (rA X u2)]
+** M^{-1}*J1^T = [ mB^{-1} * u1,         mB^{-1} * u2       ]
+**               [ IB^{-1} * (rA X u1),  IB^{-1} * (rA X u2)]
 **
-** K = J1*M^(-1)*J1^T
-** [K]_00 = mA^(-1) + mB^(-1) + (((rA + d) X u1) . (IA^(-1) * ((rA + d) X u1))) + ((rB X u1) . (IB^(-1) * (rB X u1))),
-** [K]_01 =                     (((rA + d) X u1) . (IA^(-1) * ((rA + d) X u2))) + ((rB X u1) . (IB^(-1) * (rB X u2))),
-** [K]_10 =                     (((rA + d) X u1) . (IA^(-1) * ((rA + d) X u2))) + ((rB X u1) . (IB^(-1) * (rB X u2))),
-** [K]_11 = mA^(-1) + mB^(-1) + (((rA + d) X u2) . (IA^(-1) * ((rA + d) X u2))) + ((rB X u2) . (IB^(-1) * (rB X u2))).
+** K = J1*M^{-1}*J1^T
+** [K]_00 = mA^{-1} + mB^{-1} + (((rA + d) X u1) . (IA^{-1} * ((rA + d) X u1))) + ((rB X u1) . (IB^{-1} * (rB X u1))),
+** [K]_01 =                     (((rA + d) X u1) . (IA^{-1} * ((rA + d) X u2))) + ((rB X u1) . (IB^{-1} * (rB X u2))),
+** [K]_10 =                     (((rA + d) X u1) . (IA^{-1} * ((rA + d) X u2))) + ((rB X u1) . (IB^{-1} * (rB X u2))),
+** [K]_11 = mA^{-1} + mB^{-1} + (((rA + d) X u2) . (IA^{-1} * ((rA + d) X u2))) + ((rB X u2) . (IB^{-1} * (rB X u2))).
 **
 ** It is also worth noting that in this case, J1V is not
 ** a scalar either. It is the following 2x1 matrix:
@@ -110,8 +110,9 @@
 **
 ** For our angular constraint, we simply get:
 **
-** J2*M^(-1)*J2^T = IA^(-1) + IB^(-1).
+** J2*M^{-1}*J2^T = IA^{-1} + IB^{-1}.
 **
+** ----------------------------------------------------------------------
 **
 ** Finally, adding a potential bias term, we have
 **
@@ -158,7 +159,7 @@
 **
 ** Using this, we get that the effective mass is:
 **
-** J1*M^(-1)J1^T = J2*M^(-1)J2^T = mA^(-1) + mB^(-1) + (((rA + d) X a) * IA^(-1)) . ((rA + d) X a) + (((rB X a) * IB^(-1)) . (rB X a))
+** J1*M^{-1}J1^T = J2*M^{-1}J2^T = mA^{-1} + mB^{-1} + (((rA + d) X a) * IA^{-1}) . ((rA + d) X a) + (((rB X a) * IB^{-1}) . (rB X a))
 **/
 
 /**
@@ -179,7 +180,7 @@
 **
 ** Using this, we get that the effective mass is:
 **
-** JM^(-1)J^T = mA^(-1) + mB^(-1)
+** JM^{-1}J^T = mA^{-1} + mB^{-1}
 **/
 
 
@@ -256,7 +257,10 @@ void physJointPrismaticPresolve(
 ** they are within the constraints imposed by the joint.
 ** This may be called multiple times with sequential impulse.
 */
-void physJointPrismaticSolveVelocity(void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB){
+void physJointPrismaticSolveVelocity(
+	void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB
+){
+
 	/** We should calculate and add the bias here if we're using Baumgarte. **/
 	/** Most of these need d though, so should we calculate it elsewhere?   **/
 }
@@ -267,7 +271,10 @@ void physJointPrismaticSolveVelocity(void *const restrict joint, physicsRigidBod
 ** This may also be called multiple times, but by returning
 ** the amount of error we'll know when to stop.
 */
-return_t physJointPrismaticSolvePosition(const void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB){
+return_t physJointPrismaticSolvePosition(
+	const void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB
+){
+
 	#ifdef PHYSJOINTPRISMATIC_STABILISER_GAUSS_SEIDEL
 	#endif
 
@@ -354,7 +361,7 @@ static void calculateEffectiveMass(
 	vec3 IBrBu2;
 
 
-	// JM^(-1)J^T = mA^(-1) + mB^(-1) + (((rA + d) X a) . (IA^(-1) * ((rA + d) X a))) + ((rB X a) . (IB^(-1) * (rB X a)))
+	// JM^{-1}J^T = mA^{-1} + mB^{-1} + (((rA + d) X a) . (IA^{-1} * ((rA + d) X a))) + ((rB X a) . (IB^{-1} * (rB X a)))
 	mat3MultiplyVec3Out(invInertiaA, rAa, &IArAu1);
 	mat3MultiplyVec3Out(invInertiaB, rBa, &IBrBu1);
 
@@ -363,11 +370,11 @@ static void calculateEffectiveMass(
 	joint->limitMotorInvMass = 1.f / (invMass + vec3DotVec3(&IArAu1, rAa) + vec3DotVec3(&IBrBu1, rBa));
 
 
-	// K = JM^(-1)J^T
-	// [K]_00 = mA^(-1) + mB^(-1) + (((rA + d) X u1) . (IA^(-1) * ((rA + d) X u1))) + ((rB X u1) . (IB^(-1) * (rB X u1)))
-	// [K]_01 =                     (((rA + d) X u1) . (IA^(-1) * ((rA + d) X u2))) + ((rB X u1) . (IB^(-1) * (rB X u2)))
+	// K = JM^{-1}J^T
+	// [K]_00 = mA^{-1} + mB^{-1} + (((rA + d) X u1) . (IA^{-1} * ((rA + d) X u1))) + ((rB X u1) . (IB^{-1} * (rB X u1)))
+	// [K]_01 =                     (((rA + d) X u1) . (IA^{-1} * ((rA + d) X u2))) + ((rB X u1) . (IB^{-1} * (rB X u2)))
 	// [K]_10 = [K]_01
-	// [K]_11 = mA^(-1) + mB^(-1) + (((rA + d) X u2) . (IA^(-1) * ((rA + d) X u2))) + ((rB X u2) . (IB^(-1) * (rB X u2)))
+	// [K]_11 = mA^{-1} + mB^{-1} + (((rA + d) X u2) . (IA^{-1} * ((rA + d) X u2))) + ((rB X u2) . (IB^{-1} * (rB X u2)))
 	mat3MultiplyVec3Out(invInertiaA, rAu1, &IArAu1);
 	mat3MultiplyVec3Out(invInertiaA, rAu2, &IArAu2);
 	mat3MultiplyVec3Out(invInertiaB, rBu1, &IBrBu1);
@@ -381,7 +388,7 @@ static void calculateEffectiveMass(
 	mat2Invert(&joint->linearInvMass);
 
 
-	// JM^(-1)J^T = IA^(-1) + IB^(-1)
+	// JM^{-1}J^T = IA^{-1} + IB^{-1}
 	// Calculate the inverse angular effective mass.
     mat3AddMat3Out(invInertiaA, invInertiaB, &joint->angularInvMass);
 	mat3Invert(&joint->angularInvMass);
