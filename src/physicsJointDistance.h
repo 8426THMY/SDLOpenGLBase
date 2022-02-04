@@ -43,6 +43,7 @@ typedef struct physicsJointDistance {
 	// to the bodies reference positions (origins).
 	vec3 anchorA;
 	vec3 anchorB;
+
 	// These points are in global space,
 	// relative to the centres of mass.
 	vec3 rA;

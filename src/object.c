@@ -389,6 +389,8 @@ static void updateBones(object *const restrict obj, const float time){
 	boneIndex_t i;
 
 
+	#warning "Need to reimplement user transformations and physics compatibility..."
+	#warning "When we do, go back to storing the root bone's transformation in the array."
 	#if 0
 	// We transform the first bone outside of the main
 	// loop, as it's stored differently to the others.

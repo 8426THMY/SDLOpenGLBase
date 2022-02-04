@@ -250,14 +250,15 @@ return_t physJointDistanceSolvePosition(
 		{
 			const float effectiveMass = calculateEffectiveMass(&rA, &rB, &rAB, bodyA, bodyB);
 			const float distance = vec3MagnitudeVec3(&rAB);
-			// Clamp the constraint value.
-			const float constraint = floatClamp(
-				distance - ((physicsJointDistance *)joint)->distance,
-				-PHYSJOINT_MAX_LINEAR_CORRECTION,
-				PHYSJOINT_MAX_LINEAR_CORRECTION
-			);
+			const float error = distance - ((physicsJointDistance *)joint)->distance;
 
 			if(effectiveMass > PHYSJOINT_LINEAR_SLOP && distance > PHYSJOINT_LINEAR_SLOP){
+				// Clamp the constraint value.
+				const float constraint = floatClamp(
+					PHYSJOINTDISTANCE_BAUMGARTE_BIAS * error,
+					-PHYSJOINT_MAX_LINEAR_CORRECTION,
+					PHYSJOINT_MAX_LINEAR_CORRECTION
+				);
 				vec3MultiplyS(&rAB, -constraint/(distance*effectiveMass));
 
 				// Apply the correctional impulse.
@@ -265,7 +266,7 @@ return_t physJointDistanceSolvePosition(
 				physRigidBodyApplyImpulsePosition(bodyB, &rB, &rAB);
 			}
 
-			return(fabsf(constraint) < PHYSJOINT_LINEAR_SLOP);
+			return(fabsf(error) <= PHYSJOINT_LINEAR_POSITIONAL_ERROR_THRESHOLD);
 		}
 	}
 	#endif

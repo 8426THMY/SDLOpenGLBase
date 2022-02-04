@@ -410,8 +410,8 @@ return_t physRigidBodyPermitCollision(const physicsRigidBody *bodyA, const physi
 ** Calculate the body's increase in velocity for
 ** the current timestep using symplectic Euler.
 **
-** v_(n + 1) = v_n + F * m^{-1} * dt
-** w_(n + 1) = w_n + T * I^{-1} * dt
+** v_{n + 1} = v_n + F * m^{-1} * dt
+** w_{n + 1} = w_n + T * I^{-1} * dt
 */
 void physRigidBodyIntegrateVelocity(physicsRigidBody *const restrict body, const float dt){
 	if(flagsAreSet(body->flags, PHYSRIGIDBODY_SIMULATE_LINEAR)){
@@ -448,9 +448,9 @@ void physRigidBodyResetAccumulators(physicsRigidBody *const restrict body){
 ** Calculate the body's change in position for
 ** the current timestep using symplectic Euler.
 **
-** x_(n + 1) = x_n + v_(n + 1) * dt
+** x_{n + 1} = x_n + v_{n + 1} * dt
 ** dq/dt = 0.5 * w * q
-** q_(n + 1) = q_n + dq/dt * dt
+** q_{n + 1} = q_n + dq/dt * dt
 */
 void physRigidBodyIntegratePosition(physicsRigidBody *const restrict body, const float dt){
 	if(flagsAreSet(body->flags, PHYSRIGIDBODY_SIMULATE_LINEAR)){
@@ -535,20 +535,6 @@ void physRigidBodyApplyImpulse(physicsRigidBody *const restrict body, const vec3
 	vec3AddVec3(&body->angularVelocity, &impulse);
 }
 
-// Add a translational and "boosted" rotational impulse to a rigid body.
-void physRigidBodyApplyImpulseBoost(physicsRigidBody *const restrict body, const vec3 *const restrict r, const vec3 *const restrict p, const vec3 *const restrict a){
-	vec3 impulse;
-
-	// Linear velocity.
-	vec3Fmaf(body->invMass, p, &body->linearVelocity);
-
-	// Angular velocity.
-	vec3CrossVec3Out(r, p, &impulse);
-	vec3AddVec3(&impulse, a);
-	mat3MultiplyVec3(&body->invInertiaGlobal, &impulse);
-	vec3AddVec3(&body->angularVelocity, &impulse);
-}
-
 // Subtract a translational and rotational impulse from a rigid body.
 void physRigidBodyApplyImpulseInverse(physicsRigidBody *const restrict body, const vec3 *const restrict r, const vec3 *const restrict p){
 	vec3 impulse;
@@ -562,8 +548,30 @@ void physRigidBodyApplyImpulseInverse(physicsRigidBody *const restrict body, con
 	vec3SubtractVec3P1(&body->angularVelocity, &impulse);
 }
 
+// Add a translational and "boosted" rotational impulse to a rigid body.
+void physRigidBodyApplyImpulseBoost(
+	physicsRigidBody *const restrict body, const vec3 *const restrict r,
+	const vec3 *const restrict p, const vec3 *const restrict a
+){
+
+	vec3 impulse;
+
+	// Linear velocity.
+	vec3Fmaf(body->invMass, p, &body->linearVelocity);
+
+	// Angular velocity.
+	vec3CrossVec3Out(r, p, &impulse);
+	vec3AddVec3(&impulse, a);
+	mat3MultiplyVec3(&body->invInertiaGlobal, &impulse);
+	vec3AddVec3(&body->angularVelocity, &impulse);
+}
+
 // Subtract a translational and "boosted" rotational impulse from a rigid body.
-void physRigidBodyApplyImpulseBoostInverse(physicsRigidBody *const restrict body, const vec3 *const restrict r, const vec3 *const restrict p, const vec3 *const restrict a){
+void physRigidBodyApplyImpulseBoostInverse(
+	physicsRigidBody *const restrict body, const vec3 *const restrict r,
+	const vec3 *const restrict p, const vec3 *const restrict a
+){
+
 	vec3 impulse;
 
 	// Linear velocity.

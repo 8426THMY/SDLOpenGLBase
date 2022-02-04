@@ -152,7 +152,7 @@ void *memDoubleListInsertBefore(
 			// Make the new block point to the one after it.
 			*memDoubleListBlockUsedDataGetNext(newBlock) = next;
 			// Make the new block point to the one before it.
-			*memDoubleListBlockUsedDataGetPrev(newBlock) = prevBlock;
+			*memDoubleListBlockUsedDataGetPrev(newBlock) = *prevBlock;
 
 			// Make the block we're inserting after point to the new block.
 			if(*prevBlock != NULL){
@@ -199,7 +199,7 @@ void *memDoubleListInsertAfter(
 			void **const nextBlock = memDoubleListBlockUsedDataGetNext(prev);
 
 			// Make the new block point to the one after it.
-			*memDoubleListBlockUsedDataGetNext(newBlock) = nextBlock;
+			*memDoubleListBlockUsedDataGetNext(newBlock) = *nextBlock;
 			// Make the block we're inserting before point back to the new block.
 			if(*nextBlock != NULL){
 				*memDoubleListBlockUsedDataGetPrev(*nextBlock) = newBlock;

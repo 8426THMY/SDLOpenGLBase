@@ -140,9 +140,15 @@ void physRigidBodyApplyLinearImpulseInverse(physicsRigidBody *const restrict bod
 void physRigidBodyApplyAngularImpulse(physicsRigidBody *const restrict body, vec3 J);
 void physRigidBodyApplyAngularImpulseInverse(physicsRigidBody *const restrict body, vec3 J);
 void physRigidBodyApplyImpulse(physicsRigidBody *const restrict body, const vec3 *const restrict r, const vec3 *const restrict p);
-void physRigidBodyApplyImpulseBoost(physicsRigidBody *const restrict body, const vec3 *const restrict r, const vec3 *const restrict p, const vec3 *const restrict a);
 void physRigidBodyApplyImpulseInverse(physicsRigidBody *const restrict body, const vec3 *const restrict r, const vec3 *const restrict p);
-void physRigidBodyApplyImpulseBoostInverse(physicsRigidBody *const restrict body, const vec3 *const restrict r, const vec3 *const restrict p, const vec3 *const restrict a);
+void physRigidBodyApplyImpulseBoost(
+	physicsRigidBody *const restrict body, const vec3 *const restrict r,
+	const vec3 *const restrict p, const vec3 *const restrict a
+);
+void physRigidBodyApplyImpulseBoostInverse(
+	physicsRigidBody *const restrict body, const vec3 *const restrict r,
+	const vec3 *const restrict p, const vec3 *const restrict a
+);
 #ifdef PHYSCOLLIDER_USE_POSITIONAL_CORRECTION
 void physRigidBodyApplyAngularImpulsePosition(physicsRigidBody *const restrict body, vec3 J);
 void physRigidBodyApplyAngularImpulsePositionInverse(physicsRigidBody *const restrict body, vec3 J);

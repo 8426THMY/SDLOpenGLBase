@@ -1130,7 +1130,12 @@ quat quatConjMultiplyQuatC(const quat q1, const quat q2){
 }
 
 
-// Apply a quaternion rotation to a vec3!
+/*
+** Apply a quaternion rotation to a vec3! Normally, this is done
+** by computing v' = q*v*conj(q), where v is the quaternion with
+** imaginary part v, and the rotated vector is the imaginary part
+** of v'. However, we use an optimized method instead.
+*/
 void quatRotateVec3(const quat *const restrict q, vec3 *const restrict v){
 	float qvDot = vec3DotVec3(v, (const vec3 *const restrict)&q->x);
 	const float qNorm = q->w * q->w - vec3MagnitudeSquaredVec3((const vec3 *const restrict)&q->x);
@@ -1145,7 +1150,12 @@ void quatRotateVec3(const quat *const restrict q, vec3 *const restrict v){
 	v->z = qvDot * q->z + qNorm * v->z + qvCross.z;
 }
 
-// Apply a quaternion rotation to a vec3!
+/*
+** Apply a quaternion rotation to a vec3! Normally, this is done
+** by computing v' = q*v*conj(q), where v is the quaternion with
+** imaginary part v, and the rotated vector is the imaginary part
+** of v'. However, we use an optimized method instead.
+*/
 void quatRotateVec3Out(const quat *const restrict q, const vec3 *const restrict v, vec3 *const restrict out){
 	float qvDot = vec3DotVec3(v, (const vec3 *const restrict)&q->x);
 	const float qNorm = q->w * q->w - vec3MagnitudeSquaredVec3((const vec3 *const restrict)&q->x);
@@ -1160,7 +1170,12 @@ void quatRotateVec3Out(const quat *const restrict q, const vec3 *const restrict 
 	out->z = qvDot * q->z + qNorm * v->z + qvCross.z;
 }
 
-// Apply a quaternion rotation to a vec3!
+/*
+** Apply a quaternion rotation to a vec3! Normally, this is done
+** by computing v' = q*v*conj(q), where v is the quaternion with
+** imaginary part v, and the rotated vector is the imaginary part
+** of v'. However, we use an optimized method instead.
+*/
 vec3 quatRotateVec3C(const quat q, vec3 v){
 	float qvDot = vec3DotVec3C(v, *((const vec3 *)&q.x));
 	const float qNorm = q.w * q.w - vec3MagnitudeSquaredVec3C(*((const vec3 *)&q.x));
@@ -1174,7 +1189,12 @@ vec3 quatRotateVec3C(const quat q, vec3 v){
 	return(v);
 }
 
-// Undo a quaternion rotation on a vec3!
+/*
+** Undo a quaternion rotation on a vec3! Normally, this is done
+** by computing v' = conj(q)*v*q, where v is the quaternion with
+** imaginary part v, and the rotated vector is the imaginary part
+** of v'. However, we use an optimized method instead.
+*/
 void quatConjRotateVec3(const quat *const restrict q, vec3 *const restrict v){
 	float qvDot = vec3DotVec3(v, (const vec3 *const restrict)&q->x);
 	const float qNorm = q->w * q->w - vec3MagnitudeSquaredVec3((const vec3 *const restrict)&q->x);
@@ -1189,7 +1209,12 @@ void quatConjRotateVec3(const quat *const restrict q, vec3 *const restrict v){
 	v->z = qvDot * q->z + qNorm * v->z + qvCross.z;
 }
 
-// Undo a quaternion rotation on a vec3!
+/*
+** Undo a quaternion rotation on a vec3! Normally, this is done
+** by computing v' = conj(q)*v*q, where v is the quaternion with
+** imaginary part v, and the rotated vector is the imaginary part
+** of v'. However, we use an optimized method instead.
+*/
 void quatConjRotateVec3Out(const quat *const restrict q, const vec3 *const restrict v, vec3 *const restrict out){
 	float qvDot = vec3DotVec3(v, (const vec3 *const restrict)&q->x);
 	const float qNorm = q->w * q->w - vec3MagnitudeSquaredVec3((const vec3 *const restrict)&q->x);
@@ -1204,7 +1229,12 @@ void quatConjRotateVec3Out(const quat *const restrict q, const vec3 *const restr
 	out->z = qvDot * q->z + qNorm * v->z + qvCross.z;
 }
 
-// Undo a quaternion rotation on a vec3!
+/*
+** Undo a quaternion rotation on a vec3! Normally, this is done
+** by computing v' = conj(q)*v*q, where v is the quaternion with
+** imaginary part v, and the rotated vector is the imaginary part
+** of v'. However, we use an optimized method instead.
+*/
 vec3 quatConjRotateVec3C(const quat q, vec3 v){
 	float qvDot = vec3DotVec3C(v, *((const vec3 *)&q.x));
 	const float qNorm = q.w * q.w - vec3MagnitudeSquaredVec3C(*((const vec3 *)&q.x));
@@ -1236,7 +1266,11 @@ void quatRotateVec3Fast(const quat *const restrict q, vec3 *const restrict v){
 	v->z += 2.f*qvCross.z;
 }
 
-// Apply a quaternion rotation to a vec3!
+/*
+** Apply a quaternion rotation to a vec3!
+**
+** Note: This method is significantly faster, but it is not perfectly accurate.
+*/
 void quatRotateVec3FastOut(const quat *const restrict q, const vec3 *const restrict v, vec3 *const restrict out){
 	vec3 qvCross;
 	vec3CrossVec3Out((const vec3 *const restrict)&q->x, v, &qvCross);
@@ -1250,7 +1284,11 @@ void quatRotateVec3FastOut(const quat *const restrict q, const vec3 *const restr
 	out->z = 2.f*qvCross.z + v->z;
 }
 
-// Apply a quaternion rotation to a vec3!
+/*
+** Apply a quaternion rotation to a vec3!
+**
+** Note: This method is significantly faster, but it is not perfectly accurate.
+*/
 vec3 quatRotateVec3FastC(const quat q, vec3 v){
 	vec3 qvCross = vec3CrossVec3C(*((const vec3 *)&q.x), v);
 	qvCross.x += q.w * v.x;
@@ -1265,7 +1303,11 @@ vec3 quatRotateVec3FastC(const quat q, vec3 v){
 	return(v);
 }
 
-// Undo a quaternion rotation on a vec3!
+/*
+** Undo a quaternion rotation on a vec3!
+**
+** Note: This method is significantly faster, but it is not perfectly accurate.
+*/
 void quatConjRotateVec3Fast(const quat *const restrict q, vec3 *const restrict v){
 	vec3 qvCross;
 	vec3CrossVec3Out((const vec3 *const restrict)&q->x, v, &qvCross);
@@ -1283,7 +1325,11 @@ void quatConjRotateVec3Fast(const quat *const restrict q, vec3 *const restrict v
 	v->z += 2.f*qvCross.z;
 }
 
-// Undo a quaternion rotation on a vec3!
+/*
+** Undo a quaternion rotation on a vec3!
+**
+** Note: This method is significantly faster, but it is not perfectly accurate.
+*/
 void quatConjRotateVec3FastOut(const quat *const restrict q, const vec3 *const restrict v, vec3 *const restrict out){
 	vec3 qvCross;
 	vec3CrossVec3Out((const vec3 *const restrict)&q->x, v, &qvCross);
@@ -1301,7 +1347,11 @@ void quatConjRotateVec3FastOut(const quat *const restrict q, const vec3 *const r
 	out->z = 2.f*qvCross.z + v->z;
 }
 
-// Undo a quaternion rotation on a vec3!
+/*
+** Undo a quaternion rotation on a vec3!
+**
+** Note: This method is significantly faster, but it is not perfectly accurate.
+*/
 vec3 quatConjRotateVec3FastC(const quat q, vec3 v){
 	vec3 qvCross = vec3CrossVec3C(*((const vec3 *)&q.x), v);
 	// It would perhaps be clearer if we reversed the order
@@ -3133,7 +3183,7 @@ quat quatDifferentiateC(const quat q, const vec3 w){
 ** Integrate the quaternion "q" with angular
 ** velocity "w" using the step size "dt".
 **
-** q_(n + 1) = q_n + dq/dt * dt
+** q_{n + 1} = q_n + dq/dt * dt
 */
 void quatIntegrate(quat *const restrict q, const vec3 *const restrict w, float dt){
 	quat spin;
@@ -3151,7 +3201,7 @@ void quatIntegrate(quat *const restrict q, const vec3 *const restrict w, float d
 ** Integrate the quaternion "q" with angular velocity "w"
 ** using the step size "dt" and store the result in "out".
 **
-** q_(n + 1) = q_n + dq/dt * dt
+** q_{n + 1} = q_n + dq/dt * dt
 */
 void quatIntegrateOut(const quat *const restrict q, const vec3 *const restrict w, float dt, quat *const restrict out){
 	quat spin;
@@ -3169,7 +3219,7 @@ void quatIntegrateOut(const quat *const restrict q, const vec3 *const restrict w
 ** Integrate the quaternion "q" with angular
 ** velocity "w" using the step size "dt".
 **
-** q_(n + 1) = q_n + dq/dt * dt
+** q_{n + 1} = q_n + dq/dt * dt
 */
 quat quatIntegrateC(const quat q, const vec3 w, float dt){
 	dt *= 0.5f;

@@ -2,9 +2,6 @@
 #define physicsJointFixed_h
 
 
-#define PHYSJOINT_TYPE_FIXED 1
-
-
 #include "settingsPhysics.h"
 
 #include "vec3.h"
@@ -12,6 +9,13 @@
 #include "mat3.h"
 
 #include "utilTypes.h"
+
+
+#define PHYSJOINT_TYPE_FIXED 1
+
+#ifndef PHYSJOINTFIXED_BAUMGARTE_BIAS
+	#define PHYSJOINTFIXED_BAUMGARTE_BIAS 0.3f
+#endif
 
 
 // Fixed joints prevent any relative translational or rotational movement.
@@ -22,8 +26,8 @@ typedef struct physJointFixedDef {
 	vec3 anchorB;
 	// Relative orientations that we want
 	// the rigid bodies to be fixed at.
-	quat anchorRotA;
-	quat anchorRotB;
+	quat rotOffsetA;
+	quat rotOffsetB;
 } physicsJointFixedDef;
 
 typedef struct physJointFixed {
@@ -33,20 +37,29 @@ typedef struct physJointFixed {
 	vec3 anchorB;
 	// Orientations of the anchors
 	// for the angular constraints.
-	quat anchorRotA;
-	quat anchorRotB;
+	quat rotOffsetA;
+	quat rotOffsetB;
+
+	#ifdef PHYSJOINTFIXED_ACCURATE_ANGULAR_MASS
+	// Relative orientation between the rigid bodies,
+	// including the contributions of the rotOffsets.
+	quat qR;
+	#endif
 	// These points are in global space,
 	// relative to the centres of mass.
 	vec3 rA;
 	vec3 rB;
 
 	// Baumgarte bias terms for the constraints.
+	vec3 angularBias;
 	vec3 linearBias;
 
 	// Effective masses, (JMJ^T)^{-1}.
+	mat3 angularInvMass;
 	mat3 linearInvMass;
 
 	// Accumulated impulses used for warm starting.
+	vec3 angularImpulse;
 	vec3 linearImpulse;
 } physicsJointFixed;
 
@@ -56,7 +69,7 @@ typedef struct physicsRigidBody physicsRigidBody;
 void physJointFixedInit(
 	physicsJointFixed *const restrict joint,
 	const vec3 *const restrict anchorA, const vec3 *const restrict anchorB,
-	const quat *const restrict anchorRotA, const quat *const restrict anchorRotB
+	const quat *const restrict rotOffsetA, const quat *const restrict rotOffsetB
 );
 
 #ifdef PHYSJOINTFIXED_WARM_START

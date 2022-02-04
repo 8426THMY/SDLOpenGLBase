@@ -5,7 +5,7 @@ Features that exist currently:
 
 * Custom mathematics library supporting 2, 3 and 4 dimensional vectors/matrices and quaternions.
 * Custom memory management system based off low-level system calls with support for several different allocators.
-* Rigid body physics engine that uses sequential impulse to solve constraints and a dynamic AABB tree for spacial partioning into islands.
+* Rigid body physics engine that uses sequential impulse to solve constraints and a dynamic AABB tree for spacial partioning.
 * Skeletal animation system supporting non-uniform scaling, frame/animation interpolation and capable of layering multiple animations simultaneously.
 * Dynamic and programmable Source-like particle system.
 * Custom font format based off OpenType, designed for fast and efficient rendering. Supports BMP and MSDF (multi-channel signed distance field) images.

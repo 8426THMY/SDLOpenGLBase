@@ -4,6 +4,7 @@
 #include "physicsRigidBody.h"
 
 
+#warning "This is all wrong, probably."
 /*
 ** ----------------------------------------------------------------------
 **

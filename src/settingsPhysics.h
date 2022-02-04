@@ -33,9 +33,11 @@
 #define PHYSCONTACT_FRICTION_GEOMETRIC_AVERAGE
 
 #define PHYSJOINT_LINEAR_SLOP 0.05f
+#define PHYSJOINT_LINEAR_SLOP_SQUARED 0.05f
 #define PHYSJOINT_MAX_LINEAR_CORRECTION 0.2f
 #define PHYSJOINT_LINEAR_POSITIONAL_ERROR_THRESHOLD (3.f * PHYSJOINT_LINEAR_SLOP)
 #define PHYSJOINT_ANGULAR_SLOP 0.005f
+#define PHYSJOINT_ANGULAR_SLOP_SQUARED 0.005f
 #define PHYSJOINT_MAX_ANGULAR_CORRECTION 0.02f
 #define PHYSJOINT_ANGULAR_POSITIONAL_ERROR_THRESHOLD (3.f * PHYSJOINT_ANGULAR_SLOP)
 
@@ -46,17 +48,21 @@
 #define PHYSJOINTPRISMATIC_WARM_START
 // Warm starting the spherical joint introduces too much "bounce-back".
 // This seems to be an issue with both the angular and linear parts.
+// Maybe have a look at this after fixing the Gauss-Seidel stabilizer.
 //#define PHYSJOINTSPHERE_WARM_START
 
 #define PHYSJOINTDISTANCE_STABILISER_GAUSS_SEIDEL
+#define PHYSJOINTFIXED_STABILISER_BAUMGARTE
 #define PHYSJOINTFIXED_STABILISER_GAUSS_SEIDEL
+#define PHYSJOINTREVOLUTE_STABILISER_BAUMGARTE
 #define PHYSJOINTREVOLUTE_STABILISER_GAUSS_SEIDEL
+#define PHYSJOINTPRISMATIC_STABILISER_BAUMGARTE
 #define PHYSJOINTPRISMATIC_STABILISER_GAUSS_SEIDEL
+#define PHYSJOINTSPHERE_STABILISER_BAUMGARTE
 // Using Gauss-Seidel with the spherical joint damps restitution too much.
-// This is mostly caused by the angular component, but the linear component
-// also contributes to the issue, albeit to a much lesser degree. However,
-// without this, very small angular limits tend to be very unstable.
-// That shouldn't be too big a deal though, as we can just use a fixed joint.
+// It seems that the angular and linear corrections are fighting each other.
+// Find a way to fix this, as without it, small angular limits are unstable.
+// I suppose a workaround for that is to simply use a fixed joint, though.
 //#define PHYSJOINTSPHERE_STABILISER_GAUSS_SEIDEL
 
 #define PHYSJOINTDISTANCE_BAUMGARTE_BIAS  0.3f
@@ -65,6 +71,7 @@
 #define PHYSJOINTPRISMATIC_BAUMGARTE_BIAS 0.3f
 #define PHYSJOINTSPHERE_BAUMGARTE_BIAS    0.3f
 
+#define PHYSJOINTFIXED_ACCURATE_ANGULAR_MASS
 //#define PHYSJOINTSPHERE_ANGULAR_CONSTRAINT_EULER
 //#define PHYSJOINTSPHERE_SWING_USE_ELLIPSE_NORMAL
 

@@ -37,8 +37,8 @@ typedef struct physicsJointSphereDef {
 	// our maximum angular limits are non-negative, these allow
 	// us to effectively bypass these constraints by specifying
 	// a new "origin" for our cone.
-	quat anchorRotA;
-	quat anchorRotB;
+	quat rotOffsetA;
+	quat rotOffsetB;
 
 	// The hardness is a real number in [0, 1], where '1' gives
 	// a rigid constraint and '0' gives a totally soft constraint.
@@ -68,8 +68,9 @@ typedef struct physicsJointSphere {
 	vec3 anchorB;
 	// Orientations of the anchors
 	// for the angular constraints.
-	quat anchorRotA;
-	quat anchorRotB;
+	quat rotOffsetA;
+	quat rotOffsetB;
+
 	// These points are in global space,
 	// relative to the centres of mass.
 	vec3 rA;
@@ -150,7 +151,7 @@ typedef struct physicsRigidBody physicsRigidBody;
 void physJointSphereInit(
 	physicsJointSphere *const restrict joint,
 	const vec3 *const restrict anchorA, const vec3 *const restrict anchorB,
-	const quat *const restrict anchorRotA, const quat *const restrict anchorRotB,
+	const quat *const restrict rotOffsetA, const quat *const restrict rotOffsetB,
 	const float restitution,
 	const float minX, const float maxX,
 	const float minY, const float maxY,

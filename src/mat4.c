@@ -2015,7 +2015,7 @@ void mat4Invert(mat4 *const restrict m){
 	const float f3 = tempMatrix.m[0][2] * tempMatrix.m[3][3] - tempMatrix.m[3][2] * tempMatrix.m[0][3];
 	const float f4 = tempMatrix.m[0][2] * tempMatrix.m[2][3] - tempMatrix.m[2][2] * tempMatrix.m[0][3];
 	const float f5 = tempMatrix.m[0][2] * tempMatrix.m[1][3] - tempMatrix.m[1][2] * tempMatrix.m[0][3];
-	// These values represent the cofactors c_(0,0), c_(0,1), c_(0,2) and c_(0,3).
+	// These values represent the cofactors c_{0,0}, c_{0,1}, c_{0,2} and c_{0,3}.
 	const float c00 =   tempMatrix.m[1][1] * f0 - tempMatrix.m[2][1] * f1 + tempMatrix.m[3][1] * f2;
 	const float c01 = -(tempMatrix.m[0][1] * f0 - tempMatrix.m[2][1] * f3 + tempMatrix.m[3][1] * f4);
 	const float c02 =   tempMatrix.m[0][1] * f1 - tempMatrix.m[1][1] * f3 + tempMatrix.m[3][1] * f5;
@@ -2037,7 +2037,7 @@ void mat4Invert(mat4 *const restrict m){
 
 		// Now use the determinant to find the inverse of the matrix!
 		// In terms of the adjugate, m^{-1} = adj(m)/det(m), where
-		//     adj(m)_(i,j) = c_(j,i).
+		//     adj(m)_{i,j} = c_{j,i}.
 		m->m[0][0] = c00 * invDet;
 		m->m[0][1] = c01 * invDet;
 		m->m[0][2] = c02 * invDet;
@@ -2068,7 +2068,7 @@ void mat4InvertOut(const mat4 m, mat4 *const restrict out){
 	const float f3 = m.m[0][2] * m.m[3][3] - m.m[3][2] * m.m[0][3];
 	const float f4 = m.m[0][2] * m.m[2][3] - m.m[2][2] * m.m[0][3];
 	const float f5 = m.m[0][2] * m.m[1][3] - m.m[1][2] * m.m[0][3];
-	// These values represent the cofactors c_(0,0), c_(0,1), c_(0,2) and c_(0,3).
+	// These values represent the cofactors c_{0,0}, c_{0,1}, c_{0,2} and c_{0,3}.
 	const float c00 =   m.m[1][1] * f0 - m.m[2][1] * f1 + m.m[3][1] * f2;
 	const float c01 = -(m.m[0][1] * f0 - m.m[2][1] * f3 + m.m[3][1] * f4);
 	const float c02 =   m.m[0][1] * f1 - m.m[1][1] * f3 + m.m[3][1] * f5;
@@ -2090,7 +2090,7 @@ void mat4InvertOut(const mat4 m, mat4 *const restrict out){
 
 		// Now use the determinant to find the inverse of the matrix!
 		// In terms of the adjugate, m^{-1} = adj(m)/det(m), where
-		//     adj(m)_(i,j) = c_(j,i).
+		//     adj(m)_{i,j} = c_{j,i}.
 		out->m[0][0] = c00 * invDet;
 		out->m[0][1] = c01 * invDet;
 		out->m[0][2] = c02 * invDet;
@@ -2121,7 +2121,7 @@ mat4 mat4InvertC(const mat4 m){
 	const float f3 = m.m[0][2] * m.m[3][3] - m.m[3][2] * m.m[0][3];
 	const float f4 = m.m[0][2] * m.m[2][3] - m.m[2][2] * m.m[0][3];
 	const float f5 = m.m[0][2] * m.m[1][3] - m.m[1][2] * m.m[0][3];
-	// These values represent the cofactors c_(0,0), c_(0,1), c_(0,2) and c_(0,3).
+	// These values represent the cofactors c_{0,0}, c_{0,1}, c_{0,2} and c_{0,3}.
 	const float c00 =   m.m[1][1] * f0 - m.m[2][1] * f1 + m.m[3][1] * f2;
 	const float c01 = -(m.m[0][1] * f0 - m.m[2][1] * f3 + m.m[3][1] * f4);
 	const float c02 =   m.m[0][1] * f1 - m.m[1][1] * f3 + m.m[3][1] * f5;
@@ -2144,7 +2144,7 @@ mat4 mat4InvertC(const mat4 m){
 
 		// Now use the determinant to find the inverse of the matrix!
 		// In terms of the adjugate, m^{-1} = adj(m)/det(m), where
-		//     adj(m)_(i,j) = c_(j,i).
+		//     adj(m)_{i,j} = c_{j,i}.
 		out.m[0][0] = c00 * invDet;
 		out.m[0][1] = c01 * invDet;
 		out.m[0][2] = c02 * invDet;
@@ -2182,7 +2182,7 @@ return_t mat4CanInvert(mat4 *const restrict m){
 	const float f3 = tempMatrix.m[0][2] * tempMatrix.m[3][3] - tempMatrix.m[3][2] * tempMatrix.m[0][3];
 	const float f4 = tempMatrix.m[0][2] * tempMatrix.m[2][3] - tempMatrix.m[2][2] * tempMatrix.m[0][3];
 	const float f5 = tempMatrix.m[0][2] * tempMatrix.m[1][3] - tempMatrix.m[1][2] * tempMatrix.m[0][3];
-	// These values represent the cofactors c_(0,0), c_(0,1), c_(0,2) and c_(0,3).
+	// These values represent the cofactors c_{0,0}, c_{0,1}, c_{0,2} and c_{0,3}.
 	const float c00 =   tempMatrix.m[1][1] * f0 - tempMatrix.m[2][1] * f1 + tempMatrix.m[3][1] * f2;
 	const float c01 = -(tempMatrix.m[0][1] * f0 - tempMatrix.m[2][1] * f3 + tempMatrix.m[3][1] * f4);
 	const float c02 =   tempMatrix.m[0][1] * f1 - tempMatrix.m[1][1] * f3 + tempMatrix.m[3][1] * f5;
@@ -2204,7 +2204,7 @@ return_t mat4CanInvert(mat4 *const restrict m){
 
 		// Now use the determinant to find the inverse of the matrix!
 		// In terms of the adjugate, m^{-1} = adj(m)/det(m), where
-		//     adj(m)_(i,j) = c_(j,i).
+		//     adj(m)_{i,j} = c_{j,i}.
 		m->m[0][0] = c00 * invDet;
 		m->m[0][1] = c01 * invDet;
 		m->m[0][2] = c02 * invDet;
@@ -2244,7 +2244,7 @@ return_t mat4CanInvertOut(const mat4 m, mat4 *const restrict out){
 	const float f3 = m.m[0][2] * m.m[3][3] - m.m[3][2] * m.m[0][3];
 	const float f4 = m.m[0][2] * m.m[2][3] - m.m[2][2] * m.m[0][3];
 	const float f5 = m.m[0][2] * m.m[1][3] - m.m[1][2] * m.m[0][3];
-	// These values represent the cofactors c_(0,0), c_(0,1), c_(0,2) and c_(0,3).
+	// These values represent the cofactors c_{0,0}, c_{0,1}, c_{0,2} and c_{0,3}.
 	const float c00 =   m.m[1][1] * f0 - m.m[2][1] * f1 + m.m[3][1] * f2;
 	const float c01 = -(m.m[0][1] * f0 - m.m[2][1] * f3 + m.m[3][1] * f4);
 	const float c02 =   m.m[0][1] * f1 - m.m[1][1] * f3 + m.m[3][1] * f5;
@@ -2266,7 +2266,7 @@ return_t mat4CanInvertOut(const mat4 m, mat4 *const restrict out){
 
 		// Now use the determinant to find the inverse of the matrix!
 		// In terms of the adjugate, m^{-1} = adj(m)/det(m), where
-		//     adj(m)_(i,j) = c_(j,i).
+		//     adj(m)_{i,j} = c_{j,i}.
 		out->m[0][0] = c00 * invDet;
 		out->m[0][1] = c01 * invDet;
 		out->m[0][2] = c02 * invDet;

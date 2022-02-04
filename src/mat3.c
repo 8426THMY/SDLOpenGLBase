@@ -1155,7 +1155,7 @@ void mat3Invert(mat3 *const restrict m){
 	const mat3 tempMatrix = *m;
 
 	// We need to use these values twice, but we only need to calculate them once.
-	// These values represent the cofactors c_(0,0), c_(0,1) and c_(0,2).
+	// These values represent the cofactors c_{0,0}, c_{0,1} and c_{0,2}.
 	const float c00 = tempMatrix.m[1][1] * tempMatrix.m[2][2] - tempMatrix.m[2][1] * tempMatrix.m[1][2];
 	const float c01 = tempMatrix.m[2][1] * tempMatrix.m[0][2] - tempMatrix.m[0][1] * tempMatrix.m[2][2];
 	const float c02 = tempMatrix.m[0][1] * tempMatrix.m[1][2] - tempMatrix.m[1][1] * tempMatrix.m[0][2];
@@ -1168,7 +1168,7 @@ void mat3Invert(mat3 *const restrict m){
 
 		// Now use the determinant to find the inverse of the matrix!
 		// In terms of the adjugate, m^{-1} = adj(m)/det(m), where
-		//     adj(m)_(i,j) = c_(j,i).
+		//     adj(m)_{i,j} = c_{j,i}.
 		m->m[0][0] = c00 * invDet;
 		m->m[0][1] = c01 * invDet;
 		m->m[0][2] = c02 * invDet;
@@ -1184,7 +1184,7 @@ void mat3Invert(mat3 *const restrict m){
 // Invert a matrix and store the result in "out"!
 void mat3InvertOut(const mat3 m, mat3 *const restrict out){
 	// We need to use these values twice, but we only need to calculate them once.
-	// These values represent the cofactors c_(0,0), c_(0,1) and c_(0,2).
+	// These values represent the cofactors c_{0,0}, c_{0,1} and c_{0,2}.
 	const float c00 = m.m[1][1] * m.m[2][2] - m.m[2][1] * m.m[1][2];
 	const float c01 = m.m[2][1] * m.m[0][2] - m.m[0][1] * m.m[2][2];
 	const float c02 = m.m[0][1] * m.m[1][2] - m.m[1][1] * m.m[0][2];
@@ -1197,7 +1197,7 @@ void mat3InvertOut(const mat3 m, mat3 *const restrict out){
 
 		// Now use the determinant to find the inverse of the matrix!
 		// In terms of the adjugate, m^{-1} = adj(m)/det(m), where
-		//     adj(m)_(i,j) = c_(j,i).
+		//     adj(m)_{i,j} = c_{j,i}.
 		out->m[0][0] = c00 * invDet;
 		out->m[0][1] = c01 * invDet;
 		out->m[0][2] = c02 * invDet;
@@ -1213,7 +1213,7 @@ void mat3InvertOut(const mat3 m, mat3 *const restrict out){
 // Invert a matrix!
 mat3 mat3InvertC(const mat3 m){
 	// We need to use these values twice, but we only need to calculate them once.
-	// These values represent the cofactors c_(0,0), c_(0,1) and c_(0,2).
+	// These values represent the cofactors c_{0,0}, c_{0,1} and c_{0,2}.
 	const float c00 = m.m[1][1] * m.m[2][2] - m.m[2][1] * m.m[1][2];
 	const float c01 = m.m[2][1] * m.m[0][2] - m.m[0][1] * m.m[2][2];
 	const float c02 = m.m[0][1] * m.m[1][2] - m.m[1][1] * m.m[0][2];
@@ -1228,7 +1228,7 @@ mat3 mat3InvertC(const mat3 m){
 
 		// Now use the determinant to find the inverse of the matrix!
 		// In terms of the adjugate, m^{-1} = adj(m)/det(m), where
-		//     adj(m)_(i,j) = c_(j,i).
+		//     adj(m)_{i,j} = c_{j,i}.
 		out.m[0][0] = c00 * invDet;
 		out.m[0][1] = c01 * invDet;
 		out.m[0][2] = c02 * invDet;
@@ -1251,7 +1251,7 @@ return_t mat3CanInvert(mat3 *const restrict m){
 	const mat3 tempMatrix = *m;
 
 	// We need to use these values twice, but we only need to calculate them once.
-	// These values represent the cofactors c_(0,0), c_(0,1) and c_(0,2).
+	// These values represent the cofactors c_{0,0}, c_{0,1} and c_{0,2}.
 	const float c00 = tempMatrix.m[1][1] * tempMatrix.m[2][2] - tempMatrix.m[2][1] * tempMatrix.m[1][2];
 	const float c01 = tempMatrix.m[2][1] * tempMatrix.m[0][2] - tempMatrix.m[0][1] * tempMatrix.m[2][2];
 	const float c02 = tempMatrix.m[0][1] * tempMatrix.m[1][2] - tempMatrix.m[1][1] * tempMatrix.m[0][2];
@@ -1264,7 +1264,7 @@ return_t mat3CanInvert(mat3 *const restrict m){
 
 		// Now use the determinant to find the inverse of the matrix!
 		// In terms of the adjugate, m^{-1} = adj(m)/det(m), where
-		//     adj(m)_(i,j) = c_(j,i).
+		//     adj(m)_{i,j} = c_{j,i}.
 		m->m[0][0] = c00 * invDet;
 		m->m[0][1] = c01 * invDet;
 		m->m[0][2] = c02 * invDet;
@@ -1291,7 +1291,7 @@ return_t mat3CanInvertOut(const mat3 *const restrict m, mat3 *const restrict out
 	const mat3 tempMatrix = *m;
 
 	// We need to use these values twice, but we only need to calculate them once.
-	// These values represent the cofactors c_(0,0), c_(0,1) and c_(0,2).
+	// These values represent the cofactors c_{0,0}, c_{0,1} and c_{0,2}.
 	const float c00 = tempMatrix.m[1][1] * tempMatrix.m[2][2] - tempMatrix.m[2][1] * tempMatrix.m[1][2];
 	const float c01 = tempMatrix.m[2][1] * tempMatrix.m[0][2] - tempMatrix.m[0][1] * tempMatrix.m[2][2];
 	const float c02 = tempMatrix.m[0][1] * tempMatrix.m[1][2] - tempMatrix.m[1][1] * tempMatrix.m[0][2];
@@ -1304,7 +1304,7 @@ return_t mat3CanInvertOut(const mat3 *const restrict m, mat3 *const restrict out
 
 		// Now use the determinant to find the inverse of the matrix!
 		// In terms of the adjugate, m^{-1} = adj(m)/det(m), where
-		//     adj(m)_(i,j) = c_(j,i).
+		//     adj(m)_{i,j} = c_{j,i}.
 		out->m[0][0] = c00 * invDet;
 		out->m[0][1] = c01 * invDet;
 		out->m[0][2] = c02 * invDet;

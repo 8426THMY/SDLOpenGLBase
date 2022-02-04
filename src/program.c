@@ -166,11 +166,16 @@ void programLoop(program *const restrict prg){
 }
 
 void programClose(program *const restrict prg){
+	puts("\nDeleting object shader...");
 	shaderDeleteProgram(prg->objectShader.programID);
+	puts("Deleting sprite shader...");
 	shaderDeleteProgram(prg->spriteShader.programID);
 
+	puts("Deleting input manager...");
 	inputMngrDelete(&prg->inputMngr);
+	puts("Deleting command buffer...");
 	cmdBufferDelete(&prg->cmdBuffer);
+	puts("Deleting command system...\n");
 	cmdSysDelete(&prg->cmdSys);
 
 	cleanupModules();
@@ -660,9 +665,13 @@ static return_t initResources(program *const restrict prg){
 		obj = moduleObjectAlloc();
 		objectInit(obj, objDef);
 		printf("Cube %u: %u -> %u\n", 0, obj->physBodies, obj->physBodies->colliders);
-		obj->state.pos = vec3InitSetC(0.23907208442687988f+2.5f, -0.70703732967376709f+2.f, -0.17244648933410645f-2.f);
+		// Testing sphere joint positional correction:
+		//obj->state.pos = vec3InitSetC(-1.497113f, -0.173426f, -2.172446f);
+		//obj->state.rot = quatInitSetC(0.516704f, 0.f, 0.f, -0.856164f);
+		// Testing distance joint:
 		//obj->state.pos = vec3InitSetC(0.239072f, -0.707037f+2.f-2.5f, -0.172447f-2.f);
 		//obj->physBodies->linearVelocity.x = 12.f;
+		obj->state.pos = vec3InitSetC(0.23907208442687988f+2.5f, -0.70703732967376709f+2.f, -0.17244648933410645f-2.f);
 
 		//obj->physBodies->mass = 0.f;
 		//mat3InitZero(&obj->physBodies->invInertiaLocal);mat3InitZero(&obj->physBodies->invInertiaGlobal);
@@ -691,29 +700,29 @@ static return_t initResources(program *const restrict prg){
 		obj->state.pos.y = 2.f;obj->state.pos.z = -2.f;
 		//quatInitEulerXYZ(&obj->state.rot, 0.f, M_PI_2, M_PI_2);
 
-		obj->physBodies->mass = 0.f;
-		mat3InitZero(&obj->physBodies->invInertiaLocal);mat3InitZero(&obj->physBodies->invInertiaGlobal);
-		obj->physBodies->invMass = 0.f;
+		//obj->physBodies->mass = 0.f;
+		//mat3InitZero(&obj->physBodies->invInertiaLocal);mat3InitZero(&obj->physBodies->invInertiaGlobal);
+		//obj->physBodies->invMass = 0.f;
 
 		objectPreparePhysics(obj);
-		physRigidBodyIgnoreLinear(obj->physBodies);physRigidBodyIgnoreSimulation(obj->physBodies);
+		//physRigidBodyIgnoreLinear(obj->physBodies);physRigidBodyIgnoreSimulation(obj->physBodies);
 		egg = obj->physBodies;
 
 
 		{
-			#define TEST_PHYSJOINTFIXED
+			#define TEST_PHYSJOINTSPHERE
 			#ifdef TEST_PHYSJOINTSPHERE
 			physicsJointPair *joint = modulePhysicsJointPairAlloc();
 			const vec3 anchorA = egg->base->centroid;
 			const vec3 anchorB = vec3AddVec3C(cube->base->centroid, vec3InitSetC(-2.5f, 0.f, 0.f));
-			const quat anchorRotA = quatInitIdentityC();
-			const quat anchorRotB = quatInitIdentityC();
+			const quat rotOffsetA = quatInitIdentityC();
+			const quat rotOffsetB = quatInitIdentityC();
 			physJointPairInit(joint, egg, cube, NULL, NULL);
 			physJointSphereInit(
 				&joint->joint.data.sphere,
 				&anchorA, &anchorB,
-				&anchorRotA, &anchorRotB,
-				0.9f,
+				&rotOffsetA, &rotOffsetB,
+				1.f,
 				0.f, 0.f,
 				-M_PI_4, M_PI_4,
 				-M_PI_2, M_PI_2
@@ -730,10 +739,10 @@ static return_t initResources(program *const restrict prg){
 			physicsJointPair *joint = modulePhysicsJointPairAlloc();
 			const vec3 anchorA = egg->base->centroid;
 			const vec3 anchorB = vec3AddVec3C(cube->base->centroid, vec3InitSetC(-2.5f, 0.f, 0.f));
-			const quat anchorRotA = quatInitIdentityC();
-			const quat anchorRotB = quatInitIdentityC();
+			const quat rotOffsetA = quatInitIdentityC();
+			const quat rotOffsetB = quatInitIdentityC();
 			physJointPairInit(joint, egg, cube, NULL, NULL);
-			physJointFixedInit(&joint->joint.data.fixed, &anchorA, &anchorB, &anchorRotA, &anchorRotB);
+			physJointFixedInit(&joint->joint.data.fixed, &anchorA, &anchorB, &rotOffsetA, &rotOffsetB);
 			joint->joint.type = PHYSJOINT_TYPE_FIXED;
 			#endif
 		}

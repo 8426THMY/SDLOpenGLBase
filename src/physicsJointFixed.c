@@ -8,8 +8,8 @@
 ** ----------------------------------------------------------------------
 **
 ** Fixed joints constrain the positions of the anchor points,
-** rA and rB, to be coincident. We also constraint the relative
-** orientations to be ?
+** rA and rB, to be coincident. We also constraint the orientations
+** (excluding the offsets RA and RB) to be the same.
 **
 ** ----------------------------------------------------------------------
 **
@@ -20,25 +20,70 @@
 **
 ** Differentiate with respect to time to get a velocity constraint:
 **
-** C1' : (vB +   wB X rB) - (vA +   wA X rA) = 0,
-**     : (vB -   rB X wB) - (vA -   rA X wA) = 0,
-**     : (vB - [rB]_X*wB) - (vA - [rA]_X*wA) = 0,
+** C1' : 0 = (vB +   wB X rB) - (vA +   wA X rA)
+**         = (vB -   rB X wB) - (vA -   rA X wA)
+**         = (vB - [rB]_X*wB) - (vA - [rA]_X*wA),
 **
 ** where "[.]_X" denotes the skew-symmetric "cross product" matrix.
 **
 **
 ** We also need to impose constraints on the relative orientation
-** of the rigid bodies, so if "(RB - RA)" ?
+** of the rigid bodies. If qA, qB are the orientations and RA, RB
+** the rotational offsets of the rigid bodies, then the relative
+** orientation is given by qR = (qB*RB) * conj(qA*RA). If qI is
+** the identity quaternion, then we want
 **
-** C2 : (RB - RA) . a <= 0.
+** C2 : 2proj(qR) = 0.
 **
-** ?
+** Here, proj(qR) is the projection of qR onto the imaginary hyperplane:
 **
-** The velocity constraints for this is
+**           [0, 1, 0, 0]
+** proj(q) = [0, 0, 1, 0]q = (q_x, q_y, q_z)^T.
+**           [0, 0, 0, 1]
 **
-** C2' : (wB - wA) . a <= 0.
+** This projection is 0 if and only if qR is the identity quaternion.
+** Note also the extra factor of 2: this is merely for convenience,
+** and vanishes when taking derivatives:
 **
-** ?
+** C2' : 0 = 2proj(((d/dt)(qB*RB)) * conj(qA*RA) + (qB*RB) * ((d/dt)conj(qA*RA)))
+**         = 2proj(d(qB)/dt * RB * conj(qA*RA) + (qB*RB) * conj(RA) * conj(d(qA)/dt))
+**         = proj(wB * (qB*RB)*conj(qA*RA) + (qB*RB)*conj(qA*RA) * conj(wA))
+**         = proj(wB*qR - qR*wA)
+**         = proj(wB*qR) - proj(qR*wA).
+**
+** Here, it should be noted that wA, wB are being treated as
+** quaternions with real part 0. Now, let q be a unit quaternion
+** and v a vector. Similarly to how we handle the cross-products,
+** we define the 3x3 matrices Q_L(q), Q_R(q) such that
+**
+** Q_L(q)v = proj(q * (i v_x + j v_y + k v_z)),
+** Q_R(q)v = proj((i v_x + j v_y + k v_z) * q).
+**
+** Note that the quaternion product (left multiplication by q)
+** can be represented by the following 4x3 matrix:
+**
+** [-q_x, -q_y, -q_z]
+** [ q_w, -q_z,  q_y]
+** [ q_z,  q_w, -q_x]
+** [-q_y,  q_x,  q_w]
+**
+** The projection matrix is 3x4 and simply removes the first row
+** (corresponding to the real component of the product). It is
+** easy to show that the resulting matrices are hence given by
+**
+**          [ q_w, -q_z,  q_y]
+** Q_L(q) = [ q_z,  q_w, -q_x] = q_w*I_3 - [q]_X = Q_R(q)^T,
+**          [-q_y,  q_x,  q_w]
+**
+**          [ q_w,  q_z, -q_y]
+** Q_R(q) = [-q_z,  q_w,  q_x] = q_w*I_3 + [q]_X = Q_L(q)^T,
+**          [ q_y, -q_x,  q_w]
+**
+** where "I_3" is the 3x3 identity matrix. For convenience,
+** we have denoted [q]_X = [(q_x, q_y, q_z)^T]_X. Using this
+** notation, our velocity constraint can be written as
+**
+** C2' : Q_R(qR)wB - Q_L(qR)wA = 0.
 **
 ** ----------------------------------------------------------------------
 **
@@ -50,11 +95,10 @@
 **     [wB]
 **
 ** and the identity C' = JV, we can solve for the Jacobian J.
-** We will use three separate Jacobians, J1 and J2, for
-** C1' and C2'.
+** We will use two separate Jacobians, J1 and J2, for C1' and C2'.
 **
-** J1 = [-I_3, [rA]_X, I_3, -[rB]_X],
-** J2 = ?
+** J1 = [-I_3,   [rA]_X, I_3, -[rB]_X],
+** J2 = [   0, -Q_L(qR),   0, Q_R(qR)].
 **
 ** Note that "I_3" is the 3x3 identity matrix.
 **
@@ -86,19 +130,34 @@
 ** K1 = J1*M^{-1}*J1^T
 **    = (mA^{-1} + mB^{-1})*I_3 - [rA]_X*IA^{-1}*[rA]_X - [rB]_X*IB^{-1}*[rB]_X,
 **
-** For our angular constraints, we simply get:
+** For our angular constraint, using the fact that
+** Q_R(qR)^T = Q_L(qR), we get:
 **
-**               [     0    ]
-**               [-IA^{-1}*s]
-** M^{-1}*J2^T = [     0    ],
-**               [ IB^{-1}*s]
+**        [    0   ]
+**        [-Q_R(qR)]
+** J2^T = [    0   ].
+**        [ Q_L(qR)]
 **
-** K2 = J2*M^{-1}*J2^T = s . (IA^{-1} + IB^{-1})*s,
+**               [       0       ]
+**               [-IA^{-1}Q_R(qR)]
+** M^{-1}*J2^T = [       0       ],
+**               [ IB^{-1}Q_L(qR)]
 **
-** and similarly for K3 = K4. Note that K1 is a 3x3 matrix,
-** but K2, K3 and K4 are simply scalars.
+** K2 = J2*M^{-1}*J2^T
+**    = Q_L(qR)IA^{-1}Q_R(qR) + Q_R(qR)IB^{-1}Q_L(qR).
+**
+** Note that K1 and K2 are both 3x3 matrices.
 **
 ** ----------------------------------------------------------------------
+**
+** If "PHYSJOINT_ACCURATE_ANGULAR_MASS" is not specified,
+** we use the following values for C2' and K2:
+**
+** C2' : wB - wA = 0,
+** K2 = IA^{-1} + IB^{-1}.
+**
+** This offers seemingly identical stability, but vastly
+** better performance.
 */
 
 
@@ -113,6 +172,12 @@ static void calculateLinearMass(
 	const physicsRigidBody *const restrict bodyA, const physicsRigidBody *const restrict bodyB,
 	mat3 *const restrict linearMass
 );
+#ifdef PHYSJOINTFIXED_ACCURATE_ANGULAR_MASS
+static void calculateAngularMass(
+	const mat3 *const restrict IA, const mat3 *const restrict IB,
+	const quat qR, mat3 *const restrict angularMass
+);
+#endif
 
 static void calculateLinearBias(
 	const vec3 *const restrict centroidA, const vec3 *const restrict centroidB,
@@ -128,13 +193,13 @@ static void calculateLinearBias(
 void physJointFixedInit(
 	physicsJointFixed *const restrict joint,
 	const vec3 *const restrict anchorA, const vec3 *const restrict anchorB,
-	const quat *const restrict anchorRotA, const quat *const restrict anchorRotB
+	const quat *const restrict rotOffsetA, const quat *const restrict rotOffsetB
 ){
 
 	joint->anchorA = *anchorA;
 	joint->anchorB = *anchorB;
-	joint->anchorRotA = *anchorRotA;
-	joint->anchorRotB = *anchorRotB;
+	joint->rotOffsetA = *rotOffsetA;
+	joint->rotOffsetB = *rotOffsetB;
 }
 
 
@@ -144,7 +209,12 @@ void physJointFixedWarmStart(
 	physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB
 ){
 
-	//
+	// Apply the accumulated angular impulses.
+	physRigidBodyApplyAngularImpulseInverse(bodyA, joint->angularImpulse);
+	physRigidBodyApplyAngularImpulse(bodyB, joint->angularImpulse);
+	// Apply the accumulated linear impulses.
+	physRigidBodyApplyImpulseInverse(bodyA, &joint->rA, &joint->linearImpulse);
+	physRigidBodyApplyImpulse(bodyB, &joint->rB, &joint->linearImpulse);
 }
 #endif
 
@@ -163,27 +233,94 @@ void physJointFixedPresolve(
 	updateConstraintData((physicsJointFixed *)joint, bodyA, bodyB);
 
 
-	/** ANGULAR STUFF **/
+	{
+		#ifdef PHYSJOINTFIXED_STABILISER_BAUMGARTE
+		#ifdef PHYSJOINTFIXED_ACCURATE_ANGULAR_MASS
+		// Clamp out angular biases that are
+		// too small to help prevent jittering.
+		if(vec3MagnitudeSquaredVec3((vec3 *)&((physicsJointFixed *)joint)->qR.x) > PHYSJOINT_ANGULAR_SLOP_SQUARED){
+			// b = B/dt * C = B/dt * 2proj(qR)
+			vec3MultiplySOut(
+				(vec3 *)&((physicsJointFixed *)joint)->qR.x, 2.f * PHYSJOINTFIXED_BAUMGARTE_BIAS * frequency,
+				&((physicsJointFixed *)joint)->angularBias
+			);
+		}else{
+			vec3InitZero(&((physicsJointFixed *)joint)->angularBias);
+		}
+		#else
+		quat qR;
+		quat rotOffsetGlobalB;
+
+		// Get the global constraint orientations for the rigid bodies.
+		quatMultiplyQuatOut(bodyA->state.rot, ((physicsJointFixed *)joint)->rotOffsetA, &qR);
+		quatMultiplyQuatOut(bodyB->state.rot, ((physicsJointFixed *)joint)->rotOffsetB, &rotOffsetGlobalB);
+		// Get the relative orientation from body A to body B:
+		// qR = (qB*RB)*conj(qA*RA).
+		quatMultiplyQuatConjP2(rotOffsetGlobalB, &qR);
+
+		// Clamp out angular biases that are
+		// too small to help prevent jittering.
+		if(vec3MagnitudeSquaredVec3((vec3 *)&qR.x) > PHYSJOINT_ANGULAR_SLOP_SQUARED){
+			// b = B/dt * C = B/dt * 2proj(qR)
+			vec3MultiplySOut(
+				(vec3 *)&qR.x, 2.f * PHYSJOINTFIXED_BAUMGARTE_BIAS * frequency,
+				&((physicsJointFixed *)joint)->angularBias
+			);
+		}else{
+			vec3InitZero(&((physicsJointFixed *)joint)->angularBias);
+		}
+		#endif
+		#else
+		vec3InitZero(&((physicsJointFixed *)joint)->angularBias);
+		#endif
+
+		#ifdef PHYSJOINTFIXED_ACCURATE_ANGULAR_MASS
+		calculateAngularMass(
+			&bodyA->invInertiaGlobal, &bodyB->invInertiaGlobal,
+			((physicsJointFixed *)joint)->qR, &((physicsJointFixed *)joint)->angularInvMass
+		);
+		#else
+		// K2 = IA^{-1} + IB^{-1}
+		mat3AddMat3Out(&bodyA->invInertiaGlobal, &bodyB->invInertiaGlobal, &((physicsJointFixed *)joint)->angularInvMass);
+		#endif
+		// The performance of solving using Cramer's rule seems similar
+		// to inverting. However, since we do our velocity solve step
+		// multiple times using the same matrix for sequential impulse,
+		// it's much faster to invert it here when we're presolving.
+		mat3Invert(&((physicsJointFixed *)joint)->angularInvMass);
+	}
 
 
-	// Compute the linear bias term.
-	calculateLinearBias(
-		&bodyA->centroid, &bodyB->centroid,
-		&((physicsJointFixed *)joint)->rA, &((physicsJointFixed *)joint)->rB,
-		&((physicsJointFixed *)joint)->linearBias
-	);
-	// b = B/dt * C
-	vec3MultiplyS(&((physicsJointFixed *)joint)->linearBias, PHYSJOINTFIXED_BAUMGARTE_BIAS * frequency);
+	{
+		#ifdef PHYSJOINTFIXED_STABILISER_BAUMGARTE
+		// Compute the linear bias term.
+		calculateLinearBias(
+			&bodyA->centroid, &bodyB->centroid,
+			&((physicsJointFixed *)joint)->rA, &((physicsJointFixed *)joint)->rB,
+			&((physicsJointFixed *)joint)->linearBias
+		);
+		// Clamp out linear biases that are
+		// too small to help prevent jittering.
+		if(vec3MagnitudeSquaredVec3(&((physicsJointFixed *)joint)->linearBias) > PHYSJOINT_LINEAR_SLOP_SQUARED){
+			// b = B/dt * C
+			vec3MultiplyS(&((physicsJointFixed *)joint)->linearBias, PHYSJOINTFIXED_BAUMGARTE_BIAS * frequency);
+		}else{
+			vec3InitZero(&((physicsJointFixed *)joint)->linearBias);
+		}
+		#else
+		vec3InitZero(&((physicsJointFixed *)joint)->linearBias);
+		#endif
 
-	calculateLinearMass(
-		((physicsJointFixed *)joint)->rA, ((physicsJointFixed *)joint)->rB,
-		bodyA, bodyB, &((physicsJointFixed *)joint)->linearInvMass
-	);
-	// The performance of solving using Cramer's rule seems similar
-	// to inverting. However, since we do our velocity solve step
-	// multiple times using the same matrix for sequential impulse,
-	// it's much faster to invert it here when we're presolving.
-	mat3Invert(&((physicsJointFixed *)joint)->linearInvMass);
+		calculateLinearMass(
+			((physicsJointFixed *)joint)->rA, ((physicsJointFixed *)joint)->rB,
+			bodyA, bodyB, &((physicsJointFixed *)joint)->linearInvMass
+		);
+		// The performance of solving using Cramer's rule seems similar
+		// to inverting. However, since we do our velocity solve step
+		// multiple times using the same matrix for sequential impulse,
+		// it's much faster to invert it here when we're presolving.
+		mat3Invert(&((physicsJointFixed *)joint)->linearInvMass);
+	}
 
 
 	#ifdef PHYSJOINTFIXED_WARM_START
@@ -205,7 +342,58 @@ void physJointFixedSolveVelocity(
 	vec3 impulse;
 
 
-	/** ANGULAR PART **/
+	/*#error "Witchcraft? https://github.com/DanielChappuis/reactphysics3d/blob/master/src/systems/SolveFixedJointSystem.cpp#L132"
+	#error "Try reading this (page 274): http://umu.diva-portal.org/smash/get/diva2:140361/FULLTEXT01.pdf"
+	#error "https://github.com/bepu/bepuphysics1/blob/master/BEPUphysics/Constraints/TwoEntity/Joints/NoRotationJoint.cs"*/
+	#warning "If this works well, we should probably fix up the spherical joint too."
+	#warning "We didn't differentiate the quaternions properly."
+	{
+		#ifdef PHYSJOINTFIXED_ACCURATE_ANGULAR_MASS
+		const quat qR = ((physicsJointFixed *)joint)->qR;
+		//          [ q_w, -q_z,  q_y]
+		// Q_L(q) = [ q_z,  q_w, -q_x].
+		//          [-q_y,  q_x,  q_w]
+		//
+		// Note that we write the transpose here
+		// because our matrices are column major.
+		const mat3 QL = {.m = {
+			{ qR.w,  qR.z, -qR.y},
+			{-qR.z,  qR.w,  qR.x},
+			{ qR.y, -qR.x,  qR.w}
+		}};
+		//          [ q_w,  q_z, -q_y]
+		// Q_R(q) = [-q_z,  q_w,  q_x].
+		//          [ q_y, -q_x,  q_w]
+		//
+		// Same here.
+		const mat3 QR = {.m = {
+			{ qR.w, -qR.z,  qR.y},
+			{ qR.z,  qR.w, -qR.x},
+			{-qR.y,  qR.x,  qR.w}
+		}};
+		// C2' : Q_R(qR)wB - Q_L(qR)wA = 0.
+		mat3MultiplyVec3Out(&QL, &bodyA->angularVelocity, &relativeVelocity);
+		mat3MultiplyVec3Out(&QR, &bodyB->angularVelocity, &impulse);
+		// Note that -C2' is stored in "impulse".
+		vec3SubtractVec3P2(&relativeVelocity, &impulse);
+		#else
+		// -C2' = -J2*V = wA - wB
+		vec3SubtractVec3Out(&bodyA->angularVelocity, &bodyB->angularVelocity, &impulse);
+		#endif
+
+		// Subtract the bias term.
+		vec3SubtractVec3P1(&impulse, &((physicsJointFixed *)joint)->angularBias);
+
+		// Solve for the linear impulse:
+		// J2*V + b2 = C2' + b2,
+		// K2*lambda = -(J2*V + b2).
+		mat3MultiplyVec3(&((physicsJointFixed *)joint)->angularInvMass, &impulse);
+		vec3AddVec3(&((physicsJointFixed *)joint)->angularImpulse, &impulse);
+
+		// Apply the correctional impulse.
+		physRigidBodyApplyAngularImpulseInverse(bodyA, impulse);
+		physRigidBodyApplyAngularImpulse(bodyB, impulse);
+	}
 
 
 	// Solve the linear point-to-point constraint last,
@@ -253,19 +441,52 @@ return_t physJointFixedSolvePosition(
 ){
 
 	#ifdef PHYSJOINTFIXED_STABILISER_GAUSS_SEIDEL
+	float angularError;
 	float linearError;
+	vec3 constraint;
+	mat3 effectiveMass;
 	vec3 impulse;
 
 
-	/** ANGULAR PART **/
+	// Solve the angular constraint.
+	{
+		quat qR;
+		quat rotOffsetGlobalB;
+
+		// Get the global constraint orientations for the rigid bodies.
+		quatMultiplyQuatOut(bodyA->state.rot, ((physicsJointFixed *)joint)->rotOffsetA, &qR);
+		quatMultiplyQuatOut(bodyB->state.rot, ((physicsJointFixed *)joint)->rotOffsetB, &rotOffsetGlobalB);
+		// Get the relative orientation from body A to body B:
+		// qR = (qB*RB)*conj(qA*RA).
+		quatMultiplyQuatConjP2(rotOffsetGlobalB, &qR);
+
+		// The constraint error is twice the imaginary
+		// part of the relative orientation offset.
+		// -C2 = -2proj(qR)
+		vec3MultiplySOut((vec3 *)&qR.x, -2.f, &constraint);
+		angularError = vec3MagnitudeVec3(&constraint);
+		vec3MultiplyS(&constraint, PHYSJOINTFIXED_BAUMGARTE_BIAS);
+
+		#ifdef PHYSJOINTFIXED_ACCURATE_ANGULAR_MASS
+		calculateAngularMass(&bodyA->invInertiaGlobal, &bodyB->invInertiaGlobal, qR, &effectiveMass);
+		#else
+		// K2 = IA^{-1} + IB^{-1}
+		mat3AddMat3Out(&bodyA->invInertiaGlobal, &bodyB->invInertiaGlobal, &effectiveMass);
+		#endif
+		// Solve for the impulse:
+		// K2*lambda = -C2.
+		mat3Solve(&effectiveMass, &constraint, &impulse);
+
+		// Apply the correctional impulse.
+		physRigidBodyApplyAngularImpulsePositionInverse(bodyA, impulse);
+		physRigidBodyApplyAngularImpulsePosition(bodyB, impulse);
+	}
 
 
 	// Solve the linear point-to-point constraint.
 	{
 		vec3 rA;
 		vec3 rB;
-		vec3 constraint;
-		mat3 linearMass;
 
 		vec3SubtractVec3Out(&((physicsJointFixed *)joint)->anchorA, &bodyA->base->centroid, &rA);
 		transformDirection(&bodyA->state, &rA);
@@ -285,8 +506,8 @@ return_t physJointFixedSolvePosition(
 
 		// Solve for the impulse:
 		// K1*lambda = -C1.
-		calculateLinearMass(rA, rB, bodyA, bodyB, &linearMass);
-		mat3Solve(&linearMass, &constraint, &impulse);
+		calculateLinearMass(rA, rB, bodyA, bodyB, &effectiveMass);
+		mat3Solve(&effectiveMass, &constraint, &impulse);
 
 		// Apply the correctional impulse.
 		physRigidBodyApplyImpulsePositionInverse(bodyA, &rA, &impulse);
@@ -294,6 +515,7 @@ return_t physJointFixedSolvePosition(
 	}
 
 	return(
+		angularError <= PHYSJOINT_ANGULAR_POSITIONAL_ERROR_THRESHOLD &&
 		linearError <= PHYSJOINT_LINEAR_POSITIONAL_ERROR_THRESHOLD
 	);
 	#else
@@ -310,6 +532,18 @@ static void updateConstraintData(
 	physicsJointFixed *const restrict joint,
 	const physicsRigidBody *const restrict bodyA, const physicsRigidBody *const restrict bodyB
 ){
+
+	#ifdef PHYSJOINTFIXED_ACCURATE_ANGULAR_MASS
+	quat rotOffsetGlobalB;
+
+	// Get the global constraint orientations for the rigid bodies.
+	quatMultiplyQuatOut(bodyA->state.rot, joint->rotOffsetA, &joint->qR);
+	quatMultiplyQuatOut(bodyB->state.rot, joint->rotOffsetB, &rotOffsetGlobalB);
+	// Get the relative orientation from body A to body B:
+	// qR = (qB*RB)*conj(qA*RA).
+	quatMultiplyQuatConjP2(rotOffsetGlobalB, &joint->qR);
+	#endif
+
 
 	// Transform the axis points using the bodies' new scales and rotations.
 	vec3SubtractVec3Out(&joint->anchorA, &bodyA->base->centroid, &joint->rA);
@@ -393,6 +627,51 @@ static void calculateLinearMass(
 		linearMass->m[2][2] += rB.x*A[7] - rB.y*A[6] + invMass;
 	}
 }
+
+#ifdef PHYSJOINTFIXED_ACCURATE_ANGULAR_MASS
+/*
+** Calculate the inverse angular effective mass of the constraint, which won't
+** change between velocity iterations. We can just do it once per update.
+*/
+static void calculateAngularMass(
+	const mat3 *const restrict IA, const mat3 *const restrict IB,
+	const quat qR, mat3 *const restrict angularMass
+){
+
+	//          [ q_w, -q_z,  q_y]
+	// Q_L(q) = [ q_z,  q_w, -q_x].
+	//          [-q_y,  q_x,  q_w]
+	//
+	// Note that we write the transpose here
+	// because  our matrices are column major.
+	const mat3 QL = {.m = {
+		{ qR.w,  qR.z, -qR.y},
+		{-qR.z,  qR.w,  qR.x},
+		{ qR.y, -qR.x,  qR.w}
+	}};
+	//          [ q_w,  q_z, -q_y]
+	// Q_R(q) = [-q_z,  q_w,  q_x].
+	//          [ q_y, -q_x,  q_w]
+	//
+	// Same here.
+	const mat3 QR = {.m = {
+		{ qR.w, -qR.z,  qR.y},
+		{ qR.z,  qR.w, -qR.x},
+		{-qR.y,  qR.x,  qR.w}
+	}};
+	mat3 RBL;
+
+	// LAR = Q_L(qR)IA^{-1}Q_R(qR).
+	mat3MultiplyMat3Out(QL, *IA, angularMass);
+	mat3MultiplyMat3P1(angularMass, QR);
+	// RBL = Q_R(qR)IB^{-1}Q_L(qR).
+	mat3MultiplyMat3Out(QR, *IB, &RBL);
+	mat3MultiplyMat3P1(&RBL, QL);
+
+	// K2 = Q_L(qR)IA^{-1}Q_R(qR) + Q_R(qR)IB^{-1}Q_L(qR).
+	mat3AddMat3(angularMass, &RBL);
+}
+#endif
 
 
 // Calculate the joint's linear bias term.
