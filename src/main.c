@@ -23,6 +23,10 @@
 #warning "We need to implement mipmaps for textures and levels of detail for models."
 #warning "Texture groups should store scrolling information (maybe other things too?) per-animation."
 
+#warning "Maybe implement a 'line' mode for rendering particles rather than the current 'point' mode?"
+#warning "This would be used for drawing trails, as in this post:"
+/* https://www.reddit.com/r/gamedev/comments/387pwc/rendering_3d_trails/ */
+
 
 #if 0
 memoryPool g_shaderManager;

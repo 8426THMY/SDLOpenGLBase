@@ -187,8 +187,7 @@
 #warning "If only there were some way of writing the point-to-point constraint such that it doesn't require the angular velocity."
 
 #warning "For our angular constraint, we didn't differentiate the quaternions properly. Might this help with stability?"
-#warning "Also, check how warm starting and Gauss-Seidel work with just the point-to-point constraint."
-#error "If we get the pendulum behaviour with no energy gain/loss, maybe we implemented the angular constraint incorrectly?"
+#warning "If we remove the angular constraint and Gauss-Seidel, the point-to-point constraint doesn't lose or gain energy (with and without warm starting)."
 
 
 // Forward-declare any helper functions!
@@ -481,14 +480,8 @@ void physJointSpherePresolve(
 		&((physicsJointSphere *)joint)->rA, &((physicsJointSphere *)joint)->rB,
 		&((physicsJointSphere *)joint)->linearBias
 	);
-	// Clamp out linear biases that are
-	// too small to help prevent jittering.
-	if(vec3MagnitudeSquaredVec3(&((physicsJointSphere *)joint)->linearBias) > PHYSJOINT_LINEAR_SLOP_SQUARED){
-		// b = B/dt * C
-		vec3MultiplyS(&((physicsJointSphere *)joint)->linearBias, PHYSJOINTSPHERE_BAUMGARTE_BIAS * frequency);
-	}else{
-		vec3InitZero(&((physicsJointSphere *)joint)->linearBias);
-	}
+	// b = B/dt * C
+	vec3MultiplyS(&((physicsJointSphere *)joint)->linearBias, PHYSJOINTSPHERE_BAUMGARTE_BIAS * frequency);
 	#else
 	vec3InitZero(&((physicsJointSphere *)joint)->linearBias);
 	#endif

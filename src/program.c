@@ -343,7 +343,7 @@ static void updateObjects(program *const restrict prg){
 		}
 	}
 	if(controlObj != NULL){
-		//controlObj->state.rot = mat4ToQuatC(mat4RotateToFaceC(controlObj->state.pos, prg->cam.pos, vec3InitSetC(0.f, 1.f, 0.f)));
+		//controlObj->boneTransforms[0].rot = mat4ToQuatC(mat4RotateToFaceC(controlObj->boneTransforms[0].pos, prg->cam.pos, vec3InitSetC(0.f, 1.f, 0.f)));
 	}
 
 	MEMSINGLELIST_LOOP_BEGIN(g_objectManager, curObj, object)
@@ -432,6 +432,9 @@ static void render(program *const restrict prg){
 	cameraUpdateViewProjectionMatrix(&prg->cam, prg->windowWidth, prg->windowHeight);
 
 	glUseProgram(prg->objectShader.programID);
+	// Send the new model view projection matrix to the shader!
+	glUniformMatrix4fv(prg->objectShader.vpMatrixID, 1, GL_FALSE, (GLfloat *)&prg->cam.viewProjectionMatrix);
+	// Render each object.
 	MEMSINGLELIST_LOOP_BEGIN(g_objectManager, curObj, object)
 		#warning "We'll need the camera in this function for billboards. Just pass it instead of the matrix."
 		objectDraw(curObj, &prg->cam, &prg->objectShader, prg->step.renderDelta);
@@ -439,13 +442,13 @@ static void render(program *const restrict prg){
 
 	/** TEMPORARY PARTICLE RENDER STUFF! **/
 	glUseProgram(prg->spriteShader.programID);
-	//particleSysDraw(&partSys, &prg->cam, &prg->spriteShader, prg->step.renderDelta);
+	particleSysDraw(&partSys, &prg->cam, &prg->spriteShader, prg->step.renderDelta);
 
 	/** TEMPORARY GUI RENDER STUFF! **/
 	glUseProgram(prg->spriteShader.programID);
 	/** Do we need this? **/
 	glClear(GL_DEPTH_BUFFER_BIT);
-	//guiElementDraw(&gui, prg->windowWidth, prg->windowHeight, &prg->spriteShader);s
+	guiElementDraw(&gui, prg->windowWidth, prg->windowHeight, &prg->spriteShader);
 
 
 	#ifndef PRG_ENABLE_EFFICIENT_RENDERING
@@ -593,9 +596,9 @@ static return_t initResources(program *const restrict prg){
 	objDef->numModels = 1;
 
 	objectInit(obj, objDef);
-	//obj->state.pos = vec3InitSetC(0.f, -2.f, 2.f);//vec3InitSetC(-1.f, -2.f, -3.f);
-	//obj->state.rot = quatInitEulerXYZC(45.f * DEG_TO_RAD, 10.f * DEG_TO_RAD, 23.f * DEG_TO_RAD);
-	//obj->state.scale.z = 0.1f;
+	//obj->boneTransforms[0].pos = vec3InitSetC(0.f, -2.f, 2.f);//vec3InitSetC(-1.f, -2.f, -3.f);
+	//obj->boneTransforms[0].rot = quatInitEulerXYZC(45.f * DEG_TO_RAD, 10.f * DEG_TO_RAD, 23.f * DEG_TO_RAD);
+	//obj->boneTransforms[0].scale.z = 0.1f;
 	controlObj = obj;
 
 	// Temporary animation stuff.
@@ -633,8 +636,8 @@ static return_t initResources(program *const restrict prg){
 	obj = moduleObjectAlloc();
 	objectInit(obj, objDef);
 	printf("Ground: %u -> %u\n", obj->physBodies, obj->physBodies->colliders);
-	obj->state.pos.y = -4.f;
-	obj->state.scale.x = obj->state.scale.z = 100.f;
+	obj->boneTransforms[0].pos.y = -4.f;
+	obj->boneTransforms[0].scale.x = obj->boneTransforms[0].scale.z = 100.f;
 	physRigidBodySetScale(obj->physBodies, vec3InitSetC(20.f, 0.f, 20.f));
 	obj->physBodies->mass = 0.f;
 	mat3InitZero(&obj->physBodies->invInertiaLocal);mat3InitZero(&obj->physBodies->invInertiaGlobal);
@@ -666,12 +669,12 @@ static return_t initResources(program *const restrict prg){
 		objectInit(obj, objDef);
 		printf("Cube %u: %u -> %u\n", 0, obj->physBodies, obj->physBodies->colliders);
 		// Testing sphere joint positional correction:
-		//obj->state.pos = vec3InitSetC(-1.497113f, -0.173426f, -2.172446f);
-		//obj->state.rot = quatInitSetC(0.516704f, 0.f, 0.f, -0.856164f);
+		//obj->boneTransforms[0].pos = vec3InitSetC(-1.497113f, -0.173426f, -2.172446f);
+		//obj->boneTransforms[0].rot = quatInitSetC(0.516704f, 0.f, 0.f, -0.856164f);
 		// Testing distance joint:
-		//obj->state.pos = vec3InitSetC(0.239072f, -0.707037f+2.f-2.5f, -0.172447f-2.f);
+		//obj->boneTransforms[0].pos = vec3InitSetC(0.239072f, -0.707037f+2.f-2.5f, -0.172447f-2.f);
 		//obj->physBodies->linearVelocity.x = 12.f;
-		obj->state.pos = vec3InitSetC(0.23907208442687988f+2.5f, -0.70703732967376709f+2.f, -0.17244648933410645f-2.f);
+		obj->boneTransforms[0].pos = vec3InitSetC(0.23907208442687988f+2.5f, -0.70703732967376709f+2.f, -0.17244648933410645f-2.f);
 
 		//obj->physBodies->mass = 0.f;
 		//mat3InitZero(&obj->physBodies->invInertiaLocal);mat3InitZero(&obj->physBodies->invInertiaGlobal);
@@ -697,15 +700,15 @@ static return_t initResources(program *const restrict prg){
 		obj = moduleObjectAlloc();
 		objectInit(obj, objDef);
 		printf("Egg: %u -> %u\n", obj->physBodies, obj->physBodies->colliders);
-		obj->state.pos.y = 2.f;obj->state.pos.z = -2.f;
-		//quatInitEulerXYZ(&obj->state.rot, 0.f, M_PI_2, M_PI_2);
+		obj->boneTransforms[0].pos.y = 2.f;obj->boneTransforms[0].pos.z = -2.f;
+		//quatInitEulerXYZ(&obj->boneTransforms[0].rot, 0.f, M_PI_2, M_PI_2);
 
-		//obj->physBodies->mass = 0.f;
-		//mat3InitZero(&obj->physBodies->invInertiaLocal);mat3InitZero(&obj->physBodies->invInertiaGlobal);
-		//obj->physBodies->invMass = 0.f;
+		obj->physBodies->mass = 0.f;
+		mat3InitZero(&obj->physBodies->invInertiaLocal);mat3InitZero(&obj->physBodies->invInertiaGlobal);
+		obj->physBodies->invMass = 0.f;
 
 		objectPreparePhysics(obj);
-		//physRigidBodyIgnoreLinear(obj->physBodies);physRigidBodyIgnoreSimulation(obj->physBodies);
+		physRigidBodyIgnoreLinear(obj->physBodies);physRigidBodyIgnoreSimulation(obj->physBodies);
 		egg = obj->physBodies;
 
 
@@ -770,7 +773,7 @@ static return_t initResources(program *const restrict prg){
 		obj = moduleObjectAlloc();
 		objectInit(obj, objDef);
 		printf("Cube %u: %u -> %u\n", i, obj->physBodies, obj->physBodies->colliders);
-		obj->state.pos.y = ((float)i)*2.f;
+		obj->boneTransforms[0].pos.y = ((float)i)*2.f;
 		objectPreparePhysics(obj);
 		physIslandInsertRigidBody(&island, obj->physBodies);
 	}
@@ -793,8 +796,8 @@ static return_t initResources(program *const restrict prg){
 	obj = moduleObjectAlloc();
 	objectInit(obj, objDef);
 	printf("Egg: %u -> %u\n", obj->physBodies, obj->physBodies->colliders);
-	obj->state.pos.y = 0.f;obj->state.pos.z = -2.f;
-	quatInitEulerXYZ(&obj->state.rot, 0.f, M_PI_2, M_PI_2);
+	obj->boneTransforms[0].pos.y = 0.f;obj->boneTransforms[0].pos.z = -2.f;
+	quatInitEulerXYZ(&obj->boneTransforms[0].rot, 0.f, M_PI_2, M_PI_2);
 
 	obj->physBodies->mass = 0.f;
 	mat3InitZero(&obj->physBodies->invInertiaLocal);mat3InitZero(&obj->physBodies->invInertiaGlobal);

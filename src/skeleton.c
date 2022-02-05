@@ -121,7 +121,7 @@ void skeleAnimInit(
 	anim->intensity = intensity;
 }
 
-void skeleStateInit(skeletonState *const restrict skeleState, skeleton *const restrict skele){
+void skeleStateInit(skeletonState *const restrict skeleState, const skeleton *const restrict skele){
 	skeleState->skele = skele;
 	skeleState->anims = NULL;
 	skeleState->bones = memoryManagerGlobalAlloc(sizeof(*skeleState->bones) * skele->numBones);

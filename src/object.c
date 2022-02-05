@@ -17,11 +17,7 @@
 
 // Forward-declare any helper functions!
 static void updateBones(object *obj, const float time);
-static void prepareBoneMatrices(
-	const skeletonState *const restrict skeleState,
-	const boneState *const restrict rootState,
-	mat4 *animStates
-);
+static void prepareBoneMatrices(const skeletonState *const restrict skeleState, mat4 *animStates);
 
 
 void objectDefInit(objectDef *objDef){
@@ -30,6 +26,7 @@ void objectDefInit(objectDef *objDef){
 	objDef->skele = &g_skeleDefault;
 
 	objDef->colliders = NULL;
+
 	objDef->physBodies = NULL;
 	objDef->physBoneIDs = NULL;
 	objDef->numBodies = 0;
@@ -38,39 +35,49 @@ void objectDefInit(objectDef *objDef){
 	objDef->numModels = 0;
 }
 
-#warning "Can we allocate all of our memory in one go?"
 void objectInit(object *const restrict obj, const objectDef *const restrict objDef){
-	physicsRigidBody *curBody = NULL;
-	const physicsRigidBodyDef *curBodyDef = objDef->physBodies;
-	const boneIndex_t *curPhysBoneID = objDef->physBoneIDs;
-	const modelDef **curMdlDef = objDef->mdlDefs;
-
-
 	obj->objDef = objDef;
 
-	skeleStateInit(&obj->skeleState, objDef->skele);
-	transformInit(&obj->state);
 	obj->boneTransforms = NULL;
+	objectSetSkeleton(obj, objDef->skele);
+	transformInit(&obj->state);
 
 	obj->colliders = NULL;
-	obj->physBodies = NULL;
-	// Instantiate the object's physics rigid bodies.
-	while(curBodyDef != NULL){
-		curBody = modulePhysicsBodyInsertAfter(&obj->physBodies, curBody);
-		if(curBody == NULL){
-			/** MALLOC FAILED **/
-		}
-		physRigidBodyInit(curBody, curBodyDef);
-		objectPrepareRigidBody(obj, curBody, *curPhysBoneID);
 
-		curBodyDef = modulePhysicsBodyDefNext(curBodyDef);
-		++curPhysBoneID;
+	if(objDef->numBodies == 0){
+		obj->physBodies = NULL;
+	}else{
+		physicsRigidBody *curBody = NULL;
+		const physicsRigidBodyDef *curBodyDef = objDef->physBodies;
+		const boneIndex_t *curPhysBoneID = objDef->physBoneIDs;
+
+		// Instantiate the object's physics rigid bodies.
+		do {
+			curBody = modulePhysicsBodyInsertAfter(&obj->physBodies, curBody);
+			if(curBody == NULL){
+				/** MALLOC FAILED **/
+			}
+			physRigidBodyInit(curBody, curBodyDef);
+			#error "Reimplement this and see if we can remove the 'preparePhysics' thing."
+			//objectPrepareRigidBody(obj, curBody, *curPhysBoneID);
+
+			curBodyDef = modulePhysicsBodyDefNext(curBodyDef);
+			++curPhysBoneID;
+		} while(curBodyDef != NULL);
+
+		// Copy the default physics bone IDs.
+		obj->physBoneIDs = memoryManagerGlobalAlloc(objDef->numBodies * sizeof(*obj->physBoneIDs));
+		memcpy(obj->physBoneIDs, objDef->physBoneIDs, objDef->numBodies * sizeof(*obj->physBoneIDs));
 	}
+	obj->numBodies = objDef->numBodies;
 
-	obj->mdls = NULL;
-	if(curMdlDef != NULL){
+	if(objDef->numModels == 0){
+		obj->mdls = NULL;
+	}else{
 		model *curMdl = NULL;
+		const modelDef **curMdlDef = objDef->mdlDefs;
 		const modelDef **const lastMdlDef = &curMdlDef[objDef->numModels];
+
 		// Instantiate the object's default models.
 		do {
 			curMdl = moduleModelInsertAfter(&obj->mdls, curMdl);
@@ -80,7 +87,7 @@ void objectInit(object *const restrict obj, const objectDef *const restrict objD
 			modelInit(curMdl, *curMdlDef);
 
 			++curMdlDef;
-		} while(curMdlDef < lastMdlDef);
+		} while(curMdlDef != lastMdlDef);
 	}
 }
 
@@ -90,11 +97,28 @@ return_t objectDefLoad(objectDef *const restrict objDef, const char *const restr
 }
 
 
+// Set the object's skeleton to "skele".
+void objectSetSkeleton(object *const restrict obj, const skeleton *const restrict skele){
+	obj->boneTransforms = memoryManagerGlobalRealloc(obj->boneTransforms, skele->numBones * sizeof(*obj->boneTransforms));
+	// Initialize all of the user transformations to the default state.
+	{
+		boneState *curTransform = obj->boneTransforms;
+		const boneState *const lastTransform = &obj->boneTransforms[skele->numBones];
+		while(curTransform != lastTransform){
+			transformInit(curTransform);
+			++curTransform;
+		}
+	}
+
+	skeleStateInit(&obj->skeleState, skele);
+}
+
 /*
 ** When we add a rigid body to an object, we need to transform it by the bone its attached to.
 ** We only do this once, as afterwards it will be physically simulated so we shouldn't interfere.
 */
 void objectPrepareRigidBody(object *const restrict obj, physicsRigidBody *const restrict body, const boneIndex_t boneID){
+	#if 0
 	if(physRigidBodyIsSimulated(body)){
 		const bone *const skeleBone = &obj->skeleState.skele->bones[boneID];
 
@@ -117,6 +141,7 @@ void objectPrepareRigidBody(object *const restrict obj, physicsRigidBody *const 
 	if(physRigidBodyIsCollidable(body)){
 		body->flags |= PHYSRIGIDBODY_TRANSFORMED;
 	}
+	#endif
 }
 
 /*
@@ -124,6 +149,64 @@ void objectPrepareRigidBody(object *const restrict obj, physicsRigidBody *const 
 ** create an object to make the rigid bodies appear at their bones.
 */
 void objectPreparePhysics(object *const restrict obj){
+	boneState *curTransform = obj->boneTransforms;
+	const bone *curSkeleBone = obj->skeleState.skele->bones;
+
+	physicsRigidBody *curBody = obj->physBodies;
+	boneIndex_t curBoneID = 0;
+	const boneIndex_t numBones = obj->skeleState.skele->numBones;
+	// We store the rigid bodies in order of increasing bone IDs.
+	// We can simply move to the next ID when we find a bone with a rigid body.
+	const boneIndex_t *curPhysBoneID = obj->physBoneIDs;
+	const boneIndex_t *const lastPhysBoneID = &obj->physBoneIDs[obj->numBodies];
+
+	// To prepare the physics objects, we'll need to loop through
+	// each bone in the skeleton, constructing its initial state.
+	boneState *const accumulators = memoryManagerGlobalAlloc(numBones * sizeof(*accumulators));
+	boneState *curAccumulatorBone = accumulators;
+
+	for(; curBoneID < numBones; ++curBoneID){
+		// Prepend any user transformations to the bone's local bind state.
+		// S = B*U
+		transformMultiplyOut(&curSkeleBone->localBind, curTransform, curAccumulatorBone);
+		// If the bone has a parent, append its transformation.
+		// S = P*B*U
+		if(!valueIsInvalid(curSkeleBone->parent, boneIndex_t)){
+			transformMultiplyP2(&obj->skeleState.bones[curSkeleBone->parent], curAccumulatorBone);
+		}
+		// Prepend the total animation transformations.
+		// S = P*B*U*A
+		skeleStatePrependAnimations(curAccumulatorBone, &obj->skeleState, curBoneID, curSkeleBone->name);
+
+		if(curPhysBoneID != lastPhysBoneID && *curPhysBoneID == curBoneID){
+			// If the rigid body is simulated, we should
+			// transform it using the current bone's state.
+			if(physRigidBodyIsSimulated(curBody)){
+				curBody->state = *curAccumulatorBone;
+				// Make sure the rigid body actually stays where we've placed it.
+				physRigidBodyCentroidFromPosition(curBody);
+
+			}
+			// Make sure we add the rigid body's colliders to the island.
+			if(physRigidBodyIsCollidable(curBody)){
+				curBody->flags |= PHYSRIGIDBODY_TRANSFORMED;
+			}
+
+			++curPhysBoneID;
+			// Exit if we've prepared all of the rigid bodies.
+			if(curPhysBoneID == lastPhysBoneID){
+				break;
+			}
+			modulePhysicsBodyNext(curBody);
+		}
+
+		++curTransform;
+		++curSkeleBone;
+	}
+
+	// Remember to free the temporary bone states.
+	memoryManagerGlobalFree(accumulators);
+	#if 0
 	const bone *curSkeleBone = obj->skeleState.skele->bones;
 	physicsRigidBody *curBody = obj->physBodies;
 	// We store the rigid bodies in order of increasing bone IDs.
@@ -205,6 +288,7 @@ void objectPreparePhysics(object *const restrict obj){
 			++curPhysBoneID;
 		}
 	}
+	#endif
 }
 
 
@@ -234,91 +318,57 @@ void objectDraw(
 	const meshShader *const restrict shader, const float time
 ){
 
-	const model *curMdl;
-
-	#warning "Could we store these in the skeleton object and allocate them in the same call as the bone states?"
-	#warning "We could possibly use a global bone states array."
-	#warning "Probably not a good idea if we want to create a render queue sometime in the future."
-	#warning "It's also a bad idea to be allocating large arrays on the stack."
-	mat4 animStates[SKELETON_MAX_BONES];
-	// Convert the object's bone states into
-	// a matrix representation for the shader.
-	prepareBoneMatrices(&obj->skeleState, &obj->state, animStates);
-
 
 	/** TEMPORARY DEBUG DRAW TEST **/
-	if(obj->skeleState.skele->numBones > 1){
-		debugDrawSkeleton(&obj->skeleState, debugDrawInfoInit(
-			GL_LINES, GL_LINE, vec3InitSetC(0.f, 1.f, 0.f), 1.f
-		), &cam->viewProjectionMatrix);
-	}
-	#warning "Rigid body instances aren't storing colliders?"
-	#warning "I've forgotten what the above warning was about, although it seems like it's been fixed."
-	if(obj->physBodies != NULL){
-		if(obj->physBodies->colliders->node != NULL){
-			debugDrawColliderAABB(&(obj->physBodies->colliders->node->aabb), debugDrawInfoInit(
-				GL_TRIANGLES, GL_LINE, vec3InitSetC(1.f, 0.4f, 0.f), 1.f
+	{
+		if(obj->skeleState.skele->numBones > 1){
+			debugDrawSkeleton(&obj->skeleState, debugDrawInfoInit(
+				GL_LINES, GL_LINE, vec3InitSetC(0.f, 1.f, 0.f), 1.f
 			), &cam->viewProjectionMatrix);
 		}
-		// We don't update the colliders when they aren't collidable.
-		if(physRigidBodyIsCollidable(obj->physBodies)){
-			debugDrawColliderHull(&(obj->physBodies->colliders->global.data.hull), debugDrawInfoInit(
-				GL_TRIANGLES, GL_LINE, vec3InitSetC(1.f, 0.4f, 0.f), 1.f
-			), &cam->viewProjectionMatrix);
+		if(obj->physBodies != NULL){
+			if(obj->physBodies->colliders->node != NULL){
+				debugDrawColliderAABB(&(obj->physBodies->colliders->node->aabb), debugDrawInfoInit(
+					GL_TRIANGLES, GL_LINE, vec3InitSetC(1.f, 0.4f, 0.f), 1.f
+				), &cam->viewProjectionMatrix);
+			}
+			// We don't update the colliders when they aren't collidable.
+			if(physRigidBodyIsCollidable(obj->physBodies)){
+				debugDrawColliderHull(&(obj->physBodies->colliders->global.data.hull), debugDrawInfoInit(
+					GL_TRIANGLES, GL_LINE, vec3InitSetC(1.f, 0.4f, 0.f), 1.f
+				), &cam->viewProjectionMatrix);
+			}
 		}
 	}
 
 
-	// Send the new model view projection matrix to the shader!
-	#warning "Maybe do this outside since it applies to all objects?"
-	/*const mat4 test = mat4RotateC(mat4InitTranslateC(2.f, 1.f, -1.f), 2.f, 1.f, -1.f);
-	const vec3 axis = {.x = 0.f, .y = 1.f, .z = 0.f};
-	const billboard bData = {
-		.axis = &axis,
-		.target = &cam->pos,
-		.scale = 1.f,
-		.flags = BILLBOARD_LOCK_XYZ
-	};
-	const mat4 rot = {
-		cam->viewMatrix.m[0][0], cam->viewMatrix.m[1][0], cam->viewMatrix.m[2][0], 0.f,
-		cam->viewMatrix.m[0][1], cam->viewMatrix.m[1][1], cam->viewMatrix.m[2][1], 0.f,
-		cam->viewMatrix.m[0][2], cam->viewMatrix.m[1][2], cam->viewMatrix.m[2][2], 0.f,
-		                    0.f,                     0.f,                     0.f, 1.f
-	};
-	mat4 test2 = mat4MultiplyMat4C(rot, test);
-	printf("Pre:\n[%f, %f, %f, %f]\n[%f, %f, %f, %f]\n[%f, %f, %f, %f]\n[%f, %f, %f, %f]\n",
-	test.m[0][0], test.m[0][1], test.m[0][2], test.m[0][3],
-	test.m[1][0], test.m[1][1], test.m[1][2], test.m[1][3],
-	test.m[2][0], test.m[2][1], test.m[2][2], test.m[2][3],
-	test.m[3][0], test.m[3][1], test.m[3][2], test.m[3][3]);
-	billboardState(&bData, cam, vec3InitSetC(2.f, 1.f, -1.f), test, &test2);
-	printf("Post:\n[%f, %f, %f, %f]\n[%f, %f, %f, %f]\n[%f, %f, %f, %f]\n[%f, %f, %f, %f]\n\n",
-	test2.m[0][0], test2.m[0][1], test2.m[0][2], test2.m[0][3],
-	test2.m[1][0], test2.m[1][1], test2.m[1][2], test2.m[1][3],
-	test2.m[2][0], test2.m[2][1], test2.m[2][2], test2.m[2][3],
-	test2.m[3][0], test2.m[3][1], test2.m[3][2], test2.m[3][3]);
-	const mat4 mvp = mat4MultiplyMat4C(cam->viewProjectionMatrix, test2);
-	glUniformMatrix4fv(shader->vpMatrixID, 1, GL_FALSE, (GLfloat *)&mvp);*/
-	glUniformMatrix4fv(shader->vpMatrixID, 1, GL_FALSE, (GLfloat *)&cam->viewProjectionMatrix);
+	{
+		const model *curMdl = obj->mdls;
+		mat4 *const animStates = memoryManagerGlobalAlloc(obj->skeleState.skele->numBones * sizeof(*animStates));
+		// Convert the object's bone states into
+		// a matrix representation for the shader.
+		prepareBoneMatrices(&obj->skeleState, animStates);
 
+		// Draw each of the models.
+		while(curMdl != NULL){
+			modelDraw(curMdl, obj->skeleState.skele, animStates, shader);
+			curMdl = moduleModelNext(curMdl);
+		}
 
-	curMdl = obj->mdls;
-	// Draw each of the models.
-	while(curMdl != NULL){
-		modelDraw(curMdl, obj->skeleState.skele, animStates, shader);
-		curMdl = moduleModelNext(curMdl);
+		memoryManagerGlobalFree(animStates);
 	}
 }
 
 
 /** We don't currently have a way of freeing the stuff that's commented out. **/
 void objectDelete(object *const restrict obj){
-	skeleStateDelete(&obj->skeleState);
 	if(obj->boneTransforms != NULL){
-		memoryManagerGlobalFree(&obj->boneTransforms);
+		memoryManagerGlobalFree(obj->boneTransforms);
 	}
+	skeleStateDelete(&obj->skeleState);
 
 	//obj->colliders = NULL;
+
 	// We have to free each rigid body ourselves rather than
 	// use the array free function, as otherwise it will
 	// cause problems for rigid bodies owned by islands.
@@ -329,6 +379,9 @@ void objectDelete(object *const restrict obj){
 			modulePhysicsBodyFree(&obj->physBodies, body);
 			--numBodies;
 		} while(numBodies > 0);
+	}
+	if(obj->physBoneIDs != NULL){
+		memoryManagerGlobalFree(obj->physBoneIDs);
 	}
 
 	if(obj->mdls != NULL){
@@ -343,6 +396,7 @@ void objectDefDelete(objectDef *const restrict objDef){
 	}
 
 	//objDef->colliders = NULL;
+
 	modulePhysicsBodyDefFreeArray(&objDef->physBodies);
 	if(objDef->physBoneIDs != NULL){
 		memoryManagerGlobalFree(objDef->physBoneIDs);
@@ -354,133 +408,64 @@ void objectDefDelete(objectDef *const restrict objDef){
 }
 
 
-#warning "I don't think this procedure is correct!"
-/**
-#error "Start using affine transforms. It might be a good idea to use matrices for the scale, then convert everything when we're done."
-#error "Correct order: P_U U P_A B A."
-**/
 /*
 ** Update an object's skeleton using the following procedure for each bone:
-**     1. Begin with the bone's parent's user transformation.
-**     2. Append the bone's user transformation.
-**     3. Append the bone's parent's animation transformation.
-**     4. Append the bone's bind pose.
-**     5. Append the bone's animation transformation.
+**     1. Begin with the bone's user transformation, U.
+**     2. Append the bone's local bind pose, B.
+**     3. Append the bone's parent's transformation, P.
+**     4. Prepend the bone's animation transformation, A.
+** If S is the final state and these transformations are treated as matrices, then
+**     S = P*B*U*A.
 ** Note that this process implicitly assumes that parent bones are animated before children.
-** Also, we handle user and animation transformations separately, then merge them at the end.
 */
 static void updateBones(object *const restrict obj, const float time){
+	boneState *curTransform = obj->boneTransforms;
 	boneState *curObjBone = obj->skeleState.bones;
 	const boneState *const lastObjBone = &curObjBone[obj->skeleState.skele->numBones];
 	const bone *curSkeleBone = obj->skeleState.skele->bones;
+
 	physicsRigidBody *curBody = obj->physBodies;
+	boneIndex_t curBoneID = 0;
 	// We store the rigid bodies in order of increasing bone IDs.
 	// We can simply move to the next ID when we find a bone with a rigid body.
-	const boneIndex_t *curPhysBoneID = obj->objDef->physBoneIDs;
-	const boneIndex_t *const lastPhysBoneID = &obj->objDef->physBoneIDs[obj->objDef->numBodies];
+	const boneIndex_t *curPhysBoneID = obj->physBoneIDs;
+	const boneIndex_t *const lastPhysBoneID = &obj->physBoneIDs[obj->numBodies];
 
-	#warning "This takes a significant chunk of the stack. Maybe allocate it on the heap?"
-	boneState accumulators[SKELETON_MAX_BONES << 1];
-	// Stores the total user transformation for each bone.
-	boneState *userAccumulator = &accumulators[0];
-	// Stores the total animation state for each bone.
-	boneState *animAccumulator = &accumulators[obj->skeleState.skele->numBones];
+	for(; curObjBone < lastObjBone; ++curObjBone){
+		// If a simulated rigid body is attached to the current bone,
+		// we should transform the bone based off the rigid body's state.
+		if(
+			curPhysBoneID != lastPhysBoneID &&
+			*curPhysBoneID == curBoneID &&
+			physRigidBodyIsSimulated(curBody)
+		){
 
-	boneIndex_t i;
-
-
-	#warning "Need to reimplement user transformations and physics compatibility..."
-	#warning "When we do, go back to storing the root bone's transformation in the array."
-	#if 0
-	// We transform the first bone outside of the main
-	// loop, as it's stored differently to the others.
-	if(curPhysBoneID < lastPhysBoneID && *curPhysBoneID == 0 && physRigidBodyIsSimulated(curBody)){
-		physRigidBodyUpdatePosition(curBody);
-		// Copy the rigid body's state over to the bone.
-		obj->state = curBody->state;
-		*curObjBone = curBody->state;
-
-		// Update the accumulators.
-		*userAccumulator = obj->state;
-		transformInit(animAccumulator);
-
-		modulePhysicsBodyNext(curBody);
-		++curPhysBoneID;
-
-	// Apply the effects of each animation to the bone.
-	}else{
-		*userAccumulator = obj->state;
-		*animAccumulator = curSkeleBone->localBind;
-		// Transform the bone using each animation.
-		skeleStatePrependAnimations(animAccumulator, &obj->skeleState, 0, curSkeleBone->name);
-
-		// Apply the accumulated user transformations to the accumulated animation state.
-		transformMultiplyOut(userAccumulator, animAccumulator, curObjBone);
-
-		if(curPhysBoneID < lastPhysBoneID && *curPhysBoneID == 0){
-			// Copy the bone's state over to the rigid body.
-			curBody->state = *curObjBone;
-			// Update the rigid body's centroid to reflect its new position.
-			physRigidBodyCentroidFromPosition(curBody);
-
-			modulePhysicsBodyNext(curBody);
-			++curPhysBoneID;
-		}
-	}
-	#else
-	*curObjBone = curSkeleBone->localBind;
-		/*transform testyThingy = g_transformIdentity;
-		static float testyAngle = 0.f;
-		testyThingy.scale.y = expf(-2.f*testyAngle)*cos(2.f*3.14159265f*testyAngle)*cos(2.f*3.14159265f*testyAngle) + 1.f/4.f;
-		testyAngle += 0.005f;
-		transformMultiplyP2(&testyThingy, curObjBone);*/
-	// Prepend the total animation transformations to the bind pose.
-	skeleStatePrependAnimations(curObjBone, &obj->skeleState, 0, curSkeleBone->name);
-	#endif
-
-	// Now apply the effects of each animation one bone at a time!
-	for(++curObjBone, i = 1; curObjBone < lastObjBone; ++curObjBone, ++i){
-		++curSkeleBone;
-		#if 0
-		++userAccumulator;
-		++animAccumulator;
-
-		if(curPhysBoneID < lastPhysBoneID && *curPhysBoneID == i && physRigidBodyIsSimulated(curBody)){
 			physRigidBodyUpdatePosition(curBody);
 			// Copy the rigid body's state over to the bone.
-			/** THIS SHOULD USE THE BONETRANSFORMS! **/
-			///*curTransform = curBody->state;
-			*curObjBone = curBody->state;//*curTransform;
-
-			// Update the accumulators.
-			/** THIS SHOULD USE THE BONETRANSFORMS! **/
-			///*userAccumulator = *curTransform;
-			transformInit(userAccumulator);
-			transformInit(animAccumulator);
+			*curTransform = curBody->state;
+			*curObjBone = curBody->state;
 
 			modulePhysicsBodyNext(curBody);
 			++curPhysBoneID;
+
+		// Otherwise, if this bone does not have a rigid
+		// body attached, we should animate it normally.
 		}else{
+			// Prepend any user transformations to the bone's local bind state.
+			// S = B*U
+			transformMultiplyOut(&curSkeleBone->localBind, curTransform, curObjBone);
+			// If the bone has a parent, append its transformation.
+			// S = P*B*U
 			if(!valueIsInvalid(curSkeleBone->parent, boneIndex_t)){
-				/** THIS SHOULD USE THE BONETRANSFORMS! **/
-				///transformMultiplyOut(&accumulators[curSkeleBone->parent], curTransform, userAccumulator);
-				transformMultiplyOut(&accumulators[curSkeleBone->parent], &g_transformIdentity, userAccumulator);
-				//transformMultiplyOut(&accumulators[curSkeleBone->parent], &test, userAccumulator);
-				// Apply the parent's transformation to the bone's bind pose.
-				transformMultiplyOut(&accumulators[obj->skeleState.skele->numBones + curSkeleBone->parent], &curSkeleBone->localBind, animAccumulator);
-			}else{
-				/** THIS SHOULD USE THE BONETRANSFORMS! **/
-				///*userAccumulator = *curTransform;
-				transformInit(userAccumulator);
-				*animAccumulator = curSkeleBone->localBind;
+				transformMultiplyP2(&obj->skeleState.bones[curSkeleBone->parent], curObjBone);
 			}
-			// Transform the bone using each animation.
-			skeleStatePrependAnimations(animAccumulator, &obj->skeleState, i, curSkeleBone->name);
+			// Prepend the total animation transformations.
+			// S = P*B*U*A
+			skeleStatePrependAnimations(curObjBone, &obj->skeleState, curBoneID, curSkeleBone->name);
 
-			// Apply the accumulated user transformations to the accumulated animation state.
-			transformMultiplyOut(userAccumulator, animAccumulator, curObjBone);
-
-			if(curPhysBoneID < lastPhysBoneID && *curPhysBoneID == i){
+			// If the current bone has a rigid body that is not simulated,
+			// we should transform the rigid body based off the bone's state.
+			if(curPhysBoneID != lastPhysBoneID && *curPhysBoneID == curBoneID){
 				// Copy the bone's state over to the rigid body.
 				curBody->state = *curObjBone;
 				// Update the rigid body's centroid to reflect its new position.
@@ -490,107 +475,32 @@ static void updateBones(object *const restrict obj, const float time){
 				++curPhysBoneID;
 			}
 		}
-		#else
-		if(!valueIsInvalid(curSkeleBone->parent, boneIndex_t)){
-			// Append the parent's transformation to this bone's local bind pose.
-			transformMultiplyOut(&obj->skeleState.bones[curSkeleBone->parent], &curSkeleBone->localBind, curObjBone);
-			// Prepend the total animation transformations.
-			skeleStatePrependAnimations(curObjBone, &obj->skeleState, i, curSkeleBone->name);
-		}
-		#endif
+
+		++curTransform;
+		++curSkeleBone;
+		++curBoneID;
 	}
 }
 
 /*
 ** During our update step, we generate global bone states for each
-** bone in the animation. To handle the propagation of scale, we
-** convert the bone states to matrices using the following process:
-**     1. Begin with the global bone state.
-**     2. Undo the accumulated user transformations.
-**     3. Convert the user transformations and new bone state to matrices.
-**     4. Multiply them as matrices to preserve effects such as skewing.
-**     5. Multiply by the global inverse bind pose to return to local space.
+** bone in the animation. Before we send them to the shader, we need
+** to bring them back into local space and convert them to matrices.
 */
-/**#error "Skeletal animation: Try not to use matrices, as they probably take up too much space and are too slow to send to the shader."
-#error "That being said, we really only need to send 4x3 matrices, which should save a lot of time."
-#error "We propagate scaling correctly for user transformations, but we do it in a strange way with animations."
-#error "It would be nice if we could use the precalculated global inverse bind pose here."
-///https://www.gamedev.net/forums/topic.asp?topic_id=339800
-///Ken Shoemake's Polar Decomposition (Graphics Gems IV)
-///https://github.com/erich666/GraphicsGems/tree/master/gemsiv/polar_decomp
-///Non-Uniform Bone Scaling From Art Pipeline to Real-Time Rendering
-#error "To fix this, we need to use stretch quaternions: see Ken Shoemake's affine decomposition and 'non-uniform.pdf'."
-#error "Ideally, we would encode uniform scaling in quaternions, and only do extra work if we have to."
-#error "However, I'm not sure if it's easy to propagate this correctly."**/
-static void prepareBoneMatrices(
-	const skeletonState *const restrict skeleState,
-	const boneState *const restrict rootState,
-	mat4 *animStates
-){
-
-	mat4 *curState = animStates;
+static void prepareBoneMatrices(const skeletonState *const restrict skeleState, mat4 *animStates){
 	const boneState *curObjBone = skeleState->bones;
+	const boneState *const lastObjBone = &curObjBone[skeleState->skele->numBones];
 	const bone *curSkeleBone = skeleState->skele->bones;
-	const boneState *const lastBone = &curObjBone[skeleState->skele->numBones];
 
-	#warning "This takes a significant chunk of the stack. Maybe allocate it on the heap?"
-	boneState accumulators[SKELETON_MAX_BONES];
-	// Stores the total user transformation for each bone.
-	boneState *userAccumulator = &accumulators[0];
+	// Convert each bone from global space to local space,
+	// then convert it to a matrix and store it in "animStates".
+	for(; curObjBone < lastObjBone; ++curObjBone){
+		boneState tempBone;
 
-	boneState tempBone;
-	mat4 tempMatrix;
-	#if 0
-
-
-	*userAccumulator = *rootState;
-	// Undo the accumulated user transformations to restore
-	// the unaltered global animation state for this bone.
-	transformInvertOut(userAccumulator, &tempBone);
-	transformMultiplyP1(&tempBone, curObjBone);
-
-	// In order to properly support propagation of scale in animations
-	// and user transformations, we need to apply them as matrices.
-	transformToMat4(userAccumulator, &tempMatrix);
-	transformToMat4(&tempBone, curState);
-	mat4MultiplyMat4Out(tempMatrix, *curState, curState);
-	transformToMat4(&curSkeleBone->invGlobalBind, &tempMatrix);
-	mat4MultiplyMat4Out(*curState, tempMatrix, curState);
-	#else
-	transformMultiplyOut(curObjBone, &curSkeleBone->invGlobalBind, &tempBone);
-	transformToMat4(&tempBone, curState);
-	#endif
-
-
-	#warning "Maybe store the bone's ID as the parent ID if the bone has no parent."
-	#warning "This gives us an extra bone, but it means we need to know the bone's ID to check the parent."
-	++curObjBone;
-	for(; curObjBone < lastBone; ++curObjBone){
-		++curState;
-		++curSkeleBone;
-		++userAccumulator;
-		#if 0
-
-		if(!valueIsInvalid(curSkeleBone->parent, boneIndex_t)){
-			/** THIS SHOULD USE THE BONETRANSFORMS! **/
-			///transformMultiplyOut(&accumulators[curSkeleBone->parent], curTransform, userAccumulator);
-			transformMultiplyOut(&accumulators[curSkeleBone->parent], &g_transformIdentity, userAccumulator);
-		}else{
-			/** THIS SHOULD USE THE BONETRANSFORMS! **/
-			///*userAccumulator = *curTransform;
-			transformInit(userAccumulator);
-		}
-		transformInvertOut(userAccumulator, &tempBone);
-		transformMultiplyP1(&tempBone, curObjBone);
-
-		transformToMat4(userAccumulator, &tempMatrix);
-		transformToMat4(&tempBone, curState);
-		mat4MultiplyMat4Out(tempMatrix, *curState, curState);
-		transformToMat4(&curSkeleBone->invGlobalBind, &tempMatrix);
-		mat4MultiplyMat4Out(*curState, tempMatrix, curState);
-		#else
 		transformMultiplyOut(curObjBone, &curSkeleBone->invGlobalBind, &tempBone);
-		transformToMat4(&tempBone, curState);
-		#endif
+		transformToMat4(&tempBone, animStates);
+
+		++curSkeleBone;
+		++animStates;
 	}
 }

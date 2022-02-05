@@ -299,14 +299,8 @@ void physJointFixedPresolve(
 			&((physicsJointFixed *)joint)->rA, &((physicsJointFixed *)joint)->rB,
 			&((physicsJointFixed *)joint)->linearBias
 		);
-		// Clamp out linear biases that are
-		// too small to help prevent jittering.
-		if(vec3MagnitudeSquaredVec3(&((physicsJointFixed *)joint)->linearBias) > PHYSJOINT_LINEAR_SLOP_SQUARED){
-			// b = B/dt * C
-			vec3MultiplyS(&((physicsJointFixed *)joint)->linearBias, PHYSJOINTFIXED_BAUMGARTE_BIAS * frequency);
-		}else{
-			vec3InitZero(&((physicsJointFixed *)joint)->linearBias);
-		}
+		// b = B/dt * C
+		vec3MultiplyS(&((physicsJointFixed *)joint)->linearBias, PHYSJOINTFIXED_BAUMGARTE_BIAS * frequency);
 		#else
 		vec3InitZero(&((physicsJointFixed *)joint)->linearBias);
 		#endif

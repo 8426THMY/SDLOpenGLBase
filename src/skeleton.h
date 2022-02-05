@@ -30,6 +30,8 @@ typedef struct bone {
 	boneState localBind;
 	// Inverse of the bone's default, accumulative state.
 	boneState invGlobalBind;
+	#warning "Maybe store the bone's ID as the parent ID if the bone has no parent."
+	#warning "This gives us an extra bone, but it means we need to know the bone's ID to check the parent."
 	// Stores the index of this bone's parent.
 	boneIndex_t parent;
 } bone;
@@ -74,7 +76,7 @@ typedef struct skeletonAnim {
 
 // Stores skeleton data for objects.
 typedef struct skeletonState {
-	skeleton *skele;
+	const skeleton *skele;
 	// Animations are stored in a singleList.
 	skeletonAnim *anims;
 	boneState *bones;
@@ -96,7 +98,7 @@ void skeleAnimInit(
 	skeletonAnim *const restrict anim, skeletonAnimDef *const restrict animDef,
 	const float speed, const float intensity
 );
-void skeleStateInit(skeletonState *const restrict skeleState, skeleton *const restrict skele);
+void skeleStateInit(skeletonState *const restrict skeleState, const skeleton *const restrict skele);
 
 skeletonAnimDef *skeleAnimSMDLoad(const char *const restrict skeleAnimPath, const size_t skeleAnimPathLength);
 

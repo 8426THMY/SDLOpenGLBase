@@ -4,10 +4,8 @@
 #include "utilMath.h"
 
 
-/**
-#error "Check if 'scale' is identity before doing the costly stuff with affine transforms."
-#error "Ideally, we should do this for most of the functions."
-**/
+#warning "Check if 'scale' is identity before doing the costly stuff with affine transforms."
+#warning "Ideally, we should do this for most of the functions."
 
 
 transform g_transformIdentity = {
