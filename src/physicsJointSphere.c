@@ -185,6 +185,10 @@
 #warning "We could possibly get around this by using a single Jacobian that encompasses everything."
 #warning "How efficient would this be, though?"
 #warning "If only there were some way of writing the point-to-point constraint such that it doesn't require the angular velocity."
+/**
+*** In some situations, the twist constraint seems to jitter. I've only observed this once and
+*** I haven't really investigated it much, but it's almost certainly due to the above issues.
+**/
 
 #warning "For our angular constraint, we didn't differentiate the quaternions properly. Might this help with stability?"
 #warning "If we remove the angular constraint and Gauss-Seidel, the point-to-point constraint doesn't lose or gain energy (with and without warm starting)."

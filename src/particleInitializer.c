@@ -9,5 +9,5 @@ void particleInitializerRandomPosSphere(const void *const restrict initializer, 
 	part->state.pos.y = 2.f * (((float)rand())/((float)RAND_MAX) - 0.5f);
 	part->state.pos.z = 2.f * (((float)rand())/((float)RAND_MAX) - 0.5f);
 
-	part->lifetime = 0.32f;
+	part->lifetime = 1.f;
 }

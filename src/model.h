@@ -18,7 +18,7 @@ typedef struct modelDef {
 	mesh *meshes;
 	// This is an array of texture group pointers, one per mesh.
 	// The texture groups are stored in their respective allocator.
-	textureGroup **texGroups;
+	const textureGroup **texGroups;
 	size_t numMeshes;
 
 	skeleton *skele;

@@ -385,9 +385,9 @@ static void update(program *const restrict prg){
 	cmdBufferExecute(&prg->cmdBuffer, &prg->cmdSys);
 
 
-	updateCameras(prg);
 	updateObjects(prg);
 	updatePhysics(prg);
+	updateCameras(prg);
 
 
 	/** TEMPORARY PARTICLE UPDATE STUFF! **/
@@ -448,7 +448,7 @@ static void render(program *const restrict prg){
 	glUseProgram(prg->spriteShader.programID);
 	/** Do we need this? **/
 	glClear(GL_DEPTH_BUFFER_BIT);
-	guiElementDraw(&gui, prg->windowWidth, prg->windowHeight, &prg->spriteShader);
+	//guiElementDraw(&gui, prg->windowWidth, prg->windowHeight, &prg->spriteShader);
 
 
 	#ifndef PRG_ENABLE_EFFICIENT_RENDERING
@@ -815,13 +815,19 @@ static return_t initResources(program *const restrict prg){
 
 	particleSysDefInit(&partSysDef);
 	partSysDef.maxParticles = SPRITE_MAX_INSTANCES;
-	partSysDef.initializers = partSysDef.lastInitializer = memoryManagerGlobalAlloc(sizeof(*partSysDef.initializers));
+	partSysDef.initializers = memoryManagerGlobalAlloc(sizeof(*partSysDef.initializers));
+	partSysDef.lastInitializer = &partSysDef.initializers[0];
 	partSysDef.initializers->func = &particleInitializerRandomPosSphere;
 	partSysDef.emitters = memoryManagerGlobalAlloc(sizeof(*partSysDef.emitters));
 	partSysDef.emitters->func = &particleEmitterContinuous;
 	partSysDef.numEmitters = 1;
-	partSysDef.operators = partSysDef.lastOperator = memoryManagerGlobalAlloc(sizeof(*partSysDef.operators));
-	partSysDef.operators->func = &particleOperatorAddGravity;
+	partSysDef.operators = memoryManagerGlobalAlloc(2*sizeof(*partSysDef.operators));
+	partSysDef.lastOperator = &partSysDef.operators[1];
+	partSysDef.operators[0].func = &particleOperatorAddGravity;
+	partSysDef.operators[1].func = &particleOperatorDecayLifetime;
+	partSysDef.renderers = memoryManagerGlobalAlloc(sizeof(*partSysDef.renderers));
+	partSysDef.lastRenderer = &partSysDef.renderers[0];
+	partSysDef.renderers->func = &particleRendererSprites;
 
 	particleSysInit(&partSys, &partSysDef);
 

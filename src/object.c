@@ -47,20 +47,12 @@ void objectInit(object *const restrict obj, const objectDef *const restrict objD
 	if(objDef->numBodies == 0){
 		obj->physBodies = NULL;
 	}else{
-		physicsRigidBody *curBody = NULL;
 		const physicsRigidBodyDef *curBodyDef = objDef->physBodies;
 		const boneIndex_t *curPhysBoneID = objDef->physBoneIDs;
 
 		// Instantiate the object's physics rigid bodies.
 		do {
-			curBody = modulePhysicsBodyInsertAfter(&obj->physBodies, curBody);
-			if(curBody == NULL){
-				/** MALLOC FAILED **/
-			}
-			physRigidBodyInit(curBody, curBodyDef);
-			#error "Reimplement this and see if we can remove the 'preparePhysics' thing."
-			//objectPrepareRigidBody(obj, curBody, *curPhysBoneID);
-
+			objectAddRigidBody(obj, curBodyDef, *curPhysBoneID);
 			curBodyDef = modulePhysicsBodyDefNext(curBodyDef);
 			++curPhysBoneID;
 		} while(curBodyDef != NULL);
@@ -117,31 +109,44 @@ void objectSetSkeleton(object *const restrict obj, const skeleton *const restric
 ** When we add a rigid body to an object, we need to transform it by the bone its attached to.
 ** We only do this once, as afterwards it will be physically simulated so we shouldn't interfere.
 */
-void objectPrepareRigidBody(object *const restrict obj, physicsRigidBody *const restrict body, const boneIndex_t boneID){
+void objectAddRigidBody(
+	object *const restrict obj,
+	const physicsRigidBodyDef *const restrict bodyDef,
+	const boneIndex_t boneID
+){
+
+	// Add the new rigid body to the beginning of the object's list.
+	// Rigid bodies are stored in reverse order to the object definition!
+	physicsRigidBody *const body = modulePhysicsBodyPrepend(&obj->physBodies);
+	if(body == NULL){
+		/** MALLOC FAILED **/
+	}
+	physRigidBodyInit(body, bodyDef);
+
+	/** This doesn't work, as we may not have animated the parent bone.  **/
+	/** Should we animate the entire skeleton when initializing objects? **/
 	#if 0
 	if(physRigidBodyIsSimulated(body)){
 		const bone *const skeleBone = &obj->skeleState.skele->bones[boneID];
 
-		// Apply the current skeleton's local bind pose and any user transformations.
-		if(boneID == 0){
-			transformMultiplyOut(&obj->state, &skeleBone->localBind, &body->state);
-		}else{
-			/** THIS SHOULD USE THE BONETRANSFORMS! **/
-			///transformMultiplyOut(&skeleBone->localBind, curTransform, &body->state);
-			body->state = skeleBone->localBind;
-		}
-		// Transform the bone using each animation.
-		skeleStatePrependAnimations(&body->state, &obj->skeleState, boneID, skeleBone->name);
-		// Add the the bone's transformations to its parent's if it has one.
+		// Prepend any user transformations to the bone's local bind state.
+		// S = B*U
+		transformMultiplyOut(&skeleBone->localBind, &obj->boneTransforms[boneID], &body->state);
+		// If the bone has a parent, append its transformation.
+		// S = P*B*U
 		if(!valueIsInvalid(skeleBone->parent, boneIndex_t)){
 			transformMultiplyP2(&obj->skeleState.bones[skeleBone->parent], &body->state);
 		}
+		// Prepend the total animation transformations.
+		// S = P*B*U*A
+		skeleStatePrependAnimations(&body->state, &obj->skeleState, boneID, skeleBone->name);
 	}
-	// Add the rigid body's colliders to the island.
+	#endif
+	// Make sure the rigid body's colliders are added
+	// to their island on the next physics update.
 	if(physRigidBodyIsCollidable(body)){
 		body->flags |= PHYSRIGIDBODY_TRANSFORMED;
 	}
-	#endif
 }
 
 /*
@@ -187,7 +192,8 @@ void objectPreparePhysics(object *const restrict obj){
 				physRigidBodyCentroidFromPosition(curBody);
 
 			}
-			// Make sure we add the rigid body's colliders to the island.
+			// Make sure the rigid body's colliders are added
+			// to their island on the next physics update.
 			if(physRigidBodyIsCollidable(curBody)){
 				curBody->flags |= PHYSRIGIDBODY_TRANSFORMED;
 			}
@@ -206,89 +212,6 @@ void objectPreparePhysics(object *const restrict obj){
 
 	// Remember to free the temporary bone states.
 	memoryManagerGlobalFree(accumulators);
-	#if 0
-	const bone *curSkeleBone = obj->skeleState.skele->bones;
-	physicsRigidBody *curBody = obj->physBodies;
-	// We store the rigid bodies in order of increasing bone IDs.
-	// We can simply move to the next ID when we find a bone with a rigid body.
-	const boneIndex_t *curPhysBoneID = obj->objDef->physBoneIDs;
-	const boneIndex_t *const lastPhysBoneID = &obj->objDef->physBoneIDs[obj->objDef->numBodies];
-
-	boneIndex_t boneID;
-	const boneIndex_t lastID = obj->skeleState.skele->numBones;
-
-	#warning "This takes a significant chunk of the stack. Maybe allocate it on the heap?"
-	boneState accumulators[SKELETON_MAX_BONES << 1];
-	// Stores the total user transformation for each bone.
-	boneState *userAccumulator = &accumulators[0];
-	// Stores the total animation state for each bone.
-	boneState *animAccumulator = &accumulators[obj->skeleState.skele->numBones];
-
-
-	*userAccumulator = obj->state;
-	*animAccumulator = curSkeleBone->localBind;
-	// Transform the bone using each animation.
-	skeleStatePrependAnimations(animAccumulator, &obj->skeleState, 0, curSkeleBone->name);
-
-	// We transform the first body outside of the main
-	// loop, as it's stored differently to the others.
-	if(curPhysBoneID < lastPhysBoneID && *curPhysBoneID == 0){
-		if(physRigidBodyIsSimulated(curBody)){
-			// Apply the accumulated animation state to the accumulated user transformations.
-			transformMultiplyOut(userAccumulator, animAccumulator, &curBody->state);
-			// Make sure the rigid body actually stays where we've placed it.
-			physRigidBodyCentroidFromPosition(curBody);
-
-		}
-		// Add the rigid body's colliders to the island.
-		if(physRigidBodyIsCollidable(curBody)){
-			curBody->flags |= PHYSRIGIDBODY_TRANSFORMED;
-		}
-
-		modulePhysicsBodyNext(curBody);
-		++curPhysBoneID;
-	}
-
-	// Move the rest of the physics objects to their bones.
-	for(boneID = 1; boneID < lastID; ++curPhysBoneID, ++boneID){
-		++curSkeleBone;
-		++userAccumulator;
-		++animAccumulator;
-
-		// Add the parent's transformations if the bone has a parent.
-		if(!valueIsInvalid(curSkeleBone->parent, boneIndex_t)){
-			/** THIS SHOULD USE THE BONETRANSFORMS! **/
-			///transformMultiplyOut(&accumulators[curSkeleBone->parent], curTransform, userAccumulator);
-			transformMultiplyOut(&accumulators[curSkeleBone->parent], &g_transformIdentity, userAccumulator);
-			// Apply the parent's transformation to the bone's bind pose.
-			transformMultiplyOut(&curSkeleBone->localBind, &accumulators[obj->skeleState.skele->numBones + curSkeleBone->parent], animAccumulator);
-		}else{
-			/** THIS SHOULD USE THE BONETRANSFORMS! **/
-			///*userAccumulator = *curTransform;
-			transformInit(userAccumulator);
-			*animAccumulator = curSkeleBone->localBind;
-		}
-		// Transform the bone using each animation.
-		skeleStatePrependAnimations(animAccumulator, &obj->skeleState, boneID, curSkeleBone->name);
-
-		if(curPhysBoneID < lastPhysBoneID && *curPhysBoneID == boneID){
-			if(physRigidBodyIsSimulated(curBody)){
-				// Apply the accumulated animation state to the accumulated user transformations.
-				transformMultiplyOut(userAccumulator, animAccumulator, &curBody->state);
-				// Make sure the rigid body actually stays where we've placed it.
-				physRigidBodyCentroidFromPosition(curBody);
-
-			}
-			// Add the rigid body's colliders to the island.
-			if(physRigidBodyIsCollidable(curBody)){
-				curBody->flags |= PHYSRIGIDBODY_TRANSFORMED;
-			}
-
-			modulePhysicsBodyNext(curBody);
-			++curPhysBoneID;
-		}
-	}
-	#endif
 }
 
 

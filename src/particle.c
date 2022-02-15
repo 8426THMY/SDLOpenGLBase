@@ -12,33 +12,42 @@ sprite partSpriteDefault;
 
 void particleDefInit(particleDef *const restrict partDef){
 	partDef->spriteData = partSpriteDefault;
+	partDef->tex = &g_texDefault;
 	partDef->texGroup = &g_texGroupDefault;
 }
 
-void particleInit(particle *const restrict part){
+void particleInit(particle *const restrict part, const textureGroup *const texGroup){
 	transformInit(&part->state);
 	vec3InitZero(&part->velocity);
+	vec3InitZero(&part->angularVelocity);
 
-	part->currentAnim = 0;
-	animationInit(&part->texAnim, 1.f, ANIMATION_LOOP_INDEFINITELY);
+	texGroupStateInit(&part->texState, texGroup);
 
 	part->lifetime = INFINITY;
-	part->camDistance = -INFINITY;
+
+	part->next = NULL;
+	part->prev = NULL;
 }
 
 
-void particleUpdate(particle *const restrict part, const float time){
+void particleUpdate(particle *const restrict part, const float dt){
 	// Integrate the particle's position using symplectic Euler.
-	vec3Fmaf(time, &part->velocity, &part->state.pos);
+	vec3Fmaf(dt, &part->velocity, &part->state.pos);
+	quatIntegrate(&part->state.rot, &part->angularVelocity, dt);
+	quatNormalizeQuatFast(&part->state.rot);
 
-	// Update the texture group animation, among other things.
+	// Update the texture group animation.
+	texGroupStateUpdate(&part->texState, dt);
 }
 
 
-// Return whether or not a particle is still alive.
-return_t particleAlive(particle *const restrict part, const float time){
-	part->lifetime -= time;
-	return(part->lifetime > 0.f);
+/*
+** Return whether or not a particle has died.
+** Note that a particle with a lifetime value
+** of '0' is still considered to be alive.
+*/
+return_t particleDead(const particle *const restrict part){
+	return(part->lifetime < 0.f);
 }
 
 /*
@@ -49,22 +58,12 @@ return_t particleAlive(particle *const restrict part, const float time){
 ** SORT_COMPARE_EQUAL   - p1's distance from the camera is equal to p2's.
 ** SORT_COMPARE_GREATER - p1's distance from the camera is less than p2's.
 */
+#error "Maybe remove this?"
 return_t particleCompare(const void *const restrict p1, const void *const restrict p2){
 	// Since we want to draw farther particles first, we swap their order in this function.
-	return(compareFloat(((particle *)p2)->camDistance, ((particle *)p1)->camDistance));
+	return(0);//return(compareFloat(((particle *)p2)->camDistance, ((particle *)p1)->camDistance));
 }
 
-
-/*
-** By setting the distance from the camera to negative
-** infinity, we guarantee that the particle will be
-** moved to the end of the array during sorting.
-*/
-#warning "Is this necessary?"
-void particleDelete(particle *const restrict part){
-	part->lifetime = 0.f;
-	part->camDistance = -INFINITY;
-}
 
 void particleDefDelete(particleDef *const restrict partDef){
 	// Only delete the system's mesh if

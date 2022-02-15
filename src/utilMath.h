@@ -26,6 +26,7 @@
 #define uintMaxFast(x, y) (((x) > (y)) ? (x) : (y))
 
 #define floatIsZero(x) (fabsf(x) < MATH_NORMALIZE_EPSILON)
+#define floatIsUnit(x) (fabsf((x) - 1.f) < MATH_NORMALIZE_EPSILON)
 
 // According to Mark Harris in his 2015 blog "GPU Pro Tip: Lerp Faster in C++",
 // we can achieve better performance and accuracy by using two fmas here.

@@ -528,7 +528,7 @@ vec4 vec4DivideVec4FastC(vec4 v1, const vec4 v2){
 }
 
 
-// Multiply "u" by "x" and add it to "v"!
+// Comptue v += xu.
 void vec4Fmaf(const float x, const vec4 *const restrict u, vec4 *const restrict v){
 	#ifdef FP_FAST_FMAF
 	v->x = fmaf(x, u->x, v->x);
@@ -543,7 +543,7 @@ void vec4Fmaf(const float x, const vec4 *const restrict u, vec4 *const restrict 
 	#endif
 }
 
-// Multiply "u" by "x", add it to "v" and store the result in "out"!
+// Comptue out = xu + v.
 void vec4FmafOut(const float x, const vec4 *const restrict u, const vec4 *const restrict v, vec4 *const restrict out){
 	#ifdef FP_FAST_FMAF
 	out->x = fmaf(x, u->x, v->x);
@@ -558,7 +558,7 @@ void vec4FmafOut(const float x, const vec4 *const restrict u, const vec4 *const 
 	#endif
 }
 
-// Multiply "u" by "x", add it to "v" and return the result!
+// Return xu + v.
 vec4 vec4FmafC(const float x, const vec4 u, const vec4 v){
 	const vec4 out = {
 	#ifdef FP_FAST_FMAF

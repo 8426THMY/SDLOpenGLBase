@@ -16,6 +16,10 @@
 #warning "Texture group is a dumb name, and they shouldn't have multiple animations."
 #warning "Maybe do something similar to (but simpler than) the Source engine?"
 
+#warning "One issue with the current implementation arises when using particles."
+#warning "Our texture groups can use multiple base textures in an animation."
+#warning "However, all of a particle's texture animations must use the same texture."
+
 /**
 1. Replace textureGroups/textureWrappers with materials.
 2. Materials include one or more base textures.
@@ -69,7 +73,7 @@ void texGroupStateInit(textureGroupState *const restrict texGroupState, const te
 textureGroup *texGroupLoad(const char *const restrict texGroupPath, const size_t texGroupPathLength);
 
 void texGroupStateUpdate(textureGroupState *const restrict texGroupState, const float time);
-textureGroupFrame *texGroupStateGetFrame(const textureGroupState *const restrict texGroupState);
+const textureGroupFrame *texGroupStateGetFrame(const textureGroupState *const restrict texGroupState);
 
 void texGroupAnimDefDelete(textureGroupAnimDef *const restrict texGroupAnimDef);
 void texGroupDelete(textureGroup *const restrict texGroup);

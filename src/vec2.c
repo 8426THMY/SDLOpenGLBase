@@ -405,7 +405,7 @@ vec2 vec2DivideVec2FastC(vec2 v1, const vec2 v2){
 }
 
 
-// Multiply "u" by "x" and add it to "v"!
+// Compute v += xu.
 void vec2Fmaf(const float x, const vec2 *const restrict u, vec2 *const restrict v){
 	#ifdef FP_FAST_FMAF
 	v->x = fmaf(x, u->x, v->x);
@@ -416,7 +416,7 @@ void vec2Fmaf(const float x, const vec2 *const restrict u, vec2 *const restrict 
 	#endif
 }
 
-// Multiply "u" by "x", add it to "v" and store the result in "out"!
+// Compute out = xu + v.
 void vec2FmafOut(const float x, const vec2 *const restrict u, const vec2 *const restrict v, vec2 *const restrict out){
 	#ifdef FP_FAST_FMAF
 	out->x = fmaf(x, u->x, v->x);
@@ -427,7 +427,7 @@ void vec2FmafOut(const float x, const vec2 *const restrict u, const vec2 *const 
 	#endif
 }
 
-// Multiply "u" by "x", add it to "v" and return the result!
+// Return xu + v.
 vec2 vec2FmafC(const float x, const vec2 u, const vec2 v){
 	const vec2 out = {
 	#ifdef FP_FAST_FMAF

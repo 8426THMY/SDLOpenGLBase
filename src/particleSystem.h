@@ -6,6 +6,7 @@
 
 #include "vec3.h"
 #include "quat.h"
+#include "transform.h"
 
 #include "camera.h"
 
@@ -14,6 +15,7 @@
 #include "particleEmitter.h"
 #include "particleOperator.h"
 #include "particleConstraint.h"
+#include "particleRenderer.h"
 
 #include "sprite.h"
 #include "settingsSprites.h"
@@ -69,9 +71,11 @@ typedef struct particleSystemDef {
 	particleOperator *lastOperator;
 	particleConstraint *constraints;
 	particleConstraint *lastConstraint;
+	particleRenderer *renderers;
+	particleRenderer *lastRenderer;
 
 	// How long the system should live for.
-	// If set to INFINITY, it will never die.
+	// If set to infinity, it will never die.
 	float lifetime;
 
 	particleSystemDef *children;
@@ -85,6 +89,7 @@ typedef struct particleSystem {
 	const particleSystemDef *partSysDef;
 	particleEmitter *emitters;
 
+	#warning "We don't currently support scaling particle systems. Need to think about this some more."
 	vec3 pos;
 	quat rot;
 	// How much longer the system should live for.
@@ -104,54 +109,65 @@ typedef struct particleSystem {
 void particleSysDefInit(particleSystemDef *const restrict partSysDef);
 void particleSysInit(particleSystem *const restrict partSys, const particleSystemDef *const restrict partSysDef);
 
-void particleSysUpdate(particleSystem *const restrict partSys, const float time);
+void particleSysUpdate(particleSystem *const restrict partSys, const float dt);
 void particleSysDraw(
 	const particleSystem *const restrict partSys, const camera *const restrict cam,
-	const spriteShader *const restrict shader, const float time
+	const spriteShader *const restrict shader, const float dt
 );
 
-return_t particleSysAlive(particleSystem *const restrict partSys, const float time);
+return_t particleSysAlive(particleSystem *const restrict partSys, const float dt);
 
 void particleSysDelete(particleSystem *const restrict partSys);
 void particleSysDefDelete(particleSystemDef *const restrict partSysDef);
 
 
 /**
-The particle system's main loop should look something like this:
-
-Update {
-	for all emitters {
-		Spawn particles;
-	}
-
-	for all particles {
-		if particle is not dead {
-			Operate;
-			Constrain;
-		}else{
-			kill;
-		}
-	}
-
-	Sort particles;
-}
-
-// Should we sort the particles during the render stage?
-// Seems like a lot of trouble to go to for little to no gain.
-Render {
-	Write particles to shader until we reach one with lifetime <= 0.f or camDistance == -INFINITY.
+// Particles are rendered in order of depth, where
+// those farther from the camera are rendered last.
+typedef struct spriteRenderer {
 	//
-}
+} spriteRenderer;
+
+
+// Particles should be joined in the order they were created.
+// We can probably use depth sorting to construct the triangles
+// in a way that avoids translucency issues with self-overlap.
+typedef struct beamRenderer {
+	//
+} beamRenderer;
+
+
+Source engine allocates particles in a doubly linked list.
 **/
 
-
+#error "This works, but it would be nice if we didn't have to store so many list pointers..."
+#error "Alternatively, we could use something like the Unreal Engine, where emitters keep track of their particles and render them."
+#error "This would also allow us to save space, as certain renderers don't need certain particle information."
+#error "To get a good feel for how it works, check Effekseer's 'Simple_Turbulence_Fireworks' effect."
 /**
-Temporary references:
+Init:
+1. Store particles in a global doubly linked list allocator (size is the maximum allowable number of particles).
+2. Particles store a pointer to the next particle created after them.
+3. Particle systems store a pointer to the oldest particle.
 
-https://www.opengl-tutorial.org/intermediate-tutorials/billboards-particles/particles-instancing/
-http://nehe.gamedev.net/article/particle_systems/15008/
-https://developer.valvesoftware.com/wiki/Particle_System_Overview
+Update:
+1. Iterate through particles from oldest to youngest (so it's easier to fix the pointers).
+2. When a particle is created or destroyed, call renderer update functions.
+3. Renderers are able to track certain particle information exclusive to them.
+
+Render:
+1. Iterate through the particles, computing their depths.
+2. Sort the particles using their linked list pointers.
+3. For each renderer, iterate through the particles in depth order, computing their render states.
 **/
+/*
+** We have two choices for depth sorting:
+**     1. Sort the particles in an array by copying (slow sort, fast access, loses creation order).
+**     2. Sort the particles as a doubly linked list (fast sort, slow access, can keep creation order).
+**
+** For creation order sorting:
+** //
+*/
 
 
 #endif

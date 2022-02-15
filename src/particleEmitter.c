@@ -8,8 +8,8 @@ void particleEmitterInit(particleEmitter *const restrict emitter){
 
 
 // Return the number of particles the emitter is allowed to spawn.
-size_t particleEmitterUpdate(particleEmitter *const restrict emitter, const particleEmitterDef *const restrict emitterDef, const float time){
-	emitter->elapsedTime += time;
+size_t particleEmitterUpdate(particleEmitter *const restrict emitter, const particleEmitterDef *const restrict emitterDef, const float dt){
+	emitter->elapsedTime += dt;
 
 	return((*emitterDef->func)(emitter));
 }

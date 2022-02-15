@@ -73,6 +73,7 @@ typedef struct object {
 
 	// Doubly linked list of rigid bodies. This is usually inserted into an
 	// island's list, so we need to know the total number of rigid bodies.
+	// Note that these are stored in reverse order to the object definition!
 	physicsRigidBody *physBodies;
 	// Array of identifiers that tell us which
 	// bones each rigid body should be attached to.
@@ -90,7 +91,11 @@ void objectInit(object *const restrict obj, const objectDef *const restrict objD
 return_t objectDefLoad(objectDef *const restrict objDef, const char *const restrict objFile);
 
 void objectSetSkeleton(object *const restrict obj, const skeleton *const restrict skele);
-void objectPrepareRigidBody(object *const restrict obj, physicsRigidBody *const restrict body, const boneIndex_t boneID);
+void objectAddRigidBody(
+	object *const restrict obj,
+	const physicsRigidBodyDef *const restrict bodyDef,
+	const boneIndex_t boneID
+);
 void objectPreparePhysics(object *const restrict obj);
 
 void objectUpdate(object *const restrict obj, const float time);

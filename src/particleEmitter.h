@@ -29,7 +29,7 @@ typedef struct particleEmitterDef {
 
 void particleEmitterInit(particleEmitter *const restrict emitter);
 
-size_t particleEmitterUpdate(particleEmitter *const restrict emitter, const particleEmitterDef *const restrict emitterDef, const float time);
+size_t particleEmitterUpdate(particleEmitter *const restrict emitter, const particleEmitterDef *const restrict emitterDef, const float dt);
 
 size_t particleEmitterContinuous(particleEmitter *const restrict emitter);
 

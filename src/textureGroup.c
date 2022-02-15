@@ -333,13 +333,13 @@ void texGroupStateUpdate(textureGroupState *const restrict texGroupState, const 
 }
 
 // Get the current frame of a texture group instance!
-textureGroupFrame *texGroupStateGetFrame(const textureGroupState *const restrict texGroupState){
+const textureGroupFrame *texGroupStateGetFrame(const textureGroupState *const restrict texGroupState){
 	const textureGroup *const texGroup = texGroupState->texGroup;
 	const textureGroupAnim *const animData = &texGroupState->texGroupAnim;
 
 	// If the animation and frame are valid, get the texture's ID and set the UV offsets!
 	if(texGroupState->currentAnim < texGroup->numAnims){
-		textureGroupAnimDef *tempAnim = &(texGroup->texAnims[texGroupState->currentAnim]);
+		const textureGroupAnimDef *const tempAnim = &(texGroup->texAnims[texGroupState->currentAnim]);
 		if(animData->currentFrame < tempAnim->frameData.numFrames){
 			return(&(tempAnim->animFrames[animData->currentFrame]));
 		}

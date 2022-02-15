@@ -5,6 +5,7 @@
 
 #warning "Should we use our 'R' math functions? It would also be a good idea to stop passing so many things by pointer."
 #warning "We can't be naive about it though, in some situations (such as adding one vector to another) it's better to use the pointer functions rather than doing an extra copy."
+#warning "Maybe consider adding 3x4 matrices too, as most of our uses for 4x4 matrices don't even need the last row."
 
 #warning "Should resource arrays be sorted? Then we could use a binary search to find particular items by name."
 #warning "What if we just load everything in alphabetical order? Is that possible?"
@@ -19,13 +20,36 @@
 
 #warning "Can we combine some of our memory allocations (for components of models, texture groups, skeletons, etcetera) into just one?"
 #warning "This probably won't be as necessary when we create binary formats for things."
+#warning "Besides being harder to allocate, this is also somewhat harmful if we need to reallocate individual arrays."
 
 #warning "We need to implement mipmaps for textures and levels of detail for models."
 #warning "Texture groups should store scrolling information (maybe other things too?) per-animation."
 
-#warning "Maybe implement a 'line' mode for rendering particles rather than the current 'point' mode?"
-#warning "This would be used for drawing trails, as in this post:"
+#warning "At the moment, particle systems have only a single renderer (more or less equivalent to Source's 'animated sprite' renderer."
+#warning "It would be good to have a 'line' mode for rendering particles so we can render trails:"
 /* https://www.reddit.com/r/gamedev/comments/387pwc/rendering_3d_trails/ */
+/* https://www.eveonline.com/news/view/re-inventing-the-trails */
+#warning "Maybe use the Source engine for inspiration, as their rope renderer is similar."
+#warning "The particles should really just store points and directions."
+#warning "We should interpolate between the points using a spline curve, then somehow generating a triangle strip for them."
+#warning "Check the polyboard technique in 'Mathematics for 3D Game Programming and Computer Graphics -- it's exactly what we want."
+#warning "It would also be a good idea to add something like Source's 'control points':"
+/* https://developer.valvesoftware.com/wiki/Control_Point_(particles) */
+
+
+/**
+*** Important To-Do List:
+***
+*** 1. Finish the last few physics constraints (hinge, revolute, prismatic).
+***    Don't worry about the extra features such as restitution, softness,
+***    warm starting or Gauss-Seidel just yet.
+***
+*** 2. Particle renderers and control points. We should have at least two
+***    renderers, "animated sprite" and "rope". Maybe investigate Source's
+***    "sprite trail" renderer, too.
+***
+*** 3. Use 3x4 matrices where possible instead of 4x4 matrices.
+**/
 
 
 #if 0
@@ -69,7 +93,44 @@ typedef struct renderer {
 #endif
 
 
+#include "vec3.h"
 int main(int argc, char **argv){
+	/*const vec3 camera = {.x = 0.f, .y = 1.f, .z = 5.f};
+	const float r = 0.5f;
+	const vec3 polyline[9] = {
+		{.x = 0.000000f, .y = 0.000000f, .z =  0.000000f},
+		{.x = 0.581990f, .y = 0.166556f, .z = -0.773722f},
+		{.x = 1.176875f, .y = 0.342076f, .z = -1.830791f},
+		{.x = 1.460396f, .y = 0.486510f, .z = -2.955424f},
+		{.x = 1.621058f, .y = 0.568548f, .z = -4.382479f},
+		{.x = 1.536001f, .y = 0.577663f, .z = -5.781182f},
+		{.x = 1.195776f, .y = 0.504741f, .z = -7.236589f},
+		{.x = 0.657087f, .y = 0.281417f, .z = -8.389574f},
+		{.x = 0.000000f, .y = 0.000000f, .z = -9.173982f}
+	};
+	vec3 polyboard[18];
+	unsigned int i;
+	for(i = 0; i < 9; ++i){
+		const vec3 z = vec3NormalizeVec3C(vec3SubtractVec3C(camera, polyline[0]));
+		vec3 t;
+		vec3 rtz;
+		if(i == 0){
+			t = vec3NormalizeVec3C(vec3SubtractVec3C(polyline[1], polyline[0]));
+		}else if(i == 8){
+			t = vec3NormalizeVec3C(vec3SubtractVec3C(polyline[8], polyline[7]));
+		}else{
+			t = vec3NormalizeVec3C(vec3SubtractVec3C(polyline[i+1], polyline[i-1]));
+		}
+		rtz = vec3MultiplySC(vec3NormalizeVec3C(vec3CrossVec3C(t, z)), r);
+		polyboard[2*i] = vec3AddVec3C(polyline[i], rtz);
+		polyboard[2*i+1] = vec3SubtractVec3C(polyline[i], rtz);
+		printf("v %f %f %f\nl %u %u\nv %f %f %f\nl %u %u\n",
+			polyboard[2*i].x, polyboard[2*i].y, polyboard[2*i].z, i+1, 9+2*i+1,
+			polyboard[2*i+1].x, polyboard[2*i+1].y, polyboard[2*i+1].z, i+1, 9+2*i+2
+		);
+	}
+
+	return(0);*/
 	program prg;
 
 	if(programInit(&prg, argv[0])){
