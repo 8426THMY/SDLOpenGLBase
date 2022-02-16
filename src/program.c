@@ -475,7 +475,6 @@ static return_t initLibs(program *const restrict prg){
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, GFX_DEFAULT_GL_VERSION_MINOR);
 	SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, GFX_ENABLE_DOUBLEBUFFERING);
-	SDL_GL_SetSwapInterval(0);
 
 	// Initialize the SDL2 Image library!
 	if(!IMG_Init(IMG_INIT_PNG)){
@@ -511,6 +510,7 @@ static return_t initLibs(program *const restrict prg){
 		);
 		return(0);
 	}
+	SDL_GL_SetSwapInterval(0);
 
 	#ifdef _WIN32
 	#warning "SDL has a nasty tendency to set the timer resolution and forget about it, which just drains power."
