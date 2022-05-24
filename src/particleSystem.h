@@ -169,5 +169,168 @@ Render:
 ** //
 */
 
+#error "Alright, let's think about this properly."
+#error "Here are some particle system postulates."
+/**
+1. There is (for now) only one particle structure that is shared by all renderers (for the following reason).
+2. Particle subsystems can own multiple renderers (so we can render a beam with sprites at each vertex, for instance).
+3. Particle subsystems store a sorted array of particles (for depth sorting).
+4. The particle structure stores list pointers (so beam renderers know how to connect them).
+5. Particles store texture group animation data.
+6. Particle renderers store sprite and texture groups, and may override particle textures.
+7. When a particle is spawned, child particle systems are instantiated at that particle.
+**/
+
+#if 0
+/*
+** // Pools
+** //memoryPool g_partSubSysDefManager;
+** memoryPool g_partSysDefManager;
+** //memoryPool g_partContManager;
+**
+** // Single Lists
+** memorySingleList g_partSubSysManager;
+** memorySingleList g_partSysManager;
+**
+** // Non-Allocator List
+** particleContainer *g_partContOrphans;
+*/
+/** We should store the particle system in the global allocator, not the containers.  **/
+/** The idea is that containers stored by subsystems should not be in this allocator, **/
+/** as this could lead to them being updated before we update their owner particles.  **/
+/**                                                                                   **/
+/** Alternatively, we could store a free list of orphaned subsystem containers, which **/
+/** is only updated when one actually gets orphaned.                                  **/
+/*
+** Particle systems and subsystems should work as follows:
+**     1. Objects store a list of particle systems that they own.
+**     2. When objects are updated:
+**         a. Owner states of the top-level containers are updated.
+**         b. Top-level subsystem container is updated.
+**     3. When subsystems are updated:
+**         a. Particles are spawned.
+**         b. Containers are allocated for new particles.
+**         c. Particles are updated.
+**         d. Containers of dead particles are orphaned.
+**         e. Child subsystems are updated per particle.
+**     4. When objects are deleted:
+**         a. Set lifetimes of top-level subsystems to 0.
+**         b. Add container to orphan list.
+** Particle subsystems should be deleted when their lifetimes are
+** 0 and they have no active particles. When an object that owns
+** a subsystem container is deleted, the subsystems remain alive,
+** and are added to an orphan list. All of the subsystems in this
+** orphan list are then updated after all of the objects.
+*/
+
+/*
+** A subsystem contains all of the information required
+** to control and render part of a particle system.
+*/
+typedef struct particleSubSystemDef particleSubSystemDef;
+typedef struct particleSubSystemDef {
+	// The maximum number of particles that can be active at once.
+	// This excludes children, and must be less than "SPRITE_MAX_INSTANCES".
+	size_t maxParticles;
+	// How long the system should be alive for.
+	// If set to infinity, it will never die.
+	float lifetime;
+
+	// flags? (includes sorting mode)
+	// inherit position
+	// inherit velocity
+
+	// These properties control the behaviour of the particles.
+	/// Note: If we want to have customizable parameters, we should
+	///       add the arguments to the unions for these structures.
+	particleInitializer *initializers;
+	particleInitializer *lastInitializer;
+	particleEmitterDef *emitters;
+	size_t numEmitters;
+	particleOperator *operators;
+	particleOperator *lastOperator;
+	particleConstraint *constraints;
+	particleConstraint *lastConstraint;
+	particleRenderer *renderers;
+	particleRenderer *lastRenderer;
+
+	particleSubSystemDef *children;
+	size_t numChildren;
+} particleSubSystemDef;
+
+/*
+** A particle system is a tree of subsystems. An instance of each
+** subsystem is spawned for each particle of the parent subsystem.
+*/
+typedef struct particleSystemDef {
+	char *name;
+
+	particleSubSystemDef *children;
+	size_t numChildren;
+} particleSystemDef;
+
+
+/*
+** A particle subsystem container is simply an array
+** of particle subsystems that have been spawned by
+** some object, including other particle subsystems.
+*/
+typedef struct particleSubsystemContainer {
+	// This should typically be the transform
+	// of whatever object owns this container.
+	// Depending on the inheritance settings, we can either:
+	//     1. Ignore this (never inherit).
+	//     2. Add this to newly-created particles (inherit on create).
+	//     3. Add this to particles when rendering (always inherit).
+	// The owner is responsible for updating this.
+	transform state;
+
+	// Array of active top-level subsystems.
+	particleSubSystem *children;
+	size_t numChildren;
+} particleSubsystemContainer;
+
+/*
+** Particle subsystem instance. These are spawned by
+** parent subsystems, and store a particle container
+** that in turn stores each of their child subsystems.
+*/
+typedef struct particleSubSystem {
+	const particleSubSystemDef *partSubSysDef;
+
+	// How much longer the system should live for.
+	float lifetime;
+	// Emitters are only active when the particle system is alive.
+	// If the lifetime is less than or equal to 0, we should stop
+	// spawning particles. The subsystem may then be deleted when
+	// no more particles are alive.
+	particleEmitter *emitters;
+
+	// This array is always exactly big enough to store
+	// the number of particles given by "maxParticles".
+	//
+	// Depending on the sorting mode specified in the
+	// subsystem definition, this array may or may not
+	// be sorted by depth.
+	particle *particles;
+	// Current number of spawned particles.
+	size_t numParticles;
+} particleSubSystem;
+
+/*
+** A particle system instance really just stores
+** the top-level particle subsystem container.
+*/
+typedef struct particleSystem {
+	/// This probably isn't necessary past initialization,
+	/// but that can be handled by whatever owns this instance.
+	const particleSystemDef *partSysDef;
+	// Container storing the top-level particle subsystems.
+	// To update the total system, we iterate through the
+	// containers stored by the subsystems in this container.
+	particleSubsystemContainer container;
+} particleSystem;
+#endif
+
 
 #endif

@@ -45,7 +45,7 @@ void particleSysDefInit(particleSystemDef *const restrict partSysDef){
 	partSysDef->numChildren = 0;
 }
 
-// Instantiate a particle system definition.
+// Instantiate a particle system.
 void particleSysInit(particleSystem *const restrict partSys, const particleSystemDef *const restrict partSysDef){
 	partSys->partSysDef = partSysDef;
 
@@ -80,28 +80,26 @@ void particleSysInit(particleSystem *const restrict partSys, const particleSyste
 	if(partSysDef->maxParticles != 0){
 		particle *curParticle;
 		const particle *lastParticle;
+		// Make sure we don't initialize more
+		// than the maximum number of particles.
+		const size_t initialParticles = uintMin(partSysDef->initialParticles, partSysDef->maxParticles);
 
+		// Allocate enough memory for the maximum number
+		// of particles that the system can display.
 		partSys->particles = memoryManagerGlobalAlloc(sizeof(*partSys->particles) * partSysDef->maxParticles);
 		if(partSys->particles == NULL){
 			/** MALLOC FAILED **/
 		}
+		partSys->numParticles = 0;
 
 		curParticle = partSys->particles;
-		lastParticle = &curParticle[partSysDef->maxParticles];
-		// Initialize the system's particles.
-		do {
-			// Make sure we don't initialize more
-			// than the maximum number of particles.
-			const size_t initialParticles = uintMin(partSysDef->initialParticles, partSysDef->maxParticles);
-			// Set up any initially active particles
-			// using the system's initializers.
-			if(partSys->numParticles < initialParticles){
-				initializeParticle(partSys, curParticle);
-				++partSys->numParticles;
-			}
-			partSys->numParticles = initialParticles;
-			++curParticle;
-		} while(curParticle < lastParticle);
+		lastParticle = &curParticle[initialParticles];
+		// Set up any initially active particles
+		// using the system's initializers.
+		for(; curParticle < lastParticle; ++curParticle){
+			initializeParticle(partSys, curParticle);
+			++partSys->numParticles;
+		}
 	}else{
 		partSys->particles = NULL;
 	}
