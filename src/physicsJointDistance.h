@@ -25,16 +25,10 @@ typedef struct physicsJointDistanceDef {
 
 	// The distance to maintain between anchor points.
 	float distance;
-	// The natural (angular) frequency of the mass-spring-damper
-	// system in radians per second. When set to 0, the joint
-	// will not use ODE's soft, spring constraints.
-	//
-	// w = 2pi * f
-	float angularFrequency;
-	// How quickly oscillations should stop. This isn't quite the
-	// damping coefficient, as we haven't multiplied by the mass.
-	//
-	// damp = 2w * zeta
+	// The stiffness k of the spring. When set to 0, the
+	// joint will not use ODE's soft, spring constraints.
+	float stiffness;
+	// The damping coefficient c of the spring.
 	float damping;
 } physicsJointDistanceDef;
 
@@ -51,7 +45,9 @@ typedef struct physicsJointDistance {
 	vec3 rAB;
 
 	float distance;
-	float angularFrequency;
+	// The natural frequency is w = sqrt(k/m).
+	// The critical damping is c = 2sqrt(km).
+	float stiffness;
 	float damping;
 
 	// The "magic" constants from Erin Catto's
@@ -77,7 +73,7 @@ typedef struct physicsRigidBody physicsRigidBody;
 void physJointDistanceInit(
 	physicsJointDistance *const restrict joint,
 	const vec3 *const restrict anchorA, const vec3 *const restrict anchorB,
-	const float distance, const float oscillationFrequency, const float dampingRatio
+	const float distance, const float stiffness, const float damping
 );
 
 #ifdef PHYSJOINTDISTANCE_WARM_START

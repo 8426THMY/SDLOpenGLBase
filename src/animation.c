@@ -77,6 +77,7 @@ void animFrameDataClear(animationFrameData *const restrict frameData){
 
 
 // Check which frame we should be on!
+#warning "Maybe rewrite this using the modulo operator."
 static void getFrameForward(animationData *const restrict animData, const animationFrameData *const restrict frameData){
 	const float lastFrameTime = frameData->time[frameData->numFrames - 1];
 	// Make sure the animation takes time to avoid infinite loops.
@@ -119,6 +120,7 @@ static void getFrameForward(animationData *const restrict animData, const animat
 }
 
 // Check which frame we should be on if the animation is playing in reverse!
+#warning "Maybe rewrite this using the modulo operator."
 static void getFrameBackward(animationData *const restrict animData, const animationFrameData *const restrict frameData){
 	const float lastFrameTime = frameData->time[frameData->numFrames - 1];
 	// Make sure the animation takes time to avoid infinite loops.

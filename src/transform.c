@@ -25,11 +25,169 @@ transform transformInitC(){
 }
 
 
+// Append the translation of "trans1" to "trans2", and store the result in "trans1".
+void transformAppendPositionP1(transform *const restrict trans1, const transform *const restrict trans2){
+	quat RQ1;
+	vec3 T2;
+
+	// Q_1^T T_2
+	quatConjRotateVec3FastOut(&trans1->shear, &trans2->pos, &T2);
+	// S_1 Q_1^T T_2
+	vec3MultiplyVec3(&T2, &trans1->scale);
+	// R_1 Q_1 S_1 Q_1^T T_2
+	quatMultiplyQuatOut(trans1->rot, trans1->shear, &RQ1);
+	quatRotateVec3Fast(&RQ1, &T2);
+	// T = T_1 R_1 Q_1 S_1 Q_1^T T_2
+	vec3AddVec3(&trans1->pos, &T2);
+}
+
+// Append the translation of "trans1" to "trans2", and store the result in "trans2".
+void transformAppendPositionP2(const transform *const restrict trans1, transform *const restrict trans2){
+	quat RQ1;
+
+	// Q_1^T T_2
+	quatConjRotateVec3Fast(&trans1->shear, &trans2->pos);
+	// S_1 Q_1^T T_2
+	vec3MultiplyVec3(&trans2->pos, &trans1->scale);
+	// R_1 Q_1 S_1 Q_1^T T_2
+	quatMultiplyQuatOut(trans1->rot, trans1->shear, &RQ1);
+	quatRotateVec3Fast(&RQ1, &trans2->pos);
+	// T = T_1 R_1 Q_1 S_1 Q_1^T T_2
+	vec3AddVec3(&trans2->pos, &trans1->pos);
+}
+
+// Append the translation of "trans1" to "trans2", and store the result in "out".
+void transformAppendPositionOut(
+	const transform *const restrict trans1, const transform *const restrict trans2,
+	transform *const restrict out
+){
+
+	quat RQ1;
+
+	// Q_1^T T_2
+	quatConjRotateVec3FastOut(&trans1->shear, &trans2->pos, &out->pos);
+	// S_1 Q_1^T T_2
+	vec3MultiplyVec3(&out->pos, &trans1->scale);
+	// R_1 Q_1 S_1 Q_1^T T_2
+	quatMultiplyQuatOut(trans1->rot, trans1->shear, &RQ1);
+	quatRotateVec3Fast(&RQ1, &out->pos);
+	// T = T_1 R_1 Q_1 S_1 Q_1^T T_2
+	vec3AddVec3(&out->pos, &trans1->pos);
+}
+
+// Append the scale of "trans1" to "trans2", and store the result in "trans1".
+void transformAppendScaleP1(transform *const restrict trans1, const transform *const restrict trans2){
+	quat Q1;
+	mat3 QSQT1;
+	mat3 QSQT2;
+
+	// Q_1' = R_2^T Q_1
+	quatConjMultiplyQuatOut(trans2->rot, trans1->shear, &Q1);
+	// Q_1' S_1 Q_1'^T
+	mat3InitShearQuat(&QSQT1, &trans1->scale, &Q1);
+	// Q_2 S_2 Q_2^T
+	mat3InitShearQuat(&QSQT2, &trans2->scale, &trans2->shear);
+	// QSQ^T = Q_1' S_1 Q_1'^T Q_2 S_2 Q_2^T
+	// The shear matrices are symmetric, so we
+	// do the multiplication here to save time.
+	mat3DiagonalizeSymmetric(
+		QSQT1.m[0][0]*QSQT2.m[0][0] + QSQT1.m[1][0]*QSQT2.m[0][1] + QSQT1.m[2][0]*QSQT2.m[0][2],
+		QSQT1.m[0][0]*QSQT2.m[1][0] + QSQT1.m[1][0]*QSQT2.m[1][1] + QSQT1.m[2][0]*QSQT2.m[1][2],
+		QSQT1.m[0][0]*QSQT2.m[2][0] + QSQT1.m[1][0]*QSQT2.m[2][1] + QSQT1.m[2][0]*QSQT2.m[2][2],
+		QSQT1.m[0][1]*QSQT2.m[1][0] + QSQT1.m[1][1]*QSQT2.m[1][1] + QSQT1.m[2][1]*QSQT2.m[1][2],
+		QSQT1.m[0][1]*QSQT2.m[2][0] + QSQT1.m[1][1]*QSQT2.m[2][1] + QSQT1.m[2][1]*QSQT2.m[2][2],
+		QSQT1.m[0][2]*QSQT2.m[2][0] + QSQT1.m[1][2]*QSQT2.m[2][1] + QSQT1.m[2][2]*QSQT2.m[2][2],
+		&trans1->scale, &trans1->shear
+	);
+}
+
+// Append the scale of "trans1" to "trans2", and store the result in "trans2".
+void transformAppendScaleP2(const transform *const restrict trans1, transform *const restrict trans2){
+	quat Q1;
+	mat3 QSQT1;
+	mat3 QSQT2;
+
+	// Q_1' = R_2^T Q_1
+	quatConjMultiplyQuatOut(trans2->rot, trans1->shear, &Q1);
+	// Q_1' S_1 Q_1'^T
+	mat3InitShearQuat(&QSQT1, &trans1->scale, &Q1);
+	// Q_2 S_2 Q_2^T
+	mat3InitShearQuat(&QSQT2, &trans2->scale, &trans2->shear);
+	// QSQ^T = Q_1' S_1 Q_1'^T Q_2 S_2 Q_2^T
+	// The shear matrices are symmetric, so we
+	// do the multiplication here to save time.
+	mat3DiagonalizeSymmetric(
+		QSQT1.m[0][0]*QSQT2.m[0][0] + QSQT1.m[1][0]*QSQT2.m[0][1] + QSQT1.m[2][0]*QSQT2.m[0][2],
+		QSQT1.m[0][0]*QSQT2.m[1][0] + QSQT1.m[1][0]*QSQT2.m[1][1] + QSQT1.m[2][0]*QSQT2.m[1][2],
+		QSQT1.m[0][0]*QSQT2.m[2][0] + QSQT1.m[1][0]*QSQT2.m[2][1] + QSQT1.m[2][0]*QSQT2.m[2][2],
+		QSQT1.m[0][1]*QSQT2.m[1][0] + QSQT1.m[1][1]*QSQT2.m[1][1] + QSQT1.m[2][1]*QSQT2.m[1][2],
+		QSQT1.m[0][1]*QSQT2.m[2][0] + QSQT1.m[1][1]*QSQT2.m[2][1] + QSQT1.m[2][1]*QSQT2.m[2][2],
+		QSQT1.m[0][2]*QSQT2.m[2][0] + QSQT1.m[1][2]*QSQT2.m[2][1] + QSQT1.m[2][2]*QSQT2.m[2][2],
+		&trans2->scale, &trans2->shear
+	);
+}
+
+// Append the scale of "trans1" to "trans2", and store the result in "out".
+void transformAppendScaleOut(
+	const transform *const restrict trans1, const transform *const restrict trans2,
+	transform *const restrict out
+){
+
+	quat Q1;
+	mat3 QSQT1;
+	mat3 QSQT2;
+
+	// Q_1' = R_2^T Q_1
+	quatConjMultiplyQuatOut(trans2->rot, trans1->shear, &Q1);
+	// Q_1' S_1 Q_1'^T
+	mat3InitShearQuat(&QSQT1, &trans1->scale, &Q1);
+	// Q_2 S_2 Q_2^T
+	mat3InitShearQuat(&QSQT2, &trans2->scale, &trans2->shear);
+	// QSQ^T = Q_1' S_1 Q_1'^T Q_2 S_2 Q_2^T
+	// The shear matrices are symmetric, so we
+	// do the multiplication here to save time.
+	mat3DiagonalizeSymmetric(
+		QSQT1.m[0][0]*QSQT2.m[0][0] + QSQT1.m[1][0]*QSQT2.m[0][1] + QSQT1.m[2][0]*QSQT2.m[0][2],
+		QSQT1.m[0][0]*QSQT2.m[1][0] + QSQT1.m[1][0]*QSQT2.m[1][1] + QSQT1.m[2][0]*QSQT2.m[1][2],
+		QSQT1.m[0][0]*QSQT2.m[2][0] + QSQT1.m[1][0]*QSQT2.m[2][1] + QSQT1.m[2][0]*QSQT2.m[2][2],
+		QSQT1.m[0][1]*QSQT2.m[1][0] + QSQT1.m[1][1]*QSQT2.m[1][1] + QSQT1.m[2][1]*QSQT2.m[1][2],
+		QSQT1.m[0][1]*QSQT2.m[2][0] + QSQT1.m[1][1]*QSQT2.m[2][1] + QSQT1.m[2][1]*QSQT2.m[2][2],
+		QSQT1.m[0][2]*QSQT2.m[2][0] + QSQT1.m[1][2]*QSQT2.m[2][1] + QSQT1.m[2][2]*QSQT2.m[2][2],
+		&out->scale, &out->shear
+	);
+}
+
+// Append the rotation of "trans1" to "trans2", and store the result in "trans1".
+void transformAppendRotationP1(transform *const restrict trans1, const transform *const restrict trans2){
+	// R = R_1 R_2
+	quatMultiplyQuatP1(&trans1->rot, trans2->rot);
+	quatNormalizeQuat(&trans1->rot);
+}
+
+// Append the rotation of "trans1" to "trans2", and store the result in "trans2".
+void transformAppendRotationP2(const transform *const restrict trans1, transform *const restrict trans2){
+	// R = R_1 R_2
+	quatMultiplyQuatP2(trans1->rot, &trans2->rot);
+	quatNormalizeQuat(&trans2->rot);
+}
+
+// Append the rotation of "trans1" to "trans2", and store the result in "out".
+void transformAppendRotationOut(
+	const transform *const restrict trans1, const transform *const restrict trans2,
+	transform *const restrict out
+){
+
+	// R = R_1 R_2
+	quatMultiplyQuatOut(trans1->rot, trans2->rot, &out->rot);
+	quatNormalizeQuat(&out->rot);
+}
+
+
 /*
 ** Append "trans1" to "trans2" and store the result in "trans1".
 ** This is equivalent to left-multiplying "trans2" by "trans1" as if they're matrices:
 **     A = A_1 * A_2.
-** This assumes that "trans2" is not "trans1".
+** Here, "trans2" can be anything (including "trans1").
 */
 void transformMultiplyP1(transform *const restrict trans1, const transform *const restrict trans2){
 	/*
@@ -50,54 +208,12 @@ void transformMultiplyP1(transform *const restrict trans1, const transform *cons
 	** can then be diagonalized to solve individually for Q and S!
 	*/
 
-	// Compute the new position!
-	{
-		quat RQ1;
-		vec3 T2;
-
-		// Q_1^T T_2
-		quatConjRotateVec3FastOut(&trans1->shear, &trans2->pos, &T2);
-		// S_1 Q_1^T T_2
-		vec3MultiplyVec3(&T2, &trans1->scale);
-		// R_1 Q_1 S_1 Q_1^T T_2
-		quatMultiplyQuatOut(trans1->rot, trans1->shear, &RQ1);
-		quatRotateVec3Fast(&RQ1, &T2);
-		// T = T_1 R_1 Q_1 S_1 Q_1^T T_2
-		vec3AddVec3(&trans1->pos, &T2);
-	}
-
-	// Compute the new orientation!
-	{
-		// R = R_1 R_2
-		quatMultiplyQuatP1(&trans1->rot, trans2->rot);
-		quatNormalizeQuat(&trans1->rot);
-	}
-
-	// Compute the new scale!
-	{
-		quat Q1;
-		mat3 QSQT1;
-		mat3 QSQT2;
-
-		// Q_1' = R_2^T Q_1
-		quatConjMultiplyQuatOut(trans2->rot, trans1->shear, &Q1);
-		// Q_1' S_1 Q_1'^T
-		mat3InitShearQuat(&QSQT1, &trans1->scale, &Q1);
-		// Q_2 S_2 Q_2^T
-		mat3InitShearQuat(&QSQT2, &trans2->scale, &trans2->shear);
-		// QSQ^T = Q_1' S_1 Q_1'^T Q_2 S_2 Q_2^T
-		// The shear matrices are symmetric, so we
-		// do the multiplication here to save time.
-		mat3DiagonalizeSymmetric(
-			QSQT1.m[0][0]*QSQT2.m[0][0] + QSQT1.m[1][0]*QSQT2.m[0][1] + QSQT1.m[2][0]*QSQT2.m[0][2],
-			QSQT1.m[0][0]*QSQT2.m[1][0] + QSQT1.m[1][0]*QSQT2.m[1][1] + QSQT1.m[2][0]*QSQT2.m[1][2],
-			QSQT1.m[0][0]*QSQT2.m[2][0] + QSQT1.m[1][0]*QSQT2.m[2][1] + QSQT1.m[2][0]*QSQT2.m[2][2],
-			QSQT1.m[0][1]*QSQT2.m[1][0] + QSQT1.m[1][1]*QSQT2.m[1][1] + QSQT1.m[2][1]*QSQT2.m[1][2],
-			QSQT1.m[0][1]*QSQT2.m[2][0] + QSQT1.m[1][1]*QSQT2.m[2][1] + QSQT1.m[2][1]*QSQT2.m[2][2],
-			QSQT1.m[0][2]*QSQT2.m[2][0] + QSQT1.m[1][2]*QSQT2.m[2][1] + QSQT1.m[2][2]*QSQT2.m[2][2],
-			&trans1->scale, &trans1->shear
-		);
-	}
+	// The position relies on the original scale and rotation, so we do it first.
+	transformAppendPositionP1(trans1, trans2);
+	// The scale relies on the original rotation, so it comes next.
+	transformAppendScaleP1(trans1, trans2);
+	// The rotation only requires the original rotation, so it can be done last.
+	transformAppendRotationP1(trans1, trans2);
 }
 
 /*
@@ -125,53 +241,12 @@ void transformMultiplyP2(const transform *const restrict trans1, transform *cons
 	** can then be diagonalized to solve individually for Q and S!
 	*/
 
-	// Compute the new position!
-	{
-		quat RQ1;
-
-		// Q_1^T T_2
-		quatConjRotateVec3Fast(&trans1->shear, &trans2->pos);
-		// S_1 Q_1^T T_2
-		vec3MultiplyVec3(&trans2->pos, &trans1->scale);
-		// R_1 Q_1 S_1 Q_1^T T_2
-		quatMultiplyQuatOut(trans1->rot, trans1->shear, &RQ1);
-		quatRotateVec3Fast(&RQ1, &trans2->pos);
-		// T = T_1 R_1 Q_1 S_1 Q_1^T T_2
-		vec3AddVec3(&trans2->pos, &trans1->pos);
-	}
-
-	// Compute the new scale!
-	{
-		quat Q1;
-		mat3 QSQT1;
-		mat3 QSQT2;
-
-		// Q_1' = R_2^T Q_1
-		quatConjMultiplyQuatOut(trans2->rot, trans1->shear, &Q1);
-		// Q_1' S_1 Q_1'^T
-		mat3InitShearQuat(&QSQT1, &trans1->scale, &Q1);
-		// Q_2 S_2 Q_2^T
-		mat3InitShearQuat(&QSQT2, &trans2->scale, &trans2->shear);
-		// QSQ^T = Q_1' S_1 Q_1'^T Q_2 S_2 Q_2^T
-		// The shear matrices are symmetric, so we
-		// do the multiplication here to save time.
-		mat3DiagonalizeSymmetric(
-			QSQT1.m[0][0]*QSQT2.m[0][0] + QSQT1.m[1][0]*QSQT2.m[0][1] + QSQT1.m[2][0]*QSQT2.m[0][2],
-			QSQT1.m[0][0]*QSQT2.m[1][0] + QSQT1.m[1][0]*QSQT2.m[1][1] + QSQT1.m[2][0]*QSQT2.m[1][2],
-			QSQT1.m[0][0]*QSQT2.m[2][0] + QSQT1.m[1][0]*QSQT2.m[2][1] + QSQT1.m[2][0]*QSQT2.m[2][2],
-			QSQT1.m[0][1]*QSQT2.m[1][0] + QSQT1.m[1][1]*QSQT2.m[1][1] + QSQT1.m[2][1]*QSQT2.m[1][2],
-			QSQT1.m[0][1]*QSQT2.m[2][0] + QSQT1.m[1][1]*QSQT2.m[2][1] + QSQT1.m[2][1]*QSQT2.m[2][2],
-			QSQT1.m[0][2]*QSQT2.m[2][0] + QSQT1.m[1][2]*QSQT2.m[2][1] + QSQT1.m[2][2]*QSQT2.m[2][2],
-			&trans2->scale, &trans2->shear
-		);
-	}
-
-	// Compute the new orientation!
-	{
-		// R = R_1 R_2
-		quatMultiplyQuatP2(trans1->rot, &trans2->rot);
-		quatNormalizeQuat(&trans2->rot);
-	}
+	// The position relies on the original scale and rotation, so we do it first.
+	transformAppendPositionP2(trans1, trans2);
+	// The scale relies on the original rotation, so it comes next.
+	transformAppendScaleP2(trans1, trans2);
+	// The rotation only requires the original rotation, so it can be done last.
+	transformAppendRotationP2(trans1, trans2);
 }
 
 /*
@@ -203,53 +278,12 @@ void transformMultiplyOut(
 	** can then be diagonalized to solve individually for Q and S!
 	*/
 
-	// Compute the new position!
-	{
-		quat RQ1;
-
-		// Q_1^T T_2
-		quatConjRotateVec3FastOut(&trans1->shear, &trans2->pos, &out->pos);
-		// S_1 Q_1^T T_2
-		vec3MultiplyVec3(&out->pos, &trans1->scale);
-		// R_1 Q_1 S_1 Q_1^T T_2
-		quatMultiplyQuatOut(trans1->rot, trans1->shear, &RQ1);
-		quatRotateVec3Fast(&RQ1, &out->pos);
-		// T = T_1 R_1 Q_1 S_1 Q_1^T T_2
-		vec3AddVec3(&out->pos, &trans1->pos);
-	}
-
-	// Compute the new orientation!
-	{
-		// R = R_1 R_2
-		quatMultiplyQuatOut(trans1->rot, trans2->rot, &out->rot);
-		quatNormalizeQuat(&out->rot);
-	}
-
-	// Compute the new scale!
-	{
-		quat Q1;
-		mat3 QSQT1;
-		mat3 QSQT2;
-
-		// Q_1' = R_2^T Q_1
-		quatConjMultiplyQuatOut(trans2->rot, trans1->shear, &Q1);
-		// Q_1' S_1 Q_1'^T
-		mat3InitShearQuat(&QSQT1, &trans1->scale, &Q1);
-		// Q_2 S_2 Q_2^T
-		mat3InitShearQuat(&QSQT2, &trans2->scale, &trans2->shear);
-		// QSQ^T = Q_1' S_1 Q_1'^T Q_2 S_2 Q_2^T
-		// The shear matrices are symmetric, so we
-		// do the multiplication here to save time.
-		mat3DiagonalizeSymmetric(
-			QSQT1.m[0][0]*QSQT2.m[0][0] + QSQT1.m[1][0]*QSQT2.m[0][1] + QSQT1.m[2][0]*QSQT2.m[0][2],
-			QSQT1.m[0][0]*QSQT2.m[1][0] + QSQT1.m[1][0]*QSQT2.m[1][1] + QSQT1.m[2][0]*QSQT2.m[1][2],
-			QSQT1.m[0][0]*QSQT2.m[2][0] + QSQT1.m[1][0]*QSQT2.m[2][1] + QSQT1.m[2][0]*QSQT2.m[2][2],
-			QSQT1.m[0][1]*QSQT2.m[1][0] + QSQT1.m[1][1]*QSQT2.m[1][1] + QSQT1.m[2][1]*QSQT2.m[1][2],
-			QSQT1.m[0][1]*QSQT2.m[2][0] + QSQT1.m[1][1]*QSQT2.m[2][1] + QSQT1.m[2][1]*QSQT2.m[2][2],
-			QSQT1.m[0][2]*QSQT2.m[2][0] + QSQT1.m[1][2]*QSQT2.m[2][1] + QSQT1.m[2][2]*QSQT2.m[2][2],
-			&out->scale, &out->shear
-		);
-	}
+	// The position relies on the original scale and rotation, so we do it first.
+	transformAppendPositionOut(trans1, trans2, out);
+	// The scale relies on the original rotation, so it comes next.
+	transformAppendScaleOut(trans1, trans2, out);
+	// The rotation only requires the original rotation, so it can be done last.
+	transformAppendRotationOut(trans1, trans2, out);
 }
 
 /*

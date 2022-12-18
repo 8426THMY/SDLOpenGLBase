@@ -10,22 +10,27 @@
 
 
 #define PHYSJOINTSPHERE_LIMITS_FREE        0x00
-#ifndef PHYSJOINTSPHERE_ANGULAR_CONSTRAINT_EULER
 #define PHYSJOINTSPHERE_LIMITS_SWING       0x01
 #define PHYSJOINTSPHERE_LIMITS_TWIST_LOWER 0x02
 #define PHYSJOINTSPHERE_LIMITS_TWIST_UPPER 0x04
 #define PHYSJOINTSPHERE_LIMITS_TWIST       (PHYSJOINTSPHERE_LIMITS_TWIST_LOWER | PHYSJOINTSPHERE_LIMITS_TWIST_UPPER)
-#else
-#define PHYSJOINTSPHERE_LIMITS_X_LOWER     0x01
-#define PHYSJOINTSPHERE_LIMITS_X_UPPER     0x02
-#define PHYSJOINTSPHERE_LIMITS_X           (PHYSJOINTSPHERE_LIMITS_X_LOWER | PHYSJOINTSPHERE_LIMITS_X_UPPER)
-#define PHYSJOINTSPHERE_LIMITS_Y_LOWER     0x04
-#define PHYSJOINTSPHERE_LIMITS_Y_UPPER     0x08
-#define PHYSJOINTSPHERE_LIMITS_Y           (PHYSJOINTSPHERE_LIMITS_Y_LOWER | PHYSJOINTSPHERE_LIMITS_Y_UPPER)
-#define PHYSJOINTSPHERE_LIMITS_Z_LOWER     0x10
-#define PHYSJOINTSPHERE_LIMITS_Z_UPPER     0x20
-#define PHYSJOINTSPHERE_LIMITS_Z           (PHYSJOINTSPHERE_LIMITS_Z_LOWER | PHYSJOINTSPHERE_LIMITS_Z_UPPER)
+
+
+#ifdef PHYSJOINTSPHERE_DEBUG
+vec3 swingAxisDebug = {0.f, 0.f, 0.f};
+float swingAngleDebug = 0.f;
+vec3 twistAxisDebug = {0.f, 0.f, 0.f};
+float twistAngleDebug = 0.f;
 #endif
+
+
+#warning "Try and add spring constraints here."
+/** https://github.com/jrouwe/JoltPhysics/blob/master/Jolt/Physics/Constraints/SwingTwistConstraint.cpp **/
+#warning "In PhysX, they use the stiffness parameter to control restitution."
+/** https://github.com/ezEngine/docs-src/blob/main/pages/docs/physics/joints/physx-spherical-joint-component.md/ **/
+#warning "Try to use the soft constraints from the distance joint, but maybe make it use a single softness parameter in [0, 1]."
+#warning "They do something similar to what we want here."
+/** https://github.com/DigitalRune/DigitalRune/blob/master/Source/DigitalRune.Physics/Constraints/TwistSwingLimit.cs **/
 
 
 /*
@@ -53,13 +58,13 @@
 ** where "[.]_X" denotes the skew-symmetric "cross product" matrix.
 **
 **
-** We also need to impose constraints on the relative orientation of
-** the rigid bodies, so if "((qB + RB) - (qA + RA)) . a" represents the
-** angle of the relative orientation along the axis a, then we require
+** We also need to impose constraints on the relative orientation of the
+** rigid bodies, so if "theta(a)" represents the angle of the relative
+** orientation "((qB*RB) * conj(qA*RA))" along the axis a, then we require
 **
-** C2 : ((qB*RB) * conj(qA*RA)) . s - s_limit <= 0,
-** C3 : ((qB*RB) * conj(qA*RA)) . t - t_upper <= 0,
-** C4 : ((qB*RB) * conj(qA*RA)) . t - t_lower >= 0.
+** C2 : theta(s) - s_limit <= 0,
+** C3 : theta(t) - t_upper <= 0,
+** C4 : theta(t) - t_lower >= 0.
 **
 ** where s denotes the swing axis, t denotes the twist axis,
 ** and s_limit, t_upper and t_lower are the swing and twist
@@ -91,7 +96,7 @@
 **
 ** J1 = [-I_3, [rA]_X, I_3, -[rB]_X],
 ** J2 = [   0,     -s,   0,       s],
-** J3 = [   0,     -t,   0,       t] = J4,
+** J3 = [   0,     -t,   0,       t] = J4.
 **
 ** Note that "I_3" is the 3x3 identity matrix.
 **
@@ -105,6 +110,9 @@
 **          [   0    IA^{-1}    0       0   ]
 ** M^{-1} = [   0       0    mB^{-1}    0   ],
 **          [   0       0       0    IB^{-1}]
+**
+** Note that transposing the Jacobian transposes [rA]_X.
+** As it's skew-symmetric, we need to flip its sign.
 **
 **        [ -I_3  ]
 **        [-[rA]_X]
@@ -141,10 +149,10 @@
 ** respect to rigid body A, we use swing-twist decomposition
 ** and constrain the swing and twist axes individually.
 **
-** Note that if a_limit is the axis limit and "((qB*RB) * conj(qA*RA)) . a"
-** is the relative angle along the axis a, then
+** Note that if a_limit is the axis limit and "theta(a)" is the angle of
+** the relative orientation "((qB*RB) * conj(qA*RA))" along the axis a, then
 **
-** b = ((qB*RB) * conj(qA*RA)) . a - a_limit)/dt = C/dt
+** b = (theta(a) - a_limit)/dt = C/dt
 **
 ** is the angular velocity required for the limit to be reached.
 ** Note that to prevent all rotation along a, we apply the impulse
@@ -160,15 +168,6 @@
 ** impulse, so we multiply it by a Baumgarte constant B in [0, 1]:
 **
 ** b = B/dt * C.
-**
-** ----------------------------------------------------------------------
-**
-** Although undiscussed here, we support rectangular angle limits
-** using Euler angles rather than the conical limit that swing-twist
-** decomposition gives.
-**
-** This is implemented by effectively having a twist constraint
-** for all three axes rather than just the x-axis.
 **
 ** ----------------------------------------------------------------------
 */
@@ -189,9 +188,10 @@
 *** In some situations, the twist constraint seems to jitter. I've only observed this once and
 *** I haven't really investigated it much, but it's almost certainly due to the above issues.
 **/
-
-#warning "For our angular constraint, we didn't differentiate the quaternions properly. Might this help with stability?"
-#warning "If we remove the angular constraint and Gauss-Seidel, the point-to-point constraint doesn't lose or gain energy (with and without warm starting)."
+#warning "The reason the box bounces back after hitting an angle limit is due to warmstarting and Baumgarte stabilization."
+#warning "Warmstarting works great with high temporal coherence, but after hitting an angle limit, we get an abrupt change in velocity."
+#warning "ReactPhysics3D seems to use both warmstarting and Baumgarte stabilization for their ball and socket constraints, but it seems that Bullet uses neither."
+#warning "The false restitution is pretty ugly, and it makes adding actual restitution painful, so maybe we should go the Bullet route."
 
 
 // Forward-declare any helper functions!
@@ -205,19 +205,11 @@ static void calculateLinearMass(
 	const physicsRigidBody *const restrict bodyA, const physicsRigidBody *const restrict bodyB,
 	mat3 *const restrict linearMass
 );
-#ifndef PHYSJOINTSPHERE_ANGULAR_CONSTRAINT_EULER
 static void calculateInverseAngularMass(
 	const physicsRigidBody *const restrict bodyA, const physicsRigidBody *const restrict bodyB,
 	const vec3 *const restrict swingAxis, const vec3 *const restrict twistAxis,
 	float *const restrict swingInvMass, float *const restrict twistInvMass
 );
-#else
-static void calculateInverseAngularMass(
-	const physicsRigidBody *const restrict bodyA, const physicsRigidBody *const restrict bodyB,
-	const vec3 *const restrict angularAxisX, const vec3 *const restrict angularAxisY, const vec3 *const restrict angularAxisZ,
-	vec3 *const restrict angularInvMass
-);
-#endif
 
 static void calculateLinearBias(
 	const vec3 *const restrict centroidA, const vec3 *const restrict centroidB,
@@ -225,32 +217,20 @@ static void calculateLinearBias(
 	vec3 *const restrict linearBias
 );
 
-#ifndef PHYSJOINTSPHERE_ANGULAR_CONSTRAINT_EULER
 static flags_t calculateAngularBias(
 	const physicsJointSphere *const restrict joint,
 	const quat *const restrict rotA, const quat *const restrict rotB,
 	vec3 *const restrict swingAxis, float *const restrict swingBias,
 	vec3 *const restrict twistAxis, float *const restrict twistBias
 );
-#else
-static flags_t calculateAngularBias(
-	const physicsJointSphere *const restrict joint,
-	const quat *const restrict rotA, const quat *const restrict rotB,
-	vec3 *const restrict angularAxisX, vec3 *const restrict angularAxisY, vec3 *const restrict angularAxisZ,
-	vec3 *const restrict angularBias
-);
-#endif
-#ifndef PHYSJOINTSPHERE_ANGULAR_CONSTRAINT_EULER
 static flags_t calculateSwingLimit(
 	const quat *const restrict swing,
 	const quat *const restrict rotOffsetGlobalA, const vec3 *const restrict twistAxis,
 	const float angularLimitsY[2], const float angularLimitsZ[2],
 	vec3 *const restrict swingAxis, float *const restrict swingBias
 );
-#endif
-static flags_t calculateAngularLimit(
+static flags_t calculateTwistLimit(
 	const float angle, const float angularLimits[2],
-	const flags_t lowerLimitFlag, const flags_t upperLimitFlag,
 	vec3 *const restrict axis, float *const restrict angleBias
 );
 
@@ -301,50 +281,31 @@ void physJointSphereInit(
 	joint->angularLimitsZ[1] = maxZ;
 
 	vec3InitZero(&joint->linearImpulse);
-	#ifndef PHYSJOINTSPHERE_ANGULAR_CONSTRAINT_EULER
 	joint->swingImpulse = 0.f;
 	joint->twistImpulse = 0.f;
-	#else
-	vec3InitZero(&joint->angularImpulse);
-	#endif
 }
 
 
 #ifdef PHYSJOINTSPHERE_WARM_START
 void physJointSphereWarmStart(
-	const physicsJointSphere *const restrict joint, const flags_t limitStates,
+	const physicsJointSphere *const restrict joint,
 	physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB
 ){
 
 	vec3 angularImpulse;
 	vec3InitZero(&angularImpulse);
 
-	#ifndef PHYSJOINTSPHERE_ANGULAR_CONSTRAINT_EULER
 	// The angular impulse is the sum of the swing and twist impulses.
 	// We recalculate them here because we need the new swing and twist axes.
-	if(limitStates & PHYSJOINTSPHERE_LIMITS_SWING){
+	if(flagsAreSet(((physicsJointSphere *)joint)->limitStates, PHYSJOINTSPHERE_LIMITS_SWING)){
 		vec3Fmaf(joint->swingImpulse, &joint->swingAxis, &angularImpulse);
-
 		#ifdef PHYSJOINTSPHERE_SWING_USE_ELLIPSE_NORMAL
 		swingImpulseRemoveTwist(&joint->twistAxis, &angularImpulse);
 		#endif
 	}
-	if(limitStates & PHYSJOINTSPHERE_LIMITS_TWIST){
+	if(flagsAreSet(((physicsJointSphere *)joint)->limitStates, PHYSJOINTSPHERE_LIMITS_TWIST)){
 		vec3Fmaf(joint->twistImpulse, &joint->twistAxis, &angularImpulse);
 	}
-	#else
-	// The angular impulse is the sum of the three axis impulses.
-	// We recalculate them here because we need the new constraint axes.
-	if(limitStates & PHYSJOINTSPHERE_LIMITS_X){
-		vec3Fmaf(joint->angularImpulse.x, &joint->angularAxisX, &angularImpulse);
-	}
-	if(limitStates & PHYSJOINTSPHERE_LIMITS_Y){
-		vec3Fmaf(joint->angularImpulse.y, &joint->angularAxisY, &angularImpulse);
-	}
-	if(limitStates & PHYSJOINTSPHERE_LIMITS_Z){
-		vec3Fmaf(joint->angularImpulse.z, &joint->angularAxisZ, &angularImpulse);
-	}
-	#endif
 
 	// Apply the accumulated impulses.
 	physRigidBodyApplyImpulseBoostInverse(bodyA, &joint->rA, &joint->linearImpulse, &angularImpulse);
@@ -362,151 +323,123 @@ void physJointSpherePresolve(
 ){
 
 	const float frequency = 1.f/dt;
-	#ifdef PHYSJOINTSPHERE_WARM_START
-	const flags_t oldLimitStates = ((physicsJointSphere *)joint)->limitStates;
-	#endif
+	flags_t changedLimits = ((physicsJointSphere *)joint)->limitStates;
 
 
 	updateConstraintData((physicsJointSphere *)joint, bodyA, bodyB);
 
-
-	// We actually compute the constraint axes in "calculateAngularBias"
-	// rather than in "updateConstraintData", as it makes things easier.
-	//
-	// Although this function accepts a pointer to a constant joint,
-	// we modify it in this call through the last four parameters.
-	// It's not the best practice, but at least it's efficient.
-	#ifndef PHYSJOINTSPHERE_ANGULAR_CONSTRAINT_EULER
-	((physicsJointSphere *)joint)->limitStates = calculateAngularBias(
-		(physicsJointSphere *)joint,
-		&bodyA->state.rot, &bodyB->state.rot,
-		&((physicsJointSphere *)joint)->swingAxis, &((physicsJointSphere *)joint)->swingBias,
-		&((physicsJointSphere *)joint)->twistAxis, &((physicsJointSphere *)joint)->twistBias
-	);
-	// b = B/dt * C
-	// The angular slop lets us solve the velocity constraint,
-	// but removes the bias term when we're sufficiently close
-	// to the limits. This helps prevent jittering when resting
-	// at the limit points.
-	#ifdef PHYSJOINTSPHERE_STABILISER_BAUMGARTE
-	((physicsJointSphere *)joint)->swingBias = floatMax(
-		PHYSJOINTSPHERE_BAUMGARTE_BIAS * frequency * (((physicsJointSphere *)joint)->swingBias - PHYSJOINT_ANGULAR_SLOP),
-		0.f
-	);
-	((physicsJointSphere *)joint)->twistBias = floatMax(
-		PHYSJOINTSPHERE_BAUMGARTE_BIAS * frequency * (((physicsJointSphere *)joint)->twistBias - PHYSJOINT_ANGULAR_SLOP),
-		0.f
-	);
-	#else
-	((physicsJointSphere *)joint)->swingBias = 0.f;
-	((physicsJointSphere *)joint)->twistBias = 0.f;
-	#endif
-	// Add the restitution bias.
+	// Angular constraints.
 	{
-		vec3 relativeVelocity;
-		vec3SubtractVec3Out(&bodyB->angularVelocity, &bodyA->angularVelocity, &relativeVelocity);
+		// We actually compute the constraint axes in "calculateAngularBias"
+		// rather than in "updateConstraintData", as it makes things easier.
+		//
+		// Although this function accepts a pointer to a constant joint,
+		// we modify it in this call through the last four parameters.
+		// It's not the best practice, but at least it's efficient.
+		((physicsJointSphere *)joint)->limitStates = calculateAngularBias(
+			(physicsJointSphere *)joint,
+			&bodyA->state.rot, &bodyB->state.rot,
+			&((physicsJointSphere *)joint)->swingAxis, &((physicsJointSphere *)joint)->swingBias,
+			&((physicsJointSphere *)joint)->twistAxis, &((physicsJointSphere *)joint)->twistBias
+		);
+		// Figure out which limits have been either enabled or disabled.
+		changedLimits ^= ((physicsJointSphere *)joint)->limitStates;
 
-		// Add the swing restitution term.
-		((physicsJointSphere *)joint)->swingBias -=
-			((physicsJointSphere *)joint)->restitution *
-			vec3DotVec3(&relativeVelocity, &((physicsJointSphere *)joint)->swingAxis);
-		// Add the twist restitution term.
-		((physicsJointSphere *)joint)->twistBias -=
-			((physicsJointSphere *)joint)->restitution *
-			vec3DotVec3(&relativeVelocity, &((physicsJointSphere *)joint)->twistAxis);
+		calculateInverseAngularMass(
+			bodyA, bodyB,
+			&((physicsJointSphere *)joint)->swingAxis,
+			&((physicsJointSphere *)joint)->twistAxis,
+			&((physicsJointSphere *)joint)->swingInvMass,
+			&((physicsJointSphere *)joint)->twistInvMass
+		);
+
+		// b = B/dt * C
+		// The angular slop lets us solve the velocity constraint,
+		// but removes the bias term when we're sufficiently close
+		// to the limits. This helps prevent jittering when resting
+		// at the limit points.
+		#ifdef PHYSJOINTSPHERE_STABILISER_BAUMGARTE
+		((physicsJointSphere *)joint)->swingBias = floatMax(
+			PHYSJOINTSPHERE_BAUMGARTE_BIAS * frequency * (((physicsJointSphere *)joint)->swingBias - PHYSJOINT_ANGULAR_SLOP),
+			0.f
+		);
+		((physicsJointSphere *)joint)->twistBias = floatMax(
+			PHYSJOINTSPHERE_BAUMGARTE_BIAS * frequency * (((physicsJointSphere *)joint)->twistBias - PHYSJOINT_ANGULAR_SLOP),
+			0.f
+		);
+		#else
+		((physicsJointSphere *)joint)->swingBias = 0.f;
+		((physicsJointSphere *)joint)->twistBias = 0.f;
+		#endif
+		#warning "This seems to add too much energy into the system. In particular, the twist blows up in certain positions."
+		#warning "Admittedly, this is a naive way of doing it: we should add it to the linear term."
+		#warning "Oh, and restitution for twist makes no sense whatsoever. Let's remove that."
+		#warning "Alternatively, what about using soft, spring constraints like Erin Catto suggests? I think they do this in Jolt and PhysX."
+		// Add the restitution bias.
+		/*{
+			vec3 relativeVelocity;
+			vec3SubtractVec3Out(&bodyB->angularVelocity, &bodyA->angularVelocity, &relativeVelocity);
+
+			// Constrain the swing restitution bias. We need to make sure
+			// that the relative velocity is parallel to the swing axis.
+			// This means that when the constraint is broken, we're moving
+			// away from the angular limit point.
+			((physicsJointSphere *)joint)->swingBias += ((physicsJointSphere *)joint)->restitution * floatClamp(
+				vec3DotVec3(&relativeVelocity, &((physicsJointSphere *)joint)->swingAxis),
+				0.f, INFINITY//PHYSJOINTSPHERE_RESTITUTION_MIN_SWING, PHYSJOINTSPHERE_RESTITUTION_MAX_SWING
+			);
+			// Constrain the twist restitution bias. The angular velocity around
+			// the twist axis can get quite large when the swing angle is near
+			// pi radians, and this can cause the joint to blow up.
+			((physicsJointSphere *)joint)->twistBias += ((physicsJointSphere *)joint)->restitution * floatClamp(
+				vec3DotVec3(&relativeVelocity, &((physicsJointSphere *)joint)->twistAxis),
+				0.f, INFINITY//PHYSJOINTSPHERE_RESTITUTION_MIN_TWIST, PHYSJOINTSPHERE_RESTITUTION_MAX_TWIST
+			);
+		}*/
 	}
 
-	calculateInverseAngularMass(
-		bodyA, bodyB,
-		&((physicsJointSphere *)joint)->swingAxis,
-		&((physicsJointSphere *)joint)->twistAxis,
-		&((physicsJointSphere *)joint)->swingInvMass,
-		&((physicsJointSphere *)joint)->twistInvMass
-	);
-	#else
-	((physicsJointSphere *)joint)->limitStates = calculateAngularBias(
-		(physicsJointSphere *)joint,
-		&bodyA->state.rot, &bodyB->state.rot,
-		&((physicsJointSphere *)joint)->angularAxisX,
-		&((physicsJointSphere *)joint)->angularAxisY,
-		&((physicsJointSphere *)joint)->angularAxisZ,
-		&((physicsJointSphere *)joint)->angularBias
-	);
-	// b = B/dt * C
-	// The angular slop lets us solve the velocity constraint,
-	// but removes the bias term when we're sufficiently close
-	// to the limits. This helps prevent jittering when resting
-	// at the limit points.
-	#ifdef PHYSJOINTSPHERE_STABILISER_BAUMGARTE
-	((physicsJointSphere *)joint)->angularBias.x = floatMax(
-		PHYSJOINTSPHERE_BAUMGARTE_BIAS * frequency * (((physicsJointSphere *)joint)->angularBias.x - PHYSJOINT_ANGULAR_SLOP),
-		0.f
-	);
-	((physicsJointSphere *)joint)->angularBias.y = floatMax(
-		PHYSJOINTSPHERE_BAUMGARTE_BIAS * frequency * (((physicsJointSphere *)joint)->angularBias.y - PHYSJOINT_ANGULAR_SLOP),
-		0.f
-	);
-	((physicsJointSphere *)joint)->angularBias.z = floatMax(
-		PHYSJOINTSPHERE_BAUMGARTE_BIAS * frequency * (((physicsJointSphere *)joint)->angularBias.z - PHYSJOINT_ANGULAR_SLOP),
-		0.f
-	);
-	#else
-	vec3InitZero(&((physicsJointSphere *)joint)->angularBias);
-	#endif
-	// Add the restitution bias.
+	// Linear constraint.
 	{
-		vec3 relativeVelocity;
-		vec3SubtractVec3Out(&bodyB->angularVelocity, &bodyA->angularVelocity, &relativeVelocity);
+		calculateLinearMass(
+			((physicsJointSphere *)joint)->rA, ((physicsJointSphere *)joint)->rB,
+			bodyA, bodyB, &((physicsJointSphere *)joint)->linearInvMass
+		);
+		// The performance of solving using Cramer's rule seems similar
+		// to inverting. However, since we do our velocity solve step
+		// multiple times using the same matrix for sequential impulse,
+		// it's much faster to invert it here when we're presolving.
+		mat3Invert(&((physicsJointSphere *)joint)->linearInvMass);
 
-		((physicsJointSphere *)joint)->angularBias.x -=
-			((physicsJointSphere *)joint)->restitution *
-			vec3DotVec3(&relativeVelocity, &((physicsJointSphere *)joint)->angularAxisX);
-		((physicsJointSphere *)joint)->angularBias.y -=
-			((physicsJointSphere *)joint)->restitution *
-			vec3DotVec3(&relativeVelocity, &((physicsJointSphere *)joint)->angularAxisY);
-		((physicsJointSphere *)joint)->angularBias.z -=
-			((physicsJointSphere *)joint)->restitution *
-			vec3DotVec3(&relativeVelocity, &((physicsJointSphere *)joint)->angularAxisZ);
+		#ifdef PHYSJOINTSPHERE_STABILISER_BAUMGARTE
+		// Compute the linear bias term.
+		calculateLinearBias(
+			&bodyA->centroid, &bodyB->centroid,
+			&((physicsJointSphere *)joint)->rA, &((physicsJointSphere *)joint)->rB,
+			&((physicsJointSphere *)joint)->linearBias
+		);
+		// b = B/dt * C
+		vec3MultiplyS(&((physicsJointSphere *)joint)->linearBias, PHYSJOINTSPHERE_BAUMGARTE_BIAS * frequency);
+		#else
+		vec3InitZero(&((physicsJointSphere *)joint)->linearBias);
+		#endif
 	}
 
-	calculateInverseAngularMass(
-		bodyA, bodyB,
-		&((physicsJointSphere *)joint)->angularAxisX, &((physicsJointSphere *)joint)->angularAxisY, &((physicsJointSphere *)joint)->angularAxisZ,
-		&((physicsJointSphere *)joint)->angularInvMass
-	);
-	#endif
 
-
-	#ifdef PHYSJOINTSPHERE_STABILISER_BAUMGARTE
-	// Compute the linear bias term.
-	calculateLinearBias(
-		&bodyA->centroid, &bodyB->centroid,
-		&((physicsJointSphere *)joint)->rA, &((physicsJointSphere *)joint)->rB,
-		&((physicsJointSphere *)joint)->linearBias
-	);
-	// b = B/dt * C
-	vec3MultiplyS(&((physicsJointSphere *)joint)->linearBias, PHYSJOINTSPHERE_BAUMGARTE_BIAS * frequency);
-	#else
-	vec3InitZero(&((physicsJointSphere *)joint)->linearBias);
-	#endif
-
-	calculateLinearMass(
-		((physicsJointSphere *)joint)->rA, ((physicsJointSphere *)joint)->rB,
-		bodyA, bodyB, &((physicsJointSphere *)joint)->linearInvMass
-	);
-	// The performance of solving using Cramer's rule seems similar
-	// to inverting. However, since we do our velocity solve step
-	// multiple times using the same matrix for sequential impulse,
-	// it's much faster to invert it here when we're presolving.
-	mat3Invert(&((physicsJointSphere *)joint)->linearInvMass);
-
-
+	// Reset the accumulated impulses if the limits have changed state.
+	if(flagsAreSet(changedLimits, PHYSJOINTSPHERE_LIMITS_SWING)){
+		((physicsJointSphere *)joint)->swingImpulse = 0.f;
+	}
+	if(flagsAreSet(changedLimits, PHYSJOINTSPHERE_LIMITS_TWIST)){
+		((physicsJointSphere *)joint)->twistImpulse = 0.f;
+	}
+	// Disable linear warmstarting while the swing constraint is violated.
+	// This is a little hacky, but seems to give much more accurate results.
+	if(flagsAreSet(((physicsJointSphere *)joint)->limitStates, PHYSJOINTSPHERE_LIMITS_SWING)){
+		vec3InitZero(&((physicsJointSphere *)joint)->linearImpulse);
+	}
 	#ifdef PHYSJOINTSPHERE_WARM_START
-	// Warm start the constraint if the old limit states match the new ones.
-	physJointSphereWarmStart(
-		(physicsJointSphere *)joint, oldLimitStates & ((physicsJointSphere *)joint)->limitStates,
-		bodyA, bodyB
-	);
+	// We reset the accumulated impulses in here if necessary.
+	physJointSphereWarmStart((physicsJointSphere *)joint, bodyA, bodyB);
 	#endif
 }
 
@@ -530,9 +463,8 @@ void physJointSphereSolveVelocity(
 		vec3InitZero(&impulse);
 
 
-		#ifndef PHYSJOINTSPHERE_ANGULAR_CONSTRAINT_EULER
 		// Solve the swing constraint.
-		if(((physicsJointSphere *)joint)->limitStates & PHYSJOINTSPHERE_LIMITS_SWING){
+		if(flagsAreSet(((physicsJointSphere *)joint)->limitStates, PHYSJOINTSPHERE_LIMITS_SWING)){
 			calculateAngularVelocityImpulse(
 				&relativeVelocity, &((physicsJointSphere *)joint)->swingAxis,
 				((physicsJointSphere *)joint)->swingBias, ((physicsJointSphere *)joint)->swingInvMass,
@@ -540,13 +472,11 @@ void physJointSphereSolveVelocity(
 			);
 
 			#ifdef PHYSJOINTSPHERE_SWING_USE_ELLIPSE_NORMAL
-			swingImpulseRemoveTwist(&joint->twistAxis, &impulse);
+			swingImpulseRemoveTwist(&((physicsJointSphere *)joint)->twistAxis, &impulse);
 			#endif
-		}else{
-			((physicsJointSphere *)joint)->swingImpulse = 0.f;
 		}
 		// Solve the twist constraint.
-		if(((physicsJointSphere *)joint)->limitStates & PHYSJOINTSPHERE_LIMITS_TWIST){
+		if(flagsAreSet(((physicsJointSphere *)joint)->limitStates, PHYSJOINTSPHERE_LIMITS_TWIST)){
 			calculateAngularVelocityImpulse(
 				&relativeVelocity, &((physicsJointSphere *)joint)->twistAxis,
 				((physicsJointSphere *)joint)->twistBias, ((physicsJointSphere *)joint)->twistInvMass,
@@ -555,38 +485,6 @@ void physJointSphereSolveVelocity(
 		}else{
 			((physicsJointSphere *)joint)->twistImpulse = 0.f;
 		}
-		#else
-		// Solve the x-axis angular constraint.
-		if(((physicsJointSphere *)joint)->limitStates & PHYSJOINTSPHERE_LIMITS_X){
-			calculateAngularVelocityImpulse(
-				&relativeVelocity, &((physicsJointSphere *)joint)->angularAxisX,
-				((physicsJointSphere *)joint)->angularBias.x, ((physicsJointSphere *)joint)->angularInvMass.x,
-				&((physicsJointSphere *)joint)->angularImpulse.x, &impulse
-			);
-		}else{
-			((physicsJointSphere *)joint)->angularImpulse.x = 0.f;
-		}
-		// Solve the y-axis angular constraint.
-		if(((physicsJointSphere *)joint)->limitStates & PHYSJOINTSPHERE_LIMITS_Y){
-			calculateAngularVelocityImpulse(
-				&relativeVelocity, &((physicsJointSphere *)joint)->angularAxisY,
-				((physicsJointSphere *)joint)->angularBias.y, ((physicsJointSphere *)joint)->angularInvMass.y,
-				&((physicsJointSphere *)joint)->angularImpulse.y, &impulse
-			);
-		}else{
-			((physicsJointSphere *)joint)->angularImpulse.y = 0.f;
-		}
-		// Solve the z-axis angular constraint.
-		if(((physicsJointSphere *)joint)->limitStates & PHYSJOINTSPHERE_LIMITS_Z){
-			calculateAngularVelocityImpulse(
-				&relativeVelocity, &((physicsJointSphere *)joint)->angularAxisZ,
-				((physicsJointSphere *)joint)->angularBias.z, ((physicsJointSphere *)joint)->angularInvMass.z,
-				&((physicsJointSphere *)joint)->angularImpulse.z, &impulse
-			);
-		}else{
-			((physicsJointSphere *)joint)->angularImpulse.z = 0.f;
-		}
-		#endif
 
 
 		// Apply the correctional impulse.
@@ -640,13 +538,13 @@ return_t physJointSphereSolvePosition(
 ){
 
 	#ifdef PHYSJOINTSPHERE_STABILISER_GAUSS_SEIDEL
-	float angularError;
+	float swingError;
+	float twistError;
 	float linearError;
 	vec3 impulse;
 
 
 	// Solve the angular constraints.
-	#ifndef PHYSJOINTSPHERE_ANGULAR_CONSTRAINT_EULER
 	{
 		float swingDeviation, twistDeviation;
 		vec3 twistImpulse;
@@ -663,8 +561,9 @@ return_t physJointSphereSolvePosition(
 			float swingInvMass;
 			float twistInvMass;
 
-			// Calculate the angular error.
-			angularError = swingDeviation + fabsf(twistDeviation);
+			// Calculate the angular errors.
+			swingError = swingDeviation;
+			twistError = fabsf(twistDeviation);
 
 			// The Baumgarte bias stops us from adding the entire
 			// correction in one step, which aids stability.
@@ -689,59 +588,10 @@ return_t physJointSphereSolvePosition(
 			physRigidBodyApplyAngularImpulsePositionInverse(bodyA, impulse);
 			physRigidBodyApplyAngularImpulsePosition(bodyB, impulse);
 		}else{
-			angularError = 0.f;
+			swingError = 0.f;
+			twistError = 0.f;
 		}
 	}
-	#else
-	{
-		vec3 axisY;
-		vec3 axisZ;
-		vec3 angularDeviation;
-
-		const flags_t limitStates = calculateAngularBias(
-			(physicsJointSphere *)joint,
-			&bodyA->state.rot, &bodyB->state.rot,
-			&impulse, &axisY, &axisZ,
-			&angularDeviation
-		);
-
-		// Solve the constraints if they're being violated.
-		if(limitStates != PHYSJOINTSPHERE_LIMITS_FREE){
-			vec3 invMass;
-
-			// Calculate the angular error.
-			angularError = fabsf(angularDeviation.x) + fabsf(angularDeviation.y) + fabsf(angularDeviation.z);
-
-			// The Baumgarte bias stops us from adding the entire
-			// correction in one step, which aids stability.
-			angularDeviation.x = floatClamp(
-				PHYSJOINTSPHERE_BAUMGARTE_BIAS * (angularDeviation.x - PHYSJOINT_ANGULAR_SLOP),
-				0.f, PHYSJOINT_MAX_ANGULAR_CORRECTION
-			);
-			angularDeviation.y = floatClamp(
-				PHYSJOINTSPHERE_BAUMGARTE_BIAS * (angularDeviation.y - PHYSJOINT_ANGULAR_SLOP),
-				0.f, PHYSJOINT_MAX_ANGULAR_CORRECTION
-			);
-			angularDeviation.z = floatClamp(
-				PHYSJOINTSPHERE_BAUMGARTE_BIAS * (angularDeviation.z - PHYSJOINT_ANGULAR_SLOP),
-				0.f, PHYSJOINT_MAX_ANGULAR_CORRECTION
-			);
-
-			calculateInverseAngularMass(bodyA, bodyB, &impulse, &axisY, &axisZ, &invMass);
-			// lambda = -C/K
-			vec3MultiplyS(&impulse, -angularDeviation.x*invMass.x);
-			vec3Fmaf(-angularDeviation.y*invMass.y, &axisY, &impulse);
-			vec3Fmaf(-angularDeviation.z*invMass.z, &axisZ, &impulse);
-
-
-			// Apply the correctional impulse.
-			physRigidBodyApplyAngularImpulsePositionInverse(bodyA, impulse);
-			physRigidBodyApplyAngularImpulsePosition(bodyB, impulse);
-		}else{
-			angularError = 0.f;
-		}
-	}
-	#endif
 
 
 	// Solve the linear point-to-point constraint.
@@ -779,11 +629,8 @@ return_t physJointSphereSolvePosition(
 
 
 	return(
-		#ifndef PHYSJOINTSPHERE_ANGULAR_CONSTRAINT_EULER
-		angularError <= 2.f*PHYSJOINT_ANGULAR_POSITIONAL_ERROR_THRESHOLD &&
-		#else
-		angularError <= 3.f*PHYSJOINT_ANGULAR_POSITIONAL_ERROR_THRESHOLD &&
-		#endif
+		swingError <= PHYSJOINT_ANGULAR_POSITIONAL_ERROR_THRESHOLD &&
+		twistError <= PHYSJOINT_ANGULAR_POSITIONAL_ERROR_THRESHOLD &&
 		linearError <= PHYSJOINT_LINEAR_POSITIONAL_ERROR_THRESHOLD
 	);
 	#else
@@ -819,12 +666,10 @@ static void calculateLinearMass(
 	mat3 *const restrict linearMass
 ){
 
-	// Compute the linear effective mass given by:
-	// K1 = (mA^{-1} + mB^{-1})*I_3 - [rA]_X*IA^{-1}*[rA]_X - [rB]_X*IB^{-1}*[rB]_X.
-	//
-	// This probably isn't so good, as [rA]_X*IA^{-1}*[rA]_X and [rB]_X*IB^{-1}*[rB]_X
-	// are necessarily singular. We don't invert the matrix here, as it's faster to
-	// solve for lambda using Cramer's rule.
+	// Compute the linear effective mass given by
+	//     K1 = (mA^{-1} + mB^{-1})*I_3 - [rA]_X*IA^{-1}*[rA]_X - [rB]_X*IB^{-1}*[rB]_X.
+	// We don't invert the matrix here, as it's faster to solve
+	// for lambda using Cramer's rule in the position solver step.
 
 	// Compute body A's contribution to K1.
 	{
@@ -839,16 +684,23 @@ static void calculateLinearMass(
 			                                 bodyA->invInertiaGlobal.m[1][1], bodyA->invInertiaGlobal.m[1][2],
 			                                                                  bodyA->invInertiaGlobal.m[2][2]
 		};
+		// Recall that the "cross product" matrix for rA is given by
+		//              [    0, -rA_z,  rA_y]
+		//     [rA]_X = [ rA_z,     0, -rA_x].
+		//              [-rA_y,  rA_x,     0]
+		// We begin by calculating A = -IA^{-1}*[rA]_X. We don't need
+		// to compute the last element here, as it's only necessary
+		// to compute the lower triangular components, and the final
+		// matrix -[rA]_X*IA^{-1}*[rA]_X is guaranteed to be symmetric.
 		const float a3xy = rA.z*I[1];
 		const float A[8] = {
-			rA.y*I[2] -      a3xy, rA.y*I[4] - rA.z*I[3], rA.y*I[5] - rA.z*I[4],
+			     rA.y*I[2] - a3xy, rA.y*I[4] - rA.z*I[3], rA.y*I[5] - rA.z*I[4],
 			rA.z*I[0] - rA.x*I[2],      a3xy - rA.x*I[4], rA.z*I[2] - rA.x*I[5],
 			rA.x*I[1] - rA.y*I[0], rA.x*I[3] - rA.y*I[1]
 		};
 
-		// Compute -[rA]_X*IA^{-1}*[rA]_X.
-		// We don't set the lower triangular components here, as
-		// we can just do that when adding body B's contribution.
+		// Compute -[rA]_X*IA^{-1}*[rA]_X. We can just set the lower
+		// triangular components when we add body B's contribution.
 		linearMass->m[0][0] = rA.y*A[2] - rA.z*A[1];
 		linearMass->m[0][1] = rA.z*A[0] - rA.x*A[2];
 		linearMass->m[0][2] = rA.x*A[1] - rA.y*A[0];
@@ -863,15 +715,17 @@ static void calculateLinearMass(
 			                                 bodyB->invInertiaGlobal.m[1][1], bodyB->invInertiaGlobal.m[1][2],
 			                                                                  bodyB->invInertiaGlobal.m[2][2]
 		};
+		// Calculate A = -IB^{-1}*[rB]_X.
 		const float a3xy = rB.z*I[1];
 		const float A[8] = {
-			rB.y*I[2] -      a3xy, rB.y*I[4] - rB.z*I[3], rB.y*I[5] - rB.z*I[4],
+			     rB.y*I[2] - a3xy, rB.y*I[4] - rB.z*I[3], rB.y*I[5] - rB.z*I[4],
 			rB.z*I[0] - rB.x*I[2],      a3xy - rB.x*I[4], rB.z*I[2] - rB.x*I[5],
 			rB.x*I[1] - rB.y*I[0], rB.x*I[3] - rB.y*I[1]
 		};
 		const float invMass = bodyA->invMass + bodyB->invMass;
 
-		// Compute (mA^{-1} + mB^{-1})*I_3 - [rB]_X*IB^{-1}*[rB]_X.
+		// Add body B's contribution and the diagonal term to the effective mass:
+		//    K1 += (mA^{-1} + mB^{-1})*I_3 - [rB]_X*IB^{-1}*[rB]_X.
 		linearMass->m[0][0] += rB.y*A[2] - rB.z*A[1] + invMass;
 		linearMass->m[0][1] += rB.z*A[0] - rB.x*A[2];
 		linearMass->m[0][2] += rB.x*A[1] - rB.y*A[0];
@@ -888,7 +742,6 @@ static void calculateLinearMass(
 ** Calculate the inverse angular effective mass of the constraint, which won't
 ** change between velocity iterations. We can just do it once per update.
 */
-#ifndef PHYSJOINTSPHERE_ANGULAR_CONSTRAINT_EULER
 static void calculateInverseAngularMass(
 	const physicsRigidBody *const restrict bodyA, const physicsRigidBody *const restrict bodyB,
 	const vec3 *const restrict swingAxis, const vec3 *const restrict twistAxis,
@@ -897,6 +750,7 @@ static void calculateInverseAngularMass(
 
 	mat3 invInertiaSum;
 	vec3 IABa;
+
 	mat3AddMat3Out(&bodyA->invInertiaGlobal, &bodyB->invInertiaGlobal, &invInertiaSum);
 
 	// Swing inverse effective mass (K2).
@@ -907,33 +761,6 @@ static void calculateInverseAngularMass(
 	mat3MultiplyVec3Out(&invInertiaSum, twistAxis, &IABa);
 	*twistInvMass = 1.f / vec3DotVec3(twistAxis, &IABa);
 }
-#else
-static void calculateInverseAngularMass(
-	const physicsRigidBody *const restrict bodyA, const physicsRigidBody *const restrict bodyB,
-	const vec3 *const restrict angularAxisX, const vec3 *const restrict angularAxisY, const vec3 *const restrict angularAxisZ,
-	vec3 *const restrict angularInvMass
-){
-
-	mat3 invInertiaSum;
-	vec3 IABa;
-	mat3AddMat3Out(&bodyA->invInertiaGlobal, &bodyB->invInertiaGlobal, &invInertiaSum);
-
-	// This is equivalent to multiplying the sum of the inertia tensors
-	// by a matrix whose columns are given by the constraint axes.
-
-	// Inverse effective mass for the x-axis.
-	mat3MultiplyVec3Out(&invInertiaSum, angularAxisX, &IABa);
-	angularInvMass->x = 1.f / vec3DotVec3(angularAxisX, &IABa);
-
-	// Inverse effective mass for the y-axis.
-	mat3MultiplyVec3Out(&invInertiaSum, angularAxisY, &IABa);
-	angularInvMass->y = 1.f / vec3DotVec3(angularAxisY, &IABa);
-
-	// Inverse effective mass for the z-axis.
-	mat3MultiplyVec3Out(&invInertiaSum, angularAxisZ, &IABa);
-	angularInvMass->z = 1.f / vec3DotVec3(angularAxisZ, &IABa);
-}
-#endif
 
 
 // Calculate the joint's linear bias term.
@@ -944,7 +771,7 @@ static void calculateLinearBias(
 ){
 
 	// Calculate the displacement from the ball to the socket:
-	// C1 = (pB - rB) - (pA + rA).
+	// C1 = (pB + rB) - (pA + rA).
 	vec3AddVec3Out(centroidB, rB, linearBias);
 	vec3SubtractVec3P1(linearBias, centroidA);
 	vec3SubtractVec3P1(linearBias, rA);
@@ -955,7 +782,6 @@ static void calculateLinearBias(
 ** Calculate the joint's angular bias term. This is used
 ** for clamping the relative orientation of rigid body B.
 */
-#ifndef PHYSJOINTSPHERE_ANGULAR_CONSTRAINT_EULER
 static flags_t calculateAngularBias(
 	const physicsJointSphere *const restrict joint,
 	const quat *const restrict rotA, const quat *const restrict rotB,
@@ -992,6 +818,9 @@ static flags_t calculateAngularBias(
 		// Decompose the relative orientation into swing and twist components.
 		// We take the twist component to be the rotation around the x-axis.
 		quatSwingTwistFaster(&qR, &xAxisA, &twist, &swing);
+		#ifdef PHYSJOINTSPHERE_DEBUG
+		printf("t0: %f, %f, %f, %f\n", twist.x, twist.y, twist.z, twist.w);
+		#endif
 
 		// Compute the constraint term for the swing limit,
 		// C2 = (RB - RA) . s - s_lim.
@@ -1003,6 +832,10 @@ static flags_t calculateAngularBias(
 			joint->angularLimitsY, joint->angularLimitsZ,
 			swingAxis, swingBias
 		);
+		#ifdef PHYSJOINTSPHERE_DEBUG
+		quat swingTest = quatInitAxisAngleC(*swingAxis, *swingBias);
+		printf("s: %f, %f, %f, %f\n", swingTest.x, swingTest.y, swingTest.z, swingTest.w);
+		#endif
 	}
 
 	// Calculate the twist bias.
@@ -1021,68 +854,18 @@ static flags_t calculateAngularBias(
 		}
 		// Compute the constraint term for the twist limit,
 		// C2 = (RB - RA) . t - t_lim.
-		limitStates |= calculateAngularLimit(
-			twistAngle, joint->angularLimitsX,
-			PHYSJOINTSPHERE_LIMITS_TWIST_LOWER, PHYSJOINTSPHERE_LIMITS_TWIST_UPPER,
-			twistAxis, twistBias
-		);
+		flagsSet(limitStates, calculateTwistLimit(
+			twistAngle, joint->angularLimitsX, twistAxis, twistBias
+		));
+		#ifdef PHYSJOINTSPHERE_DEBUG
+		twistAxisDebug = quatBasisXC(twist);
+		quat twistTest = quatInitAxisAngleC(*twistAxis, *twistBias);
+		printf("t: %f, %f, %f, %f\n", twistTest.x, twistTest.y, twistTest.z, twistTest.w);
+		#endif
 	}
 
 	return(limitStates);
 }
-#else
-static flags_t calculateAngularBias(
-	const physicsJointSphere *const restrict joint,
-	const quat *const restrict rotA, const quat *const restrict rotB,
-	vec3 *const restrict angularAxisX, vec3 *const restrict angularAxisY, vec3 *const restrict angularAxisZ,
-	vec3 *const restrict angularBias
-){
-
-	// We need to calculate the new constraint axes and the angle limits.
-	//
-	// Ideally, we would calculate the axes in "updateConstraintData",
-	// but doing it here just makes things easier.
-	#error "This doesn't work at all. Another approach is required."
-
-	quat rotOffsetGlobalA, rotOffsetGlobalB;
-	quat qR;
-	vec3 angles;
-	flags_t limitStates;
-
-	// Get the global constraint orientations for the rigid bodies.
-	quatMultiplyQuatOut(rotA, joint->rotOffsetA, &rotOffsetGlobalA);
-	quatMultiplyQuatOut(rotB, joint->rotOffsetB, &rotOffsetGlobalB);
-	// Get the relative orientation from body A to body B:
-	// qR = B*conj(A).
-	quatMultiplyQuatConjOut(rotOffsetGlobalB, rotOffsetGlobalA, &qR);
-	// Compute the constraint axes. These are simply the
-	// x, y and z axes in rigid body A's coordinate frame.
-	quatBasisX(&rotOffsetGlobalA, angularAxisX);
-	quatBasisY(&rotOffsetGlobalA, angularAxisY);
-	quatBasisZ(&rotOffsetGlobalA, angularAxisZ);
-	// Decompose the relative orientation into
-	// angles about rigid body A's x, y and z axes.
-	quatToEulerAnglesXYZ(qR, &angles);
-
-	limitStates = calculateAngularLimit(
-		angles.x, joint->angularLimitsX,
-		PHYSJOINTSPHERE_LIMITS_X_LOWER, PHYSJOINTSPHERE_LIMITS_X_UPPER,
-		angularAxisX, &angularBias->x
-	);
-	limitStates |= calculateAngularLimit(
-		angles.y, joint->angularLimitsY,
-		PHYSJOINTSPHERE_LIMITS_Y_LOWER, PHYSJOINTSPHERE_LIMITS_Y_UPPER,
-		angularAxisY, &angularBias->y
-	);
-	limitStates |= calculateAngularLimit(
-		angles.z, joint->angularLimitsZ,
-		PHYSJOINTSPHERE_LIMITS_Z_LOWER, PHYSJOINTSPHERE_LIMITS_Z_UPPER,
-		angularAxisZ, &angularBias->z
-	);
-
-	return(limitStates);
-}
-#endif
 
 #ifndef PHYSJOINTSPHERE_ANGULAR_CONSTRAINT_EULER
 /*
@@ -1127,12 +910,27 @@ static flags_t calculateSwingLimit(
 			(constraintAxis.z > 0.f) ? -angularLimitsY[0] :  angularLimitsY[1],
 			&ellipseNormal
 		);
+		#ifdef PHYSJOINTSPHERE_DEBUG
+		swingAngleDebug = clampEllipseDistanceNormalFast(
+			constraintAxis.y, constraintAxis.z,
+			(constraintAxis.y > 0.f) ?  angularLimitsZ[1] : -angularLimitsZ[0],
+			(constraintAxis.z > 0.f) ? -angularLimitsY[0] :  angularLimitsY[1],
+			&ellipseNormal
+		);
+		#endif
 		#else
 		swingDeviation = quatAngle(swing) - clampEllipseDistanceFast(
 			constraintAxis.y, constraintAxis.z,
 			(constraintAxis.y > 0.f) ?  angularLimitsZ[1] : -angularLimitsZ[0],
 			(constraintAxis.z > 0.f) ? -angularLimitsY[0] :  angularLimitsY[1]
 		);
+		#ifdef PHYSJOINTSPHERE_DEBUG
+		swingAngleDebug = clampEllipseDistanceFast(
+			constraintAxis.y, constraintAxis.z,
+			(constraintAxis.y > 0.f) ?  angularLimitsZ[1] : -angularLimitsZ[0],
+			(constraintAxis.z > 0.f) ? -angularLimitsY[0] :  angularLimitsY[1]
+		);
+		#endif
 		#endif
 
 		#ifdef PHYSJOINTSPHERE_SWING_USE_ELLIPSE_NORMAL
@@ -1150,6 +948,9 @@ static flags_t calculateSwingLimit(
 		#else
 		quatAxis(swing, swingAxis);
 		#endif
+		#ifdef PHYSJOINTSPHERE_DEBUG
+		swingAxisDebug = *swingAxis;
+		#endif
 
 		// If the constraint is broken, this term is positive.
 		if(swingDeviation > 0.f){
@@ -1165,13 +966,12 @@ static flags_t calculateSwingLimit(
 #endif
 
 /*
-** Calculate the angular constraint and return which of the two specified
+** Calculate the twist constraint and return which of the two specified
 ** limit states it's in! We want a positive bias when the constraint is
 ** broken, which means we may need to negate the constraint axis.
 */
-static flags_t calculateAngularLimit(
+static flags_t calculateTwistLimit(
 	const float angle, const float angularLimits[2],
-	const flags_t lowerLimitFlag, const flags_t upperLimitFlag,
 	vec3 *const restrict axis, float *const restrict angleBias
 ){
 
@@ -1181,13 +981,19 @@ static flags_t calculateAngularLimit(
 	if(angle < angularLimits[0]){
 		*angleBias = angularLimits[0] - angle;
 		vec3Negate(axis);
-		return(lowerLimitFlag);
+		#ifdef PHYSJOINTSPHERE_DEBUG
+		twistAngleDebug = angularLimits[0];
+		#endif
+		return(PHYSJOINTSPHERE_LIMITS_TWIST_LOWER);
 
 	// If the upper limit is broken, use it instead.
 	// The bias is positive when the upper limit is broken.
 	}else if(angle > angularLimits[1]){
 		*angleBias = angle - angularLimits[1];
-		return(upperLimitFlag);
+		#ifdef PHYSJOINTSPHERE_DEBUG
+		twistAngleDebug = angularLimits[1];
+		#endif
+		return(PHYSJOINTSPHERE_LIMITS_TWIST_UPPER);
 	}
 
 	*angleBias = 0.f;
@@ -1223,13 +1029,12 @@ static void calculateAngularVelocityImpulse(
 
 	// Calculate the Lagrange multiplier.
 	// lambda = -(JV + b)/(JM^{-1}J^T)
-	float lambda = -(vec3DotVec3(relVel, axis) + bias) * invMass;
+	const float lambda = -(vec3DotVec3(relVel, axis) + bias) * invMass;
 
 	// Clamp the accumulated impulse magnitude.
 	const float oldImpulse = *accumulatedImpulse;
 	*accumulatedImpulse = floatMin(oldImpulse + lambda, 0.f);
-	lambda = *accumulatedImpulse - oldImpulse;
 
 	// Calculate the total impulse.
-	vec3Fmaf(lambda, axis, impulse);
+	vec3Fmaf(*accumulatedImpulse - oldImpulse, axis, impulse);
 }

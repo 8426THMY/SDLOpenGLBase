@@ -285,6 +285,8 @@ void objectDraw(
 
 /** We don't currently have a way of freeing the stuff that's commented out. **/
 void objectDelete(object *const restrict obj){
+	physicsRigidBody *const body = obj->physBodies;
+
 	if(obj->boneTransforms != NULL){
 		memoryManagerGlobalFree(obj->boneTransforms);
 	}
@@ -292,11 +294,11 @@ void objectDelete(object *const restrict obj){
 
 	//obj->colliders = NULL;
 
-	// We have to free each rigid body ourselves rather than
-	// use the array free function, as otherwise it will
-	// cause problems for rigid bodies owned by islands.
-	if(obj->physBodies != NULL){
-		physicsRigidBody *body = obj->physBodies;
+	// Recall that an object's rigid bodies may be stored
+	// in an island's double list. Therefore, we need to
+	// be careful not to use the array free function, as
+	// this could remove the rigid bodies of other objects!
+	if(body != NULL){
 		size_t numBodies = obj->objDef->numBodies;
 		do {
 			modulePhysicsBodyFree(&obj->physBodies, body);

@@ -314,6 +314,7 @@ static void updateCameras(program *const restrict prg){
 /** TEMPORARY PHYSICS STUFF!! **/
 physicsRigidBody *controlPhys = NULL;
 object *controlObj = NULL;
+object *debugObj = NULL;
 static void updateObjects(program *const restrict prg){
 	/** TEMPORARY PHYSICS STUFF! **/
 	if(controlPhys != NULL){
@@ -328,10 +329,16 @@ static void updateObjects(program *const restrict prg){
 		if(prg->inputMngr.keyStates[SDL_SCANCODE_I]){
 			const vec3 F = vec3InitSetC(0.f, 40.f * controlPhys->mass, 0.f);
 			physRigidBodyApplyLinearForce(controlPhys, &F);
+			/*const vec3 F = vec3InitSetC(40.f * controlPhys->mass, 0.f, 0.f);
+			const vec3 r = vec3AddVec3C(controlPhys->centroid, vec3InitSetC(0.f, 0.5f, 0.f));
+			physRigidBodyApplyAngularForce(controlPhys, &r, &F);*/
 		}
 		if(prg->inputMngr.keyStates[SDL_SCANCODE_K]){
 			const vec3 F = vec3InitSetC(0.f, -40.f * controlPhys->mass, 0.f);
 			physRigidBodyApplyLinearForce(controlPhys, &F);
+			/*const vec3 F = vec3InitSetC(-40.f * controlPhys->mass, 0.f, 0.f);
+			const vec3 r = vec3AddVec3C(controlPhys->centroid, vec3InitSetC(0.f, 0.5f, 0.f));
+			physRigidBodyApplyAngularForce(controlPhys, &r, &F);*/
 		}
 		if(prg->inputMngr.keyStates[SDL_SCANCODE_U]){
 			const vec3 F = vec3InitSetC(0.f, 0.f, -40.f * controlPhys->mass);
@@ -341,9 +348,38 @@ static void updateObjects(program *const restrict prg){
 			const vec3 F = vec3InitSetC(0.f, 0.f, 40.f * controlPhys->mass);
 			physRigidBodyApplyLinearForce(controlPhys, &F);
 		}
+		/** printf("p: %f, %f, %f\nv: %f, %f, %f\n",
+			controlPhys->centroid.x, controlPhys->centroid.y, controlPhys->centroid.z,
+			controlPhys->linearVelocity.x, controlPhys->linearVelocity.y, controlPhys->linearVelocity.z
+		); **/
 	}
 	if(controlObj != NULL){
 		//controlObj->boneTransforms[0].rot = mat4ToQuatC(mat4RotateToFaceC(controlObj->boneTransforms[0].pos, prg->cam.pos, vec3InitSetC(0.f, 1.f, 0.f)));
+	}
+	#warning "Remove debug object when done."
+	#error "Uncomment errors in particleSystem.h, particle.c and particleRenderer.c once this is done."
+	if(debugObj != NULL){
+		static float t = 0.f;
+
+		//const quat rot = quatInitAxisAngleC(swingAxisDebug, swingAngleDebug);
+		//const quat rot = quatInitAxisAngleC(twistAxisDebug, twistAngleDebug);
+		#ifdef PHYSJOINTSPHERE_DEBUG
+		const quat rot = quatMultiplyQuatC(quatInitAxisAngleC(swingAxisDebug, swingAngleDebug), quatInitAxisAngleC(twistAxisDebug, twistAngleDebug));
+		//const quat rot = quatConjMultiplyQuatC(quatMultiplyQuatC(quatInitAxisAngleC(swingAxisDebug, swingAngleDebug), quatInitAxisAngleC(twistAxisDebug, twistAngleDebug)), controlPhys->state.rot);
+		#else
+		const quat rot = quatInitIdentityC();
+		#endif
+		debugObj->boneTransforms[0].pos = vec3AddVec3C(
+			vec3AddVec3C(
+				vec3InitSetC(0.23907208442687988f, -0.20703732967376709f+2.f, -0.17244648933410645f-2.f),
+				quatRotateVec3FastC(rot, vec3InitSetC(2.5f, 0.f, 0.f))
+			),
+			vec3NegateC(quatRotateVec3FastC(rot, debugObj->physBodies->base->centroid))
+		);
+
+		debugObj->boneTransforms[0].rot = rot;
+
+		t += 0.01f;
 	}
 
 	MEMSINGLELIST_LOOP_BEGIN(g_objectManager, curObj, object)
@@ -671,10 +707,11 @@ static return_t initResources(program *const restrict prg){
 		// Testing sphere joint positional correction:
 		//obj->boneTransforms[0].pos = vec3InitSetC(-1.497113f, -0.173426f, -2.172446f);
 		//obj->boneTransforms[0].rot = quatInitSetC(0.516704f, 0.f, 0.f, -0.856164f);
-		// Testing distance joint:
-		//obj->boneTransforms[0].pos = vec3InitSetC(0.239072f, -0.707037f+2.f-2.5f, -0.172447f-2.f);
-		//obj->physBodies->linearVelocity.x = 12.f;
 		obj->boneTransforms[0].pos = vec3InitSetC(0.23907208442687988f+2.5f, -0.70703732967376709f+2.f, -0.17244648933410645f-2.f);
+		// Testing distance joint:
+		// To get the gravitational equilibrium for the spring constraint, add mg/k to the y position.
+		//obj->boneTransforms[0].pos = vec3InitSetC(0.23907208442687988f, -0.70703732967376709f-0.5f, -0.17244648933410645f-2.f);
+		//obj->physBodies->linearVelocity.x = 12.f;
 
 		//obj->physBodies->mass = 0.f;
 		//mat3InitZero(&obj->physBodies->invInertiaLocal);mat3InitZero(&obj->physBodies->invInertiaGlobal);
@@ -683,6 +720,16 @@ static return_t initResources(program *const restrict prg){
 		objectPreparePhysics(obj);
 		//physRigidBodyIgnoreLinear(obj->physBodies);physRigidBodyIgnoreSimulation(obj->physBodies);
 		cube = obj->physBodies;
+
+
+		// Debug object.
+		obj = moduleObjectAlloc();
+		objectInit(obj, objDef);
+		objectPreparePhysics(obj);
+		physRigidBodyIgnoreLinear(obj->physBodies);
+		physRigidBodyIgnoreSimulation(obj->physBodies);
+		physRigidBodyIgnoreCollisions(obj->physBodies);
+		debugObj = obj;
 
 
 		// Create the base physics object.
@@ -721,6 +768,8 @@ static return_t initResources(program *const restrict prg){
 			const quat rotOffsetA = quatInitIdentityC();
 			const quat rotOffsetB = quatInitIdentityC();
 			physJointPairInit(joint, egg, cube, NULL, NULL);
+			#warning "This stuff still needs a lot of work. The positional contraint works fine with everything, it's just the angular one."
+			#warning "At the moment, the angular constraints are disabled. Try putting a test object on the constraint cone."
 			physJointSphereInit(
 				&joint->joint.data.sphere,
 				&anchorA, &anchorB,
@@ -734,9 +783,9 @@ static return_t initResources(program *const restrict prg){
 			#elif defined(TEST_PHYSJOINTDISTANCE)
 			physicsJointPair *joint = modulePhysicsJointPairAlloc();
 			const vec3 anchorA = egg->base->centroid;
-			const vec3 anchorB = vec3AddVec3C(cube->base->centroid, vec3InitSetC(0.f, 2.5f, 0.f));
+			const vec3 anchorB = cube->base->centroid;
 			physJointPairInit(joint, egg, cube, NULL, NULL);
-			physJointDistanceInit(&joint->joint.data.distance, &anchorA, &anchorB, 0.f, 1.f, 0.01f);
+			physJointDistanceInit(&joint->joint.data.distance, &anchorA, &anchorB, 2.5f, 4.f*M_PI*M_PI*10.f, 0.f);
 			joint->joint.type = PHYSJOINT_TYPE_DISTANCE;
 			#elif defined(TEST_PHYSJOINTFIXED)
 			physicsJointPair *joint = modulePhysicsJointPairAlloc();

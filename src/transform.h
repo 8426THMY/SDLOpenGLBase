@@ -32,6 +32,25 @@ typedef struct transform {
 void transformInit(transform *const restrict trans);
 transform transformInitC();
 
+void transformAppendPositionP1(transform *const restrict trans1, const transform *const restrict trans2);
+void transformAppendPositionP2(const transform *const restrict trans1, transform *const restrict trans2);
+void transformAppendPositionOut(
+	const transform *const restrict trans1, const transform *const restrict trans2,
+	transform *const restrict out
+);
+void transformAppendScaleP1(transform *const restrict trans1, const transform *const restrict trans2);
+void transformAppendScaleP2(const transform *const restrict trans1, transform *const restrict trans2);
+void transformAppendScaleOut(
+	const transform *const restrict trans1, const transform *const restrict trans2,
+	transform *const restrict out
+);
+void transformAppendRotationP1(transform *const restrict trans1, const transform *const restrict trans2);
+void transformAppendRotationP2(const transform *const restrict trans1, transform *const restrict trans2);
+void transformAppendRotationOut(
+	const transform *const restrict trans1, const transform *const restrict trans2,
+	transform *const restrict out
+);
+
 void transformMultiplyP1(transform *const restrict trans1, const transform *const restrict trans2);
 void transformMultiplyP2(const transform *const restrict trans1, transform *const restrict trans2);
 void transformMultiplyOut(

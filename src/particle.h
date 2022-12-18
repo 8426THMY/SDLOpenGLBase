@@ -58,7 +58,6 @@ void particleUpdate(particle *const restrict part, const float dt);
 return_t particleDead(const particle *const restrict part);
 return_t particleCompare(const void *const restrict p1, const void *const restrict p2);
 
-void particleDelete(particle *const restrict part);
 void particleDefDelete(particleDef *const restrict partDef);
 
 return_t particleSetup();

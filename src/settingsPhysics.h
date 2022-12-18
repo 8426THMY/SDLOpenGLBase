@@ -49,8 +49,9 @@
 // Warm starting the spherical joint introduces too much "bounce-back".
 // This seems to be an issue with both the angular and linear parts.
 // Maybe have a look at this after fixing the Gauss-Seidel stabilizer.
-//#define PHYSJOINTSPHERE_WARM_START
+#define PHYSJOINTSPHERE_WARM_START
 
+#define PHYSJOINTDISTANCE_STABILISER_BAUMGARTE
 #define PHYSJOINTDISTANCE_STABILISER_GAUSS_SEIDEL
 #define PHYSJOINTFIXED_STABILISER_BAUMGARTE
 #define PHYSJOINTFIXED_STABILISER_GAUSS_SEIDEL
@@ -58,13 +59,12 @@
 #define PHYSJOINTREVOLUTE_STABILISER_GAUSS_SEIDEL
 #define PHYSJOINTPRISMATIC_STABILISER_BAUMGARTE
 #define PHYSJOINTPRISMATIC_STABILISER_GAUSS_SEIDEL
-#define PHYSJOINTSPHERE_STABILISER_BAUMGARTE
-// Using Gauss-Seidel with the spherical joint damps restitution too much.
-// It seems that the angular and linear corrections are fighting each other.
-// Find a way to fix this, as without it, small angular limits are unstable.
-// I suppose a workaround for that is to simply use a fixed joint, though.
-//#define PHYSJOINTSPHERE_STABILISER_GAUSS_SEIDEL
+//#define PHYSJOINTSPHERE_STABILISER_BAUMGARTE
+#define PHYSJOINTSPHERE_STABILISER_GAUSS_SEIDEL
+//#define PHYSJOINTSPHERE_DISABLE_ANGULAR_CONSTRAINT
 
+// These coefficients are also used for Gauss-Seidel to prevent
+// us from correcting the entire error in a single iteration.
 #define PHYSJOINTDISTANCE_BAUMGARTE_BIAS  0.3f
 #define PHYSJOINTFIXED_BAUMGARTE_BIAS     0.3f
 #define PHYSJOINTREVOLUTE_BAUMGARTE_BIAS  0.3f
@@ -72,8 +72,8 @@
 #define PHYSJOINTSPHERE_BAUMGARTE_BIAS    0.3f
 
 #define PHYSJOINTFIXED_ACCURATE_ANGULAR_MASS
-//#define PHYSJOINTSPHERE_ANGULAR_CONSTRAINT_EULER
 //#define PHYSJOINTSPHERE_SWING_USE_ELLIPSE_NORMAL
+//#define PHYSJOINTSPHERE_DEBUG
 
 #define PHYSISLAND_AABBTREE_NODE_EXPAND_BY_VELOCITY
 #define PHYSISLAND_AABBTREE_NODE_PADDING 0.2f

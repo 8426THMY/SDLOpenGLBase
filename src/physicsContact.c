@@ -313,19 +313,19 @@ void physManifoldPersist(
 					pmSwap->key = tempKey;
 
 					// Swap the accumulators.
-                    tempImpulse = pmContact->normalImpulse;
-                    pmContact->normalImpulse = pmSwap->normalImpulse;
-                    pmSwap->normalImpulse = tempImpulse;
+					tempImpulse = pmContact->normalImpulse;
+					pmContact->normalImpulse = pmSwap->normalImpulse;
+					pmSwap->normalImpulse = tempImpulse;
 
 					#ifndef PHYSCONTACT_USE_FRICTION_JOINT
-                    tempImpulse = pmContact->tangentImpulse[0];
-                    pmContact->tangentImpulse[0] = pmSwap->tangentImpulse[0];
-                    pmSwap->tangentImpulse[0] = tempImpulse;
+					tempImpulse = pmContact->tangentImpulse[0];
+					pmContact->tangentImpulse[0] = pmSwap->tangentImpulse[0];
+					pmSwap->tangentImpulse[0] = tempImpulse;
 
-                    tempImpulse = pmContact->tangentImpulse[1];
-                    pmContact->tangentImpulse[1] = pmSwap->tangentImpulse[1];
-                    pmSwap->tangentImpulse[1] = tempImpulse;
-                    #endif
+					tempImpulse = pmContact->tangentImpulse[1];
+					pmContact->tangentImpulse[1] = pmSwap->tangentImpulse[1];
+					pmSwap->tangentImpulse[1] = tempImpulse;
+					#endif
 				}
 
 				*isPersistent = 1;

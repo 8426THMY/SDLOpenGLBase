@@ -18,6 +18,35 @@
 #endif
 
 
+#ifdef PHYSJOINTSPHERE_DEBUG
+extern vec3 swingAxisDebug;
+extern float swingAngleDebug;
+extern vec3 twistAxisDebug;
+extern float twistAngleDebug;
+
+/*
+if(debugObj != NULL){
+	static float t = 0.f;
+
+	//const quat rot = quatInitAxisAngleC(swingAxisDebug, swingAngleDebug);
+	//const quat rot = quatInitAxisAngleC(twistAxisDebug, twistAngleDebug);
+	const quat rot = quatInitIdentityC();//quatMultiplyQuatC(quatInitAxisAngleC(swingAxisDebug, swingAngleDebug), quatInitAxisAngleC(twistAxisDebug, twistAngleDebug));
+	debugObj->boneTransforms[0].pos = vec3AddVec3C(
+		vec3AddVec3C(
+			vec3InitSetC(0.23907208442687988f, -0.20703732967376709f+2.f, -0.17244648933410645f-2.f),
+			quatRotateVec3FastC(rot, vec3InitSetC(2.5f, 0.f, 0.f))
+		),
+		vec3NegateC(quatRotateVec3FastC(rot, debugObj->physBodies->base->centroid))
+	);
+
+	debugObj->boneTransforms[0].rot = rot;
+
+	t += 0.01f;
+}
+*/
+#endif
+
+
 /*
 ** Spherical joints act similarly to ball and socket joints, that is,
 ** they keep two points (defined relative to the rigid bodies) coincident.
@@ -105,7 +134,6 @@ typedef struct physicsJointSphere {
 	float angularLimitsX[2];
 	float angularLimitsY[2];
 	float angularLimitsZ[2];
-	#ifndef PHYSJOINTSPHERE_ANGULAR_CONSTRAINT_EULER
 	// Swing and twist axes in global space.
 	// Note that the twist axis is taken to
 	// be rigid body B's transformed x-axis.
@@ -115,33 +143,16 @@ typedef struct physicsJointSphere {
 	// and twist angles and their limits.
 	float swingBias;
 	float twistBias;
-	#else
-	// Rotation axes in global space.
-	vec3 angularAxisX;
-	vec3 angularAxisY;
-	vec3 angularAxisZ;
-	// Difference between the current
-	// axis angles and their limits.
-	vec3 angularBias;
-	#endif
 
 	// Inverse effective masses, (JMJ^T)^{-1}, for the
 	// point-to-point (K1) and angular (K2, K3, K4) constraints.
-	#ifndef PHYSJOINTSPHERE_ANGULAR_CONSTRAINT_EULER
 	float swingInvMass;
 	float twistInvMass;
-	#else
-	vec3 angularInvMass;
-	#endif
 	mat3 linearInvMass;
 
 	// Accumulated impulses used for warm starting.
-	#ifndef PHYSJOINTSPHERE_ANGULAR_CONSTRAINT_EULER
 	float swingImpulse;
 	float twistImpulse;
-	#else
-	vec3 angularImpulse;
-	#endif
 	vec3 linearImpulse;
 } physicsJointSphere;
 
@@ -160,7 +171,7 @@ void physJointSphereInit(
 
 #ifdef PHYSJOINTSPHERE_WARM_START
 void physJointSphereWarmStart(
-	const physicsJointSphere *const restrict joint, const flags_t limitStates,
+	const physicsJointSphere *const restrict joint,
 	physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB
 );
 #endif
