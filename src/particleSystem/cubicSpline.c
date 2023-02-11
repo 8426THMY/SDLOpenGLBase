@@ -27,9 +27,11 @@ void cubicSplineEvaluate(
 	// out = at
 	vec3MultiplySOut(&spline->a[i], t, out);
 	// out = at^2 + bt
-	vec3Famf(t, out, &spline->b[i]);
+	vec3AddVec3(out, &spline->b[i]);
+	vec3MultiplyS(out, t);
 	// out = a_i t^3 + b_i t^2 + c_i t
-	vec3Famf(t, out, &spline->c[i]);
+	vec3AddVec3(out, &spline->c[i]);
+	vec3MultiplyS(out, t);
 	// out = a_i t^3 + b_i t^2 + c_i t + d_i
 	vec3AddVec3(out, &spline->d[i]);
 }

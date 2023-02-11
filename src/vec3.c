@@ -500,30 +500,6 @@ vec3 vec3FmafC(const float x, const vec3 u, const vec3 v){
 	return(out);
 }
 
-// Comptue u = x(u + v).
-void vec3Famf(const float x, vec3 *const restrict u, const vec3 *const restrict v){
-	u->x = x*(u->x + v->x);
-	u->y = x*(u->y + v->y);
-	u->z = x*(u->z + v->z);
-}
-
-// Comptue out = x(u + v).
-void vec3FamfOut(const float x, const vec3 *const restrict u, const vec3 *const restrict v, vec3 *const restrict out){
-	out->x = x*(u->x + v->x);
-	out->y = x*(u->y + v->y);
-	out->z = x*(u->z + v->z);
-}
-
-// Return x(u + v).
-vec3 vec3FamfC(const float x, const vec3 u, const vec3 v){
-	const vec3 out = {
-		.x = x*(u.x + v.x);
-		.y = x*(u.y + v.y);
-		.z = x*(u.z + v.z);
-	};
-	return(out);
-}
-
 
 // Find the magnitude (length) of a vec3 stored as three floats!
 float vec3Magnitude(const float x, const float y, const float z){

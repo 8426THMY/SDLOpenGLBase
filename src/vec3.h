@@ -92,10 +92,6 @@ void vec3Fmaf(const float x, const vec3 *const restrict u, vec3 *const restrict 
 void vec3FmafOut(const float x, const vec3 *const restrict u, const vec3 *const restrict v, vec3 *const restrict out);
 #define vec3FmafP(x, u, v, out) (vec3FmafOut(x, u, v, out), out)
 vec3 vec3FmafC(const float x, const vec3 u, const vec3 v);
-void vec3Famf(const float x, vec3 *const restrict u, const vec3 *const restrict v);
-void vec3FamfOut(const float x, const vec3 *const restrict u, const vec3 *const restrict v, vec3 *const restrict out);
-#define vec3FamfP(x, u, v, out) (vec3FmafOut(x, u, v, out), out)
-vec3 vec3FamfC(const float x, const vec3 u, const vec3 v);
 
 float vec3Magnitude(const float x, const float y, const float z);
 float vec3MagnitudeVec3(const vec3 *const restrict v);
