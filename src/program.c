@@ -245,8 +245,8 @@ static void updateCameras(program *const restrict prg){
 	#warning "Some sample camera controllers are in the 'ideas' folder."
 	mat3 rotMatrix;
 
-	cPitch -= 0.022f * 9.f * cv_mouse_dy * DEG_TO_RAD;
-	cYaw -= 0.022f * 9.f * cv_mouse_dx * DEG_TO_RAD;
+	cPitch -= DEG_TO_RAD(0.022f * 9.f * cv_mouse_dy);
+	cYaw -= DEG_TO_RAD(0.022f * 9.f * cv_mouse_dx);
 	mat3InitEulerZXY(&rotMatrix, cPitch, cYaw, 0.f);
 
 	/** Mega modified Quake 3 movement code. **/
@@ -358,6 +358,11 @@ static void updateObjects(program *const restrict prg){
 	}
 	#warning "Remove debug object when done."
 	#error "Uncomment errors in particleSystem.h, particle.c and particleRenderer.c once this is done."
+	#error "Handle the rigid body simulation flags properly! See the comment in the header file for details."
+	#error "While you're at it, add a function for calculating the relative velocity!"
+	#error "Might be a good idea to check module allocation functions for failure."
+	#error "Updating bones takes a long time..."
+	#error "We might have to use matrices for everything, and just convert to our transform format whenever we want to do interpolation."
 	if(debugObj != NULL){
 		static float t = 0.f;
 
@@ -390,10 +395,10 @@ static void updateObjects(program *const restrict prg){
 	/** Temporary if statement for temporary code. Don't want the program to crash, do we? **/
 	/*if(allRenderObjects.size > 2){
 		renderObjState *currentObj = ((renderObject *)vectorGet(&allRenderObjects, 1))->states[0];
-		interpTransAddRotEuler(&currentObj->transform, 0.f, 0.f, 2.f * DEG_TO_RAD, prg->step.updateDelta);
+		interpTransAddRotEuler(&currentObj->transform, 0.f, 0.f, DEG_TO_RAD(2.f), prg->step.updateDelta);
 
 		currentObj = ((renderObject *)vectorGet(&allRenderObjects, 2))->states[0];
-		interpTransAddRotEuler(&currentObj->transform, 2.f * DEG_TO_RAD, 2.f * DEG_TO_RAD, 2.f * DEG_TO_RAD, prg->step.updateDelta);
+		interpTransAddRotEuler(&currentObj->transform, 2.f * DEG_TO_RAD, DEG_TO_RAD(2.f), 2.f * DEG_TO_RAD, prg->step.updateDelta);
 	}*/
 }
 
@@ -401,11 +406,7 @@ static void updateObjects(program *const restrict prg){
 #include "physicsIsland.h"
 physicsIsland island;
 static void updatePhysics(program *const restrict prg){
-	#ifdef PHYSCONTACT_STABILISER_BAUMGARTE
-	physIslandUpdate(&island, prg->step.updateDelta, prg->step.updateRate);
-	#else
 	physIslandUpdate(&island, prg->step.updateDelta);
-	#endif
 }
 
 /** TEMPORARY STUFF! **/
@@ -633,7 +634,7 @@ static return_t initResources(program *const restrict prg){
 
 	objectInit(obj, objDef);
 	//obj->boneTransforms[0].pos = vec3InitSetC(0.f, -2.f, 2.f);//vec3InitSetC(-1.f, -2.f, -3.f);
-	//obj->boneTransforms[0].rot = quatInitEulerXYZC(45.f * DEG_TO_RAD, 10.f * DEG_TO_RAD, 23.f * DEG_TO_RAD);
+	//obj->boneTransforms[0].rot = quatInitEulerXYZC(DEG_TO_RAD(45.f), DEG_TO_RAD(10.f), DEG_TO_RAD(23.f));
 	//obj->boneTransforms[0].scale.z = 0.1f;
 	controlObj = obj;
 
@@ -676,10 +677,11 @@ static return_t initResources(program *const restrict prg){
 	obj->boneTransforms[0].scale.x = obj->boneTransforms[0].scale.z = 100.f;
 	physRigidBodySetScale(obj->physBodies, vec3InitSetC(20.f, 0.f, 20.f));
 	obj->physBodies->mass = 0.f;
-	mat3InitZero(&obj->physBodies->invInertiaLocal);mat3InitZero(&obj->physBodies->invInertiaGlobal);
+	mat3InitZero(&obj->physBodies->invInertiaLocal);
+	mat3InitZero(&obj->physBodies->invInertiaGlobal);
 	obj->physBodies->invMass = 0.f;
 	objectPreparePhysics(obj);
-	physRigidBodyIgnoreLinear(obj->physBodies);physRigidBodyIgnoreSimulation(obj->physBodies);
+	physRigidBodyIgnoreSimulation(obj->physBodies);
 	physIslandInsertRigidBody(&island, obj->physBodies);
 
 	#warning "Maybe test contacts to make sure there's no energy loss/gain or anything."
@@ -714,11 +716,12 @@ static return_t initResources(program *const restrict prg){
 		//obj->physBodies->linearVelocity.x = 12.f;
 
 		//obj->physBodies->mass = 0.f;
-		//mat3InitZero(&obj->physBodies->invInertiaLocal);mat3InitZero(&obj->physBodies->invInertiaGlobal);
+		//mat3InitZero(&obj->physBodies->invInertiaLocal);
+		//mat3InitZero(&obj->physBodies->invInertiaGlobal);
 		//obj->physBodies->invMass = 0.f;
 
 		objectPreparePhysics(obj);
-		//physRigidBodyIgnoreLinear(obj->physBodies);physRigidBodyIgnoreSimulation(obj->physBodies);
+		//physRigidBodyIgnoreSimulation(obj->physBodies);
 		cube = obj->physBodies;
 
 
@@ -726,7 +729,6 @@ static return_t initResources(program *const restrict prg){
 		obj = moduleObjectAlloc();
 		objectInit(obj, objDef);
 		objectPreparePhysics(obj);
-		physRigidBodyIgnoreLinear(obj->physBodies);
 		physRigidBodyIgnoreSimulation(obj->physBodies);
 		physRigidBodyIgnoreCollisions(obj->physBodies);
 		debugObj = obj;
@@ -751,11 +753,12 @@ static return_t initResources(program *const restrict prg){
 		//quatInitEulerXYZ(&obj->boneTransforms[0].rot, 0.f, M_PI_2, M_PI_2);
 
 		obj->physBodies->mass = 0.f;
-		mat3InitZero(&obj->physBodies->invInertiaLocal);mat3InitZero(&obj->physBodies->invInertiaGlobal);
+		mat3InitZero(&obj->physBodies->invInertiaLocal);
+		mat3InitZero(&obj->physBodies->invInertiaGlobal);
 		obj->physBodies->invMass = 0.f;
 
 		objectPreparePhysics(obj);
-		physRigidBodyIgnoreLinear(obj->physBodies);physRigidBodyIgnoreSimulation(obj->physBodies);
+		physRigidBodyIgnoreSimulation(obj->physBodies);
 		egg = obj->physBodies;
 
 
@@ -849,11 +852,12 @@ static return_t initResources(program *const restrict prg){
 	quatInitEulerXYZ(&obj->boneTransforms[0].rot, 0.f, M_PI_2, M_PI_2);
 
 	obj->physBodies->mass = 0.f;
-	mat3InitZero(&obj->physBodies->invInertiaLocal);mat3InitZero(&obj->physBodies->invInertiaGlobal);
+	mat3InitZero(&obj->physBodies->invInertiaLocal);
+	mat3InitZero(&obj->physBodies->invInertiaGlobal);
 	obj->physBodies->invMass = 0.f;
 
 	objectPreparePhysics(obj);
-	physRigidBodyIgnoreLinear(obj->physBodies);physRigidBodyIgnoreSimulation(obj->physBodies);
+	physRigidBodyIgnoreSimulation(obj->physBodies);
 	physIslandInsertRigidBody(&island, obj->physBodies);
 	#endif
 	#endif

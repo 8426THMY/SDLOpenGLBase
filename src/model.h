@@ -40,7 +40,7 @@ void modelInit(model *const restrict mdl, const modelDef *const restrict mdlDef)
 modelDef *modelDefOBJLoad(const char *const restrict mdlDefPath, const size_t mdlDefPathLength);
 modelDef *modelDefSMDLoad(const char *const restrict mdlDefPath, const size_t mdlDefPathLength);
 
-void modelUpdate(model *const restrict mdl, const float time);
+void modelUpdate(model *const restrict mdl, const float dt);
 void modelDraw(
 	const model *const restrict mdl, const skeleton *const restrict objSkele,
 	const mat4 *const restrict animStates, const meshShader *const restrict shader

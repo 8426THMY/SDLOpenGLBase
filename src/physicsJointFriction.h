@@ -8,6 +8,11 @@
 #include "mat2.h"
 
 
+#ifndef PHYSJOINTFIXED_BAUMGARTE_BIAS
+	#define PHYSJOINTFIXED_BAUMGARTE_BIAS 0.3f
+#endif
+
+
 /*
 ** Friction joints are special types of motor joints
 ** that are intended to only be used by contacts

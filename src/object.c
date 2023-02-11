@@ -16,7 +16,7 @@
 
 
 // Forward-declare any helper functions!
-static void updateBones(object *obj, const float time);
+static void updateBones(object *obj);
 static void prepareBoneMatrices(const skeletonState *const restrict skeleState, mat4 *animStates);
 
 
@@ -215,21 +215,21 @@ void objectPreparePhysics(object *const restrict obj){
 }
 
 
-void objectUpdate(object *const restrict obj, const float time){
+void objectUpdate(object *const restrict obj, const float dt){
 	skeletonAnim *curAnim = obj->skeleState.anims;
 	// Update which frame each animation is currently on!
 	while(curAnim != NULL){
-		skeleAnimUpdate(curAnim, time);
+		skeleAnimUpdate(curAnim, dt);
 		curAnim = moduleSkeletonAnimNext(curAnim);
 	}
 
 	// Generate the object's global bone states.
-	updateBones(obj, time);
+	updateBones(obj);
 
 	model *curMdl = obj->mdls;
 	// Animate each of the component models' textures.
 	while(curMdl != NULL){
-		modelUpdate(curMdl, time);
+		modelUpdate(curMdl, dt);
 		curMdl = moduleModelNext(curMdl);
 	}
 }
@@ -238,7 +238,7 @@ void objectUpdate(object *const restrict obj, const float time){
 #include "billboard.h"
 void objectDraw(
 	const object *const restrict obj, const camera *const restrict cam,
-	const meshShader *const restrict shader, const float time
+	const meshShader *const restrict shader, const float dt
 ){
 
 
@@ -343,7 +343,7 @@ void objectDefDelete(objectDef *const restrict objDef){
 **     S = P*B*U*A.
 ** Note that this process implicitly assumes that parent bones are animated before children.
 */
-static void updateBones(object *const restrict obj, const float time){
+static void updateBones(object *const restrict obj){
 	boneState *curTransform = obj->boneTransforms;
 	boneState *curObjBone = obj->skeleState.bones;
 	const boneState *const lastObjBone = &curObjBone[obj->skeleState.skele->numBones];

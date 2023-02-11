@@ -193,12 +193,12 @@ void transformMultiplyP1(transform *const restrict trans1, const transform *cons
 	/*
 	** In terms of matrices, we may define our transformations by
 	**     A_k = T_k R_k Q_k S_k Q_k^T,
-	** for k in {1, 2}. Then if A = A_2 * A_1 is given similarly,
+	** for k in {1, 2}. Then if A = A_1 * A_2 is given similarly,
 	**     T      = T_1 R_1 Q_1 S_1 Q_1^T T_2,
 	**     RQSQ^T = R_1 Q_1 S_1 Q_1^T R_2 Q_2 S_2 Q_2^T.
 	** Note that although Q_k S_k Q_k^T are symmetric for k in {1, 2}, we
-	** have inserted R_1 between them, which in general breaks symmetry.
-	** However, we also note that post-rotations such as R_2 do not affect
+	** have inserted R_2 between them, which in general breaks symmetry.
+	** However, we also note that post-rotations such as R_1 do not affect
 	** the scaling, and hence can be ignored. This leads to the definition
 	** Q_1' = R_2^T Q_1, which is clearly a rotation, and gives
 	**     RQSQ^T = R_1 R_2 Q_1' S_1 Q_1'^T Q_2 S_2 Q_2^T,
@@ -226,12 +226,12 @@ void transformMultiplyP2(const transform *const restrict trans1, transform *cons
 	/*
 	** In terms of matrices, we may define our transformations by
 	**     A_k = T_k R_k Q_k S_k Q_k^T,
-	** for k in {1, 2}. Then if A = A_2 * A_1 is given similarly,
+	** for k in {1, 2}. Then if A = A_1 * A_2 is given similarly,
 	**     T      = T_1 R_1 Q_1 S_1 Q_1^T T_2,
 	**     RQSQ^T = R_1 Q_1 S_1 Q_1^T R_2 Q_2 S_2 Q_2^T.
 	** Note that although Q_k S_k Q_k^T are symmetric for k in {1, 2}, we
-	** have inserted R_1 between them, which in general breaks symmetry.
-	** However, we also note that post-rotations such as R_2 do not affect
+	** have inserted R_2 between them, which in general breaks symmetry.
+	** However, we also note that post-rotations such as R_1 do not affect
 	** the scaling, and hence can be ignored. This leads to the definition
 	** Q_1' = R_2^T Q_1, which is clearly a rotation, and gives
 	**     RQSQ^T = R_1 R_2 Q_1' S_1 Q_1'^T Q_2 S_2 Q_2^T,
@@ -263,12 +263,12 @@ void transformMultiplyOut(
 	/*
 	** In terms of matrices, we may define our transformations by
 	**     A_k = T_k R_k Q_k S_k Q_k^T,
-	** for k in {1, 2}. Then if A = A_2 * A_1 is given similarly,
+	** for k in {1, 2}. Then if A = A_1 * A_2 is given similarly,
 	**     T      = T_1 R_1 Q_1 S_1 Q_1^T T_2,
 	**     RQSQ^T = R_1 Q_1 S_1 Q_1^T R_2 Q_2 S_2 Q_2^T.
 	** Note that although Q_k S_k Q_k^T are symmetric for k in {1, 2}, we
-	** have inserted R_1 between them, which in general breaks symmetry.
-	** However, we also note that post-rotations such as R_2 do not affect
+	** have inserted R_2 between them, which in general breaks symmetry.
+	** However, we also note that post-rotations such as R_1 do not affect
 	** the scaling, and hence can be ignored. This leads to the definition
 	** Q_1' = R_2^T Q_1, which is clearly a rotation, and gives
 	**     RQSQ^T = R_1 R_2 Q_1' S_1 Q_1'^T Q_2 S_2 Q_2^T,
@@ -295,12 +295,12 @@ transform transformMultiplyC(const transform trans1, const transform trans2){
 	/*
 	** In terms of matrices, we may define our transformations by
 	**     A_k = T_k R_k Q_k S_k Q_k^T,
-	** for k in {1, 2}. Then if A = A_2 * A_1 is given similarly,
+	** for k in {1, 2}. Then if A = A_1 * A_2 is given similarly,
 	**     T      = T_1 R_1 Q_1 S_1 Q_1^T T_2,
 	**     RQSQ^T = R_1 Q_1 S_1 Q_1^T R_2 Q_2 S_2 Q_2^T.
 	** Note that although Q_k S_k Q_k^T are symmetric for k in {1, 2}, we
-	** have inserted R_1 between them, which in general breaks symmetry.
-	** However, we also note that post-rotations such as R_2 do not affect
+	** have inserted R_2 between them, which in general breaks symmetry.
+	** However, we also note that post-rotations such as R_1 do not affect
 	** the scaling, and hence can be ignored. This leads to the definition
 	** Q_1' = R_2^T Q_1, which is clearly a rotation, and gives
 	**     RQSQ^T = R_1 R_2 Q_1' S_1 Q_1'^T Q_2 S_2 Q_2^T,

@@ -98,10 +98,10 @@ void objectAddRigidBody(
 );
 void objectPreparePhysics(object *const restrict obj);
 
-void objectUpdate(object *const restrict obj, const float time);
+void objectUpdate(object *const restrict obj, const float dt);
 void objectDraw(
 	const object *const restrict obj, const camera *const restrict cam,
-	const meshShader *const restrict shader, const float time
+	const meshShader *const restrict shader, const float dt
 );
 
 void objectDelete(object *const restrict obj);

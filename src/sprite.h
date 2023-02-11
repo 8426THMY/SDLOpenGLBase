@@ -7,9 +7,9 @@
 
 #include <string.h>
 
-#include "rectangle.h"
-#include "vec3.h"
 #include "vec2.h"
+#include "vec3.h"
+#include "rectangle.h"
 #include "mat4.h"
 
 #include "utilTypes.h"

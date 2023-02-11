@@ -120,7 +120,7 @@ typedef struct guiElement guiElement;
 
 void guiPanelInit(guiPanel *const restrict gui);
 
-void guiPanelUpdate(guiElement *const restrict gui, const float time);
+void guiPanelUpdate(guiElement *const restrict gui, const float dt);
 void guiPanelDraw(
 	const guiElement *const restrict gui, const spriteShader *const restrict shader
 );

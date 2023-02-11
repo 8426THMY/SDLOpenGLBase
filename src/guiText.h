@@ -2,9 +2,6 @@
 #define guiText_h
 
 
-#include "rectangle.h"
-#include "transform.h"
-
 #include "sprite.h"
 #include "textFont.h"
 #include "text.h"
@@ -27,7 +24,7 @@ typedef struct guiElement guiElement;
 
 void guiTextInit(guiText *const restrict gui, const textFont *const restrict font, const size_t bufferSize);
 
-void guiTextUpdate(guiElement *const restrict gui, const float time);
+void guiTextUpdate(guiElement *const restrict gui, const float dt);
 void guiTextDraw(
 	const guiElement *const restrict gui, const spriteShader *const restrict shader
 );

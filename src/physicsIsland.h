@@ -24,8 +24,6 @@
 
 
 #warning "We should investigate how Randy Gaul and Erin Catto handle physics islands."
-#include "mat4.h"
-extern mat4 projMatTest;
 
 
 typedef struct physicsIsland {
@@ -54,11 +52,7 @@ void physIslandInsertRigidBodyList(physicsIsland *const restrict island, physics
 void physIslandRemoveRigidBody(physicsIsland *const restrict island, physicsRigidBody *const body);
 void physIslandRemoveRigidBodyList(physicsIsland *const restrict island, physicsRigidBody *const bodies, size_t numBodies);
 
-#ifdef PHYSCONTACT_STABILISER_BAUMGARTE
-void physIslandUpdate(physicsIsland *const restrict island, const float dt, const float frequency);
-#else
 void physIslandUpdate(physicsIsland *const restrict island, const float dt);
-#endif
 
 void physIslandDelete(physicsIsland *const restrict island);
 

@@ -8,9 +8,6 @@
 #include "utilTypes.h"
 
 
-#define PHYSJOINT_TYPE_DISTANCE 0
-
-
 /*
 ** Distance joints try to keep two rigid bodies a fixed
 ** distance away from each other. Depending on the damping,

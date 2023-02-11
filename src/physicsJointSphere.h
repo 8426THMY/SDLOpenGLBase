@@ -11,8 +11,6 @@
 #include "utilTypes.h"
 
 
-#define PHYSJOINT_TYPE_SPHERE 4
-
 #ifndef PHYSJOINTSPHERE_BAUMGARTE_BIAS
 	#define PHYSJOINTSPHERE_BAUMGARTE_BIAS 0.3f
 #endif

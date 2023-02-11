@@ -44,9 +44,9 @@ void guiPanelInit(guiPanel *const restrict gui){
 }
 
 
-void guiPanelUpdate(guiElement *const restrict gui, const float time){
-	texGroupStateUpdate(&(gui->data.panel.borderTexState), time);
-	texGroupStateUpdate(&(gui->data.panel.bodyTexState), time);
+void guiPanelUpdate(guiElement *const restrict gui, const float dt){
+	texGroupStateUpdate(&(gui->data.panel.borderTexState), dt);
+	texGroupStateUpdate(&(gui->data.panel.bodyTexState), dt);
 }
 
 void guiPanelDraw(

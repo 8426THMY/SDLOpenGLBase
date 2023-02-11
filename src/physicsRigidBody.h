@@ -17,6 +17,8 @@
 #include "utilTypes.h"
 
 
+#warning "If these flags aren't set but the rigid body's mass is non-zero, we get funky results!"
+#warning "The best way to fix this would be to have functions to get the mass or inertia tensor, which return zero unless the flags are set."
 // The body should be simulated in some way.
 #define PHYSRIGIDBODY_SIMULATE_LINEAR    0x01
 #define PHYSRIGIDBODY_SIMULATE_ANGULAR   0x02
@@ -76,12 +78,12 @@ typedef struct physicsRigidBody {
 	// The inverse global inertia tensor of the body.
 	mat3 invInertiaGlobal;
 
-	// Defines the body's spacial configuration.
+	// Current transformation of the body's origin.
 	// The position stored here should not be
 	// confused with the rigid body's centroid!
 	transform state;
 
-	// Defines the body's physical configuration.
+	// These roperties control the body's motion.
 	vec3 linearVelocity;
 	vec3 angularVelocity;
 	vec3 netForce;

@@ -36,6 +36,15 @@
 #warning "It would also be a good idea to add something like Source's 'control points':"
 /* https://developer.valvesoftware.com/wiki/Control_Point_(particles) */
 
+#warning "We should try and put our graphics rendering code all in one place."
+#warning "The shader-related code could use some simplification."
+#warning "Maybe use a uniform buffer object for the view-projection matrix, too."
+#warning "It would be good to have a proper render queue that sorts objects based on their textures."
+#warning "Essentially, what we want is something like the render loop in 'Approaching Zero Driver Overhead'."
+#warning "We already have all of our 'render passes' sorted (objects, particles, GUI, etcetera), so it's just a matter of sorting by texture instance."
+
+#warning "Maybe limit the scope of global variables that don't need to be seen from the outside?"
+
 
 /**
 *** Important To-Do List:

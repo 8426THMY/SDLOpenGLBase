@@ -51,7 +51,7 @@ typedef struct guiElement {
 
 void guiElementInit(guiElement *const restrict gui, const guiElementType_t type);
 
-void guiElementUpdate(guiElement *const restrict gui, const float time);
+void guiElementUpdate(guiElement *const restrict gui, const float dt);
 void guiElementDraw(
 	guiElement *const restrict gui, const int windowWidth, const int windowHeight, const spriteShader *const restrict shader
 );
@@ -64,7 +64,7 @@ void guiElementCleanup();
 
 extern void (*const guiElementUpdateTable[GUI_ELEMENT_NUM_TYPES])(
 	guiElement *const restrict gui,
-	const float time
+	const float dt
 );
 extern void (*const guiElementDrawTable[GUI_ELEMENT_NUM_TYPES])(
 	const guiElement *const restrict gui,

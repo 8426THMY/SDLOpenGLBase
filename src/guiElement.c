@@ -10,7 +10,7 @@
 sprite g_guiSpriteDefault;
 
 
-void (*const guiElementUpdateTable[GUI_ELEMENT_NUM_TYPES])(guiElement *const restrict gui, const float time) = {
+void (*const guiElementUpdateTable[GUI_ELEMENT_NUM_TYPES])(guiElement *const restrict gui, const float dt) = {
 	guiPanelUpdate,
 	guiTextUpdate
 };
@@ -38,8 +38,8 @@ void guiElementInit(guiElement *const restrict gui, const guiElementType_t type)
 }
 
 
-void guiElementUpdate(guiElement *const restrict gui, const float time){
-	guiElementUpdateTable[gui->type](gui, time);
+void guiElementUpdate(guiElement *const restrict gui, const float dt){
+	guiElementUpdateTable[gui->type](gui, dt);
 }
 
 void guiElementDraw(

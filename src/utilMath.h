@@ -11,9 +11,9 @@
 
 
 // Used to convert from degrees to radians.
-#define DEG_TO_RAD (M_PI/180.f)
+#define DEG_TO_RAD(x) (M_PI/180.f*(x))
 // Used to convert from radians to degrees.
-#define RAD_TO_DEG (180.f/M_PI)
+#define RAD_TO_DEG(x) (180.f/M_PI*(x))
 #define SQRT_ONE_THIRD 0.57735026918962576f
 
 #define MATH_NORMALIZE_EPSILON 0.000001f

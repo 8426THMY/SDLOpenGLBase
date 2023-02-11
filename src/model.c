@@ -1155,11 +1155,11 @@ modelDef *modelDefSMDLoad(const char *const restrict mdlDefPath, const size_t md
 
 
 // Update a model's current state.
-void modelUpdate(model *const restrict mdl, const float time){
+void modelUpdate(model *const restrict mdl, const float dt){
 	textureGroupState *curTexState = mdl->texStates;
 	const textureGroupState *const lastTexState = &curTexState[mdl->mdlDef->numMeshes];
 	do {
-		texGroupStateUpdate(curTexState, time);
+		texGroupStateUpdate(curTexState, dt);
 		++curTexState;
 	} while(curTexState < lastTexState);
 }

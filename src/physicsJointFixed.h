@@ -11,13 +11,6 @@
 #include "utilTypes.h"
 
 
-#define PHYSJOINT_TYPE_FIXED 1
-
-#ifndef PHYSJOINTFIXED_BAUMGARTE_BIAS
-	#define PHYSJOINTFIXED_BAUMGARTE_BIAS 0.3f
-#endif
-
-
 // Fixed joints prevent any relative translational or rotational movement.
 typedef struct physJointFixedDef {
 	// Vectors from the bodies' points of reference to

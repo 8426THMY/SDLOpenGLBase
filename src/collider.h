@@ -12,10 +12,18 @@
 #include "transform.h"
 
 #include "colliderAABB.h"
+#include "colliderPoint.h"
+#include "colliderSphere.h"
+#include "colliderCapsule.h"
 #include "colliderHull.h"
 
 
 #define COLLIDER_NUM_TYPES 1
+
+#define COLLIDER_TYPE_POINT   0
+#define COLLIDER_TYPE_SPHERE  1
+#define COLLIDER_TYPE_CAPSULE 2
+#define COLLIDER_TYPE_HULL    3
 
 
 typedef uint_least8_t colliderType_t;

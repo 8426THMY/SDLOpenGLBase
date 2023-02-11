@@ -928,18 +928,18 @@ vec4 vec4NegateC(vec4 v){
 
 // Convert a vec4 from degrees to radians!
 void vec4DegToRad(vec4 *const restrict v){
-	v->x *= DEG_TO_RAD;
-	v->y *= DEG_TO_RAD;
-	v->z *= DEG_TO_RAD;
-	v->w *= DEG_TO_RAD;
+	v->x = DEG_TO_RAD(v->x);
+	v->y = DEG_TO_RAD(v->y);
+	v->z = DEG_TO_RAD(v->z);
+	v->w = DEG_TO_RAD(v->w);
 }
 
 // Convert a vec4 from radians to degrees!
 void vec4RadToDeg(vec4 *const restrict v){
-	v->x *= RAD_TO_DEG;
-	v->y *= RAD_TO_DEG;
-	v->z *= RAD_TO_DEG;
-	v->w *= RAD_TO_DEG;
+	v->x = RAD_TO_DEG(v->x);
+	v->y = RAD_TO_DEG(v->y);
+	v->z = RAD_TO_DEG(v->z);
+	v->w = RAD_TO_DEG(v->w);
 }
 
 

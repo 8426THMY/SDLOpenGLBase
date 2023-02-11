@@ -102,7 +102,7 @@ void skeleStateInit(skeletonState *const restrict skeleState, const skeleton *co
 
 skeletonAnimDef *skeleAnimSMDLoad(const char *const restrict skeleAnimPath, const size_t skeleAnimPathLength);
 
-void skeleAnimUpdate(skeletonAnim *const restrict anim, const float time);
+void skeleAnimUpdate(skeletonAnim *const restrict anim, const float dt);
 void skeleStatePrependAnimations(
 	boneState *const restrict out,
 	const skeletonState *const restrict skeleState,

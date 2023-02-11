@@ -78,12 +78,6 @@ physicsSeparationPair *physColliderFindSeparation(
 	const physicsCollider *const restrict colliderA, const physicsCollider *const restrict colliderB,
 	physicsSeparationPair **const restrict prev, physicsSeparationPair **const restrict next
 );
-void physColliderUpdateSeparations(physicsCollider *const restrict collider);
-#ifdef PHYSCONTACT_STABILISER_BAUMGARTE
-void physColliderUpdateContacts(physicsCollider *const restrict collider, const float frequency);
-#else
-void physColliderUpdateContacts(physicsCollider *const restrict collider);
-#endif
 void physColliderClearPairs(physicsCollider *const restrict collider);
 
 void physColliderDeleteInstance(physicsCollider *const restrict collider);

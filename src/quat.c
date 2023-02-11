@@ -13,7 +13,7 @@
 #define QUAT_SINGULARITY_THRESHOLD_SQUARED (QUAT_SINGULARITY_THRESHOLD*QUAT_SINGULARITY_THRESHOLD)
 // We'll do linear interpolation if the angle between
 // the two quaternions is less than half a degree.
-#define QUAT_LERP_THRESHOLD cosf(1.f*DEG_TO_RAD)
+#define QUAT_LERP_THRESHOLD cosf(DEG_TO_RAD(1.f))
 
 
 quat g_quatIdentity = {

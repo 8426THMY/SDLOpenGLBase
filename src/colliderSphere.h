@@ -5,9 +5,6 @@
 #include "utilTypes.h"
 
 
-#define COLLIDER_TYPE_SPHERE 1
-
-
 //
 
 

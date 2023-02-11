@@ -298,7 +298,7 @@ void physJointSphereWarmStart(
 	// The angular impulse is the sum of the swing and twist impulses.
 	// We recalculate them here because we need the new swing and twist axes.
 	if(flagsAreSet(((physicsJointSphere *)joint)->limitStates, PHYSJOINTSPHERE_LIMITS_SWING)){
-		vec3Fmaf(joint->swingImpulse, &joint->swingAxis, &angularImpulse);
+		vec3MultiplySOut(&joint->swingAxis, joint->swingImpulse, &angularImpulse);
 		#ifdef PHYSJOINTSPHERE_SWING_USE_ELLIPSE_NORMAL
 		swingImpulseRemoveTwist(&joint->twistAxis, &angularImpulse);
 		#endif
@@ -322,7 +322,9 @@ void physJointSpherePresolve(
 	void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB, const float dt
 ){
 
+	#ifdef PHYSJOINTSPHERE_STABILISER_BAUMGARTE
 	const float frequency = 1.f/dt;
+	#endif
 	flags_t changedLimits = ((physicsJointSphere *)joint)->limitStates;
 
 

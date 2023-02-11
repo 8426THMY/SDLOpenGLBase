@@ -7,6 +7,8 @@
 #include <GL/glew.h>
 
 #include "vec2.h"
+#include "rectangle.h"
+#include "transform.h"
 
 #include "texture.h"
 
@@ -22,7 +24,7 @@ void guiTextInit(guiText *const restrict gui, const textFont *const restrict fon
 }
 
 
-void guiTextUpdate(guiElement *const restrict gui, const float time){
+void guiTextUpdate(guiElement *const restrict gui, const float dt){
 	//
 }
 

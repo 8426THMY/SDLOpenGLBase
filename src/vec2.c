@@ -769,14 +769,14 @@ vec2 vec2OrthogonalC(const vec2 v){
 
 // Convert a vec2 from degrees to radians!
 void vec2DegToRad(vec2 *const restrict v){
-	v->x *= DEG_TO_RAD;
-	v->y *= DEG_TO_RAD;
+	v->x = DEG_TO_RAD(v->x);
+	v->y = DEG_TO_RAD(v->y);
 }
 
 // Convert a vec2 from radians to degrees!
 void vec2RadToDeg(vec2 *const restrict v){
-	v->x *= RAD_TO_DEG;
-	v->y *= RAD_TO_DEG;
+	v->x = RAD_TO_DEG(v->x);
+	v->y = RAD_TO_DEG(v->y);
 }
 
 

@@ -457,11 +457,11 @@ skeletonAnimDef *skeleAnimSMDLoad(const char *const restrict skeleAnimPath, cons
 
 
 // Progress an animation!
-void skeleAnimUpdate(skeletonAnim *const restrict anim, const float time){
+void skeleAnimUpdate(skeletonAnim *const restrict anim, const float dt){
 	animationData *const animData = &anim->animData;
 	const animationFrameData *const frameData = &anim->animDef->frameData;
 
-	animationUpdate(animData, frameData, time);
+	animationUpdate(animData, frameData, dt);
 	anim->interpTime = animationGetFrameProgress(animData, frameData);
 }
 

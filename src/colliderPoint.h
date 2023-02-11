@@ -2,9 +2,6 @@
 #define colliderPoint_h
 
 
-#define COLLIDER_TYPE_POINT 0
-
-
 //
 
 

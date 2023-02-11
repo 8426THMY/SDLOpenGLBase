@@ -1703,7 +1703,7 @@ static void clipFaceContact(
 	}else{
 		contactPoint *curContact = cm->contacts;
 
-		// Add out contact points to the manifold.
+		// Add our contact points to the manifold.
 		for(; loopVertices < loopVertex; ++loopVertices, ++clipVertices.p, ++curContact){
 			curContact->separation = clipVertices.p->dist;
 

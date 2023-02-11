@@ -72,7 +72,7 @@ void texGroupStateInit(textureGroupState *const restrict texGroupState, const te
 
 textureGroup *texGroupLoad(const char *const restrict texGroupPath, const size_t texGroupPathLength);
 
-void texGroupStateUpdate(textureGroupState *const restrict texGroupState, const float time);
+void texGroupStateUpdate(textureGroupState *const restrict texGroupState, const float dt);
 const textureGroupFrame *texGroupStateGetFrame(const textureGroupState *const restrict texGroupState);
 
 void texGroupAnimDefDelete(textureGroupAnimDef *const restrict texGroupAnimDef);

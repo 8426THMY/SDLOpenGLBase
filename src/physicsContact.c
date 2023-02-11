@@ -179,9 +179,11 @@ void physManifoldInit(
 	#endif
 
 	vec3 normal;
+	#ifdef PHYSCONTACT_USE_FRICTION_JOINT
 	vec3 halfway;
-	vec3InitZero(&normal);
 	vec3InitZero(&halfway);
+	#endif
+	vec3InitZero(&normal);
 
 	// Create a physics contact point for each regular one!
 	// Note that we calculate the bias and effective mass when we presolve.

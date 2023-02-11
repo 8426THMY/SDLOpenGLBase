@@ -32,7 +32,7 @@ typedef struct animationData {
 void animFrameDataInit(animationFrameData *const restrict frameData);
 void animationInit(animationData *const restrict animData, const float speed, const size_t playNum);
 
-void animationUpdate(animationData *const restrict animData, const animationFrameData *const restrict frameData, const float time);
+void animationUpdate(animationData *const restrict animData, const animationFrameData *const restrict frameData, const float dt);
 float animationGetFrameProgress(const animationData *const restrict animData, const animationFrameData *const restrict frameData);
 size_t animationGetNextFrame(const size_t currentFrame, const size_t numFrames);
 

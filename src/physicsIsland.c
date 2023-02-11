@@ -186,18 +186,14 @@ void physIslandRemoveRigidBodyList(physicsIsland *const restrict island, physics
 }
 
 
-#ifdef PHYSCONTACT_STABILISER_BAUMGARTE
-void physIslandUpdate(physicsIsland *const restrict island, const float dt, const float frequency){
-#else
 void physIslandUpdate(physicsIsland *const restrict island, const float dt){
-#endif
 	// Update each of the island's rigid bodies and their colliders.
 	updateRigidBodies(island, dt);
 
 	// Check for any new contacts and separations between colliders.
 	// We also presolve any contact constraints in this function.
 	#ifdef PHYSCONTACT_STABILISER_BAUMGARTE
-	queryCollisions(island, frequency);
+	queryCollisions(island, 1.f/dt);
 	#else
 	queryCollisions(island);
 	#endif
@@ -683,8 +679,12 @@ static void solveConstraints(physicsIsland *const restrict island, const float d
 	#ifdef PHYSCOLLIDER_USE_POSITIONAL_CORRECTION
 	// Iteratively solve joint and contact configuration constraints.
 	for(i = PHYSICS_POSITION_SOLVER_NUM_ITERATIONS; i > 0; --i){
+		#ifdef PHYSJOINT_USE_POSITIONAL_CORRECTION
 		return_t solved = 1;
+		#endif
+		#ifdef PHYSCONTACT_STABILISER_GAUSS_SEIDEL
 		float separation = 0.f;
+		#endif
 
 		#ifdef PHYSJOINT_USE_POSITIONAL_CORRECTION
 		// Solve joint configuration constraints.
@@ -705,7 +705,18 @@ static void solveConstraints(physicsIsland *const restrict island, const float d
 		#endif
 
 		// Exit if the errors are small.
-		if(solved && separation >= PHYSCONTACT_LINEAR_POSITIONAL_ERROR_THRESHOLD){
+		// if(solved && separation >= PHYSCONTACT_LINEAR_POSITIONAL_ERROR_THRESHOLD){
+		if(
+			#ifdef PHYSJOINT_USE_POSITIONAL_CORRECTION
+			solved
+				#ifdef PHYSCONTACT_STABILISER_GAUSS_SEIDEL
+			&&
+				#endif
+			#endif
+			#ifdef PHYSCONTACT_STABILISER_GAUSS_SEIDEL
+			separation >= PHYSCONTACT_LINEAR_POSITIONAL_ERROR_THRESHOLD
+			#endif
+		){
 			return;
 		}
 	}

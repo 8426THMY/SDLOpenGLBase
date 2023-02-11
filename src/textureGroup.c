@@ -328,8 +328,12 @@ textureGroup *texGroupLoad(const char *const restrict texGroupPath, const size_t
 
 
 // Continue animating a texture!
-void texGroupStateUpdate(textureGroupState *const restrict texGroupState, const float time){
-	animationUpdate(&texGroupState->texGroupAnim, &(texGroupState->texGroup->texAnims[texGroupState->currentAnim].frameData), time);
+void texGroupStateUpdate(textureGroupState *const restrict texGroupState, const float dt){
+	animationUpdate(
+		&texGroupState->texGroupAnim,
+		&(texGroupState->texGroup->texAnims[texGroupState->currentAnim].frameData),
+		dt
+	);
 }
 
 // Get the current frame of a texture group instance!
