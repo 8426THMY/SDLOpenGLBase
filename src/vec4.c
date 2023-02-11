@@ -528,13 +528,13 @@ vec4 vec4DivideVec4FastC(vec4 v1, const vec4 v2){
 }
 
 
-// Comptue v += xu.
+// Comptue u = xu + v.
 void vec4FmaP1(const float x, vec4 *const restrict u, const vec4 *const restrict v){
 	#ifdef FP_FAST_FMAF
-	v->x = fmaf(x, u->x, v->x);
-	v->y = fmaf(x, u->y, v->y);
-	v->z = fmaf(x, u->z, v->z);
-	v->w = fmaf(x, u->w, v->w);
+	u->x = fmaf(x, u->x, v->x);
+	u->y = fmaf(x, u->y, v->y);
+	u->z = fmaf(x, u->z, v->z);
+	u->w = fmaf(x, u->w, v->w);
 	#else
 	u->x = x*u->x + v->x;
 	u->y = x*u->y + v->y;

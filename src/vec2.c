@@ -405,11 +405,11 @@ vec2 vec2DivideVec2FastC(vec2 v1, const vec2 v2){
 }
 
 
-// Compute v += xu.
+// Compute u = xu + v.
 void vec2FmaP1(const float x, vec2 *const restrict u, const vec2 *const restrict v){
 	#ifdef FP_FAST_FMAF
-	v->x = fmaf(x, u->x, v->x);
-	v->y = fmaf(x, u->y, v->y);
+	u->x = fmaf(x, u->x, v->x);
+	u->y = fmaf(x, u->y, v->y);
 	#else
 	u->x = x*u->x + v->x;
 	u->y = x*u->y + v->y;

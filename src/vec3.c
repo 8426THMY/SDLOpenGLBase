@@ -458,8 +458,21 @@ vec3 vec3DivideVec3FastC(vec3 v1, const vec3 v2){
 }
 
 
+// Comptue u = xu + v.
+void vec3FmaP1(const float x, vec3 *const restrict u, const vec3 *const restrict v){
+	#ifdef FP_FAST_FMAF
+	u->x = fmaf(x, u->x, v->x);
+	u->y = fmaf(x, u->y, v->y);
+	u->z = fmaf(x, u->z, v->z);
+	#else
+	u->x = x*u->x + v->x;
+	u->y = x*u->y + v->y;
+	u->z = x*u->z + v->z;
+	#endif
+}
+
 // Comptue v += xu.
-void vec3Fmaf(const float x, const vec3 *const restrict u, vec3 *const restrict v){
+void vec3FmaP2(const float x, const vec3 *const restrict u, vec3 *const restrict v){
 	#ifdef FP_FAST_FMAF
 	v->x = fmaf(x, u->x, v->x);
 	v->y = fmaf(x, u->y, v->y);
@@ -472,7 +485,7 @@ void vec3Fmaf(const float x, const vec3 *const restrict u, vec3 *const restrict 
 }
 
 // Comptue out = xu + v.
-void vec3FmafOut(const float x, const vec3 *const restrict u, const vec3 *const restrict v, vec3 *const restrict out){
+void vec3FmaOut(const float x, const vec3 *const restrict u, const vec3 *const restrict v, vec3 *const restrict out){
 	#ifdef FP_FAST_FMAF
 	out->x = fmaf(x, u->x, v->x);
 	out->y = fmaf(x, u->y, v->y);
@@ -485,7 +498,7 @@ void vec3FmafOut(const float x, const vec3 *const restrict u, const vec3 *const 
 }
 
 // Return xu + v.
-vec3 vec3FmafC(const float x, const vec3 u, const vec3 v){
+vec3 vec3FmaC(const float x, const vec3 u, const vec3 v){
 	const vec3 out = {
 	#ifdef FP_FAST_FMAF
 		.x = fmaf(x, u.x, v.x),
