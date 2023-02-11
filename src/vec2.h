@@ -70,9 +70,10 @@ void vec2DivideVec2FastP2(const vec2 *const restrict v1, vec2 *const restrict v2
 void vec2DivideVec2FastOut(const vec2 *const restrict v1, const vec2 *const restrict v2, vec2 *const restrict out);
 vec2 vec2DivideVec2FastC(vec2 v1, const vec2 v2);
 
-void vec2Fmaf(const float x, const vec2 *const restrict u, vec2 *const restrict v);
-void vec2FmafOut(const float x, const vec2 *const restrict u, const vec2 *const restrict v, vec2 *const restrict out);
-vec2 vec2FmafC(const float x, const vec2 u, const vec2 v);
+void vec2FmaP1(const float x, vec2 *const restrict u, const vec2 *const restrict v);
+void vec2FmaP2(const float x, const vec2 *const restrict u, vec2 *const restrict v);
+void vec2FmaOut(const float x, const vec2 *const restrict u, const vec2 *const restrict v, vec2 *const restrict out);
+vec2 vec2FmaC(const float x, const vec2 u, const vec2 v);
 
 float vec2Magnitude(const float x, const float y);
 float vec2MagnitudeVec2(const vec2 *const restrict v);

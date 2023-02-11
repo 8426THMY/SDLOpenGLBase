@@ -529,7 +529,22 @@ vec4 vec4DivideVec4FastC(vec4 v1, const vec4 v2){
 
 
 // Comptue v += xu.
-void vec4Fmaf(const float x, const vec4 *const restrict u, vec4 *const restrict v){
+void vec4FmaP1(const float x, vec4 *const restrict u, const vec4 *const restrict v){
+	#ifdef FP_FAST_FMAF
+	v->x = fmaf(x, u->x, v->x);
+	v->y = fmaf(x, u->y, v->y);
+	v->z = fmaf(x, u->z, v->z);
+	v->w = fmaf(x, u->w, v->w);
+	#else
+	u->x = x*u->x + v->x;
+	u->y = x*u->y + v->y;
+	u->z = x*u->z + v->z;
+	u->w = x*u->w + v->w;
+	#endif
+}
+
+// Comptue v += xu.
+void vec4FmaP2(const float x, const vec4 *const restrict u, vec4 *const restrict v){
 	#ifdef FP_FAST_FMAF
 	v->x = fmaf(x, u->x, v->x);
 	v->y = fmaf(x, u->y, v->y);
@@ -544,7 +559,7 @@ void vec4Fmaf(const float x, const vec4 *const restrict u, vec4 *const restrict 
 }
 
 // Comptue out = xu + v.
-void vec4FmafOut(const float x, const vec4 *const restrict u, const vec4 *const restrict v, vec4 *const restrict out){
+void vec4FmaOut(const float x, const vec4 *const restrict u, const vec4 *const restrict v, vec4 *const restrict out){
 	#ifdef FP_FAST_FMAF
 	out->x = fmaf(x, u->x, v->x);
 	out->y = fmaf(x, u->y, v->y);
@@ -559,7 +574,7 @@ void vec4FmafOut(const float x, const vec4 *const restrict u, const vec4 *const 
 }
 
 // Return xu + v.
-vec4 vec4FmafC(const float x, const vec4 u, const vec4 v){
+vec4 vec4FmaC(const float x, const vec4 u, const vec4 v){
 	const vec4 out = {
 	#ifdef FP_FAST_FMAF
 		.x = fmaf(x, u.x, v.x),

@@ -120,7 +120,7 @@ void physJointFrictionWarmStart(const physicsJointFriction *const restrict joint
 
 	// Calculate the linear impulse.
 	vec3MultiplySOut(&joint->tangents[0], joint->linearImpulse.x, &linearImpulse);
-	vec3Fmaf(joint->linearImpulse.y, &joint->tangents[1], &linearImpulse);
+	vec3FmaP2(joint->linearImpulse.y, &joint->tangents[1], &linearImpulse);
 
 	// Calculate the angular impulse.
 	vec3MultiplySOut(&joint->normal, joint->angularImpulse, &angularImpulse);
@@ -250,7 +250,7 @@ void physJointFrictionSolveVelocity(
 
 		// Add the impulse magnitudes for both tangent directions.
 		vec3MultiplySOut(&joint->tangents[0], lambda.x, &linearImpulse);
-		vec3Fmaf(lambda.y, &joint->tangents[1], &linearImpulse);
+		vec3FmaP2(lambda.y, &joint->tangents[1], &linearImpulse);
 	}
 
 

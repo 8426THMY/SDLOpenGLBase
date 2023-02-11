@@ -248,7 +248,7 @@ void physRigidBodyDefAddCollider(
 
 	// Calculate the collider's contribution to the body's centroid.
 	vec3MultiplyS(&bodyDef->centroid, bodyDef->mass);
-	vec3Fmaf(mass, centroid, &bodyDef->centroid);
+	vec3FmaP2(mass, centroid, &bodyDef->centroid);
 
 	// Calculate the new mass and inverse mass.
 	bodyDef->mass += mass;
@@ -416,7 +416,7 @@ return_t physRigidBodyPermitCollision(const physicsRigidBody *bodyA, const physi
 void physRigidBodyIntegrateVelocity(physicsRigidBody *const restrict body, const float dt){
 	if(flagsAreSet(body->flags, PHYSRIGIDBODY_SIMULATE_LINEAR)){
 		// Add the linear acceleration to the linear velocity.
-		vec3Fmaf(body->invMass * dt, &body->netForce, &body->linearVelocity);
+		vec3FmaP2(body->invMass * dt, &body->netForce, &body->linearVelocity);
 	}else{
 		vec3InitZero(&body->linearVelocity);
 	}
@@ -455,7 +455,7 @@ void physRigidBodyResetAccumulators(physicsRigidBody *const restrict body){
 void physRigidBodyIntegratePosition(physicsRigidBody *const restrict body, const float dt){
 	if(flagsAreSet(body->flags, PHYSRIGIDBODY_SIMULATE_LINEAR)){
 		// Compute the object's new position.
-		vec3Fmaf(dt, &body->linearVelocity, &body->centroid);
+		vec3FmaP2(dt, &body->linearVelocity, &body->centroid);
 		flagsSet(body->flags, PHYSRIGIDBODY_TRANSLATED);
 	}else{
 		flagsUnset(body->flags, PHYSRIGIDBODY_TRANSLATED);
@@ -499,13 +499,13 @@ void physRigidBodyApplyForce(physicsRigidBody *const restrict body, const vec3 *
 // Add a translational impulse to a rigid body.
 void physRigidBodyApplyLinearImpulse(physicsRigidBody *const restrict body, const vec3 *const restrict J){
 	// Linear velocity.
-	vec3Fmaf(body->invMass, J, &body->linearVelocity);
+	vec3FmaP2(body->invMass, J, &body->linearVelocity);
 }
 
 // Subtract a translational impulse from a rigid body.
 void physRigidBodyApplyLinearImpulseInverse(physicsRigidBody *const restrict body, const vec3 *const restrict J){
 	// Linear velocity.
-	vec3Fmaf(-body->invMass, J, &body->linearVelocity);
+	vec3FmaP2(-body->invMass, J, &body->linearVelocity);
 }
 
 // Add a rotational impulse to a rigid body.
@@ -527,7 +527,7 @@ void physRigidBodyApplyImpulse(physicsRigidBody *const restrict body, const vec3
 	vec3 impulse;
 
 	// Linear velocity.
-	vec3Fmaf(body->invMass, p, &body->linearVelocity);
+	vec3FmaP2(body->invMass, p, &body->linearVelocity);
 
 	// Angular velocity.
 	vec3CrossVec3Out(r, p, &impulse);
@@ -540,7 +540,7 @@ void physRigidBodyApplyImpulseInverse(physicsRigidBody *const restrict body, con
 	vec3 impulse;
 
 	// Linear velocity.
-	vec3Fmaf(-body->invMass, p, &body->linearVelocity);
+	vec3FmaP2(-body->invMass, p, &body->linearVelocity);
 
 	// Angular velocity.
 	vec3CrossVec3Out(r, p, &impulse);
@@ -557,7 +557,7 @@ void physRigidBodyApplyImpulseBoost(
 	vec3 impulse;
 
 	// Linear velocity.
-	vec3Fmaf(body->invMass, p, &body->linearVelocity);
+	vec3FmaP2(body->invMass, p, &body->linearVelocity);
 
 	// Angular velocity.
 	vec3CrossVec3Out(r, p, &impulse);
@@ -575,7 +575,7 @@ void physRigidBodyApplyImpulseBoostInverse(
 	vec3 impulse;
 
 	// Linear velocity.
-	vec3Fmaf(-body->invMass, p, &body->linearVelocity);
+	vec3FmaP2(-body->invMass, p, &body->linearVelocity);
 
 	// Angular velocity.
 	vec3CrossVec3Out(r, p, &impulse);
@@ -617,7 +617,7 @@ void physRigidBodyApplyAngularImpulsePositionInverse(physicsRigidBody *const res
 void physRigidBodyApplyImpulsePosition(physicsRigidBody *const restrict body, const vec3 *const restrict r, const vec3 *const restrict p){
 	// Position.
 	if(flagsAreSet(body->flags, PHYSRIGIDBODY_SIMULATE_LINEAR)){
-		vec3Fmaf(body->invMass, p, &body->centroid);
+		vec3FmaP2(body->invMass, p, &body->centroid);
 	}
 
 	// Orientation.
@@ -638,7 +638,7 @@ void physRigidBodyApplyImpulsePosition(physicsRigidBody *const restrict body, co
 void physRigidBodyApplyImpulsePositionInverse(physicsRigidBody *const restrict body, const vec3 *const restrict r, const vec3 *const restrict p){
 	// Position.
 	if(flagsAreSet(body->flags, PHYSRIGIDBODY_SIMULATE_LINEAR)){
-		vec3Fmaf(-body->invMass, p, &body->centroid);
+		vec3FmaP2(-body->invMass, p, &body->centroid);
 	}
 
 	// Orientation.

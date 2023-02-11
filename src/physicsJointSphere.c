@@ -304,7 +304,7 @@ void physJointSphereWarmStart(
 		#endif
 	}
 	if(flagsAreSet(((physicsJointSphere *)joint)->limitStates, PHYSJOINTSPHERE_LIMITS_TWIST)){
-		vec3Fmaf(joint->twistImpulse, &joint->twistAxis, &angularImpulse);
+		vec3FmaP2(joint->twistImpulse, &joint->twistAxis, &angularImpulse);
 	}
 
 	// Apply the accumulated impulses.
@@ -584,7 +584,7 @@ return_t physJointSphereSolvePosition(
 			#ifdef PHYSJOINTSPHERE_SWING_USE_ELLIPSE_NORMAL
 			swingImpulseRemoveTwist(&twistImpulse, &impulse);
 			#endif
-			vec3Fmaf(-twistDeviation*twistInvMass, &twistImpulse, &impulse);
+			vec3FmaP2(-twistDeviation*twistInvMass, &twistImpulse, &impulse);
 
 			// Apply the correctional impulse.
 			physRigidBodyApplyAngularImpulsePositionInverse(bodyA, impulse);
@@ -1038,5 +1038,5 @@ static void calculateAngularVelocityImpulse(
 	*accumulatedImpulse = floatMin(oldImpulse + lambda, 0.f);
 
 	// Calculate the total impulse.
-	vec3Fmaf(*accumulatedImpulse - oldImpulse, axis, impulse);
+	vec3FmaP2(*accumulatedImpulse - oldImpulse, axis, impulse);
 }

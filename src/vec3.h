@@ -88,10 +88,11 @@ void vec3DivideVec3FastOut(const vec3 *const restrict v1, const vec3 *const rest
 #define vec3DivideVec3FastP(v1, v2, out) (vec3DivideVec3FastOut(v1, v2, out), out)
 vec3 vec3DivideVec3FastC(vec3 v1, const vec3 v2);
 
-void vec3Fmaf(const float x, const vec3 *const restrict u, vec3 *const restrict v);
-void vec3FmafOut(const float x, const vec3 *const restrict u, const vec3 *const restrict v, vec3 *const restrict out);
-#define vec3FmafP(x, u, v, out) (vec3FmafOut(x, u, v, out), out)
-vec3 vec3FmafC(const float x, const vec3 u, const vec3 v);
+void vec3FmaP1(const float x, vec3 *const restrict u, const vec3 *const restrict v);
+void vec3FmaP2(const float x, const vec3 *const restrict u, vec3 *const restrict v);
+void vec3FmaOut(const float x, const vec3 *const restrict u, const vec3 *const restrict v, vec3 *const restrict out);
+#define vec3FmaP(x, u, v, out) (vec3FmaOut(x, u, v, out), out)
+vec3 vec3FmaC(const float x, const vec3 u, const vec3 v);
 
 float vec3Magnitude(const float x, const float y, const float z);
 float vec3MagnitudeVec3(const vec3 *const restrict v);

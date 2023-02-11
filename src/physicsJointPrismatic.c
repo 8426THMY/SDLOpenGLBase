@@ -215,18 +215,18 @@ void physJointPrismaticWarmStart(const physicsJointPrismatic *const restrict joi
 
 	// Calculate the linear impulse.
 	vec3MultiplySOut(&joint->tangentsGlobal[0], joint->linearImpulse.x, &linearImpulse);
-	vec3Fmaf(joint->linearImpulse.y, &joint->tangentsGlobal[1], &linearImpulse);
-	vec3Fmaf(totalImpulse, &joint->axisGlobal, &linearImpulse);
+	vec3FmaP2(joint->linearImpulse.y, &joint->tangentsGlobal[1], &linearImpulse);
+	vec3FmaP2(totalImpulse, &joint->axisGlobal, &linearImpulse);
 
 	// Calculate the angular impulse for body A.
 	vec3MultiplySOut(&joint->rAu1, joint->linearImpulse.x, &angularImpulseA);
-	vec3Fmaf(joint->linearImpulse.y, &joint->rAu2, &angularImpulseA);
-	vec3Fmaf(totalImpulse, &joint->rAa, &angularImpulseA);
+	vec3FmaP2(joint->linearImpulse.y, &joint->rAu2, &angularImpulseA);
+	vec3FmaP2(totalImpulse, &joint->rAa, &angularImpulseA);
 
 	// Calculate the angular impulse for body B.
 	vec3MultiplySOut(&joint->rBu1, joint->linearImpulse.x, &angularImpulseB);
-	vec3Fmaf(joint->linearImpulse.y, &joint->rBu2, &angularImpulseB);
-	vec3Fmaf(totalImpulse, &joint->rBa, &angularImpulseB);
+	vec3FmaP2(joint->linearImpulse.y, &joint->rBu2, &angularImpulseB);
+	vec3FmaP2(totalImpulse, &joint->rBa, &angularImpulseB);
 
 
 	// Apply the accumulated impulses.

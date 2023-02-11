@@ -746,7 +746,7 @@ static void generateCentroidWeighted(
 	// Add each vertex's contribution to the centroid.
 	for(; curVertex < lastVertex; ++curVertex, ++vertexWeights){
 		const float curWeight = *vertexWeights;
-		vec3Fmaf(curWeight, curVertex, &newCentroid);
+		vec3FmaP2(curWeight, curVertex, &newCentroid);
 		totalWeight += curWeight;
 	}
 

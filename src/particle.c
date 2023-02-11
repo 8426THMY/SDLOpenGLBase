@@ -32,7 +32,7 @@ void particleInit(particle *const restrict part, const textureGroup *const texGr
 
 void particleUpdate(particle *const restrict part, const float dt){
 	// Integrate the particle's position using symplectic Euler.
-	vec3Fmaf(dt, &part->velocity, &part->state.pos);
+	vec3FmaP2(dt, &part->velocity, &part->state.pos);
 	quatIntegrate(&part->state.rot, &part->angularVelocity, dt);
 	quatNormalizeQuatFast(&part->state.rot);
 

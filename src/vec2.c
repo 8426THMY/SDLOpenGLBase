@@ -406,7 +406,18 @@ vec2 vec2DivideVec2FastC(vec2 v1, const vec2 v2){
 
 
 // Compute v += xu.
-void vec2Fmaf(const float x, const vec2 *const restrict u, vec2 *const restrict v){
+void vec2FmaP1(const float x, vec2 *const restrict u, const vec2 *const restrict v){
+	#ifdef FP_FAST_FMAF
+	v->x = fmaf(x, u->x, v->x);
+	v->y = fmaf(x, u->y, v->y);
+	#else
+	u->x = x*u->x + v->x;
+	u->y = x*u->y + v->y;
+	#endif
+}
+
+// Compute v += xu.
+void vec2FmaP2(const float x, const vec2 *const restrict u, vec2 *const restrict v){
 	#ifdef FP_FAST_FMAF
 	v->x = fmaf(x, u->x, v->x);
 	v->y = fmaf(x, u->y, v->y);
@@ -417,7 +428,7 @@ void vec2Fmaf(const float x, const vec2 *const restrict u, vec2 *const restrict 
 }
 
 // Compute out = xu + v.
-void vec2FmafOut(const float x, const vec2 *const restrict u, const vec2 *const restrict v, vec2 *const restrict out){
+void vec2FmaOut(const float x, const vec2 *const restrict u, const vec2 *const restrict v, vec2 *const restrict out){
 	#ifdef FP_FAST_FMAF
 	out->x = fmaf(x, u->x, v->x);
 	out->y = fmaf(x, u->y, v->y);
@@ -428,7 +439,7 @@ void vec2FmafOut(const float x, const vec2 *const restrict u, const vec2 *const 
 }
 
 // Return xu + v.
-vec2 vec2FmafC(const float x, const vec2 u, const vec2 v){
+vec2 vec2FmaC(const float x, const vec2 u, const vec2 v){
 	const vec2 out = {
 	#ifdef FP_FAST_FMAF
 		.x = fmaf(x, u.x, v.x),

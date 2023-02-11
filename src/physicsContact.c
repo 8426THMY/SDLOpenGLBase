@@ -549,8 +549,8 @@ static void warmStartContactPoint(
 	// accumulated normal and frictional impulses.
 	vec3MultiplySOut(&physContactNormal(pm), contact->normalImpulse, &impulse);
 	#ifndef PHYSCONTACT_USE_FRICTION_JOINT
-	vec3Fmaf(contact->tangentImpulse[0], &physContactTangent(pm, 0), &impulse);
-	vec3Fmaf(contact->tangentImpulse[1], &physContactTangent(pm, 1), &impulse);
+	vec3FmaP2(contact->tangentImpulse[0], &physContactTangent(pm, 0), &impulse);
+	vec3FmaP2(contact->tangentImpulse[1], &physContactTangent(pm, 1), &impulse);
 	#endif
 
 
@@ -742,7 +742,7 @@ static void solveTangents(
 	// Clamp our accumulated impulse for the second tangent.
 	oldImpulse = contact->tangentImpulse[1];
 	contact->tangentImpulse[1] = floatClamp(oldImpulse + lambda, -maxFriction, maxFriction);
-	vec3Fmaf(contact->tangentImpulse[1] - oldImpulse, &physContactTangent(pm, 1), &impulse);
+	vec3FmaP2(contact->tangentImpulse[1] - oldImpulse, &physContactTangent(pm, 1), &impulse);
 
 
 	// Apply the frictional impulse to the rigid bodies.

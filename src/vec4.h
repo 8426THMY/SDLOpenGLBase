@@ -76,9 +76,10 @@ void vec4DivideVec4FastP2(const vec4 *const restrict v1, vec4 *const restrict v2
 void vec4DivideVec4FastOut(const vec4 *const restrict v1, const vec4 *const restrict v2, vec4 *const restrict out);
 vec4 vec4DivideVec4FastC(vec4 v1, const vec4 v2);
 
-void vec4Fmaf(const float x, const vec4 *const restrict u, vec4 *const restrict v);
-void vec4FmafOut(const float x, const vec4 *const restrict u, const vec4 *const restrict v, vec4 *const restrict out);
-vec4 vec4FmafC(const float x, const vec4 u, const vec4 v);
+void vec4FmaP1(const float x, vec4 *const restrict u, const vec4 *const restrict v);
+void vec4FmaP2(const float x, const vec4 *const restrict u, vec4 *const restrict v);
+void vec4FmaOut(const float x, const vec4 *const restrict u, const vec4 *const restrict v, vec4 *const restrict out);
+vec4 vec4FmaC(const float x, const vec4 u, const vec4 v);
 
 float vec4Magnitude(const float x, const float y, const float z, const float w);
 float vec4MagnitudeVec4(const vec4 *const restrict v);

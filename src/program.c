@@ -301,10 +301,10 @@ static void updateCameras(program *const restrict prg){
 				if(accelspeed > addspeed){
 					accelspeed = addspeed;
 				}
-				vec3Fmaf(accelspeed, &wishdir, &cVelocity);
+				vec3FmaP2(accelspeed, &wishdir, &cVelocity);
 			}
 		}
-		vec3Fmaf(prg->step.updateDelta, &cVelocity, &prg->cam.pos);
+		vec3FmaP2(prg->step.updateDelta, &cVelocity, &prg->cam.pos);
 	}
 
 	mat4View(&prg->cam.viewMatrix, &prg->cam.pos, &rotMatrix);
