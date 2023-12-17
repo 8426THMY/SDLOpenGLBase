@@ -7,18 +7,10 @@
 #define MESH_INVALID_BUFFER_ID 0
 
 
-void meshInit(mesh *const restrict meshData){
-	meshData->vertexArrayID  = MESH_INVALID_BUFFER_ID;
-	meshData->vertexBufferID = MESH_INVALID_BUFFER_ID;
-
-	meshData->indexBufferID  = MESH_INVALID_BUFFER_ID;
-	meshData->numIndices = 0;
-}
-
-
 // Generate vertex and index buffers to hold our mesh data!
-void meshGenerateBuffers(
-	mesh *const restrict meshData, const vertex *const restrict vertices, const meshVertexIndex_t numVertices,
+void meshInit(
+	mesh *const restrict meshData,
+	const meshVertex *const restrict vertices, const meshVertexIndex_t numVertices,
 	const meshVertexIndex_t *const restrict indices, const meshVertexIndex_t numIndices
 ){
 
@@ -31,22 +23,37 @@ void meshGenerateBuffers(
 		// Now add all our data to it!
 		glBufferData(GL_ARRAY_BUFFER, sizeof(*vertices) * numVertices, vertices, GL_STATIC_DRAW);
 
-		// Set up the vertex array object attributes that require this buffer!
+		// Set up the vertex attributes that require this buffer!
 		// Vertex positions.
 		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vertex), (GLvoid *)offsetof(vertex, pos));
+		glVertexAttribPointer(
+			0, 3, GL_FLOAT, GL_FALSE,
+			sizeof(meshVertex), (GLvoid *)offsetof(meshVertex, pos)
+		);
 		// Vertex UVs.
 		glEnableVertexAttribArray(1);
-		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(vertex), (GLvoid *)offsetof(vertex, uv));
+		glVertexAttribPointer(
+			1, 2, GL_FLOAT, GL_FALSE,
+			sizeof(meshVertex), (GLvoid *)offsetof(meshVertex, uv)
+		);
 		// Vertex normals.
 		glEnableVertexAttribArray(2);
-		glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(vertex), (GLvoid *)offsetof(vertex, normal));
+		glVertexAttribPointer(
+			2, 3, GL_FLOAT, GL_FALSE,
+			sizeof(meshVertex), (GLvoid *)offsetof(meshVertex, normal)
+		);
 		// Vertex bone IDs.
 		glEnableVertexAttribArray(3);
-		glVertexAttribIPointer(3, VERTEX_MAX_WEIGHTS, GL_UNSIGNED_INT, sizeof(vertex), (GLvoid *)offsetof(vertex, boneIDs));
+		glVertexAttribIPointer(
+			3, MESH_VERTEX_MAX_BONE_WEIGHTS, GL_UNSIGNED_INT,
+			sizeof(meshVertex), (GLvoid *)offsetof(meshVertex, boneIDs)
+		);
 		// Vertex bone weights.
 		glEnableVertexAttribArray(4);
-		glVertexAttribPointer(4, VERTEX_MAX_WEIGHTS, GL_FLOAT, GL_FALSE, sizeof(vertex), (GLvoid *)offsetof(vertex, boneWeights));
+		glVertexAttribPointer(
+			4, MESH_VERTEX_MAX_BONE_WEIGHTS, GL_FLOAT, GL_FALSE,
+			sizeof(meshVertex), (GLvoid *)offsetof(meshVertex, boneWeights)
+		);
 
 
 		// Generate a buffer object for our indices and bind it!
@@ -65,8 +72,13 @@ void meshGenerateBuffers(
 ** Return whether or not two vertices are different.
 ** This works so long as our vertices have no padding.
 */
-return_t vertexDifferent(const vertex *const restrict v1, const vertex *const restrict v2){
+return_t meshVertexDifferent(const meshVertex *const restrict v1, const meshVertex *const restrict v2){
 	return(memcmp(v1, v2, sizeof(*v2)) != 0);
+}
+
+// Return whether or not two meshes are different.
+return_t meshDifferent(const mesh *const restrict m1, const mesh *const restrict m2){
+	return(m1->vertexArrayID != m2->vertexArrayID);
 }
 
 // Return whether or not two meshes are different.

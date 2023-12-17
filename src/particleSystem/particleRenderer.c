@@ -3,7 +3,7 @@
 
 void (*const particleRendererInitBatchTable[PARTICLE_RENDERER_NUM_TYPES])(
 	const void *const restrict renderer,
-	renderBatch *const restrict batch,
+	spriteRenderer *const restrict batch,
 ) = {
 
 	particleRendererSpriteInitBatch,
@@ -11,10 +11,20 @@ void (*const particleRendererInitBatchTable[PARTICLE_RENDERER_NUM_TYPES])(
 	particleRendererMeshInitBatch
 };
 
+size_t (*const particleRendererBatchSizeTable[PARTICLE_RENDERER_NUM_TYPES])(
+	const void *const restrict renderer,
+	const particleManager *const restrict manager
+) = {
+
+	particleRendererSpriteBatchSize,
+	particleRendererBeamBatchSize,
+	particleRendererMeshBatchSize
+};
+
 void (*const particleRendererBatchTable[PARTICLE_RENDERER_NUM_TYPES])(
 	const void *const restrict renderer,
 	const particleManager *const restrict manager,
-	renderBatch *const restrict batch,
+	spriteRenderer *const restrict batch,
 	const camera *const restrict cam, const float dt
 ) = {
 
@@ -27,11 +37,22 @@ void (*const particleRendererBatchTable[PARTICLE_RENDERER_NUM_TYPES])(
 // Initialize a render batch using a particle renderer.
 void particleRendererInitBatch(
 	const particleRenderer *const restrict renderer,
-	renderBatch *const restrict batch
+	spriteRenderer *const restrict batch
 ){
 
 	particleRendererInitBatchTable[renderer->type](
 		(const void *const)&renderer->data, batch
+	);
+}
+
+// Return the size of the batch for this renderer and manager pair.
+size_t particleRendererBatchSize(
+	const particleRenderer *const restrict renderer,
+	const particleManager *const restrict manager
+){
+
+	particleRendererBatchSizeTable[renderer->type](
+		(const void *const)&renderer->data, manager
 	);
 }
 
@@ -43,7 +64,7 @@ void particleRendererInitBatch(
 void particleRendererBatch(
 	const particleRenderer *const restrict renderer,
 	const particleManager *const restrict manager,
-	renderBatch *const restrict batch,
+	spriteRenderer *const restrict batch,
 	const camera *const restrict cam, const float dt
 ){
 

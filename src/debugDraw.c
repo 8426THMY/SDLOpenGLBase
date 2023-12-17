@@ -314,7 +314,7 @@ static void debugMeshGenerateBuffers(
 		// Now add all our data to it!
 		glBufferData(GL_ARRAY_BUFFER, sizeof(*vertices) * numVertices, vertices, GL_STREAM_DRAW);
 
-		// Set up the vertex array object attributes that require this buffer!
+		// Set up the vertex attributes that require this buffer!
 		glEnableVertexAttribArray(0);
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(*vertices), 0);
 

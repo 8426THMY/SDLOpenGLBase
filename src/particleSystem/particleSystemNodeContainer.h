@@ -4,6 +4,8 @@
 
 #include "camera.h"
 
+#include "spriteRenderer.h"
+
 
 /*
 ** This represents a high-level node of the particle
@@ -16,6 +18,7 @@ typedef struct particleSystemNodeContainer {
 	particleSystemNodeDef *nodeDef;
 	particleSystemNode *instances;
 
+	// Array of child containers.
 	particleSystemNodeContainer *children;
 } particleSystemNodeContainer;
 
@@ -34,6 +37,7 @@ void particleSysNodeContainerUpdate(
 );
 void particleSysNodeContainerBatch(
 	particleSystemNodeContainer *const restrict container,
+	spriteRenderer *const restrict batch,
 	const camera *const restrict cam, const float dt
 );
 

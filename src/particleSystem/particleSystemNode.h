@@ -10,8 +10,6 @@
 #include "particleConstraint.h"
 #include "particleRenderer.h"
 
-#include "transform.h"
-
 #include "utilTypes.h"
 
 
@@ -60,7 +58,7 @@ typedef struct particleSystemNodeDef particleSystemNodeDef;
 typedef struct particleSystemNodeDef {
 	// These properties control the behaviour of the particles.
 	/// Note: If we want to have customizable parameters, we should
-	///       add the arguments to the unions for these structures.
+	/// add the arguments to the unions for these structures.
 	particleEmitterDef *emitters;
 	size_t numEmitters;
 	particleInitializer *initializers;
@@ -96,10 +94,9 @@ typedef struct particleSystemNodeDef {
 ** by the parent's particles, and kept in the corresponding
 ** particle subsystem container.
 */
-typedef struct particle particle;
 typedef struct particleSystemNode particleSystemNode;
 typedef struct particleSystemNodeContainer particleSystemNodeContainer;
-typedef struct particleSystemNodeContainer particleSystemNodeGroup;
+typedef struct particleSubsystem particleSubsystem;
 typedef struct particleSystemNode {
 	// Emitters are only active when the particle system is alive.
 	// If the lifetime is less than or equal to 0, we should stop
@@ -115,10 +112,10 @@ typedef struct particleSystemNode {
 
 	// Container that this subsystem lives in.
 	particleSystemNodeContainer *container;
-	// Group that this subsystem lives in.
-	particleSystemNodeGroup *group;
-	// Pointers to the previous and next nodes with the same parent.
-	// That is, the previous and next nodes in the group's list.
+	// Subsystem that this subsystem lives in.
+	particleSubsystem *parent;
+	// Pointer to the previous and
+	// next nodes in the subsystem.
 	particleSystemNode *prevSibling;
 	particleSystemNode *nextSibling;
 } particleSystemNode;

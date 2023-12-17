@@ -13,20 +13,21 @@
 #include "utilTypes.h"
 
 
-#define VERTEX_MAX_WEIGHTS 4
+#define MESH_VERTEX_MAX_BONE_WEIGHTS 4
 
 
 typedef GLsizei meshVertexIndex_t;
 typedef GLuint meshBoneIndex_t;
 
-typedef struct vertex {
+#warning "Eventually, we should distinguish between mesh vertices and model vertices."
+typedef struct meshVertex {
 	vec3 pos;
 	vec2 uv;
 	vec3 normal;
 
-	meshBoneIndex_t boneIDs[VERTEX_MAX_WEIGHTS];
-	float boneWeights[VERTEX_MAX_WEIGHTS];
-} vertex;
+	meshBoneIndex_t boneIDs[MESH_VERTEX_MAX_BONE_WEIGHTS];
+	float boneWeights[MESH_VERTEX_MAX_BONE_WEIGHTS];
+} meshVertex;
 
 typedef struct mesh {
 	GLuint vertexArrayID;
@@ -47,16 +48,13 @@ typedef struct meshShader {
 } meshShader;
 
 
-void meshInit(mesh *const restrict meshData);
-
-void meshGenerateBuffers(
-	mesh *const restrict meshData, const vertex *const restrict vertices, const meshVertexIndex_t numVertices,
+void meshInit(
+	mesh *const restrict meshData,
+	const meshVertex *const restrict vertices, const meshVertexIndex_t numVertices,
 	const meshVertexIndex_t *const restrict indices, const meshVertexIndex_t numIndices
 );
-
-return_t vertexDifferent(const vertex *const restrict v1, const vertex *const restrict v2);
+return_t meshVertexDifferent(const meshVertex *const restrict v1, const meshVertex *const restrict v2);
 return_t meshDifferent(const mesh *const restrict m1, const mesh *const restrict m2);
-
 void meshDelete(mesh *const restrict meshData);
 
 return_t meshShaderInit(meshShader *const restrict shader, const GLuint programID);

@@ -9,7 +9,8 @@
 ** the array 'y' of 'n' control points.
 */
 void cubicSplineInit(
-	cubicSpline *const spline, const vec3 *const y, const size_t n
+	cubicSpline *const restrict spline,
+	const vec3 *const restrict y, const size_t n
 ){
 
 	const size_t numFuncs = n - 1;
@@ -127,8 +128,8 @@ void cubicSplineInit(
 ** control point 'i'. We assume that 0 <= t <= 1.
 */
 void cubicSplineEvaluate(
-	const cubicSpline *const spline,
-	const size_t i, const float t, vec3 *const out
+	const cubicSpline *const restrict spline,
+	const size_t i, const float t, vec3 *const restrict out
 ){
 
 	// out = at
@@ -143,7 +144,7 @@ void cubicSplineEvaluate(
 	vec3AddVec3(out, &spline->d[i]);
 }
 
-void cubicSplineDelete(cubicSpline *const spline){
+void cubicSplineDelete(cubicSpline *const restrict spline){
 	// Rather than allocating a chunk for each array,
 	// we do a single big allocation. This probably
 	// isn't a great idea, as we're done for if there

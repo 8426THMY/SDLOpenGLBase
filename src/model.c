@@ -56,7 +56,7 @@ typedef struct meshData {
 
 	meshVertexIndex_t tempVerticesSize;
 	meshVertexIndex_t tempVerticesCapacity;
-	vertex *tempVertices;
+	meshVertex *tempVertices;
 
 	meshVertexIndex_t tempIndicesSize;
 	meshVertexIndex_t tempIndicesCapacity;
@@ -335,8 +335,8 @@ modelDef *modelDefOBJLoad(const char *const restrict mdlDefPath, const size_t md
 				// Iterate through the face's vertices. We keep going until we've
 				// read at least 3 and we haven't reached the end of the line.
 				for(i = 0; i < 3 || tokPos < lineEnd; ++i){
-					vertex tempVertex;
-					const vertex *checkVertex = curMeshData->tempVertices;
+					meshVertex tempVertex;
+					const meshVertex *checkVertex = curMeshData->tempVertices;
 					meshVertexIndex_t j;
 
 
@@ -376,15 +376,21 @@ modelDef *modelDefOBJLoad(const char *const restrict mdlDefPath, const size_t md
 					// Object files don't support bones, so just
 					// use the root bone of the default skeleton.
 					tempVertex.boneIDs[0] = 0;
-					memset(&tempVertex.boneIDs[1], valueInvalid(meshBoneIndex_t), (VERTEX_MAX_WEIGHTS - 1) * sizeof(tempVertex.boneIDs[0]));
+					memset(
+						&tempVertex.boneIDs[1], valueInvalid(meshBoneIndex_t),
+						(MESH_VERTEX_MAX_BONE_WEIGHTS - 1) * sizeof(tempVertex.boneIDs[0])
+					);
 					tempVertex.boneWeights[0] = 1.f;
-					memset(&tempVertex.boneWeights[1], 0.f, (VERTEX_MAX_WEIGHTS - 1) * sizeof(tempVertex.boneWeights[0]));
+					memset(
+						&tempVertex.boneWeights[1], 0.f,
+						(MESH_VERTEX_MAX_BONE_WEIGHTS - 1) * sizeof(tempVertex.boneWeights[0])
+					);
 
 
 					// If this vertex already exists,
 					// we don't need to store it again.
 					for(j = 0; j < curMeshData->tempVerticesSize; ++j){
-						if(!vertexDifferent(checkVertex, &tempVertex)){
+						if(!meshVertexDifferent(checkVertex, &tempVertex)){
 							break;
 						}
 						++checkVertex;
@@ -505,7 +511,7 @@ modelDef *modelDefOBJLoad(const char *const restrict mdlDefPath, const size_t md
 				// mesh and load their texture groups.
 				for(curMeshData = tempMeshData; curMeshData < lastMeshData; ++curMeshData){
 					if(curMeshData->tempIndicesSize >= 3){
-						meshGenerateBuffers(
+						meshInit(
 							curMesh,
 							curMeshData->tempVertices, curMeshData->tempVerticesSize,
 							curMeshData->tempIndices, curMeshData->tempIndicesSize
@@ -836,9 +842,9 @@ modelDef *modelDefSMDLoad(const char *const restrict mdlDefPath, const size_t md
 							const meshBoneIndex_t parentBoneID = strtoul(line, &tokPos, 10);
 							// Make sure a bone with this ID actually exists.
 							if(parentBoneID < tempBonesSize){
-								vertex tempVertex;
+								meshVertex tempVertex;
 								meshBoneIndex_t numLinks;
-								const vertex *checkVertex;
+								const meshVertex *checkVertex;
 								meshVertexIndex_t i;
 
 								tempVertex.pos.x = strtof(tokPos, &tokPos) * 0.05f;
@@ -862,7 +868,7 @@ modelDef *modelDefSMDLoad(const char *const restrict mdlDefPath, const size_t md
 
 									// If there are more than the maximum number of
 									// supported weights, we'll have to clamp it down!
-									if(numLinks > VERTEX_MAX_WEIGHTS){
+									if(numLinks > MESH_VERTEX_MAX_BONE_WEIGHTS){
 										printf(
 											"Error loading model!\n"
 											"Path: %s\n"
@@ -871,7 +877,7 @@ modelDef *modelDefSMDLoad(const char *const restrict mdlDefPath, const size_t md
 											mdlDefFullPath, line
 										);
 
-										numLinks = VERTEX_MAX_WEIGHTS;
+										numLinks = MESH_VERTEX_MAX_BONE_WEIGHTS;
 									}
 
 									// Load all of the links!
@@ -916,7 +922,7 @@ modelDef *modelDefSMDLoad(const char *const restrict mdlDefPath, const size_t md
 									if(totalWeight < 1.f){
 										// If we never loaded the parent bone, see if we can add it!
 										if(valueIsInvalid(parentPos, meshBoneIndex_t)){
-											if(curLink < VERTEX_MAX_WEIGHTS){
+											if(curLink < MESH_VERTEX_MAX_BONE_WEIGHTS){
 												*curBoneID = parentBoneID;
 												*curBoneWeight = 0.f;
 												parentPos = curLink;
@@ -935,8 +941,14 @@ modelDef *modelDefSMDLoad(const char *const restrict mdlDefPath, const size_t md
 									}
 
 									// Make sure we fill the rest with invalid values so we know they aren't used.
-									memset(curBoneID, valueInvalid(meshBoneIndex_t), (VERTEX_MAX_WEIGHTS - curLink) * sizeof(*tempVertex.boneIDs));
-									memset(curBoneWeight, 0.f, (VERTEX_MAX_WEIGHTS - curLink) * sizeof(*tempVertex.boneWeights));
+									memset(
+										curBoneID, valueInvalid(meshBoneIndex_t),
+										(MESH_VERTEX_MAX_BONE_WEIGHTS - curLink) * sizeof(*tempVertex.boneIDs)
+									);
+									memset(
+										curBoneWeight, 0.f,
+										(MESH_VERTEX_MAX_BONE_WEIGHTS - curLink) * sizeof(*tempVertex.boneWeights)
+									);
 
 								// Otherwise, just bind it to the parent bone.
 								}else{
@@ -949,9 +961,15 @@ modelDef *modelDefSMDLoad(const char *const restrict mdlDefPath, const size_t md
 									);
 
 									tempVertex.boneIDs[0] = parentBoneID;
-									memset(&tempVertex.boneIDs[1], valueInvalid(meshBoneIndex_t), (VERTEX_MAX_WEIGHTS - 1) * sizeof(*tempVertex.boneIDs));
+									memset(
+										&tempVertex.boneIDs[1], valueInvalid(meshBoneIndex_t),
+										(MESH_VERTEX_MAX_BONE_WEIGHTS - 1) * sizeof(*tempVertex.boneIDs)
+									);
 									tempVertex.boneWeights[0] = 1.f;
-									memset(&tempVertex.boneWeights[1], 0.f, (VERTEX_MAX_WEIGHTS - 1) * sizeof(*tempVertex.boneWeights));
+									memset(
+										&tempVertex.boneWeights[1], 0.f,
+										(MESH_VERTEX_MAX_BONE_WEIGHTS - 1) * sizeof(*tempVertex.boneWeights)
+									);
 								}
 
 
@@ -983,7 +1001,7 @@ modelDef *modelDefSMDLoad(const char *const restrict mdlDefPath, const size_t md
 								// Check if this vertex already exists!
 								for(i = 0; i < curMeshData->tempVerticesSize; ++i){
 									// Looks like it does, so we don't need to store it again!
-									if(!vertexDifferent(checkVertex, &tempVertex)){
+									if(!meshVertexDifferent(checkVertex, &tempVertex)){
 										break;
 									}
 									++checkVertex;
@@ -1108,7 +1126,7 @@ modelDef *modelDefSMDLoad(const char *const restrict mdlDefPath, const size_t md
 				// mesh and load their texture groups.
 				for(curMeshData = tempMeshData; curMeshData < lastMeshData; ++curMeshData){
 					if(curMeshData->tempIndicesSize >= 3){
-						meshGenerateBuffers(
+						meshInit(
 							curMesh,
 							curMeshData->tempVertices, curMeshData->tempVerticesSize,
 							curMeshData->tempIndices, curMeshData->tempIndicesSize
@@ -1222,7 +1240,7 @@ void modelDefDelete(modelDef *const restrict mdlDef){
 
 
 return_t modelSetup(){
-	const vertex vertices[20] = {
+	const meshVertex vertices[20] = {
 		{
 			.pos.x = 0.5f, .pos.y = 1.f, .pos.z = -0.5f,
 			.uv.x = 0.f, .uv.y = 1.f,
@@ -1360,7 +1378,11 @@ return_t modelSetup(){
 		14,  5,  9
 	};
 
-	meshGenerateBuffers(&mdlDefMeshDefault, vertices, sizeof(vertices)/sizeof(*vertices), indices, sizeof(indices)/sizeof(*indices));
+	meshInit(
+		&mdlDefMeshDefault,
+		vertices, sizeof(vertices)/sizeof(*vertices),
+		indices, sizeof(indices)/sizeof(*indices)
+	);
 
 
 	return(1);

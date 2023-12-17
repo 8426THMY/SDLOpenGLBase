@@ -1,9 +1,0 @@
-The particle system is currently quite developed, but still needs a bit of work:
-	1. Particle colours are not supported.
-	2. Need to think about how textures and animations should be utilized.
-	3. Cubic spline interpolation hasn't been implemented for beam renderers yet.
-	4. Rotations and billboards aren't implemented properly.
-	5. Particles should be stored as a structure of arrays, not an array of structures.
-	6. Need to think about when uniforms, textures and shader programs should be bound.
-	7. Work has been done to support sorting, but it hasn't been implemented yet.
-Besides that stuff, though, just about everything else should be more or less functional!

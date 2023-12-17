@@ -91,13 +91,14 @@ typedef struct cubicSpline {
 
 
 void cubicSplineInit(
-	cubicSpline *const spline, const vec3 *const y, const size_t n
+	cubicSpline *const restrict spline,
+	const vec3 *const restrict y, const size_t n
 );
 void cubicSplineEvaluate(
-	const cubicSpline *const spline,
-	const size_t n, const float t, vec3 *const out
+	const cubicSpline *const restrict spline,
+	const size_t n, const float t, vec3 *const restrict out
 );
-void cubicSplineDelete(cubicSpline *const spline);
+void cubicSplineDelete(cubicSpline *const restrict spline);
 
 
 #endif

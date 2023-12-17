@@ -99,7 +99,11 @@ return_t particleSetup(){
 		2, 3, 0
 	};
 
-	spriteGenerateBuffers(&partSpriteDefault, vertices, sizeof(vertices)/sizeof(*vertices), indices, sizeof(indices)/sizeof(*indices));
+	spriteGenerateBuffers(
+		&partSpriteDefault,
+		vertices, sizeof(vertices)/sizeof(*vertices),
+		indices, sizeof(indices)/sizeof(*indices)
+	);
 
 
 	return(1);

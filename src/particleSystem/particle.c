@@ -19,27 +19,29 @@ void particlePreInit(
 	const flags_t inheritFlag = flagsMask(node->flags, PARTICLE_INHERIT_MASK);
 	// Rather than initializing the previous state, we compute
 	// it using the current state during post initialization.
-	// The parent state pointer should never be NULL here.
+	// The subsystem pointer should never be NULL here.
 	if(flagsAreSet(inheritFlag, PARTICLE_INHERIT_TRANSFORM)){
+		const transform *const parentState = node->parent->state;
+
 		if(flagsAreSet(node->flags, PARTICLE_INHERIT_POSITION)){
-			part->state[0].pos = node->parentState[0].pos;
+			part->subsys.state[0].pos = parentState[0].pos;
 		}else{
-			vec3InitZero(&part->state[0].pos);
+			vec3InitZero(&part->subsys.state[0].pos);
 		}
 		if(flagsAreSet(node->flags, PARTICLE_INHERIT_ROTATION)){
-			part->state[0].rot = node->parentState[0].rot;
+			part->subsys.state[0].rot = parentState[0].rot;
 		}else{
-			quatInitIdentiy(&part->state[0].rot);
+			quatInitIdentiy(&part->subsys.state[0].rot);
 		}
 		if(flagsAreSet(inheritFlag, PARTICLE_INHERIT_SCALE)){
-			part->state[0].scale = node->parentState[0].scale;
-			part->state[0].shear = node->parentState[0].shear;
+			part->subsys.state[0].scale = parentState[0].scale;
+			part->subsys.state[0].shear = parentState[0].shear;
 		}else{
-			vec3InitSet(&part->state[0].scale, 1.f, 1.f, 1.f);
-			quatInitIdentiy(&part->state[0].shear);
+			vec3InitSet(&part->subsys.state[0].scale, 1.f, 1.f, 1.f);
+			quatInitIdentiy(&part->subsys.state[0].shear);
 		}
 	}else{
-		transformInit(&part->state[0].pos);
+		transformInit(&part->subsys.state[0].pos);
 	}
 
 	vec3InitZero(&part->linearVelocity);
@@ -60,12 +62,11 @@ void particlePostInit(
 ){
 
 	const flags_t inheritFlag = flagsMask(node->flags, PARTICLE_INHERIT_MASK);
-	const transform *const parentState = node->group->parentState;
 	// Calculate the where the particle would have
 	// been had it been alive on the previous frame.
-	// The group and parent state pointers should
-	// never be NULL here.
+	// The subsystem pointer should never be NULL here.
 	if(flagsAreSet(inheritFlag, PARTICLE_INHERIT_TRANSFORM)){
+		const transform *const parentState = node->parent->state;
 		transform invParentState;
 		transform prevParentState;
 		
@@ -97,10 +98,10 @@ void particlePostInit(
 
 		// prevState = prevParentState * curParentState^(-1) * curState
 		transformInvert(&invParentState);
-		transformAppendOut(&invParentState, &part->state[0], &part->state[1]);
-		transformAppendP2(&prevParentState, &part->state[1]);
+		transformAppendOut(&invParentState, &part->subsys.state[0], &part->subsys.state[1]);
+		transformAppendP2(&prevParentState, &part->subsys.state[1]);
 	}else{
-		part->state[1] = part->state[0];
+		part->subsys.state[1] = part->subsys.state[0];
 	}
 
 	// Spawn and initialize this particle's children!
@@ -110,12 +111,12 @@ void particlePostInit(
 		const particleSystemNodeContainer *const lastContainer =
 			&curContainer[node->container->nodeDef->numChildren];
 
-		particleSysNodeGroupInit(&part->group, part->state);
+		particleSubsysInit(&part->subsys);
 
 		// Create instances of each of the child nodes.
 		while(curContainer != lastContainer){
-			particleSysNodeGroupPrepend(
-				&part->group,
+			particleSubsysPrepend(
+				&part->subsys,
 				particleSysNodeContainerInstantiate(curContainer)
 			);
 			++curContainer;
@@ -131,27 +132,27 @@ void particlePreUpdate(
 ){
 
 	// Set the particle's previous state to its current state.
-	part->state[1] = part->state[0];
+	part->subsys.state[1] = part->subsys.state[0];
 	// If the particle has a parent, move it to where its parent is.
 	if(parentState != NULL){
 		transform inversePrevState;
 
 		// curState = curParentState * prevParentState^(-1) * prevState
 		transformInvertOut(&parentState[1], &inversePrevState);
-		transformAppendP2(&inversePrevState, &part->state[0]);
-		transformAppendP2(&parentState[0], &part->state[0]);
+		transformAppendP2(&inversePrevState, &part->subsys.state[0]);
+		transformAppendP2(&parentState[0], &part->subsys.state[0]);
 	}
 
 	// Integrate the particle's velocity using symplectic Euler.
 	vec3Fmaf(dt, &part->netForce, &part->linearVelocity);
-	vec3Fmaf(dt, &body->netTorque, &body->angularVelocity);
+	vec3Fmaf(dt, &part->netTorque, &part->angularVelocity);
 }
 
 void particlePostUpdate(particle *const restrict part, const float dt){
 	// Integrate the particle's position using symplectic Euler.
-	vec3Fmaf(dt, &body->linearVelocity, &body->state[0].pos);
-	quatIntegrate(&body->state[0].rot, &body->angularVelocity, dt);
-	quatNormalizeQuatFast(&body->state[0].rot);
+	vec3Fmaf(dt, &part->linearVelocity, &part->subsys.state[0].pos);
+	quatIntegrate(&part->subsys.state[0].rot, &part->angularVelocity, dt);
+	quatNormalizeQuatFast(&part->subsys.state[0].rot);
 
 	#if 0
 	// Update the texture group animation.
@@ -171,5 +172,5 @@ return_t particleDead(const particle *const restrict part){
 ** pointers must be handled by the particle manager.
 */
 void particleDelete(particle *const restrict part){
-	particleSysNodeGroupOrphan(&part->group);
+	particleSubsysOrphan(&part->subsys);
 }

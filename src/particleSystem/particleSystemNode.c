@@ -1,6 +1,8 @@
 #include "particleSystemNode.h"
 
 
+#include "transform.h"
+
 #include "particleSystemNodeContainer.h"
 
 #include "memoryManager.h"
@@ -31,7 +33,7 @@ static void updateParticles(particleSystemNode *const restrict node, const float
 /*
 ** Initialize a particle system node. Note that owners
 ** must initialize the pointers they explicitly control,
-** such as those related to the container and group.
+** such as those related to the container and subsystem.
 */
 void particleSysNodeInit(
 	particleSystemNode *const restrict node,
@@ -102,7 +104,7 @@ void particleSysNodeUpdateEmitters(particleSystemNode *const restrict node, cons
 */
 void particleSysNodeUpdateParticles(particleSystemNode *const restrict node, const float dt){
 	const particleSubsysDef *const nodeDef = node->container->nodeDef;
-	const transform *const parentState = (node->group == NULL) ? NULL : node->group->state;
+	const transform *const parentState = (node->parent == NULL) ? NULL : node->parent->state;
 	
 	particle *curParticle = node->manager.first;
 	// Update all of the node's particles!
@@ -138,7 +140,7 @@ void particleSysNodeUpdateParticles(particleSystemNode *const restrict node, con
 */
 void particleSysNodeOrphan(particleSystemNode *const restrict node){
 	node->lifetime = 0.f;
-	node->group = NULL;
+	node->parent = NULL;
 	node->prevSibling = NULL;
 	node->nextSibling = NULL;
 }
@@ -149,9 +151,9 @@ void particleSysNodeDelete(particleSystemNode *const restrict node){
 	}
 	particleManagerDelete(&node->manager);
 
-	// Fix up the group pointers.
-	if(node->group != NULL){
-		particleSysNodeGroupRemove(node->group, node);
+	// Fix up the subsystem pointers.
+	if(node->parent != NULL){
+		particleSubsysRemove(node->parent, node);
 	}
 }
 
@@ -193,7 +195,7 @@ static void initializeParticle(
 	}
 
 	// Now that we've initialized the particle,
-	// set up some if its subsystem properties.
+	// set up some of its subsystem properties.
 	particlePostInit(part, node);
 }
 

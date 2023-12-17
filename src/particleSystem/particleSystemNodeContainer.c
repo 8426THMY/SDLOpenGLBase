@@ -19,7 +19,7 @@ static size_t countParticles(
 **
 ** This function assumes that "container" lives in an array
 ** that is big enough for it and all of its children. It also
-** ensures everything is initialized in depth-first order.
+** ensures that every child of a node is stored sequentially.
 */
 particleSystemNodeContainer *particleSysNodeContainerInit(
 	particleSystemNodeContainer *const restrict container,
@@ -122,21 +122,31 @@ void particleSysNodeContainerUpdate(
 */
 void particleSysNodeContainerBatch(
 	particleSystemNodeContainer *const restrict container,
+	spriteRenderer *const restrict batch,
 	const camera *const restrict cam, const float dt
 ){
 
-	const particleRenderer *const renderer = container->nodeDef->renderer;
+	const particleRenderer *const partRenderer = container->nodeDef->renderer;
 	const particleSystemNode *curNode = container->instances;
 
 	// Draw the last batch if it's incompatible,
 	// or continue filling the buffers if it is.
-	particleRendererInitBatch(renderer, batch);
+	particleRendererInitBatch(partRenderer, batch);
 
 	// For each instance, fill the buffer with its particle data.
-	// If the buffer is filled during this process, we automatically
-	// render the batch and initialize new buffers.
+	// If the buffer is filled, we'll need to draw and orphan it.
 	while(curNode != NULL){
-		particleRendererBatch(renderer, &curNode->manager, batch, cam, dt);
+		// If there's no room left in the current
+		// batch, we'll have to draw and orphan it.
+		#warning "Currently, we check if the batch is full after adding each particle."
+		#warning "This makes the most out of the batch, but it may be slower due to all the checks."
+		#warning "Instead, we can only add the new particles if there's room for all of them."
+		#warning "This is less efficient in terms of memory usage when we have many large nodes."
+		/*if(!spriteRendererHasRoom(batch, particleRendererBatchSize(partRenderer, &curNode->manager))){
+			spriteRendererDrawFull(batch);
+		}*/
+		// Add the current instance's particles to the batch!
+		particleRendererBatch(partRenderer, &curNode->manager, batch, cam, dt);
 		curNode = moduleParticleSysNodeNext(curNode);
 	}
 }

@@ -25,9 +25,6 @@ void particleSysInit(
 	const transformState *const restrict state
 ){
 
-	partSys->state[0] = *state;
-	partSys->state[1] = *state;
-
 	// Initialize all of the particle system's containers.
 	{
 		particleSystemNodeContainer *curContainer;
@@ -47,22 +44,24 @@ void particleSysInit(
 		partSys->containers = curContainer;
 		partSys->lastContainer = &curContainer[partSysDef->numNodes];
 
-		particleSysNodeGroupInit(&partSys->group, partSys->state);
+		partSys->subsys.state[0] = *state;
+		partSys->subsys.state[1] = *state;
+		particleSubsysInit(&partSys->subsys);
 
 		// This loop iterates through all of the root-level containers,
 		// whereas the initialization function will set up all of their
 		// children. This is useful, as since we should only instantiate
 		// the root-level nodes at first, we can simply do that here!
 		while(curContainer != firstChild){
-			// This will recursively initialize the container
-			// and all of its children. As a result, containers
-			// are guaranteed to be stored in depth-first order.
+			// This will recursively initialize the container and
+			// all of its children. As a result, containers are
+			// guaranteed to have their children stored sequentially.
 			nextChild = particleSysNodeContainerInit(
 				curContainer, curNodeDef, nextChild
 			);
-			// Add it to the particle system's root group.
-			particleSysNodeGroupPrepend(
-				&partSys->group,
+			// Add it to the particle system's root subsystem.
+			particleSubsysPrepend(
+				&partSys->subsys,
 				particleSysNodeContainerInstantiate(curContainer)
 			);
 
@@ -93,13 +92,13 @@ void particleSysDraw(
 ){
 
 	const particleSystemNodeContainer *curContainer = partSys->containers;
-	renderBatch batch;
+	spriteRenderer batch;
 
-	renderBatchInit(&batch);
+	spriteRenderer.type = SPRITE_RENDERER_TYPE_UNUSED;
 	for(; curContainer != partSys->lastContainer; ++curContainer){
-		particleSysNodeContainerBatch(curContainer, &batch, dt);
+		particleSysNodeContainerBatch(curContainer, &batch, cam, dt);
 	}
-	renderBatchDraw(&batch);
+	spriteRendererDraw(&batch);
 	
 	memoryManagerGlobalFree(buffer);
 }

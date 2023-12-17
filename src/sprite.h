@@ -59,7 +59,8 @@ typedef struct spriteShader {
 void spriteInit(sprite *const restrict spriteData);
 
 void spriteGenerateBuffers(
-	sprite *const restrict spriteData, const spriteVertex *const restrict vertices, const spriteVertexIndex_t numVertices,
+	sprite *const restrict spriteData,
+	const spriteVertex *const restrict vertices, const spriteVertexIndex_t numVertices,
 	const spriteVertexIndex_t *const restrict indices, const spriteVertexIndex_t numIndices
 );
 

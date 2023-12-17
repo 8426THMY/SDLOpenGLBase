@@ -353,44 +353,6 @@ transform transformMultiplyC(const transform trans1, const transform trans2){
 }
 
 
-// Interpolate from "trans1" to "trans2" and store the result in "out"!
-void transformInterpSet(const transform *const trans1, const transform *const trans2, const float time, transform *const out){
-	vec3Lerp(&trans1->pos, &trans2->pos, time, &out->pos);
-	quatSlerpFasterOut(&trans1->rot, &trans2->rot, time, &out->rot);
-	vec3Lerp(&trans1->scale, &trans2->scale, time, &out->scale);
-	quatSlerpFasterOut(&trans1->shear, &trans2->shear, time, &out->shear);
-}
-
-// Interpolate from "trans1" to "trans2" and return the result!
-transform transformInterpSetC(const transform trans1, const transform trans2, const float time){
-	const transform out = {
-		.pos = vec3LerpC(trans1.pos, trans2.pos, time),
-		.rot = quatSlerpFasterC(trans1.rot, trans2.rot, time),
-		.scale = vec3LerpC(trans1.scale, trans2.scale, time),
-		.shear = quatSlerpFasterC(trans1.shear, trans2.shear, time)
-	};
-	return(out);
-}
-
-// Interpolate between two states and add the offsets to "out"!
-void transformInterpAdd(const transform *const trans1, const transform *const trans2, const float time, transform *const out){
-	/*transformRigid interp;
-	// Interpolate from "trans1" to "trans2".
-	transformRigidInterpSet(trans1, trans2, time, &interp);
-
-	// Add the interpolated transformation to "out".
-	vec3AddVec3(&out->pos, &interp.pos);
-	quatMultiplyQuatP1(&out->rot, interp.rot);
-	quatNormalizeQuat(&out->rot);
-	vec3MultiplyVec3(&out->scale, &interp.scale);*/
-}
-
-// Interpolate between two states and add the offsets to "out"!
-transform transformInterpAddC(const transform trans1, const transform trans2, const float time){
-	return(g_transformIdentity);
-}
-
-
 void transformInvert(transform *const restrict trans){
 	/*
 	** In terms of matrices, we may define our transformation by
@@ -522,6 +484,52 @@ transform transformInvertC(const transform trans){
 	);
 
 	return(out);
+}
+
+
+// Interpolate from "trans1" to "trans2" and store the result in "out"!
+void transformInterpSet(
+	const transform *const trans1, const transform *const trans2,
+	const float time, transform *const out
+){
+
+	vec3Lerp(&trans1->pos, &trans2->pos, time, &out->pos);
+	quatSlerpFasterOut(&trans1->rot, &trans2->rot, time, &out->rot);
+	vec3Lerp(&trans1->scale, &trans2->scale, time, &out->scale);
+	quatSlerpFasterOut(&trans1->shear, &trans2->shear, time, &out->shear);
+}
+
+// Interpolate from "trans1" to "trans2" and return the result!
+transform transformInterpSetC(const transform trans1, const transform trans2, const float time){
+	const transform out = {
+		.pos = vec3LerpC(trans1.pos, trans2.pos, time),
+		.rot = quatSlerpFasterC(trans1.rot, trans2.rot, time),
+		.scale = vec3LerpC(trans1.scale, trans2.scale, time),
+		.shear = quatSlerpFasterC(trans1.shear, trans2.shear, time)
+	};
+	return(out);
+}
+
+// Interpolate between two states and add the offsets to "out"!
+void transformInterpAdd(
+	const transform *const trans1, const transform *const trans2,
+	const float time, transform *const out
+){
+
+	/*transformRigid interp;
+	// Interpolate from "trans1" to "trans2".
+	transformRigidInterpSet(trans1, trans2, time, &interp);
+
+	// Add the interpolated transformation to "out".
+	vec3AddVec3(&out->pos, &interp.pos);
+	quatMultiplyQuatP1(&out->rot, interp.rot);
+	quatNormalizeQuat(&out->rot);
+	vec3MultiplyVec3(&out->scale, &interp.scale);*/
+}
+
+// Interpolate between two states and add the offsets to "out"!
+transform transformInterpAddC(const transform trans1, const transform trans2, const float time){
+	return(g_transformIdentity);
 }
 
 

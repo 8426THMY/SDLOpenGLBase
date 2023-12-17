@@ -7,8 +7,9 @@ typedef struct timestep {
 	float updateRate;
 	float renderRate;
 
-	// Seconds per update/render.
+	// Seconds per update.
 	float updateDelta;
+	// Progress through the current update.
 	float renderDelta;
 
 	// Updates/renders per millisecond.
@@ -23,8 +24,8 @@ typedef struct timestep {
 	// This lets us control the program's speed while
 	// keeping the update logic and deltas the same.
 	float timeSpeed;
-	float updateTimeScaled;
 	float updateTickrateScaled;
+	float updateTimeScaled;
 } timestep;
 
 

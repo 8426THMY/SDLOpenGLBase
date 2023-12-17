@@ -9,13 +9,16 @@
 
 /*
 ** To correctly handle non-uniform scaling, we introduce
-** a "stretch quaternion" that rotates us so that we can
+** a "shear quaternion" that rotates us so that we can
 ** easily perform our scaling along the x, y and z axes.
 **
 ** Our transformation is equivalent to the matrix
 **     A = TRQSQ^T,
 ** where
-**
+**     T = translation,
+**     R = rotation,
+**     Q = shearing,
+**     S = scaling.
 ** This is usually only necessary for things like skeletons,
 ** where we may want to add extra flare to their animations.
 ** However, it cannot be used with most colliders, such as
@@ -59,14 +62,20 @@ void transformMultiplyOut(
 );
 transform transformMultiplyC(const transform trans1, const transform trans2);
 
-void transformInterpSet(const transform *const trans1, const transform *const trans2, const float time, transform *const out);
-transform transformInterpSetC(const transform trans1, const transform trans2, const float time);
-void transformInterpAdd(const transform *const trans1, const transform *const trans2, const float time, transform *const out);
-transform transformInterpAddC(const transform trans1, const transform trans2, const float time);
-
 void transformInvert(transform *const restrict trans);
 void transformInvertOut(const transform *const restrict trans, transform *const restrict out);
 transform transformInvertC(const transform trans);
+
+void transformInterpSet(
+	const transform *const trans1, const transform *const trans2,
+	const float time, transform *const out
+);
+transform transformInterpSetC(const transform trans1, const transform trans2, const float time);
+void transformInterpAdd(
+	const transform *const trans1, const transform *const trans2,
+	const float time, transform *const out
+);
+transform transformInterpAddC(const transform trans1, const transform trans2, const float time);
 
 void transformToMat4(const transform *const restrict trans, mat4 *const restrict out);
 mat4 transformToMat4C(const transform trans);

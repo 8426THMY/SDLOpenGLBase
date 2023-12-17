@@ -8,7 +8,7 @@
 #include "transform.h"
 #include "textureGroup.h"
 
-#include "particleSystemNodeGroup.h"
+#include "particleSubsystem.h"
 
 #include "utilTypes.h"
 
@@ -23,15 +23,18 @@
 
 typedef struct particle particle;
 typedef struct particle {
-	// Current and previous global transforms.
+	// Stores the current and previous global transforms
+	// and manages any child particle system nodes.
 	#warning "We shouldn't allow particles to be sheared, as it's way too slow."
 	#warning "If we're desperate, this can be emulated using animated textures or something."
 	#warning "We should be able to solve this when we convert to a structure of arrays."
 	#warning "In fact, particles shouldn't even inherit scale at all, meaning we don't need shearing!"
 	#warning "As far as scaling is concerned, particles should probably only use a single float."
-	transform state[2];
+	#warning "If the parent teleports, the particle might become out of sync since we use global transforms."
+	particleSubsystem subsys;
 
-	// These roperties control the body's motion.
+	// These properties control the particle's motion.
+	// Note that they're all stored in local space!
 	vec3 linearVelocity;
 	vec3 angularVelocity;
 	vec3 netForce;
@@ -52,9 +55,6 @@ typedef struct particle {
 	// particles in the sorted list.
 	particle *prev;
 	particle *next;
-
-	// Manages child particle subsystems.
-	particleSystemNodeGroup group;
 } particle;
 
 

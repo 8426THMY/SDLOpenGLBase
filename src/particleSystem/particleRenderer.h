@@ -2,9 +2,10 @@
 #define particleRenderer_h
 
 
+#include <stddef.h>
 #include <stdint.h>
 
-#include "renderBatch.h"
+#include "spriteRenderer.h"
 
 #include "particleManager.h"
 #include "particleRendererSprite.h"
@@ -37,25 +38,34 @@ typedef struct particleRenderer {
 
 void particleRendererInitBatch(
 	const particleRenderer *const restrict renderer,
-	renderBatch *const restrict batch
+	spriteRenderer *const restrict batch
+);
+size_t particleRendererBatchSize(
+	const particleRenderer *const restrict renderer,
+	const particleManager *const restrict manager
 );
 void particleRendererBatch(
 	const particleRenderer *const restrict renderer,
 	const particleManager *const restrict manager,
-	renderBatch *const restrict batch,
+	spriteRenderer *const restrict batch,
 	const camera *const restrict cam, const float dt
 );
 
 
 extern void (*const particleRendererInitBatchTable[PARTICLE_RENDERER_NUM_TYPES])(
 	const void *const restrict renderer,
-	renderBatch *const restrict batch
+	spriteRenderer *const restrict batch
+);
+
+extern size_t (*const particleRendererBatchSizeTable[PARTICLE_RENDERER_NUM_TYPES])(
+	const void *const restrict renderer,
+	const particleManager *const restrict manager
 );
 
 extern void (*const particleRendererBatchTable[PARTICLE_RENDERER_NUM_TYPES])(
 	const void *const restrict renderer,
 	const particleManager *const restrict manager,
-	renderBatch *const restrict batch,
+	spriteRenderer *const restrict batch,
 	const camera *const restrict cam, const float dt
 );
 

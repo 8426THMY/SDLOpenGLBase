@@ -7,7 +7,7 @@
 #include "transform.h"
 #include "camera.h"
 
-#include "particleSystemNodeGroup.h"
+#include "particleSubsystem.h"
 
 
 /**
@@ -52,9 +52,7 @@
 ** Because siblings are stored in order, parents need only store the
 ** number of children they have and a pointer to their first child.
 ** Further, this makes it easier when iterating through the list, as
-** we will never reach a child node before its parent. In the future,
-** it might be better to store the index of their first child instead.
-** This would allow us to have the nodes stored breadth-first.
+** we will never reach a child node before its parent.
 **
 **
 ** particleSystemNodeDef
@@ -71,8 +69,8 @@
 **
 ** particleSystem
 ** --------------
-** Instance of a particleSystemDef. Stores a statically-allocated array
-** of particleSystemNodeContainers, one for each particleSystemNodeDefs.
+** Instance of a particleSystemDef. Stores a fixed-size array of
+** particleSystemNodeContainers, one for each particleSystemNodeDefs.
 ** In fact, these containers are internally stored in the same order as
 ** the definition's list of node definitions. Not only does this make it
 ** easier to store each container's list of children, it also means we
@@ -100,27 +98,19 @@
 ** case when a particle dies before its children.
 **
 **
-** particleSystemNodeGroup
-** -----------------------
+** particleSubsystem
+** -----------------
 ** Stores a doubly-linked list of particleSystemNodes that all share
-** the same parent. This structure is used by anything that is capable
-** of spawning particle system nodes. It contains a list of all of the
-** parent's children as well as a pointer to the parent's transformation.
+** the same parent and level in the tree. This structure is used by
+** anything that is capable of spawning particle system nodes. It
+** contains a list of all of the parent's children as well as the
+** parent's transformation. To avoid doubling up on information, we
+** should try to avoid storing the parent's transformation elsewhere.
 **
-** We allow particles to inherit the transformations of their parents,
-** we note that parent particles need to know about their children so
-** they can update the parent transformations. We store pointers to
-** these parent transformations, so we only need to update them twice:
-** once when the parent is spawned and again when it is deleted. This
-** coincides with when we need to update the group, so we store them
-** together.
-**
-** Note that unless we have child nodes store copies of their parent's
-** transformations, children need to know about their parents, too.
-** Hence, by having them store pointers to the groups they live in,
-** we can give them knowledge of their parent's transformations. When
-** the parent dies, it sets the group pointers of its children to NULL,
-** which informs the children that there is nothing to inherit.
+** We allow particles to inherit the transformations of their parents.
+** Therefore, particleSystemNodes store a pointer to the subsystem that
+** spawned them. If the node is orphaned, then we just set the pointer
+** to NULL, so that the node knows there is nothing left to inherit.
 **
 **
 ** particleSystemNode
@@ -134,16 +124,16 @@
 ** exception. This is because they typically need to keep track of how
 ** many particles they've emitted (in the last second, for example).
 **
-** Nodes also store the linked list pointers for the groups they live in.
-** They also store a reference to the containers that they instantiate.
+** Nodes also store the linked list pointers for the subsystems they live
+** in. They also store a reference to the containers that they instantiate.
 ** These are used to obtain a reference to the node definition, and also
 ** define the containers that any child nodes should be in.
 **
 **
 ** particleManager
 ** ---------------
-** Stores a statically-allocated array of particles, with size given
-** by the "maxParticles" parameter of the owner node's definition.
+** Stores a fixed-size array of particles, with size given by
+** the "maxParticles" parameter of the owner node's definition.
 ** This array is treated as a free list, which allows us to instantly
 ** allocate and delete particles without any sort of iteration.
 **
@@ -157,7 +147,7 @@
 ** --------
 ** Stores all the parameters that a particle might require. As mentioned
 ** above, particles are responsible for spawning particle system nodes
-** for the next level down. Hence, particles store a particle system group.
+** for the next level down. Hence, particles store a particle subsystem.
 **
 ** Particles store their previous and current global transformations. In
 ** order to use many of the operators and constraints (including collision
@@ -195,23 +185,16 @@ typedef struct particleSystemDef {
 */
 typedef struct particleSystemNodeContainer particleSystemNodeContainer;
 typedef struct particleSystem {
-	// Stores the current and previous configurations of the
-	// particle system. This is typically updated by the owner.
-	// Depending on the inheritance settings, we can either:
-	//     1. Ignore this (never inherit).
-	//     2. Add this to newly-created particles (inherit on create).
-	//     3. Add this to particles when rendering (always inherit).
-	// The owner is responsible for updating this.
-	transform state[2];
+	// Contains the current and previous transforms, as well
+	// as a list of root-level nodes. These are only spawned
+	// when the particle system is first initialized.
+	particleSubsystem subsys;
 	// Particle system node containers are stored such that
 	// the children of a particular container are sequential.
 	// This just makes the memory a bit easier to manage.
 	particleSystemNodeContainer *containers;
 	// This actually points to the address after the last container.
 	particleSystemNodeContainer *lastContainer;
-	// List of root-level nodes. These are only spawned
-	// when the particle system is first initialized.
-	particleSystemNodeGroup group;
 } particleSystem;
 
 

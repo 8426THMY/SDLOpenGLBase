@@ -9,20 +9,36 @@
 
 void particleRendererSpriteInitBatch(
 	const void *const restrict renderer,
-	renderBatch *const restrict batch,
+	spriteRenderer *const restrict batch,
 ){
 
-	if(batch->type != RENDER_BATCH_TYPE_SPRITE){
-		// Draw the previous batch if it's still in use.
-		if(batch->type != RENDER_BATCH_TYPE_UNUSED){
-			renderBatchDraw(batch);
-		}
-		spriteBatchInit(&batch.sBatch);
-		batch->type = RENDER_BATCH_TYPE_SPRITE;
+	// Draw the old batch if it isn't compatible with the new one!
+	#warning "We need to check the textures in use here."
+	#warning "Renderers should probably have a shared component that lets us check compatibility easily."
+	if(batch->type != SPRITE_RENDERER_TYPE_BATCHED){
+		#error "This is all probably incorrect. Same for the other renderers."
+		spriteRendererDraw(batch);
+		spriteRendererInit(batch, SPRITE_RENDERER_TYPE_BATCHED);
 
 		#warning "Bind any textures or uniforms here!"
-		#warning "We also need some way of checking what is already bound."
 	}
+}
+
+/*
+** Return the number of indices we'll need for the batch,
+** as we always have at least as many indices as vertices.
+** We also add one to account for primitive restart.
+*/
+size_t particleRendererSpriteBatchSize(
+	const void *const restrict renderer,
+	const particleManager *const restrict manager
+){
+
+	return(
+		manager->numParticles * (
+			((const particleRendererSprite *const)renderer)->spriteData.numIndices + 1
+		)
+	);
 }
 
 /*
@@ -32,74 +48,73 @@ void particleRendererSpriteInitBatch(
 void particleRendererSpriteBatch(
 	const void *const restrict renderer,
 	const particleManager *const restrict manager,
-	renderBatch *const restrict batch,
+	spriteRenderer *const restrict batch,
 	const camera *const restrict cam, const float dt
 ){
 
 	// Exit early if the manager has no particles.
 	if(manager->numParticles > 0){
-		const particleRendererSprite *const spriteRenderer =
-			(const particleRendererSprite *const)renderer;
-		const sprite *const spriteData = spriteRenderer->spriteData;
-		const spriteVertex *const lastBaseVertex = &baseVertex[spriteData->numVertices];
-		const spriteIndex *const lastBaseIndex   = &baseIndex[spriteData->numIndices];
+		const particleRendererSprite partRenderer =
+			*((const particleRendererSprite *const)renderer);
+		const spriteVertex *const lastBaseVertex = &baseVertex[partRenderer.spriteData.numVertices];
+		const spriteIndex *const lastBaseIndex   = &baseIndex[partRenderer.spriteData.numIndices];
 
 		const particle *curParticle = manager->first;
-		spriteBatch *const sBatch = (spriteBatch *const)&batch->sBatch;
-		spriteVertex *curVertex = &sBatch->vertices[sBatch->numVertices];
-		spriteIndex *curIndex   = &sBatch->indices[sBatch->numIndices];
+		spriteRendererBatched *const batchedRenderer = &batch->data.batchedRenderer;
 
 		for(; curParticle != NULL; curParticle = curParticle->next){
-			const spriteVertex *baseVertex = spriteData->vertices;
-			const spriteIndex *baseIndex   = spriteData->indices;
+			const spriteVertex *baseVertex = partRenderer.spriteData.vertices;
+			const spriteIndex *baseIndex   = partRenderer.spriteData.indices;
+			transform curTransform;
 			mat4 curState;
 			size_t startIndex;
 
 			// If the batch is full, draw it and start a new one!
-			if(!spriteBatchHasRoom(sBatch, spriteData, 1)){
-				spriteBatchDraw(sBatch);
-				spriteBatchInit(sBatch);
-				// Reset the vertex and index pointers.
-				curVertex = sBatch->vertices;
-				curIndex  = sBatch->indices;
+			// We add an extra index to account for primitive restart.
+			if(spriteRendererBatchedHasRoom(batchedRenderer, partRenderer.spriteData.numIndices + 1)){
+				spriteRendererBatchedDraw(batchedRenderer);
+				spriteRendererBatchedOrphan(batchedRenderer);
 			}
 
+			// Compute the interpolated particle transform.
+			transformInterpSet(
+				&curParticle->subsys.state[0],
+				&curParticle->subsys.state[1],
+				dt, &curTransform
+			);
 			// Note: It is almost always faster to convert transforms to matrices
-			//       and then transform our points, rather than transforming them
-			//       directly. The only exception is if we're only transforming a
-			//       single point, but even this is only negligibly slower.
-			transformToMat4(&curParticle->state[0], &curState);
+			// and then transform our points, rather than transforming them directly.
+			// The only exception is if we're only transforming a single point, but
+			// even this is only negligibly slower.
+			transformToMat4(&curTransform, &curState);
 			// We only store relative indices, so we need to
 			// add the correct index to start counting from.
-			startIndex = sBatch->numVertices;
+			startIndex = batchedRenderer->numVertices;
 
 			// Add this instance's vertices to the buffer.
-			for(; baseVertex != lastVertex; ++baseVertex){
+			for(; baseVertex != lastBaseVertex; ++baseVertex){
+				spriteVertex curVertex;
 				#warning "Temporary, until we know how we want to do billboarding."
-				mat4MultiplyVec3Out(&curState, &baseVertex->pos, &curVertex->pos);
+				mat4MultiplyVec3Out(&curState, &baseVertex->pos, &curVertex.pos);
 				#warning "Temporary, until we know how we want to do textures."
-				curVertex->uv = baseVertex->uv;
-				++curVertex;
+				curVertex.uv = baseVertex->uv;
+				curVertex.normal = baseVertex->normal;
+
+				// Add the vertex to the batch.
+				spriteRendererBatchedAddVertex(batchedRenderer, curVertex);
 			}
 			// Add this instance's indices to the buffer.
-			for(; baseIndex != lastIndex; ++baseIndex){
+			for(; baseIndex != lastBaseIndex; ++baseIndex){
 				if(*baseIndex == SPRITE_PRIMITIVE_RESTART_INDEX){
-					*curIndex = SPRITE_PRIMITIVE_RESTART_INDEX;
+					spriteRendererBatchedAddIndex(batchedRenderer, SPRITE_PRIMITIVE_RESTART_INDEX);
 				}else{
-					*curIndex = startIndex + *baseIndex;
+					spriteRendererBatchedAddIndex(batchedRenderer, startIndex + *baseIndex);
 				}
-				++curIndex;
 			}
-
-			// Add an index for primitive restart,
-			// since we're using triangle strips.
-			*curIndex = SPRITE_PRIMITIVE_RESTART_INDEX;
-			++curIndex;
-
-			// Update the vertex and index counts. Note that we
-			// add one to the index count due to primitive restart.
-			sBatch->numVertices += spriteData->numVertices;
-			sBatch->numIndices  += spriteData->numIndices + 1;
+			// Add an index for primitive restart, since we're
+			// using triangle strips. This means we won't interfere
+			// with the next batch if it also fits in the buffer.
+			spriteRendererBatchedAddIndex(batchedRenderer, SPRITE_PRIMITIVE_RESTART_INDEX);
 		}
 	}
 }

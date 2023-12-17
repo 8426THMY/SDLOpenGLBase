@@ -20,7 +20,7 @@ typedef union particleFreeListNode {
 typedef struct particleManager {
 	// Contiguous array of particles. The size of this array is
 	// always equal to the definition's "maxParticles" value.
-	// Too manage particles in this array, we use a free list.
+	// To manage particles in this array, we use a free list.
 	particleFreeListNode *particles;
 	// Pointer to the next free element in the array.
 	particleFreeListNode *nextFree;
@@ -51,8 +51,8 @@ void particleManagerDelete(particleManager *const restrict manager);
 #warning "See the comment on the structure of arrays pattern in 'particle.h'."
 #warning "While this would almost certainly reduce memory usage in large systems, it has some problems."
 #warning "For instance, how do we efficiently sort particles like this?"
-#warning "Perhaps we could have a structure that contains the data used by all particle system nodes."
-#warning "This would be used for the free list, and would include 'prev' and 'next' indices for sorting."
+#warning "The easiest way would probably be to store all of the arrays in sorted order."
+#warning "This would be slower, but it could have potential benefits for the cache."
 
 #if 0
 // Rather than storing an array of particle structures,
@@ -63,9 +63,9 @@ void particleManagerDelete(particleManager *const restrict manager);
 typedef struct particleSystemNode particleSystemNode;
 typedef struct particleFields {
 	// Note: In order to correctly transform particles,
-	//       we need to store their current and previous
-	//       transformations. Thus, these arrays have
-	//       twice as many elements as all of the others.
+	// we need to store their current and previous
+	// transformations. Thus, these arrays have twice
+	// as many elements as all of the others.
 	vec3 *pos;
 	quat *rot;
 	vec3 *scale;
