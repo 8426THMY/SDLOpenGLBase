@@ -98,7 +98,7 @@ typedef struct physicsContactPoint {
 // but stores additional information required to solve contacts.
 typedef struct physicsManifold {
 	physicsContactPoint contacts[CONTACT_MAX_POINTS];
-	contactPointIndex_t numContacts;
+	contactPointIndex numContacts;
 
 	#ifndef PHYSCONTACT_USE_FRICTION_JOINT
 	// Note that this normal is for a face on body A.

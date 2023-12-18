@@ -36,17 +36,17 @@
 
 	#define CLIPPING_SWAPPED (offsetof(contactKey, edgeB) - offsetof(contactKey, edgeA))
 
-	#define clippingGetKeyEdgeA(key, offset) *((colliderEdgeIndex_t *)(((byte_t *)&((key).edgeA)) + (offset)))
-	#define clippingGetKeyEdgeB(key, offset) *((colliderEdgeIndex_t *)(((byte_t *)&((key).edgeA)) - (offset)))
+	#define clippingGetKeyEdgeA(key, offset) *((colliderEdgeIndex *)(((byte_t *)&((key).edgeA)) + (offset)))
+	#define clippingGetKeyEdgeB(key, offset) *((colliderEdgeIndex *)(((byte_t *)&((key).edgeA)) - (offset)))
 
 	#else
 
 	#define CLIPPING_SWAPPED (offsetof(contactKey, inEdgeB) - offsetof(contactKey, inEdgeA))
 
-	#define clippingGetKeyInEdgeA(key, offset)  *((colliderEdgeIndex_t *)(((byte_t *)&((key).inEdgeA)) + (offset)))
-	#define clippingGetKeyOutEdgeA(key, offset) *((colliderEdgeIndex_t *)(((byte_t *)&((key).outEdgeA)) + (offset)))
-	#define clippingGetKeyInEdgeB(key, offset)  *((colliderEdgeIndex_t *)(((byte_t *)&((key).inEdgeB)) - (offset)))
-	#define clippingGetKeyOutEdgeB(key, offset) *((colliderEdgeIndex_t *)(((byte_t *)&((key).outEdgeB)) - (offset)))
+	#define clippingGetKeyInEdgeA(key, offset)  *((colliderEdgeIndex *)(((byte_t *)&((key).inEdgeA)) + (offset)))
+	#define clippingGetKeyOutEdgeA(key, offset) *((colliderEdgeIndex *)(((byte_t *)&((key).outEdgeA)) + (offset)))
+	#define clippingGetKeyInEdgeB(key, offset)  *((colliderEdgeIndex *)(((byte_t *)&((key).inEdgeB)) - (offset)))
+	#define clippingGetKeyOutEdgeB(key, offset) *((colliderEdgeIndex *)(((byte_t *)&((key).outEdgeB)) - (offset)))
 
 	#endif
 
@@ -73,8 +73,8 @@ typedef struct hullFaceData {
 // Stores the index of an edge pair
 // and their distance from each other.
 typedef struct hullEdgeData {
-	colliderEdgeIndex_t edgeA;
-	colliderEdgeIndex_t edgeB;
+	colliderEdgeIndex edgeA;
+	colliderEdgeIndex edgeB;
 	float separation;
 } hullEdgeData;
 
@@ -143,21 +143,21 @@ static float edgeDistSquared(
 
 static return_t noSeparatingFace(
 	const colliderHull *const restrict hullA, const colliderHull *const restrict hullB, hullFaceData *const restrict faceData,
-	contactSeparation *const restrict separation, const separationType_t separationType
+	contactSeparation *const restrict separation, const separationType type
 );
 static return_t noSeparatingEdge(
 	const colliderHull *const restrict hullA, const colliderHull *const restrict hullB,
 	hullEdgeData *const restrict edgeData, contactSeparation *const restrict separation
 );
 
-static colliderFaceIndex_t findIncidentFace(const colliderHull *const restrict hull, const vec3 *const restrict refNormal);
+static colliderFaceIndex findIncidentFace(const colliderHull *const restrict hull, const vec3 *const restrict refNormal);
 static void reduceContacts(
 	const vertexProject *const restrict vProj, const vertexProject *const restrict vLast, const vertexClip *const restrict vClip,
 	const vec3 *const restrict refNormal, const unsigned int swapped, contactManifold *const restrict cm
 );
 static void clipFaceContact(
 	const colliderHull *const restrict hullA, const colliderHull *const restrict hullB,
-	const colliderFaceIndex_t refIndex, const unsigned int swapped, contactManifold *const restrict cm
+	const colliderFaceIndex refIndex, const unsigned int swapped, contactManifold *const restrict cm
 );
 static void clipEdgeContact(
 	const colliderHull *const restrict hullA, const colliderHull *const restrict hullB,
@@ -207,9 +207,9 @@ return_t colliderHullLoad(
 	float *vertexWeights;
 	#endif
 
-	colliderVertexIndex_t tempVerticesCapacity = BASE_VERTEX_CAPACITY;
-	colliderFaceIndex_t tempFacesCapacity = BASE_FACE_CAPACITY;
-	colliderEdgeIndex_t tempEdgesCapacity = BASE_EDGE_CAPACITY;
+	colliderVertexIndex tempVerticesCapacity = BASE_VERTEX_CAPACITY;
+	colliderFaceIndex tempFacesCapacity = BASE_FACE_CAPACITY;
+	colliderEdgeIndex tempEdgesCapacity = BASE_EDGE_CAPACITY;
 
 
 	// Used when reading various data.
@@ -294,31 +294,31 @@ return_t colliderHullLoad(
 
 		// Hull face.
 		}else if(lineLength >= 7 && memcmp(line, "f ", 2) == 0){
-			colliderVertexIndex_t startIndex;
-			colliderVertexIndex_t endIndex;
+			colliderVertexIndex startIndex;
+			colliderVertexIndex endIndex;
 
 			// Hulls store the maximum number of edges a face
 			// can have, so we'll need to count this face's
 			// edges to check if it's the new maximum.
-			colliderFaceIndex_t faceEdgeCount = 0;
+			colliderFaceIndex faceEdgeCount = 0;
 
 			colliderHullEdge *tempEdge;
 			// None of the new face's edges will be twins of each other,
 			// so we only need to loop through the ones we've loaded up
 			// until this point when we're searching for an edge's twin.
-			colliderEdgeIndex_t lastIndex = tempHull.numEdges;
+			colliderEdgeIndex lastIndex = tempHull.numEdges;
 			// We also need to know the first edge's index
 			// so we can make the last edge point to it.
-			colliderEdgeIndex_t firstIndex = valueInvalid(colliderEdgeIndex_t);
+			colliderEdgeIndex firstIndex = valueInvalid(colliderEdgeIndex);
 			// Keep the index of the last edge.
-			colliderEdgeIndex_t prevIndex = 0;
+			colliderEdgeIndex prevIndex = 0;
 			// This is the value of the first edge's start vertex.
 			// We can't just use the pointer above, as we don't
 			// know whether or not the first edge was a twin.
-			colliderVertexIndex_t firstEdgeStartIndex = 0;
+			colliderVertexIndex firstEdgeStartIndex = 0;
 			// We use these when calculating the normal.
-			colliderVertexIndex_t lastEdgeStartIndex = 0;
-			colliderVertexIndex_t firstEdgeEndIndex = 0;
+			colliderVertexIndex lastEdgeStartIndex = 0;
+			colliderVertexIndex firstEdgeEndIndex = 0;
 
 			vec3 *A;
 			vec3 AB;
@@ -341,7 +341,7 @@ return_t colliderHullLoad(
 			// 5. Once we've loaded every edge for the face, make the last edge point to the first one.
 			// 6. Create a new face whose edge index is the index of the first edge we loaded and compute the normals.
 			while(tokPos != tokEnd){
-				colliderEdgeIndex_t twinIndex = 0;
+				colliderEdgeIndex twinIndex = 0;
 
 
 				// Move onto the next index.
@@ -369,7 +369,7 @@ return_t colliderHullLoad(
 
 						// If this is the first edge we've loaded,
 						// we'll need to keep a reference to it.
-						if(valueIsInvalid(firstIndex, colliderEdgeIndex_t)){
+						if(valueIsInvalid(firstIndex, colliderEdgeIndex)){
 							firstIndex = twinIndex;
 							firstEdgeStartIndex = startIndex;
 							firstEdgeEndIndex = endIndex;
@@ -379,7 +379,7 @@ return_t colliderHullLoad(
 							tempEdge = &tempHull.edges[prevIndex];
 							// The value of "nextIndex" is always set before "twinNextIndex",
 							// so if it's unset we know that the previous edge was not a twin.
-							if(valueIsInvalid(tempEdge->nextIndex, colliderEdgeIndex_t)){
+							if(valueIsInvalid(tempEdge->nextIndex, colliderEdgeIndex)){
 								tempEdge->nextIndex = twinIndex;
 							}else{
 								tempEdge->twinNextIndex = twinIndex;
@@ -398,7 +398,7 @@ return_t colliderHullLoad(
 					colliderHullEdge newEdge = {
 						.startVertexIndex = startIndex,
 						.endVertexIndex = endIndex,
-						.nextIndex = valueInvalid(colliderEdgeIndex_t),
+						.nextIndex = valueInvalid(colliderEdgeIndex),
 						.twinNextIndex = 0,
 						.faceIndex = tempHull.numFaces,
 						.twinFaceIndex = 0
@@ -418,7 +418,7 @@ return_t colliderHullLoad(
 
 					// If this is the first edge we've loaded,
 					// we'll need to keep a reference to it.
-					if(valueIsInvalid(firstIndex, colliderEdgeIndex_t)){
+					if(valueIsInvalid(firstIndex, colliderEdgeIndex)){
 						firstIndex = tempHull.numEdges;
 						firstEdgeStartIndex = startIndex;
 						firstEdgeEndIndex = endIndex;
@@ -428,7 +428,7 @@ return_t colliderHullLoad(
 						tempEdge = &tempHull.edges[prevIndex];
 						// The value of "nextIndex" is always set before "twinNextIndex",
 						// so if it's unset we know that the previous edge was not a twin.
-						if(valueIsInvalid(tempEdge->nextIndex, colliderEdgeIndex_t)){
+						if(valueIsInvalid(tempEdge->nextIndex, colliderEdgeIndex)){
 							tempEdge->nextIndex = tempHull.numEdges;
 						}else{
 							tempEdge->twinNextIndex = tempHull.numEdges;
@@ -445,7 +445,7 @@ return_t colliderHullLoad(
 			tempEdge = &tempHull.edges[prevIndex];
 			// The value of "nextIndex" is always set before "twinNextIndex",
 			// so if it's unset we know that the previous edge was not a twin.
-			if(valueIsInvalid(tempEdge->nextIndex, colliderEdgeIndex_t)){
+			if(valueIsInvalid(tempEdge->nextIndex, colliderEdgeIndex)){
 				tempEdge->nextIndex = firstIndex;
 			}else{
 				tempEdge->twinNextIndex = firstIndex;
@@ -735,7 +735,7 @@ static void generateCentroidWeighted(
 	const colliderHull *const restrict hull, const float *restrict vertexWeights, vec3 *const restrict centroid
 ){
 
-	const colliderVertexIndex_t numVertices = hull->numVertices;
+	const colliderVertexIndex numVertices = hull->numVertices;
 	const vec3 *curVertex = hull->vertices;
 	const vec3 *const lastVertex = &curVertex[numVertices];
 	vec3 newCentroid;
@@ -812,7 +812,7 @@ static void generateInertiaWeighted(
 ** hull's vertices.
 */
 static void generateCentroid(const colliderHull *const restrict hull, vec3 *const restrict centroid){
-	const colliderVertexIndex_t numVertices = hull->numVertices;
+	const colliderVertexIndex numVertices = hull->numVertices;
 
 	// We don't want to divide by zero.
 	if(numVertices > 0){
@@ -1102,13 +1102,13 @@ static float edgeDistSquared(
 */
 static return_t noSeparatingFace(
 	const colliderHull *const restrict hullA, const colliderHull *const restrict hullB, hullFaceData *const restrict faceData,
-	contactSeparation *const restrict separation, const separationType_t separationType
+	contactSeparation *const restrict separation, const separationType type
 ){
 
 	const vec3 *curNormal = hullA->normals;
 	const colliderHullFace *curFace = hullA->faces;
 
-	colliderFaceIndex_t i;
+	colliderFaceIndex i;
 	for(i = 0; i < hullA->numFaces; ++curNormal, ++curFace, ++i){
 		const vec3 invNormal = {
 			.x = -curNormal->x,
@@ -1129,7 +1129,7 @@ static return_t noSeparatingFace(
 		if(curDistance > 0.f){
 			if(separation != NULL){
 				separation->featureA = i;
-				separation->type = separationType;
+				separation->type = type;
 			}
 
 			return(0);
@@ -1163,7 +1163,7 @@ static return_t noSeparatingEdge(
 ){
 
 	colliderHullEdge *edgeA = hullA->edges;
-	colliderEdgeIndex_t a;
+	colliderEdgeIndex a;
 
 	// We skip every second edge since
 	// it will be the last one's twin.
@@ -1171,7 +1171,7 @@ static return_t noSeparatingEdge(
 		colliderHullEdge *edgeB = hullB->edges;
 		const vec3 *const startVertexA = &hullA->vertices[edgeA->startVertexIndex];
 		vec3 invEdgeA;
-		colliderEdgeIndex_t b;
+		colliderEdgeIndex b;
 
 		// Get the inverse of edge 1's normal.
 		vec3SubtractVec3Out(startVertexA, &hullA->vertices[edgeA->endVertexIndex], &invEdgeA);
@@ -1223,11 +1223,11 @@ static return_t noSeparatingEdge(
 ** is defined as the face farthest in the direction
 ** opposite the reference face's normal.
 */
-static colliderFaceIndex_t findIncidentFace(const colliderHull *const restrict hull, const vec3 *const restrict refNormal){
+static colliderFaceIndex findIncidentFace(const colliderHull *const restrict hull, const vec3 *const restrict refNormal){
 	const vec3 *curNormal = hull->normals;
-	colliderFaceIndex_t bestFace = 0;
+	colliderFaceIndex bestFace = 0;
 	float bestDistance = vec3DotVec3(curNormal, refNormal);
-	colliderFaceIndex_t i;
+	colliderFaceIndex i;
 
 	for(i = 1; i < hull->numFaces; ++i){
 		const float curDistance = vec3DotVec3(++curNormal, refNormal);
@@ -1419,7 +1419,7 @@ static void reduceContacts(
 */
 static void clipFaceContact(
 	const colliderHull *const restrict hullA, const colliderHull *const restrict hullB,
-	const colliderFaceIndex_t refIndex, const unsigned int swapped, contactManifold *const restrict cm
+	const colliderFaceIndex refIndex, const unsigned int swapped, contactManifold *const restrict cm
 ){
 
 	// Meshes store the number of edges that their largest faces have,
@@ -1450,7 +1450,7 @@ static void clipFaceContact(
 	const vec3 refNormal = hullA->normals[refIndex];
 	// Using the normal of the reference face, find the face
 	// on the incident hull whose normal is most opposite it.
-	const colliderFaceIndex_t incIndex = findIncidentFace(hullB, &refNormal);
+	const colliderFaceIndex incIndex = findIncidentFace(hullB, &refNormal);
 
 	float curDist;
 
@@ -1460,8 +1460,8 @@ static void clipFaceContact(
 	const colliderHullEdge *curEdge = &hullB->edges[hullB->faces[incIndex]];
 	const colliderHullEdge *startEdge = curEdge;
 
-	colliderEdgeIndex_t inEdgeIndex;
-	colliderEdgeIndex_t outEdgeIndex = incIndex;
+	colliderEdgeIndex inEdgeIndex;
+	colliderEdgeIndex outEdgeIndex = incIndex;
 
 	// Store the incident face's vertices in the array.
 	for(;;){

@@ -25,8 +25,8 @@ void spriteInit(sprite *const restrict spriteData){
 */
 void spriteGenerateBuffers(
 	sprite *const restrict spriteData,
-	const spriteVertex *const restrict vertices, const spriteVertexIndex_t numVertices,
-	const spriteVertexIndex_t *const restrict indices, const spriteVertexIndex_t numIndices
+	const spriteVertex *const restrict vertices, const spriteVertexIndex numVertices,
+	const spriteVertexIndex *const restrict indices, const spriteVertexIndex numIndices
 ){
 
 	// Generate a vertex array object for our sprite and bind it!

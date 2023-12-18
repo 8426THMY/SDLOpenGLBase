@@ -67,10 +67,10 @@ static textCMapHeader *loadFormat4(FILE *const restrict file);
 static uint32_t calculateTableChecksum(FILE *const restrict file, const uint32_t tableOffset, const uint32_t tableLength);
 static textCMapHeader *readCmapTable(FILE *const restrict file);
 
-static uint32_t indexInvalid(const textCMapHeader *const restrict cmap, const textCMapCodeUnit_t code);
-static uint32_t indexFormat0(const textCMapHeader *const restrict cmap, const textCMapCodeUnit_t code);
-static uint32_t indexFormat2(const textCMapHeader *const restrict cmap, const textCMapCodeUnit_t code);
-static uint32_t indexFormat4(const textCMapHeader *const restrict cmap, const textCMapCodeUnit_t code);
+static uint32_t indexInvalid(const textCMapHeader *const restrict cmap, const textCMapCodeUnit code);
+static uint32_t indexFormat0(const textCMapHeader *const restrict cmap, const textCMapCodeUnit code);
+static uint32_t indexFormat2(const textCMapHeader *const restrict cmap, const textCMapCodeUnit code);
+static uint32_t indexFormat4(const textCMapHeader *const restrict cmap, const textCMapCodeUnit code);
 
 
 static textCMapHeader *(*textCMapLoadTable[TEXT_CMAP_NUM_SUPPORTED_FORMATS])(FILE *const restrict file) = {
@@ -83,7 +83,7 @@ static textCMapHeader *(*textCMapLoadTable[TEXT_CMAP_NUM_SUPPORTED_FORMATS])(FIL
 
 uint32_t (*textCMapIndexTable[TEXT_CMAP_NUM_SUPPORTED_FORMATS])(
 	const textCMapHeader *const restrict cmap,
-	const textCMapCodeUnit_t code
+	const textCMapCodeUnit code
 ) = {
 	indexFormat0,
 	indexInvalid,
@@ -190,7 +190,7 @@ textCMapHeader *textCMapLoadTTF(const char *const restrict ttfPath){
 }
 
 // Given a code unit, return the index of the glyph associated with it.
-uint32_t textCMapIndex(const textCMapHeader *const restrict cmap, const textCMapCodeUnit_t code){
+uint32_t textCMapIndex(const textCMapHeader *const restrict cmap, const textCMapCodeUnit code){
 	return(textCMapIndexTable[*cmap](cmap, code));
 }
 
@@ -206,7 +206,7 @@ void textCMapOutputCodePoints(const textCMapHeader *const restrict cmap, const c
 	if(outFile != NULL){
 		uint16_t i, j = 0;
 		for(i = 0; i < 0xFFFF; ++i){
-			const uint32_t index = textCMapIndex(cmap, (textCMapCodeUnit_t){._32 = i});
+			const uint32_t index = textCMapIndex(cmap, (textCMapCodeUnit){._32 = i});
 			if(index != 0){
 				fprintf(outFile, "%u%c", i, delim);
 				++j;
@@ -363,11 +363,11 @@ static textCMapHeader *readCmapTable(FILE *const restrict file){
 
 
 // This function is used if we try to index a character map with an unsupported format.
-static uint32_t indexInvalid(const textCMapHeader *const restrict cmap, const textCMapCodeUnit_t code){
+static uint32_t indexInvalid(const textCMapHeader *const restrict cmap, const textCMapCodeUnit code){
 	return(TEXT_CMAP_MISSING_GLYPH_ID);
 }
 
-static uint32_t indexFormat0(const textCMapHeader *const restrict cmap, const textCMapCodeUnit_t code){
+static uint32_t indexFormat0(const textCMapHeader *const restrict cmap, const textCMapCodeUnit code){
 	// Format 0 requires that characters be at most 1 byte.
 	if(code._32 > TEXT_CMAP_FORMAT_0_CODEUNIT_LIMIT){
 		return(TEXT_CMAP_MISSING_GLYPH_ID);
@@ -375,7 +375,7 @@ static uint32_t indexFormat0(const textCMapHeader *const restrict cmap, const te
 	return(((textCMapFormat0 *)cmap)->glyphIndices[code._32]);
 }
 
-static uint32_t indexFormat2(const textCMapHeader *const restrict cmap, const textCMapCodeUnit_t code){
+static uint32_t indexFormat2(const textCMapHeader *const restrict cmap, const textCMapCodeUnit code){
 	// Format 2 requires that characters be at most 2 bytes.
 	if(code._32 <= TEXT_CMAP_FORMAT_2_CODEUNIT_LIMIT){
 		const textCMapSubHeader2 *const subHeader = textCMapFormat2GetSubHeader(cmap, code.bytes[1]);
@@ -394,7 +394,7 @@ static uint32_t indexFormat2(const textCMapHeader *const restrict cmap, const te
 	return(TEXT_CMAP_MISSING_GLYPH_ID);
 }
 
-static uint32_t indexFormat4(const textCMapHeader *const restrict cmap, const textCMapCodeUnit_t code){
+static uint32_t indexFormat4(const textCMapHeader *const restrict cmap, const textCMapCodeUnit code){
 	// Format 4 requires that characters be at most 2 bytes.
 	if(code._32 <= TEXT_CMAP_FORMAT_4_CODEUNIT_LIMIT){
 		const uint16_t *end = textCMapFormat4GetEndCodes(cmap);

@@ -11,7 +11,7 @@
 ** Initialise a physics collider base
 ** object using the type of its collider.
 */
-void physColliderInit(physicsCollider *const restrict pc, const colliderType_t type){
+void physColliderInit(physicsCollider *const restrict pc, const colliderType type){
 	colliderInit(&pc->global, type);
 	pc->local = NULL;
 

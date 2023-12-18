@@ -8,6 +8,8 @@
 #include "sprite.h"
 #include "textureGroup.h"
 
+#include "sort.h"
+
 #include "utilTypes.h"
 
 
@@ -56,7 +58,7 @@ void particleInit(particle *const restrict part, const textureGroup *const texGr
 void particleUpdate(particle *const restrict part, const float dt);
 
 return_t particleDead(const particle *const restrict part);
-return_t particleCompare(const void *const restrict p1, const void *const restrict p2);
+sort_t particleCompare(const void *const restrict p1, const void *const restrict p2);
 
 void particleDefDelete(particleDef *const restrict partDef);
 

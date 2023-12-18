@@ -16,8 +16,8 @@
 #define MESH_VERTEX_MAX_BONE_WEIGHTS 4
 
 
-typedef GLsizei meshVertexIndex_t;
-typedef GLuint meshBoneIndex_t;
+typedef GLsizei meshVertexIndex;
+typedef GLuint meshBoneIndex;
 
 #warning "Eventually, we should distinguish between mesh vertices and model vertices."
 typedef struct meshVertex {
@@ -25,7 +25,7 @@ typedef struct meshVertex {
 	vec2 uv;
 	vec3 normal;
 
-	meshBoneIndex_t boneIDs[MESH_VERTEX_MAX_BONE_WEIGHTS];
+	meshBoneIndex boneIDs[MESH_VERTEX_MAX_BONE_WEIGHTS];
 	float boneWeights[MESH_VERTEX_MAX_BONE_WEIGHTS];
 } meshVertex;
 
@@ -34,7 +34,7 @@ typedef struct mesh {
 	GLuint vertexBufferID;
 
 	GLuint indexBufferID;
-	meshVertexIndex_t numIndices;
+	meshVertexIndex numIndices;
 } mesh;
 
 
@@ -50,8 +50,8 @@ typedef struct meshShader {
 
 void meshInit(
 	mesh *const restrict meshData,
-	const meshVertex *const restrict vertices, const meshVertexIndex_t numVertices,
-	const meshVertexIndex_t *const restrict indices, const meshVertexIndex_t numIndices
+	const meshVertex *const restrict vertices, const meshVertexIndex numVertices,
+	const meshVertexIndex *const restrict indices, const meshVertexIndex numIndices
 );
 return_t meshVertexDifferent(const meshVertex *const restrict v1, const meshVertex *const restrict v2);
 return_t meshDifferent(const mesh *const restrict m1, const mesh *const restrict m2);

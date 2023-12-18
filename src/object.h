@@ -47,7 +47,7 @@ typedef struct objectDef {
 	physicsRigidBodyDef *physBodies;
 	// Array of identifiers that tell us which
 	// bones each rigid body should be attached to.
-	boneIndex_t *physBoneIDs;
+	boneIndex *physBoneIDs;
 	size_t numBodies;
 
 	// Default array of drawable models
@@ -77,7 +77,7 @@ typedef struct object {
 	physicsRigidBody *physBodies;
 	// Array of identifiers that tell us which
 	// bones each rigid body should be attached to.
-	boneIndex_t *physBoneIDs;
+	boneIndex *physBoneIDs;
 	size_t numBodies;
 
 	// These models are drawn at the object's bones.
@@ -94,7 +94,7 @@ void objectSetSkeleton(object *const restrict obj, const skeleton *const restric
 void objectAddRigidBody(
 	object *const restrict obj,
 	const physicsRigidBodyDef *const restrict bodyDef,
-	const boneIndex_t boneID
+	const boneIndex boneID
 );
 void objectPreparePhysics(object *const restrict obj);
 

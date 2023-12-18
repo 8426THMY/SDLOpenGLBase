@@ -25,31 +25,31 @@
 #endif
 
 
-typedef uint_least16_t colliderVertexIndex_t;
-typedef uint_least16_t colliderEdgeIndex_t;
-typedef uint_least16_t colliderFaceIndex_t;
+typedef uint_least16_t colliderVertexIndex;
+typedef uint_least16_t colliderEdgeIndex;
+typedef uint_least16_t colliderFaceIndex;
 
 
 // Stores the indices of data relevant to the edge.
 typedef struct colliderHullEdge {
 	// Indices of the edge's vertices.
-	colliderVertexIndex_t startVertexIndex;
-	colliderVertexIndex_t endVertexIndex;
+	colliderVertexIndex startVertexIndex;
+	colliderVertexIndex endVertexIndex;
 
 	// Index of the next edge on this face.
-	colliderEdgeIndex_t nextIndex;
+	colliderEdgeIndex nextIndex;
 	// Index of the next edge on this face's twin.
-	colliderEdgeIndex_t twinNextIndex;
+	colliderEdgeIndex twinNextIndex;
 
 	// Index of the normal or face that this edge uses.
-	colliderFaceIndex_t faceIndex;
+	colliderFaceIndex faceIndex;
 	// Index of the normal or face that this edge's twin uses.
-	colliderFaceIndex_t twinFaceIndex;
+	colliderFaceIndex twinFaceIndex;
 } colliderHullEdge;
 
 // A face can be represented by any edge on
 // its border, so we store it as an index.
-typedef colliderFaceIndex_t colliderHullFace;
+typedef colliderFaceIndex colliderHullFace;
 
 // Stores the data for a hull in a format
 // that we can use for collision detection.
@@ -64,15 +64,15 @@ typedef struct colliderHull {
 
 	// We don't need to store the number of
 	// normals since we can use "numFaces".
-	colliderVertexIndex_t numVertices;
-	colliderFaceIndex_t numFaces;
-	colliderEdgeIndex_t numEdges;
+	colliderVertexIndex numVertices;
+	colliderFaceIndex numFaces;
+	colliderEdgeIndex numEdges;
 	// Stores the number of edges that the face with the
 	// most edges has. We generally multiply this by two
 	// during clipping, as each edge can create at most
 	// two vertices when we're clipping. This value is
 	// used for preallocation during collision detection.
-	colliderFaceIndex_t maxFaceEdges;
+	colliderFaceIndex maxFaceEdges;
 
 	// Hulls are the only colliders that
 	// need their centroids for collision.

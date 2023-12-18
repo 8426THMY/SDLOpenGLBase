@@ -16,8 +16,8 @@
 #define TIMSORT_RUN_SIZE 64
 
 
-// Return -1 if x is less than y, 0 if x is equal to y and 1 if x is greater than y.
-// We generally use this for sorting objects whose ordering depends on a float.
+// Return -1 if x < y, 0 if x = y and 1 if x > y.
+// We use this for sorting objects whose ordering depends on a float.
 //
 // Note that these are prone to double evaluation,
 // so the equivalent functions should be used to prevent this.
@@ -144,16 +144,19 @@
 	}
 
 
-return_t compareFloat(const float x, const float y);
+typedef flags_t sort_t;
+
+
+sort_t compareFloat(const float x, const float y);
 
 // Generic sorting functions. If you want something more performant, use the function macros.
 void insertionSort(
 	void *const restrict array, const size_t arraySize, const size_t elementSize, void *const restrict temp,
-	return_t (*const compare)(const void *const restrict e1, const void *const restrict e2)
+	sort_t (*const compare)(const void *const restrict e1, const void *const restrict e2)
 );
 void timsort(
 	void *const restrict array, const size_t arraySize, const size_t elementSize,
-	return_t (*const compare)(const void *const restrict e1, const void *const restrict e2)
+	sort_t (*const compare)(const void *const restrict e1, const void *const restrict e2)
 );
 
 

@@ -126,7 +126,7 @@
 */
 
 
-typedef uint_least8_t physJointType_t;
+typedef uint_least8_t physJointType;
 
 #warning "We might be able to remove this."
 typedef struct physicsJointDef {
@@ -141,7 +141,7 @@ typedef struct physicsJointDef {
 	} data;
 	// Stores which type of
 	// joint this object is.
-	physJointType_t type;
+	physJointType type;
 } physicsJointDef;
 
 typedef struct physicsJoint {
@@ -156,7 +156,7 @@ typedef struct physicsJoint {
 	} data;
 	// Stores which type of
 	// joint this object is.
-	physJointType_t type;
+	physJointType type;
 
 	// Rigid body A's address in memory is always
 	// guaranteed to be greater than rigid body B's.

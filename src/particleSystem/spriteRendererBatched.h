@@ -42,7 +42,7 @@ typedef struct spriteRendererBatched {
 	// of vertices and indices, so we only need to store
 	// pointers to the ones we're currently operating on.
 	spriteVertex *curVertex;
-	spriteIndex *curIndex;
+	spriteVertexIndex *curIndex;
 	size_t numVertices;
 	size_t numIndices;
 } spriteRendererBatched;
@@ -64,7 +64,7 @@ void spriteRendererBatchedAddVertex(
 );
 void spriteRendererBatchedAddIndex(
 	spriteRendererBatched *const restrict batchedRenderer,
-	const spriteIndex index
+	const spriteVertexIndex index
 );
 
 void spriteRendererBatchedCleanup();

@@ -3,8 +3,6 @@
 
 #include <math.h>
 
-#include "sort.h"
-
 
 // Particles use this sprite by default.
 sprite partSpriteDefault;
@@ -59,7 +57,7 @@ return_t particleDead(const particle *const restrict part){
 ** SORT_COMPARE_GREATER - p1's distance from the camera is less than p2's.
 */
 #error "Maybe remove this?"
-return_t particleCompare(const void *const restrict p1, const void *const restrict p2){
+sort_t particleCompare(const void *const restrict p1, const void *const restrict p2){
 	// Since we want to draw farther particles first, we swap their order in this function.
 	return(0);//return(compareFloat(((particle *)p2)->camDistance, ((particle *)p1)->camDistance));
 }
@@ -94,7 +92,7 @@ return_t particleSetup(){
 		}
 	};
 
-	const spriteVertexIndex_t indices[6] = {
+	const spriteVertexIndex indices[6] = {
 		0, 1, 2,
 		2, 3, 0
 	};

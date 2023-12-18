@@ -13,7 +13,7 @@
 static void mergeHalves(
 	void *const restrict array, const size_t elementSize,
 	void *const restrict leftArray, void *const restrict rightArray, const void *const restrict rightLast,
-	return_t (*const compare)(const void *const restrict e1, const void *const restrict e2)
+	sort_t (*const compare)(const void *const restrict e1, const void *const restrict e2)
 );
 
 
@@ -21,7 +21,7 @@ static void mergeHalves(
 ** Return -1 if x is less than y, 0 if x is equal to y and 1 if x is greater than y.
 ** We generally use this for sorting objects whose ordering depends on a float.
 */
-return_t compareFloat(const float x, const float y){
+sort_t compareFloat(const float x, const float y){
 	if(x < y){
 		return(SORT_COMPARE_LESSER);
 	}
@@ -40,7 +40,7 @@ return_t compareFloat(const float x, const float y){
 */
 void insertionSort(
 	void *const restrict array, const size_t arraySize, const size_t elementSize, void *const restrict temp,
-	return_t (*const compare)(const void *const restrict e1, const void *const restrict e2)
+	sort_t (*const compare)(const void *const restrict e1, const void *const restrict e2)
 ){
 
 	void *sort = nextElement(array, elementSize);
@@ -70,7 +70,7 @@ void insertionSort(
 */
 void timsort(
 	void *const restrict array, const size_t arraySize, const size_t elementSize,
-	return_t (*const compare)(const void *const restrict e1, const void *const restrict e2)
+	sort_t (*const compare)(const void *const restrict e1, const void *const restrict e2)
 ){
 
 	void *subArray = array;
@@ -156,7 +156,7 @@ void timsort(
 static void mergeHalves(
 	void *array, const size_t elementSize,
 	void *leftArray, void *rightArray, const void *const restrict rightLast,
-	return_t (*const compare)(const void *const restrict e1, const void *const restrict e2)
+	sort_t (*const compare)(const void *const restrict e1, const void *const restrict e2)
 ){
 	const void *const leftLast = rightArray;
 

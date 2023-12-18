@@ -30,7 +30,7 @@ void (*const colliderDeleteTable[COLLIDER_NUM_TYPES])(void *const restrict c) = 
 
 
 // Ordinary colliders are used as a base for instances.
-void colliderInit(collider *const restrict c, const colliderType_t type){
+void colliderInit(collider *const restrict c, const colliderType type){
 	c->type = type;
 }
 

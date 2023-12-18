@@ -28,7 +28,7 @@ void (*const guiElementDeleteTable[GUI_ELEMENT_NUM_TYPES])(guiElement *const res
 
 
 // We need to initialise the element's data outside this function.
-void guiElementInit(guiElement *const restrict gui, const guiElementType_t type){
+void guiElementInit(guiElement *const restrict gui, const guiElementType type){
 	gui->type = type;
 
 	transformInit(&gui->state);
@@ -85,7 +85,7 @@ return_t guiElementSetup(){
 		}
 	};
 
-	const spriteVertexIndex_t indices[6] = {
+	const spriteVertexIndex indices[6] = {
 		0, 1, 2,
 		2, 3, 0
 	};

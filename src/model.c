@@ -54,13 +54,13 @@ modelDef g_mdlDefDefault = {
 typedef struct meshData {
 	char *texGroupPath;
 
-	meshVertexIndex_t tempVerticesSize;
-	meshVertexIndex_t tempVerticesCapacity;
+	meshVertexIndex tempVerticesSize;
+	meshVertexIndex tempVerticesCapacity;
 	meshVertex *tempVertices;
 
-	meshVertexIndex_t tempIndicesSize;
-	meshVertexIndex_t tempIndicesCapacity;
-	meshVertexIndex_t *tempIndices;
+	meshVertexIndex tempIndicesSize;
+	meshVertexIndex tempIndicesCapacity;
+	meshVertexIndex *tempIndices;
 } meshData;
 
 
@@ -128,16 +128,16 @@ modelDef *modelDefOBJLoad(const char *const restrict mdlDefPath, const size_t md
 	// Load the model!
 	mdlDefFile = fopen(mdlDefFullPath, "r");
 	if(mdlDefFile != NULL){
-		meshVertexIndex_t tempPositionsSize = 0;
-		meshVertexIndex_t tempPositionsCapacity = BASE_POSITION_CAPACITY;
+		meshVertexIndex tempPositionsSize = 0;
+		meshVertexIndex tempPositionsCapacity = BASE_POSITION_CAPACITY;
 		vec3 *tempPositions;
 
-		meshVertexIndex_t tempUVsSize = 0;
-		meshVertexIndex_t tempUVsCapacity = BASE_UV_CAPACITY;
+		meshVertexIndex tempUVsSize = 0;
+		meshVertexIndex tempUVsCapacity = BASE_UV_CAPACITY;
 		vec2 *tempUVs;
 
-		meshVertexIndex_t tempNormalsSize = 0;
-		meshVertexIndex_t tempNormalsCapacity = BASE_NORMAL_CAPACITY;
+		meshVertexIndex tempNormalsSize = 0;
+		meshVertexIndex tempNormalsCapacity = BASE_NORMAL_CAPACITY;
 		vec3 *tempNormals;
 
 		size_t tempMeshDataSize = 0;
@@ -337,7 +337,7 @@ modelDef *modelDefOBJLoad(const char *const restrict mdlDefPath, const size_t md
 				for(i = 0; i < 3 || tokPos < lineEnd; ++i){
 					meshVertex tempVertex;
 					const meshVertex *checkVertex = curMeshData->tempVertices;
-					meshVertexIndex_t j;
+					meshVertexIndex j;
 
 
 					// If we've reached the end of the line,
@@ -351,7 +351,7 @@ modelDef *modelDefOBJLoad(const char *const restrict mdlDefPath, const size_t md
 					// vertex data from the line.
 					}else{
 						// Load the vertex's position.
-						meshVertexIndex_t curIndex = strtoul(tokPos, &tokPos, 10) - 1;
+						meshVertexIndex curIndex = strtoul(tokPos, &tokPos, 10) - 1;
 						if(curIndex < tempPositionsSize){
 							tempVertex.pos = tempPositions[curIndex];
 						}else{
@@ -377,7 +377,7 @@ modelDef *modelDefOBJLoad(const char *const restrict mdlDefPath, const size_t md
 					// use the root bone of the default skeleton.
 					tempVertex.boneIDs[0] = 0;
 					memset(
-						&tempVertex.boneIDs[1], valueInvalid(meshBoneIndex_t),
+						&tempVertex.boneIDs[1], valueInvalid(meshBoneIndex),
 						(MESH_VERTEX_MAX_BONE_WEIGHTS - 1) * sizeof(tempVertex.boneIDs[0])
 					);
 					tempVertex.boneWeights[0] = 1.f;
@@ -418,8 +418,8 @@ modelDef *modelDefOBJLoad(const char *const restrict mdlDefPath, const size_t md
 					// be split into triangles. This requires two
 					// additional indices for every extra vertex.
 					if(i >= 3){
-						meshVertexIndex_t *tempIndices;
-						const meshVertexIndex_t oldIndicesSize = curMeshData->tempIndicesSize;
+						meshVertexIndex *tempIndices;
+						const meshVertexIndex oldIndicesSize = curMeshData->tempIndicesSize;
 
 						curMeshData->tempIndicesSize += 2;
 						if(curMeshData->tempIndicesSize >= curMeshData->tempIndicesCapacity){
@@ -665,7 +665,7 @@ modelDef *modelDefSMDLoad(const char *const restrict mdlDefPath, const size_t md
 				}else{
 					if(dataType == 1){
 						// Get this bone's ID.
-						const boneIndex_t boneID = strtoul(line, &tokPos, 10);
+						const boneIndex boneID = strtoul(line, &tokPos, 10);
 						if(boneID == tempBonesSize){
 							bone tempBone;
 							// Get the bone's name.
@@ -723,7 +723,7 @@ modelDef *modelDefSMDLoad(const char *const restrict mdlDefPath, const size_t md
 						// Otherwise, we're setting the bone's state!
 						}else{
 							// Get this bone's ID.
-							const boneIndex_t boneID = strtoul(line, &tokPos, 10);
+							const boneIndex boneID = strtoul(line, &tokPos, 10);
 							// Make sure a bone with this ID actually exists.
 							if(boneID < tempBonesSize){
 								bone *currentBone = &tempBones[boneID];
@@ -750,7 +750,7 @@ modelDef *modelDefSMDLoad(const char *const restrict mdlDefPath, const size_t md
 									// If this bone has a parent, its global bind pose is
 									// given by appending its parent's global bind pose.
 									// We invert these after computing them for each bone.
-									if(!valueIsInvalid(currentBone->parent, boneIndex_t)){
+									if(!valueIsInvalid(currentBone->parent, boneIndex)){
 										transformMultiplyOut(
 											&tempBones[currentBone->parent].invGlobalBind,
 											&currentBone->localBind,
@@ -839,13 +839,13 @@ modelDef *modelDefSMDLoad(const char *const restrict mdlDefPath, const size_t md
 						// Vertex.
 						}else{
 							// Read the vertex data from the line!
-							const meshBoneIndex_t parentBoneID = strtoul(line, &tokPos, 10);
+							const meshBoneIndex parentBoneID = strtoul(line, &tokPos, 10);
 							// Make sure a bone with this ID actually exists.
 							if(parentBoneID < tempBonesSize){
 								meshVertex tempVertex;
-								meshBoneIndex_t numLinks;
+								meshBoneIndex numLinks;
 								const meshVertex *checkVertex;
-								meshVertexIndex_t i;
+								meshVertexIndex i;
 
 								tempVertex.pos.x = strtof(tokPos, &tokPos) * 0.05f;
 								tempVertex.pos.y = strtof(tokPos, &tokPos) * 0.05f;
@@ -859,9 +859,9 @@ modelDef *modelDefSMDLoad(const char *const restrict mdlDefPath, const size_t md
 								numLinks = strtoul(tokPos, &tokPos, 10);
 								// Make sure some links were specified.
 								if(numLinks > 0){
-									meshBoneIndex_t parentPos = valueInvalid(meshBoneIndex_t);
-									meshBoneIndex_t *curBoneID = tempVertex.boneIDs;
-									meshBoneIndex_t curLink;
+									meshBoneIndex parentPos = valueInvalid(meshBoneIndex);
+									meshBoneIndex *curBoneID = tempVertex.boneIDs;
+									meshBoneIndex curLink;
 									float totalWeight = 0.f;
 									float *curBoneWeight = tempVertex.boneWeights;
 
@@ -921,7 +921,7 @@ modelDef *modelDefSMDLoad(const char *const restrict mdlDefPath, const size_t md
 									// Make sure the total weight isn't less than 1!
 									if(totalWeight < 1.f){
 										// If we never loaded the parent bone, see if we can add it!
-										if(valueIsInvalid(parentPos, meshBoneIndex_t)){
+										if(valueIsInvalid(parentPos, meshBoneIndex)){
 											if(curLink < MESH_VERTEX_MAX_BONE_WEIGHTS){
 												*curBoneID = parentBoneID;
 												*curBoneWeight = 0.f;
@@ -942,7 +942,7 @@ modelDef *modelDefSMDLoad(const char *const restrict mdlDefPath, const size_t md
 
 									// Make sure we fill the rest with invalid values so we know they aren't used.
 									memset(
-										curBoneID, valueInvalid(meshBoneIndex_t),
+										curBoneID, valueInvalid(meshBoneIndex),
 										(MESH_VERTEX_MAX_BONE_WEIGHTS - curLink) * sizeof(*tempVertex.boneIDs)
 									);
 									memset(
@@ -962,7 +962,7 @@ modelDef *modelDefSMDLoad(const char *const restrict mdlDefPath, const size_t md
 
 									tempVertex.boneIDs[0] = parentBoneID;
 									memset(
-										&tempVertex.boneIDs[1], valueInvalid(meshBoneIndex_t),
+										&tempVertex.boneIDs[1], valueInvalid(meshBoneIndex),
 										(MESH_VERTEX_MAX_BONE_WEIGHTS - 1) * sizeof(*tempVertex.boneIDs)
 									);
 									tempVertex.boneWeights[0] = 1.f;
@@ -1363,7 +1363,7 @@ return_t modelSetup(){
 		}
 	};
 
-	const meshVertexIndex_t indices[36] = {
+	const meshVertexIndex indices[36] = {
 		 0,  1,  2,
 		 3,  4,  5,
 		 6,  7,  8,
@@ -1411,10 +1411,10 @@ static void prepareShaderBones(
 	// We're allowed to increment the uniform location ID, as
  	// the IDs for array elements are guaranteed to be sequential.
 	for(; curBone < lastBone; ++curBone, ++boneStatesID){
-		const boneIndex_t boneID = skeleFindBone(objSkele, curBone->name);
+		const boneIndex boneID = skeleFindBone(objSkele, curBone->name);
 		// If this bone appeared in an animation, convert the
 		// bone state to a matrix so it can be sent to the shader!
-		if(!valueIsInvalid(boneID, boneIndex_t)){
+		if(!valueIsInvalid(boneID, boneIndex)){
 			glUniformMatrix4fv(boneStatesID, 1, GL_FALSE, (GLfloat *)&animStates[boneID]);
 
 		// Otherwise, use the root's transformation!

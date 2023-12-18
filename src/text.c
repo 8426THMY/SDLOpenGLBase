@@ -163,7 +163,7 @@ byte_t textBufferReadASCII(const textBuffer *const restrict buffer, const byte_t
 
 // Read and return a single encoded UTF-8 character from the specified stream.
 uint32_t textBufferReadUTF8(const textBuffer *const restrict buffer, const byte_t **const restrict cursor){
-	textCMapCodeUnit_t code = {._32 = 0};
+	textCMapCodeUnit code = {._32 = 0};
 
 	code.bytes[0] = readBufferByte(buffer, cursor);
 	// The character uses one byte.

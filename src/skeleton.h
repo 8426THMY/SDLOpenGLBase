@@ -21,7 +21,7 @@
 // Stores the various positional data for a
 // bone as offsets from its parent's data.
 typedef transform boneState;
-typedef uint_least8_t boneIndex_t;
+typedef uint_least8_t boneIndex;
 
 typedef struct bone {
 	char *name;
@@ -33,7 +33,7 @@ typedef struct bone {
 	#warning "Maybe store the bone's ID as the parent ID if the bone has no parent."
 	#warning "This gives us an extra bone, but it means we need to know the bone's ID to check the parent."
 	// Stores the index of this bone's parent.
-	boneIndex_t parent;
+	boneIndex parent;
 } bone;
 
 typedef struct skeleton {
@@ -41,7 +41,7 @@ typedef struct skeleton {
 
 	// Vector of bones that form the skeleton.
 	bone *bones;
-	boneIndex_t numBones;
+	boneIndex numBones;
 } skeleton;
 
 
@@ -57,7 +57,7 @@ typedef struct skeletonAnimDef {
 	// Note: Every bone should have the same number of keyframes. When we load
 	// an animation where this doesn't hold, we just fill in the blanks.
 	boneState **frames;
-	boneIndex_t numBones;
+	boneIndex numBones;
 } skeletonAnimDef;
 
 // Stores data for an entity-specific instance of an animation.
@@ -85,13 +85,13 @@ typedef struct skeletonState {
 
 void boneInit(
 	bone *const restrict bone,
-	char *const restrict name, const boneIndex_t parent,
+	char *const restrict name, const boneIndex parent,
 	const boneState *const restrict state
 );
 void skeleInit(skeleton *const restrict skele);
 void skeleInitSet(
 	skeleton *const restrict skele, const char *const restrict name,
-	const size_t nameLength, bone *const restrict bones, const boneIndex_t numBones
+	const size_t nameLength, bone *const restrict bones, const boneIndex numBones
 );
 void skeleAnimDefInit(skeletonAnimDef *animDef);
 void skeleAnimInit(
@@ -106,11 +106,11 @@ void skeleAnimUpdate(skeletonAnim *const restrict anim, const float dt);
 void skeleStatePrependAnimations(
 	boneState *const restrict out,
 	const skeletonState *const restrict skeleState,
-	const boneIndex_t boneID, const char *const restrict boneName
+	const boneIndex boneID, const char *const restrict boneName
 );
 
-boneIndex_t skeleFindBone(const skeleton *const restrict skele, const char *const restrict name);
-boneIndex_t skeleAnimFindBone(const skeletonAnim *const restrict skeleAnim, const char *const restrict name);
+boneIndex skeleFindBone(const skeleton *const restrict skele, const char *const restrict name);
+boneIndex skeleAnimFindBone(const skeletonAnim *const restrict skeleAnim, const char *const restrict name);
 
 void boneDelete(bone *const restrict bone);
 void skeleDelete(skeleton *const restrict skele);

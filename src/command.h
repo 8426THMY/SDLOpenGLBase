@@ -49,7 +49,7 @@
 */
 
 
-typedef size_t commandNodeIndex_t;
+typedef size_t commandNodeIndex;
 
 /*
 ** Command functions take in a tokenized
@@ -78,7 +78,7 @@ typedef union command {
 typedef struct commandSystem {
 	char value;
 	commandSystem *children;
-	commandNodeIndex_t numChildren;
+	commandNodeIndex numChildren;
 	// This will be a NULL pointer if no command ends at this node.
 	// We can't store the type of command in the least significant
 	// bit of this pointer as we usually would, as it may already
@@ -90,7 +90,7 @@ typedef struct commandSystem {
 } commandSystem, commandNode;
 
 
-typedef uint_least8_t cmdTimestamp_t;
+typedef uint_least8_t cmdTimestamp;
 
 // Tokenized command.
 typedef struct commandTokenized {
@@ -100,9 +100,9 @@ typedef struct commandTokenized {
 	size_t argc;
 
 	// Time at which the command was sent to the buffer.
-	cmdTimestamp_t timestamp;
+	cmdTimestamp timestamp;
 	// Number of ticks to wait before executing the command.
-	cmdTimestamp_t delay;
+	cmdTimestamp delay;
 } commandTokenized;
 
 // Array of tokenized commands and their arguments.
@@ -136,7 +136,7 @@ void cmdBufferInit(commandBuffer *const restrict cmdBuf);
 void cmdBufferAddCommand(
 	commandBuffer *const restrict cmdBuffer,
 	const char *str, const size_t strLength,
-	const cmdTimestamp_t timestamp, const cmdTimestamp_t delay
+	const cmdTimestamp timestamp, const cmdTimestamp delay
 );
 void cmdBufferExecute(commandBuffer *const restrict cmdBuf, commandSystem *const restrict cmdSys);
 void cmdBufferDelete(commandBuffer *const restrict cmdBuf);

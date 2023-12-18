@@ -18,18 +18,18 @@
 #warning "It might be good to make both types of sprite renderers use the same global buffer object."
 
 
-typedef uint_least8_t spriteRendererType_t;
+typedef uint_least8_t spriteRendererType;
 
 typedef struct spriteRenderer {
 	union {
 		spriteRendererBatched batchedRenderer;
 		spriteRendererInstanced instancedRenderer;
 	} data;
-	spriteRendererType_t type;
+	spriteRendererType type;
 } spriteRenderer;
 
 
-void spriteRendererInit(spriteRenderer *const restrict renderer, const spriteRendererType_t type);
+void spriteRendererInit(spriteRenderer *const restrict renderer, const spriteRendererType type);
 return_t spriteRendererHasRoom(const spriteRenderer *const restrict renderer, const size_t batchSize);
 void spriteRendererDraw(spriteRenderer *const restrict renderer);
 void spriteRendererDrawFull(spriteRenderer *const restrict renderer);

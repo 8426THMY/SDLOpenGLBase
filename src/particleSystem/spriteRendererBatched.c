@@ -84,7 +84,7 @@ void spriteRendererBatchedOffset(spriteRendererBatched *const restrict batchedRe
 	// prepare for a new draw call without interrupting
 	// the old one or allocating a new buffer object.
 	batchArrayObject.vertexOffset += batchedRenderer->numVertices * sizeof(spriteVertex);
-	batchArrayObject.indexOffset  += batchedRenderer->numIndices * sizeof(spriteIndex);
+	batchArrayObject.indexOffset  += batchedRenderer->numIndices * sizeof(spriteVertexIndex);
 
 	// Retrieve pointers to the vertex buffer storage. The flag
 	// GL_MAP_INVALIDATE_RANGE_BIT is a promise not to interfere
@@ -193,7 +193,7 @@ void spriteRendererBatchedAddVertex(
 // Add an index to the batch.
 void spriteRendererBatchedAddIndex(
 	spriteRendererBatched *const restrict batchedRenderer,
-	const spriteIndex index
+	const spriteVertexIndex index
 ){
 
 	*batchedRenderer->curIndex = index;

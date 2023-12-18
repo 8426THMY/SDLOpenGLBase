@@ -163,7 +163,7 @@ return_t physRigidBodyDefLoad(physicsRigidBodyDef **const restrict bodies, const
 
 				// New physics collider.
 				}else if(lineLength >= 2 && line[0] == 'p' && line[lineLength - 1] == '{'){
-					colliderType_t currentType = strtoul(&line[2], &tokPos, 10);
+					colliderType currentType = strtoul(&line[2], &tokPos, 10);
 
 					// Make sure a valid number was entered.
 					if(tokPos != &line[2]){

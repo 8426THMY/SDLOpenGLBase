@@ -1,7 +1,7 @@
 #include "particleSystemRenderer.h"
 
 
-void spriteRendererInit(spriteRenderer *const restrict renderer, const spriteRendererType_t type){
+void spriteRendererInit(spriteRenderer *const restrict renderer, const spriteRendererType type){
 	switch(type){
 		case SPRITE_RENDERER_TYPE_BATCHED:
 			spriteRendererBatchedInit(&renderer->data.batchedRenderer);

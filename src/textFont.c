@@ -5,7 +5,7 @@
 
 
 return_t textFontLoad(
-	textFont *const restrict font, const textFontType_t type, const texture **const restrict atlasArray,
+	textFont *const restrict font, const textFontType type, const texture **const restrict atlasArray,
 	const char *const restrict cmapPath, const char *const restrict glyphPath
 ){
 
@@ -20,7 +20,7 @@ return_t textFontLoad(
 	return(1);
 }
 
-const textGlyph *textFontGetGlyph(const textFont *const restrict font, const textCMapCodeUnit_t code){
+const textGlyph *textFontGetGlyph(const textFont *const restrict font, const textCMapCodeUnit code){
 	return(&font->glyphs[textCMapIndex(font->cmap, code)]);
 }
 

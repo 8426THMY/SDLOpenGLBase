@@ -63,7 +63,7 @@ void guiTextDraw(
 
 		// Store our text data in the arrays.
 		do {
-			const textCMapCodeUnit_t code = {._32 = textBufferReadUTF8(&text.buffer, &curChar)};
+			const textCMapCodeUnit code = {._32 = textBufferReadUTF8(&text.buffer, &curChar)};
 			// End of stream.
 			if(code._32 == 0){
 				break;

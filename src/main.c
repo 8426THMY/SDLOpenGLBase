@@ -66,7 +66,7 @@ memoryPool g_shaderManager;
 memoryPool g_sceneManager;
 
 
-typedef uint_least8_t renderTargetType_t;
+typedef uint_least8_t renderTargetType;
 // Describes how to render a scene.
 typedef struct renderTarget {
     camera cam;
@@ -82,7 +82,7 @@ typedef struct renderTarget {
         rectangle viewport;
         texture tex;
     } target;
-    renderTargetType_t type;
+    renderTargetType type;
 } renderTarget;
 
 /*

@@ -28,7 +28,7 @@
 typedef struct physicsRigidBody physicsRigidBody;
 typedef struct physicsCollider physicsCollider;
 
-typedef uint_least8_t physPairTimestamp_t;
+typedef uint_least8_t physPairTimestamp;
 
 /*
 ** These pairs are stored in a very particular way.
@@ -45,7 +45,7 @@ typedef struct physicsContactPair physicsContactPair;
 // a contact between two rigid bodies.
 typedef struct physicsContactPair {
 	physicsManifold manifold;
-	physPairTimestamp_t inactive;
+	physPairTimestamp inactive;
 
 	physicsCollider *cA;
 	physicsCollider *cB;
@@ -63,7 +63,7 @@ typedef struct physicsSeparationPair physicsSeparationPair;
 // a separation between two rigid bodies.
 typedef struct physicsSeparationPair {
 	contactSeparation separation;
-	physPairTimestamp_t inactive;
+	physPairTimestamp inactive;
 
 	physicsCollider *cA;
 	physicsCollider *cB;

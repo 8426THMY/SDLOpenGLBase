@@ -14,20 +14,20 @@
 
 
 #define CONTACT_MAX_POINTS 4
-#define CONTACT_KEY_INVALID_EDGE valueInvalid(colliderEdgeIndex_t)
+#define CONTACT_KEY_INVALID_EDGE valueInvalid(colliderEdgeIndex)
 
 
-typedef size_t separationFeature_t;
-typedef uint_least8_t separationType_t;
-typedef uint_least8_t contactPointIndex_t;
+typedef size_t separationFeature;
+typedef uint_least8_t separationType;
+typedef uint_least8_t contactPointIndex;
 
 
 // Stores either the two faces or the two edges
 // that is causing a separation between two hulls.
 typedef struct contactSeparation {
-	separationFeature_t featureA;
-	separationFeature_t featureB;
-	separationType_t type;
+	separationFeature featureA;
+	separationFeature featureB;
+	separationType type;
 } contactSeparation;
 
 
@@ -35,13 +35,13 @@ typedef struct contactSeparation {
 // construct the contact point.
 typedef struct contactKey {
 	#ifdef CONTACT_MANIFOLD_SIMPLE_KEYS
-	colliderEdgeIndex_t edgeA;
-	colliderEdgeIndex_t edgeB;
+	colliderEdgeIndex edgeA;
+	colliderEdgeIndex edgeB;
 	#else
-	colliderEdgeIndex_t inEdgeA;
-	colliderEdgeIndex_t outEdgeA;
-	colliderEdgeIndex_t inEdgeB;
-	colliderEdgeIndex_t outEdgeB;
+	colliderEdgeIndex inEdgeA;
+	colliderEdgeIndex outEdgeA;
+	colliderEdgeIndex inEdgeB;
+	colliderEdgeIndex outEdgeB;
 	#endif
 } contactKey;
 
@@ -63,7 +63,7 @@ typedef struct contactPoint {
 // Stores every contact point involved in the collision.
 typedef struct contactManifold {
 	contactPoint contacts[CONTACT_MAX_POINTS];
-	contactPointIndex_t numContacts;
+	contactPointIndex numContacts;
 } contactManifold;
 
 

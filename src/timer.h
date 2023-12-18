@@ -8,38 +8,38 @@
 #ifdef _WIN32
 	#include <windows.h>
 
-	typedef LARGE_INTEGER timerVal_t;
+	typedef LARGE_INTEGER timerVal;
 #else
 	#include <sys/time.h>
 
 	#if HAVE_CLOCK_GETTIME
-		typedef struct timespec timerVal_t;
+		typedef struct timespec timerVal;
 	#else
-		typedef struct timeval timerVal_t;
+		typedef struct timeval timerVal;
 	#endif
 #endif
 
-typedef uint32_t time32_t;
-typedef uint64_t time64_t;
+typedef uint32_t time32;
+typedef uint64_t time64;
 
 
 void timerInit();
 
-time32_t timerElapsedTime(const timerVal_t start, const timerVal_t end);
-float timerElapsedTimeFloat(const timerVal_t start, const timerVal_t end);
+time32 timerElapsedTime(const timerVal start, const timerVal end);
+float timerElapsedTimeFloat(const timerVal start, const timerVal end);
 
-time32_t timerGetTime();
+time32 timerGetTime();
 float timerGetTimeFloat();
 
-timerVal_t timerStart();
-time32_t timerStop(const timerVal_t start);
-float timerStopFloat(const timerVal_t start);
+timerVal timerStart();
+time32 timerStop(const timerVal start);
+float timerStopFloat(const timerVal start);
 
-void sleepResolution(const time32_t ms, const unsigned int res);
-void sleepInaccurate(const time32_t ms);
-void sleepAccurate(const time32_t ms);
-void sleepBusy(const time32_t ms);
-void sleepUntil(const time32_t end);
+void sleepResolution(const time32 ms, const unsigned int res);
+void sleepInaccurate(const time32 ms);
+void sleepAccurate(const time32 ms);
+void sleepBusy(const time32 ms);
+void sleepUntil(const time32 end);
 void sleepUntilFloat(const float end);
 
 

@@ -56,15 +56,15 @@ void particleRendererSpriteBatch(
 	if(manager->numParticles > 0){
 		const particleRendererSprite partRenderer =
 			*((const particleRendererSprite *const)renderer);
-		const spriteVertex *const lastBaseVertex = &baseVertex[partRenderer.spriteData.numVertices];
-		const spriteIndex *const lastBaseIndex   = &baseIndex[partRenderer.spriteData.numIndices];
+		const spriteVertex *const lastBaseVertex     = &baseVertex[partRenderer.spriteData.numVertices];
+		const spriteVertexIndex *const lastBaseIndex = &baseIndex[partRenderer.spriteData.numIndices];
 
 		const particle *curParticle = manager->first;
 		spriteRendererBatched *const batchedRenderer = &batch->data.batchedRenderer;
 
 		for(; curParticle != NULL; curParticle = curParticle->next){
-			const spriteVertex *baseVertex = partRenderer.spriteData.vertices;
-			const spriteIndex *baseIndex   = partRenderer.spriteData.indices;
+			const spriteVertex *baseVertex     = partRenderer.spriteData.vertices;
+			const spriteVertexIndex *baseIndex = partRenderer.spriteData.indices;
 			transform curTransform;
 			mat4 curState;
 			size_t startIndex;

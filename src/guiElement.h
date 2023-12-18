@@ -24,7 +24,7 @@
 /*#error "Work on GUIs a bit. How about a GUI animation system?"
 #error "Maybe even better, let users specify an 'update' function for guiElements that manages the state machine."
 #error "So it would handle any animations when creating or deleting it, as well as the creation and deletion of children."*/
-typedef uint_least8_t guiElementType_t;
+typedef uint_least8_t guiElementType;
 
 typedef struct guiElement guiElement;
 typedef struct guiElement {
@@ -38,7 +38,7 @@ typedef struct guiElement {
 	} data;
 	// This specifies which
 	// type of element it is.
-	guiElementType_t type;
+	guiElementType type;
 
 	// Stores the spatial configuration of the element.
 	transform state;
@@ -49,7 +49,7 @@ typedef struct guiElement {
 } guiElement;
 
 
-void guiElementInit(guiElement *const restrict gui, const guiElementType_t type);
+void guiElementInit(guiElement *const restrict gui, const guiElementType type);
 
 void guiElementUpdate(guiElement *const restrict gui, const float dt);
 void guiElementDraw(

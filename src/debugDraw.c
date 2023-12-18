@@ -13,14 +13,14 @@
 #include "memoryManager.h"
 
 
-typedef GLsizei debugVertexIndex_t;
+typedef GLsizei debugVertexIndex;
 
 typedef struct debugMesh {
 	GLuint vertexArrayID;
 	GLuint vertexBufferID;
 
 	GLuint indexBufferID;
-	debugVertexIndex_t numIndices;
+	debugVertexIndex numIndices;
 } debugMesh;
 
 typedef struct debugShader {
@@ -37,8 +37,8 @@ debugShader debugDrawShader;
 
 // Forward-declare any helper functions!
 static void debugMeshGenerateBuffers(
-	debugMesh *const restrict meshData, const vec3 *const restrict vertices, const debugVertexIndex_t numVertices,
-	const debugVertexIndex_t *const restrict indices, const debugVertexIndex_t numIndices
+	debugMesh *const restrict meshData, const vec3 *const restrict vertices, const debugVertexIndex numVertices,
+	const debugVertexIndex *const restrict indices, const debugVertexIndex numIndices
 );
 static void debugMeshDrawBuffers(
 	const debugMesh *const restrict meshData, const debugDrawInfo *const restrict info, const mat4 *const restrict vpMatrix
@@ -91,9 +91,9 @@ void debugDrawSkeleton(const skeletonState *const restrict skeleState, const deb
 
 
 	vec3 *vertices;
-	debugVertexIndex_t *indices;
-	const debugVertexIndex_t numBones = skeleState->skele->numBones;
-	debugVertexIndex_t i = 0;
+	debugVertexIndex *indices;
+	const debugVertexIndex numBones = skeleState->skele->numBones;
+	debugVertexIndex i = 0;
 
 	vertices = memoryManagerGlobalAlloc(numBones * sizeof(*vertices));
 	if(vertices == NULL){
@@ -108,9 +108,9 @@ void debugDrawSkeleton(const skeletonState *const restrict skeleState, const deb
 
 	// Copy each bone's position and create a new edge between it and its parent.
 	for(; i < numBones; ++i){
-		const boneIndex_t parentID = skeleState->skele->bones[i].parent;
+		const boneIndex parentID = skeleState->skele->bones[i].parent;
 		vertices[i] = skeleState->bones[i].pos;
-		if(!valueIsInvalid(parentID, boneIndex_t)){
+		if(!valueIsInvalid(parentID, boneIndex)){
 			indices[meshData.numIndices] = parentID;
 			++meshData.numIndices;
 			indices[meshData.numIndices] = i;
@@ -158,7 +158,7 @@ void debugDrawColliderAABB(const colliderAABB *aabb, const debugDrawInfo info, c
 		{.x = aabb->max.x, .y = aabb->min.y, .z = aabb->max.z},
 		{.x = aabb->min.x, .y = aabb->min.y, .z = aabb->max.z}
 	};
-	const debugVertexIndex_t indices[36] = {
+	const debugVertexIndex indices[36] = {
 		2, 1, 0,
 		0, 3, 2,
 		6, 0, 1,
@@ -202,9 +202,9 @@ void debugDrawColliderHull(const colliderHull *const restrict hull, const debugD
 
 	// Compute an upper bound for the number of indices needed.
 	// We assume that each face has the maximum number of edges.
-	debugVertexIndex_t *const indices = memoryManagerGlobalAlloc(hull->numFaces * (3 * (hull->maxFaceEdges - 2)) * sizeof(*indices));
-	debugVertexIndex_t *curIndex = indices;
-	debugVertexIndex_t curFaceIndex = 0;
+	debugVertexIndex *const indices = memoryManagerGlobalAlloc(hull->numFaces * (3 * (hull->maxFaceEdges - 2)) * sizeof(*indices));
+	debugVertexIndex *curIndex = indices;
+	debugVertexIndex curFaceIndex = 0;
 	const colliderHullFace *curFace = hull->faces;
 	meshData.numIndices = 0;
 
@@ -219,7 +219,7 @@ void debugDrawColliderHull(const colliderHull *const restrict hull, const debugD
 		const colliderHullEdge *const startEdge = &hull->edges[*curFace];
 		const colliderHullEdge *curEdge;
 
-		colliderVertexIndex_t startIndex;
+		colliderVertexIndex startIndex;
 		if(curFaceIndex == startEdge->faceIndex){
 			startIndex = startEdge->startVertexIndex;
 			curEdge = &hull->edges[startEdge->nextIndex];
@@ -301,8 +301,8 @@ void debugDrawCleanup(){
 
 // Generate vertex and index buffers to hold our mesh data!
 static void debugMeshGenerateBuffers(
-	debugMesh *const restrict meshData, const vec3 *const restrict vertices, const debugVertexIndex_t numVertices,
-	const debugVertexIndex_t *const restrict indices, const debugVertexIndex_t numIndices
+	debugMesh *const restrict meshData, const vec3 *const restrict vertices, const debugVertexIndex numVertices,
+	const debugVertexIndex *const restrict indices, const debugVertexIndex numIndices
 ){
 
 	// Generate a vertex array object for our mesh and bind it!

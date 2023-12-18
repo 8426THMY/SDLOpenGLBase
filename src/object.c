@@ -48,7 +48,7 @@ void objectInit(object *const restrict obj, const objectDef *const restrict objD
 		obj->physBodies = NULL;
 	}else{
 		const physicsRigidBodyDef *curBodyDef = objDef->physBodies;
-		const boneIndex_t *curPhysBoneID = objDef->physBoneIDs;
+		const boneIndex *curPhysBoneID = objDef->physBoneIDs;
 
 		// Instantiate the object's physics rigid bodies.
 		do {
@@ -112,7 +112,7 @@ void objectSetSkeleton(object *const restrict obj, const skeleton *const restric
 void objectAddRigidBody(
 	object *const restrict obj,
 	const physicsRigidBodyDef *const restrict bodyDef,
-	const boneIndex_t boneID
+	const boneIndex boneID
 ){
 
 	// Add the new rigid body to the beginning of the object's list.
@@ -134,7 +134,7 @@ void objectAddRigidBody(
 		transformMultiplyOut(&skeleBone->localBind, &obj->boneTransforms[boneID], &body->state);
 		// If the bone has a parent, append its transformation.
 		// S = P*B*U
-		if(!valueIsInvalid(skeleBone->parent, boneIndex_t)){
+		if(!valueIsInvalid(skeleBone->parent, boneIndex)){
 			transformMultiplyP2(&obj->skeleState.bones[skeleBone->parent], &body->state);
 		}
 		// Prepend the total animation transformations.
@@ -158,12 +158,12 @@ void objectPreparePhysics(object *const restrict obj){
 	const bone *curSkeleBone = obj->skeleState.skele->bones;
 
 	physicsRigidBody *curBody = obj->physBodies;
-	boneIndex_t curBoneID = 0;
-	const boneIndex_t numBones = obj->skeleState.skele->numBones;
+	boneIndex curBoneID = 0;
+	const boneIndex numBones = obj->skeleState.skele->numBones;
 	// We store the rigid bodies in order of increasing bone IDs.
 	// We can simply move to the next ID when we find a bone with a rigid body.
-	const boneIndex_t *curPhysBoneID = obj->physBoneIDs;
-	const boneIndex_t *const lastPhysBoneID = &obj->physBoneIDs[obj->numBodies];
+	const boneIndex *curPhysBoneID = obj->physBoneIDs;
+	const boneIndex *const lastPhysBoneID = &obj->physBoneIDs[obj->numBodies];
 
 	// To prepare the physics objects, we'll need to loop through
 	// each bone in the skeleton, constructing its initial state.
@@ -176,7 +176,7 @@ void objectPreparePhysics(object *const restrict obj){
 		transformMultiplyOut(&curSkeleBone->localBind, curTransform, curAccumulatorBone);
 		// If the bone has a parent, append its transformation.
 		// S = P*B*U
-		if(!valueIsInvalid(curSkeleBone->parent, boneIndex_t)){
+		if(!valueIsInvalid(curSkeleBone->parent, boneIndex)){
 			transformMultiplyP2(&obj->skeleState.bones[curSkeleBone->parent], curAccumulatorBone);
 		}
 		// Prepend the total animation transformations.
@@ -350,11 +350,11 @@ static void updateBones(object *const restrict obj){
 	const bone *curSkeleBone = obj->skeleState.skele->bones;
 
 	physicsRigidBody *curBody = obj->physBodies;
-	boneIndex_t curBoneID = 0;
+	boneIndex curBoneID = 0;
 	// We store the rigid bodies in order of increasing bone IDs.
 	// We can simply move to the next ID when we find a bone with a rigid body.
-	const boneIndex_t *curPhysBoneID = obj->physBoneIDs;
-	const boneIndex_t *const lastPhysBoneID = &obj->physBoneIDs[obj->numBodies];
+	const boneIndex *curPhysBoneID = obj->physBoneIDs;
+	const boneIndex *const lastPhysBoneID = &obj->physBoneIDs[obj->numBodies];
 
 	for(; curObjBone < lastObjBone; ++curObjBone){
 		// If a simulated rigid body is attached to the current bone,
@@ -381,7 +381,7 @@ static void updateBones(object *const restrict obj){
 			transformMultiplyOut(&curSkeleBone->localBind, curTransform, curObjBone);
 			// If the bone has a parent, append its transformation.
 			// S = P*B*U
-			if(!valueIsInvalid(curSkeleBone->parent, boneIndex_t)){
+			if(!valueIsInvalid(curSkeleBone->parent, boneIndex)){
 				transformMultiplyP2(&obj->skeleState.bones[curSkeleBone->parent], curObjBone);
 			}
 			// Prepend the total animation transformations.

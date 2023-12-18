@@ -12,9 +12,11 @@
 
 
 // The shader used for instanced rendering has a uniform
-// block large enough to store the data for each instance.
-// It should go without saying that the maximum number of
-// instances here should match the one in the shader!
+// block large enough to store the data for 40 instances.
+#define SPRITE_RENDERER_INSTANCED_MAX_INSTANCES 40
+// While enlarging the instance buffer probably won't help
+// too much in reducing draw calls, as instanced rendering
+// should be used sparingly, it will help reduce orphaning.
 #define SPRITE_RENDERER_INSTANCED_BUFFER_MAX_INSTANCES 40
 #define SPRITE_RENDERER_INSTANCED_INSTANCE_BUFFER_SIZE \
 	(SPRITE_RENDERER_INSTANCED_BUFFER_MAX_INSTANCES*sizeof(spriteInstancedData))
@@ -24,7 +26,6 @@ typedef struct spriteInstanced {
     unsigned int vertexArrayID;
 	unsigned int vertexBufferID;
 	unsigned int indexBufferID;
-	unsigned int instanceBufferID;
 	size_t numIndices;
 } spriteInstanced;
 

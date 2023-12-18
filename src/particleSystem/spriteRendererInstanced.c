@@ -13,7 +13,7 @@
 
 // We use a single state buffer plus
 // orphaning for all instanced rendering.
-GLuint spriteInstancedBufferID;
+GLuint spriteInstanceBufferID;
 spriteInstanced spriteInstancedDefault;
 
 
@@ -39,24 +39,23 @@ void spriteRendererInstancedSetup(){
 			.uv.x = 1.f, 0.f
 		}
 	};
-
-	const spriteVertexIndex_t indices[6] = {
+	const spriteVertexIndex indices[6] = {
 		0, 1, 2,
 		2, 3, 0
 	};
-
-	// Generate the global instance buffer object!
-	glGenBuffers(1, &spriteInstancedBufferID);
-	glBindBuffer(GL_ARRAY_BUFFER, spriteInstancedBufferID);
-	// We write to this buffer dynamically when drawing sprites.
-	glBufferData(GL_ARRAY_BUFFER, SPRITE_RENDERER_INSTANCED_INSTANCE_BUFFER_SIZE, NULL, GL_STREAM_DRAW);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	spriteInstancedGenerateBuffers(
 		&spriteInstancedDefault,
 		vertices, sizeof(vertices)/sizeof(*vertices),
 		indices, sizeof(indices)/sizeof(*indices)
 	);
+
+	// Generate the global instance buffer object!
+	glGenBuffers(1, &spriteInstanceBufferID);
+	glBindBuffer(GL_ARRAY_BUFFER, spriteInstanceBufferID);
+	// We write to this buffer dynamically when drawing sprites.
+	glBufferData(GL_ARRAY_BUFFER, SPRITE_RENDERER_INSTANCED_INSTANCE_BUFFER_SIZE, NULL, GL_STREAM_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 
@@ -67,8 +66,8 @@ void spriteRendererInstancedSetup(){
 */
 void spriteInstancedGenerateBuffers(
 	spriteInstanced *const restrict spriteData,
-	const spriteVertex *const restrict vertices, const spriteVertexIndex_t numVertices,
-	const spriteVertexIndex_t *const restrict indices, const spriteVertexIndex_t numIndices
+	const spriteVertex *const restrict vertices, const spriteVertexIndex numVertices,
+	const spriteVertexIndex *const restrict indices, const spriteVertexIndex numIndices
 ){
 
 	// Generate a vertex array object for our sprite and bind it!
@@ -79,74 +78,25 @@ void spriteInstancedGenerateBuffers(
 		glBindBuffer(GL_ARRAY_BUFFER, spriteData->vertexBufferID);
 		// Now add all our data to it!
 		glBufferData(GL_ARRAY_BUFFER, sizeof(*vertices) * numVertices, vertices, GL_STATIC_DRAW);
-
-		// Set up the vertex attributes that require this buffer!
-		// Vertex positions.
-		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(
-			0, 3, GL_FLOAT, GL_FALSE,
-			sizeof(spriteVertex), (GLvoid *)offsetof(spriteVertex, pos)
-		);
-		// Vertex UVs.
-		glEnableVertexAttribArray(1);
-		glVertexAttribPointer(
-			1, 2, GL_FLOAT, GL_FALSE,
-			sizeof(spriteVertex), (GLvoid *)offsetof(spriteVertex, uv)
-		);
-		// Vertex normal.
-		glEnableVertexAttribArray(2);
-		glVertexAttribPointer(
-			2, 3, GL_FLOAT, GL_FALSE,
-			sizeof(spriteVertex), (GLvoid *)offsetof(spriteVertex, normal)
-		);
-
-
-		/*#warning "Should this be a global buffer that's part of the program?"
-		// Generate a buffer object for our particle's states and bind it!
-		glGenBuffers(1, &spriteData->instanceBufferID);
-		glBindBuffer(GL_ARRAY_BUFFER, spriteData->instanceBufferID);
-		// We write to this buffer dynamically when drawing sprites.
-		glBufferData(GL_ARRAY_BUFFER, SPRITE_RENDERER_INSTANCED_INSTANCE_BUFFER_SIZE, NULL, GL_STREAM_DRAW);
-
-		// Set up the vertex attributes that require this buffer!
-		// Because the transformation state is a 4x4 matrix, it needs four vertex attributes.
-		// Transformation state first row.
-		glEnableVertexAttribArray(3);
-		glVertexAttribPointer(
-			3, 4, GL_FLOAT, GL_FALSE,
-			sizeof(spriteInstancedData), (GLvoid *)offsetof(spriteInstancedData, state.m[0])
-		);
-		glVertexAttribDivisor(3, 1);
-		// Transformation state second row.
-		glEnableVertexAttribArray(4);
-		glVertexAttribPointer(
-			4, 4, GL_FLOAT, GL_FALSE,
-			sizeof(spriteInstancedData), (GLvoid *)offsetof(spriteInstancedData, state.m[1])
-		);
-		glVertexAttribDivisor(4, 1);
-		// Transformation state third row.
-		glEnableVertexAttribArray(5);
-		glVertexAttribPointer(
-			5, 4, GL_FLOAT, GL_FALSE,
-			sizeof(spriteInstancedData), (GLvoid *)offsetof(spriteInstancedData, state.m[2])
-		);
-		glVertexAttribDivisor(5, 1);
-		// Transformation state fourth row.
-		glEnableVertexAttribArray(6);
-		glVertexAttribPointer(
-			6, 4, GL_FLOAT, GL_FALSE,
-			sizeof(spriteInstancedData), (GLvoid *)offsetof(spriteInstancedData, state.m[3])
-		);
-		glVertexAttribDivisor(6, 1);
-		// UV offsets.
-		glEnableVertexAttribArray(7);
-		glVertexAttribPointer(
-			7, 4, GL_FLOAT, GL_FALSE,
-			sizeof(spriteInstancedData), (GLvoid *)offsetof(spriteInstancedData, uvOffsets)
-		);
-		glVertexAttribDivisor(7, 1);*/
-
-
+			// Set up the vertex attributes that require this buffer!
+			// Vertex positions.
+			glEnableVertexAttribArray(0);
+			glVertexAttribPointer(
+				0, 3, GL_FLOAT, GL_FALSE,
+				sizeof(spriteVertex), (GLvoid *)offsetof(spriteVertex, pos)
+			);
+			// Vertex UVs.
+			glEnableVertexAttribArray(1);
+			glVertexAttribPointer(
+				1, 2, GL_FLOAT, GL_FALSE,
+				sizeof(spriteVertex), (GLvoid *)offsetof(spriteVertex, uv)
+			);
+			// Vertex normal.
+			glEnableVertexAttribArray(2);
+			glVertexAttribPointer(
+				2, 3, GL_FLOAT, GL_FALSE,
+				sizeof(spriteVertex), (GLvoid *)offsetof(spriteVertex, normal)
+			);
 		// Generate a buffer object for our indices and bind it!
 		glGenBuffers(1, &spriteData->indexBufferID);
 		// Bind the buffer to the vertex array object.

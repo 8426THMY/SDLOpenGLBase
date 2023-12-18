@@ -2,7 +2,7 @@
 
 
 #ifdef _WIN32
-	static time32_t freq;
+	static time32 freq;
 	static float rfreq;
 #else
 	#include <stddef.h>
@@ -22,15 +22,15 @@
 
 	// Forward-declare any helper functions!
 	#if HAVE_NANOSLEEP
-	static void sleepUnix(const time32_t ms);
+	static void sleepUnix(const time32 ms);
 	#else
-	static void sleepUnix(time32_t ms);
+	static void sleepUnix(time32 ms);
 	#endif
 #endif
 
 
 // Stores the time value at which the timing system was initialized.
-static timerVal_t first;
+static timerVal first;
 
 
 void timerInit(){
@@ -59,7 +59,7 @@ void timerInit(){
 ** Return how many milliseconds have
 ** passed between "start" and "end".
 */
-time32_t timerElapsedTime(const timerVal_t start, const timerVal_t end){
+time32 timerElapsedTime(const timerVal start, const timerVal end){
 	#ifdef _WIN32
 		return((end.u.LowPart - start.u.LowPart) / freq);
 	#else
@@ -75,7 +75,7 @@ time32_t timerElapsedTime(const timerVal_t start, const timerVal_t end){
 ** Return how many milliseconds have
 ** passed between "start" and "end".
 */
-float timerElapsedTimeFloat(const timerVal_t start, const timerVal_t end){
+float timerElapsedTimeFloat(const timerVal start, const timerVal end){
 	#ifdef _WIN32
 		return((float)(end.u.LowPart - start.u.LowPart) * rfreq);
 	#else
@@ -92,16 +92,16 @@ float timerElapsedTimeFloat(const timerVal_t start, const timerVal_t end){
 ** Return how many milliseconds have elapsed
 ** since the timing system was initialized.
 */
-time32_t timerGetTime(){
+time32 timerGetTime(){
 	#ifdef _WIN32
-		timerVal_t now;
+		timerVal now;
 		QueryPerformanceCounter(&now);
 	#else
 		#if HAVE_CLOCK_GETTIME
-		timerVal_t now;
+		timerVal now;
 		clock_gettime(TIMING_MONOTONIC_CLOCK, &now);
 		#else
-		timerVal_t now;
+		timerVal now;
 		gettimeofday(&now, NULL);
 		#endif
 	#endif
@@ -115,14 +115,14 @@ time32_t timerGetTime(){
 */
 float timerGetTimeFloat(){
 	#ifdef _WIN32
-		timerVal_t now;
+		timerVal now;
 		QueryPerformanceCounter(&now);
 	#else
 		#if HAVE_CLOCK_GETTIME
-		timerVal_t now;
+		timerVal now;
 		clock_gettime(TIMING_MONOTONIC_CLOCK, &now);
 		#else
-		timerVal_t now;
+		timerVal now;
 		gettimeofday(&now, NULL);
 		#endif
 	#endif
@@ -135,16 +135,16 @@ float timerGetTimeFloat(){
 ** Returns the current tick, which is mostly
 ** useless for timing without the frequency.
 */
-timerVal_t timerStart(){
+timerVal timerStart(){
 	#ifdef _WIN32
-		timerVal_t start;
+		timerVal start;
 		QueryPerformanceCounter(&start);
 	#else
 		#if HAVE_CLOCK_GETTIME
-		timerVal_t start;
+		timerVal start;
 		clock_gettime(TIMING_MONOTONIC_CLOCK, &start);
 		#else
-		timerVal_t start;
+		timerVal start;
 		gettimeofday(&start, NULL);
 		#endif
 	#endif
@@ -153,16 +153,16 @@ timerVal_t timerStart(){
 }
 
 // Return how many milliseconds have elapsed since "start".
-time32_t timerStop(const timerVal_t start){
+time32 timerStop(const timerVal start){
 	#ifdef _WIN32
-		timerVal_t end;
+		timerVal end;
 		QueryPerformanceCounter(&end);
 	#else
 		#if HAVE_CLOCK_GETTIME
-		timerVal_t end;
+		timerVal end;
 		clock_gettime(TIMING_MONOTONIC_CLOCK, &end);
 		#else
-		timerVal_t end;
+		timerVal end;
 		gettimeofday(&end, NULL);
 		#endif
 	#endif
@@ -171,16 +171,16 @@ time32_t timerStop(const timerVal_t start){
 }
 
 // Return how many milliseconds have elapsed since "start".
-float timerStopFloat(const timerVal_t start){
+float timerStopFloat(const timerVal start){
 	#ifdef _WIN32
-		timerVal_t end;
+		timerVal end;
 		QueryPerformanceCounter(&end);
 	#else
 		#if HAVE_CLOCK_GETTIME
-		timerVal_t end;
+		timerVal end;
 		clock_gettime(TIMING_MONOTONIC_CLOCK, &end);
 		#else
-		timerVal_t end;
+		timerVal end;
 		gettimeofday(&end, NULL);
 		#endif
 	#endif
@@ -193,7 +193,7 @@ float timerStopFloat(const timerVal_t start){
 ** Sleep with a particular timer resolution (Windows only).
 ** The system's default resolution is used if "res" is '0'.
 */
-void sleepResolution(const time32_t ms, const unsigned int res){
+void sleepResolution(const time32 ms, const unsigned int res){
 	#ifdef _WIN32
 		timeBeginPeriod(res);
 		Sleep(ms);
@@ -207,7 +207,7 @@ void sleepResolution(const time32_t ms, const unsigned int res){
 ** Although possibly more lenient on the processor,
 ** it tends to sleep for much longer than specified.
 */
-void sleepInaccurate(const time32_t ms){
+void sleepInaccurate(const time32 ms){
 	#ifdef _WIN32
 		timeBeginPeriod(ms);
 		Sleep(ms);
@@ -218,7 +218,7 @@ void sleepInaccurate(const time32_t ms){
 }
 
 // Good accuracy and decently low power usage.
-void sleepAccurate(const time32_t ms){
+void sleepAccurate(const time32 ms){
 	#ifdef _WIN32
 		timeBeginPeriod(1);
 		Sleep(ms);
@@ -229,24 +229,24 @@ void sleepAccurate(const time32_t ms){
 }
 
 // Extremely accurate but not very kind on the processor.
-void sleepBusy(const time32_t ms){
-	timerVal_t now = timerStart();
+void sleepBusy(const time32 ms){
+	timerVal now = timerStart();
 	#ifdef _WIN32
-		const time64_t end = now.QuadPart + ms * freq;
+		const time64 end = now.QuadPart + ms * freq;
 		while(now = timerStart(), now.QuadPart < end);
 	#else
 		#if HAVE_CLOCK_GETTIME
-		const time64_t end = ((time64_t)now.tv_sec * 1000000000 + (time64_t)now.tv_nsec) + (time64_t)ms * 1000000;
-		while(now = timerStart(), ((time64_t)now.tv_sec * 1000000000 + (time64_t)now.tv_nsec) < end);
+		const time64 end = ((time64)now.tv_sec * 1000000000 + (time64)now.tv_nsec) + (time64)ms * 1000000;
+		while(now = timerStart(), ((time64)now.tv_sec * 1000000000 + (time64)now.tv_nsec) < end);
 		#else
-		const time64_t end = ((time64_t)now.tv_sec * 1000000000 + (time64_t)now.tv_usec) + (time64_t)ms * 1000000;
-		while(now = timerStart(), ((time64_t)now.tv_sec * 1000000000 + (time64_t)now.tv_usec) < end);
+		const time64 end = ((time64)now.tv_sec * 1000000000 + (time64)now.tv_usec) + (time64)ms * 1000000;
+		while(now = timerStart(), ((time64)now.tv_sec * 1000000000 + (time64)now.tv_usec) < end);
 		#endif
 	#endif
 }
 
-void sleepUntil(const time32_t end){
-	const time32_t timeLeft = end - timerGetTime();
+void sleepUntil(const time32 end){
+	const time32 timeLeft = end - timerGetTime();
 	if(timeLeft >= 1){
 		sleepAccurate(timeLeft);
 	}
@@ -255,7 +255,7 @@ void sleepUntil(const time32_t end){
 void sleepUntilFloat(const float end){
 	const float timeLeft = end - timerGetTimeFloat();
 	if(timeLeft >= 1.f){
-		sleepAccurate((time32_t)timeLeft);
+		sleepAccurate((time32)timeLeft);
 	}
 }
 
@@ -263,21 +263,21 @@ void sleepUntilFloat(const float end){
 #ifndef _WIN32
 // On UNIX derivatives, we only have a single sleep function (and busy-waiting).
 #if HAVE_NANOSLEEP
-static void sleepUnix(const time32_t ms){
+static void sleepUnix(const time32 ms){
 #else
-static void sleepUnix(time32_t ms){
+static void sleepUnix(time32 ms){
 #endif
 
 	int r;
 
 	#if HAVE_NANOSLEEP
-	const time32_t s = ms / 1000;
-	timerVal_t tv = {
+	const time32 s = ms / 1000;
+	timerVal tv = {
 		.tv_sec = s;
 		.tv_nsec = (ms - s * 1000) * 1000000;
 	};
 	#else
-	time32_t s = ms / 1000;
+	time32 s = ms / 1000;
 	struct timeval tv;
 	gettimeofday(&tv, NULL);
 	#endif
@@ -295,7 +295,7 @@ static void sleepUnix(time32_t ms){
 		r = nanosleep(&ts, &tv);
 		#else
 		struct timeval now;
-		const time32_t elapsed = (gettimeofday(&now, NULL), timerElapsedTime(tv, now));
+		const time32 elapsed = (gettimeofday(&now, NULL), timerElapsedTime(tv, now));
 		if(elapsed >= ms){
 			return;
 		}

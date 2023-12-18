@@ -26,7 +26,7 @@
 #define COLLIDER_TYPE_HULL    3
 
 
-typedef uint_least8_t colliderType_t;
+typedef uint_least8_t colliderType;
 
 typedef struct collider {
 	// This should be large enough
@@ -36,11 +36,11 @@ typedef struct collider {
 	} data;
 	// Stores which type of
 	// collider this object is.
-	colliderType_t type;
+	colliderType type;
 } collider;
 
 
-void colliderInit(collider *const restrict c, const colliderType_t type);
+void colliderInit(collider *const restrict c, const colliderType type);
 void colliderInstantiate(collider *const restrict c, const collider *const restrict cBase);
 
 return_t colliderLoad(

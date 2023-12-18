@@ -22,7 +22,7 @@
 #define SPRITE_IMAGE_TYPE_MSDF   2
 
 
-typedef GLsizei spriteVertexIndex_t;
+typedef GLsizei spriteVertexIndex;
 
 typedef struct spriteVertex {
 	vec3 pos;
@@ -35,7 +35,7 @@ typedef struct sprite {
 	GLuint stateBufferID;
 
 	GLuint indexBufferID;
-	spriteVertexIndex_t numIndices;
+	spriteVertexIndex numIndices;
 } sprite;
 
 // This represents the data we must send to
@@ -60,8 +60,8 @@ void spriteInit(sprite *const restrict spriteData);
 
 void spriteGenerateBuffers(
 	sprite *const restrict spriteData,
-	const spriteVertex *const restrict vertices, const spriteVertexIndex_t numVertices,
-	const spriteVertexIndex_t *const restrict indices, const spriteVertexIndex_t numIndices
+	const spriteVertex *const restrict vertices, const spriteVertexIndex numVertices,
+	const spriteVertexIndex *const restrict indices, const spriteVertexIndex numIndices
 );
 
 return_t spriteVertexDifferent(const spriteVertex *const restrict v1, const spriteVertex *const restrict v2);

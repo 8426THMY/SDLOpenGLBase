@@ -32,7 +32,7 @@ static bone defaultBone = {
 	.invGlobalBind.rot.x   = 0.f, .invGlobalBind.rot.y   = 0.f, .invGlobalBind.rot.z   = 0.f, .invGlobalBind.rot.w = 1.f,
 	.invGlobalBind.scale.x = 1.f, .invGlobalBind.scale.y = 1.f, .invGlobalBind.scale.z = 1.f,
 
-	.parent = valueInvalid(boneIndex_t)
+	.parent = valueInvalid(boneIndex)
 };
 
 skeleton g_skeleDefault = {
@@ -44,7 +44,7 @@ skeleton g_skeleDefault = {
 
 void boneInit(
 	bone *const restrict bone,
-	char *const restrict name, const boneIndex_t parent,
+	char *const restrict name, const boneIndex parent,
 	const boneState *const restrict state
 ){
 
@@ -70,7 +70,7 @@ void skeleInit(skeleton *const restrict skele){
 
 void skeleInitSet(
 	skeleton *const restrict skele, const char *const restrict name,
-	const size_t nameLength, bone *const restrict bones, const boneIndex_t numBones
+	const size_t nameLength, bone *const restrict bones, const boneIndex numBones
 ){
 
 	skele->name = memoryManagerGlobalAlloc(nameLength);
@@ -260,7 +260,7 @@ skeletonAnimDef *skeleAnimSMDLoad(const char *const restrict skeleAnimPath, cons
 					// Loading bone names.
 					if(dataType == 1){
 						// Get this bone's ID.
-						const boneIndex_t boneID = strtoul(line, &tokPos, 10);
+						const boneIndex boneID = strtoul(line, &tokPos, 10);
 						// Make sure a bone with this ID actually exists.
 						if(boneID == tempBonesSize){
 							bone tempBone;
@@ -347,7 +347,7 @@ skeletonAnimDef *skeleAnimSMDLoad(const char *const restrict skeleAnimPath, cons
 						// Otherwise, we're setting the bone's state!
 						}else{
 							// Get this bone's ID.
-							const boneIndex_t boneID = strtoul(line, &tokPos, 10);
+							const boneIndex boneID = strtoul(line, &tokPos, 10);
 							if(boneID < tempBonesSize){
 								boneState *const currentState = &currentFrame[boneID];
 
@@ -475,16 +475,16 @@ void skeleAnimUpdate(skeletonAnim *const restrict anim, const float dt){
 void skeleStatePrependAnimations(
 	boneState *const restrict state,
 	const skeletonState *const restrict skeleState,
-	const boneIndex_t boneID, const char *const restrict boneName
+	const boneIndex boneID, const char *const restrict boneName
 ){
 
 	const skeletonAnim *curAnim = skeleState->anims;
 
 	// Update the bone using each animation!
 	while(curAnim != NULL){
-		const boneIndex_t animBoneID = skeleAnimFindBone(curAnim, boneName);
+		const boneIndex animBoneID = skeleAnimFindBone(curAnim, boneName);
 		// Make sure this bone exists in the animation!
-		if(!valueIsInvalid(animBoneID, boneIndex_t)){
+		if(!valueIsInvalid(animBoneID, boneIndex)){
 			const size_t currentFrame = curAnim->animData.currentFrame;
 			const size_t nextFrame = animationGetNextFrame(currentFrame, curAnim->animDef->frameData.numFrames);
 			boneState animState;
@@ -518,10 +518,10 @@ void skeleStatePrependAnimations(
 
 #warning "We should store bones in a search tree of some kind."
 // Find a bone in a skeleton from its name and return its index.
-boneIndex_t skeleFindBone(const skeleton *const restrict skele, const char *const restrict name){
+boneIndex skeleFindBone(const skeleton *const restrict skele, const char *const restrict name){
 	const bone *curBone = skele->bones;
 	const bone *const lastBone = &curBone[skele->numBones];
-	boneIndex_t i = 0;
+	boneIndex i = 0;
 	for(; curBone < lastBone; ++curBone, ++i){
 		if(strcmp(curBone->name, name) == 0){
 			return(i);
@@ -533,10 +533,10 @@ boneIndex_t skeleFindBone(const skeleton *const restrict skele, const char *cons
 
 #warning "We should store bones in a search tree of some kind."
 // Find a bone in an animation from its name and return its index.
-boneIndex_t skeleAnimFindBone(const skeletonAnim *const restrict skeleAnim, const char *const restrict name){
+boneIndex skeleAnimFindBone(const skeletonAnim *const restrict skeleAnim, const char *const restrict name){
 	char **curName = skeleAnim->animDef->boneNames;
 	char **const lastName = &curName[skeleAnim->animDef->numBones];
-	boneIndex_t i = 0;
+	boneIndex i = 0;
 	for(; curName < lastName; ++curName, ++i){
 		if(strcmp(*curName, name) == 0){
 			return(i);

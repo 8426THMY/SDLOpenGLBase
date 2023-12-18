@@ -14,12 +14,12 @@
 
 // This structure is handy for reading
 // and operating on encoded code points.
-typedef union textCMapCodeUnit_t {
+typedef union textCMapCodeUnit {
 	uint8_t _8;
 	uint16_t _16;
 	uint32_t _32;
 	uint8_t bytes[4];
-} textCMapCodeUnit_t;
+} textCMapCodeUnit;
 
 
 // All character maps share this header, so we can use it
@@ -147,7 +147,7 @@ typedef struct textCMapFormat4 {
 
 
 textCMapHeader *textCMapLoadTTF(const char *const restrict cmapPath);
-uint32_t textCMapIndex(const textCMapHeader *const restrict cmap, const textCMapCodeUnit_t code);
+uint32_t textCMapIndex(const textCMapHeader *const restrict cmap, const textCMapCodeUnit code);
 void textCMapDelete(textCMapHeader *const restrict cmap);
 
 #warning "This is temporary and should be removed."
@@ -156,7 +156,7 @@ void textCMapOutputCodePoints(const textCMapHeader *const restrict cmap, const c
 
 extern uint32_t (*textCMapIndexTable[TEXT_CMAP_NUM_SUPPORTED_FORMATS])(
 	const textCMapHeader *const restrict cmap,
-	const textCMapCodeUnit_t code
+	const textCMapCodeUnit code
 );
 
 

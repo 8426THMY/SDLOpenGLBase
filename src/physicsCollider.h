@@ -63,7 +63,7 @@ typedef struct physicsCollider {
 } physicsCollider;
 
 
-void physColliderInit(physicsCollider *const restrict pc, const colliderType_t type);
+void physColliderInit(physicsCollider *const restrict pc, const colliderType type);
 void physColliderInstantiate(physicsCollider *const restrict pc, const physicsCollider *const restrict base, physicsRigidBody *const restrict owner);
 
 void physColliderUpdate(physicsCollider *const restrict collider);

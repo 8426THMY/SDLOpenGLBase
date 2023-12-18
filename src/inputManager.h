@@ -30,7 +30,7 @@ typedef struct inputBinding {
 	size_t bindingLength;
 } inputBinding;
 
-typedef uint8_t keyState_t;
+typedef uint8_t keyState;
 // Stores and manages the user's key bindings.
 typedef struct inputManager {
 	// Array of keyboard bindings.
@@ -38,7 +38,7 @@ typedef struct inputManager {
 	// Array of mouse bindings.
 	inputBinding mouseBinds[INPUT_NUM_MOUSE_BUTTONS];
 	// Stores the current state of each keyboard key.
-	const keyState_t *keyStates;
+	const keyState *keyStates;
 } inputManager;
 
 

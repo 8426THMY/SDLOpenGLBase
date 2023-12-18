@@ -27,7 +27,7 @@ static void mouseMotionIntToStr(char *str, const int i);
 static void mouseMotionAddCommand(
 	commandBuffer *const restrict cmdBuffer,
 	int *const restrict mouseDeltaX, int *const restrict mouseDeltaY,
-	const cmdTimestamp_t mouseDeltaTime
+	const cmdTimestamp mouseDeltaTime
 );
 
 static void inputBindingDelete(inputBinding *const restrict keybind);
@@ -108,7 +108,7 @@ void inputMngrTakeInput(inputManager *const restrict inputMngr, commandBuffer *c
 	// Used for tracking mouse movement between commands.
 	int mouseDeltaX = 0;
 	int mouseDeltaY = 0;
-	cmdTimestamp_t mouseDeltaTime = 0;
+	cmdTimestamp mouseDeltaTime = 0;
 
 	SDL_Event event;
 
@@ -296,7 +296,7 @@ static void mouseMotionIntToStr(char *str, const int i){
 static void mouseMotionAddCommand(
 	commandBuffer *const restrict cmdBuffer,
 	int *const restrict mouseDeltaX, int *const restrict mouseDeltaY,
-	const cmdTimestamp_t mouseDeltaTime
+	const cmdTimestamp mouseDeltaTime
 ){
 
 	// Only send a command if the mouse has moved.

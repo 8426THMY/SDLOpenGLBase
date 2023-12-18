@@ -10,8 +10,8 @@
 // Generate vertex and index buffers to hold our mesh data!
 void meshInit(
 	mesh *const restrict meshData,
-	const meshVertex *const restrict vertices, const meshVertexIndex_t numVertices,
-	const meshVertexIndex_t *const restrict indices, const meshVertexIndex_t numIndices
+	const meshVertex *const restrict vertices, const meshVertexIndex numVertices,
+	const meshVertexIndex *const restrict indices, const meshVertexIndex numIndices
 ){
 
 	// Generate a vertex array object for our mesh and bind it!
@@ -74,11 +74,6 @@ void meshInit(
 */
 return_t meshVertexDifferent(const meshVertex *const restrict v1, const meshVertex *const restrict v2){
 	return(memcmp(v1, v2, sizeof(*v2)) != 0);
-}
-
-// Return whether or not two meshes are different.
-return_t meshDifferent(const mesh *const restrict m1, const mesh *const restrict m2){
-	return(m1->vertexArrayID != m2->vertexArrayID);
 }
 
 // Return whether or not two meshes are different.

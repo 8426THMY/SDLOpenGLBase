@@ -20,7 +20,7 @@
 #define PARTICLE_RENDERER_MESH   2
 
 
-typedef uint_least8_t particleRendererType_t;
+typedef uint_least8_t particleRendererType;
 
 typedef struct particleRenderer {
 	// This should be large enough
@@ -32,7 +32,7 @@ typedef struct particleRenderer {
 	} data;
 	// Stores which type of
 	// renderer this object is.
-	particleRendererType_t type;
+	particleRendererType type;
 } particleRenderer;
 
 
