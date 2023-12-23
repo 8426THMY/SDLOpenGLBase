@@ -142,6 +142,8 @@ void particleSysNodeContainerBatch(
 		#warning "This makes the most out of the batch, but it may be slower due to all the checks."
 		#warning "Instead, we can only add the new particles if there's room for all of them."
 		#warning "This is less efficient in terms of memory usage when we have many large nodes."
+		#warning "It also means we have a limit on the number of particles a system can spawn."
+		#warning "This limit is especially small for instanced renderers."
 		/*if(!spriteRendererHasRoom(batch, particleRendererBatchSize(partRenderer, &curNode->manager))){
 			spriteRendererDrawFull(batch);
 		}*/

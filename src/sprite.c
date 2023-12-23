@@ -61,32 +61,32 @@ void spriteGenerateBuffers(
 		glBufferData(GL_ARRAY_BUFFER, sizeof(spriteState) * SPRITE_MAX_INSTANCES, NULL, GL_STREAM_DRAW);
 
 		// Set up the vertex attributes that require this buffer!
-		// Because the transformation state is a 4x4 matrix, it needs four vertex attributes.
-		// Transformation state first row.
+		// Because the transformation state is a 3x4 matrix, it needs four vertex attributes.
+		// Transformation state first column.
 		glEnableVertexAttribArray(2);
 		glVertexAttribPointer(
-			2, 4, GL_FLOAT, GL_FALSE,
+			2, 3, GL_FLOAT, GL_FALSE,
 			sizeof(spriteState), (GLvoid *)offsetof(spriteState, state.m[0])
 		);
 		glVertexAttribDivisor(2, 1);
-		// Transformation state second row.
+		// Transformation state second column.
 		glEnableVertexAttribArray(3);
 		glVertexAttribPointer(
-			3, 4, GL_FLOAT, GL_FALSE,
+			3, 3, GL_FLOAT, GL_FALSE,
 			sizeof(spriteState), (GLvoid *)offsetof(spriteState, state.m[1])
 		);
 		glVertexAttribDivisor(3, 1);
-		// Transformation state third row.
+		// Transformation state third column.
 		glEnableVertexAttribArray(4);
 		glVertexAttribPointer(
-			4, 4, GL_FLOAT, GL_FALSE,
+			4, 3, GL_FLOAT, GL_FALSE,
 			sizeof(spriteState), (GLvoid *)offsetof(spriteState, state.m[2])
 		);
 		glVertexAttribDivisor(4, 1);
-		// Transformation state fourth row.
+		// Transformation state fourth column.
 		glEnableVertexAttribArray(5);
 		glVertexAttribPointer(
-			5, 4, GL_FLOAT, GL_FALSE,
+			5, 3, GL_FLOAT, GL_FALSE,
 			sizeof(spriteState), (GLvoid *)offsetof(spriteState, state.m[3])
 		);
 		glVertexAttribDivisor(5, 1);

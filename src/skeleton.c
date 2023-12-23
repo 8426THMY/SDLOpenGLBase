@@ -1,6 +1,9 @@
 #include "skeleton.h"
 
 
+#include "vec3.h"
+#include "quat.h"
+
 #include "utilString.h"
 #include "utilFile.h"
 

@@ -332,7 +332,6 @@ void mat3InitQuat(mat3 *const restrict m, const quat *const restrict q){
 	const float zz = q->z * q->z;
 	const float zw = q->z * q->w;
 
-	// Rotate our matrix by the quaternion!
 	m->m[0][0] = 1.f - 2.f * (yy + zz);
 	m->m[0][1] = 2.f * (xy + zw);
 	m->m[0][2] = 2.f * (xz - yw);
@@ -358,7 +357,6 @@ mat3 mat3InitQuatC(const quat q){
 	const float zz = q.z * q.z;
 	const float zw = q.z * q.w;
 
-	// Rotate our matrix by the quaternion!
 	const mat3 m = {
 		.m[0][0] = 1.f - 2.f * (yy + zz),
 		.m[0][1] = 2.f * (xy + zw),

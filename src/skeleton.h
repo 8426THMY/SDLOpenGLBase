@@ -4,13 +4,11 @@
 
 #include <stdint.h>
 
-#include "utilTypes.h"
-#include "vec3.h"
-#include "quat.h"
-#include "mat4.h"
 #include "transform.h"
 
 #include "animation.h"
+
+#include "utilTypes.h"
 
 
 #define SKELETON_MAX_BONES 128

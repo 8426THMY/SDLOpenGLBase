@@ -354,7 +354,7 @@ static void updateObjects(program *const restrict prg){
 		); **/
 	}
 	if(controlObj != NULL){
-		//controlObj->boneTransforms[0].rot = mat4ToQuatC(mat4RotateToFaceC(controlObj->boneTransforms[0].pos, prg->cam.pos, vec3InitSetC(0.f, 1.f, 0.f)));
+		//controlObj->boneTransforms[0].rot = mat3x4ToQuatC(mat3x4RotateToFaceC(controlObj->boneTransforms[0].pos, prg->cam.pos, vec3InitSetC(0.f, 1.f, 0.f)));
 	}
 	#warning "Remove debug object when done."
 	#error "Uncomment errors in particleSystem.h, particle.c and particleRenderer.c once this is done."

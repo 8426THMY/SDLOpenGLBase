@@ -17,7 +17,7 @@
 
 // Forward-declare any helper functions!
 static void updateBones(object *obj);
-static void prepareBoneMatrices(const skeletonState *const restrict skeleState, mat4 *animStates);
+static void prepareBoneMatrices(const skeletonState *const restrict skeleState, mat3x4 *animStates);
 
 
 void objectDefInit(objectDef *objDef){
@@ -267,7 +267,7 @@ void objectDraw(
 
 	{
 		const model *curMdl = obj->mdls;
-		mat4 *const animStates = memoryManagerGlobalAlloc(obj->skeleState.skele->numBones * sizeof(*animStates));
+		mat3x4 *const animStates = memoryManagerGlobalAlloc(obj->skeleState.skele->numBones * sizeof(*animStates));
 		// Convert the object's bone states into
 		// a matrix representation for the shader.
 		prepareBoneMatrices(&obj->skeleState, animStates);
@@ -412,7 +412,7 @@ static void updateBones(object *const restrict obj){
 ** bone in the animation. Before we send them to the shader, we need
 ** to bring them back into local space and convert them to matrices.
 */
-static void prepareBoneMatrices(const skeletonState *const restrict skeleState, mat4 *animStates){
+static void prepareBoneMatrices(const skeletonState *const restrict skeleState, mat3x4 *animStates){
 	const boneState *curObjBone = skeleState->bones;
 	const boneState *const lastObjBone = &curObjBone[skeleState->skele->numBones];
 	const bone *curSkeleBone = skeleState->skele->bones;
@@ -423,7 +423,7 @@ static void prepareBoneMatrices(const skeletonState *const restrict skeleState, 
 		boneState tempBone;
 
 		transformMultiplyOut(curObjBone, &curSkeleBone->invGlobalBind, &tempBone);
-		transformToMat4(&tempBone, animStates);
+		transformToMat3x4(&tempBone, animStates);
 
 		++curSkeleBone;
 		++animStates;

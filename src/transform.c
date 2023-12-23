@@ -533,6 +533,45 @@ transform transformInterpAddC(const transform trans1, const transform trans2, co
 }
 
 
+/*
+** Convert a transformation state to a 3x3 matrix.
+** This will ignore the translation component!
+*/
+void transformToMat3(const transform *const restrict trans, mat3 *const restrict out){
+	mat3InitShearQuat(out, &trans->scale, &trans->shear);
+	mat3RotateByQuat(out, &trans->rot);
+}
+
+/*
+** Convert a transformation state to a 3x3 matrix.
+** This will ignore the translation component!
+*/
+mat3 transformToMat3C(const transform trans){
+	return(mat3RotateByQuatC(mat3InitShearQuatC(trans.scale, trans.shear), trans.rot));
+}
+
+// Convert a transformation state to a 3x4 transformation matrix.
+void transformToMat3x4(const transform *const restrict trans, mat3x4 *const restrict out){
+	// We use the regular order, that is, we first
+	// scale, then rotate and finally translate.
+	mat3x4InitShearQuat(out, &trans->scale, &trans->shear);
+	mat3x4RotateByQuat(out, &trans->rot);
+	mat3x4TranslateVec3(out, &trans->pos);
+}
+
+// Convert a transformation state to a 3x4 transformation matrix.
+mat3x4 transformToMat3x4C(const transform trans){
+	// We use the regular order, that is, we first
+	// scale, then rotate and finally translate.
+	return(mat3x4TranslateVec3C(
+		mat3x4RotateByQuatC(
+			mat3x4InitShearQuatC(trans.scale, trans.shear),
+			trans.rot
+		),
+		trans.pos
+	));
+}
+
 // Convert a transformation state to a 4x4 transformation matrix.
 void transformToMat4(const transform *const restrict trans, mat4 *const restrict out){
 	// We use the regular order, that is, we first
@@ -553,23 +592,6 @@ mat4 transformToMat4C(const transform trans){
 		),
 		trans.pos
 	));
-}
-
-/*
-** Convert a transformation state to a 3x3 matrix.
-** This will ignore the translation component!
-*/
-void transformToMat3(const transform *const restrict trans, mat3 *const restrict out){
-	mat3InitShearQuat(out, &trans->scale, &trans->shear);
-	mat3RotateByQuat(out, &trans->rot);
-}
-
-/*
-** Convert a transformation state to a 3x3 matrix.
-** This will ignore the translation component!
-*/
-mat3 transformToMat3C(const transform trans){
-	return(mat3RotateByQuatC(mat3InitShearQuatC(trans.scale, trans.shear), trans.rot));
 }
 
 

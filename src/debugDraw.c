@@ -37,16 +37,22 @@ debugShader debugDrawShader;
 
 // Forward-declare any helper functions!
 static void debugMeshGenerateBuffers(
-	debugMesh *const restrict meshData, const vec3 *const restrict vertices, const debugVertexIndex numVertices,
+	debugMesh *const restrict meshData,
+	const vec3 *const restrict vertices, const debugVertexIndex numVertices,
 	const debugVertexIndex *const restrict indices, const debugVertexIndex numIndices
 );
 static void debugMeshDrawBuffers(
-	const debugMesh *const restrict meshData, const debugDrawInfo *const restrict info, const mat4 *const restrict vpMatrix
+	const debugMesh *const restrict meshData,
+	const debugDrawInfo *const restrict info, const mat4 *const restrict vpMatrix
 );
 static void debugMeshDelete(const debugMesh *const restrict meshData);
 
 
-debugDrawInfo debugDrawInfoInit(const unsigned int drawMode, const unsigned int fillMode, const vec3 colour, const float size){
+debugDrawInfo debugDrawInfoInit(
+	const unsigned int drawMode, const unsigned int fillMode,
+	const vec3 colour, const float size
+){
+
 	const debugDrawInfo info = {
 		.drawMode = drawMode,
 		.fillMode = fillMode,
@@ -84,7 +90,11 @@ return_t debugDrawSetup(){
 }
 
 // Draw a skeleton object using the settings supplied.
-void debugDrawSkeleton(const skeletonState *const restrict skeleState, const debugDrawInfo info, const mat4 *const restrict vpMatrix){
+void debugDrawSkeleton(
+	const skeletonState *const restrict skeleState,
+	const debugDrawInfo info, const mat4 *const restrict vpMatrix
+){
+
 	debugMesh meshData;
 	GLint prevArrayObject;
 	GLint prevShader;
@@ -142,7 +152,11 @@ void debugDrawSkeleton(const skeletonState *const restrict skeleState, const deb
 }
 
 // Draw an axis-aligned bounding box using the settings supplied.
-void debugDrawColliderAABB(const colliderAABB *aabb, const debugDrawInfo info, const mat4 *const restrict vpMatrix){
+void debugDrawColliderAABB(
+	const colliderAABB *aabb,
+	const debugDrawInfo info, const mat4 *const restrict vpMatrix
+){
+
 	debugMesh meshData;
 	GLint prevArrayObject;
 	GLint prevShader;
@@ -194,7 +208,11 @@ void debugDrawColliderAABB(const colliderAABB *aabb, const debugDrawInfo info, c
 }
 
 // Draw a collider hull using the settings supplied.
-void debugDrawColliderHull(const colliderHull *const restrict hull, const debugDrawInfo info, const mat4 *const restrict vpMatrix){
+void debugDrawColliderHull(
+	const colliderHull *const restrict hull,
+	const debugDrawInfo info, const mat4 *const restrict vpMatrix
+){
+
 	debugMesh meshData;
 	GLint prevArrayObject;
 	GLint prevShader;
@@ -301,7 +319,8 @@ void debugDrawCleanup(){
 
 // Generate vertex and index buffers to hold our mesh data!
 static void debugMeshGenerateBuffers(
-	debugMesh *const restrict meshData, const vec3 *const restrict vertices, const debugVertexIndex numVertices,
+	debugMesh *const restrict meshData,
+	const vec3 *const restrict vertices, const debugVertexIndex numVertices,
 	const debugVertexIndex *const restrict indices, const debugVertexIndex numIndices
 ){
 
@@ -328,7 +347,8 @@ static void debugMeshGenerateBuffers(
 
 // Draw a debug mesh. This assumes the vertex array is bound.
 static void debugMeshDrawBuffers(
-	const debugMesh *const restrict meshData, const debugDrawInfo *const restrict info, const mat4 *const restrict vpMatrix
+	const debugMesh *const restrict meshData,
+	const debugDrawInfo *const restrict info, const mat4 *const restrict vpMatrix
 ){
 
 	// Disable culling so we can see the entire debug mesh.

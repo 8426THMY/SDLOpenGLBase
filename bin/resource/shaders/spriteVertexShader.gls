@@ -6,14 +6,14 @@ uniform mat4 vpMatrix;
 layout(location = 0) in vec3 vertexPos;
 layout(location = 1) in vec2 vertexUV;
 // Note that this attribute actually uses 4 locations.
-layout(location = 2) in mat4 state;
+layout(location = 2) in mat4x3 state;
 layout(location = 6) in vec4 uvOffsets;
 
 out vec2 uv;
 
 
 void main(){
-	gl_Position = vpMatrix * state * vec4(vertexPos, 1.f);
+	gl_Position = vpMatrix * vec4(state * vec4(vertexPos, 1.f), 1.f);
 	
 	// Only use the area of the texture specified in the uvOffsets array!
 	uv.x = (vertexUV.x * uvOffsets[2]) + uvOffsets[0];

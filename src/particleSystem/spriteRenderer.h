@@ -30,7 +30,6 @@ typedef struct spriteRenderer {
 
 
 void spriteRendererInit(spriteRenderer *const restrict renderer, const spriteRendererType type);
-return_t spriteRendererHasRoom(const spriteRenderer *const restrict renderer, const size_t batchSize);
 void spriteRendererDraw(spriteRenderer *const restrict renderer);
 void spriteRendererDrawFull(spriteRenderer *const restrict renderer);
 

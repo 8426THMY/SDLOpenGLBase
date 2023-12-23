@@ -1,7 +1,7 @@
 #include "particleRendererSprite.h"
 
 
-#include "mat4.h"
+#include "mat3x4.h"
 #include "transform.h"
 
 #include "particleManager.h"
@@ -37,7 +37,6 @@ size_t particleRendererMeshBatchSize(
 ** Fill the buffer objects up with particle data from
 ** each particle system node in the array specified.
 */
-#warning "We need to interpolate between the old and new positions of particles!"
 void particleRendererMeshBatch(
 	const void *const restrict renderer,
 	const particleManager *const restrict manager,
@@ -52,24 +51,33 @@ void particleRendererMeshBatch(
 
 		const particle *curParticle = manager->first;
 		spriteRendererInstanced *const instancedRenderer = &batch->data.instancedRenderer;
-		meshInstance *curInstance = &instancedRenderer->instances[instancedRenderer->numInstances];
 
 		for(; curParticle != NULL; curParticle = curParticle->next){
+			transform curTransform;
+			spriteInstancedData curInstance;
+
 			// If the batch is full, draw it and start a new one!
 			if(spriteRendererInstancedIsFull(instancedRenderer)){
 				spriteRendererInstancedDraw(instancedRenderer);
 				spriteRendererInstancedOrphan(instancedRenderer);
 			}
 
+			// Compute the interpolated particle transform.
+			transformInterpSet(
+				&curParticle->subsys.state[0],
+				&curParticle->subsys.state[1],
+				dt, &curTransform
+			);
 			#warning "Temporary, until we know how we want to do billboarding."
-			transformToMat4(&curParticle->subsys.state[0], &curInstance->state);
+			transformToMat3x4(&curTransform, &curInstance.state);
 			#warning "Temporary, until we know how we want to do textures."
-			curInstance->uvOffsets.x = 0.f;
-			curInstance->uvOffsets.y = 0.f;
-			curInstance->uvOffsets.w = 1.f;
-			curInstance->uvOffsets.h = 1.f;
+			curInstance.uvOffsets.x = 0.f;
+			curInstance.uvOffsets.y = 0.f;
+			curInstance.uvOffsets.w = 1.f;
+			curInstance.uvOffsets.h = 1.f;
 
-			++curInstance;
+			// Add the instance to the batch!
+			spriteRendererInstancedAddInstance(instancedRenderer, curInstance);
 		}
 	}
 }

@@ -8,35 +8,29 @@
 
 #include "utilTypes.h"
 
-#include "settingsSprites.h"
-
-
-// The shader used for instanced rendering has a uniform
-// block large enough to store the data for 40 instances.
-#define SPRITE_RENDERER_INSTANCED_MAX_INSTANCES 40
-// While enlarging the instance buffer probably won't help
-// too much in reducing draw calls, as instanced rendering
-// should be used sparingly, it will help reduce orphaning.
-#define SPRITE_RENDERER_INSTANCED_BUFFER_MAX_INSTANCES 40
-#define SPRITE_RENDERER_INSTANCED_INSTANCE_BUFFER_SIZE \
-	(SPRITE_RENDERER_INSTANCED_BUFFER_MAX_INSTANCES*sizeof(spriteInstancedData))
-
 
 typedef struct spriteInstanced {
-    unsigned int vertexArrayID;
+	unsigned int vertexArrayID;
 	unsigned int vertexBufferID;
 	unsigned int indexBufferID;
 	size_t numIndices;
 } spriteInstanced;
 
 typedef struct spriteInstancedData {
-	mat4 state;
+	mat3x4 state;
 	rectangle uvOffsets;
 } spriteInstancedData;
 
 typedef struct spriteRendererInstanced {
+	#warning "Should this be stored elsewhere?"
 	const spriteInstanced *base;
-	spriteInstancedData *instances;
+	// OpenGL handles allocating and freeing the array
+	// of instances, so we only need to store a pointer
+	// to the one we're currently operating on.
+	//
+	// It's worth mentioning that we are only allowed to
+	// write to this location. Reading it is illegal!
+	spriteInstancedData *curInstance;
 	size_t numInstances;
 } spriteRendererInstanced;
 
@@ -44,12 +38,16 @@ typedef struct spriteRendererInstanced {
 void spriteRendererInstancedSetup();
 
 void spriteRendererInstancedInit(spriteRendererInstanced *const restrict instancedRenderer);
-void spriteRendererInstancedOffset(spriteRendererInstanced *const restrict instancedRenderer);
-return_t spriteRendererInstancedHasRoom(
-	const spriteRendererInstanced *const restrict instancedRenderer, const size_t numInstances
-);
 void spriteRendererInstancedDraw(const spriteRendererInstanced *const restrict instancedRenderer);
 void spriteRendererInstancedOrphan(spriteRendererInstanced *const restrict instancedRenderer);
+
+void spriteInstancedGenerateBuffers(
+	spriteInstanced *const restrict spriteData,
+	const spriteVertex *const restrict vertices, const spriteVertexIndex numVertices,
+	const spriteVertexIndex *const restrict indices, const spriteVertexIndex numIndices
+);
+return_t spriteRendererInstancedIsFull(const spriteRendererInstanced *const restrict instancedRenderer);
+void spriteRendererInstancedAddInstance(spriteRendererInstanced *const restrict instancedRenderer);
 
 void spriteRendererInstancedCleanup();
 

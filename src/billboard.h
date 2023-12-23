@@ -3,6 +3,7 @@
 
 
 #include "vec3.h"
+#include "mat3x4.h"
 
 #include "camera.h"
 
@@ -42,9 +43,13 @@ typedef struct billboard {
 } billboard;
 
 
-void billboardInit(billboard *const restrict bbData);
+void billboardInit(billboard *const restrict billboardData);
 
-void billboardState(const billboard *const restrict bbData, const camera *const restrict cam, const vec3 centroid, mat4 rootState, mat4 *const restrict out);
+void billboardState(
+	const billboard *const restrict billboardData,
+	const camera *const restrict cam, const vec3 centroid,
+	mat3x4 rootState, mat3x4 *const restrict out
+);
 
 
 #endif

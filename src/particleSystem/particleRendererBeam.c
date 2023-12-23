@@ -92,7 +92,7 @@ void particleRendererBeamBatch(
 
 		// If the batch is full, draw it and start a new one!
 		// We always add two vertices and indices at a time.
-		if(spriteRendererBatchedHasRoom(batchedRenderer, 2)){
+		if(spriteRendererBatchedHasRoom(batchedRenderer, 2, 2)){
 			spriteRendererBatchedDraw(batchedRenderer);
 			spriteRendererBatchedOrphan(batchedRenderer);
 		}
@@ -126,7 +126,7 @@ void particleRendererBeamBatch(
 
 				// If the batch is full, draw it and start a new one!
 				// We always add two vertices and indices at a time.
-				if(spriteRendererBatchedHasRoom(batchedRenderer, 2)){
+				if(spriteRendererBatchedHasRoom(batchedRenderer, 2, 2)){
 					spriteRendererBatchedDraw(batchedRenderer);
 					spriteRendererBatchedOrphan(batchedRenderer);
 

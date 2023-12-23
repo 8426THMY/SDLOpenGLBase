@@ -14,6 +14,7 @@
  ** We probably want two texturing modes:
  **     1. The texture goes from one end of the beam to the other.
  **     2. The texture covers each quad of the beam once.
+ ** We should also allow the width of the beam to be dilated depending on the particle's scale.
  **/
 typedef struct particleRendererBeam {
 	float halfWidth;

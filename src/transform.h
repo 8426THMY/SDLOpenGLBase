@@ -4,6 +4,8 @@
 
 #include "vec3.h"
 #include "quat.h"
+#include "mat3.h"
+#include "mat3x4.h"
 #include "mat4.h"
 
 
@@ -77,10 +79,12 @@ void transformInterpAdd(
 );
 transform transformInterpAddC(const transform trans1, const transform trans2, const float time);
 
-void transformToMat4(const transform *const restrict trans, mat4 *const restrict out);
-mat4 transformToMat4C(const transform trans);
 void transformToMat3(const transform *const restrict trans, mat3 *const restrict out);
 mat3 transformToMat3C(const transform trans);
+void transformToMat3x4(const transform *const restrict trans, mat3x4 *const restrict out);
+mat3x4 transformToMat3x4C(const transform trans);
+void transformToMat4(const transform *const restrict trans, mat4 *const restrict out);
+mat4 transformToMat4C(const transform trans);
 
 void transformPoint(const transform *const restrict trans, vec3 *const restrict v);
 void transformPointOut(const transform *const restrict trans, const vec3 *const v, vec3 *const out);

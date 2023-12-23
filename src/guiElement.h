@@ -4,8 +4,6 @@
 
 #include <stdint.h>
 
-#include "rectangle.h"
-#include "mat4.h"
 #include "transform.h"
 
 #include "sprite.h"
@@ -53,7 +51,9 @@ void guiElementInit(guiElement *const restrict gui, const guiElementType type);
 
 void guiElementUpdate(guiElement *const restrict gui, const float dt);
 void guiElementDraw(
-	guiElement *const restrict gui, const int windowWidth, const int windowHeight, const spriteShader *const restrict shader
+	guiElement *const restrict gui,
+	const int windowWidth, const int windowHeight,
+	const spriteShader *const restrict shader
 );
 
 void guiElementDelete(guiElement *const restrict gui);

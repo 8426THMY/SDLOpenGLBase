@@ -14,7 +14,7 @@ struct bone {
 
 uniform mat4 vpMatrix;
 uniform float uvOffsets[4];
-uniform mat4 boneStates[MAX_BONES_NUM];
+uniform mat4x3 boneStates[MAX_BONES_NUM];
 
 layout(location = 0) in vec3 vertexPos;
 layout(location = 1) in vec2 vertexUV;
@@ -62,12 +62,12 @@ void main(){
 		uint id = vertexBoneIDs[i];
 		float weight = vertexBoneWeights[i];
 		if(id != uint(-1) && weight != 0.f){
-			transformPos += boneStates[id] * vertexPos4 * weight;
+			transformPos.xyz += boneStates[id] * vertexPos4 * weight;
 		}else{
 			break;
 		}
 	}
-	gl_Position = vpMatrix * vec4(transformPos.xyz, 1.f);
+	gl_Position = vpMatrix * transformPos;
 	
 	// Only use the area of the texture specified in the uvOffsets array!
 	uv.x = (vertexUV.x * uvOffsets[2]) + uvOffsets[0];

@@ -71,7 +71,7 @@ void particleRendererSprites(
 		const textureGroupFrame *const texFrame = texGroupStateGetFrame(&curParticle->texState);
 
 		// Convert the particle's state to a matrix!
-		transformToMat4(&curParticle->state, &curState->state);
+		transformToMat3x4(&curParticle->state, &curState->state);
 		// Get the particle's UV coordinates!
 		curState->uvOffsets = texFrame->bounds;
 

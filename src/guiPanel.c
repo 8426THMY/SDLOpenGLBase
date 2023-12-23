@@ -6,7 +6,7 @@
 #define GLEW_STATIC
 #include <GL/glew.h>
 
-#include "mat4.h"
+#include "mat3x4.h"
 #include "transform.h"
 
 #include "texture.h"
@@ -83,68 +83,68 @@ void guiPanelDraw(
 	#warning "Border tiling is not yet implemented."
 	#warning "Neither is panel rotation."
 	// Set up the bottom-right corner's state.
-	mat4InitScale(&panelStates[0].state,
+	mat3x4InitScale(&panelStates[0].state,
 		roundf(offsets[0].w * borderFrame->tex->width), roundf(offsets[0].h * borderFrame->tex->height), 1.f
 	);
-	mat4TranslateTransform(&panelStates[0].state, bodyPos[0] + bodyWidth, bodyPos[1] - bodyHeight, 0.f);
+	mat3x4Translate(&panelStates[0].state, bodyPos[0] + bodyWidth, bodyPos[1] - bodyHeight, 0.f);
 
 	panelStates[0].uvOffsets = offsets[0];
 
 
 	// Set up the top-right corner's state.
-	mat4InitScale(&panelStates[1].state,
+	mat3x4InitScale(&panelStates[1].state,
 		roundf(offsets[1].w * borderFrame->tex->width), roundf(offsets[1].h * borderFrame->tex->height), 1.f
 	);
-	mat4TranslateTransform(&panelStates[1].state, bodyPos[0] + bodyWidth, cornerPos[1], 0.f);
+	mat3x4Translate(&panelStates[1].state, bodyPos[0] + bodyWidth, cornerPos[1], 0.f);
 
 	panelStates[1].uvOffsets = offsets[1];
 
 
 	// Set up the top-left corner's state.
-	mat4InitScale(&panelStates[2].state, bodyPos[0] - cornerPos[0], cornerPos[1] - bodyPos[1], 1.f);
-	mat4TranslateTransform(&panelStates[2].state, cornerPos[0], cornerPos[1], 0.f);
+	mat3x4InitScale(&panelStates[2].state, bodyPos[0] - cornerPos[0], cornerPos[1] - bodyPos[1], 1.f);
+	mat3x4Translate(&panelStates[2].state, cornerPos[0], cornerPos[1], 0.f);
 
 	panelStates[2].uvOffsets = offsets[2];
 
 
 	// Set up the bottom-left corner's state.
-	mat4InitScale(&panelStates[3].state,
+	mat3x4InitScale(&panelStates[3].state,
 		roundf(offsets[3].w * borderFrame->tex->width), roundf(offsets[3].h * borderFrame->tex->height), 1.f
 	);
-	mat4TranslateTransform(&panelStates[3].state, cornerPos[0], bodyPos[1] - bodyHeight, 0.f);
+	mat3x4Translate(&panelStates[3].state, cornerPos[0], bodyPos[1] - bodyHeight, 0.f);
 
 	panelStates[3].uvOffsets = offsets[3];
 
 
 	// Set up the right edge's state.
 	tempHeight = roundf(offsets[4].h * borderFrame->tex->height);
-	mat4InitScale(&panelStates[4].state, bodyHeight, tempHeight, 1.f);
-	mat4RotateZ(&panelStates[4].state, -M_PI_2);
-	mat4TranslateTransform(&panelStates[4].state, bodyPos[0] + bodyWidth + tempHeight, bodyPos[1], 0.f);
+	mat3x4InitScale(&panelStates[4].state, bodyHeight, tempHeight, 1.f);
+	mat3x4RotateZ(&panelStates[4].state, -M_PI_2);
+	mat3x4Translate(&panelStates[4].state, bodyPos[0] + bodyWidth + tempHeight, bodyPos[1], 0.f);
 
 	panelStates[4].uvOffsets = offsets[4];
 
 
 	// Set up the top edge's state.
-	mat4InitScale(&panelStates[5].state, bodyWidth, roundf(offsets[5].h * borderFrame->tex->height), 1.f);
-	mat4TranslateTransform(&panelStates[5].state, bodyPos[0], cornerPos[1], 0.f);
+	mat3x4InitScale(&panelStates[5].state, bodyWidth, roundf(offsets[5].h * borderFrame->tex->height), 1.f);
+	mat3x4Translate(&panelStates[5].state, bodyPos[0], cornerPos[1], 0.f);
 
 	panelStates[5].uvOffsets = offsets[5];
 
 
 	// Set up the left edge's state.
-	mat4InitScale(&panelStates[6].state, bodyHeight, roundf(offsets[6].h * borderFrame->tex->height), 1.f);
-	mat4RotateZ(&panelStates[6].state, M_PI_2);
-	mat4TranslateTransform(&panelStates[6].state, cornerPos[0], bodyPos[1] - bodyHeight, 0.f);
+	mat3x4InitScale(&panelStates[6].state, bodyHeight, roundf(offsets[6].h * borderFrame->tex->height), 1.f);
+	mat3x4RotateZ(&panelStates[6].state, M_PI_2);
+	mat3x4Translate(&panelStates[6].state, cornerPos[0], bodyPos[1] - bodyHeight, 0.f);
 
 	panelStates[6].uvOffsets = offsets[6];
 
 
 	// Set up the bottom edge's state.
 	tempHeight = roundf(offsets[7].h * borderFrame->tex->height);
-	mat4InitScale(&panelStates[7].state, bodyWidth, tempHeight, 1.f);
-	mat4RotateZ(&panelStates[7].state, M_PI);
-	mat4TranslateTransform(&panelStates[7].state, bodyPos[0] + bodyWidth, bodyPos[1] - bodyHeight - tempHeight, 0.f);
+	mat3x4InitScale(&panelStates[7].state, bodyWidth, tempHeight, 1.f);
+	mat3x4RotateZ(&panelStates[7].state, M_PI);
+	mat3x4Translate(&panelStates[7].state, bodyPos[0] + bodyWidth, bodyPos[1] - bodyHeight - tempHeight, 0.f);
 
 	panelStates[7].uvOffsets = offsets[7];
 
@@ -160,8 +160,8 @@ void guiPanelDraw(
 	glBindTexture(GL_TEXTURE_2D, bodyFrame->tex->id);
 
 	// Draw the main region of the panel.
-	mat4InitScale(&panelStates[0].state, bodyWidth, bodyHeight, 1.f);
-	mat4TranslateTransform(&panelStates[0].state, bodyPos[0], bodyPos[1], 0.f);
+	mat3x4InitScale(&panelStates[0].state, bodyWidth, bodyHeight, 1.f);
+	mat3x4Translate(&panelStates[0].state, bodyPos[0], bodyPos[1], 0.f);
 
 	panelStates[0].uvOffsets.x = bodyFrame->bounds.x;
 	panelStates[0].uvOffsets.y = bodyFrame->bounds.y;

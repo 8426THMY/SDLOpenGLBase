@@ -148,6 +148,16 @@ mat4 mat4InitTranslateVec3C(const vec3 v){
 	return(mat4InitTranslateC(v.x, v.y, v.z));
 }
 
+// Initialise a matrix to a translation matrix using a vec4!
+void mat4InitTranslateVec4(mat4 *const restrict m, const vec4 *const restrict v){
+	mat4InitTranslate4(m, v->x, v->y, v->z, v->w);
+}
+
+// Initialise a matrix to a translation matrix using a vec4!
+mat4 mat4InitTranslateVec4C(const vec4 v){
+	return(mat4InitTranslate4C(v.x, v.y, v.z, v.w));
+}
+
 // Initialize a matrix from XYZ Euler angles (in radians)!
 void mat4InitEulerXYZ(mat4 *const restrict m, const float x, const float y, const float z){
 	const float cx = cosf(x);
@@ -509,7 +519,6 @@ void mat4InitQuat(mat4 *const restrict m, const quat *const restrict q){
 	const float zz = q->z * q->z;
 	const float zw = q->z * q->w;
 
-	// Rotate our matrix by the quaternion!
 	m->m[0][0] = 1.f - 2.f * (yy + zz);
 	m->m[0][1] = 2.f * (xy + zw);
 	m->m[0][2] = 2.f * (xz - yw);
@@ -546,7 +555,6 @@ mat4 mat4InitQuatC(const quat q){
 	const float zz = q.z * q.z;
 	const float zw = q.z * q.w;
 
-	// Rotate our matrix by the quaternion!
 	const mat4 m = {
 		.m[0][0] = 1.f - 2.f * (yy + zz),
 		.m[0][1] = 2.f * (xy + zw),
@@ -845,7 +853,7 @@ mat4 mat4AddMat4C(const mat4 m1, const mat4 m2){
 
 
 /*
-** Left-multiply a "3x1" column vector by a matrix (m*v)!
+** Left-multiply a 3x1 column vector by a matrix (m*v)!
 ** Note that this is really a 4x1 vector with '1' in the last component.
 */
 void mat4MultiplyVec3(const mat4 *const restrict m, vec3 *const restrict v){
@@ -857,7 +865,7 @@ void mat4MultiplyVec3(const mat4 *const restrict m, vec3 *const restrict v){
 }
 
 /*
-** Left-multiply a "3x1" column vector by a matrix (m*v) and store the result in "out"!
+** Left-multiply a 3x1 column vector by a matrix (m*v) and store the result in "out"!
 ** Note that this is really a 4x1 vector with '1' in the last component.
 ** This assumes that "out" isn't "v".
 */
@@ -868,7 +876,7 @@ void mat4MultiplyVec3Out(const mat4 *const restrict m, const vec3 *const restric
 }
 
 /*
-** Left-multiply a "3x1" column vector by a matrix (m*v) and return the result!
+** Left-multiply a 3x1 column vector by a matrix (m*v) and return the result!
 ** Note that this is really a 4x1 vector with '1' in the last component.
 ** This assumes that "out" isn't "v".
 */
@@ -883,37 +891,37 @@ vec3 mat4MultiplyVec3C(const mat4 m, const vec3 v){
 }
 
 /*
-** Right-multiply a "1x3" row vector by a matrix (v^T*m)!
+** Right-multiply a 1x3 row vector by a matrix (v^T*m)!
 ** Note that this is really a 1x4 vector with '1' in the last component.
 */
 void vec3MultiplyMat4(vec3 *const restrict v, const mat4 *const restrict m){
 	const vec3 temp = *v;
 
-	v->x = temp.x * m->m[0][0] + temp.y * m->m[0][1] + temp.z * m->m[0][2];
-	v->y = temp.x * m->m[1][0] + temp.y * m->m[1][1] + temp.z * m->m[1][2];
-	v->z = temp.x * m->m[2][0] + temp.y * m->m[2][1] + temp.z * m->m[2][2];
+	v->x = temp.x * m->m[0][0] + temp.y * m->m[0][1] + temp.z * m->m[0][2] + m->m[0][3];
+	v->y = temp.x * m->m[1][0] + temp.y * m->m[1][1] + temp.z * m->m[1][2] + m->m[1][3];
+	v->z = temp.x * m->m[2][0] + temp.y * m->m[2][1] + temp.z * m->m[2][2] + m->m[2][3];
 }
 
 /*
-** Right-multiply a "1x3" row vector by a matrix (v^T*m) and store the result in "out"!
+** Right-multiply a 1x3 row vector by a matrix (v^T*m) and store the result in "out"!
 ** Note that this is really a 1x4 vector with '1' in the last component.
 ** This assumes that "out" isn't "v".
 */
 void vec3MultiplyMat4Out(const vec3 *const restrict v, const mat4 *const restrict m, vec3 *const restrict out){
-	out->x = v->x * m->m[0][0] + v->y * m->m[0][1] + v->z * m->m[0][2];
-	out->y = v->x * m->m[1][0] + v->y * m->m[1][1] + v->z * m->m[1][2];
-	out->z = v->x * m->m[2][0] + v->y * m->m[2][1] + v->z * m->m[2][2];
+	out->x = v->x * m->m[0][0] + v->y * m->m[0][1] + v->z * m->m[0][2] + m->m[0][3];
+	out->y = v->x * m->m[1][0] + v->y * m->m[1][1] + v->z * m->m[1][2] + m->m[1][3];
+	out->z = v->x * m->m[2][0] + v->y * m->m[2][1] + v->z * m->m[2][2] + m->m[2][3];
 }
 
 /*
-** Right-multiply a "1x3" row vector by a matrix (v^T*m) and return the result!
+** Right-multiply a 1x3 row vector by a matrix (v^T*m) and return the result!
 ** Note that this is really a 1x4 vector with '1' in the last component.
 */
 vec3 vec3MultiplyMat4C(const vec3 v, const mat4 m){
 	const vec3 out = {
-		.x = v.x * m.m[0][0] + v.y * m.m[0][1] + v.z * m.m[0][2],
-		.y = v.x * m.m[1][0] + v.y * m.m[1][1] + v.z * m.m[1][2],
-		.z = v.x * m.m[2][0] + v.y * m.m[2][1] + v.z * m.m[2][2]
+		.x = v.x * m.m[0][0] + v.y * m.m[0][1] + v.z * m.m[0][2] + m.m[0][3],
+		.y = v.x * m.m[1][0] + v.y * m.m[1][1] + v.z * m.m[1][2] + m.m[1][3],
+		.z = v.x * m.m[2][0] + v.y * m.m[2][1] + v.z * m.m[2][2] + m.m[2][3]
 	};
 
 	return(out);
@@ -929,7 +937,10 @@ void mat4MultiplyVec4(const mat4 *const restrict m, vec4 *const restrict v){
 	v->w = m->m[0][3] * temp.x + m->m[1][3] * temp.y + m->m[2][3] * temp.z + m->m[3][3] * temp.w;
 }
 
-// Left-multiply a 4x1 column vector by a matrix (m*v) and store the result in "out"! This assumes that "out" isn't "v".
+/*
+** Left-multiply a 4x1 column vector by a matrix (m*v) and store the result in "out"!
+** This assumes that "out" isn't "v".
+*/
 void mat4MultiplyVec4Out(const mat4 *const restrict m, const vec4 *const restrict v, vec4 *const restrict out){
 	out->x = m->m[0][0] * v->x + m->m[1][0] * v->y + m->m[2][0] * v->z + m->m[3][0] * v->w;
 	out->y = m->m[0][1] * v->x + m->m[1][1] * v->y + m->m[2][1] * v->z + m->m[3][1] * v->w;
@@ -979,27 +990,45 @@ vec4 vec4MultiplyMat4C(const vec4 v, const mat4 m){
 	return(out);
 }
 
-// Right-multiply the 4x4 matrix "m1" by the 3x3 transformation matrix "m2" (m1*m2)!
+/*
+** Right-multiply the 4x4 matrix "m1" by the 3x3 transformation matrix "m2" (m1*m2)!
+** We pad "m2" out to a 4x4 matrix using zeroes on the off-diagonals and one on the diagonal.
+*/
 void mat4MultiplyMat3(mat4 *const restrict m1, const mat3 m2){
 	const mat4 tempMatrix1 = *m1;
 
-	m1->m[0][0] = tempMatrix1.m[0][0] * m2.m[0][0] + tempMatrix1.m[1][0] * m2.m[0][1] + tempMatrix1.m[2][0] * m2.m[0][2];
-	m1->m[0][1] = tempMatrix1.m[0][1] * m2.m[0][0] + tempMatrix1.m[1][1] * m2.m[0][1] + tempMatrix1.m[2][1] * m2.m[0][2];
-	m1->m[0][2] = tempMatrix1.m[0][2] * m2.m[0][0] + tempMatrix1.m[1][2] * m2.m[0][1] + tempMatrix1.m[2][2] * m2.m[0][2];
-	m1->m[0][3] = tempMatrix1.m[0][3] * m2.m[0][0] + tempMatrix1.m[1][3] * m2.m[0][1] + tempMatrix1.m[2][3] * m2.m[0][2];
+	m1->m[0][0] = tempMatrix1.m[0][0] * m2.m[0][0] + tempMatrix1.m[1][0] * m2.m[0][1] +
+	              tempMatrix1.m[2][0] * m2.m[0][2];
+	m1->m[0][1] = tempMatrix1.m[0][1] * m2.m[0][0] + tempMatrix1.m[1][1] * m2.m[0][1] +
+	              tempMatrix1.m[2][1] * m2.m[0][2];
+	m1->m[0][2] = tempMatrix1.m[0][2] * m2.m[0][0] + tempMatrix1.m[1][2] * m2.m[0][1] +
+	              tempMatrix1.m[2][2] * m2.m[0][2];
+	m1->m[0][3] = tempMatrix1.m[0][3] * m2.m[0][0] + tempMatrix1.m[1][3] * m2.m[0][1] +
+	              tempMatrix1.m[2][3] * m2.m[0][2];
 
-	m1->m[1][0] = tempMatrix1.m[0][0] * m2.m[1][0] + tempMatrix1.m[1][0] * m2.m[1][1] + tempMatrix1.m[2][0] * m2.m[1][2];
-	m1->m[1][1] = tempMatrix1.m[0][1] * m2.m[1][0] + tempMatrix1.m[1][1] * m2.m[1][1] + tempMatrix1.m[2][1] * m2.m[1][2];
-	m1->m[1][2] = tempMatrix1.m[0][2] * m2.m[1][0] + tempMatrix1.m[1][2] * m2.m[1][1] + tempMatrix1.m[2][2] * m2.m[1][2];
-	m1->m[1][3] = tempMatrix1.m[0][3] * m2.m[1][0] + tempMatrix1.m[1][3] * m2.m[1][1] + tempMatrix1.m[2][3] * m2.m[1][2];
+	m1->m[1][0] = tempMatrix1.m[0][0] * m2.m[1][0] + tempMatrix1.m[1][0] * m2.m[1][1] +
+	              tempMatrix1.m[2][0] * m2.m[1][2];
+	m1->m[1][1] = tempMatrix1.m[0][1] * m2.m[1][0] + tempMatrix1.m[1][1] * m2.m[1][1] +
+	              tempMatrix1.m[2][1] * m2.m[1][2];
+	m1->m[1][2] = tempMatrix1.m[0][2] * m2.m[1][0] + tempMatrix1.m[1][2] * m2.m[1][1] +
+	              tempMatrix1.m[2][2] * m2.m[1][2];
+	m1->m[1][3] = tempMatrix1.m[0][3] * m2.m[1][0] + tempMatrix1.m[1][3] * m2.m[1][1] +
+	              tempMatrix1.m[2][3] * m2.m[1][2];
 
-	m1->m[2][0] = tempMatrix1.m[0][0] * m2.m[2][0] + tempMatrix1.m[1][0] * m2.m[2][1] + tempMatrix1.m[2][0] * m2.m[2][2];
-	m1->m[2][1] = tempMatrix1.m[0][1] * m2.m[2][0] + tempMatrix1.m[1][1] * m2.m[2][1] + tempMatrix1.m[2][1] * m2.m[2][2];
-	m1->m[2][2] = tempMatrix1.m[0][2] * m2.m[2][0] + tempMatrix1.m[1][2] * m2.m[2][1] + tempMatrix1.m[2][2] * m2.m[2][2];
-	m1->m[2][3] = tempMatrix1.m[0][3] * m2.m[2][0] + tempMatrix1.m[1][3] * m2.m[2][1] + tempMatrix1.m[2][3] * m2.m[2][2];
+	m1->m[2][0] = tempMatrix1.m[0][0] * m2.m[2][0] + tempMatrix1.m[1][0] * m2.m[2][1] +
+	              tempMatrix1.m[2][0] * m2.m[2][2];
+	m1->m[2][1] = tempMatrix1.m[0][1] * m2.m[2][0] + tempMatrix1.m[1][1] * m2.m[2][1] +
+	              tempMatrix1.m[2][1] * m2.m[2][2];
+	m1->m[2][2] = tempMatrix1.m[0][2] * m2.m[2][0] + tempMatrix1.m[1][2] * m2.m[2][1] +
+	              tempMatrix1.m[2][2] * m2.m[2][2];
+	m1->m[2][3] = tempMatrix1.m[0][3] * m2.m[2][0] + tempMatrix1.m[1][3] * m2.m[2][1] +
+	              tempMatrix1.m[2][3] * m2.m[2][2];
 }
 
-// Right-multiply the 4x4 matrix "m1" by the 3x3 transformation matrix "m2" (m1*m2) and store the result in "out"!
+/*
+** Right-multiply the 4x4 matrix "m1" by the 3x3 transformation matrix "m2" (m1*m2) and store the result in "out"!
+** We pad "m2" out to a 4x4 matrix using zeroes on the off-diagonals and one on the diagonal.
+*/
 void mat4MultiplyMat3Out(const mat4 m1, const mat3 m2, mat4 *const restrict out){
 	out->m[0][0] = m1.m[0][0] * m2.m[0][0] + m1.m[1][0] * m2.m[0][1] + m1.m[2][0] * m2.m[0][2];
 	out->m[0][1] = m1.m[0][1] * m2.m[0][0] + m1.m[1][1] * m2.m[0][1] + m1.m[2][1] * m2.m[0][2];
@@ -1022,7 +1051,10 @@ void mat4MultiplyMat3Out(const mat4 m1, const mat3 m2, mat4 *const restrict out)
 	out->m[3][3] = m1.m[3][3];
 }
 
-// Right-multiply the 4x4 matrix "m1" by the 3x3 transformation matrix "m2" (m1*m2) and return the result!
+/*
+** Right-multiply the 4x4 matrix "m1" by the 3x3 transformation matrix "m2" (m1*m2) and return the result!
+** We pad "m2" out to a 4x4 matrix using zeroes on the off-diagonals and one on the diagonal.
+*/
 mat4 mat4MultiplyMat3C(const mat4 m1, const mat3 m2){
 	const mat4 out = {
 		.m[0][0] = m1.m[0][0] * m2.m[0][0] + m1.m[1][0] * m2.m[0][1] + m1.m[2][0] * m2.m[0][2],
@@ -1049,28 +1081,46 @@ mat4 mat4MultiplyMat3C(const mat4 m1, const mat3 m2){
 	return(out);
 }
 
-// Left-multiply the 4x4 matrix "m2" by the 3x3 transformation matrix "m1" (m1*m2) and store the result in "m2"!
+/*
+** Left-multiply the 4x4 matrix "m2" by the 3x3 transformation matrix "m1" (m1*m2) and store the result in "m2"!
+** We pad "m1" out to a 4x4 matrix using zeroes on the off-diagonals and one on the diagonal.
+*/
 void mat3MultiplyMat4(const mat3 m1, mat4 *const restrict m2){
 	const mat4 tempMatrix1 = *m2;
 
-	m2->m[0][0] = m1.m[0][0] * tempMatrix1.m[0][0] + m1.m[1][0] * tempMatrix1.m[0][1] + m1.m[2][0] * tempMatrix1.m[0][2];
-	m2->m[0][1] = m1.m[0][1] * tempMatrix1.m[0][0] + m1.m[1][1] * tempMatrix1.m[0][1] + m1.m[2][1] * tempMatrix1.m[0][2];
-	m2->m[0][2] = m1.m[0][2] * tempMatrix1.m[0][0] + m1.m[1][2] * tempMatrix1.m[0][1] + m1.m[2][2] * tempMatrix1.m[0][2];
+	m2->m[0][0] = m1.m[0][0] * tempMatrix1.m[0][0] + m1.m[1][0] * tempMatrix1.m[0][1] +
+	              m1.m[2][0] * tempMatrix1.m[0][2];
+	m2->m[0][1] = m1.m[0][1] * tempMatrix1.m[0][0] + m1.m[1][1] * tempMatrix1.m[0][1] +
+	              m1.m[2][1] * tempMatrix1.m[0][2];
+	m2->m[0][2] = m1.m[0][2] * tempMatrix1.m[0][0] + m1.m[1][2] * tempMatrix1.m[0][1] +
+	              m1.m[2][2] * tempMatrix1.m[0][2];
 
-	m2->m[1][0] = m1.m[0][0] * tempMatrix1.m[1][0] + m1.m[1][0] * tempMatrix1.m[1][1] + m1.m[2][0] * tempMatrix1.m[1][2];
-	m2->m[1][1] = m1.m[0][1] * tempMatrix1.m[1][0] + m1.m[1][1] * tempMatrix1.m[1][1] + m1.m[2][1] * tempMatrix1.m[1][2];
-	m2->m[1][2] = m1.m[0][2] * tempMatrix1.m[1][0] + m1.m[1][2] * tempMatrix1.m[1][1] + m1.m[2][2] * tempMatrix1.m[1][2];
+	m2->m[1][0] = m1.m[0][0] * tempMatrix1.m[1][0] + m1.m[1][0] * tempMatrix1.m[1][1] +
+	              m1.m[2][0] * tempMatrix1.m[1][2];
+	m2->m[1][1] = m1.m[0][1] * tempMatrix1.m[1][0] + m1.m[1][1] * tempMatrix1.m[1][1] +
+	              m1.m[2][1] * tempMatrix1.m[1][2];
+	m2->m[1][2] = m1.m[0][2] * tempMatrix1.m[1][0] + m1.m[1][2] * tempMatrix1.m[1][1] +
+	              m1.m[2][2] * tempMatrix1.m[1][2];
 
-	m2->m[2][0] = m1.m[0][0] * tempMatrix1.m[2][0] + m1.m[1][0] * tempMatrix1.m[2][1] + m1.m[2][0] * tempMatrix1.m[2][2];
-	m2->m[2][1] = m1.m[0][1] * tempMatrix1.m[2][0] + m1.m[1][1] * tempMatrix1.m[2][1] + m1.m[2][1] * tempMatrix1.m[2][2];
-	m2->m[2][2] = m1.m[0][2] * tempMatrix1.m[2][0] + m1.m[1][2] * tempMatrix1.m[2][1] + m1.m[2][2] * tempMatrix1.m[2][2];
+	m2->m[2][0] = m1.m[0][0] * tempMatrix1.m[2][0] + m1.m[1][0] * tempMatrix1.m[2][1] +
+	              m1.m[2][0] * tempMatrix1.m[2][2];
+	m2->m[2][1] = m1.m[0][1] * tempMatrix1.m[2][0] + m1.m[1][1] * tempMatrix1.m[2][1] +
+	              m1.m[2][1] * tempMatrix1.m[2][2];
+	m2->m[2][2] = m1.m[0][2] * tempMatrix1.m[2][0] + m1.m[1][2] * tempMatrix1.m[2][1] +
+	              m1.m[2][2] * tempMatrix1.m[2][2];
 
-	m2->m[3][0] = m1.m[0][0] * tempMatrix1.m[3][0] + m1.m[1][0] * tempMatrix1.m[3][1] + m1.m[2][0] * tempMatrix1.m[3][2];
-	m2->m[3][1] = m1.m[0][1] * tempMatrix1.m[3][0] + m1.m[1][1] * tempMatrix1.m[3][1] + m1.m[2][1] * tempMatrix1.m[3][2];
-	m2->m[3][2] = m1.m[0][2] * tempMatrix1.m[3][0] + m1.m[1][2] * tempMatrix1.m[3][1] + m1.m[2][2] * tempMatrix1.m[3][2];
+	m2->m[3][0] = m1.m[0][0] * tempMatrix1.m[3][0] + m1.m[1][0] * tempMatrix1.m[3][1] +
+	              m1.m[2][0] * tempMatrix1.m[3][2];
+	m2->m[3][1] = m1.m[0][1] * tempMatrix1.m[3][0] + m1.m[1][1] * tempMatrix1.m[3][1] +
+	              m1.m[2][1] * tempMatrix1.m[3][2];
+	m2->m[3][2] = m1.m[0][2] * tempMatrix1.m[3][0] + m1.m[1][2] * tempMatrix1.m[3][1] +
+	              m1.m[2][2] * tempMatrix1.m[3][2];
 }
 
-// Left-multiply the 4x4 matrix "m2" by the 3x3 transformation matrix "m1" (m1*m2) and store the result in "out"!
+/*
+** Left-multiply the 4x4 matrix "m2" by the 3x3 transformation matrix "m1" (m1*m2) and store the result in "out"!
+** We pad "m2" out to a 4x4 matrix using zeroes on the off-diagonals and one on the diagonal.
+*/
 void mat3MultiplyMat4Out(const mat3 m1, const mat4 m2, mat4 *const restrict out){
 	out->m[0][0] = m1.m[0][0] * m2.m[0][0] + m1.m[1][0] * m2.m[0][1] + m1.m[2][0] * m2.m[0][2];
 	out->m[0][1] = m1.m[0][1] * m2.m[0][0] + m1.m[1][1] * m2.m[0][1] + m1.m[2][1] * m2.m[0][2];
@@ -1093,7 +1143,10 @@ void mat3MultiplyMat4Out(const mat3 m1, const mat4 m2, mat4 *const restrict out)
 	out->m[3][3] = m2.m[3][3];
 }
 
-// Left-multiply the 4x4 matrix "m2" by the 3x3 transformation matrix "m1" (m1*m2) and return the result!
+/*
+** Left-multiply the 4x4 matrix "m2" by the 3x3 transformation matrix "m1" (m1*m2) and return the result!
+** We pad "m2" out to a 4x4 matrix using zeroes on the off-diagonals and one on the diagonal.
+*/
 mat4 mat3MultiplyMat4C(const mat3 m1, const mat4 m2){
 	const mat4 out = {
 		.m[0][0] = m1.m[0][0] * m2.m[0][0] + m1.m[1][0] * m2.m[0][1] + m1.m[2][0] * m2.m[0][2],
@@ -1124,97 +1177,161 @@ mat4 mat3MultiplyMat4C(const mat3 m1, const mat4 m2){
 void mat4MultiplyMat4P1(mat4 *const restrict m1, const mat4 m2){
 	const mat4 tempMatrix1 = *m1;
 
-	m1->m[0][0] = tempMatrix1.m[0][0] * m2.m[0][0] + tempMatrix1.m[1][0] * m2.m[0][1] + tempMatrix1.m[2][0] * m2.m[0][2] + tempMatrix1.m[3][0] * m2.m[0][3];
-	m1->m[0][1] = tempMatrix1.m[0][1] * m2.m[0][0] + tempMatrix1.m[1][1] * m2.m[0][1] + tempMatrix1.m[2][1] * m2.m[0][2] + tempMatrix1.m[3][1] * m2.m[0][3];
-	m1->m[0][2] = tempMatrix1.m[0][2] * m2.m[0][0] + tempMatrix1.m[1][2] * m2.m[0][1] + tempMatrix1.m[2][2] * m2.m[0][2] + tempMatrix1.m[3][2] * m2.m[0][3];
-	m1->m[0][3] = tempMatrix1.m[0][3] * m2.m[0][0] + tempMatrix1.m[1][3] * m2.m[0][1] + tempMatrix1.m[2][3] * m2.m[0][2] + tempMatrix1.m[3][3] * m2.m[0][3];
+	m1->m[0][0] = tempMatrix1.m[0][0] * m2.m[0][0] + tempMatrix1.m[1][0] * m2.m[0][1] +
+	              tempMatrix1.m[2][0] * m2.m[0][2] + tempMatrix1.m[3][0] * m2.m[0][3];
+	m1->m[0][1] = tempMatrix1.m[0][1] * m2.m[0][0] + tempMatrix1.m[1][1] * m2.m[0][1] +
+	              tempMatrix1.m[2][1] * m2.m[0][2] + tempMatrix1.m[3][1] * m2.m[0][3];
+	m1->m[0][2] = tempMatrix1.m[0][2] * m2.m[0][0] + tempMatrix1.m[1][2] * m2.m[0][1] +
+	              tempMatrix1.m[2][2] * m2.m[0][2] + tempMatrix1.m[3][2] * m2.m[0][3];
+	m1->m[0][3] = tempMatrix1.m[0][3] * m2.m[0][0] + tempMatrix1.m[1][3] * m2.m[0][1] +
+	              tempMatrix1.m[2][3] * m2.m[0][2] + tempMatrix1.m[3][3] * m2.m[0][3];
 
-	m1->m[1][0] = tempMatrix1.m[0][0] * m2.m[1][0] + tempMatrix1.m[1][0] * m2.m[1][1] + tempMatrix1.m[2][0] * m2.m[1][2] + tempMatrix1.m[3][0] * m2.m[1][3];
-	m1->m[1][1] = tempMatrix1.m[0][1] * m2.m[1][0] + tempMatrix1.m[1][1] * m2.m[1][1] + tempMatrix1.m[2][1] * m2.m[1][2] + tempMatrix1.m[3][1] * m2.m[1][3];
-	m1->m[1][2] = tempMatrix1.m[0][2] * m2.m[1][0] + tempMatrix1.m[1][2] * m2.m[1][1] + tempMatrix1.m[2][2] * m2.m[1][2] + tempMatrix1.m[3][2] * m2.m[1][3];
-	m1->m[1][3] = tempMatrix1.m[0][3] * m2.m[1][0] + tempMatrix1.m[1][3] * m2.m[1][1] + tempMatrix1.m[2][3] * m2.m[1][2] + tempMatrix1.m[3][3] * m2.m[1][3];
+	m1->m[1][0] = tempMatrix1.m[0][0] * m2.m[1][0] + tempMatrix1.m[1][0] * m2.m[1][1] +
+	              tempMatrix1.m[2][0] * m2.m[1][2] + tempMatrix1.m[3][0] * m2.m[1][3];
+	m1->m[1][1] = tempMatrix1.m[0][1] * m2.m[1][0] + tempMatrix1.m[1][1] * m2.m[1][1] +
+	              tempMatrix1.m[2][1] * m2.m[1][2] + tempMatrix1.m[3][1] * m2.m[1][3];
+	m1->m[1][2] = tempMatrix1.m[0][2] * m2.m[1][0] + tempMatrix1.m[1][2] * m2.m[1][1] +
+	              tempMatrix1.m[2][2] * m2.m[1][2] + tempMatrix1.m[3][2] * m2.m[1][3];
+	m1->m[1][3] = tempMatrix1.m[0][3] * m2.m[1][0] + tempMatrix1.m[1][3] * m2.m[1][1] +
+	              tempMatrix1.m[2][3] * m2.m[1][2] + tempMatrix1.m[3][3] * m2.m[1][3];
 
-	m1->m[2][0] = tempMatrix1.m[0][0] * m2.m[2][0] + tempMatrix1.m[1][0] * m2.m[2][1] + tempMatrix1.m[2][0] * m2.m[2][2] + tempMatrix1.m[3][0] * m2.m[2][3];
-	m1->m[2][1] = tempMatrix1.m[0][1] * m2.m[2][0] + tempMatrix1.m[1][1] * m2.m[2][1] + tempMatrix1.m[2][1] * m2.m[2][2] + tempMatrix1.m[3][1] * m2.m[2][3];
-	m1->m[2][2] = tempMatrix1.m[0][2] * m2.m[2][0] + tempMatrix1.m[1][2] * m2.m[2][1] + tempMatrix1.m[2][2] * m2.m[2][2] + tempMatrix1.m[3][2] * m2.m[2][3];
-	m1->m[2][3] = tempMatrix1.m[0][3] * m2.m[2][0] + tempMatrix1.m[1][3] * m2.m[2][1] + tempMatrix1.m[2][3] * m2.m[2][2] + tempMatrix1.m[3][3] * m2.m[2][3];
+	m1->m[2][0] = tempMatrix1.m[0][0] * m2.m[2][0] + tempMatrix1.m[1][0] * m2.m[2][1] +
+	              tempMatrix1.m[2][0] * m2.m[2][2] + tempMatrix1.m[3][0] * m2.m[2][3];
+	m1->m[2][1] = tempMatrix1.m[0][1] * m2.m[2][0] + tempMatrix1.m[1][1] * m2.m[2][1] +
+	              tempMatrix1.m[2][1] * m2.m[2][2] + tempMatrix1.m[3][1] * m2.m[2][3];
+	m1->m[2][2] = tempMatrix1.m[0][2] * m2.m[2][0] + tempMatrix1.m[1][2] * m2.m[2][1] +
+	              tempMatrix1.m[2][2] * m2.m[2][2] + tempMatrix1.m[3][2] * m2.m[2][3];
+	m1->m[2][3] = tempMatrix1.m[0][3] * m2.m[2][0] + tempMatrix1.m[1][3] * m2.m[2][1] +
+	              tempMatrix1.m[2][3] * m2.m[2][2] + tempMatrix1.m[3][3] * m2.m[2][3];
 
-	m1->m[3][0] = tempMatrix1.m[0][0] * m2.m[3][0] + tempMatrix1.m[1][0] * m2.m[3][1] + tempMatrix1.m[2][0] * m2.m[3][2] + tempMatrix1.m[3][0] * m2.m[3][3];
-	m1->m[3][1] = tempMatrix1.m[0][1] * m2.m[3][0] + tempMatrix1.m[1][1] * m2.m[3][1] + tempMatrix1.m[2][1] * m2.m[3][2] + tempMatrix1.m[3][1] * m2.m[3][3];
-	m1->m[3][2] = tempMatrix1.m[0][2] * m2.m[3][0] + tempMatrix1.m[1][2] * m2.m[3][1] + tempMatrix1.m[2][2] * m2.m[3][2] + tempMatrix1.m[3][2] * m2.m[3][3];
-	m1->m[3][3] = tempMatrix1.m[0][3] * m2.m[3][0] + tempMatrix1.m[1][3] * m2.m[3][1] + tempMatrix1.m[2][3] * m2.m[3][2] + tempMatrix1.m[3][3] * m2.m[3][3];
+	m1->m[3][0] = tempMatrix1.m[0][0] * m2.m[3][0] + tempMatrix1.m[1][0] * m2.m[3][1] +
+	              tempMatrix1.m[2][0] * m2.m[3][2] + tempMatrix1.m[3][0] * m2.m[3][3];
+	m1->m[3][1] = tempMatrix1.m[0][1] * m2.m[3][0] + tempMatrix1.m[1][1] * m2.m[3][1] +
+	              tempMatrix1.m[2][1] * m2.m[3][2] + tempMatrix1.m[3][1] * m2.m[3][3];
+	m1->m[3][2] = tempMatrix1.m[0][2] * m2.m[3][0] + tempMatrix1.m[1][2] * m2.m[3][1] +
+	              tempMatrix1.m[2][2] * m2.m[3][2] + tempMatrix1.m[3][2] * m2.m[3][3];
+	m1->m[3][3] = tempMatrix1.m[0][3] * m2.m[3][0] + tempMatrix1.m[1][3] * m2.m[3][1] +
+	              tempMatrix1.m[2][3] * m2.m[3][2] + tempMatrix1.m[3][3] * m2.m[3][3];
 }
 
 // Left-multiply "m2" by "m1" (m1*m2) and store the result in "m2"!
 void mat4MultiplyMat4P2(const mat4 m1, mat4 *const restrict m2){
 	const mat4 tempMatrix1 = *m2;
 
-	m2->m[0][0] = m1.m[0][0] * tempMatrix1.m[0][0] + m1.m[1][0] * tempMatrix1.m[0][1] + m1.m[2][0] * tempMatrix1.m[0][2] + m1.m[3][0] * tempMatrix1.m[0][3];
-	m2->m[0][1] = m1.m[0][1] * tempMatrix1.m[0][0] + m1.m[1][1] * tempMatrix1.m[0][1] + m1.m[2][1] * tempMatrix1.m[0][2] + m1.m[3][1] * tempMatrix1.m[0][3];
-	m2->m[0][2] = m1.m[0][2] * tempMatrix1.m[0][0] + m1.m[1][2] * tempMatrix1.m[0][1] + m1.m[2][2] * tempMatrix1.m[0][2] + m1.m[3][2] * tempMatrix1.m[0][3];
-	m2->m[0][3] = m1.m[0][3] * tempMatrix1.m[0][0] + m1.m[1][3] * tempMatrix1.m[0][1] + m1.m[2][3] * tempMatrix1.m[0][2] + m1.m[3][3] * tempMatrix1.m[0][3];
+	m2->m[0][0] = m1.m[0][0] * tempMatrix1.m[0][0] + m1.m[1][0] * tempMatrix1.m[0][1] +
+	              m1.m[2][0] * tempMatrix1.m[0][2] + m1.m[3][0] * tempMatrix1.m[0][3];
+	m2->m[0][1] = m1.m[0][1] * tempMatrix1.m[0][0] + m1.m[1][1] * tempMatrix1.m[0][1] +
+	              m1.m[2][1] * tempMatrix1.m[0][2] + m1.m[3][1] * tempMatrix1.m[0][3];
+	m2->m[0][2] = m1.m[0][2] * tempMatrix1.m[0][0] + m1.m[1][2] * tempMatrix1.m[0][1] +
+	              m1.m[2][2] * tempMatrix1.m[0][2] + m1.m[3][2] * tempMatrix1.m[0][3];
+	m2->m[0][3] = m1.m[0][3] * tempMatrix1.m[0][0] + m1.m[1][3] * tempMatrix1.m[0][1] +
+	              m1.m[2][3] * tempMatrix1.m[0][2] + m1.m[3][3] * tempMatrix1.m[0][3];
 
-	m2->m[1][0] = m1.m[0][0] * tempMatrix1.m[1][0] + m1.m[1][0] * tempMatrix1.m[1][1] + m1.m[2][0] * tempMatrix1.m[1][2] + m1.m[3][0] * tempMatrix1.m[1][3];
-	m2->m[1][1] = m1.m[0][1] * tempMatrix1.m[1][0] + m1.m[1][1] * tempMatrix1.m[1][1] + m1.m[2][1] * tempMatrix1.m[1][2] + m1.m[3][1] * tempMatrix1.m[1][3];
-	m2->m[1][2] = m1.m[0][2] * tempMatrix1.m[1][0] + m1.m[1][2] * tempMatrix1.m[1][1] + m1.m[2][2] * tempMatrix1.m[1][2] + m1.m[3][2] * tempMatrix1.m[1][3];
-	m2->m[1][3] = m1.m[0][3] * tempMatrix1.m[1][0] + m1.m[1][3] * tempMatrix1.m[1][1] + m1.m[2][3] * tempMatrix1.m[1][2] + m1.m[3][3] * tempMatrix1.m[1][3];
+	m2->m[1][0] = m1.m[0][0] * tempMatrix1.m[1][0] + m1.m[1][0] * tempMatrix1.m[1][1] +
+	              m1.m[2][0] * tempMatrix1.m[1][2] + m1.m[3][0] * tempMatrix1.m[1][3];
+	m2->m[1][1] = m1.m[0][1] * tempMatrix1.m[1][0] + m1.m[1][1] * tempMatrix1.m[1][1] +
+	              m1.m[2][1] * tempMatrix1.m[1][2] + m1.m[3][1] * tempMatrix1.m[1][3];
+	m2->m[1][2] = m1.m[0][2] * tempMatrix1.m[1][0] + m1.m[1][2] * tempMatrix1.m[1][1] +
+	              m1.m[2][2] * tempMatrix1.m[1][2] + m1.m[3][2] * tempMatrix1.m[1][3];
+	m2->m[1][3] = m1.m[0][3] * tempMatrix1.m[1][0] + m1.m[1][3] * tempMatrix1.m[1][1] +
+	              m1.m[2][3] * tempMatrix1.m[1][2] + m1.m[3][3] * tempMatrix1.m[1][3];
 
-	m2->m[2][0] = m1.m[0][0] * tempMatrix1.m[2][0] + m1.m[1][0] * tempMatrix1.m[2][1] + m1.m[2][0] * tempMatrix1.m[2][2] + m1.m[3][0] * tempMatrix1.m[2][3];
-	m2->m[2][1] = m1.m[0][1] * tempMatrix1.m[2][0] + m1.m[1][1] * tempMatrix1.m[2][1] + m1.m[2][1] * tempMatrix1.m[2][2] + m1.m[3][1] * tempMatrix1.m[2][3];
-	m2->m[2][2] = m1.m[0][2] * tempMatrix1.m[2][0] + m1.m[1][2] * tempMatrix1.m[2][1] + m1.m[2][2] * tempMatrix1.m[2][2] + m1.m[3][2] * tempMatrix1.m[2][3];
-	m2->m[2][3] = m1.m[0][3] * tempMatrix1.m[2][0] + m1.m[1][3] * tempMatrix1.m[2][1] + m1.m[2][3] * tempMatrix1.m[2][2] + m1.m[3][3] * tempMatrix1.m[2][3];
+	m2->m[2][0] = m1.m[0][0] * tempMatrix1.m[2][0] + m1.m[1][0] * tempMatrix1.m[2][1] +
+	              m1.m[2][0] * tempMatrix1.m[2][2] + m1.m[3][0] * tempMatrix1.m[2][3];
+	m2->m[2][1] = m1.m[0][1] * tempMatrix1.m[2][0] + m1.m[1][1] * tempMatrix1.m[2][1] +
+	              m1.m[2][1] * tempMatrix1.m[2][2] + m1.m[3][1] * tempMatrix1.m[2][3];
+	m2->m[2][2] = m1.m[0][2] * tempMatrix1.m[2][0] + m1.m[1][2] * tempMatrix1.m[2][1] +
+	              m1.m[2][2] * tempMatrix1.m[2][2] + m1.m[3][2] * tempMatrix1.m[2][3];
+	m2->m[2][3] = m1.m[0][3] * tempMatrix1.m[2][0] + m1.m[1][3] * tempMatrix1.m[2][1] +
+	              m1.m[2][3] * tempMatrix1.m[2][2] + m1.m[3][3] * tempMatrix1.m[2][3];
 
-	m2->m[3][0] = m1.m[0][0] * tempMatrix1.m[3][0] + m1.m[1][0] * tempMatrix1.m[3][1] + m1.m[2][0] * tempMatrix1.m[3][2] + m1.m[3][0] * tempMatrix1.m[3][3];
-	m2->m[3][1] = m1.m[0][1] * tempMatrix1.m[3][0] + m1.m[1][1] * tempMatrix1.m[3][1] + m1.m[2][1] * tempMatrix1.m[3][2] + m1.m[3][1] * tempMatrix1.m[3][3];
-	m2->m[3][2] = m1.m[0][2] * tempMatrix1.m[3][0] + m1.m[1][2] * tempMatrix1.m[3][1] + m1.m[2][2] * tempMatrix1.m[3][2] + m1.m[3][2] * tempMatrix1.m[3][3];
-	m2->m[3][3] = m1.m[0][3] * tempMatrix1.m[3][0] + m1.m[1][3] * tempMatrix1.m[3][1] + m1.m[2][3] * tempMatrix1.m[3][2] + m1.m[3][3] * tempMatrix1.m[3][3];
+	m2->m[3][0] = m1.m[0][0] * tempMatrix1.m[3][0] + m1.m[1][0] * tempMatrix1.m[3][1] +
+	              m1.m[2][0] * tempMatrix1.m[3][2] + m1.m[3][0] * tempMatrix1.m[3][3];
+	m2->m[3][1] = m1.m[0][1] * tempMatrix1.m[3][0] + m1.m[1][1] * tempMatrix1.m[3][1] +
+	              m1.m[2][1] * tempMatrix1.m[3][2] + m1.m[3][1] * tempMatrix1.m[3][3];
+	m2->m[3][2] = m1.m[0][2] * tempMatrix1.m[3][0] + m1.m[1][2] * tempMatrix1.m[3][1] +
+	              m1.m[2][2] * tempMatrix1.m[3][2] + m1.m[3][2] * tempMatrix1.m[3][3];
+	m2->m[3][3] = m1.m[0][3] * tempMatrix1.m[3][0] + m1.m[1][3] * tempMatrix1.m[3][1] +
+	              m1.m[2][3] * tempMatrix1.m[3][2] + m1.m[3][3] * tempMatrix1.m[3][3];
 }
 
 // Left-multiply "m2" by "m1" (m1*m2) and store the result in "out"!
 void mat4MultiplyMat4Out(const mat4 m1, const mat4 m2, mat4 *const restrict out){
-	out->m[0][0] = m1.m[0][0] * m2.m[0][0] + m1.m[1][0] * m2.m[0][1] + m1.m[2][0] * m2.m[0][2] + m1.m[3][0] * m2.m[0][3];
-	out->m[0][1] = m1.m[0][1] * m2.m[0][0] + m1.m[1][1] * m2.m[0][1] + m1.m[2][1] * m2.m[0][2] + m1.m[3][1] * m2.m[0][3];
-	out->m[0][2] = m1.m[0][2] * m2.m[0][0] + m1.m[1][2] * m2.m[0][1] + m1.m[2][2] * m2.m[0][2] + m1.m[3][2] * m2.m[0][3];
-	out->m[0][3] = m1.m[0][3] * m2.m[0][0] + m1.m[1][3] * m2.m[0][1] + m1.m[2][3] * m2.m[0][2] + m1.m[3][3] * m2.m[0][3];
+	out->m[0][0] = m1.m[0][0] * m2.m[0][0] + m1.m[1][0] * m2.m[0][1] +
+	               m1.m[2][0] * m2.m[0][2] + m1.m[3][0] * m2.m[0][3];
+	out->m[0][1] = m1.m[0][1] * m2.m[0][0] + m1.m[1][1] * m2.m[0][1] +
+	               m1.m[2][1] * m2.m[0][2] + m1.m[3][1] * m2.m[0][3];
+	out->m[0][2] = m1.m[0][2] * m2.m[0][0] + m1.m[1][2] * m2.m[0][1] +
+	               m1.m[2][2] * m2.m[0][2] + m1.m[3][2] * m2.m[0][3];
+	out->m[0][3] = m1.m[0][3] * m2.m[0][0] + m1.m[1][3] * m2.m[0][1] +
+	               m1.m[2][3] * m2.m[0][2] + m1.m[3][3] * m2.m[0][3];
 
-	out->m[1][0] = m1.m[0][0] * m2.m[1][0] + m1.m[1][0] * m2.m[1][1] + m1.m[2][0] * m2.m[1][2] + m1.m[3][0] * m2.m[1][3];
-	out->m[1][1] = m1.m[0][1] * m2.m[1][0] + m1.m[1][1] * m2.m[1][1] + m1.m[2][1] * m2.m[1][2] + m1.m[3][1] * m2.m[1][3];
-	out->m[1][2] = m1.m[0][2] * m2.m[1][0] + m1.m[1][2] * m2.m[1][1] + m1.m[2][2] * m2.m[1][2] + m1.m[3][2] * m2.m[1][3];
-	out->m[1][3] = m1.m[0][3] * m2.m[1][0] + m1.m[1][3] * m2.m[1][1] + m1.m[2][3] * m2.m[1][2] + m1.m[3][3] * m2.m[1][3];
+	out->m[1][0] = m1.m[0][0] * m2.m[1][0] + m1.m[1][0] * m2.m[1][1] +
+	               m1.m[2][0] * m2.m[1][2] + m1.m[3][0] * m2.m[1][3];
+	out->m[1][1] = m1.m[0][1] * m2.m[1][0] + m1.m[1][1] * m2.m[1][1] +
+	               m1.m[2][1] * m2.m[1][2] + m1.m[3][1] * m2.m[1][3];
+	out->m[1][2] = m1.m[0][2] * m2.m[1][0] + m1.m[1][2] * m2.m[1][1] +
+	               m1.m[2][2] * m2.m[1][2] + m1.m[3][2] * m2.m[1][3];
+	out->m[1][3] = m1.m[0][3] * m2.m[1][0] + m1.m[1][3] * m2.m[1][1] +
+	               m1.m[2][3] * m2.m[1][2] + m1.m[3][3] * m2.m[1][3];
 
-	out->m[2][0] = m1.m[0][0] * m2.m[2][0] + m1.m[1][0] * m2.m[2][1] + m1.m[2][0] * m2.m[2][2] + m1.m[3][0] * m2.m[2][3];
-	out->m[2][1] = m1.m[0][1] * m2.m[2][0] + m1.m[1][1] * m2.m[2][1] + m1.m[2][1] * m2.m[2][2] + m1.m[3][1] * m2.m[2][3];
-	out->m[2][2] = m1.m[0][2] * m2.m[2][0] + m1.m[1][2] * m2.m[2][1] + m1.m[2][2] * m2.m[2][2] + m1.m[3][2] * m2.m[2][3];
-	out->m[2][3] = m1.m[0][3] * m2.m[2][0] + m1.m[1][3] * m2.m[2][1] + m1.m[2][3] * m2.m[2][2] + m1.m[3][3] * m2.m[2][3];
+	out->m[2][0] = m1.m[0][0] * m2.m[2][0] + m1.m[1][0] * m2.m[2][1] +
+	               m1.m[2][0] * m2.m[2][2] + m1.m[3][0] * m2.m[2][3];
+	out->m[2][1] = m1.m[0][1] * m2.m[2][0] + m1.m[1][1] * m2.m[2][1] +
+	               m1.m[2][1] * m2.m[2][2] + m1.m[3][1] * m2.m[2][3];
+	out->m[2][2] = m1.m[0][2] * m2.m[2][0] + m1.m[1][2] * m2.m[2][1] +
+	               m1.m[2][2] * m2.m[2][2] + m1.m[3][2] * m2.m[2][3];
+	out->m[2][3] = m1.m[0][3] * m2.m[2][0] + m1.m[1][3] * m2.m[2][1] +
+	               m1.m[2][3] * m2.m[2][2] + m1.m[3][3] * m2.m[2][3];
 
-	out->m[3][0] = m1.m[0][0] * m2.m[3][0] + m1.m[1][0] * m2.m[3][1] + m1.m[2][0] * m2.m[3][2] + m1.m[3][0] * m2.m[3][3];
-	out->m[3][1] = m1.m[0][1] * m2.m[3][0] + m1.m[1][1] * m2.m[3][1] + m1.m[2][1] * m2.m[3][2] + m1.m[3][1] * m2.m[3][3];
-	out->m[3][2] = m1.m[0][2] * m2.m[3][0] + m1.m[1][2] * m2.m[3][1] + m1.m[2][2] * m2.m[3][2] + m1.m[3][2] * m2.m[3][3];
-	out->m[3][3] = m1.m[0][3] * m2.m[3][0] + m1.m[1][3] * m2.m[3][1] + m1.m[2][3] * m2.m[3][2] + m1.m[3][3] * m2.m[3][3];
+	out->m[3][0] = m1.m[0][0] * m2.m[3][0] + m1.m[1][0] * m2.m[3][1] +
+	               m1.m[2][0] * m2.m[3][2] + m1.m[3][0] * m2.m[3][3];
+	out->m[3][1] = m1.m[0][1] * m2.m[3][0] + m1.m[1][1] * m2.m[3][1] +
+	               m1.m[2][1] * m2.m[3][2] + m1.m[3][1] * m2.m[3][3];
+	out->m[3][2] = m1.m[0][2] * m2.m[3][0] + m1.m[1][2] * m2.m[3][1] +
+	               m1.m[2][2] * m2.m[3][2] + m1.m[3][2] * m2.m[3][3];
+	out->m[3][3] = m1.m[0][3] * m2.m[3][0] + m1.m[1][3] * m2.m[3][1] +
+	               m1.m[2][3] * m2.m[3][2] + m1.m[3][3] * m2.m[3][3];
 }
 
 // Left-multiply "m2" by "m1" (m1*m2) and return the result!
 mat4 mat4MultiplyMat4C(const mat4 m1, const mat4 m2){
 	const mat4 out = {
-		.m[0][0] = m1.m[0][0] * m2.m[0][0] + m1.m[1][0] * m2.m[0][1] + m1.m[2][0] * m2.m[0][2] + m1.m[3][0] * m2.m[0][3],
-		.m[0][1] = m1.m[0][1] * m2.m[0][0] + m1.m[1][1] * m2.m[0][1] + m1.m[2][1] * m2.m[0][2] + m1.m[3][1] * m2.m[0][3],
-		.m[0][2] = m1.m[0][2] * m2.m[0][0] + m1.m[1][2] * m2.m[0][1] + m1.m[2][2] * m2.m[0][2] + m1.m[3][2] * m2.m[0][3],
-		.m[0][3] = m1.m[0][3] * m2.m[0][0] + m1.m[1][3] * m2.m[0][1] + m1.m[2][3] * m2.m[0][2] + m1.m[3][3] * m2.m[0][3],
+		.m[0][0] = m1.m[0][0] * m2.m[0][0] + m1.m[1][0] * m2.m[0][1] +
+		           m1.m[2][0] * m2.m[0][2] + m1.m[3][0] * m2.m[0][3],
+		.m[0][1] = m1.m[0][1] * m2.m[0][0] + m1.m[1][1] * m2.m[0][1] +
+		           m1.m[2][1] * m2.m[0][2] + m1.m[3][1] * m2.m[0][3],
+		.m[0][2] = m1.m[0][2] * m2.m[0][0] + m1.m[1][2] * m2.m[0][1] +
+		           m1.m[2][2] * m2.m[0][2] + m1.m[3][2] * m2.m[0][3],
+		.m[0][3] = m1.m[0][3] * m2.m[0][0] + m1.m[1][3] * m2.m[0][1] +
+		           m1.m[2][3] * m2.m[0][2] + m1.m[3][3] * m2.m[0][3],
 
-		.m[1][0] = m1.m[0][0] * m2.m[1][0] + m1.m[1][0] * m2.m[1][1] + m1.m[2][0] * m2.m[1][2] + m1.m[3][0] * m2.m[1][3],
-		.m[1][1] = m1.m[0][1] * m2.m[1][0] + m1.m[1][1] * m2.m[1][1] + m1.m[2][1] * m2.m[1][2] + m1.m[3][1] * m2.m[1][3],
-		.m[1][2] = m1.m[0][2] * m2.m[1][0] + m1.m[1][2] * m2.m[1][1] + m1.m[2][2] * m2.m[1][2] + m1.m[3][2] * m2.m[1][3],
-		.m[1][3] = m1.m[0][3] * m2.m[1][0] + m1.m[1][3] * m2.m[1][1] + m1.m[2][3] * m2.m[1][2] + m1.m[3][3] * m2.m[1][3],
+		.m[1][0] = m1.m[0][0] * m2.m[1][0] + m1.m[1][0] * m2.m[1][1] +
+		           m1.m[2][0] * m2.m[1][2] + m1.m[3][0] * m2.m[1][3],
+		.m[1][1] = m1.m[0][1] * m2.m[1][0] + m1.m[1][1] * m2.m[1][1] +
+		           m1.m[2][1] * m2.m[1][2] + m1.m[3][1] * m2.m[1][3],
+		.m[1][2] = m1.m[0][2] * m2.m[1][0] + m1.m[1][2] * m2.m[1][1] +
+		           m1.m[2][2] * m2.m[1][2] + m1.m[3][2] * m2.m[1][3],
+		.m[1][3] = m1.m[0][3] * m2.m[1][0] + m1.m[1][3] * m2.m[1][1] +
+		           m1.m[2][3] * m2.m[1][2] + m1.m[3][3] * m2.m[1][3],
 
-		.m[2][0] = m1.m[0][0] * m2.m[2][0] + m1.m[1][0] * m2.m[2][1] + m1.m[2][0] * m2.m[2][2] + m1.m[3][0] * m2.m[2][3],
-		.m[2][1] = m1.m[0][1] * m2.m[2][0] + m1.m[1][1] * m2.m[2][1] + m1.m[2][1] * m2.m[2][2] + m1.m[3][1] * m2.m[2][3],
-		.m[2][2] = m1.m[0][2] * m2.m[2][0] + m1.m[1][2] * m2.m[2][1] + m1.m[2][2] * m2.m[2][2] + m1.m[3][2] * m2.m[2][3],
-		.m[2][3] = m1.m[0][3] * m2.m[2][0] + m1.m[1][3] * m2.m[2][1] + m1.m[2][3] * m2.m[2][2] + m1.m[3][3] * m2.m[2][3],
+		.m[2][0] = m1.m[0][0] * m2.m[2][0] + m1.m[1][0] * m2.m[2][1] +
+		           m1.m[2][0] * m2.m[2][2] + m1.m[3][0] * m2.m[2][3],
+		.m[2][1] = m1.m[0][1] * m2.m[2][0] + m1.m[1][1] * m2.m[2][1] +
+		           m1.m[2][1] * m2.m[2][2] + m1.m[3][1] * m2.m[2][3],
+		.m[2][2] = m1.m[0][2] * m2.m[2][0] + m1.m[1][2] * m2.m[2][1] +
+		           m1.m[2][2] * m2.m[2][2] + m1.m[3][2] * m2.m[2][3],
+		.m[2][3] = m1.m[0][3] * m2.m[2][0] + m1.m[1][3] * m2.m[2][1] +
+		           m1.m[2][3] * m2.m[2][2] + m1.m[3][3] * m2.m[2][3],
 
-		.m[3][0] = m1.m[0][0] * m2.m[3][0] + m1.m[1][0] * m2.m[3][1] + m1.m[2][0] * m2.m[3][2] + m1.m[3][0] * m2.m[3][3],
-		.m[3][1] = m1.m[0][1] * m2.m[3][0] + m1.m[1][1] * m2.m[3][1] + m1.m[2][1] * m2.m[3][2] + m1.m[3][1] * m2.m[3][3],
-		.m[3][2] = m1.m[0][2] * m2.m[3][0] + m1.m[1][2] * m2.m[3][1] + m1.m[2][2] * m2.m[3][2] + m1.m[3][2] * m2.m[3][3],
-		.m[3][3] = m1.m[0][3] * m2.m[3][0] + m1.m[1][3] * m2.m[3][1] + m1.m[2][3] * m2.m[3][2] + m1.m[3][3] * m2.m[3][3]
+		.m[3][0] = m1.m[0][0] * m2.m[3][0] + m1.m[1][0] * m2.m[3][1] +
+		           m1.m[2][0] * m2.m[3][2] + m1.m[3][0] * m2.m[3][3],
+		.m[3][1] = m1.m[0][1] * m2.m[3][0] + m1.m[1][1] * m2.m[3][1] +
+		           m1.m[2][1] * m2.m[3][2] + m1.m[3][1] * m2.m[3][3],
+		.m[3][2] = m1.m[0][2] * m2.m[3][0] + m1.m[1][2] * m2.m[3][1] +
+		           m1.m[2][2] * m2.m[3][2] + m1.m[3][2] * m2.m[3][3],
+		.m[3][3] = m1.m[0][3] * m2.m[3][0] + m1.m[1][3] * m2.m[3][1] +
+		           m1.m[2][3] * m2.m[3][2] + m1.m[3][3] * m2.m[3][3]
 	};
 
 	return(out);
@@ -1601,7 +1718,12 @@ mat4 mat4RotateZC(const mat4 m, const float z){
 ** Generate a rotation matrix that looks in the
 ** direction of the normalized vector "forward"!
 */
-void mat4RotateForward(mat4 *const restrict m, const vec3 *const restrict forward, const vec3 *const restrict worldUp){
+void mat4RotateForward(
+	mat4 *const restrict m,
+	const vec3 *const restrict forward,
+	const vec3 *const restrict worldUp
+){
+
 	vec3 right, up;
 	// Get the right vector!
 	vec3CrossVec3Out(worldUp, forward, &right);
@@ -1652,7 +1774,12 @@ mat4 mat4RotateForwardC(const vec3 forward, const vec3 worldUp){
 }
 
 // Generate a rotation matrix that faces a target!
-void mat4RotateToFace(mat4 *const restrict m, const vec3 *const restrict eye, const vec3 *const restrict target, const vec3 *const restrict worldUp){
+void mat4RotateToFace(
+	mat4 *const restrict m,
+	const vec3 *const restrict eye, const vec3 *const restrict target,
+	const vec3 *const restrict worldUp
+){
+
 	vec3 right, up, forward;
 	// Get the forward vector!
 	vec3SubtractVec3Out(target, eye, &forward);
@@ -2354,7 +2481,12 @@ mat4 mat4ViewC(const vec3 pos, const mat3 rot){
 }
 
 // Generate a look-at matrix!
-void mat4ViewLookAt(mat4 *const restrict m, const vec3 *const restrict eye, const vec3 *const restrict target, const vec3 *const restrict worldUp){
+void mat4ViewLookAt(
+	mat4 *const restrict m,
+	const vec3 *const restrict eye, const vec3 *const restrict target,
+	const vec3 *const restrict worldUp
+){
+
 	vec3 right, up, forward;
 	// Get the forward vector!
 	vec3SubtractVec3Out(eye, target, &forward);
@@ -2407,7 +2539,13 @@ mat4 mat4ViewLookAtC(const vec3 eye, const vec3 target, const vec3 worldUp){
 
 
 // Generate an orthographic matrix!
-void mat4Orthographic(mat4 *const restrict m, const float right, const float left, const float top, const float bottom, const float near, const float far){
+void mat4Orthographic(
+	mat4 *const restrict m,
+	const float right, const float left,
+	const float top, const float bottom,
+	const float near, const float far
+){
+
 	const float widthScale  = 1.f/(right - left);
 	const float heightScale = 1.f/(top - bottom);
 	const float depthScale  = 1.f/(near - far);
@@ -2434,7 +2572,12 @@ void mat4Orthographic(mat4 *const restrict m, const float right, const float lef
 }
 
 // Generate an orthographic matrix!
-mat4 mat4OrthographicC(const float right, const float left, const float top, const float bottom, const float near, const float far){
+mat4 mat4OrthographicC(
+	const float right, const float left,
+	const float top, const float bottom,
+	const float near, const float far
+){
+
 	const float widthScale  = 1.f/(right - left);
 	const float heightScale = 1.f/(top - bottom);
 	const float depthScale  = 1.f/(near - far);
@@ -2450,7 +2593,13 @@ mat4 mat4OrthographicC(const float right, const float left, const float top, con
 }
 
 // Generate a perspective matrix!
-void mat4Frustum(mat4 *const restrict m, const float left, const float right, const float bottom, const float top, const float near, const float far){
+void mat4Frustum(
+	mat4 *const restrict m,
+	const float left, const float right,
+	const float bottom, const float top,
+	const float near, const float far
+){
+
 	const float widthScale  = 1.f/(right - left);
 	const float heightScale = 1.f/(top - bottom);
 	const float depthScale  = 1.f/(near - far);
@@ -2477,7 +2626,12 @@ void mat4Frustum(mat4 *const restrict m, const float left, const float right, co
 }
 
 // Generate a perspective matrix!
-mat4 mat4FrustumC(const float left, const float right, const float bottom, const float top, const float near, const float far){
+mat4 mat4FrustumC(
+	const float left, const float right,
+	const float bottom, const float top,
+	const float near, const float far
+){
+
 	const float widthScale  = 1.f/(right - left);
 	const float heightScale = 1.f/(top - bottom);
 	const float depthScale  = 1.f/(near - far);
@@ -2492,8 +2646,13 @@ mat4 mat4FrustumC(const float left, const float right, const float bottom, const
 	return(m);
 }
 
-// Generate a perspective matrix!
-void mat4Perspective(mat4 *const restrict m, const float fov, const float aspectRatio, const float near, const float far){
+// Generate a perspective matrix from the field of view and aspect ratio!
+void mat4Perspective(
+	mat4 *const restrict m,
+	const float fov, const float aspectRatio,
+	const float near, const float far
+){
+
 	const float invScale = 1.f/(aspectRatio * tan(fov * 0.5f));
 	const float depthScale = 1.f/(near - far);
 
@@ -2519,7 +2678,11 @@ void mat4Perspective(mat4 *const restrict m, const float fov, const float aspect
 }
 
 // Generate a perspective matrix!
-mat4 mat4PerspectiveC(const float fov, const float aspectRatio, const float near, const float far){
+mat4 mat4PerspectiveC(
+	const float fov, const float aspectRatio,
+	const float near, const float far
+){
+
 	const float invScale = 1.f/(aspectRatio * tan(fov * 0.5f));
 	const float depthScale = 1.f/(near - far);
 

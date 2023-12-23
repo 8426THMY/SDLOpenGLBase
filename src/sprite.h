@@ -10,7 +10,7 @@
 #include "vec2.h"
 #include "vec3.h"
 #include "rectangle.h"
-#include "mat4.h"
+#include "mat3x4.h"
 
 #include "utilTypes.h"
 
@@ -41,7 +41,7 @@ typedef struct sprite {
 // This represents the data we must send to
 // the shader for each instance of a sprite.
 typedef struct spriteState {
-	mat4 state;
+	mat3x4 state;
 	rectangle uvOffsets;
 } spriteState;
 

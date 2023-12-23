@@ -55,6 +55,9 @@ typedef struct physicsJointDistance {
 	// gamma = 1/(hk + c)
 	// beta  = hk/(hk + c)
 	// bias  = beta/h * C(x)
+	//
+	// In ODE, gamma is called "CFM" and beta
+	// is called "ERP".
 	float gamma;
 	float bias;
 

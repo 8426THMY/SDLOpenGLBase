@@ -67,7 +67,7 @@ typedef struct meshData {
 // Forward-declare any helper functions!
 static void prepareShaderBones(
 	const skeleton *const restrict mdlSkele, const skeleton *const restrict objSkele,
-	const mat4 *const restrict animStates, GLuint boneStatesID
+	const mat3x4 *const restrict animStates, GLuint boneStatesID
 );
 
 
@@ -1185,7 +1185,7 @@ void modelUpdate(model *const restrict mdl, const float dt){
 #warning "We probably shouldn't have the OpenGL drawing stuff split up so much."
 void modelDraw(
 	const model *const restrict mdl, const skeleton *const restrict objSkele,
-	const mat4 *const restrict animStates, const meshShader *const restrict shader
+	const mat3x4 *const restrict animStates, const meshShader *const restrict shader
 ){
 
 	const mesh *curMesh = mdl->mdlDef->meshes;
@@ -1396,7 +1396,7 @@ void modelCleanup(){
 // Check which bones are used by the model and send their matrices to the shader.
 static void prepareShaderBones(
 	const skeleton *const restrict mdlSkele, const skeleton *const restrict objSkele,
-	const mat4 *const restrict animStates, GLuint boneStatesID
+	const mat3x4 *const restrict animStates, GLuint boneStatesID
 ){
 
 	const bone *curBone = mdlSkele->bones;
@@ -1415,11 +1415,11 @@ static void prepareShaderBones(
 		// If this bone appeared in an animation, convert the
 		// bone state to a matrix so it can be sent to the shader!
 		if(!valueIsInvalid(boneID, boneIndex)){
-			glUniformMatrix4fv(boneStatesID, 1, GL_FALSE, (GLfloat *)&animStates[boneID]);
+			glUniformMatrix4x3fv(boneStatesID, 1, GL_FALSE, (GLfloat *)&animStates[boneID]);
 
 		// Otherwise, use the root's transformation!
 		}else{
-			glUniformMatrix4fv(boneStatesID, 1, GL_FALSE, (GLfloat *)animStates);
+			glUniformMatrix4x3fv(boneStatesID, 1, GL_FALSE, (GLfloat *)animStates);
 		}
 	}
 }

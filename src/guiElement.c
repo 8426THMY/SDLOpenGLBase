@@ -4,6 +4,8 @@
 #define GLEW_STATIC
 #include <GL/glew.h>
 
+#include "mat4.h"
+
 #include "memoryManager.h"
 
 
@@ -43,7 +45,9 @@ void guiElementUpdate(guiElement *const restrict gui, const float dt){
 }
 
 void guiElementDraw(
-	guiElement *const restrict gui, const int windowWidth, const int windowHeight, const spriteShader *const restrict shader
+	guiElement *const restrict gui,
+	const int windowWidth, const int windowHeight,
+	const spriteShader *const restrict shader
 ){
 
 	mat4 viewProjectionMatrix;
@@ -69,19 +73,19 @@ return_t guiElementSetup(){
 	const spriteVertex vertices[4] = {
 		{
 			.pos.x = 0.f, .pos.y =  0.f, .pos.z = 0.f,
-			.uv.x = 0.f, 0.f
+			.uv.x = 0.f, .uv.y = 0.f
 		},
 		{
 			.pos.x = 0.f, .pos.y = -1.f, .pos.z = 0.f,
-			.uv.x = 0.f, 1.f
+			.uv.x = 0.f, .uv.y = 1.f
 		},
 		{
 			.pos.x = 1.f, .pos.y = -1.f, .pos.z = 0.f,
-			.uv.x = 1.f, 1.f
+			.uv.x = 1.f, .uv.y = 1.f
 		},
 		{
 			.pos.x = 1.f, .pos.y =  0.f, .pos.z = 0.f,
-			.uv.x = 1.f, 0.f
+			.uv.x = 1.f, .uv.y = 0.f
 		}
 	};
 
@@ -90,7 +94,11 @@ return_t guiElementSetup(){
 		2, 3, 0
 	};
 
-	spriteGenerateBuffers(&g_guiSpriteDefault, vertices, sizeof(vertices)/sizeof(*vertices), indices, sizeof(indices)/sizeof(*indices));
+	spriteGenerateBuffers(
+		&g_guiSpriteDefault,
+		vertices, sizeof(vertices)/sizeof(*vertices),
+		indices, sizeof(indices)/sizeof(*indices)
+	);
 
 
 	return(1);

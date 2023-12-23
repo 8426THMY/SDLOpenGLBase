@@ -1,7 +1,7 @@
 #include "particleRendererSprite.h"
 
 
-#include "mat4.h"
+#include "mat3x4.h"
 #include "transform.h"
 
 #include "particleManager.h"
@@ -66,12 +66,16 @@ void particleRendererSpriteBatch(
 			const spriteVertex *baseVertex     = partRenderer.spriteData.vertices;
 			const spriteVertexIndex *baseIndex = partRenderer.spriteData.indices;
 			transform curTransform;
-			mat4 curState;
+			mat3x4 curState;
 			size_t startIndex;
 
 			// If the batch is full, draw it and start a new one!
 			// We add an extra index to account for primitive restart.
-			if(spriteRendererBatchedHasRoom(batchedRenderer, partRenderer.spriteData.numIndices + 1)){
+			if(spriteRendererBatchedHasRoom(
+				batchedRenderer
+				partRenderer.spriteData.numVertices, partRenderer.spriteData.numIndices + 1
+			)){
+
 				spriteRendererBatchedDraw(batchedRenderer);
 				spriteRendererBatchedOrphan(batchedRenderer);
 			}
@@ -86,7 +90,7 @@ void particleRendererSpriteBatch(
 			// and then transform our points, rather than transforming them directly.
 			// The only exception is if we're only transforming a single point, but
 			// even this is only negligibly slower.
-			transformToMat4(&curTransform, &curState);
+			transformToMat3x4(&curTransform, &curState);
 			// We only store relative indices, so we need to
 			// add the correct index to start counting from.
 			startIndex = batchedRenderer->numVertices;
@@ -95,7 +99,7 @@ void particleRendererSpriteBatch(
 			for(; baseVertex != lastBaseVertex; ++baseVertex){
 				spriteVertex curVertex;
 				#warning "Temporary, until we know how we want to do billboarding."
-				mat4MultiplyVec3Out(&curState, &baseVertex->pos, &curVertex.pos);
+				mat3x4MultiplyVec3Out(&curState, &baseVertex->pos, &curVertex.pos);
 				#warning "Temporary, until we know how we want to do textures."
 				curVertex.uv = baseVertex->uv;
 				curVertex.normal = baseVertex->normal;

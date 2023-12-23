@@ -4,66 +4,85 @@
 #define GLEW_STATIC
 #include <GL/glew.h>
 
+#include "utilMath.h"
+
+#include "settingsSprites.h"
+
 
 #warning "It might be a good idea to double check that we're using buffer orphaning correctly."
 /// https://community.khronos.org/t/vbos-strangely-slow/60109/33
 /// https://community.khronos.org/t/buffer-orphaning-question-streaming-vbos/61550
 #warning "Our current method should be fine, but we can do better by handling synchronization ourselves."
+#warning "It's a bit more annoying with uniform buffer objects, since we need to think about alignment."
+
+
+// The shader used for instanced rendering has a uniform
+// block large enough to store the data for 40 instances.
+#define SPRITE_RENDERER_INSTANCED_MAX_INSTANCES 40
+#define SPRITE_RENDERER_INSTANCED_BUFFER_SIZE \
+	(SPRITE_RENDERER_INSTANCED_MAX_INSTANCES * sizeof(spriteInstancedData))
 
 
 // We use a single state buffer plus
 // orphaning for all instanced rendering.
-GLuint spriteInstanceBufferID;
-spriteInstanced spriteInstancedDefault;
+GLuint instanceDataBufferID;
 
 
-#error "This is totally wrong! We need to bind a VAO before we can use VBOs."
-#error "We already have a VAO for our meshes though, so what can we do?"
 // Initialize the global instance buffer.
 void spriteRendererInstancedSetup(){
-	const spriteVertex vertices[4] = {
-		{
-			.pos.x = -0.5f, .pos.y =  0.5f, .pos.z = 0.f,
-			.uv.x = 0.f, 0.f
-		},
-		{
-			.pos.x = -0.5f, .pos.y = -0.5f, .pos.z = 0.f,
-			.uv.x = 0.f, 1.f
-		},
-		{
-			.pos.x =  0.5f, .pos.y = -0.5f, .pos.z = 0.f,
-			.uv.x = 1.f, 1.f
-		},
-		{
-			.pos.x =  0.5f, .pos.y =  0.5f, .pos.z = 0.f,
-			.uv.x = 1.f, 0.f
-		}
-	};
-	const spriteVertexIndex indices[6] = {
-		0, 1, 2,
-		2, 3, 0
-	};
+	glGenBuffers(1, &instanceDataBufferID);	
+}
 
-	spriteInstancedGenerateBuffers(
-		&spriteInstancedDefault,
-		vertices, sizeof(vertices)/sizeof(*vertices),
-		indices, sizeof(indices)/sizeof(*indices)
-	);
+/*
+** Initialize an instanced sprite renderer by obtaining
+** a mapping to the instance buffer object's storage.
+*/
+void spriteRendererInstancedInit(spriteRendererInstanced *const restrict instancedRenderer){
+	spriteRendererInstancedOrphan(instancedRenderer);
+	
+}
 
-	// Generate the global instance buffer object!
-	glGenBuffers(1, &spriteInstanceBufferID);
-	glBindBuffer(GL_ARRAY_BUFFER, spriteInstanceBufferID);
-	// We write to this buffer dynamically when drawing sprites.
-	glBufferData(GL_ARRAY_BUFFER, SPRITE_RENDERER_INSTANCED_INSTANCE_BUFFER_SIZE, NULL, GL_STREAM_DRAW);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
+void spriteRendererInstancedDraw(const spriteRendererInstanced *const restrict instancedRenderer){
+	if(instancedRenderer->numInstances > 0){
+		const size_t instanceDataSize = instancedRenderer->numInstances * sizeof(spriteInstancedData);
+		
+		#warning "All of this stuff should be moved out eventually."
+		#if 0
+		glActiveTexture(GL_TEXTURE0);
+		// Bind the texture that these instances use!
+		glBindTexture(GL_TEXTURE_2D, texFrame->tex->id);
+
+		#warning "The uniforms should be moved out eventually."
+		glUniformMatrix4fv(shader->vpMatrixID, 1, GL_FALSE, (GLfloat *)&cam->viewProjectionMatrix);
+		#warning "Particles shouldn't support SDF."
+		#warning "We should make a proper GUI shader for this sort of thing."
+		// Particle systems do not currently support SDF.
+		glUniform1ui(shader->sdfTypeID, SPRITE_IMAGE_TYPE_NORMAL);
+		#endif
+
+		// Bind the sprite we're using!
+		glBindVertexArray(instancedRenderer->base->vertexArrayID);
+		// Remember to unmap the buffer storage before rendering.
+		glUnmapBuffer(GL_UNIFORM_BUFFER);
+		// Draw each instance of our sprite!
+		glDrawElementsInstanced(
+			GL_TRIANGLES, instancedRenderer->base->numIndices,
+			GL_UNSIGNED_INT, NULL, instancedRenderer->numInstances
+		);
+	}
+}
+
+// Orphan the old instance buffer and allocate a new one.
+void spriteRendererInstancedOrphan(spriteRendererInstanced *const restrict instancedRenderer){
+	glBindBuffer(GL_UNIFORM_BUFFER, instanceDataBufferID);
+	// Orphan the old instance buffer and allocate a new one.
+	glBufferData(GL_UNIFORM_BUFFER, SPRITE_RENDERER_INSTANCED_BUFFER_SIZE, NULL, GL_STREAM_DRAW);
+	// Obtain a mapping to the new storage!
+	instancedRenderer->curInstance = glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
 }
 
 
-/*
-** Generate buffers to hold our sprite data! Note that
-** the state and UV buffers are not filled at this stage.
-** We only fill them when we actually draw our sprite.
-*/
+// Generate buffers to hold our sprite data!
 void spriteInstancedGenerateBuffers(
 	spriteInstanced *const restrict spriteData,
 	const spriteVertex *const restrict vertices, const spriteVertexIndex numVertices,
@@ -109,114 +128,21 @@ void spriteInstancedGenerateBuffers(
 	spriteData->numIndices = numIndices;
 }
 
-
-/*
-** Initialize a sprite renderer using pointers to
-** the storage for the instance buffer object.
-** This storage can be written to, but not read from.
-**
-** Rather than orphaning the instance buffer, we try
-** to use whatever memory is left in it. We don't yet
-** know how big the batch is, so we can always orphan
-** it later if we really have to.
-*/
-void spriteRendererInstancedInit(spriteRendererInstanced *const restrict instancedRenderer){
-	//
+return_t spriteRendererInstancedIsFull(const spriteRendererInstanced *const restrict instancedRenderer){
+	return(instancedRenderer->numInstances == SPRITE_RENDERER_INSTANCED_MAX_INSTANCES);
 }
 
-void spriteRendererInstancedOffset(spriteRendererInstanced *const restrict instancedRenderer){
-	//
-}
-
-return_t spriteRendererInstancedHasRoom(
-	const spriteRendererInstanced *const restrict instancedRenderer, const size_t numInstances
+// Add an instance to the batch.
+void spriteRendererInstancedAddInstance(
+	spriteRendererInstanced *const restrict instancedRenderer,
+	const spriteInstancedData *const restrict instance
 ){
 
-	return(0);
-}
-
-void spriteRendererInstancedDraw(const meshBatch *const restrict instancedRenderer){
-	if(instancedRenderer->numInstances > 0){
-		// Bind the sprite we're using!
-		glBindVertexArray(instancedRenderer->base->vertexArrayID);
-
-		#warning "All of this stuff should be moved out eventually."
-		#if 0
-		#warning "This probably shouldn't be here."
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, texFrame->tex->id);
-
-		#warning "The uniforms should be moved out eventually."
-		glUniform1fv(shader->uvOffsetsID, 4, (GLfloat *)&texFrame->bounds);
-		#endif
-
-		// Bind the instance buffer, and make
-		// sure we unmap it before rendering.
-		//glBindBuffer(GL_ARRAY_BUFFER, instancedRenderer->base->instanceBufferID);
-		glBindBuffer(GL_ARRAY_BUFFER, spriteInstanceBufferID);
-		glUnmapBuffer(GL_ARRAY_BUFFER);
-
-		// Draw each instance of our sprite!
-		glDrawElementsInstanced(
-			GL_TRIANGLES, instancedRenderer->base->numIndices,
-			GL_UNSIGNED_INT, NULL, instancedRenderer->numInstances
-		);
-	}
-}
-
-// Orphan the old instance buffer and allocate a new one.
-void spriteRendererInstancedOrphan(spriteRendererInstanced *const restrict instancedRenderer){
-	glBindVertexArray(instancedRenderer->base->vertexArrayID);
-		//glBindBuffer(GL_ARRAY_BUFFER, instancedRenderer->base->instanceBufferID);
-		glBindBuffer(GL_ARRAY_BUFFER, spriteInstancedBufferID);
-		// Orphan the vertex buffer if it's still in use.
-		glBufferData(GL_ARRAY_BUFFER, SPRITE_RENDERER_BATCHED_VERTEX_BUFFER_SIZE, NULL, GL_STREAM_DRAW);
-
-		// Set up the vertex attributes that require this buffer!
-		// Because the transformation state is a 4x4 matrix, it needs four vertex attributes.
-		// Transformation state first row.
-		glEnableVertexAttribArray(3);
-		glVertexAttribPointer(
-			3, 4, GL_FLOAT, GL_FALSE,
-			sizeof(spriteInstancedData), (GLvoid *)offsetof(spriteInstancedData, state.m[0])
-		);
-		glVertexAttribDivisor(3, 1);
-		// Transformation state second row.
-		glEnableVertexAttribArray(4);
-		glVertexAttribPointer(
-			4, 4, GL_FLOAT, GL_FALSE,
-			sizeof(spriteInstancedData), (GLvoid *)offsetof(spriteInstancedData, state.m[1])
-		);
-		glVertexAttribDivisor(4, 1);
-		// Transformation state third row.
-		glEnableVertexAttribArray(5);
-		glVertexAttribPointer(
-			5, 4, GL_FLOAT, GL_FALSE,
-			sizeof(spriteInstancedData), (GLvoid *)offsetof(spriteInstancedData, state.m[2])
-		);
-		glVertexAttribDivisor(5, 1);
-		// Transformation state fourth row.
-		glEnableVertexAttribArray(6);
-		glVertexAttribPointer(
-			6, 4, GL_FLOAT, GL_FALSE,
-			sizeof(spriteInstancedData), (GLvoid *)offsetof(spriteInstancedData, state.m[3])
-		);
-		glVertexAttribDivisor(6, 1);
-		// UV offsets.
-		glEnableVertexAttribArray(7);
-		glVertexAttribPointer(
-			7, 4, GL_FLOAT, GL_FALSE,
-			sizeof(spriteInstancedData), (GLvoid *)offsetof(spriteInstancedData, uvOffsets)
-		);
-		glVertexAttribDivisor(7, 1);
-	glBindVertexArray(0);
-
-	// Retrieve a pointer to the instance buffer's storage.
-	instancedRenderer->instances = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
-	instancedRenderer->numInstances = 0;
+	*instancedRenderer->curInstance = *instance;
+	++instancedRenderer->curInstance;
 }
 
 
 void spriteRendererInstancedCleanup(){
-	glDeleteBuffers(1, &spriteInstanceBufferID);
+	glDeleteBuffers(1, &instanceDataBufferID);
 }
