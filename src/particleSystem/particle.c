@@ -16,24 +16,24 @@ void particlePreInit(
 	const particleSystemNode *const restrict node
 ){
 
-	const flags_t inheritFlag = flagsMask(node->flags, PARTICLE_INHERIT_MASK);
+	const flags_t inheritFlags = node->inheritFlags;
 	// Rather than initializing the previous state, we compute
 	// it using the current state during post initialization.
 	// The subsystem pointer should never be NULL here.
-	if(flagsAreSet(inheritFlag, PARTICLE_INHERIT_TRANSFORM)){
+	if(flagsAreSet(inheritFlags, PARTICLE_INHERIT_TRANSFORM)){
 		const transform *const parentState = node->parent->state;
 
-		if(flagsAreSet(node->flags, PARTICLE_INHERIT_POSITION)){
+		if(flagsAreSet(inheritFlags, PARTICLE_INHERIT_POSITION)){
 			part->subsys.state[0].pos = parentState[0].pos;
 		}else{
 			vec3InitZero(&part->subsys.state[0].pos);
 		}
-		if(flagsAreSet(node->flags, PARTICLE_INHERIT_ROTATION)){
+		if(flagsAreSet(inheritFlags, PARTICLE_INHERIT_ROTATION)){
 			part->subsys.state[0].rot = parentState[0].rot;
 		}else{
 			quatInitIdentiy(&part->subsys.state[0].rot);
 		}
-		if(flagsAreSet(inheritFlag, PARTICLE_INHERIT_SCALE)){
+		if(flagsAreSet(inheritFlags, PARTICLE_INHERIT_SCALE)){
 			part->subsys.state[0].scale = parentState[0].scale;
 			part->subsys.state[0].shear = parentState[0].shear;
 		}else{
@@ -54,6 +54,7 @@ void particlePreInit(
 	#endif
 
 	part->lifetime = 0.f;
+	part->distance = 0.f;
 }
 
 void particlePostInit(
@@ -61,30 +62,30 @@ void particlePostInit(
 	const particleSystemNode *const restrict node
 ){
 
-	const flags_t inheritFlag = flagsMask(node->flags, PARTICLE_INHERIT_MASK);
+	const flags_t inheritFlags = node->inheritFlags;
 	// Calculate the where the particle would have
 	// been had it been alive on the previous frame.
 	// The subsystem pointer should never be NULL here.
-	if(flagsAreSet(inheritFlag, PARTICLE_INHERIT_TRANSFORM)){
+	if(flagsAreSet(inheritFlags, PARTICLE_INHERIT_TRANSFORM)){
 		const transform *const parentState = node->parent->state;
 		transform invParentState;
 		transform prevParentState;
 		
-		if(flagsAreSet(inheritFlag, PARTICLE_INHERIT_POSITION)){
+		if(flagsAreSet(inheritFlags, PARTICLE_INHERIT_POSITION)){
 			invParentState.pos = parentState[0].pos;
 			prevParentState.pos = parentState[1].pos;
 		}else{
 			vec3InitZero(&invParentState.pos);
 			vec3InitZero(&prevParentState.pos);
 		}
-		if(flagsAreSet(inheritFlag, PARTICLE_INHERIT_ROTATION)){
+		if(flagsAreSet(inheritFlags, PARTICLE_INHERIT_ROTATION)){
 			invParentState.rot = parentState[0].rot;
 			prevParentState.rot = parentState[1].rot;
 		}else{
 			quatInitIdentiy(&invParentState.rot);
 			quatInitIdentiy(&prevParentState.rot);
 		}
-		if(flagsAreSet(inheritFlag, PARTICLE_INHERIT_SCALE)){
+		if(flagsAreSet(inheritFlags, PARTICLE_INHERIT_SCALE)){
 			invParentState.scale = parentState[0].scale;
 			invParentState.shear = parentState[0].shear;
 			prevParentState.scale = parentState[1].scale;

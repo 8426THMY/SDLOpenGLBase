@@ -49,10 +49,11 @@ void particleRendererMeshBatch(
 		const particleRendererMesh partRenderer =
 			*((const particleRendererMesh *const)renderer);
 
-		const particle *curParticle = manager->first;
+		const particle *curParticle = manager->particles;
+		const particle *const lastParticle = &curParticle[manager->numParticles];
 		spriteRendererInstanced *const instancedRenderer = &batch->data.instancedRenderer;
 
-		for(; curParticle != NULL; curParticle = curParticle->next){
+		for(; curParticle != lastParticle; ++curParticle){
 			transform curTransform;
 			spriteInstancedData curInstance;
 
@@ -64,8 +65,8 @@ void particleRendererMeshBatch(
 
 			// Compute the interpolated particle transform.
 			transformInterpSet(
-				&curParticle->subsys.state[0],
 				&curParticle->subsys.state[1],
+				&curParticle->subsys.state[0],
 				dt, &curTransform
 			);
 			#warning "Temporary, until we know how we want to do billboarding."

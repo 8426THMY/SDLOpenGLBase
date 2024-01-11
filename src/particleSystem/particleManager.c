@@ -13,21 +13,7 @@ void particleManagerInit(particleManager *const restrict manager, const size_t m
 	if(manager->particles == NULL){
 		/** MALLOC FAILED **/
 	}
-	// Initialize the free list.
-	{
-		particleFreeListNode *curNode = manager->particles;
-		const particleFreeListNode *const lastNode = &curNode[maxParticles - 1];
-		// Each node should point to the next one by default.
-		while(curNode < lastNode){
-			curNode->nextFree = ++curNode;
-		}
-		curNode->nextFree = NULL;
-	}
-	manager->nextFree = manager->particles;
 	manager->numParticles = 0;
-
-	manager->first = NULL;
-	manager->last = NULL;
 }
 
 
@@ -37,51 +23,32 @@ size_t particleManagerRemaining(const particleManager *const restrict manager, c
 }
 
 /*
-** We assume that whoever is using this structure has
-** checked if there's room to allocate a new particle!
+** Add "numParticles" many particles to the front of the array
+** and return a pointer to the first new particle! We assume that
+** whoever is using this structure has checked if there's room!
 */
-particle *particleManagerAlloc(particleManager *const restrict manager){
-	// Take the next free node in the list.
-	particleFreeListNode *const node = manager->nextFree;
-	manager->nextFree = node->nextFree;
-	++manager->numParticles;
-
-	// Set the particle's sort pointers.
-	node->part.prev = manager->first;
-	node->part.next = NULL;
-
-	// If the sorted list is empty, add this particle to the beginning.
-	if(manager->first == NULL){
-		manager->first = &node->part;
-	}
-	// The particle is always added to the end.
-	manager->last = &node->part;
-
-	return(&node->part);
+particle *particleManagerAllocFront(particleManager *const restrict manager, const size_t numParticles){
+	memmove(
+		&manager->particles[numParticles], manager->particles,
+		manager->numParticles * sizeof(*manager->particles)
+	);
+	manager->numParticles += numParticles;
+	return(manager->particles);
 }
 
 /*
-** We assume that whoever is using this structure has
-** checked if there's room to allocate a new particle!
+** Add "numParticles" many particles to the back of the array
+** and return a pointer to the first new particle! We assume that
+** whoever is using this structure has checked if there's room!
 */
-void particleManagerFree(particleManager *const restrict manager, particle *const restrict part){
-	// Fix up the particle's pointers.
-	if(part->prev == NULL){
-		manager->first = part->next;
-	}else{
-		part->prev->next = part->next;
-	}
-	if(part->next == NULL){
-		manager->last = part->prev;
-	}else{
-		part->next->prev = part->prev;
-	}
-	// Delete the particle.
-	particleDelete(part);
+particle *particleManagerAllocBack(particleManager *const restrict manager, const size_t numParticles){
+	particle *firstParticle = &manager->particles[manager->numParticles];
+	manager->numParticles += numParticles;
+	return(firstParticle);
+}
 
-	// Add the particle's node to the beginning of the free list.
-	((particleFreeListNode *)part)->nextFree = manager->nextFree;
-	manager->nextFree = (particleFreeListNode *)part;
+void particleManagerFree(particleManager *const restrict manager, particle *const restrict part){
+	particleDelete(part);
 	--manager->numParticles;
 }
 

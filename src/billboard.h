@@ -15,7 +15,7 @@
 #define BILLBOARD_LOCK_X           0x01
 #define BILLBOARD_LOCK_Y           0x02
 #define BILLBOARD_LOCK_Z           0x04
-#define BILLBOARD_LOCK_XYZ         0x07
+#define BILLBOARD_LOCK_XYZ         (BILLBOARD_LOCK_X | BILLBOARD_LOCK_Y | BILLBOARD_LOCK_Z)
 // Make the renderable keep a fixed scale regardless of distance.
 #define BILLBOARD_SCALE            0x08
 // Cheap billboarding for sprites, just use the camera's rotation matrix.
@@ -47,7 +47,7 @@ void billboardInit(billboard *const restrict billboardData);
 
 void billboardState(
 	const billboard *const restrict billboardData,
-	const camera *const restrict cam, const vec3 centroid,
+	const camera *const restrict cam, const vec3 *const restrict centroid,
 	mat3x4 rootState, mat3x4 *const restrict out
 );
 

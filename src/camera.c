@@ -6,22 +6,30 @@
 #include "settingsProgram.h"
 
 
-void cameraInit(camera *const restrict cam){
+void cameraInit(
+	camera *const restrict cam, const flags_t flags,
+	const float windowWidth, const float windowHeight
+){
+
 	vec3InitZero(&cam->pos);
 	quatInitIdentity(&cam->rot);
 
 	vec3InitSet(&cam->up, 0.f, 1.f, 0.f);
 	cam->fov = PRG_FOV_DEFAULT;
 
-	mat4InitIdentity(&cam->viewMatrix);
-	mat4InitIdentity(&cam->projectionMatrix);
-	mat4InitIdentity(&cam->viewProjectionMatrix);
+	cam->flags = flags;
 
-	cam->flags = CAMERA_UPDATE_FLAG;
+	mat4InitIdentity(&cam->viewMatrix);
+	cameraUpdateProjectionMatrix(cam, windowWidth, windowHeight);
+	mat4InitIdentity(&cam->viewProjectionMatrix);
 }
 
 
-void cameraUpdateProjectionMatrix(camera *const restrict cam, const float windowWidth, const float windowHeight){
+void cameraUpdateProjectionMatrix(
+	camera *const restrict cam,
+	const float windowWidth, const float windowHeight
+){
+
 	// Use an orthographic projection matrix.
 	if(flagsAreSet(cam->flags, CAMERA_TYPE_ORTHO)){
 		const float aspectRatio = 1.f/((windowWidth < windowHeight) ? windowWidth : windowHeight);
@@ -47,16 +55,8 @@ void cameraUpdateProjectionMatrix(camera *const restrict cam, const float window
 }
 
 // Only update the view projection matrix if the others have been changed.
-void cameraUpdateViewProjectionMatrix(camera *const restrict cam, const float windowWidth, const float windowHeight){
-	if(flagsAreSet(cam->flags, CAMERA_UPDATE_PROJ)){
-		cameraUpdateProjectionMatrix(cam, windowWidth, windowHeight);
-	}
-
-	// Update the view projection matrix if either of its components have changed.
-	if(flagsAreSet(cam->flags, CAMERA_UPDATE_FLAG)){
-		mat4MultiplyMat4Out(cam->projectionMatrix, cam->viewMatrix, &cam->viewProjectionMatrix);
-		flagsUnset(cam->flags, CAMERA_UPDATE_FLAG);
-	}
+void cameraUpdateViewProjectionMatrix(camera *const restrict cam){
+	mat4MultiplyMat4Out(cam->projectionMatrix, cam->viewMatrix, &cam->viewProjectionMatrix);
 }
 
 

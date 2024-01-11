@@ -9,6 +9,7 @@
 #include "particleOperator.h"
 #include "particleConstraint.h"
 #include "particleRenderer.h"
+#include "particleManager.h"
 
 #include "utilTypes.h"
 
@@ -41,17 +42,20 @@
 	PARTICLE_INHERIT_ROTATION_ALWAYS        \
 )
 
-// In total, we allow for four different sorting modes:
-//     1. 0x00: Sort in order of creation (default).
-//     2. 0x40: Sort in order of distance from the camera.
-//     3. 0x80: Sort in reversed order of creation.
-//     4. 0xC0: Sort in reversed order of distance from the camera.
-#define PARTICLE_SORT_DISTANCE 0x40
-#define PARTICLE_SORT_REVERSED 0x80
+#warning "Particles should be able to inherit colours."
 
-// Masks for checking individual flag types.
-#define PARTICLE_INHERIT_MASK 0x03
-#define PARTICLE_SORT_MASK    0xC0
+// In total, we allow for five different sorting modes:
+//     1. 0x00: Don't do any sorting, just do whatever's fastest (default).
+//     2. 0x01: Sort in order of creation.
+//     3. 0x02: Sort in order of distance from the camera.
+//     4. 0x05: Sort in reversed order of creation.
+//     5. 0x06: Sort in reversed order of distance from the camera.
+#define PARTICLE_SORT_NONE     0x00
+#define PARTICLE_SORT_CREATION 0x01
+#define PARTICLE_SORT_DISTANCE 0x02
+#define PARTICLE_SORT_REVERSED 0x04
+#define PARTICLE_SORT_CREATION_REVERSED (PARTICLE_SORT_CREATION | PARTICLE_SORT_REVERSED)
+#define PARTICLE_SORT_DISTANCE_REVERSED (PARTICLE_SORT_DISTANCE | PARTICLE_SORT_REVERSED)
 
 
 typedef struct particleSystemNodeDef particleSystemNodeDef;
@@ -79,7 +83,8 @@ typedef struct particleSystemNodeDef {
 	// The maximum number of particles
 	// that can be active at once.
 	size_t maxParticles;
-	flags_t flags;
+	flags_t inheritFlags;
+	flags_t sortFlags;
 
 	// Because this node's children are stored sequentially
 	// in the main single list, we can simply store the number
@@ -126,8 +131,9 @@ void particleSysNodeInit(
 	const particleSystemNodeDef *const restrict nodeDef
 );
 
-void particleSysNodeUpdateEmitters(particleSystemNode *const restrict node, const float dt);
 void particleSysNodeUpdateParticles(particleSystemNode *const restrict node, const float dt);
+void particleSysNodeUpdateEmitters(particleSystemNode *const restrict node, const float dt);
+void particleSysNodeUpdateSort(particleSystemNode *const restrict node, const camera *const restrict cam);
 
 void particleSysNodeOrphan(particleSystemNode *const restrict node);
 void particleSysNodeDelete(particleSystemNode *const restrict node);

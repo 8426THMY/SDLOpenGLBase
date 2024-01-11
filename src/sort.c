@@ -31,6 +31,17 @@ sort_t compareFloat(const float x, const float y){
 	return(SORT_COMPARE_EQUAL);
 }
 
+sort_t compareKeyValue(const keyValue *const restrict kv1, const keyValue *const restrict kv2){
+	compareFloat(kv1->value, kv2->value);
+}
+
+
+/*
+** Timsort arrays of key-values using the macros defined
+** in "sortInsertionTemplate.h" and "sortTimsortTemplate.h".
+*/
+timsortDefine(KeyValues, keyValue, compareKeyValue)
+
 
 /*
 ** Insertion sort works best for small or mostly-sorted arrays.

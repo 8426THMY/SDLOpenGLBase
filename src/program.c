@@ -220,7 +220,9 @@ static void input(program *const restrict prg){
 		}else{
 			glViewport(0, 0, prg->windowWidth, prg->windowHeight);
 		}
-		flagsSet(prg->cam.flags, CAMERA_UPDATE_PROJ);
+
+		// Update the camera's projection matrix using the new display port.
+		cameraUpdateProjectionMatrix(&prg->cam, prg->windowWidth, prg->windowHeight);
 	}
 
 
@@ -308,7 +310,6 @@ static void updateCameras(program *const restrict prg){
 	}
 
 	mat4View(&prg->cam.viewMatrix, &prg->cam.pos, &rotMatrix);
-	flagsSet(prg->cam.flags, CAMERA_UPDATE_VIEW);
 }
 
 /** TEMPORARY PHYSICS STUFF!! **/
@@ -466,7 +467,7 @@ static void render(program *const restrict prg){
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
-	cameraUpdateViewProjectionMatrix(&prg->cam, prg->windowWidth, prg->windowHeight);
+	cameraUpdateViewProjectionMatrix(&prg->cam);
 
 	glUseProgram(prg->objectShader.programID);
 	// Send the new model view projection matrix to the shader!
@@ -607,9 +608,8 @@ static return_t initResources(program *const restrict prg){
 
 
 	/** TEMPORARY CAMERA STUFF **/
-	cameraInit(&prg->cam);
+	cameraInit(&prg->cam, CAMERA_TYPE_FRUSTUM, prg->windowWidth, prg->windowHeight);
 	prg->cam.pos.z = 5.f;
-	flagsSet(prg->cam.flags, CAMERA_TYPE_FRUSTUM);
 
 
 	/** TEMPORARY OBJECT STUFF **/

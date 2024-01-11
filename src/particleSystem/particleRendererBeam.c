@@ -84,7 +84,7 @@ void particleRendererBeamBatch(
 		size_t curParticle = 0;
 		spriteRendererBatched *const batchedRenderer = &batch->data.batchedRenderer;
 
-		vec3 curPos = manager->first->subsys.state[0].pos;
+		vec3 curPos = manager->particles->subsys.state[0].pos;
 		vec3 prevPos = curPos;
 		const vec3 *const restrict camPos = camera->pos;
 		spriteVertex G, H;
@@ -177,7 +177,8 @@ static void polyboardSetupSpline(
 	const float dt
 ){
 
-	const particle *curParticle = manager->first;
+	const particle *curParticle = manager->particles;
+	const particle *const lastParticle = &curParticle[manager->numParticles];
 	// Array of interpolated particle positions.
 	vec3 *interpPos = memoryManagerGlobalAlloc(
 		sizeof(curParticle->subsys.state[0].pos) * manager->numParticles
@@ -185,15 +186,14 @@ static void polyboardSetupSpline(
 	vec3 *curInterpPos = interpPos;
 
 	// Compute the interpolated position of each particle.
-	while(curParticle != NULL){
+	for(; curParticle != lastParticle; ++curParticle){
 		// We only need the position, so there's no
 		// need to interpolate the full transform.
 		vec3Lerp(
-			&curParticle->subsys.state[0].pos,
 			&curParticle->subsys.state[1].pos,
+			&curParticle->subsys.state[0].pos,
 			dt, curInterpPos
 		);
-		curParticle = curParticle->next;
 		++curInterpPos;
 	}
 

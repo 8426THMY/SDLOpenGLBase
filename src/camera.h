@@ -15,14 +15,9 @@
 
 
 #define CAMERA_INACTIVE        0x00
-
 #define CAMERA_TYPE_ORTHO      0x01
 #define CAMERA_TYPE_FRUSTUM    0x02
 #define CAMERA_TYPE_FIXED_SIZE 0x04
-
-#define CAMERA_UPDATE_VIEW     0x10
-#define CAMERA_UPDATE_PROJ     0x20
-#define CAMERA_UPDATE_FLAG     (CAMERA_UPDATE_VIEW | CAMERA_UPDATE_PROJ)
 
 
 /*
@@ -50,10 +45,16 @@ typedef struct camera {
 } camera;
 
 
-void cameraInit(camera *const restrict cam);
+void cameraInit(
+	camera *const restrict cam, const flags_t flags,
+	const float windowWidth, const float windowHeight
+);
 
-void cameraUpdateProjectionMatrix(camera *const restrict cam, const float windowWidth, const float windowHeight);
-void cameraUpdateViewProjectionMatrix(camera *const restrict cam, const float windowWidth, const float windowHeight);
+void cameraUpdateProjectionMatrix(
+	camera *const restrict cam,
+	const float windowWidth, const float windowHeight
+);
+void cameraUpdateViewProjectionMatrix(camera *const restrict cam);
 
 float cameraDistance(const camera *const restrict cam, const vec3 *const restrict target);
 float cameraDistanceSquared(const camera *const restrict cam, const vec3 *const restrict target);

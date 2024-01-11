@@ -59,10 +59,11 @@ void particleRendererSpriteBatch(
 		const spriteVertex *const lastBaseVertex     = &baseVertex[partRenderer.spriteData.numVertices];
 		const spriteVertexIndex *const lastBaseIndex = &baseIndex[partRenderer.spriteData.numIndices];
 
-		const particle *curParticle = manager->first;
+		const particle *curParticle = manager->particles;
+		const particle *const lastParticle = &curParticle[manager->numParticles];
 		spriteRendererBatched *const batchedRenderer = &batch->data.batchedRenderer;
 
-		for(; curParticle != NULL; curParticle = curParticle->next){
+		for(; curParticle != lastParticle; ++curParticle){
 			const spriteVertex *baseVertex     = partRenderer.spriteData.vertices;
 			const spriteVertexIndex *baseIndex = partRenderer.spriteData.indices;
 			transform curTransform;
@@ -82,8 +83,8 @@ void particleRendererSpriteBatch(
 
 			// Compute the interpolated particle transform.
 			transformInterpSet(
-				&curParticle->subsys.state[0],
 				&curParticle->subsys.state[1],
+				&curParticle->subsys.state[0],
 				dt, &curTransform
 			);
 			// Note: It is almost always faster to convert transforms to matrices

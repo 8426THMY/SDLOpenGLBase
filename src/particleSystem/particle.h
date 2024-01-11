@@ -50,11 +50,6 @@ typedef struct particle {
 	// the particle may live for, it can also represent other
 	// things, such as how long it has been alive for.
 	float lifetime;
-
-	// Pointers to the previous and next
-	// particles in the sorted list.
-	particle *prev;
-	particle *next;
 } particle;
 
 

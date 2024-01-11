@@ -58,19 +58,14 @@ particleSystemNodeContainer *particleSysNodeContainerInit(
 	return(children);
 }
 
-/*
-** Allocate and spawn an instance of a particle system node.
-** Here, "sibling" should be the owner's first sibling node.
-*/
+// Allocate and spawn an instance of a particle system node.
 particleSystemNode *particleSysNodeContainerInstantiate(
 	particleSystemNodeContainer *const restrict container
 ){
 
 	particleSystemNode *const node = moduleParticleSysNodePrepend(&container->instances);
-
 	particleSysNodeInit(node, container->nodeDef);
 	node->container = container;
-	node->next = moduleParticleSysNodeNext(container->instances);
 
 	return(node);
 }
@@ -78,7 +73,8 @@ particleSystemNode *particleSysNodeContainerInstantiate(
 
 // Update a container by updating all of the instances it contains.
 void particleSysNodeContainerUpdate(
-	particleSystemNodeContainer *const restrict container, const float dt
+	particleSystemNodeContainer *const restrict container,
+	const camera *const restrict cam, const float dt
 ){
 
 	particleSystemNode *curNode = container->instances;
@@ -87,7 +83,7 @@ void particleSysNodeContainerUpdate(
 	while(curNode != NULL){
 		particleSystemNode *const nextNode = moduleParticleSysNodeNext(curNode);
 
-		// The particle system node is dead, so stop emitting particles.
+		// If the particle system node is dead, stop emitting particles.
 		if(curNode->lifetime <= 0.f){
 			// If no particles are left, we can delete the node.
 			if(curNode->manager.numParticles <= 0){
@@ -108,6 +104,9 @@ void particleSysNodeContainerUpdate(
 			particleSysNodeUpdateEmitters(curNode, dt);
 			curNode->lifetime -= dt;
 		}
+
+		// Sort the node's particles!
+		particleSysNodeUpdateSort(curNode, cam);
 
 		prevNode = curNode;
 		curNode  = nextNode;
@@ -136,6 +135,22 @@ void particleSysNodeContainerBatch(
 	// For each instance, fill the buffer with its particle data.
 	// If the buffer is filled, we'll need to draw and orphan it.
 	while(curNode != NULL){
+		/** To avoid doing a check for each particle, **/
+		/** we should probably do something like the  **/
+		/** following in the rendering function. Note **/
+		/** that we can't do it outside, as otherwise **/
+		/** things like beams will look disconnected. **/
+		/*
+		size_t managerRemaining = manager->numParticles;
+		while(managerRemaining > 0){
+			const size_t rendererRemaining = particleRendererRemainingParticles(partRenderer);
+		}
+		*/
+
+		while(remainingParticles > 0){
+			
+		}
+		**/
 		// If there's no room left in the current
 		// batch, we'll have to draw and orphan it.
 		#warning "Currently, we check if the batch is full after adding each particle."

@@ -16,7 +16,7 @@ void billboardInit(billboard *const restrict billboardData){
 #warning "This can almost certainly be optimized using quaternion swing-twist decomposition."
 void billboardState(
 	const billboard *const restrict billboardData,
-	const camera *const restrict cam, const vec3 centroid,
+	const camera *const restrict cam, const vec3 *const restrict centroid,
 	mat3x4 rootState, mat3x4 *const restrict out
 ){
 
@@ -46,7 +46,7 @@ void billboardState(
 
 		// Scale the renderable based on its distance from the camera.
 		if(flagsAreSet(billboardData->flags, BILLBOARD_SCALE)){
-			const float distance = cameraDistance(cam, &centroid) * billboardData->scale;
+			const float distance = cameraDistance(cam, centroid) * billboardData->scale;
 			mat3x4ScalePre(&rootState, distance, distance, distance);
 		}
 
@@ -68,9 +68,9 @@ void billboardState(
 		if(flagsAreSet(billboardData->flags, BILLBOARD_TARGET_SPRITE)){
 			vec3InitSet(&forward, cam->viewMatrix.m[0][2], cam->viewMatrix.m[1][2], cam->viewMatrix.m[2][2]);
 		}else if(billboardData->target != NULL){
-			vec3SubtractVec3Out(billboardData->target, &centroid, &forward);
+			vec3SubtractVec3Out(billboardData->target, centroid, &forward);
 		}else{
-			vec3SubtractVec3Out(&cam->pos, &centroid, &forward);
+			vec3SubtractVec3Out(&cam->pos, centroid, &forward);
 		}
 
 		// Prevent the renderable from rotating on some axes.
@@ -92,7 +92,7 @@ void billboardState(
 
 		// Scale the renderable based on its distance from the camera.
 		if(flagsAreSet(billboardData->flags, BILLBOARD_SCALE)){
-			const float distance = cameraDistance(cam, &centroid) * billboardData->scale;
+			const float distance = cameraDistance(cam, centroid) * billboardData->scale;
 			mat3x4Scale(&rootState, distance, distance, distance);
 		}
 
@@ -104,7 +104,7 @@ void billboardState(
 	// If we're not using sprites or locking any axes, just use scale billboarding.
 	}else{
 		if(flagsAreSet(billboardData->flags, BILLBOARD_SCALE)){
-			const float distance = cameraDistance(cam, &centroid) * billboardData->scale;
+			const float distance = cameraDistance(cam, centroid) * billboardData->scale;
 			mat3x4ScalePre(&rootState, distance, distance, distance);
 		}
 	}
