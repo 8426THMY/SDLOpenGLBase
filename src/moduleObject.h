@@ -2,12 +2,10 @@
 #define moduleObject_h
 
 
-#include "utilTypes.h"
-
-#include "memoryManager.h"
-#include "memorySingleList.h"
-
 #include "object.h"
+
+#include "utilTypes.h"
+#include "moduleShared.h"
 
 
 #define MODULE_OBJECT
@@ -23,34 +21,17 @@
 	#define MEMORY_MODULE_NUM_OBJECTS 1
 #endif
 
-#define MODULE_OBJECTDEF_MANAGER_SIZE memSingleListMemoryForBlocks(MEMORY_MODULE_NUM_OBJECTDEFS, MODULE_OBJECTDEF_ELEMENT_SIZE)
-#define MODULE_OBJECT_MANAGER_SIZE    memSingleListMemoryForBlocks(MEMORY_MODULE_NUM_OBJECTS, MODULE_OBJECT_ELEMENT_SIZE)
+#define MODULE_OBJECTDEF_MANAGER_SIZE \
+	memSingleListMemoryForBlocks(MEMORY_MODULE_NUM_OBJECTDEFS, MODULE_OBJECTDEF_ELEMENT_SIZE)
+#define MODULE_OBJECT_MANAGER_SIZE \
+	memSingleListMemoryForBlocks(MEMORY_MODULE_NUM_OBJECTS, MODULE_OBJECT_ELEMENT_SIZE)
 
+
+moduleDeclareSingleList(ObjectDef, objectDef, g_objectDefManager)
+moduleDeclareSingleList(Object, object, g_objectManager)
 
 return_t moduleObjectSetup();
 void moduleObjectCleanup();
-
-objectDef *moduleObjectDefAlloc();
-objectDef *moduleObjectDefPrepend(objectDef **const restrict start);
-objectDef *moduleObjectDefAppend(objectDef **const restrict start);
-objectDef *moduleObjectDefInsertAfter(objectDef **const restrict start, objectDef *const restrict prev);
-objectDef *moduleObjectDefNext(const objectDef *const restrict objDef);
-void moduleObjectDefFree(objectDef **const restrict start, objectDef *const restrict objDef, objectDef *const restrict prev);
-void moduleObjectDefFreeArray(objectDef **const restrict start);
-void moduleObjectDefClear();
-
-object *moduleObjectAlloc();
-object *moduleObjectPrepend(object **const restrict start);
-object *moduleObjectAppend(object **const restrict start);
-object *moduleObjectInsertAfter(object **const restrict start, object *const restrict prev);
-object *moduleObjectNext(const object *const restrict obj);
-void moduleObjectFree(object **const restrict start, object *const restrict obj, object *const restrict prev);
-void moduleObjectFreeArray(object **const restrict start);
-void moduleObjectClear();
-
-
-extern memorySingleList g_objectDefManager;
-extern memorySingleList g_objectManager;
 
 
 #endif

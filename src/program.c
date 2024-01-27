@@ -17,6 +17,7 @@
 #include "modulePhysics.h"
 #include "moduleObject.h"
 #include "moduleParticle.h"
+#include "memoryManager.h"
 
 #include "timer.h"
 #include "utilMath.h"

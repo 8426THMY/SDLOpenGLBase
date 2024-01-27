@@ -2,13 +2,10 @@
 #define moduleSkeleton_h
 
 
-#include "utilTypes.h"
-
-#include "memoryManager.h"
-#include "memoryPool.h"
-#include "memorySingleList.h"
-
 #include "skeleton.h"
+
+#include "utilTypes.h"
+#include "moduleShared.h"
 
 
 #define MODULE_SKELETON
@@ -28,35 +25,20 @@
 	#define MEMORY_MODULE_NUM_SKELEANIMS 1
 #endif
 
-#define MODULE_SKELETON_MANAGER_SIZE     memPoolMemoryForBlocks(MEMORY_MODULE_NUM_SKELETONS, MODULE_SKELETON_ELEMENT_SIZE)
-#define MODULE_SKELEANIMDEF_MANAGER_SIZE memPoolMemoryForBlocks(MEMORY_MODULE_NUM_SKELEANIMDEFS, MODULE_SKELEANIMDEF_ELEMENT_SIZE)
-#define MODULE_SKELEANIM_MANAGER_SIZE    memSingleListMemoryForBlocks(MEMORY_MODULE_NUM_SKELEANIMS, MODULE_SKELEANIM_ELEMENT_SIZE)
+#define MODULE_SKELETON_MANAGER_SIZE \
+	memPoolMemoryForBlocks(MEMORY_MODULE_NUM_SKELETONS, MODULE_SKELETON_ELEMENT_SIZE)
+#define MODULE_SKELEANIMDEF_MANAGER_SIZE \
+	memPoolMemoryForBlocks(MEMORY_MODULE_NUM_SKELEANIMDEFS, MODULE_SKELEANIMDEF_ELEMENT_SIZE)
+#define MODULE_SKELEANIM_MANAGER_SIZE \
+	memSingleListMemoryForBlocks(MEMORY_MODULE_NUM_SKELEANIMS, MODULE_SKELEANIM_ELEMENT_SIZE)
 
+
+moduleDeclarePool(Skeleton, skeleton, g_skeletonManager)
+moduleDeclarePool(SkeletonAnimDef, skeletonAnimDef, g_skeleAnimDefManager)
+moduleDeclareSingleList(SkeletonAnim, skeletonAnim, g_skeleAnimManager)
 
 return_t moduleSkeletonSetup();
 void moduleSkeletonCleanup();
-
-skeleton *moduleSkeletonAlloc();
-void moduleSkeletonFree(skeleton *const restrict skele);
-void moduleSkeletonClear();
-
-skeletonAnimDef *moduleSkeletonAnimDefAlloc();
-void moduleSkeletonAnimDefFree(skeletonAnimDef *const restrict animDef);
-void moduleSkeletonAnimDefClear();
-
-skeletonAnim *moduleSkeletonAnimAlloc();
-skeletonAnim *moduleSkeletonAnimPrepend(skeletonAnim **const restrict start);
-skeletonAnim *moduleSkeletonAnimAppend(skeletonAnim **const restrict start);
-skeletonAnim *moduleSkeletonAnimInsertAfter(skeletonAnim **const restrict start, skeletonAnim *const restrict prev);
-skeletonAnim *moduleSkeletonAnimNext(const skeletonAnim *const restrict animInst);
-void moduleSkeletonAnimFree(skeletonAnim **const restrict start, skeletonAnim *const restrict animInst, skeletonAnim *const restrict prev);
-void moduleSkeletonAnimFreeArray(skeletonAnim **const restrict start);
-void moduleSkeletonAnimClear();
-
-
-extern memoryPool g_skeletonManager;
-extern memoryPool g_skeleAnimDefManager;
-extern memorySingleList g_skeleAnimManager;
 
 
 #endif

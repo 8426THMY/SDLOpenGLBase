@@ -53,7 +53,7 @@ void objectInit(object *const restrict obj, const objectDef *const restrict objD
 		// Instantiate the object's physics rigid bodies.
 		do {
 			objectAddRigidBody(obj, curBodyDef, *curPhysBoneID);
-			curBodyDef = modulePhysicsBodyDefNext(curBodyDef);
+			curBodyDef = modulePhysicsRigidBodyDefNext(curBodyDef);
 			++curPhysBoneID;
 		} while(curBodyDef != NULL);
 
@@ -117,7 +117,7 @@ void objectAddRigidBody(
 
 	// Add the new rigid body to the beginning of the object's list.
 	// Rigid bodies are stored in reverse order to the object definition!
-	physicsRigidBody *const body = modulePhysicsBodyPrepend(&obj->physBodies);
+	physicsRigidBody *const body = modulePhysicsRigidBodyPrepend(&obj->physBodies);
 	if(body == NULL){
 		/** MALLOC FAILED **/
 	}
@@ -203,7 +203,7 @@ void objectPreparePhysics(object *const restrict obj){
 			if(curPhysBoneID == lastPhysBoneID){
 				break;
 			}
-			modulePhysicsBodyNext(curBody);
+			modulePhysicsRigidBodyNext(curBody);
 		}
 
 		++curTransform;
@@ -301,7 +301,7 @@ void objectDelete(object *const restrict obj){
 	if(body != NULL){
 		size_t numBodies = obj->objDef->numBodies;
 		do {
-			modulePhysicsBodyFree(&obj->physBodies, body);
+			modulePhysicsRigidBodyFree(&obj->physBodies, body);
 			--numBodies;
 		} while(numBodies > 0);
 	}
@@ -322,7 +322,7 @@ void objectDefDelete(objectDef *const restrict objDef){
 
 	//objDef->colliders = NULL;
 
-	modulePhysicsBodyDefFreeArray(&objDef->physBodies);
+	modulePhysicsRigidBodyDefFreeArray(&objDef->physBodies);
 	if(objDef->physBoneIDs != NULL){
 		memoryManagerGlobalFree(objDef->physBoneIDs);
 	}
@@ -370,7 +370,7 @@ static void updateBones(object *const restrict obj){
 			*curTransform = curBody->state;
 			*curObjBone = curBody->state;
 
-			modulePhysicsBodyNext(curBody);
+			modulePhysicsRigidBodyNext(curBody);
 			++curPhysBoneID;
 
 		// Otherwise, if this bone does not have a rigid
@@ -396,7 +396,7 @@ static void updateBones(object *const restrict obj){
 				// Update the rigid body's centroid to reflect its new position.
 				physRigidBodyCentroidFromPosition(curBody);
 
-				modulePhysicsBodyNext(curBody);
+				modulePhysicsRigidBodyNext(curBody);
 				++curPhysBoneID;
 			}
 		}

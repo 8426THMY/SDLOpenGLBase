@@ -1,7 +1,21 @@
 #include "moduleTexture.h"
 
 
-memoryPool g_textureManager;
+#include "memoryManager.h"
+
+
+moduleDefinePool(Texture, texture, g_textureManager, textureDelete, MODULE_TEXTURE_MANAGER_SIZE)
+
+// Find a texture whose name matches the one specified!
+texture *moduleTextureFind(const char *const restrict name){
+	MEMPOOL_LOOP_BEGIN(g_textureManager, i, texture)
+		if(strcmp(name, i->name) == 0){
+			return(i);
+		}
+	MEMPOOL_LOOP_END(g_textureManager, i)
+
+	return(&g_texDefault);
+}
 
 
 return_t moduleTextureSetup(){
@@ -24,51 +38,4 @@ void moduleTextureCleanup(){
 	MEMPOOL_LOOP_END(g_textureManager, i)
 	textureCleanup();
 	memoryManagerGlobalDeleteRegions(g_textureManager.region);
-}
-
-
-// Allocate memory for a texture and return a handle to it.
-texture *moduleTextureAlloc(){
-	#ifndef MEMORYREGION_EXTEND_ALLOCATORS
-	return(memPoolAlloc(&g_textureManager));
-	#else
-	texture *newBlock = memPoolAlloc(&g_textureManager);
-	// If we've run out of memory, allocate some more!
-	if(newBlock == NULL){
-		if(memPoolExtend(
-			&g_textureManager,
-			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_TEXTURE_MANAGER_SIZE)),
-			memoryGetRequiredSize(MODULE_TEXTURE_MANAGER_SIZE)
-		)){
-			newBlock = memPoolAlloc(&g_textureManager);
-		}
-	}
-	return(newBlock);
-	#endif
-}
-
-// Free a texture that has been allocated.
-void moduleTextureFree(texture *const restrict tex){
-	textureDelete(tex);
-	memPoolFree(&g_textureManager, tex);
-}
-
-// Delete every texture in the manager.
-void moduleTextureClear(){
-	MEMPOOL_LOOP_BEGIN(g_textureManager, i, texture)
-		moduleTextureFree(i);
-	MEMPOOL_LOOP_END(g_textureManager, i)
-	memPoolClear(&g_textureManager);
-}
-
-
-// Find a texture whose name matches the one specified!
-texture *moduleTextureFind(const char *const restrict name){
-	MEMPOOL_LOOP_BEGIN(g_textureManager, i, texture)
-		if(strcmp(name, i->name) == 0){
-			return(i);
-		}
-	MEMPOOL_LOOP_END(g_textureManager, i)
-
-	return(&g_texDefault);
 }

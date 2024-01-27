@@ -84,7 +84,7 @@ void physIslandInsertRigidBodyList(physicsIsland *const restrict island, physics
 				if(numBodies <= 0){
 					break;
 				}
-				lastBody = modulePhysicsBodyNext(lastBody);
+				lastBody = modulePhysicsRigidBodyNext(lastBody);
 			}
 
 			// Insert the body list at the beginning of the island's list.
@@ -102,8 +102,8 @@ void physIslandRemoveRigidBody(physicsIsland *const restrict island, physicsRigi
 	physicsJoint *joint;
 	physicsCollider *collider;
 
-	physicsRigidBody *const nextBody = modulePhysicsBodyNext(body);
-	physicsRigidBody *const prevBody = modulePhysicsBodyPrev(body);
+	physicsRigidBody *const nextBody = modulePhysicsRigidBodyNext(body);
+	physicsRigidBody *const prevBody = modulePhysicsRigidBodyPrev(body);
 	// Fix up the next list element's pointers.
 	if(nextBody != NULL){
 		memDoubleListPrev(nextBody) = prevBody;
@@ -163,12 +163,12 @@ void physIslandRemoveRigidBodyList(physicsIsland *const restrict island, physics
 			if(numBodies <= 0){
 				break;
 			}
-			lastBody = modulePhysicsBodyNext(lastBody);
+			lastBody = modulePhysicsRigidBodyNext(lastBody);
 
 		}
 
-		nextBody = modulePhysicsBodyNext(lastBody);
-		prevBody = modulePhysicsBodyPrev(bodies);
+		nextBody = modulePhysicsRigidBodyNext(lastBody);
+		prevBody = modulePhysicsRigidBodyPrev(bodies);
 		// Fix up the next list element's pointers.
 		if(nextBody != NULL){
 			memDoubleListPrev(nextBody) = prevBody;
@@ -293,7 +293,7 @@ static void removeJoint(physicsIsland *const restrict island, physicsJoint *cons
 */
 static void updateRigidBodies(physicsIsland *const restrict island, const float dt){
 	physicsRigidBody *curBody = island->bodies;
-	for(; curBody != NULL; curBody = modulePhysicsBodyNext(curBody)){
+	for(; curBody != NULL; curBody = modulePhysicsRigidBodyNext(curBody)){
 		physRigidBodyUpdate(curBody, dt);
 
 		// If the rigid body allows collisions and has changed in the last update,
@@ -675,7 +675,7 @@ static void solveConstraints(physicsIsland *const restrict island, const float d
 	body = island->bodies;
 	while(body != NULL){
 		physRigidBodyIntegratePosition(body, dt);
-		body = modulePhysicsBodyNext(body);
+		body = modulePhysicsRigidBodyNext(body);
 	}
 
 

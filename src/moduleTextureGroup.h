@@ -2,12 +2,10 @@
 #define moduleTextureGroup_h
 
 
-#include "utilTypes.h"
-
-#include "memoryManager.h"
-#include "memoryPool.h"
-
 #include "textureGroup.h"
+
+#include "utilTypes.h"
+#include "moduleShared.h"
 
 
 #define MODULE_TEXGROUP
@@ -19,20 +17,15 @@
 	#define MEMORY_MODULE_NUM_TEXGROUPS 1
 #endif
 
-#define MODULE_TEXGROUP_MANAGER_SIZE memPoolMemoryForBlocks(MEMORY_MODULE_NUM_TEXGROUPS, MODULE_TEXGROUP_ELEMENT_SIZE)
+#define MODULE_TEXGROUP_MANAGER_SIZE \
+	memPoolMemoryForBlocks(MEMORY_MODULE_NUM_TEXGROUPS, MODULE_TEXGROUP_ELEMENT_SIZE)
 
+
+moduleDeclarePool(TexGroup, textureGroup, g_texGroupManager)
+textureGroup *moduleTexGroupFind(const char *const restrict name);
 
 return_t moduleTexGroupSetup();
 void moduleTexGroupCleanup();
-
-textureGroup *moduleTexGroupAlloc();
-void moduleTexGroupFree(textureGroup *const restrict texGroup);
-void moduleTexGroupClear();
-
-textureGroup *moduleTexGroupFind(const char *const restrict name);
-
-
-extern memoryPool g_texGroupManager;
 
 
 #endif

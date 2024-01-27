@@ -2,13 +2,10 @@
 #define moduleModel_h
 
 
-#include "utilTypes.h"
-
-#include "memoryManager.h"
-#include "memoryPool.h"
-#include "memorySingleList.h"
-
 #include "model.h"
+
+#include "utilTypes.h"
+#include "moduleShared.h"
 
 
 #define MODULE_MODEL
@@ -24,29 +21,17 @@
 	#define MEMORY_MODULE_NUM_MODELS 1
 #endif
 
-#define MODULE_MODELDEF_MANAGER_SIZE memPoolMemoryForBlocks(MEMORY_MODULE_NUM_MODELDEFS, MODULE_MODELDEF_ELEMENT_SIZE)
-#define MODULE_MODEL_MANAGER_SIZE    memSingleListMemoryForBlocks(MEMORY_MODULE_NUM_MODELS, MODULE_MODEL_ELEMENT_SIZE)
+#define MODULE_MODELDEF_MANAGER_SIZE \
+	memPoolMemoryForBlocks(MEMORY_MODULE_NUM_MODELDEFS, MODULE_MODELDEF_ELEMENT_SIZE)
+#define MODULE_MODEL_MANAGER_SIZE \
+	memSingleListMemoryForBlocks(MEMORY_MODULE_NUM_MODELS, MODULE_MODEL_ELEMENT_SIZE)
 
+
+moduleDeclarePool(ModelDef, modelDef, g_modelDefManager)
+moduleDeclareSingleList(Model, model, g_modelManager)
 
 return_t moduleModelSetup();
 void moduleModelCleanup();
-
-modelDef *moduleModelDefAlloc();
-void moduleModelDefFree(modelDef *const restrict mdlDef);
-void moduleModelDefClear();
-
-model *moduleModelAlloc();
-model *moduleModelPrepend(model **const restrict start);
-model *moduleModelAppend(model **const restrict start);
-model *moduleModelInsertAfter(model **const restrict start, model *const restrict prev);
-model *moduleModelNext(const model *const restrict render);
-void moduleModelFree(model **const restrict start, model *const restrict render, model *const restrict prev);
-void moduleModelFreeArray(model **const restrict start);
-void moduleModelClear();
-
-
-extern memoryPool g_modelDefManager;
-extern memorySingleList g_modelManager;
 
 
 #endif

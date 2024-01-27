@@ -3,8 +3,7 @@
 
 
 #include "utilTypes.h"
-
-#include "memoryManager.h"
+#include "moduleShared.h"
 
 
 #define MODULE_PARTICLE

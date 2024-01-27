@@ -208,7 +208,7 @@ return_t physRigidBodyDefLoad(physicsRigidBodyDef **const restrict bodies, const
 		// If we loaded at least one collider, add the
 		// rigid body to the beginning of the "bodies" array!
 		if(success){
-			*bodies = modulePhysicsBodyDefPrepend(bodies);
+			*bodies = modulePhysicsRigidBodyDefPrepend(bodies);
 			if(*bodies == NULL){
 				/** MALLOC FAILED **/
 			}
