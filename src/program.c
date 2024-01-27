@@ -765,16 +765,15 @@ static return_t initResources(program *const restrict prg){
 		{
 			#define TEST_PHYSJOINTSPHERE
 			#ifdef TEST_PHYSJOINTSPHERE
-			physicsJointPair *joint = modulePhysicsJointPairAlloc();
+			physicsJoint *joint = modulePhysicsJointAlloc();
 			const vec3 anchorA = egg->base->centroid;
 			const vec3 anchorB = vec3AddVec3C(cube->base->centroid, vec3InitSetC(-2.5f, 0.f, 0.f));
 			const quat rotOffsetA = quatInitIdentityC();
 			const quat rotOffsetB = quatInitIdentityC();
-			physJointPairInit(joint, egg, cube, NULL, NULL);
 			#warning "This stuff still needs a lot of work. The positional contraint works fine with everything, it's just the angular one."
 			#warning "At the moment, the angular constraints are disabled. Try putting a test object on the constraint cone."
 			physJointSphereInit(
-				&joint->joint.data.sphere,
+				&joint->data.sphere,
 				&anchorA, &anchorB,
 				&rotOffsetA, &rotOffsetB,
 				1.f,
@@ -782,23 +781,24 @@ static return_t initResources(program *const restrict prg){
 				-M_PI_4, M_PI_4,
 				-M_PI_2, M_PI_2
 			);
-			joint->joint.type = PHYSJOINT_TYPE_SPHERE;
+			joint->type = PHYSJOINT_TYPE_SPHERE;
+			physJointAdd(joint, egg, cube);
 			#elif defined(TEST_PHYSJOINTDISTANCE)
-			physicsJointPair *joint = modulePhysicsJointPairAlloc();
+			physicsJoint *joint = modulePhysicsJointAlloc();
 			const vec3 anchorA = egg->base->centroid;
 			const vec3 anchorB = cube->base->centroid;
-			physJointPairInit(joint, egg, cube, NULL, NULL);
-			physJointDistanceInit(&joint->joint.data.distance, &anchorA, &anchorB, 2.5f, 4.f*M_PI*M_PI*10.f, 0.f);
-			joint->joint.type = PHYSJOINT_TYPE_DISTANCE;
+			physJointDistanceInit(&joint->data.distance, &anchorA, &anchorB, 2.5f, 4.f*M_PI*M_PI*10.f, 0.f);
+			joint->type = PHYSJOINT_TYPE_DISTANCE;
+			physJointPairAdd(joint, egg, cube);
 			#elif defined(TEST_PHYSJOINTFIXED)
-			physicsJointPair *joint = modulePhysicsJointPairAlloc();
+			physicsJoint *joint = modulePhysicsJointAlloc();
 			const vec3 anchorA = egg->base->centroid;
 			const vec3 anchorB = vec3AddVec3C(cube->base->centroid, vec3InitSetC(-2.5f, 0.f, 0.f));
 			const quat rotOffsetA = quatInitIdentityC();
 			const quat rotOffsetB = quatInitIdentityC();
-			physJointPairInit(joint, egg, cube, NULL, NULL);
-			physJointFixedInit(&joint->joint.data.fixed, &anchorA, &anchorB, &rotOffsetA, &rotOffsetB);
-			joint->joint.type = PHYSJOINT_TYPE_FIXED;
+			physJointFixedInit(&joint->data.fixed, &anchorA, &anchorB, &rotOffsetA, &rotOffsetB);
+			joint->type = PHYSJOINT_TYPE_FIXED;
+			physJointPairAdd(joint, egg, cube);
 			#endif
 		}
 		physIslandInsertRigidBody(&island, cube);

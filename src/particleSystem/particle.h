@@ -21,7 +21,6 @@
 //https://www.cppstories.com/2014/04/flexible-particle-system-container-2/
 
 
-typedef struct particle particle;
 typedef struct particle {
 	// Stores the current and previous global transforms
 	// and manages any child particle system nodes.
@@ -51,6 +50,14 @@ typedef struct particle {
 	// things, such as how long it has been alive for.
 	float lifetime;
 } particle;
+
+// 
+typedef struct particleRender {
+	transform state;
+	#if 0
+	textureGroupAnim animData;
+	#endif
+} particleRender;
 
 
 void particlePreInit(

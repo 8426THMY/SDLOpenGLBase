@@ -1,12 +1,14 @@
-#include "sort.h"
-
-
-#include <string.h>
+#include "sortTimsort.h"
 
 
 #define nextElement(array, elementSize)   ((void *)(((byte_t *)(array)) + (elementSize)))
 #define prevElement(array, elementSize)   ((void *)(((byte_t *)(array)) - (elementSize)))
 #define getElement(array, i, elementSize) ((void *)(((byte_t *)(array)) + (i) * (elementSize)))
+
+
+#include <string.h>
+
+#include "memoryManager.h"
 
 
 // Forward-declare any helper functions!
@@ -16,63 +18,6 @@ static void mergeHalves(
 	sort_t (*const compare)(const void *const restrict e1, const void *const restrict e2)
 );
 
-
-/*
-** Return -1 if x is less than y, 0 if x is equal to y and 1 if x is greater than y.
-** We generally use this for sorting objects whose ordering depends on a float.
-*/
-sort_t compareFloat(const float x, const float y){
-	if(x < y){
-		return(SORT_COMPARE_LESSER);
-	}
-	if(x > y){
-		return(SORT_COMPARE_GREATER);
-	}
-	return(SORT_COMPARE_EQUAL);
-}
-
-sort_t compareKeyValue(const keyValue *const restrict kv1, const keyValue *const restrict kv1){
-	compareFloat(kv1->value, kv2->value);
-}
-
-
-/*
-** Timsort arrays of key-values using the macros defined
-** in "sortInsertionTemplate.h" and "sortTimsortTemplate.h".
-*/
-timsortDefine(KeyValues, keyValue, compareKeyValue)
-
-
-/*
-** Insertion sort works best for small or mostly-sorted arrays.
-** For larger arrays, it may be better to use a binary insertion sort.
-**
-** Note that temp must be large enough to contain at least elementSize bytes.
-*/
-void insertionSort(
-	void *const restrict array, const size_t arraySize, const size_t elementSize, void *const restrict temp,
-	sort_t (*const compare)(const void *const restrict e1, const void *const restrict e2)
-){
-
-	void *sort = nextElement(array, elementSize);
-	const void *const last = getElement(array, arraySize, elementSize);
-
-	// Sort every element in the array starting from the second.
-	for(; sort < last; sort = nextElement(sort, elementSize)){
-		void *check = prevElement(sort, elementSize);
-
-		memcpy(temp, sort, elementSize);
-		// Move the element we're sorting backwards through the
-		// array until we find the element it should precede.
-		for(; check >= array && (*compare)(check, temp) == SORT_COMPARE_GREATER; check = prevElement(check, elementSize)){
-			// Shift this element over to the right,
-			// as the one being sorted goes before it.
-			memcpy(nextElement(check, elementSize), check, elementSize);
-		}
-		// Copy the current element into its correct place!
-		memcpy(nextElement(check, elementSize), temp, elementSize);
-	}
-}
 
 /*
 ** Timsort is a good generic sorting algorithm,
@@ -128,7 +73,9 @@ void timsort(
 			if(right < arraySize){
 				mergeHalves(
 					getElement(array, left, elementSize), elementSize,
-					getElement(tempArray, left, elementSize), getElement(tempArray, mid, elementSize), getElement(tempArray, right, elementSize),
+					getElement(tempArray, left, elementSize),
+					getElement(tempArray, mid, elementSize),
+					getElement(tempArray, right, elementSize),
 					compare
 				);
 			}else{
@@ -137,13 +84,19 @@ void timsort(
 				if(mid < arraySize){
 					mergeHalves(
 						getElement(array, left, elementSize), elementSize,
-						getElement(tempArray, left, elementSize), getElement(tempArray, mid, elementSize), getElement(tempArray, arraySize, elementSize),
+						getElement(tempArray, left, elementSize),
+						getElement(tempArray, mid, elementSize),
+						getElement(tempArray, arraySize, elementSize),
 						compare
 					);
 
 				// Otherwise, we can just copy the left array since it's already sorted.
 				}else{
-					memcpy(getElement(array, left, elementSize), getElement(tempArray, left, elementSize), (arraySize - left) * elementSize);
+					memcpy(
+						getElement(array, left, elementSize),
+						getElement(tempArray, left, elementSize),
+						(arraySize - left) * elementSize
+					);
 				}
 
 				break;
@@ -158,6 +111,13 @@ void timsort(
 
 	memoryManagerGlobalFree(tempArray);
 }
+
+
+/*
+** Timsort arrays of key-values using the macros defined
+** in "sortInsertionTemplate.h" and "sortTimsortTemplate.h".
+*/
+timsortFlexibleDefine(KeyValues, keyValue)
 
 
 /*

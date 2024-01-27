@@ -144,6 +144,8 @@ typedef struct physicsJointDef {
 	physJointType type;
 } physicsJointDef;
 
+typedef struct physicsRigidBody physicsRigidBody;
+typedef struct physicsJoint physicsJoint;
 typedef struct physicsJoint {
 	// This array should be large enough
 	// to store any type of joint.
@@ -158,41 +160,45 @@ typedef struct physicsJoint {
 	// joint this object is.
 	physJointType type;
 
-	// Rigid body A's address in memory is always
-	// guaranteed to be greater than rigid body B's.
 	physicsRigidBody *bodyA;
 	physicsRigidBody *bodyB;
+
+	// Each joint is a member of two doubly linked
+	// lists, one for both bodies involved in the joint.
+	physicsJoint *prevA;
+	physicsJoint *nextA;
+	physicsJoint *prevB;
+	physicsJoint *nextB;
 } physicsJoint;
 
 
-typedef struct physicsRigidBody physicsRigidBody;
+void physJointAdd(
+	physicsJoint *const restrict joint,
+	physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB
+);
 
-void physJointPresolve(
-	physicsJoint *const restrict joint,
-	physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB,
-	const float dt
-);
-void physJointSolveVelocity(
-	physicsJoint *const restrict joint,
-	physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB
-);
+void physJointPresolve(physicsJoint *const restrict joint, const float dt);
+void physJointSolveVelocity(physicsJoint *const restrict joint);
 #ifdef PHYSJOINT_USE_POSITIONAL_CORRECTION
-return_t physJointSolvePosition(
-	const physicsJoint *const restrict joint,
-	physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB
-);
+return_t physJointSolvePosition(const physicsJoint *const restrict joint);
 #endif
+
+void physJointDelete(physicsJoint *const restrict joint);
 
 
 extern void (*const physJointPresolveTable[PHYSJOINT_NUM_TYPES])(
-	void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB, const float dt
+	void *const restrict joint,
+	physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB,
+	const float dt
 );
 extern void (*const physJointSolveVelocityTable[PHYSJOINT_NUM_TYPES])(
-	void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB
+	void *const restrict joint,
+	physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB
 );
 #ifdef PHYSJOINT_USE_POSITIONAL_CORRECTION
 extern return_t (*const physJointSolvePositionTable[PHYSJOINT_NUM_TYPES])(
-	const void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB
+	const void *const restrict joint,
+	physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB
 );
 #endif
 

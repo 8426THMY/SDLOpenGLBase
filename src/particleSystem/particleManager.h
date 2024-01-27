@@ -5,7 +5,6 @@
 #include <stddef.h>
 
 #include "particle.h"
-#include "camera.h"
 
 
 // A particle manager is really just a glorified array of particles.

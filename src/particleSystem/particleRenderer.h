@@ -12,6 +12,10 @@
 #include "particleRendererBeam.h"
 #include "particleRendererMesh.h"
 
+#include "sort.h"
+
+#include "camera.h"
+
 
 #define PARTICLE_RENDERER_NUM_TYPES 3
 
@@ -41,13 +45,12 @@ void particleRendererInitBatch(
 	spriteRenderer *const restrict batch
 );
 size_t particleRendererBatchSize(
-	const particleRenderer *const restrict renderer,
-	const particleManager *const restrict manager
+	const particleRenderer *const restrict renderer, const size_t numParticles
 );
 void particleRendererBatch(
 	const particleRenderer *const restrict renderer,
-	const particleManager *const restrict manager,
 	spriteRenderer *const restrict batch,
+	const keyValue *const restrict keyValues, const size_t numParticles,
 	const camera *const restrict cam, const float dt
 );
 
@@ -58,14 +61,13 @@ extern void (*const particleRendererInitBatchTable[PARTICLE_RENDERER_NUM_TYPES])
 );
 
 extern size_t (*const particleRendererBatchSizeTable[PARTICLE_RENDERER_NUM_TYPES])(
-	const void *const restrict renderer,
-	const particleManager *const restrict manager
+	const void *const restrict renderer, const size_t numParticles
 );
 
 extern void (*const particleRendererBatchTable[PARTICLE_RENDERER_NUM_TYPES])(
-	const void *const restrict renderer,
-	const particleManager *const restrict manager,
+	const particleRenderer *const restrict renderer,
 	spriteRenderer *const restrict batch,
+	const keyValue *const restrict keyValues, const size_t numParticles,
 	const camera *const restrict cam, const float dt
 );
 

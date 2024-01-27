@@ -375,9 +375,9 @@ return_t physRigidBodyIsCollidable(physicsRigidBody *const restrict body){
 ** are the same or there exists a joint between them that
 ** does not allow collision.
 */
-return_t physRigidBodyPermitCollision(const physicsRigidBody *bodyA, const physicsRigidBody *bodyB){
+return_t physRigidBodyPermitCollision(const physicsRigidBody *const bodyA, const physicsRigidBody *const bodyB){
 	if(bodyA < bodyB){
-		const physicsJointPair *curJoint = bodyA->joints;
+		const physicsJoint *curJoint = bodyA->joints;
 		while(curJoint != NULL && bodyB >= curJoint->bodyB){
 			// We only allow these bodies to collide if
 			// every single joint they share allows collision.
@@ -389,7 +389,7 @@ return_t physRigidBodyPermitCollision(const physicsRigidBody *bodyA, const physi
 
 		return(1);
 	}else if(bodyA > bodyB){
-		const physicsJointPair *curJoint = bodyB->joints;
+		const physicsJoint *curJoint = bodyB->joints;
 		while(curJoint != NULL && bodyA >= curJoint->bodyB){
 			// We only allow these bodies to collide if
 			// every single joint they share allows collision.
@@ -523,27 +523,27 @@ void physRigidBodyApplyAngularImpulseInverse(physicsRigidBody *const restrict bo
 }
 
 // Add a translational and rotational impulse to a rigid body.
-void physRigidBodyApplyImpulse(physicsRigidBody *const restrict body, const vec3 *const restrict r, const vec3 *const restrict p){
+void physRigidBodyApplyImpulse(physicsRigidBody *const restrict body, const vec3 *const restrict r, const vec3 *const restrict J){
 	vec3 impulse;
 
 	// Linear velocity.
-	vec3FmaP2(body->invMass, p, &body->linearVelocity);
+	vec3FmaP2(body->invMass, J, &body->linearVelocity);
 
 	// Angular velocity.
-	vec3CrossVec3Out(r, p, &impulse);
+	vec3CrossVec3Out(r, J, &impulse);
 	mat3MultiplyVec3(&body->invInertiaGlobal, &impulse);
 	vec3AddVec3(&body->angularVelocity, &impulse);
 }
 
 // Subtract a translational and rotational impulse from a rigid body.
-void physRigidBodyApplyImpulseInverse(physicsRigidBody *const restrict body, const vec3 *const restrict r, const vec3 *const restrict p){
+void physRigidBodyApplyImpulseInverse(physicsRigidBody *const restrict body, const vec3 *const restrict r, const vec3 *const restrict J){
 	vec3 impulse;
 
 	// Linear velocity.
-	vec3FmaP2(-body->invMass, p, &body->linearVelocity);
+	vec3FmaP2(-body->invMass, J, &body->linearVelocity);
 
 	// Angular velocity.
-	vec3CrossVec3Out(r, p, &impulse);
+	vec3CrossVec3Out(r, J, &impulse);
 	mat3MultiplyVec3(&body->invInertiaGlobal, &impulse);
 	vec3SubtractVec3P1(&body->angularVelocity, &impulse);
 }
@@ -551,16 +551,16 @@ void physRigidBodyApplyImpulseInverse(physicsRigidBody *const restrict body, con
 // Add a translational and "boosted" rotational impulse to a rigid body.
 void physRigidBodyApplyImpulseBoost(
 	physicsRigidBody *const restrict body, const vec3 *const restrict r,
-	const vec3 *const restrict p, const vec3 *const restrict a
+	const vec3 *const restrict J, const vec3 *const restrict a
 ){
 
 	vec3 impulse;
 
 	// Linear velocity.
-	vec3FmaP2(body->invMass, p, &body->linearVelocity);
+	vec3FmaP2(body->invMass, J, &body->linearVelocity);
 
 	// Angular velocity.
-	vec3CrossVec3Out(r, p, &impulse);
+	vec3CrossVec3Out(r, J, &impulse);
 	vec3AddVec3(&impulse, a);
 	mat3MultiplyVec3(&body->invInertiaGlobal, &impulse);
 	vec3AddVec3(&body->angularVelocity, &impulse);
@@ -569,16 +569,16 @@ void physRigidBodyApplyImpulseBoost(
 // Subtract a translational and "boosted" rotational impulse from a rigid body.
 void physRigidBodyApplyImpulseBoostInverse(
 	physicsRigidBody *const restrict body, const vec3 *const restrict r,
-	const vec3 *const restrict p, const vec3 *const restrict a
+	const vec3 *const restrict J, const vec3 *const restrict a
 ){
 
 	vec3 impulse;
 
 	// Linear velocity.
-	vec3FmaP2(-body->invMass, p, &body->linearVelocity);
+	vec3FmaP2(-body->invMass, J, &body->linearVelocity);
 
 	// Angular velocity.
-	vec3CrossVec3Out(r, p, &impulse);
+	vec3CrossVec3Out(r, J, &impulse);
 	vec3AddVec3(&impulse, a);
 	mat3MultiplyVec3(&body->invInertiaGlobal, &impulse);
 	vec3SubtractVec3P1(&body->angularVelocity, &impulse);
@@ -586,8 +586,21 @@ void physRigidBodyApplyImpulseBoostInverse(
 
 #ifdef PHYSCOLLIDER_USE_POSITIONAL_CORRECTION
 // Add a rotational impulse to a rigid body's position.
+void physRigidBodyApplyLinearImpulsePosition(physicsRigidBody *const restrict body, const vec3 *const restrict J){
+	if(flagsAreSet(body->flags, PHYSRIGIDBODY_SIMULATE_LINEAR)){
+		vec3FmaP2(body->invMass, J, &body->centroid);
+	}
+}
+
+// Subtract a rotational impulse from a rigid body's position.
+void physRigidBodyApplyLinearImpulsePositionInverse(physicsRigidBody *const restrict body, const vec3 *const restrict J){
+	if(flagsAreSet(body->flags, PHYSRIGIDBODY_SIMULATE_LINEAR)){
+		vec3FmaP2(-body->invMass, J, &body->centroid);
+	}
+}
+
+// Add a rotational impulse to a rigid body's position.
 void physRigidBodyApplyAngularImpulsePosition(physicsRigidBody *const restrict body, vec3 J){
-	// Orientation.
 	if(flagsAreSet(body->flags, PHYSRIGIDBODY_SIMULATE_ANGULAR)){
 		quat tempRot;
 		mat3MultiplyVec3(&body->invInertiaGlobal, &J);
@@ -601,7 +614,6 @@ void physRigidBodyApplyAngularImpulsePosition(physicsRigidBody *const restrict b
 
 // Subtract a rotational impulse from a rigid body's position.
 void physRigidBodyApplyAngularImpulsePositionInverse(physicsRigidBody *const restrict body, vec3 J){
-	// Orientation.
 	if(flagsAreSet(body->flags, PHYSRIGIDBODY_SIMULATE_ANGULAR)){
 		quat tempRot;
 		mat3MultiplyVec3(&body->invInertiaGlobal, &J);
@@ -614,17 +626,17 @@ void physRigidBodyApplyAngularImpulsePositionInverse(physicsRigidBody *const res
 }
 
 // Add a translational and rotational impulse to a rigid body's position.
-void physRigidBodyApplyImpulsePosition(physicsRigidBody *const restrict body, const vec3 *const restrict r, const vec3 *const restrict p){
+void physRigidBodyApplyImpulsePosition(physicsRigidBody *const restrict body, const vec3 *const restrict r, const vec3 *const restrict J){
 	// Position.
 	if(flagsAreSet(body->flags, PHYSRIGIDBODY_SIMULATE_LINEAR)){
-		vec3FmaP2(body->invMass, p, &body->centroid);
+		vec3FmaP2(body->invMass, J, &body->centroid);
 	}
 
 	// Orientation.
 	if(flagsAreSet(body->flags, PHYSRIGIDBODY_SIMULATE_ANGULAR)){
 		vec3 impulse;
 		quat tempRot;
-		vec3CrossVec3Out(r, p, &impulse);
+		vec3CrossVec3Out(r, J, &impulse);
 		mat3MultiplyVec3(&body->invInertiaGlobal, &impulse);
 		quatDifferentiateOut(&body->state.rot, &impulse, &tempRot);
 		quatAddQuat(&body->state.rot, &tempRot);
@@ -635,17 +647,17 @@ void physRigidBodyApplyImpulsePosition(physicsRigidBody *const restrict body, co
 }
 
 // Subtract a translational and rotational impulse from a rigid body's position.
-void physRigidBodyApplyImpulsePositionInverse(physicsRigidBody *const restrict body, const vec3 *const restrict r, const vec3 *const restrict p){
+void physRigidBodyApplyImpulsePositionInverse(physicsRigidBody *const restrict body, const vec3 *const restrict r, const vec3 *const restrict J){
 	// Position.
 	if(flagsAreSet(body->flags, PHYSRIGIDBODY_SIMULATE_LINEAR)){
-		vec3FmaP2(-body->invMass, p, &body->centroid);
+		vec3FmaP2(-body->invMass, J, &body->centroid);
 	}
 
 	// Orientation.
 	if(flagsAreSet(body->flags, PHYSRIGIDBODY_SIMULATE_ANGULAR)){
 		vec3 impulse;
 		quat tempRot;
-		vec3CrossVec3Out(r, p, &impulse);
+		vec3CrossVec3Out(r, J, &impulse);
 		mat3MultiplyVec3(&body->invInertiaGlobal, &impulse);
 		quatDifferentiateOut(&body->state.rot, &impulse, &tempRot);
 		quatSubtractQuatP1(&body->state.rot, &tempRot);

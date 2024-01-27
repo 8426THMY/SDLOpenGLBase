@@ -16,7 +16,7 @@
 
 #warning "Our modules define a lot of functions that are identical or almost identical."
 #warning "Would it be possible to avoid defining the duplicate functions by using macros?"
-#warning "Alternatively, if this gets ugly, it would almost certainly be better to define these functions using macros."
+#warning "We could even go so far as to define the entire set of functions using a single macro."
 
 #warning "Can we combine some of our memory allocations (for components of models, texture groups, skeletons, etcetera) into just one?"
 #warning "This probably won't be as necessary when we create binary formats for things."
@@ -41,7 +41,8 @@
 #warning "Maybe use a uniform buffer object for the view-projection matrix, too."
 #warning "It would be good to have a proper render queue that sorts objects based on their textures."
 #warning "Essentially, what we want is something like the render loop in 'Approaching Zero Driver Overhead'."
-#warning "We already have all of our 'render passes' sorted (objects, particles, GUI, etcetera), so it's just a matter of sorting by texture instance."
+#warning "Another idea is to use the method presented in 'Order your graphics draw calls around!'"
+/* https://realtimecollisiondetection.net/blog/?p=86 */
 
 #warning "Maybe limit the scope of global variables that don't need to be seen from the outside?"
 
@@ -56,8 +57,6 @@
 *** 2. Particle renderers and control points. We should have at least two
 ***    renderers, "animated sprite" and "rope". Maybe investigate Source's
 ***    "sprite trail" renderer, too.
-***
-*** 3. Use 3x4 matrices where possible instead of 4x4 matrices.
 **/
 
 

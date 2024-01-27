@@ -4,7 +4,7 @@
 memoryPool g_aabbNodeManager;
 memoryDoubleList g_physContactPairManager;
 memoryDoubleList g_physSeparationPairManager;
-memoryDoubleList g_physJointPairManager;
+memoryDoubleList g_physJointManager;
 memorySingleList g_physColliderManager;
 memorySingleList g_physRigidBodyDefManager;
 memoryDoubleList g_physRigidBodyManager;
@@ -32,11 +32,11 @@ return_t modulePhysicsSetup(){
 			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSSEPARATIONPAIR_MANAGER_SIZE)),
 			memoryGetRequiredSize(MODULE_PHYSSEPARATIONPAIR_MANAGER_SIZE), MODULE_PHYSSEPARATIONPAIR_ELEMENT_SIZE
 		) != NULL &&
-		// physicsJointPair
+		// physicsJoint
 		memDoubleListInit(
-			&g_physJointPairManager,
-			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSJOINTPAIR_MANAGER_SIZE)),
-			memoryGetRequiredSize(MODULE_PHYSJOINTPAIR_MANAGER_SIZE), MODULE_PHYSJOINTPAIR_ELEMENT_SIZE
+			&g_physJointManager,
+			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSJOINT_MANAGER_SIZE)),
+			memoryGetRequiredSize(MODULE_PHYSJOINT_MANAGER_SIZE), MODULE_PHYSJOINT_ELEMENT_SIZE
 		) != NULL &&
 		// physicsCollider
 		memSingleListInit(
@@ -75,11 +75,11 @@ void modulePhysicsCleanup(){
 		modulePhysicsColliderFree(NULL, i, NULL);
 	MEMSINGLELIST_LOOP_END(g_physColliderManager, i)
 	memoryManagerGlobalDeleteRegions(g_physColliderManager.region);
-	// physicsJointPair
-	MEMDOUBLELIST_LOOP_BEGIN(g_physJointPairManager, i, physicsJointPair)
-		modulePhysicsJointPairFree(NULL, i);
-	MEMDOUBLELIST_LOOP_END(g_physJointPairManager, i)
-	memoryManagerGlobalDeleteRegions(g_physJointPairManager.region);
+	// physicsJoint
+	MEMDOUBLELIST_LOOP_BEGIN(g_physJointManager, i, physicsJoint)
+		modulePhysicsJointFree(NULL, i);
+	MEMDOUBLELIST_LOOP_END(g_physJointManager, i)
+	memoryManagerGlobalDeleteRegions(g_physJointManager.region);
 	// physicsSeparationPair
 	MEMDOUBLELIST_LOOP_BEGIN(g_physSeparationPairManager, i, physicsSeparationPair)
 		modulePhysicsSeparationPairFree(NULL, i);
@@ -396,135 +396,135 @@ void modulePhysicsSeparationPairClear(){
 }
 
 
-// Allocate a new joint pair array.
-physicsJointPair *modulePhysicsJointPairAlloc(){
+// Allocate a new joint array.
+physicsJoint *modulePhysicsJointAlloc(){
 	#ifndef MEMORYREGION_EXTEND_ALLOCATORS
-	return(memDoubleListAlloc(&g_physJointPairManager));
+	return(memDoubleListAlloc(&g_physJointManager));
 	#else
-	physicsJointPair *newBlock = memDoubleListAlloc(&g_physJointPairManager);
+	physicsJoint *newBlock = memDoubleListAlloc(&g_physJointManager);
 	// If we've run out of memory, allocate some more!
 	if(newBlock == NULL){
 		if(memDoubleListExtend(
-			&g_physJointPairManager,
-			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSCONTACTPAIR_MANAGER_SIZE)),
-			memoryGetRequiredSize(MODULE_PHYSCONTACTPAIR_MANAGER_SIZE)
+			&g_physJointManager,
+			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSJOINT_MANAGER_SIZE)),
+			memoryGetRequiredSize(MODULE_PHYSJOINT_MANAGER_SIZE)
 		)){
-			newBlock = memDoubleListAlloc(&g_physJointPairManager);
+			newBlock = memDoubleListAlloc(&g_physJointManager);
 		}
 	}
 	return(newBlock);
 	#endif
 }
 
-// Insert a joint pair at the beginning of an array.
-physicsJointPair *modulePhysicsJointPairPrepend(physicsJointPair **const restrict start){
+// Insert a joint at the beginning of an array.
+physicsJoint *modulePhysicsJointPrepend(physicsJoint **const restrict start){
 	#ifndef MEMORYREGION_EXTEND_ALLOCATORS
-	return(memDoubleListPrepend(&g_physJointPairManager, (void **)start));
+	return(memDoubleListPrepend(&g_physJointManager, (void **)start));
 	#else
-	physicsJointPair *newBlock = memDoubleListPrepend(&g_physJointPairManager, (void **)start);
+	physicsJoint *newBlock = memDoubleListPrepend(&g_physJointManager, (void **)start);
 	// If we've run out of memory, allocate some more!
 	if(newBlock == NULL){
 		if(memDoubleListExtend(
-			&g_physJointPairManager,
-			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSCONTACTPAIR_MANAGER_SIZE)),
-			memoryGetRequiredSize(MODULE_PHYSCONTACTPAIR_MANAGER_SIZE)
+			&g_physJointManager,
+			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSJOINT_MANAGER_SIZE)),
+			memoryGetRequiredSize(MODULE_PHYSJOINT_MANAGER_SIZE)
 		)){
-			newBlock = memDoubleListPrepend(&g_physJointPairManager, (void **)start);
+			newBlock = memDoubleListPrepend(&g_physJointManager, (void **)start);
 		}
 	}
 	return(newBlock);
 	#endif
 }
 
-// Insert a joint pair at the end of an array.
-physicsJointPair *modulePhysicsJointPairAppend(physicsJointPair **const restrict start){
+// Insert a joint at the end of an array.
+physicsJoint *modulePhysicsJointAppend(physicsJoint **const restrict start){
 	#ifndef MEMORYREGION_EXTEND_ALLOCATORS
-	return(memDoubleListAppend(&g_physJointPairManager, (void **)start));
+	return(memDoubleListAppend(&g_physJointManager, (void **)start));
 	#else
-	physicsJointPair *newBlock = memDoubleListAppend(&g_physJointPairManager, (void **)start);
+	physicsJoint *newBlock = memDoubleListAppend(&g_physJointManager, (void **)start);
 	// If we've run out of memory, allocate some more!
 	if(newBlock == NULL){
 		if(memDoubleListExtend(
-			&g_physJointPairManager,
-			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSCONTACTPAIR_MANAGER_SIZE)),
-			memoryGetRequiredSize(MODULE_PHYSCONTACTPAIR_MANAGER_SIZE)
+			&g_physJointManager,
+			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSJOINT_MANAGER_SIZE)),
+			memoryGetRequiredSize(MODULE_PHYSJOINT_MANAGER_SIZE)
 		)){
-			newBlock = memDoubleListAppend(&g_physJointPairManager, (void **)start);
+			newBlock = memDoubleListAppend(&g_physJointManager, (void **)start);
 		}
 	}
 	return(newBlock);
 	#endif
 }
 
-// Insert a joint pair before the element "next".
-physicsJointPair *modulePhysicsJointPairInsertBefore(physicsJointPair **const restrict start, physicsJointPair *const restrict next){
+// Insert a joint before the element "next".
+physicsJoint *modulePhysicsJointInsertBefore(physicsJoint **const restrict start, physicsJoint *const restrict next){
 	#ifndef MEMORYREGION_EXTEND_ALLOCATORS
-	return(memDoubleListInsertBefore(&g_physJointPairManager, (void **)start, (void *)next));
+	return(memDoubleListInsertBefore(&g_physJointManager, (void **)start, (void *)next));
 	#else
-	physicsJointPair *newBlock = memDoubleListInsertBefore(&g_physJointPairManager, (void **)start, (void *)next);
+	physicsJoint *newBlock = memDoubleListInsertBefore(&g_physJointManager, (void **)start, (void *)next);
 	// If we've run out of memory, allocate some more!
 	if(newBlock == NULL){
 		if(memDoubleListExtend(
-			&g_physJointPairManager,
-			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSCONTACTPAIR_MANAGER_SIZE)),
-			memoryGetRequiredSize(MODULE_PHYSCONTACTPAIR_MANAGER_SIZE)
+			&g_physJointManager,
+			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSJOINT_MANAGER_SIZE)),
+			memoryGetRequiredSize(MODULE_PHYSJOINT_MANAGER_SIZE)
 		)){
-			newBlock = memDoubleListInsertBefore(&g_physJointPairManager, (void **)start, (void *)next);
+			newBlock = memDoubleListInsertBefore(&g_physJointManager, (void **)start, (void *)next);
 		}
 	}
 	return(newBlock);
 	#endif
 }
 
-// Insert a joint pair after the element "prev".
-physicsJointPair *modulePhysicsJointPairInsertAfter(physicsJointPair **const restrict start, physicsJointPair *const restrict prev){
+// Insert a joint after the element "prev".
+physicsJoint *modulePhysicsJointInsertAfter(physicsJoint **const restrict start, physicsJoint *const restrict prev){
 	#ifndef MEMORYREGION_EXTEND_ALLOCATORS
-	return(memDoubleListInsertAfter(&g_physJointPairManager, (void **)start, (void *)prev));
+	return(memDoubleListInsertAfter(&g_physJointManager, (void **)start, (void *)prev));
 	#else
-	physicsJointPair *newBlock = memDoubleListInsertAfter(&g_physJointPairManager, (void **)start, (void *)prev);
+	physicsJoint *newBlock = memDoubleListInsertAfter(&g_physJointManager, (void **)start, (void *)prev);
 	// If we've run out of memory, allocate some more!
 	if(newBlock == NULL){
 		if(memDoubleListExtend(
-			&g_physJointPairManager,
-			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSCONTACTPAIR_MANAGER_SIZE)),
-			memoryGetRequiredSize(MODULE_PHYSCONTACTPAIR_MANAGER_SIZE)
+			&g_physJointManager,
+			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_PHYSJOINT_MANAGER_SIZE)),
+			memoryGetRequiredSize(MODULE_PHYSJOINT_MANAGER_SIZE)
 		)){
-			newBlock = memDoubleListInsertAfter(&g_physJointPairManager, (void **)start, (void *)prev);
+			newBlock = memDoubleListInsertAfter(&g_physJointManager, (void **)start, (void *)prev);
 		}
 	}
 	return(newBlock);
 	#endif
 }
 
-physicsJointPair *modulePhysicsJointPairNext(const physicsJointPair *const restrict jPair){
-	return(memDoubleListNext(jPair));
+physicsJoint *modulePhysicsJointNext(const physicsJoint *const restrict joint){
+	return(memDoubleListNext(joint));
 }
 
-physicsJointPair *modulePhysicsJointPairPrev(const physicsJointPair *const restrict jPair){
-	return(memDoubleListPrev(jPair));
+physicsJoint *modulePhysicsJointPrev(const physicsJoint *const restrict joint){
+	return(memDoubleListPrev(joint));
 }
 
-// Free a joint pair that has been allocated.
-void modulePhysicsJointPairFree(physicsJointPair **const restrict start, physicsJointPair *const restrict jPair){
-	physJointPairDelete(jPair);
-	memDoubleListFree(&g_physJointPairManager, (void **)start, (void *)jPair);
+// Free a joint that has been allocated.
+void modulePhysicsJointFree(physicsJoint **const restrict start, physicsJoint *const restrict joint){
+	physJointDelete(joint);
+	memDoubleListFree(&g_physJointManager, (void **)start, (void *)joint);
 }
 
-// Free an entire joint pair array.
-void modulePhysicsJointPairFreeArray(physicsJointPair **const restrict start){
-	physicsJointPair *jPair = *start;
-	while(jPair != NULL){
-		modulePhysicsJointPairFree(start, jPair);
-		jPair = *start;
+// Free an entire joint array.
+void modulePhysicsJointFreeArray(physicsJoint **const restrict start){
+	physicsJoint *joint = *start;
+	while(joint != NULL){
+		modulePhysicsJointFree(start, joint);
+		joint = *start;
 	}
 }
 
-// Delete every joint pair in the manager.
-void modulePhysicsJointPairClear(){
-	MEMDOUBLELIST_LOOP_BEGIN(g_physJointPairManager, i, physicsJointPair)
-		modulePhysicsJointPairFree(NULL, i);
-	MEMDOUBLELIST_LOOP_END(g_physJointPairManager, i)
-	memDoubleListClear(&g_physJointPairManager);
+// Delete every joint in the manager.
+void modulePhysicsJointClear(){
+	MEMDOUBLELIST_LOOP_BEGIN(g_physJointManager, i, physicsJoint)
+		modulePhysicsJointFree(NULL, i);
+	MEMDOUBLELIST_LOOP_END(g_physJointManager, i)
+	memDoubleListClear(&g_physJointManager);
 }
 
 

@@ -12,7 +12,7 @@
 // Forward-declare any helper functions!
 static void polyboardSetupSpline(
 	cubicSpline *const restrict spline,
-	const particleManager *const restrict manager,
+	const keyValue *const restrict keyValues, const size_t numParticles,
 	const float dt
 );
 static void polyboardAddVertices(
@@ -49,12 +49,11 @@ void particleRendererBeamInitBatch(
 ** add an extra index for primitive restart.
 */
 size_t particleRendererBeamBatchSize(
-	const void *const restrict renderer,
-	const particleManager *const restrict manager
+	const void *const restrict renderer, const size_t numParticles
 ){
 
 	return(
-		2*(manager->numParticles + (manager->numParticles - 1) *
+		2*(numParticles + (numParticles - 1) *
 		((const particleRendererBeam *const)renderer)->subdivisions) + 1
 	);
 }
@@ -68,13 +67,12 @@ size_t particleRendererBeamBatchSize(
 ** and Computer Graphics, Third Edition".
 */
 void particleRendererBeamBatch(
-	const void *const restrict renderer,
-	const particleManager *const restrict manager,
+	const particleRenderer *const restrict renderer,
 	spriteRenderer *const restrict batch,
+	const keyValue *const restrict keyValues, const size_t numParticles,
 	const camera *const restrict cam, const float dt
 ){
 
-	const size_t numParticles = manager->numParticles;
 	if(numParticles > 1){
 		const particleRendererBeam partRenderer =
 			*((const particleRendererBeam *const)renderer);
@@ -97,7 +95,7 @@ void particleRendererBeamBatch(
 			spriteRendererBatchedOrphan(batchedRenderer);
 		}
 
-		polyboardSetupSpline(&spline, manager, dt);
+		polyboardSetupSpline(&spline, keyValues, numParticles, dt);
 
 		// Construct polyboard vertices for each particle except the last.
 		for(; curParticle < numParticles - 1; ++curParticle){
@@ -108,7 +106,7 @@ void particleRendererBeamBatch(
 				vec3 nextPos;
 
 				// Compute the next interpolated position.
-				cubicSplineEvaluate(&spline, curParticle, numParticles, t, &nextPos);
+				cubicSplineEvaluate(&spline, curParticle, t, &nextPos);
 				t += subdivInc;
 
 				// Construct the polyboard vertices
@@ -173,20 +171,21 @@ void particleRendererBeamBatch(
 
 static void polyboardSetupSpline(
 	cubicSpline *const restrict spline,
-	const particleManager *const restrict manager,
+	const keyValue *const restrict keyValues, const size_t numParticles,
 	const float dt
 ){
 
-	const particle *curParticle = manager->particles;
-	const particle *const lastParticle = &curParticle[manager->numParticles];
+	const keyValue *curKeyValue = keyValues;
+	const keyValue *const lastKeyValue = &keyValues[numParticles];
 	// Array of interpolated particle positions.
 	vec3 *interpPos = memoryManagerGlobalAlloc(
-		sizeof(curParticle->subsys.state[0].pos) * manager->numParticles
+		sizeof(*interpPos) * numParticles
 	);
 	vec3 *curInterpPos = interpPos;
 
 	// Compute the interpolated position of each particle.
-	for(; curParticle != lastParticle; ++curParticle){
+	for(; curKeyValue != lastKeyValue; ++curKeyValue){
+		const particle *const curParticle = curKeyValue->key;
 		// We only need the position, so there's no
 		// need to interpolate the full transform.
 		vec3Lerp(

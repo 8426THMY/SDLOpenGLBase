@@ -12,8 +12,8 @@ static void insertColliders(physicsIsland *const restrict island, physicsRigidBo
 static void removeColliderNode(physicsIsland *const restrict island, physicsCollider *const restrict collider);
 static void removeColliders(physicsIsland *const restrict island, physicsRigidBody *const restrict body);
 
-static void insertJoint(physicsIsland *const restrict island, physicsJointPair *const restrict joint);
-static void removeJoint(physicsIsland *const restrict island, physicsJointPair *const restrict joint);
+static void insertJoint(physicsIsland *const restrict island, physicsJoint *const restrict joint);
+static void removeJoint(physicsIsland *const restrict island, physicsJoint *const restrict joint);
 
 static void updateRigidBodies(physicsIsland *const restrict island, const float dt);
 
@@ -48,7 +48,7 @@ void physIslandInit(physicsIsland *const restrict island){
 
 // Insert a single rigid body into an island.
 void physIslandInsertRigidBody(physicsIsland *const restrict island, physicsRigidBody *const body){
-	physicsJointPair *joint;
+	physicsJoint *joint;
 
 	// Insert the body at the beginning of the island's list.
 	if(island->bodies != NULL){
@@ -73,7 +73,7 @@ void physIslandInsertRigidBodyList(physicsIsland *const restrict island, physics
 			physicsRigidBody *lastBody = bodies;
 			// Find the last rigid body in the list.
 			for(;;){
-				physicsJointPair *joint = lastBody->joints;
+				physicsJoint *joint = lastBody->joints;
 				// Insert any joints owned by this body into the island.
 				while(joint != NULL && joint->bodyA == lastBody){
 					insertJoint(island, joint);
@@ -99,11 +99,11 @@ void physIslandInsertRigidBodyList(physicsIsland *const restrict island, physics
 
 // Remove a single rigid body from an island.
 void physIslandRemoveRigidBody(physicsIsland *const restrict island, physicsRigidBody *const body){
-	physicsJointPair *joint;
+	physicsJoint *joint;
 	physicsCollider *collider;
 
-	physicsRigidBody *const nextBody = (physicsRigidBody *)modulePhysicsBodyNext(body);
-	physicsRigidBody *const prevBody = (physicsRigidBody *)modulePhysicsBodyPrev(body);
+	physicsRigidBody *const nextBody = modulePhysicsBodyNext(body);
+	physicsRigidBody *const prevBody = modulePhysicsBodyPrev(body);
 	// Fix up the next list element's pointers.
 	if(nextBody != NULL){
 		memDoubleListPrev(nextBody) = prevBody;
@@ -129,7 +129,7 @@ void physIslandRemoveRigidBody(physicsIsland *const restrict island, physicsRigi
 	// Remove the body's colliders from the island.
 	while(collider != NULL){
 		removeColliderNode(island, collider);
-		collider = (physicsCollider *)modulePhysicsColliderNext(collider);
+		collider = modulePhysicsColliderNext(collider);
 	}
 }
 
@@ -142,7 +142,7 @@ void physIslandRemoveRigidBodyList(physicsIsland *const restrict island, physics
 		physicsRigidBody *lastBody = bodies;
 		// Find the last rigid body in the list.
 		for(;;){
-			physicsJointPair *joint;
+			physicsJoint *joint;
 			physicsCollider *collider;
 
 			joint = lastBody->joints;
@@ -156,7 +156,7 @@ void physIslandRemoveRigidBodyList(physicsIsland *const restrict island, physics
 			// Remove the body's colliders from the island.
 			while(collider != NULL){
 				removeColliderNode(island, collider);
-				collider = (physicsCollider *)modulePhysicsColliderNext(collider);
+				collider = modulePhysicsColliderNext(collider);
 			}
 
 			--numBodies;
@@ -167,8 +167,8 @@ void physIslandRemoveRigidBodyList(physicsIsland *const restrict island, physics
 
 		}
 
-		nextBody = (physicsRigidBody *)modulePhysicsBodyNext(lastBody);
-		prevBody = (physicsRigidBody *)modulePhysicsBodyPrev(bodies);
+		nextBody = modulePhysicsBodyNext(lastBody);
+		prevBody = modulePhysicsBodyPrev(bodies);
 		// Fix up the next list element's pointers.
 		if(nextBody != NULL){
 			memDoubleListPrev(nextBody) = prevBody;
@@ -258,7 +258,7 @@ static void removeColliders(physicsIsland *const restrict island, physicsRigidBo
 }
 
 
-static void insertJoint(physicsIsland *const restrict island, physicsJointPair *const restrict joint){
+static void insertJoint(physicsIsland *const restrict island, physicsJoint *const restrict joint){
 	// Insert the joint at the beginning of the island's list.
 	if(island->joints != NULL){
 		memDoubleListNext(joint) = island->joints;
@@ -268,9 +268,9 @@ static void insertJoint(physicsIsland *const restrict island, physicsJointPair *
 	island->joints = joint;
 }
 
-static void removeJoint(physicsIsland *const restrict island, physicsJointPair *const restrict joint){
-	physicsJointPair *const nextJoint = (physicsJointPair *)modulePhysicsJointPairNext(joint);
-	physicsJointPair *const prevJoint = (physicsJointPair *)modulePhysicsJointPairPrev(joint);
+static void removeJoint(physicsIsland *const restrict island, physicsJoint *const restrict joint){
+	physicsJoint *const nextJoint = modulePhysicsJointNext(joint);
+	physicsJoint *const prevJoint = modulePhysicsJointPrev(joint);
 	// Fix up the next list element's pointers.
 	if(nextJoint != NULL){
 		memDoubleListPrev(nextJoint) = prevJoint;
@@ -322,6 +322,7 @@ static void updateRigidBodies(physicsIsland *const restrict island, const float 
 */
 static void collisionCallback(void *const colliderA, void *const colliderB, void *const restrict island){
 	// Make sure these colliders and rigid bodies are actually allowed to collide.
+	// We ensure that the address of collider A is greater than that of collider B.
 	if(
 		physColliderPermitCollision((physicsCollider *)colliderA, (physicsCollider *)colliderB) &&
 		physRigidBodyPermitCollision(((physicsCollider *)colliderA)->owner, ((physicsCollider *)colliderB)->owner)
@@ -380,9 +381,11 @@ static void collisionCallback(void *const colliderA, void *const colliderB, void
 						/** MALLOC FAILED **/
 					}
 
-					// Set up the new contact pair. This involves building
-					// a physics manifold from our contact manifold and
-					// setting up its linked lists components.
+					// Set up the new contact pair. This involves building a physics manifold
+					// from our contact manifold and setting up its linked lists components.
+					//
+					// Note that we're already guaranteed that the address of collider A
+					// is greater than that of collider B, so nothing weird can happen.
 					physManifoldInit(&((physicsContactPair *)sharedPair)->manifold, &manifold, (physicsCollider *)colliderA, (physicsCollider *)colliderB);
 					physContactPairInit(
 						(physicsContactPair *)sharedPair,
@@ -638,32 +641,32 @@ static void updateColliderSeparations(physicsIsland *const restrict island, phys
 static void solveConstraints(physicsIsland *const restrict island, const float dt){
 	size_t i;
 	physicsRigidBody *body;
-	physicsJointPair *jointPair;
+	physicsJoint *joint;
 	physicsContactPair *contactPair;
 
 
 	// Presolve joints.
-	jointPair = island->joints;
-	while(jointPair != NULL){
-		physJointPresolve(&jointPair->joint, jointPair->bodyA, jointPair->bodyB, dt);
-		jointPair = (physicsJointPair *)modulePhysicsJointPairNext(jointPair);
+	joint = island->joints;
+	while(joint != NULL){
+		physJointPresolve(joint, dt);
+		joint = modulePhysicsJointNext(joint);
 	}
 
 
 	// Iteratively solve joint and contact velocity constraints.
 	for(i = PHYSICS_VELOCITY_SOLVER_NUM_ITERATIONS; i > 0; --i){
 		// Solve joint velocity constraints.
-		jointPair = island->joints;
-		while(jointPair != NULL){
-			physJointSolveVelocity(&jointPair->joint, jointPair->bodyA, jointPair->bodyB);
-			jointPair = (physicsJointPair *)modulePhysicsJointPairNext(jointPair);
+		joint = island->joints;
+		while(joint != NULL){
+			physJointSolveVelocity(joint);
+			joint = modulePhysicsJointNext(joint);
 		}
 
 		// Solve contact velocity constraints.
 		contactPair = island->contacts;
 		while(contactPair != NULL){
 			physManifoldSolveVelocity(&contactPair->manifold, contactPair->cA->owner, contactPair->cB->owner);
-			contactPair = (physicsContactPair *)modulePhysicsContactPairNext(contactPair);
+			contactPair = modulePhysicsContactPairNext(contactPair);
 		}
 	}
 
@@ -672,7 +675,7 @@ static void solveConstraints(physicsIsland *const restrict island, const float d
 	body = island->bodies;
 	while(body != NULL){
 		physRigidBodyIntegratePosition(body, dt);
-		body = (physicsRigidBody *)modulePhysicsBodyNext(body);
+		body = modulePhysicsBodyNext(body);
 	}
 
 
@@ -688,10 +691,10 @@ static void solveConstraints(physicsIsland *const restrict island, const float d
 
 		#ifdef PHYSJOINT_USE_POSITIONAL_CORRECTION
 		// Solve joint configuration constraints.
-		jointPair = island->joints;
-		while(jointPair != NULL){
-			solved &= physJointSolvePosition(&jointPair->joint, jointPair->bodyA, jointPair->bodyB);
-			jointPair = (physicsJointPair *)modulePhysicsJointPairNext(jointPair);
+		joint = island->joints;
+		while(joint != NULL){
+			solved &= physJointSolvePosition(joint);
+			joint = modulePhysicsJointNext(joint);
 		}
 		#endif
 
@@ -700,7 +703,7 @@ static void solveConstraints(physicsIsland *const restrict island, const float d
 		contactPair = island->contacts;
 		while(contactPair != NULL){
 			separation = physManifoldSolvePosition(&contactPair->manifold, contactPair->cA->owner, contactPair->cB->owner, separation);
-			contactPair = (physicsContactPair *)modulePhysicsContactPairNext(contactPair);
+			contactPair = modulePhysicsContactPairNext(contactPair);
 		}
 		#endif
 

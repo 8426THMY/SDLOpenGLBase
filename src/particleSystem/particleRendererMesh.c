@@ -26,11 +26,10 @@ void particleRendererMeshInitBatch(
 
 // The batch size is just the number of instances.
 size_t particleRendererMeshBatchSize(
-	const void *const restrict renderer,
-	const particleManager *const restrict manager
+	const void *const restrict renderer, const size_t numParticles
 ){
 
-	return(manager->numParticles);
+	return(numParticles);
 }
 
 /*
@@ -38,22 +37,23 @@ size_t particleRendererMeshBatchSize(
 ** each particle system node in the array specified.
 */
 void particleRendererMeshBatch(
-	const void *const restrict renderer,
-	const particleManager *const restrict manager,
+	const particleRenderer *const restrict renderer,
 	spriteRenderer *const restrict batch,
+	const keyValue *const restrict keyValues, const size_t numParticles,
 	const camera *const restrict cam, const float dt
 ){
 
 	// Exit early if the manager has no particles.
-	if(manager->numParticles > 0){
+	if(numParticles > 0){
 		const particleRendererMesh partRenderer =
 			*((const particleRendererMesh *const)renderer);
 
-		const particle *curParticle = manager->particles;
-		const particle *const lastParticle = &curParticle[manager->numParticles];
+		const keyValue *curKeyValue = keyValues;
+		const keyValue *const lastKeyValue = &keyValues[numParticles];
 		spriteRendererInstanced *const instancedRenderer = &batch->data.instancedRenderer;
 
-		for(; curParticle != lastParticle; ++curParticle){
+		for(; curKeyValue != lastKeyValue; ++curKeyValue){
+			const particle *const curParticle = curKeyValue->key;
 			transform curTransform;
 			spriteInstancedData curInstance;
 

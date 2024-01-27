@@ -83,36 +83,28 @@ void particleSysNodeContainerUpdate(
 	while(curNode != NULL){
 		particleSystemNode *const nextNode = moduleParticleSysNodeNext(curNode);
 
-		// If the particle system node is dead, stop emitting particles.
-		if(curNode->lifetime <= 0.f){
-			// If no particles are left, we can delete the node.
-			if(curNode->manager.numParticles <= 0){
-				particleSysNodeDelete(curNode);
-				moduleParticleSysNodeFree(&container->instances, curNode, prevNode);
-
-			// Otherwise, update the remaining particles.
-			}else{
-				particleSysNodeUpdateParticles(curNode, dt);
-			}
-
-		// If the particle system is still alive, update as usual.
+		// Delete the particle system if it's dead.
+		if(curNode->lifetime <= 0.f && curNode->manager.numParticles <= 0){
+			particleSysNodeDelete(curNode);
+			moduleParticleSysNodeFree(&container->instances, curNode, prevNode);
 		}else{
-			// We still need to check if there are particles to update.
+			// Update the node's particles.
 			if(curNode->manager.numParticles > 0){
 				particleSysNodeUpdateParticles(curNode, dt);
 			}
-			particleSysNodeUpdateEmitters(curNode, dt);
-			curNode->lifetime -= dt;
+			// Only emit particles if the node is still alive.
+			if(curNode->lifetime > 0.f){
+				particleSysNodeUpdateEmitters(curNode, dt);
+				curNode->lifetime -= dt;
+			}
+			// Sort the node's particles! This should hopefully
+			// mean that sorting them during rendering is faster.
+			particleSysNodePresort(curNode, cam);
 		}
-
-		// Sort the node's particles!
-		particleSysNodeUpdateSort(curNode, cam);
 
 		prevNode = curNode;
 		curNode  = nextNode;
 	}
-
-	#error "It might be a good idea to sort instances by depth here. This means we need the camera!"
 }
 
 /*
@@ -120,7 +112,7 @@ void particleSysNodeContainerUpdate(
 ** particles and return the next empty position in the buffer.
 */
 void particleSysNodeContainerBatch(
-	particleSystemNodeContainer *const restrict container,
+	const particleSystemNodeContainer *const restrict container,
 	spriteRenderer *const restrict batch,
 	const camera *const restrict cam, const float dt
 ){
@@ -135,35 +127,27 @@ void particleSysNodeContainerBatch(
 	// For each instance, fill the buffer with its particle data.
 	// If the buffer is filled, we'll need to draw and orphan it.
 	while(curNode != NULL){
-		/** To avoid doing a check for each particle, **/
-		/** we should probably do something like the  **/
-		/** following in the rendering function. Note **/
-		/** that we can't do it outside, as otherwise **/
-		/** things like beams will look disconnected. **/
+		/** Currently, we check if the batch is full after adding  **/
+		/** each particle. This results in minimal draw calls, but **/
+		/** we have to keep checking if the batch is full. One way **/
+		/** to improve this is to check how many particles we have **/
+		/** room for, add them to the batch, draw it and begin on  **/
+		/** on a new one. We have to do this inside the rendering  **/
+		/** function, as beams could look disconnected otherwise.  **/
 		/*
 		size_t managerRemaining = manager->numParticles;
 		while(managerRemaining > 0){
 			const size_t rendererRemaining = particleRendererRemainingParticles(partRenderer);
 		}
 		*/
-
-		while(remainingParticles > 0){
-			
-		}
-		**/
-		// If there's no room left in the current
-		// batch, we'll have to draw and orphan it.
-		#warning "Currently, we check if the batch is full after adding each particle."
-		#warning "This makes the most out of the batch, but it may be slower due to all the checks."
-		#warning "Instead, we can only add the new particles if there's room for all of them."
-		#warning "This is less efficient in terms of memory usage when we have many large nodes."
-		#warning "It also means we have a limit on the number of particles a system can spawn."
-		#warning "This limit is especially small for instanced renderers."
-		/*if(!spriteRendererHasRoom(batch, particleRendererBatchSize(partRenderer, &curNode->manager))){
-			spriteRendererDrawFull(batch);
-		}*/
+		/** 1. Allocate and sort an array of key-values.              **/
+		/** 2. Iterate over the key-values in the rendering function. **/
+		/**                                                           **/
+		/** If we never need to iterate over them in order,           **/
+		/** maybe we should presort them using list pointers?         **/
+		const keyValue *const keyValues = particleSysNodeSort(curNode, cam, dt);
 		// Add the current instance's particles to the batch!
-		particleRendererBatch(partRenderer, &curNode->manager, batch, cam, dt);
+		particleRendererBatch(partRenderer, &curNode->manager, keyValues, batch, cam, dt);
 		curNode = moduleParticleSysNodeNext(curNode);
 	}
 }

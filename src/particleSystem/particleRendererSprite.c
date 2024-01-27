@@ -30,12 +30,11 @@ void particleRendererSpriteInitBatch(
 ** We also add one to account for primitive restart.
 */
 size_t particleRendererSpriteBatchSize(
-	const void *const restrict renderer,
-	const particleManager *const restrict manager
+	const void *const restrict renderer, const size_t numParticles
 ){
 
 	return(
-		manager->numParticles * (
+		numParticles * (
 			((const particleRendererSprite *const)renderer)->spriteData.numIndices + 1
 		)
 	);
@@ -46,24 +45,25 @@ size_t particleRendererSpriteBatchSize(
 ** each particle system node in the array specified.
 */
 void particleRendererSpriteBatch(
-	const void *const restrict renderer,
-	const particleManager *const restrict manager,
+	const particleRenderer *const restrict renderer,
 	spriteRenderer *const restrict batch,
+	const keyValue *const restrict keyValues, const size_t numParticles,
 	const camera *const restrict cam, const float dt
 ){
 
 	// Exit early if the manager has no particles.
-	if(manager->numParticles > 0){
+	if(numParticles > 0){
 		const particleRendererSprite partRenderer =
 			*((const particleRendererSprite *const)renderer);
 		const spriteVertex *const lastBaseVertex     = &baseVertex[partRenderer.spriteData.numVertices];
 		const spriteVertexIndex *const lastBaseIndex = &baseIndex[partRenderer.spriteData.numIndices];
 
-		const particle *curParticle = manager->particles;
-		const particle *const lastParticle = &curParticle[manager->numParticles];
+		const keyValue *curKeyValue = keyValues;
+		const keyValue *const lastKeyValue = &keyValues[numParticles];
 		spriteRendererBatched *const batchedRenderer = &batch->data.batchedRenderer;
 
-		for(; curParticle != lastParticle; ++curParticle){
+		for(; curKeyValue != lastKeyValue; ++curKeyValue){
+			const particle *const curParticle = (particle *)curKeyValue->key;
 			const spriteVertex *baseVertex     = partRenderer.spriteData.vertices;
 			const spriteVertexIndex *baseIndex = partRenderer.spriteData.indices;
 			transform curTransform;
@@ -74,7 +74,8 @@ void particleRendererSpriteBatch(
 			// We add an extra index to account for primitive restart.
 			if(spriteRendererBatchedHasRoom(
 				batchedRenderer
-				partRenderer.spriteData.numVertices, partRenderer.spriteData.numIndices + 1
+				partRenderer.spriteData.numVertices,
+				partRenderer.spriteData.numIndices + 1
 			)){
 
 				spriteRendererBatchedDraw(batchedRenderer);

@@ -3,6 +3,8 @@
 
 #include <math.h>
 
+#include "utilMath.h"
+
 #include "memoryManager.h"
 
 

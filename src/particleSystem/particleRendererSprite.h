@@ -7,6 +7,8 @@
 #include "sprite.h"
 #include "spriteRenderer.h"
 
+#include "sort.h"
+
 #include "camera.h"
 
 
@@ -21,13 +23,12 @@ void particleRendererSpriteInitBatch(
 );
 typedef struct particleManager particleManager;
 size_t particleRendererSpriteBatchSize(
-	const void *const restrict renderer,
-	const particleManager *const restrict manager
+	const void *const restrict renderer, const size_t numParticles
 );
 void particleRendererSpriteBatch(
-	const void *const restrict renderer,
-	const particleManager *const restrict manager,
+	const particleRenderer *const restrict renderer,
 	spriteRenderer *const restrict batch,
+	const keyValue *const restrict keyValues, const size_t numParticles,
 	const camera *const restrict cam, const float dt
 );
 

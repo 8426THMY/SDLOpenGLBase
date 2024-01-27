@@ -150,20 +150,34 @@ void particleSysNodeUpdateEmitters(particleSystemNode *const restrict node, cons
 	);
 }
 
+
 /*
-** Sort all of a particle system node's particles!
-** By default, particles are automatically stored
-** in sorted order if we want to sort by the time
-** of creation, so we only need to do anything if
-** we're sorting by distance from the camera.
+** Although particles are sorted during rendering, we also
+** sort them after updating. Because rendering should never
+** modify the state, the hope is that presorting after each
+** update should mean that the sorting during rendering is
+** essentially free.
+**
+** Note that by default, particles are automatically stored
+** in order if we want to sort by the time of creation, so
+** we only need to do anything if we're sorting by distance.
 */
-void particleSysNodeUpdateSort(particleSystemNode *const restrict node, const camera *const restrict cam){
+void particleSysNodePresort(
+	particleSystemNode *const restrict node,
+	const camera *const restrict cam
+){
+
 	const flags_t sortFlags = node->container->nodeDef->sortFlags;
 	if(flagsAreSet(sortFlags, PARTICLE_SORT_DISTANCE)){
 		const particleManager manager = node->manager;
-		particleKeyValue *const keyValues = memoryManagerGlobalAlloc(
+
+		// Particles are pretty big, so it's more efficient
+		// to first sort an array of smaller key-values.
+		keyValue *const keyValues = memoryManagerGlobalAlloc(
 			sizeof(*keyValues) * manager.numParticles
 		);
+		// Once we've sorted the key-values, we can simply copy
+		// the particles into this new array in sorted order.
 		particle *const sortedArray = memoryManagerGlobalAlloc(
 			sizeof(*sortedArray) * manager.numParticles
 		);
@@ -175,40 +189,37 @@ void particleSysNodeUpdateSort(particleSystemNode *const restrict node, const ca
 		}
 
 		// Initialize the new array of key-values!
-		if(flagsAreSet(sortFlags, PARTICLE_SORT_REVERSED)){
+		{
 			const particle *curParticle = manager.particles;
-			particleKeyValue *curKeyValue = keyValues;
+			keyValue *curKeyValue = keyValues;
 			unsigned int i;
 			// Our sorting functions sort from smallest to greatest, so this will
 			// sort particles from nearest to farthest distance from the camera.
 			for(i = 0; i < manager.numParticles; ++i, ++curParticle, ++curKeyValue){
 				curKeyValue->value = cameraDistanceSquared(cam, &curParticle->subsys.state[0].pos);
-				curKeyValue->key = i;
-			}
-		}else{
-			const particle *curParticle = manager.particles;
-			particleKeyValue *curKeyValue = keyValues;
-			unsigned int i;
-			// By simply negating the distance from the camera,
-			// we can naively sort from farthest to nearest.
-			for(i = 0; i < manager.numParticles; ++i, ++curParticle, ++curKeyValue){
-				curKeyValue->value = -cameraDistanceSquared(cam, &curParticle->subsys.state[0].pos);
-				curKeyValue->key = i;
+				curKeyValue->key = curParticle;
 			}
 		}
 
-		// Sort the key-values!
-		timsortKeyValues(keyValues, manager.numParticles);
+		// Sort the key-values! Note that the comparison functions look
+		// backwards because our sorting functions go from smallest to
+		// largest, whereas particles are typically sorted from largest
+		// distance to smallest (back to front).
+		if(flagsAreSet(sortFlags, PARTICLE_SORT_REVERSED)){
+			timsortFlexibleKeyValues(keyValues, manager.numParticles, &keyValueCompare);
+		}else{
+			timsortFlexibleKeyValues(keyValues, manager.numParticles, &keyValueCompareReversed);
+		}
 
 		// Copy the particles into the new array in sorted order!
 		{
 			particle *curParticle = sortedArray;
-			particleKeyValue *curKeyValue = keyValues;
+			keyValue *curKeyValue = keyValues;
 			const particle *const lastParticle = &sortedArray[manager.numParticles];
 			for(; curParticle != lastParticle; ++curParticle, ++curKeyValue){
 				particleNode *curChild;
 
-				*curParticle = manager.particles[curKeyValue->key];
+				*curParticle = *((particle *)curKeyValue->key);
 
 				// Update each child nodes' parent pointers.
 				for(curChild = curParticle->children; curChild != NULL; curChild = curChild->nextSibling){
@@ -222,6 +233,61 @@ void particleSysNodeUpdateSort(particleSystemNode *const restrict node, const ca
 		// Overwrite the original array of particles with the new sorted array.
 		node->manager.particles = sortedArray;
 	}
+}
+
+/*
+** Particles need to be sorted when rendering, but this time
+** we only generate a sorted array of key-values. This array
+** is used by the rendering functions to iterate through the
+** particles in the right order.
+*/
+keyValue *const void particleSysNodeSort(
+	particleSystemNode *const restrict node,
+	const camera *const restrict cam, const float dt
+){
+
+	const particleManager manager = node->manager;
+	const flags_t sortFlags = node->container->nodeDef->sortFlags;
+
+	// Particles are pretty big, so it's more efficient
+	// to first sort an array of smaller key-values.
+	keyValue *const keyValues = memoryManagerGlobalAlloc(
+		sizeof(*keyValues) * manager.numParticles
+	);
+	if(keyValues == NULL){
+		/** MALLOC FAILED **/
+	}
+
+	// Initialize the new array of key-values!
+	{
+		const particle *curParticle = manager.particles;
+		keyValue *curKeyValue = keyValues;
+		unsigned int i;
+		// Our sorting functions sort from smallest to greatest, so this will
+		// sort particles from nearest to farthest distance from the camera.
+		for(i = 0; i < manager.numParticles; ++i, ++curParticle, ++curKeyValue){
+			vec3 interpPos;
+			vec3Lerp(
+				&curParticle->subsys.state[0].pos,
+				&curParticle->subsys.state[1].pos,
+				dt, &interpPos
+			);
+			curKeyValue->value = cameraDistanceSquared(cam, &interpPos);
+			curKeyValue->key = curParticle;
+		}
+	}
+
+	// The key-values only need to be
+	// sorted if we're sorting by distance.
+	if(flagsAreSet(sortFlags, PARTICLE_SORT_DISTANCE)){
+		if(flagsAreSet(sortFlags, PARTICLE_SORT_REVERSED)){
+			timsortFlexibleKeyValues(keyValues, manager.numParticles, &keyValueCompare);
+		}else{
+			timsortFlexibleKeyValues(keyValues, manager.numParticles, &keyValueCompareReversed);
+		}
+	}
+	
+	return(keyValues);
 }
 
 

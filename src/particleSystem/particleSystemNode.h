@@ -11,6 +11,8 @@
 #include "particleRenderer.h"
 #include "particleManager.h"
 
+#include "sort.h"
+
 #include "utilTypes.h"
 
 
@@ -47,9 +49,9 @@
 // In total, we allow for five different sorting modes:
 //     1. 0x00: Don't do any sorting, just do whatever's fastest (default).
 //     2. 0x01: Sort in order of creation.
-//     3. 0x02: Sort in order of distance from the camera.
+//     3. 0x02: Sort in order of distance from the camera (back to front).
 //     4. 0x05: Sort in reversed order of creation.
-//     5. 0x06: Sort in reversed order of distance from the camera.
+//     5. 0x06: Sort in reversed order of distance from the camera (front to back).
 #define PARTICLE_SORT_NONE     0x00
 #define PARTICLE_SORT_CREATION 0x01
 #define PARTICLE_SORT_DISTANCE 0x02
@@ -99,9 +101,9 @@ typedef struct particleSystemNodeDef {
 ** by the parent's particles, and kept in the corresponding
 ** particle subsystem container.
 */
-typedef struct particleSystemNode particleSystemNode;
 typedef struct particleSystemNodeContainer particleSystemNodeContainer;
 typedef struct particleSubsystem particleSubsystem;
+typedef struct particleSystemNode particleSystemNode;
 typedef struct particleSystemNode {
 	// Emitters are only active when the particle system is alive.
 	// If the lifetime is less than or equal to 0, we should stop
@@ -133,7 +135,15 @@ void particleSysNodeInit(
 
 void particleSysNodeUpdateParticles(particleSystemNode *const restrict node, const float dt);
 void particleSysNodeUpdateEmitters(particleSystemNode *const restrict node, const float dt);
-void particleSysNodeUpdateSort(particleSystemNode *const restrict node, const camera *const restrict cam);
+
+void particleSysNodePresort(
+	particleSystemNode *const restrict node,
+	const camera *const restrict cam
+);
+keyValue *const void particleSysNodeSort(
+	particleSystemNode *const restrict node,
+	const camera *const restrict cam, const float dt
+);
 
 void particleSysNodeOrphan(particleSystemNode *const restrict node);
 void particleSysNodeDelete(particleSystemNode *const restrict node);

@@ -5,7 +5,7 @@
 #include "settingsPhysics.h"
 
 #include "collider.h"
-#include "physicsConstraintPair.h"
+#include "physicsContact.h"
 #include "aabbTree.h"
 
 #include "utilTypes.h"
@@ -30,6 +30,8 @@
 	#define PHYSCOLLIDER_DEFAULT_RESTITUTION 1.f
 #endif
 
+
+typedef uint_least16_t physicsColliderLayer;
 
 typedef struct physicsRigidBody physicsRigidBody;
 typedef struct physicsCollider {
@@ -60,6 +62,11 @@ typedef struct physicsCollider {
 	// island, this just stores a pointer to the collider's first joint.
 	physicsContactPair *contacts;
 	physicsSeparationPair *separations;
+
+	// Stores the layers that this collider lives on.
+	physicsColliderLayer layer;
+	// Stores the layers that this collider checks for collision with.
+	physicsColliderLayer mask;
 } physicsCollider;
 
 
@@ -68,7 +75,7 @@ void physColliderInstantiate(physicsCollider *const restrict pc, const physicsCo
 
 void physColliderUpdate(physicsCollider *const restrict collider);
 
-return_t physColliderPermitCollision(physicsCollider *const colliderA, physicsCollider *const colliderB);
+return_t physColliderPermitCollision(const physicsCollider *const colliderA, const physicsCollider *const colliderB);
 
 physicsContactPair *physColliderFindContact(
 	const physicsCollider *const restrict colliderA, const physicsCollider *const restrict colliderB,

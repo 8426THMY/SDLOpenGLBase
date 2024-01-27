@@ -126,6 +126,31 @@ void particlePostInit(
 }
 
 
+/**
+previousGlobalState;
+currentGlobalState;
+currentLocalState;
+
+
+Updating:  Need current local transform to update from the parent transforms properly.
+Rendering: Need current and previous global transforms.
+
+
+If we want to handle teleporting correctly, we need to store the local states.
+
+
+update {
+	previousGlobalState = currentLocalState*previousParentState;
+	currentGlobalState  = currentLocalState*currentParentState;
+	// We need to remember the inverse of the parent's current
+	// state so we can recover the updated local state later on.
+	currentLocalState   = currentParentState^{-1};
+
+	// update currentGlobalState
+
+	currentLocalState = currentGlobalState*currentLocalState^{-1};
+}
+**/
 void particlePreUpdate(
 	particle *const restrict part,
 	const transform *const restrict parentState,

@@ -72,10 +72,14 @@ void particleSysInit(
 }
 
 
-void particleSysUpdate(particleSystem *const restrict partSys, const float dt){
+void particleSysUpdate(
+	particleSystem *const restrict partSys,
+	const camera *const restrict cam const float dt
+){
+
 	particleSystemNodeContainer *curContainer = partSys->containers;
 	for(; curContainer != partSys->lastContainer; ++curContainer){
-		particleSysNodeContainerUpdate(curContainer, dt);
+		particleSysNodeContainerUpdate(curContainer, cam, dt);
 	}
 }
 

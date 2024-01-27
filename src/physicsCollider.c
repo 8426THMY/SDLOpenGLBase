@@ -7,6 +7,11 @@
 #include "physicsRigidBody.h"
 
 
+// By default, physics colliders live
+// on and collide with only layer 1.
+#define PHYSCOLLIDER_DEFAULT_LAYER 0x0001
+
+
 /*
 ** Initialise a physics collider base
 ** object using the type of its collider.
@@ -24,6 +29,9 @@ void physColliderInit(physicsCollider *const restrict pc, const colliderType typ
 
 	pc->contacts = NULL;
 	pc->separations = NULL;
+
+	pc->layer = PHYSCOLLIDER_DEFAULT_LAYER;
+	pc->mask  = PHYSCOLLIDER_DEFAULT_LAYER;
 }
 
 /*
@@ -43,6 +51,9 @@ void physColliderInstantiate(physicsCollider *const restrict pc, const physicsCo
 
 	pc->contacts = NULL;
 	pc->separations = NULL;
+
+	pc->layer = local->layer;
+	pc->mask  = local->mask;
 }
 
 
@@ -61,10 +72,17 @@ void physColliderUpdate(physicsCollider *const restrict collider){
 ** Check whether or not two colliders should be
 ** considered for the narrowphase collision check.
 */
-return_t physColliderPermitCollision(physicsCollider *const colliderA, physicsCollider *const colliderB){
+return_t physColliderPermitCollision(const physicsCollider *const colliderA, const physicsCollider *const colliderB){
 	// We only want to run the narrowphase on two colliders once,
 	// so we do it when "colliderA" has the greater address.
-	return(colliderA > colliderB && colliderA->owner != colliderB->owner);
+	return(
+		colliderA > colliderB && (
+			// Either collider A should be on a layer that
+			// collider B collides with or vice versa.
+			(colliderA->layer & colliderB->mask) |
+			(colliderA->mask & colliderB->layer)
+		)
+	);
 }
 
 

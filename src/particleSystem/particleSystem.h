@@ -205,7 +205,10 @@ void particleSysInit(
 	const transformState *const restrict state
 );
 
-void particleSysUpdate(particleSystem *const restrict partSys, const float dt);
+void particleSysUpdate(
+	particleSystem *const restrict partSys,
+	const camera *const restrict cam const float dt
+);
 void particleSysDraw(
 	const particleSystem *const restrict partSys,
 	const camera *const restrict cam, const float dt

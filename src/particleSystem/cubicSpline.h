@@ -96,7 +96,7 @@ void cubicSplineInit(
 );
 void cubicSplineEvaluate(
 	const cubicSpline *const restrict spline,
-	const size_t n, const float t, vec3 *const restrict out
+	const size_t i, const float t, vec3 *const restrict out
 );
 void cubicSplineDelete(cubicSpline *const restrict spline);
 

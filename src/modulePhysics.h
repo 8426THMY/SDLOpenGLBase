@@ -10,7 +10,8 @@
 #include "memoryDoubleList.h"
 
 #include "aabbTree.h"
-#include "physicsConstraintPair.h"
+#include "physicsJoint.h"
+#include "physicsContact.h"
 #include "physicsCollider.h"
 #include "physicsRigidBody.h"
 
@@ -21,7 +22,7 @@
 #define MODULE_AABBNODE_ELEMENT_SIZE           sizeof(aabbNode)
 #define MODULE_PHYSCONTACTPAIR_ELEMENT_SIZE    sizeof(physicsContactPair)
 #define MODULE_PHYSSEPARATIONPAIR_ELEMENT_SIZE sizeof(physicsSeparationPair)
-#define MODULE_PHYSJOINTPAIR_ELEMENT_SIZE      sizeof(physicsJointPair)
+#define MODULE_PHYSJOINT_ELEMENT_SIZE          sizeof(physicsJoint)
 #define MODULE_PHYSCOLLIDER_ELEMENT_SIZE       sizeof(physicsCollider)
 #define MODULE_PHYSRIGIDBODYDEF_ELEMENT_SIZE   sizeof(physicsRigidBodyDef)
 #define MODULE_PHYSRIGIDBODY_ELEMENT_SIZE      sizeof(physicsRigidBody)
@@ -35,8 +36,8 @@
 #ifndef MEMORY_MODULE_NUM_PHYSSEPARATIONPAIRS
 	#define MEMORY_MODULE_NUM_PHYSSEPARATIONPAIRS 1
 #endif
-#ifndef MEMORY_MODULE_NUM_PHYSJOINTPAIRS
-	#define MEMORY_MODULE_NUM_PHYSJOINTPAIRS 1
+#ifndef MEMORY_MODULE_NUM_PHYSJOINTS
+	#define MEMORY_MODULE_NUM_PHYSJOINTS 1
 #endif
 #ifndef MEMORY_MODULE_NUM_PHYSCOLLIDERS
 	#define MEMORY_MODULE_NUM_PHYSCOLLIDERS 1
@@ -51,7 +52,7 @@
 #define MODULE_AABBNODE_MANAGER_SIZE           memPoolMemoryForBlocks(MEMORY_MODULE_NUM_AABBNODES, MODULE_AABBNODE_ELEMENT_SIZE)
 #define MODULE_PHYSCONTACTPAIR_MANAGER_SIZE    memDoubleListMemoryForBlocks(MEMORY_MODULE_NUM_PHYSCONTACTPAIRS, MODULE_PHYSCONTACTPAIR_ELEMENT_SIZE)
 #define MODULE_PHYSSEPARATIONPAIR_MANAGER_SIZE memDoubleListMemoryForBlocks(MEMORY_MODULE_NUM_PHYSSEPARATIONPAIRS, MODULE_PHYSSEPARATIONPAIR_ELEMENT_SIZE)
-#define MODULE_PHYSJOINTPAIR_MANAGER_SIZE      memDoubleListMemoryForBlocks(MEMORY_MODULE_NUM_PHYSJOINTPAIRS, MODULE_PHYSJOINTPAIR_ELEMENT_SIZE)
+#define MODULE_PHYSJOINT_MANAGER_SIZE          memDoubleListMemoryForBlocks(MEMORY_MODULE_NUM_PHYSJOINTS, MODULE_PHYSJOINT_ELEMENT_SIZE)
 #define MODULE_PHYSCOLLIDER_MANAGER_SIZE       memSingleListMemoryForBlocks(MEMORY_MODULE_NUM_PHYSCOLLIDERS, MODULE_PHYSCOLLIDER_ELEMENT_SIZE)
 #define MODULE_PHYSRIGIDBODYDEF_MANAGER_SIZE   memSingleListMemoryForBlocks(MEMORY_MODULE_NUM_PHYSRIGIDBODYDEFS, MODULE_PHYSRIGIDBODYDEF_ELEMENT_SIZE)
 #define MODULE_PHYSRIGIDBODY_MANAGER_SIZE      memDoubleListMemoryForBlocks(MEMORY_MODULE_NUM_PHYSRIGIDBODIES, MODULE_PHYSRIGIDBODY_ELEMENT_SIZE)
@@ -86,16 +87,16 @@ void modulePhysicsSeparationPairFree(physicsSeparationPair **const restrict star
 void modulePhysicsSeparationPairFreeArray(physicsSeparationPair **const restrict start);
 void modulePhysicsSeparationPairClear();
 
-physicsJointPair *modulePhysicsJointPairAlloc();
-physicsJointPair *modulePhysicsJointPairPrepend(physicsJointPair **const restrict start);
-physicsJointPair *modulePhysicsJointPairAppend(physicsJointPair **const restrict start);
-physicsJointPair *modulePhysicsJointPairInsertBefore(physicsJointPair **const restrict start, physicsJointPair *const restrict next);
-physicsJointPair *modulePhysicsJointPairInsertAfter(physicsJointPair **const restrict start, physicsJointPair *const restrict prev);
-physicsJointPair *modulePhysicsJointPairNext(const physicsJointPair *const restrict sPair);
-physicsJointPair *modulePhysicsJointPairPrev(const physicsJointPair *const restrict sPair);
-void modulePhysicsJointPairFree(physicsJointPair **const restrict start, physicsJointPair *const restrict sPair);
-void modulePhysicsJointPairFreeArray(physicsJointPair **const restrict start);
-void modulePhysicsJointPairClear();
+physicsJoint *modulePhysicsJointAlloc();
+physicsJoint *modulePhysicsJointPrepend(physicsJoint **const restrict start);
+physicsJoint *modulePhysicsJointAppend(physicsJoint **const restrict start);
+physicsJoint *modulePhysicsJointInsertBefore(physicsJoint **const restrict start, physicsJoint *const restrict next);
+physicsJoint *modulePhysicsJointInsertAfter(physicsJoint **const restrict start, physicsJoint *const restrict prev);
+physicsJoint *modulePhysicsJointNext(const physicsJoint *const restrict joint);
+physicsJoint *modulePhysicsJointPrev(const physicsJoint *const restrict joint);
+void modulePhysicsJointFree(physicsJoint **const restrict start, physicsJoint *const restrict joint);
+void modulePhysicsJointFreeArray(physicsJoint **const restrict start);
+void modulePhysicsJointClear();
 
 physicsCollider *modulePhysicsColliderAlloc();
 physicsCollider *modulePhysicsColliderPrepend(physicsCollider **const restrict start);

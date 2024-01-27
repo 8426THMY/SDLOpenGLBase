@@ -6,7 +6,7 @@
 
 #include "aabbTree.h"
 
-#include "physicsConstraintPair.h"
+#include "physicsContact.h"
 #include "physicsCollider.h"
 #include "physicsRigidBody.h"
 
@@ -41,7 +41,7 @@ typedef struct physicsIsland {
 	physicsRigidBody *bodies;
 	physicsContactPair *contacts;
 	physicsSeparationPair *separations;
-	physicsJointPair *joints;
+	physicsJoint *joints;
 } physicsIsland;
 
 

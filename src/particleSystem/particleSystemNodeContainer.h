@@ -34,11 +34,10 @@ particleSystemNode *particleSysNodeContainerInstantiate(
 
 void particleSysNodeContainerUpdate(
 	particleSystemNodeContainer *const restrict container,
-	spriteRenderer *const restrict batch,
 	const camera *const restrict cam, const float dt
 );
 void particleSysNodeContainerBatch(
-	particleSystemNodeContainer *const restrict container,
+	const particleSystemNodeContainer *const restrict container,
 	spriteRenderer *const restrict batch,
 	const camera *const restrict cam, const float dt
 );

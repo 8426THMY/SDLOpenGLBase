@@ -12,7 +12,7 @@
 #include "transform.h"
 
 #include "physicsCollider.h"
-#include "physicsConstraintPair.h"
+#include "physicsJoint.h"
 
 #include "utilTypes.h"
 
@@ -90,13 +90,9 @@ typedef struct physicsRigidBody {
 	vec3 netTorque;
 
 	// Rigid bodies store doubly linked lists of active joints.
-	// These lists are mostly sorted according to the addresses
-	// of the second rigid body involved in the joint. Check the
-	// explanation given in "physicsConstraintPair.h".
-	//
-	// Note that the list is actually allocated and managed by the
-	// island, this just stores a pointer to the body's first joint.
-	physicsJointPair *joints;
+	// All of the joints "owned" by this body (for which this
+	// body is body A) are stored at the beginning of the list.
+	physicsJoint *joints;
 
 	flags_t flags;
 } physicsRigidBody;
@@ -125,7 +121,7 @@ void physRigidBodyIgnoreCollisions(physicsRigidBody *const restrict body);
 return_t physRigidBodyIsSimulated(physicsRigidBody *const restrict body);
 return_t physRigidBodyIsCollidable(physicsRigidBody *const restrict body);
 
-return_t physRigidBodyPermitCollision(const physicsRigidBody *bodyA, const physicsRigidBody *bodyB);
+return_t physRigidBodyPermitCollision(const physicsRigidBody *const bodyA, const physicsRigidBody *const bodyB);
 
 void physRigidBodyIntegrateVelocity(physicsRigidBody *const restrict body, const float dt);
 void physRigidBodyResetAccumulators(physicsRigidBody *const restrict body);
@@ -139,21 +135,23 @@ void physRigidBodyApplyLinearImpulse(physicsRigidBody *const restrict body, cons
 void physRigidBodyApplyLinearImpulseInverse(physicsRigidBody *const restrict body, const vec3 *const restrict J);
 void physRigidBodyApplyAngularImpulse(physicsRigidBody *const restrict body, vec3 J);
 void physRigidBodyApplyAngularImpulseInverse(physicsRigidBody *const restrict body, vec3 J);
-void physRigidBodyApplyImpulse(physicsRigidBody *const restrict body, const vec3 *const restrict r, const vec3 *const restrict p);
-void physRigidBodyApplyImpulseInverse(physicsRigidBody *const restrict body, const vec3 *const restrict r, const vec3 *const restrict p);
+void physRigidBodyApplyImpulse(physicsRigidBody *const restrict body, const vec3 *const restrict r, const vec3 *const restrict J);
+void physRigidBodyApplyImpulseInverse(physicsRigidBody *const restrict body, const vec3 *const restrict r, const vec3 *const restrict J);
 void physRigidBodyApplyImpulseBoost(
 	physicsRigidBody *const restrict body, const vec3 *const restrict r,
-	const vec3 *const restrict p, const vec3 *const restrict a
+	const vec3 *const restrict J, const vec3 *const restrict a
 );
 void physRigidBodyApplyImpulseBoostInverse(
 	physicsRigidBody *const restrict body, const vec3 *const restrict r,
-	const vec3 *const restrict p, const vec3 *const restrict a
+	const vec3 *const restrict J, const vec3 *const restrict a
 );
 #ifdef PHYSCOLLIDER_USE_POSITIONAL_CORRECTION
+void physRigidBodyApplyLinearImpulsePosition(physicsRigidBody *const restrict body, const vec3 *const restrict J);
+void physRigidBodyApplyLinearImpulsePositionInverse(physicsRigidBody *const restrict body, const vec3 *const restrict J);
 void physRigidBodyApplyAngularImpulsePosition(physicsRigidBody *const restrict body, vec3 J);
 void physRigidBodyApplyAngularImpulsePositionInverse(physicsRigidBody *const restrict body, vec3 J);
-void physRigidBodyApplyImpulsePosition(physicsRigidBody *const restrict body, const vec3 *const restrict r, const vec3 *const restrict p);
-void physRigidBodyApplyImpulsePositionInverse(physicsRigidBody *const restrict body, const vec3 *const restrict r, const vec3 *const restrict p);
+void physRigidBodyApplyImpulsePosition(physicsRigidBody *const restrict body, const vec3 *const restrict r, const vec3 *const restrict J);
+void physRigidBodyApplyImpulsePositionInverse(physicsRigidBody *const restrict body, const vec3 *const restrict r, const vec3 *const restrict J);
 #endif
 
 void physRigidBodySetScale(physicsRigidBody *const restrict body, const vec3 scale);

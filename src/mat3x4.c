@@ -734,10 +734,10 @@ vec3 vec3MultiplyMat3x4C(const vec3 v, const mat3x4 m){
 void mat3x4MultiplyVec4(const mat3x4 *const restrict m, vec4 *const restrict v){
 	const vec4 temp = *v;
 
-	v->x = m->m[0][0] * temp.x + m->m[1][0] * temp.y + m->m[2][0] * temp.z + m->m[3][0] * temp.w;
-	v->y = m->m[0][1] * temp.x + m->m[1][1] * temp.y + m->m[2][1] * temp.z + m->m[3][1] * temp.w;
-	v->z = m->m[0][2] * temp.x + m->m[1][2] * temp.y + m->m[2][2] * temp.z + m->m[3][2] * temp.w;
-	v->w = m->m[0][3] * temp.x + m->m[1][3] * temp.y + m->m[2][3] * temp.z + m->m[3][3] * temp.w;
+	v->x = m->m[0][0] * temp.x + m->m[1][0] * temp.y + m->m[2][0] * temp.z;
+	v->y = m->m[0][1] * temp.x + m->m[1][1] * temp.y + m->m[2][1] * temp.z;
+	v->z = m->m[0][2] * temp.x + m->m[1][2] * temp.y + m->m[2][2] * temp.z;
+	v->w = m->m[0][3] * temp.x + m->m[1][3] * temp.y + m->m[2][3] * temp.z + temp.w;
 }
 
 /*
@@ -749,19 +749,19 @@ void mat3x4MultiplyVec4Out(
 	vec4 *const restrict out
 ){
 
-	out->x = m->m[0][0] * v->x + m->m[1][0] * v->y + m->m[2][0] * v->z + m->m[3][0] * v->w;
-	out->y = m->m[0][1] * v->x + m->m[1][1] * v->y + m->m[2][1] * v->z + m->m[3][1] * v->w;
-	out->z = m->m[0][2] * v->x + m->m[1][2] * v->y + m->m[2][2] * v->z + m->m[3][2] * v->w;
-	out->w = m->m[0][3] * v->x + m->m[1][3] * v->y + m->m[2][3] * v->z + m->m[3][3] * v->w;
+	out->x = m->m[0][0] * v->x + m->m[1][0] * v->y + m->m[2][0] * v->z;
+	out->y = m->m[0][1] * v->x + m->m[1][1] * v->y + m->m[2][1] * v->z;
+	out->z = m->m[0][2] * v->x + m->m[1][2] * v->y + m->m[2][2] * v->z;
+	out->w = m->m[0][3] * v->x + m->m[1][3] * v->y + m->m[2][3] * v->z + v->w;
 }
 
 // Left-multiply a 4x1 column vector by a matrix (m*v) and return the result!
 vec4 mat3x4MultiplyVec4C(const mat3x4 m, const vec4 v){
 	const vec4 out = {
-		.x = m.m[0][0] * v.x + m.m[1][0] * v.y + m.m[2][0] * v.z + m.m[3][0] * v.w,
-		.y = m.m[0][1] * v.x + m.m[1][1] * v.y + m.m[2][1] * v.z + m.m[3][1] * v.w,
-		.z = m.m[0][2] * v.x + m.m[1][2] * v.y + m.m[2][2] * v.z + m.m[3][2] * v.w,
-		.w = m.m[0][3] * v.x + m.m[1][3] * v.y + m.m[2][3] * v.z + m.m[3][3] * v.w
+		.x = m.m[0][0] * v.x + m.m[1][0] * v.y + m.m[2][0] * v.z,
+		.y = m.m[0][1] * v.x + m.m[1][1] * v.y + m.m[2][1] * v.z,
+		.z = m.m[0][2] * v.x + m.m[1][2] * v.y + m.m[2][2] * v.z,
+		.w = m.m[0][3] * v.x + m.m[1][3] * v.y + m.m[2][3] * v.z + v.w
 	};
 
 	return(out);
@@ -1514,17 +1514,14 @@ void mat3x4ScalePre(mat3x4 *const restrict m, const float x, const float y, cons
 	m->m[0][0] *= x;
 	m->m[0][1] *= x;
 	m->m[0][2] *= x;
-	m->m[0][3] *= x;
 
 	m->m[1][0] *= y;
 	m->m[1][1] *= y;
 	m->m[1][2] *= y;
-	m->m[1][3] *= y;
 
 	m->m[2][0] *= z;
 	m->m[2][1] *= z;
 	m->m[2][2] *= z;
-	m->m[2][3] *= z;
 }
 
 // Right-multiply a matrix by a scale matrix stored as three floats!
@@ -1532,17 +1529,14 @@ mat3x4 mat3x4ScalePreC(mat3x4 m, const float x, const float y, const float z){
 	m.m[0][0] *= x;
 	m.m[0][1] *= x;
 	m.m[0][2] *= x;
-	m.m[0][3] *= x;
 
 	m.m[1][0] *= y;
 	m.m[1][1] *= y;
 	m.m[1][2] *= y;
-	m.m[1][3] *= y;
 
 	m.m[2][0] *= z;
 	m.m[2][1] *= z;
 	m.m[2][2] *= z;
-	m.m[2][3] *= z;
 
 	return(m);
 }
