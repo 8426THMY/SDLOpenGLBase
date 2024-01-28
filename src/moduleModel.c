@@ -13,9 +13,6 @@ moduleDefineSingleListFreeFlexible(Model, model, g_modelManager, modelDelete)
 
 
 return_t moduleModelSetup(){
-	// The module's setup will be successful if we
-	// can allocate enough memory for our manager
-	// and the error object can be setup correctly.
 	return(moduleModelDefInit() && moduleModelInit() && modelSetup());
 }
 

@@ -21,9 +21,6 @@ texture *moduleTextureFind(const char *const restrict name){
 
 
 return_t moduleTextureSetup(){
-	// The module's setup will be successful if we
-	// can allocate enough memory for our manager
-	// and the error object can be setup correctly.
 	return(moduleTextureInit() && textureSetup());
 }
 

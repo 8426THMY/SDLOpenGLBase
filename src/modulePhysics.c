@@ -62,8 +62,6 @@ moduleDefineDoubleListFreeFlexible(
 
 
 return_t modulePhysicsSetup(){
-	// The module's setup will be successful if we
-	// can allocate enough memory for our managers.
 	return(
 		modulePhysicsAABBNodeInit()       &&
 		modulePhysicsContactPairInit()    &&

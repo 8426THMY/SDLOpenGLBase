@@ -10,8 +10,6 @@ moduleDefineDoubleListFree(CmdTok, commandTokenized, g_cmdTokManager)
 
 
 return_t moduleCommandSetup(){
-	// The module's setup will be successful if we
-	// can allocate enough memory for our manager.
 	return(moduleCmdTokInit());
 }
 

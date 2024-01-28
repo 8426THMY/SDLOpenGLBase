@@ -16,8 +16,6 @@ moduleDefineSingleListFree(SkeletonAnim, skeletonAnim, g_skeleAnimManager)
 
 
 return_t moduleSkeletonSetup(){
-	// The module's setup will be successful if we
-	// can allocate enough memory for our managers.
 	return(moduleSkeletonInit() && moduleSkeletonAnimDefInit() && moduleSkeletonAnimInit());
 }
 

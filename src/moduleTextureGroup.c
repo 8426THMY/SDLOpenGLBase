@@ -21,8 +21,6 @@ textureGroup *moduleTexGroupFind(const char *const restrict name){
 
 
 return_t moduleTexGroupSetup(){
-	// The module's setup will be successful if we
-	// can allocate enough memory for our manager.
 	return(moduleTexGroupInit());
 }
 
