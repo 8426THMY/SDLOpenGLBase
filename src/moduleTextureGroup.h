@@ -11,17 +11,17 @@
 #define MODULE_TEXGROUP
 #define MODULE_TEXGROUP_SETUP_FAIL 3
 
-#define MODULE_TEXGROUP_ELEMENT_SIZE sizeof(textureGroup)
-
 #ifndef MEMORY_MODULE_NUM_TEXGROUPS
 	#define MEMORY_MODULE_NUM_TEXGROUPS 1
 #endif
 
 #define MODULE_TEXGROUP_MANAGER_SIZE \
-	memPoolMemoryForBlocks(MEMORY_MODULE_NUM_TEXGROUPS, MODULE_TEXGROUP_ELEMENT_SIZE)
+	memPoolMemoryForBlocks(MEMORY_MODULE_NUM_TEXGROUPS, sizeof(textureGroup))
 
 
+// textureGroup
 moduleDeclarePool(TexGroup, textureGroup, g_texGroupManager)
+moduleDeclarePoolFree(TexGroup, textureGroup)
 textureGroup *moduleTexGroupFind(const char *const restrict name);
 
 return_t moduleTexGroupSetup();

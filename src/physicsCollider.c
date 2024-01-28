@@ -191,6 +191,18 @@ void physColliderDeleteInstance(physicsCollider *const restrict collider){
 }
 
 // Delete a physics collider base.
-void physColliderDelete(physicsCollider *const restrict collider){
+void physColliderDeleteBase(physicsCollider *const restrict collider){
 	colliderDelete(&collider->global);
+}
+
+/*
+** Delete a generic physics collider that
+** could either be a base or an instance.
+*/
+void physColliderDelete(physicsCollider *const restrict collider){
+	if(collider->local == NULL){
+		physColliderDeleteBase(collider);
+	}else{
+		physColliderDeleteInstance(collider);
+	}
 }

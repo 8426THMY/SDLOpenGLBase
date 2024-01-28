@@ -148,7 +148,7 @@ return_t physRigidBodyDefLoad(physicsRigidBodyDef **const restrict bodies, const
 					// This will also delete the collider we failed to
 					// load, and will also free any memory it allocated.
 					}else{
-						physColliderDelete(curCollider);
+						physColliderDeleteBase(curCollider);
 					}
 					curCollider = NULL;
 				}
@@ -799,9 +799,9 @@ void physRigidBodyUpdate(physicsRigidBody *const restrict body, const float dt){
 
 
 void physRigidBodyDefDelete(physicsRigidBodyDef *const restrict bodyDef){
-	modulePhysicsColliderFreeArray(&bodyDef->colliders);
+	modulePhysicsColliderBaseFreeArray(&bodyDef->colliders);
 }
 
 void physRigidBodyDelete(physicsRigidBody *const restrict body){
-	modulePhysicsColliderFreeInstanceArray(&body->colliders);
+	modulePhysicsColliderInstanceFreeArray(&body->colliders);
 }

@@ -4,7 +4,9 @@
 #include "memoryManager.h"
 
 
-moduleDefinePool(TexGroup, textureGroup, g_texGroupManager, texGroupDelete, MODULE_TEXGROUP_MANAGER_SIZE)
+// textureGroup
+moduleDefinePool(TexGroup, textureGroup, g_texGroupManager, MODULE_TEXGROUP_MANAGER_SIZE)
+moduleDefinePoolFreeFlexible(TexGroup, textureGroup, g_texGroupManager, texGroupDelete)
 
 // Find a textureGroup whose name matches the one specified!
 textureGroup *moduleTexGroupFind(const char *const restrict name){
@@ -21,18 +23,9 @@ textureGroup *moduleTexGroupFind(const char *const restrict name){
 return_t moduleTexGroupSetup(){
 	// The module's setup will be successful if we
 	// can allocate enough memory for our manager.
-	return(
-		memPoolInit(
-			&g_texGroupManager,
-			memoryManagerGlobalAlloc(memoryGetRequiredSize(MODULE_TEXGROUP_MANAGER_SIZE)),
-			memoryGetRequiredSize(MODULE_TEXGROUP_MANAGER_SIZE), MODULE_TEXGROUP_ELEMENT_SIZE
-		) != NULL
-	);
+	return(moduleTexGroupInit());
 }
 
 void moduleTexGroupCleanup(){
-	MEMPOOL_LOOP_BEGIN(g_texGroupManager, i, textureGroup)
-		moduleTexGroupFree(i);
-	MEMPOOL_LOOP_END(g_texGroupManager, i)
-	memoryManagerGlobalDeleteRegions(g_texGroupManager.region);
+	moduleTexGroupDelete();
 }

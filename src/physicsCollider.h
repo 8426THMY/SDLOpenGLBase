@@ -39,6 +39,8 @@ typedef struct physicsCollider {
 	// for convex hulls, we store a copy of the collider
 	// in local space and one in global space.
 	collider global;
+	// Pointer to the collider that this one instantiates.
+	// If this collider is not an instance, this should be NULL.
 	const collider *local;
 	// Tightly-fitting bounding box, used to check
 	// if we should perform narrowphase collision.
@@ -88,6 +90,7 @@ physicsSeparationPair *physColliderFindSeparation(
 void physColliderClearPairs(physicsCollider *const restrict collider);
 
 void physColliderDeleteInstance(physicsCollider *const restrict collider);
+void physColliderDeleteBase(physicsCollider *const restrict collider);
 void physColliderDelete(physicsCollider *const restrict collider);
 
 

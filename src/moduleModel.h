@@ -11,9 +11,6 @@
 #define MODULE_MODEL
 #define MODULE_MODEL_SETUP_FAIL 6
 
-#define MODULE_MODELDEF_ELEMENT_SIZE sizeof(modelDef)
-#define MODULE_MODEL_ELEMENT_SIZE    sizeof(model)
-
 #ifndef MEMORY_MODULE_NUM_MODELDEFS
 	#define MEMORY_MODULE_NUM_MODELDEFS 1
 #endif
@@ -22,13 +19,17 @@
 #endif
 
 #define MODULE_MODELDEF_MANAGER_SIZE \
-	memPoolMemoryForBlocks(MEMORY_MODULE_NUM_MODELDEFS, MODULE_MODELDEF_ELEMENT_SIZE)
+	memPoolMemoryForBlocks(MEMORY_MODULE_NUM_MODELDEFS, sizeof(modelDef))
 #define MODULE_MODEL_MANAGER_SIZE \
-	memSingleListMemoryForBlocks(MEMORY_MODULE_NUM_MODELS, MODULE_MODEL_ELEMENT_SIZE)
+	memSingleListMemoryForBlocks(MEMORY_MODULE_NUM_MODELS, sizeof(model))
 
 
+// modelDef
 moduleDeclarePool(ModelDef, modelDef, g_modelDefManager)
+moduleDeclarePoolFree(ModelDef, modelDef)
+// model
 moduleDeclareSingleList(Model, model, g_modelManager)
+moduleDeclareSingleListFree(Model, model)
 
 return_t moduleModelSetup();
 void moduleModelCleanup();

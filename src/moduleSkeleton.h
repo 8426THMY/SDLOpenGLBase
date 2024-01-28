@@ -11,10 +11,6 @@
 #define MODULE_SKELETON
 #define MODULE_SKELETON_SETUP_FAIL 4
 
-#define MODULE_SKELETON_ELEMENT_SIZE       sizeof(skeleton)
-#define MODULE_SKELEANIMDEF_ELEMENT_SIZE      sizeof(skeletonAnimDef)
-#define MODULE_SKELEANIM_ELEMENT_SIZE sizeof(skeletonAnim)
-
 #ifndef MEMORY_MODULE_NUM_SKELETONS
 	#define MEMORY_MODULE_NUM_SKELETONS 1
 #endif
@@ -26,16 +22,22 @@
 #endif
 
 #define MODULE_SKELETON_MANAGER_SIZE \
-	memPoolMemoryForBlocks(MEMORY_MODULE_NUM_SKELETONS, MODULE_SKELETON_ELEMENT_SIZE)
+	memPoolMemoryForBlocks(MEMORY_MODULE_NUM_SKELETONS, sizeof(skeleton))
 #define MODULE_SKELEANIMDEF_MANAGER_SIZE \
-	memPoolMemoryForBlocks(MEMORY_MODULE_NUM_SKELEANIMDEFS, MODULE_SKELEANIMDEF_ELEMENT_SIZE)
+	memPoolMemoryForBlocks(MEMORY_MODULE_NUM_SKELEANIMDEFS, sizeof(skeletonAnimDef))
 #define MODULE_SKELEANIM_MANAGER_SIZE \
-	memSingleListMemoryForBlocks(MEMORY_MODULE_NUM_SKELEANIMS, MODULE_SKELEANIM_ELEMENT_SIZE)
+	memSingleListMemoryForBlocks(MEMORY_MODULE_NUM_SKELEANIMS, sizeof(skeletonAnim))
 
 
+// skeleton
 moduleDeclarePool(Skeleton, skeleton, g_skeletonManager)
+moduleDeclarePoolFree(Skeleton, skeleton)
+// skeletonAnimDef
 moduleDeclarePool(SkeletonAnimDef, skeletonAnimDef, g_skeleAnimDefManager)
+moduleDeclarePoolFree(SkeletonAnimDef, skeletonAnimDef)
+// skeletonAnim
 moduleDeclareSingleList(SkeletonAnim, skeletonAnim, g_skeleAnimManager)
+moduleDeclareSingleListFree(SkeletonAnim, skeletonAnim)
 
 return_t moduleSkeletonSetup();
 void moduleSkeletonCleanup();

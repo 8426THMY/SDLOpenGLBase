@@ -11,17 +11,17 @@
 #define MODULE_COMMAND
 #define MODULE_COMMAND_SETUP_FAIL 1
 
-#define MODULE_COMMAND_ELEMENT_SIZE sizeof(commandTokenized)
-
 #ifndef MEMORY_MODULE_NUM_COMMANDS
 	#define MEMORY_MODULE_NUM_COMMANDS 1
 #endif
 
 #define MODULE_COMMAND_MANAGER_SIZE \
-	memDoubleListMemoryForBlocks(MEMORY_MODULE_NUM_COMMANDS, MODULE_COMMAND_ELEMENT_SIZE)
+	memDoubleListMemoryForBlocks(MEMORY_MODULE_NUM_COMMANDS, sizeof(commandTokenized))
 
 
+// commandTokenized
 moduleDeclareDoubleList(CmdTok, commandTokenized, g_cmdTokManager)
+moduleDeclareDoubleListFree(CmdTok, commandTokenized)
 
 return_t moduleCommandSetup();
 void moduleCommandCleanup();
