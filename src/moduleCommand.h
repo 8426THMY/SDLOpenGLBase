@@ -4,6 +4,8 @@
 
 #include "command.h"
 
+#include "memoryDoubleList.h"
+
 #include "utilTypes.h"
 #include "moduleShared.h"
 

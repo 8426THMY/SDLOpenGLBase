@@ -4,6 +4,9 @@
 
 #include "skeleton.h"
 
+#include "memoryPool.h"
+#include "memorySingleList.h"
+
 #include "utilTypes.h"
 #include "moduleShared.h"
 

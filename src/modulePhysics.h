@@ -8,6 +8,10 @@
 #include "physicsCollider.h"
 #include "physicsRigidBody.h"
 
+#include "memoryPool.h"
+#include "memorySingleList.h"
+#include "memoryDoubleList.h"
+
 #include "utilTypes.h"
 #include "moduleShared.h"
 

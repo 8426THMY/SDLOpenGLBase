@@ -2,13 +2,6 @@
 #define moduleShared_h
 
 
-#include "memoryPool.h"
-#include "memorySingleList.h"
-#include "memoryDoubleList.h"
-
-#include "utilTypes.h"
-
-
 /*
 ** These function macros allow us to declare
 ** prototypes for custom module functions.

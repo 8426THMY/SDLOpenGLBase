@@ -4,6 +4,8 @@
 
 #include "textureGroup.h"
 
+#include "memoryPool.h"
+
 #include "utilTypes.h"
 #include "moduleShared.h"
 
