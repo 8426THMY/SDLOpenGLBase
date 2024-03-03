@@ -12,19 +12,6 @@
 #define GFX_DEFAULT_GL_VERSION_MINOR 3
 #define GFX_ENABLE_DOUBLEBUFFERING 1
 
-/*
-** Rather than wait until "nextRender" to begin rendering logic,
-** we can start rendering sooner as long as no updates come first.
-** Afterwards, we sleep until "nextRender" and then draw everything.
-**
-** This may possibly help maintain the framerate limit when rendering
-** by anticipating lag spikes and using otherwise wasted time to draw.
-**
-** In reality, this doesn't seem to make a difference.
-** This is likely a result of how OpenGL buffers draw calls.
-*/
-#define PRG_ENABLE_EFFICIENT_RENDERING
-
 #define PRG_WINDOW_DEFAULT_WIDTH  640
 #define PRG_WINDOW_DEFAULT_HEIGHT 480
 #define PRG_ASPECT_RATIO_X 4
@@ -33,7 +20,7 @@
 #define PRG_FOV_DEFAULT M_PI/3
 
 #define PRG_UPDATE_RATE 125.f
-#define PRG_FRAME_RATE  125.f
+#define PRG_FRAME_RATE  144.f
 #define PRG_TIME_SPEED  1.f
 
 // We'll probably get undefined results if this is less than or equal to 0.

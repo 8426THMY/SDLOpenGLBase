@@ -73,6 +73,7 @@ void particleRendererBeamBatch(
 	const camera *const restrict cam, const float dt
 ){
 
+	// A beam renderer needs at least two particles to draw.
 	if(numParticles > 1){
 		const particleRendererBeam partRenderer =
 			*((const particleRendererBeam *const)renderer);

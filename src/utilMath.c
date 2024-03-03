@@ -17,8 +17,8 @@ float floatMax(const float x, const float y){
 }
 
 float floatClamp(const float x, const float min, const float max){
-	const float t = x < min ? min : x;
-	return(t > max ? max : t);
+	const float high = x < min ? min : x;
+	return(high > max ? max : high);
 }
 
 unsigned int uintMin(const unsigned int x, const unsigned int y){
@@ -30,8 +30,8 @@ unsigned int uintMax(const unsigned int x, const unsigned int y){
 }
 
 unsigned int uintClamp(const unsigned int x, const unsigned int min, const unsigned int max){
-	const unsigned int t = x < min ? min : x;
-	return(t > max ? max : t);
+	const unsigned int high = x < min ? min : x;
+	return(high > max ? max : high);
 }
 
 

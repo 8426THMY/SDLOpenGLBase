@@ -77,13 +77,14 @@ return_t programInit(program *const restrict prg, char *const restrict prgDir){
 void programLoop(program *const restrict prg){
 	float nextUpdate = timerGetTimeFloat();
 	float nextRender = nextUpdate;
-	float nextPrint  = nextUpdate + 1000.f;
+	float lastRender = nextRender;
+	float bias = 0.f;
 
-	unsigned int updates = 0;
+	float nextPrint = nextUpdate;
 	unsigned int renders = 0;
 
 	while(cv_prg_running){
-		const float curTime = timerGetTimeFloat();
+		float curTime = timerGetTimeFloat();
 
 		// Note: This loop freezes the game if our input and update
 		//       functions take longer than "prg->step.updateTime".
@@ -92,77 +93,36 @@ void programLoop(program *const restrict prg){
 			update(prg);
 			nextUpdate += prg->step.updateTimeScaled;
 
-			++updates;
-		#ifndef PRG_ENABLE_EFFICIENT_RENDERING
-		}else{
-			// Make sure we don't exceed our framerate cap!
-			if(curTime >= nextRender){
-				// Get our progress through the current update!
-				prg->step.renderDelta = floatClamp(
-					1.f - (nextUpdate - curTime) * prg->step.updateTickrateScaled,
-					0.f, 1.f
-				);
-				render(prg);
-				nextRender = curTime + prg->step.renderTime;
+		// Make sure we don't exceed our framerate cap!
+		}else if(curTime >= nextRender){
+			prg->step.renderDelta = floatClamp(
+				1.f - (nextUpdate - curTime) * prg->step.updateTickrateScaled,
+				0.f, 1.f
+			);
+			render(prg);
 
-				++renders;
+			// Accumulate the time leftover from the last render.
+			bias -= prg->step.renderTime - (curTime - lastRender);
+			// Clamp the bias if we've fallen over a frame behind.
+			// This paces future renders from the current timestamp,
+			// allowing us to maintain the expected average framerate.
+			if(bias > prg->step.renderTime){
+				bias = prg->step.renderTime;
 			}
+			nextRender += prg->step.renderTime - bias;
+			lastRender = curTime;
 
-			// Print our update rate and framerate every second!
-			if(curTime >= nextPrint){
-				printf("Updates: %u\n", updates);
-				printf("Renders: %u\n", renders);
-				updates = 0;
-				renders = 0;
-
-				nextPrint = curTime + 1000.f;
-			}
+			++renders;
 		}
 
-		// Sleep until the next update or render.
+		// Print out the framerate roughly every second.
+		if(curTime >= nextPrint){
+			printf("Renders: %u\n", renders);
+			renders = 0;
+			nextPrint = curTime + 1000.f;
+		}
+
 		sleepUntilFloat(floatMin(nextUpdate, nextRender));
-		#else
-		}else{
-			// If there are no updates between the next render, start rendering now
-			// and sleep until the normal render time before swapping the buffers.
-			if(nextRender < nextUpdate){
-				const float nextRenderTime = floatMax(nextRender, curTime);
-				prg->step.renderDelta = floatClamp(
-					1.f - (nextUpdate - nextRenderTime) * prg->step.updateTickrateScaled,
-					0.f, 1.f
-				);
-				render(prg);
-
-				// We may have to sleep until the actual time of
-				// the next render before swapping the buffers.
-				sleepUntilFloat(nextRender);
-				#warning "Can we keep this inside the render function?"
-				#if GFX_ENABLE_DOUBLEBUFFERING
-				SDL_GL_SwapWindow(prg->window);
-				#else
-				glFlush();
-				#endif
-				nextRender = nextRenderTime + prg->step.renderTime;
-
-				++renders;
-
-			// If there's an update before the next render, we can sleep until it.
-			}else{
-				// Sleep until the next update.
-				sleepUntilFloat(nextUpdate);
-			}
-
-			// Print our update rate and framerate every second!
-			if(curTime >= nextPrint){
-				printf("Updates: %u\n", updates);
-				printf("Renders: %u\n", renders);
-				updates = 0;
-				renders = 0;
-
-				nextPrint = curTime + 1000.f;
-			}
-		}
-		#endif
 	}
 }
 
@@ -490,12 +450,10 @@ static void render(program *const restrict prg){
 	//guiElementDraw(&gui, prg->windowWidth, prg->windowHeight, &prg->spriteShader);
 
 
-	#ifndef PRG_ENABLE_EFFICIENT_RENDERING
 	#if GFX_ENABLE_DOUBLEBUFFERING
 	SDL_GL_SwapWindow(prg->window);
 	#else
 	glFlush();
-	#endif
 	#endif
 }
 
