@@ -77,8 +77,6 @@ return_t programInit(program *const restrict prg, char *const restrict prgDir){
 void programLoop(program *const restrict prg){
 	float nextUpdate = timerGetTimeFloat();
 	float nextRender = nextUpdate;
-	float lastRender = nextRender;
-	float bias = 0.f;
 
 	float nextPrint = nextUpdate;
 	unsigned int renders = 0;
@@ -100,17 +98,16 @@ void programLoop(program *const restrict prg){
 				0.f, 1.f
 			);
 			render(prg);
+			// If we've fallen over a frame behind, set the next render time to be
+			// the last frame we missed. This will make us render again as soon as
+			// possible, but only while we're consistently missing our deadlines.
+			if(curTime - nextRender >= prg->step.renderTime){
+				nextRender = curTime - fmod(curTime - nextRender, prg->step.renderTime);
 
-			// Accumulate the time leftover from the last render.
-			bias -= prg->step.renderTime - (curTime - lastRender);
-			// Clamp the bias if we've fallen over a frame behind.
-			// This paces future renders from the current timestamp,
-			// allowing us to maintain the expected average framerate.
-			if(bias > prg->step.renderTime){
-				bias = prg->step.renderTime;
+			// Otherwise, pace the frames as usual.
+			}else{
+				nextRender += prg->step.renderTime;
 			}
-			nextRender += prg->step.renderTime - bias;
-			lastRender = curTime;
 
 			++renders;
 		}

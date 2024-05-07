@@ -58,7 +58,7 @@ void spriteGenerateBuffers(
 		glGenBuffers(1, &spriteData->stateBufferID);
 		glBindBuffer(GL_ARRAY_BUFFER, spriteData->stateBufferID);
 		// We write to this buffer dynamically when drawing sprites.
-		glBufferData(GL_ARRAY_BUFFER, sizeof(spriteState) * SPRITE_MAX_INSTANCES, NULL, GL_STREAM_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(spriteState) * SPRITE_MAX_INSTANCES, NULL, GL_DYNAMIC_DRAW);
 
 		// Set up the vertex attributes that require this buffer!
 		// Because the transformation state is a 3x4 matrix, it needs four vertex attributes.
