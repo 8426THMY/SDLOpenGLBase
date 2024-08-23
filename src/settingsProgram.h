@@ -20,7 +20,7 @@
 #define PRG_FOV_DEFAULT M_PI/3
 
 #define PRG_UPDATE_RATE 125.f
-#define PRG_FRAME_RATE  144.f
+#define PRG_FRAME_RATE  125.f
 #define PRG_TIME_SPEED  1.f
 
 // We'll probably get undefined results if this is less than or equal to 0.

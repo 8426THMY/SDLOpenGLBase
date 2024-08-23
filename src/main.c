@@ -50,13 +50,18 @@
 /**
 *** Important To-Do List:
 ***
-*** 1. Finish the last few physics constraints (hinge, revolute, prismatic).
-***    Don't worry about the extra features such as restitution, softness,
-***    warm starting or Gauss-Seidel just yet.
+***	1.	Finish the new particle system.
 ***
-*** 2. Particle renderers and control points. We should have at least two
-***    renderers, "animated sprite" and "rope". Maybe investigate Source's
-***    "sprite trail" renderer, too.
+***	2.	Implement the remaining physics colliders (point, sphere, capsule
+***		and AABB). It might be smart to have a file for each collision check.
+***
+***	3.	Finish the last few physics constraints (hinge, revolute, prismatic).
+***		Don't worry about the extra features such as restitution, softness,
+***		warm starting or Gauss-Seidel just yet.
+***
+***	4.	Add motors for the physics constraints.
+***
+***	5.	Renderer overhaul (see the warnings above).
 **/
 
 

@@ -965,7 +965,8 @@ static void clipManifoldSHC(
 	// Otherwise, clip using whichever face has the
 	// greatest separation as the reference face.
 	}else{
-		// We use the bias terms again for the same reason as before.
+		// This time, we use the bias term to prioritize
+		// using faces from hull A as the reference face.
 		if(COLLISION_TOLERANCE_COEFFICIENT * cd->faceB.separation > cd->faceA.separation + COLLISION_TOLERANCE_TERM){
 			// Use hull B for the reference face.
 			clipFaceContact(hullB, hullA, cd->faceB.index, CLIPPING_SWAPPED, cm);
@@ -1267,7 +1268,6 @@ static void reduceContacts(
 	contactPoint *curContact = cm->contacts;
 
 	vec3 edgeNormal;
-	vec3 contactNormal;
 
 	const vertexProject *curProj = &vProj[1];
 	const vertexClip *curClip = &vClip[1];
@@ -1299,24 +1299,9 @@ static void reduceContacts(
 	firstContact = &bestProj->v;
 	secondContact = &worstProj->v;
 
-	// If the hulls were swapped, invert the normal.
-	if(swapped){
-		vec3NegateOut(refNormal, &contactNormal);
-	}else{
-		contactNormal = *refNormal;
-	}
-	// Add the points to our manifold.
-	curContact->key = bestClip->key;
-	curContact->pA = bestProj->v;
-	curContact->pB = bestClip->v;
-	curContact->normal = contactNormal;
-	curContact->separation = bestProj->dist;
+	contactPointInit(curContact, &bestProj->v, &bestClip->v, refNormal, bestProj->dist, &bestClip->key, swapped);
 	++curContact;
-	curContact->key = worstClip->key;
-	curContact->pA = worstProj->v;
-	curContact->pB = worstClip->v;
-	curContact->normal = contactNormal;
-	curContact->separation = worstProj->dist;
+	contactPointInit(curContact, &worstProj->v, &worstClip->v, refNormal, worstProj->dist, &worstClip->key, swapped);
 	++curContact;
 
 
@@ -1360,51 +1345,9 @@ static void reduceContacts(
 		}
 	}
 
-	// If the hulls were swapped before being passed into
-	// this function, we'll need to swap the key values.
-	if(swapped == CLIPPING_INORDER){
-		// Add the points to our manifold.
-		curContact->pA = bestProj->v;
-		curContact->pB = bestClip->v;
-		curContact->normal = contactNormal;
-		curContact->separation = bestProj->dist;
-		curContact->key = bestClip->key;
-		++curContact;
-		curContact->pA = worstProj->v;
-		curContact->pB = worstClip->v;
-		curContact->normal = contactNormal;
-		curContact->separation = worstProj->dist;
-		curContact->key = worstClip->key;
-	}else{
-		// Add the points to our manifold.
-		curContact->pA = bestProj->v;
-		curContact->pB = bestClip->v;
-		curContact->normal = contactNormal;
-		curContact->separation = bestProj->dist;
-		#ifdef CONTACT_MANIFOLD_SIMPLE_KEYS
-		curContact->key.edgeA = bestClip->key.edgeB;
-		curContact->key.edgeB = bestClip->key.edgeA;
-		#else
-		curContact->key.inEdgeA  = bestClip->key.inEdgeB;
-		curContact->key.outEdgeA = bestClip->key.outEdgeB;
-		curContact->key.inEdgeB  = bestClip->key.inEdgeA;
-		curContact->key.outEdgeB = bestClip->key.outEdgeA;
-		#endif
-		++curContact;
-		curContact->pA = worstProj->v;
-		curContact->pB = worstClip->v;
-		curContact->normal = contactNormal;
-		curContact->separation = worstProj->dist;
-		#ifdef CONTACT_MANIFOLD_SIMPLE_KEYS
-		curContact->key.edgeA = worstClip->key.edgeB;
-		curContact->key.edgeB = worstClip->key.edgeA;
-		#else
-		curContact->key.inEdgeA  = worstClip->key.inEdgeB;
-		curContact->key.outEdgeA = worstClip->key.outEdgeB;
-		curContact->key.inEdgeB  = worstClip->key.inEdgeA;
-		curContact->key.outEdgeB = worstClip->key.outEdgeA;
-		#endif
-	}
+	contactPointInit(curContact, &bestProj->v, &bestClip->v, refNormal, bestProj->dist, &bestClip->key, swapped);
+	++curContact;
+	contactPointInit(curContact, &worstProj->v, &worstClip->v, refNormal, worstProj->dist, &worstClip->key, swapped);
 
 
 	// We should now have only four contact points.
@@ -1561,8 +1504,8 @@ static void clipFaceContact(
 				  |    |         |    |
 				  |____|_________|____|
 				R1     |         |     R2
-					   |         |
-					   |_________|
+				       |         |
+				       |_________|
 				*/
 				*clipVertex.v = *prevVertex;
 				++clipVertex.v;
@@ -1582,9 +1525,9 @@ static void clipFaceContact(
 					  |    |    |    |
 					  |____|____|    |
 					R1     |     R2  |
-						   |         |
-						   |_________|
-						 Ic
+					       |         |
+					       |_________|
+					     Ic
 					*/
 					vec3Lerp(&prevVertex->v, &curVertex->v, curDist / (curDist - nextDist), &clipVertex.v->v);
 					#ifdef CONTACT_MANIFOLD_SIMPLE_KEYS
@@ -1614,9 +1557,9 @@ static void clipFaceContact(
 				|  Ic ____|____ Ip
 				|    |    |    |
 				|____|____|    |
-					 |     R1  |
-					 |         |
-					 |_________|
+				     |     R1  |
+				     |         |
+				     |_________|
 				*/
 				vec3Lerp(&prevVertex->v, &curVertex->v, curDist / (curDist - nextDist), &clipVertex.v->v);
 				#ifdef CONTACT_MANIFOLD_SIMPLE_KEYS
@@ -1705,31 +1648,7 @@ static void clipFaceContact(
 
 		// Add our contact points to the manifold.
 		for(; loopVertices < loopVertex; ++loopVertices, ++clipVertices.p, ++curContact){
-			curContact->separation = clipVertices.p->dist;
-
-			if(swapped == CLIPPING_INORDER){
-				curContact->pA = clipVertices.p->v;
-				curContact->pB = loopVertices->v;
-				curContact->normal = refNormal;
-				curContact->key = loopVertices->key;
-
-			// If the hulls were swapped before being passed into
-			// this function, we'll need to swap the key values.
-			}else{
-				curContact->pA = loopVertices->v;
-				curContact->pB = clipVertices.p->v;
-				#ifdef CONTACT_MANIFOLD_SIMPLE_KEYS
-				vec3NegateOut(&refNormal, &curContact->normal);
-				curContact->key.edgeA = loopVertices->key.edgeB;
-				curContact->key.edgeB = loopVertices->key.edgeA;
-				#else
-				vec3NegateOut(&refNormal, &curContact->normal);
-				curContact->key.inEdgeA  = loopVertices->key.inEdgeB;
-				curContact->key.outEdgeA = loopVertices->key.outEdgeB;
-				curContact->key.inEdgeB  = loopVertices->key.inEdgeA;
-				curContact->key.outEdgeB = loopVertices->key.outEdgeA;
-				#endif
-			}
+			contactPointInit(curContact, &clipVertices.p->v, &loopVertices->v, &refNormal, clipVertices.p->dist, &loopVertices->key, swapped);
 		}
 	}
 

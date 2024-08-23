@@ -67,6 +67,14 @@ typedef struct contactManifold {
 } contactManifold;
 
 
+void contactPointInit(
+	contactPoint *const restrict contact,
+	const vec3 *const restrict pA, const vec3 *const restrict pB,
+	const vec3 *const restrict normal, const float separation,
+	const contactKey *const restrict key,
+	const unsigned int swapped
+);
+
 return_t collidersAreSeparated(
 	const collider *const restrict cA, const collider *const restrict cB, contactSeparation *const restrict cs
 );

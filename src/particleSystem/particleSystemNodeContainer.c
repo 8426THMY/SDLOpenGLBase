@@ -135,10 +135,25 @@ void particleSysNodeContainerBatch(
 		/** on a new one. We have to do this inside the rendering  **/
 		/** function, as beams could look disconnected otherwise.  **/
 		/*
-		size_t managerRemaining = manager->numParticles;
-		while(managerRemaining > 0){
-			const size_t rendererRemaining = particleRendererRemainingParticles(partRenderer);
-		}
+		size_t particlesBatched = 0;
+		const keyValue *curKeyValue = keyValues;
+
+		do {
+			const size_t currentBatchSize = uintMin(remainingRoom, numParticles - particlesBatched);
+			// Get the last key value that will fit in the current batch.
+			const keyValue *const lastKeyValue = &curKeyValue[currentBatchSize];
+
+			#warning "This doesn't work at all for beams. Not only would this recompute the spline every time, but we'd also create disconnects in the beam for every batch we build."
+			// Add as many particles to the batch as we can!
+			particleRendererBatch(partRenderer, &curNode->manager, curKeyValue, lastKeyValue, batch, cam, dt);
+			// Draw the batch if it's now full!
+			if(remainingRoom <= numParticles - particlesBatched){
+				spriteRendererDrawFull(batch);
+			}
+
+			particlesBatched += currentBatchSize;
+			curKeyValue = lastKeyValue;
+		} while(particlesBatched < numParticles);
 		*/
 		/** 1. Allocate and sort an array of key-values.              **/
 		/** 2. Iterate over the key-values in the rendering function. **/

@@ -2616,12 +2616,12 @@ void mat4Frustum(
 
 	m->m[2][0] = (right + left) * widthScale;
 	m->m[2][1] = (top + bottom) * heightScale;
-	m->m[2][2] = -((near + far) * depthScale);
+	m->m[2][2] = (near + far) * depthScale;
 	m->m[2][3] = -1.f,
 
 	m->m[3][0] = 0.f;
 	m->m[3][1] = 0.f;
-	m->m[3][2] = -(2.f * far * near * depthScale);
+	m->m[3][2] = 2.f * far * near * depthScale;
 	m->m[3][3] = 0.f;
 }
 
@@ -2637,10 +2637,10 @@ mat4 mat4FrustumC(
 	const float depthScale  = 1.f/(near - far);
 
 	const mat4 m = {
-		.m[0][0] = 2.f * near * widthScale,     .m[0][1] = 0.f,                          .m[0][2] = 0.f,                              .m[0][3] =  0.f,
-		.m[1][0] = 0.f,                         .m[1][1] = 2.f * near * heightScale,     .m[1][2] = 0.f,                              .m[1][3] =  0.f,
-		.m[2][0] = (right + left) * widthScale, .m[2][1] = (top + bottom) * heightScale, .m[2][2] = -((near + far) * depthScale),     .m[2][3] = -1.f,
-		.m[3][0] = 0.f,                         .m[3][1] = 0.f,                          .m[3][2] = -(2.f * far * near * depthScale), .m[3][3] =  0.f
+		.m[0][0] = 2.f * near * widthScale,     .m[0][1] = 0.f,                          .m[0][2] = 0.f,                           .m[0][3] =  0.f,
+		.m[1][0] = 0.f,                         .m[1][1] = 2.f * near * heightScale,     .m[1][2] = 0.f,                           .m[1][3] =  0.f,
+		.m[2][0] = (right + left) * widthScale, .m[2][1] = (top + bottom) * heightScale, .m[2][2] = (near + far) * depthScale,     .m[2][3] = -1.f,
+		.m[3][0] = 0.f,                         .m[3][1] = 0.f,                          .m[3][2] = 2.f * far * near * depthScale, .m[3][3] =  0.f
 	};
 
 	return(m);
