@@ -2218,7 +2218,7 @@ quat quatRotateByVec3EulerZXYC(const quat q, const vec3 v){
 }
 
 
-// Perform linear interpolation between two quaternions!
+// Perform linear interpolation between two quaternions and store the result in "q1"!
 void quatLerp(quat *const restrict q1, const quat *const restrict q2, const float time){
 	q1->x = floatLerpFast(q1->x, q2->x, time);
 	q1->y = floatLerpFast(q1->y, q2->y, time);
@@ -2252,7 +2252,7 @@ quat quatLerpC(quat q1, const quat q2, const float time){
 }
 
 /*
-** Perform linear interpolation between two quaternions!
+** Perform linear interpolation between two quaternions and store the result in "q"!
 ** Instead of entering the two vectors to interpolate between, this function accepts
 ** the starting orientation and the difference between it and the ending orientation.
 */

@@ -647,15 +647,7 @@ void transformInterpSet(
 	#ifdef TRANSFORM_MATRIX_SHEAR
 	vec3Lerp(&trans1->pos, &trans2->pos, time, &out->pos);
 	quatSlerpFasterOut(&trans1->rot, &trans2->rot, time, &out->rot);
-	out->shear.m[0][0] = (1.f - time)*trans1->shear.m[0][0] + time*trans2->shear.m[0][0];
-	out->shear.m[0][1] = (1.f - time)*trans1->shear.m[0][1] + time*trans2->shear.m[0][1];
-	out->shear.m[0][2] = (1.f - time)*trans1->shear.m[0][2] + time*trans2->shear.m[0][2];
-	out->shear.m[1][0] = (1.f - time)*trans1->shear.m[1][0] + time*trans2->shear.m[1][0];
-	out->shear.m[1][1] = (1.f - time)*trans1->shear.m[1][1] + time*trans2->shear.m[1][1];
-	out->shear.m[1][2] = (1.f - time)*trans1->shear.m[1][2] + time*trans2->shear.m[1][2];
-	out->shear.m[2][0] = (1.f - time)*trans1->shear.m[2][0] + time*trans2->shear.m[2][0];
-	out->shear.m[2][1] = (1.f - time)*trans1->shear.m[2][1] + time*trans2->shear.m[2][1];
-	out->shear.m[2][2] = (1.f - time)*trans1->shear.m[2][2] + time*trans2->shear.m[2][2];
+	mat3Lerp(&trans1->shear, &trans2->shear, time, &out->shear);
 	#else
 	vec3Lerp(&trans1->pos, &trans2->pos, time, &out->pos);
 	quatSlerpFasterOut(&trans1->rot, &trans2->rot, time, &out->rot);
@@ -668,23 +660,15 @@ void transformInterpSet(
 transform transformInterpSetC(const transform trans1, const transform trans2, const float time){
 	#ifdef TRANSFORM_MATRIX_SHEAR
 	transform out = {
-		.pos = vec3LerpC(trans1.pos, trans2.pos, time),
-		.rot = quatSlerpFasterC(trans1.rot, trans2.rot, time)
+		.pos   = vec3LerpC(trans1.pos, trans2.pos, time),
+		.rot   = quatSlerpFasterC(trans1.rot, trans2.rot, time),
+		.shear = mat3LerpC(trans1.shear, trans2.shear, time)
 	};
-	out.shear.m[0][0] = (1.f - time)*trans1.shear.m[0][0] + time*trans2.shear.m[0][0];
-	out.shear.m[0][1] = (1.f - time)*trans1.shear.m[0][1] + time*trans2.shear.m[0][1];
-	out.shear.m[0][2] = (1.f - time)*trans1.shear.m[0][2] + time*trans2.shear.m[0][2];
-	out.shear.m[1][0] = (1.f - time)*trans1.shear.m[1][0] + time*trans2.shear.m[1][0];
-	out.shear.m[1][1] = (1.f - time)*trans1.shear.m[1][1] + time*trans2.shear.m[1][1];
-	out.shear.m[1][2] = (1.f - time)*trans1.shear.m[1][2] + time*trans2.shear.m[1][2];
-	out.shear.m[2][0] = (1.f - time)*trans1.shear.m[2][0] + time*trans2.shear.m[2][0];
-	out.shear.m[2][1] = (1.f - time)*trans1.shear.m[2][1] + time*trans2.shear.m[2][1];
-	out.shear.m[2][2] = (1.f - time)*trans1.shear.m[2][2] + time*trans2.shear.m[2][2];
 	return(out);
 	#else
 	const transform out = {
-		.pos = vec3LerpC(trans1.pos, trans2.pos, time),
-		.rot = quatSlerpFasterC(trans1.rot, trans2.rot, time),
+		.pos   = vec3LerpC(trans1.pos, trans2.pos, time),
+		.rot   = quatSlerpFasterC(trans1.rot, trans2.rot, time),
 		.scale = vec3LerpC(trans1.scale, trans2.scale, time),
 		.shear = quatSlerpFasterC(trans1.shear, trans2.shear, time)
 	};

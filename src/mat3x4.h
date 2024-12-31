@@ -156,6 +156,9 @@ quat mat3x4ToQuatAltC(const mat3x4 m);
 void quatToMat3x4(const quat *const restrict q, mat3x4 *const restrict out);
 mat3x4 quatToMat3x4C(const quat q);
 
+void mat3x4Lerp(const mat3x4 *const restrict m1, const mat3x4 *const restrict m2, const float time, const mat3x4 *const restrict out);
+mat3x4 mat3x4LerpC(mat3x4 m1, const mat3x4 m2, const float time);
+
 
 extern mat3x4 g_mat3x4Identity;
 

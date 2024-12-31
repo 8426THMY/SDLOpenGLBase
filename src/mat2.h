@@ -58,6 +58,9 @@ vec2 mat2SolveC(const mat2 A, const vec2 b);
 return_t mat2CanSolve(const mat2 *const restrict A, const vec2 *const restrict b, vec2 *const restrict x);
 return_t mat2CanSolveC(const mat2 A, const vec2 b, vec2 *const restrict x);
 
+void mat2Lerp(const mat2 *const restrict m1, const mat2 *const restrict m2, const float time, const mat2 *const restrict out);
+mat2 mat2LerpC(mat2 m1, const mat2 m2, const float time);
+
 
 extern mat2 g_g_mat2Identity;
 

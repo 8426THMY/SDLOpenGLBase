@@ -496,3 +496,20 @@ return_t mat2CanSolveC(const mat2 A, const vec2 b, vec2 *const restrict x){
 
 	return(0);
 }
+
+
+void mat2Lerp(const mat2 *const restrict m1, const mat2 *const restrict m2, const float time, const mat2 *const restrict out){
+	out.m[0][0] = floatLerpFast(m1.m[0][0], m2.m[0][0], time);
+	out.m[0][1] = floatLerpFast(m1.m[0][1], m2.m[0][1], time);
+	out.m[1][0] = floatLerpFast(m1.m[1][0], m2.m[1][0], time);
+	out.m[1][1] = floatLerpFast(m1.m[1][1], m2.m[1][1], time);
+}
+
+mat2 mat2LerpC(mat2 m1, const mat2 m2, const float time){
+	m1.m[0][0] = floatLerpFast(m1.m[0][0], m2.m[0][0], time);
+	m1.m[0][1] = floatLerpFast(m1.m[0][1], m2.m[0][1], time);
+	m1.m[1][0] = floatLerpFast(m1.m[1][0], m2.m[1][0], time);
+	m1.m[1][1] = floatLerpFast(m1.m[1][1], m2.m[1][1], time);
+
+	return(m1);
+}
