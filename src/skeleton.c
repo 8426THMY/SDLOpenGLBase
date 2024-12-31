@@ -30,9 +30,9 @@ static bone defaultBone = {
 	.localBind.pos.x   = 0.f, .localBind.pos.y   = 0.f, .localBind.pos.z   = 0.f,
 	.localBind.rot.x   = 0.f, .localBind.rot.y   = 0.f, .localBind.rot.z   = 0.f, .localBind.rot.w   = 1.f,
 	#ifdef TRANSFORM_MATRIX_SHEAR
-	.localBind.shear.m[0][0] = 1.f, .localBind.shear.m[0][1] = 0.f, .localBind.shear.m[0][2] = 0.f,
-	.localBind.shear.m[1][0] = 0.f, .localBind.shear.m[1][1] = 1.f, .localBind.shear.m[1][2] = 0.f,
-	.localBind.shear.m[2][0] = 0.f, .localBind.shear.m[2][1] = 0.f, .localBind.shear.m[2][2] = 1.f,
+	.localBind.scale.m[0][0] = 1.f, .localBind.scale.m[0][1] = 0.f, .localBind.scale.m[0][2] = 0.f,
+	.localBind.scale.m[1][0] = 0.f, .localBind.scale.m[1][1] = 1.f, .localBind.scale.m[1][2] = 0.f,
+	.localBind.scale.m[2][0] = 0.f, .localBind.scale.m[2][1] = 0.f, .localBind.scale.m[2][2] = 1.f,
 	#else
 	.localBind.scale.x = 1.f, .localBind.scale.y = 1.f, .localBind.scale.z = 1.f,
 	.localBind.shear.x = 0.f, .localBind.shear.y = 0.f, .localBind.shear.z = 0.f, .localBind.shear.w = 1.f,
@@ -41,9 +41,9 @@ static bone defaultBone = {
 	.invGlobalBind.pos.x   = 0.f, .invGlobalBind.pos.y   = 0.f, .invGlobalBind.pos.z   = 0.f,
 	.invGlobalBind.rot.x   = 0.f, .invGlobalBind.rot.y   = 0.f, .invGlobalBind.rot.z   = 0.f, .invGlobalBind.rot.w = 1.f,
 	#ifdef TRANSFORM_MATRIX_SHEAR
-	.invGlobalBind.shear.m[0][0] = 1.f, .invGlobalBind.shear.m[0][1] = 0.f, .invGlobalBind.shear.m[0][2] = 0.f,
-	.invGlobalBind.shear.m[1][0] = 0.f, .invGlobalBind.shear.m[1][1] = 1.f, .invGlobalBind.shear.m[1][2] = 0.f,
-	.invGlobalBind.shear.m[2][0] = 0.f, .invGlobalBind.shear.m[2][1] = 0.f, .invGlobalBind.shear.m[2][2] = 1.f,
+	.invGlobalBind.scale.m[0][0] = 1.f, .invGlobalBind.scale.m[0][1] = 0.f, .invGlobalBind.scale.m[0][2] = 0.f,
+	.invGlobalBind.scale.m[1][0] = 0.f, .invGlobalBind.scale.m[1][1] = 1.f, .invGlobalBind.scale.m[1][2] = 0.f,
+	.invGlobalBind.scale.m[2][0] = 0.f, .invGlobalBind.scale.m[2][1] = 0.f, .invGlobalBind.scale.m[2][2] = 1.f,
 	#else
 	.invGlobalBind.scale.x = 1.f, .invGlobalBind.scale.y = 1.f, .invGlobalBind.scale.z = 1.f,
 	.invGlobalBind.shear.x = 0.f, .invGlobalBind.shear.y = 0.f, .invGlobalBind.shear.z = 0.f, .invGlobalBind.shear.w = 1.f,
@@ -382,7 +382,7 @@ skeletonAnimDef *skeleAnimSMDLoad(const char *const restrict skeleAnimPath, cons
 
 								// Set the bone's scale!
 								#ifdef TRANSFORM_MATRIX_SHEAR
-								mat3InitIdentity(&currentState->shear);
+								mat3InitIdentity(&currentState->scale);
 								#else
 								quatInitIdentity(&currentState->shear);
 								vec3InitSet(&currentState->scale, 1.f, 1.f, 1.f);

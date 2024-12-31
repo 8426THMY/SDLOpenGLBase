@@ -109,7 +109,7 @@ void guiTextDraw(
 
 				// If we've exceeded the width of the text box, move onto the next line.
 				#ifdef TRANSFORM_MATRIX_SHEAR
-				if((translateX + curWidth)*gui->state.shear.m[0][0] > text.width){
+				if((translateX + curWidth)*gui->state.scale.m[0][0] > text.width){
 				#else
 				if((translateX + curWidth)*gui->state.scale.x > text.width){
 				#endif

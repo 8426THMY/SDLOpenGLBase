@@ -212,7 +212,7 @@ quat mat4ToQuatAltC(const mat4 m);
 void quatToMat4(const quat *const restrict q, mat4 *const restrict out);
 mat4 quatToMat4C(const quat q);
 
-void mat4Lerp(const mat4 *const restrict m1, const mat4 *const restrict m2, const float time, const mat4 *const restrict out);
+void mat4Lerp(const mat4 *const restrict m1, const mat4 *const restrict m2, const float time, mat4 *const restrict out);
 mat4 mat4LerpC(mat4 m1, const mat4 m2, const float time);
 
 

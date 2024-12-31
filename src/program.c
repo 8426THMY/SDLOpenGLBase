@@ -406,16 +406,16 @@ static void update(program *const restrict prg){
 
 	#ifdef TRANSFORM_MATRIX_SHEAR
 	if(prg->inputMngr.keyStates[SDL_SCANCODE_A]){
-		gui.state.shear.m[0][0] -= 100.f * prg->step.updateDelta;
+		gui.state.scale.m[0][0] -= 100.f * prg->step.updateDelta;
 	}
 	if(prg->inputMngr.keyStates[SDL_SCANCODE_D]){
-		gui.state.shear.m[0][0] += 100.f * prg->step.updateDelta;
+		gui.state.scale.m[0][0] += 100.f * prg->step.updateDelta;
 	}
 	if(prg->inputMngr.keyStates[SDL_SCANCODE_W]){
-		gui.state.shear.m[1][1] -= 100.f * prg->step.updateDelta;
+		gui.state.scale.m[1][1] -= 100.f * prg->step.updateDelta;
 	}
 	if(prg->inputMngr.keyStates[SDL_SCANCODE_S]){
-		gui.state.shear.m[1][1] += 100.f * prg->step.updateDelta;
+		gui.state.scale.m[1][1] += 100.f * prg->step.updateDelta;
 	}
 	#else
 	if(prg->inputMngr.keyStates[SDL_SCANCODE_A]){
@@ -646,7 +646,7 @@ static return_t initResources(program *const restrict prg){
 	printf("Ground: %u -> %u\n", obj->physBodies, obj->physBodies->colliders);
 	obj->boneTransforms[0].pos.y = -4.f;
 	#ifdef TRANSFORM_MATRIX_SHEAR
-	obj->boneTransforms[0].shear.m[0][0] = obj->boneTransforms[0].shear.m[2][2] = 100.f;
+	obj->boneTransforms[0].scale.m[0][0] = obj->boneTransforms[0].scale.m[2][2] = 100.f;
 	#else
 	obj->boneTransforms[0].scale.x = obj->boneTransforms[0].scale.z = 100.f;
 	#endif
@@ -888,7 +888,7 @@ static return_t initResources(program *const restrict prg){
 	gui.state.pos.x = 0.f;
 	gui.state.pos.y = 0.f;
 	#ifdef TRANSFORM_MATRIX_SHEAR
-	gui.state.shear.m[0][0] = gui.state.shear.m[1][1] = 100.f;
+	gui.state.scale.m[0][0] = gui.state.scale.m[1][1] = 100.f;
 	#else
 	gui.state.scale.x = gui.state.scale.y = 100.f;
 	#endif

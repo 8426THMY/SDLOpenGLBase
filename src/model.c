@@ -744,7 +744,7 @@ modelDef *modelDefSMDLoad(const char *const restrict mdlDefPath, const size_t md
 
 									// Set the bone's scale!
 									#ifdef TRANSFORM_MATRIX_SHEAR
-									mat3InitIdentity(&currentBone->localBind.shear);
+									mat3InitIdentity(&currentBone->localBind.scale);
 									#else
 									quatInitIdentity(&currentBone->localBind.shear);
 									vec3InitSet(&currentBone->localBind.scale, 1.f, 1.f, 1.f);

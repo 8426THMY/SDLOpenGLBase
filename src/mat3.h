@@ -128,7 +128,7 @@ quat mat3ToQuatAltC(const mat3 m);
 void quatToMat3(const quat *const restrict q, mat3 *const restrict out);
 mat3 quatToMat3C(const quat q);
 
-void mat3Lerp(const mat3 *const restrict m1, const mat3 *const restrict m2, const float time, const mat3 *const restrict out);
+void mat3Lerp(const mat3 *const restrict m1, const mat3 *const restrict m2, const float time, mat3 *const restrict out);
 mat3 mat3LerpC(mat3 m1, const mat3 m2, const float time);
 
 

@@ -1911,16 +1911,16 @@ static void ComputeEigenvector1(
 }
 
 
-void mat3Lerp(const mat3 *const restrict m1, const mat3 *const restrict m2, const float time, const mat3 *const restrict out){
-	out.m[0][0] = floatLerpFast(m1.m[0][0], m2.m[0][0], time);
-	out.m[0][1] = floatLerpFast(m1.m[0][1], m2.m[0][1], time);
-	out.m[0][2] = floatLerpFast(m1.m[0][2], m2.m[0][2], time);
-	out.m[1][0] = floatLerpFast(m1.m[1][0], m2.m[1][0], time);
-	out.m[1][1] = floatLerpFast(m1.m[1][1], m2.m[1][1], time);
-	out.m[1][2] = floatLerpFast(m1.m[1][2], m2.m[1][2], time);
-	out.m[2][0] = floatLerpFast(m1.m[2][0], m2.m[2][0], time);
-	out.m[2][1] = floatLerpFast(m1.m[2][1], m2.m[2][1], time);
-	out.m[2][2] = floatLerpFast(m1.m[2][2], m2.m[2][2], time);
+void mat3Lerp(const mat3 *const restrict m1, const mat3 *const restrict m2, const float time, mat3 *const restrict out){
+	out->m[0][0] = floatLerpFast(m1->m[0][0], m2->m[0][0], time);
+	out->m[0][1] = floatLerpFast(m1->m[0][1], m2->m[0][1], time);
+	out->m[0][2] = floatLerpFast(m1->m[0][2], m2->m[0][2], time);
+	out->m[1][0] = floatLerpFast(m1->m[1][0], m2->m[1][0], time);
+	out->m[1][1] = floatLerpFast(m1->m[1][1], m2->m[1][1], time);
+	out->m[1][2] = floatLerpFast(m1->m[1][2], m2->m[1][2], time);
+	out->m[2][0] = floatLerpFast(m1->m[2][0], m2->m[2][0], time);
+	out->m[2][1] = floatLerpFast(m1->m[2][1], m2->m[2][1], time);
+	out->m[2][2] = floatLerpFast(m1->m[2][2], m2->m[2][2], time);
 }
 
 mat3 mat3LerpC(mat3 m1, const mat3 m2, const float time){

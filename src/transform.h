@@ -40,7 +40,7 @@ typedef struct transform {
 	vec3 pos;
 	quat rot;
 	#ifdef TRANSFORM_MATRIX_SHEAR
-	mat3 shear;
+	mat3 scale;
 	#else
 	vec3 scale;
 	quat shear;
