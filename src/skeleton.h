@@ -24,7 +24,7 @@ typedef uint_least8_t boneIndex;
 typedef struct bone {
 	char *name;
 
-	// The bone's default local state.
+	// The bone's default local state (relative to its parent).
 	boneState localBind;
 	// Inverse of the bone's default, accumulative state.
 	boneState invGlobalBind;
@@ -50,10 +50,9 @@ typedef struct skeletonAnimDef {
 	animationFrameData frameData;
 
 	char **boneNames;
-	// Vector of frames, where each frame has a vector of bone states.
-	//
-	// Note: Every bone should have the same number of keyframes. When we load
-	// an animation where this doesn't hold, we just fill in the blanks.
+	// Array of frames, each stored as an array of bone states in
+	// local space, relative to their parents' states. We assume
+	// every bone in the animation has the same number of keyframes.
 	boneState **frames;
 	boneIndex numBones;
 } skeletonAnimDef;
@@ -101,6 +100,7 @@ void skeleStateInit(skeletonState *const restrict skeleState, const skeleton *co
 skeletonAnimDef *skeleAnimSMDLoad(const char *const restrict skeleAnimPath, const size_t skeleAnimPathLength);
 
 void skeleAnimUpdate(skeletonAnim *const restrict anim, const float dt);
+void skeleStateUpdate(skeletonState *const restrict skeleState, const float dt);
 void skeleStatePrependAnimations(
 	boneState *const restrict out,
 	const skeletonState *const restrict skeleState,

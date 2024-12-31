@@ -743,8 +743,12 @@ modelDef *modelDefSMDLoad(const char *const restrict mdlDefPath, const size_t md
 									quatInitEulerXYZ(&currentBone->localBind.rot, x, y, z);
 
 									// Set the bone's scale!
+									#ifdef TRANSFORM_MATRIX_SHEAR
+									mat3InitIdentity(&currentBone->localBind.shear);
+									#else
 									quatInitIdentity(&currentBone->localBind.shear);
 									vec3InitSet(&currentBone->localBind.scale, 1.f, 1.f, 1.f);
+									#endif
 
 
 									// If this bone has a parent, its global bind pose is

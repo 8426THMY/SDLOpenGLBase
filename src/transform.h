@@ -10,6 +10,16 @@
 
 
 /*
+** Rather than storing a shear as a quaternion and a scale vector,
+** we can instead just store it as a 3x3 matrix. It turns out that
+** interpolating a shear matrix surprisingly looks a lot better
+** than interpolating a quaternion-vector pair, and it also has
+** the added benefit of eliminating those pesky diagonalizations.
+*/
+#define TRANSFORM_MATRIX_SHEAR
+
+
+/*
 ** To correctly handle non-uniform scaling, we introduce
 ** a "shear quaternion" that rotates us so that we can
 ** easily perform our scaling along the x, y and z axes.
@@ -29,8 +39,12 @@
 typedef struct transform {
 	vec3 pos;
 	quat rot;
+	#ifdef TRANSFORM_MATRIX_SHEAR
+	mat3 shear;
+	#else
 	vec3 scale;
 	quat shear;
+	#endif
 } transform;
 
 

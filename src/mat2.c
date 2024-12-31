@@ -163,6 +163,94 @@ mat2 mat2MultiplyMat2C(const mat2 m1, const mat2 m2){
 	return(out);
 }
 
+// Left-multiply "m2" transpose by "m1" (m1*m2^T) and store the result in "m1"!
+void mat2MultiplyMat2TransP1(mat2 *const restrict m1, const mat2 m2){
+	const mat2 tempMatrix = *m1;
+
+	m1->m[0][0] = tempMatrix.m[0][0] * m2.m[0][0] + tempMatrix.m[1][0] * m2.m[1][0];
+	m1->m[0][1] = tempMatrix.m[0][1] * m2.m[0][0] + tempMatrix.m[1][1] * m2.m[1][0];
+
+	m1->m[1][0] = tempMatrix.m[0][0] * m2.m[0][1] + tempMatrix.m[1][0] * m2.m[1][1];
+	m1->m[1][1] = tempMatrix.m[0][1] * m2.m[0][1] + tempMatrix.m[1][1] * m2.m[1][1];
+}
+
+// Left-multiply "m2" transpose by "m1" (m1*m2^T) and store the result in "m2"!
+void mat2MultiplyMat2TransP2(const mat2 m1, mat2 *const restrict m2){
+	const mat2 tempMatrix = *m2;
+
+	m2->m[0][0] = m1.m[0][0] * tempMatrix.m[0][0] + m1.m[1][0] * tempMatrix.m[1][0];
+	m2->m[0][1] = m1.m[0][1] * tempMatrix.m[0][0] + m1.m[1][1] * tempMatrix.m[1][0];
+
+	m2->m[1][0] = m1.m[0][0] * tempMatrix.m[0][1] + m1.m[1][0] * tempMatrix.m[1][1];
+	m2->m[1][1] = m1.m[0][1] * tempMatrix.m[0][1] + m1.m[1][1] * tempMatrix.m[1][1];
+}
+
+// Left-multiply "m2" transpose by "m1" (m1*m2^T) and store the result in "out"!
+void mat2MultiplyMat2TransOut(const mat2 m1, const mat2 m2, mat2 *const restrict out){
+	out->m[0][0] = m1.m[0][0] * m2.m[0][0] + m1.m[1][0] * m2.m[1][0];
+	out->m[0][1] = m1.m[0][1] * m2.m[0][0] + m1.m[1][1] * m2.m[1][0];
+
+	out->m[1][0] = m1.m[0][0] * m2.m[0][1] + m1.m[1][0] * m2.m[1][1];
+	out->m[1][1] = m1.m[0][1] * m2.m[0][1] + m1.m[1][1] * m2.m[1][1];
+}
+
+// Left-multiply "m2" transpose by "m1" (m1*m2^T) and return the result!
+mat2 mat2MultiplyMat2TransC(const mat2 m1, const mat2 m2){
+	const mat2 out = {
+		.m[0][0] = m1.m[0][0] * m2.m[0][0] + m1.m[1][0] * m2.m[1][0],
+		.m[0][1] = m1.m[0][1] * m2.m[0][0] + m1.m[1][1] * m2.m[1][0],
+
+		.m[1][0] = m1.m[0][0] * m2.m[0][1] + m1.m[1][0] * m2.m[1][1],
+		.m[1][1] = m1.m[0][1] * m2.m[0][1] + m1.m[1][1] * m2.m[1][1]
+	};
+
+	return(out);
+}
+
+// Left-multiply "m2" by "m1" transpose (m1^T*m2) and store the result in "m1"!
+void mat2TransMultiplyMat2P1(mat2 *const restrict m1, const mat2 m2){
+	const mat2 tempMatrix = *m1;
+
+	m1->m[0][0] = tempMatrix.m[0][0] * m2.m[0][0] + tempMatrix.m[0][1] * m2.m[0][1];
+	m1->m[0][1] = tempMatrix.m[1][0] * m2.m[0][0] + tempMatrix.m[1][1] * m2.m[0][1];
+
+	m1->m[1][0] = tempMatrix.m[0][0] * m2.m[1][0] + tempMatrix.m[0][1] * m2.m[1][1];
+	m1->m[1][1] = tempMatrix.m[1][0] * m2.m[1][0] + tempMatrix.m[1][1] * m2.m[1][1];
+}
+
+// Left-multiply "m2" by "m1" transpose (m1^T*m2) and store the result in "m2"!
+void mat2TransMultiplyMat2P2(const mat2 m1, mat2 *const restrict m2){
+	const mat2 tempMatrix = *m2;
+
+	m2->m[0][0] = m1.m[0][0] * tempMatrix.m[0][0] + m1.m[0][1] * tempMatrix.m[0][1];
+	m2->m[0][1] = m1.m[1][0] * tempMatrix.m[0][0] + m1.m[1][1] * tempMatrix.m[0][1];
+
+	m2->m[1][0] = m1.m[0][0] * tempMatrix.m[1][0] + m1.m[0][1] * tempMatrix.m[1][1];
+	m2->m[1][1] = m1.m[1][0] * tempMatrix.m[1][0] + m1.m[1][1] * tempMatrix.m[1][1];
+}
+
+// Left-multiply "m2" by "m1" transpose (m1^T*m2) and store the result in "out"!
+void mat2TransMultiplyMat2Out(const mat2 m1, const mat2 m2, mat2 *const restrict out){
+	out->m[0][0] = m1.m[0][0] * m2.m[0][0] + m1.m[0][1] * m2.m[0][1];
+	out->m[0][1] = m1.m[1][0] * m2.m[0][0] + m1.m[1][1] * m2.m[0][1];
+
+	out->m[1][0] = m1.m[0][0] * m2.m[1][0] + m1.m[0][1] * m2.m[1][1];
+	out->m[1][1] = m1.m[1][0] * m2.m[1][0] + m1.m[1][1] * m2.m[1][1];
+}
+
+// Left-multiply "m2" by "m1" transpose (m1^T*m2) and return the result!
+mat2 mat2TransMultiplyMat2C(const mat2 m1, const mat2 m2){
+	const mat2 out = {
+		.m[0][0] = m1.m[0][0] * m2.m[0][0] + m1.m[0][1] * m2.m[0][1],
+		.m[0][1] = m1.m[1][0] * m2.m[0][0] + m1.m[1][1] * m2.m[0][1],
+
+		.m[1][0] = m1.m[0][0] * m2.m[1][0] + m1.m[0][1] * m2.m[1][1],
+		.m[1][1] = m1.m[1][0] * m2.m[1][0] + m1.m[1][1] * m2.m[1][1]
+	};
+
+	return(out);
+}
+
 
 /*
 ** Find the transpose of a matrix! For column-major matrices, this effectively

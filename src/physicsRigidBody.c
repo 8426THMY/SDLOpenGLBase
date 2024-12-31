@@ -736,7 +736,13 @@ void physRigidBodySetScale(physicsRigidBody *const restrict body, const vec3 sca
 	inertia.m[2][2] = sqrX + sqrY;
 
 	mat3InvertOut(inertia, &body->invInertiaLocal);
+	#ifdef TRANSFORM_MATRIX_SHEAR
+	body->state.shear.m[0][0] = scale.x;
+	body->state.shear.m[1][1] = scale.y;
+	body->state.shear.m[2][2] = scale.z;
+	#else
 	body->state.scale = scale;
+	#endif
 }
 
 

@@ -32,6 +32,14 @@ void mat2MultiplyMat2P1(mat2 *const restrict m1, const mat2 m2);
 void mat2MultiplyMat2P2(const mat2 m1, mat2 *const restrict m2);
 void mat2MultiplyMat2Out(const mat2 m1, const mat2 m2, mat2 *const restrict out);
 mat2 mat2MultiplyMat2C(const mat2 m1, const mat2 m2);
+void mat2MultiplyMat2TransP1(mat2 *const restrict m1, const mat2 m2);
+void mat2MultiplyMat2TransP2(const mat2 m1, mat2 *const restrict m2);
+void mat2MultiplyMat2TransOut(const mat2 m1, const mat2 m2, mat2 *const restrict out);
+mat2 mat2MultiplyMat2TransC(const mat2 m1, const mat2 m2);
+void mat2TransMultiplyMat2P1(mat2 *const restrict m1, const mat2 m2);
+void mat2TransMultiplyMat2P2(const mat2 m1, mat2 *const restrict m2);
+void mat2TransMultiplyMat2Out(const mat2 m1, const mat2 m2, mat2 *const restrict out);
+mat2 mat2TransMultiplyMat2C(const mat2 m1, const mat2 m2);
 
 void mat2Transpose(mat2 *const restrict m);
 void mat2TransposeOut(const mat2 m, mat2 *const restrict out);

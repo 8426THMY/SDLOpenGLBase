@@ -82,6 +82,14 @@ void mat3x4MultiplyMat3x4P1(mat3x4 *const restrict m1, const mat3x4 m2);
 void mat3x4MultiplyMat3x4P2(const mat3x4 m1, mat3x4 *const restrict m2);
 void mat3x4MultiplyMat3x4Out(const mat3x4 m1, const mat3x4 m2, mat3x4 *const restrict out);
 mat3x4 mat3x4MultiplyMat3x4C(const mat3x4 m1, const mat3x4 m2);
+void mat3x4MultiplyMat3x4TransP1(mat3x4 *const restrict m1, const mat3x4 m2);
+void mat3x4MultiplyMat3x4TransP2(const mat3x4 m1, mat3x4 *const restrict m2);
+void mat3x4MultiplyMat3x4TransOut(const mat3x4 m1, const mat3x4 m2, mat3x4 *const restrict out);
+mat3x4 mat3x4MultiplyMat3x4TransC(const mat3x4 m1, const mat3x4 m2);
+void mat3x4TransMultiplyMat3x4P1(mat3x4 *const restrict m1, const mat3x4 m2);
+void mat3x4TransMultiplyMat3x4P2(const mat3x4 m1, mat3x4 *const restrict m2);
+void mat3x4TransMultiplyMat3x4Out(const mat3x4 m1, const mat3x4 m2, mat3x4 *const restrict out);
+mat3x4 mat3x4TransMultiplyMat3x4C(const mat3x4 m1, const mat3x4 m2);
 
 void mat3x4Translate(mat3x4 *const restrict m, const float x, const float y, const float z);
 mat3x4 mat3x4TranslateC(mat3x4 m, const float x, const float y, const float z);

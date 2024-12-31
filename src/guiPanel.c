@@ -66,8 +66,13 @@ void guiPanelDraw(
 		cornerPos[0] + roundf(offsets[2].w * borderFrame->tex->width),
 		cornerPos[1] - roundf(offsets[2].h * borderFrame->tex->height)
 	};
+	#ifdef TRANSFORM_MATRIX_SHEAR
+	const float bodyWidth  = roundf(gui->state.shear.m[0][0]);
+	const float bodyHeight = roundf(gui->state.shear.m[1][1]);
+	#else
 	const float bodyWidth  = roundf(gui->state.scale.x);
 	const float bodyHeight = roundf(gui->state.scale.y);
+	#endif
 	float tempHeight;
 
 

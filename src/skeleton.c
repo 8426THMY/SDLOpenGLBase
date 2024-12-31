@@ -27,13 +27,27 @@
 static bone defaultBone = {
 	.name = "root",
 
-	.localBind.pos.x       = 0.f, .localBind.pos.y       = 0.f, .localBind.pos.z       = 0.f,
-	.localBind.rot.x       = 0.f, .localBind.rot.y       = 0.f, .localBind.rot.z       = 0.f, .localBind.rot.w     = 1.f,
-	.localBind.scale.x     = 1.f, .localBind.scale.y     = 1.f, .localBind.scale.z     = 1.f,
+	.localBind.pos.x   = 0.f, .localBind.pos.y   = 0.f, .localBind.pos.z   = 0.f,
+	.localBind.rot.x   = 0.f, .localBind.rot.y   = 0.f, .localBind.rot.z   = 0.f, .localBind.rot.w   = 1.f,
+	#ifdef TRANSFORM_MATRIX_SHEAR
+	.localBind.shear.m[0][0] = 1.f, .localBind.shear.m[0][1] = 0.f, .localBind.shear.m[0][2] = 0.f,
+	.localBind.shear.m[1][0] = 0.f, .localBind.shear.m[1][1] = 1.f, .localBind.shear.m[1][2] = 0.f,
+	.localBind.shear.m[2][0] = 0.f, .localBind.shear.m[2][1] = 0.f, .localBind.shear.m[2][2] = 1.f,
+	#else
+	.localBind.scale.x = 1.f, .localBind.scale.y = 1.f, .localBind.scale.z = 1.f,
+	.localBind.shear.x = 0.f, .localBind.shear.y = 0.f, .localBind.shear.z = 0.f, .localBind.shear.w = 1.f,
+	#endif
 
 	.invGlobalBind.pos.x   = 0.f, .invGlobalBind.pos.y   = 0.f, .invGlobalBind.pos.z   = 0.f,
 	.invGlobalBind.rot.x   = 0.f, .invGlobalBind.rot.y   = 0.f, .invGlobalBind.rot.z   = 0.f, .invGlobalBind.rot.w = 1.f,
+	#ifdef TRANSFORM_MATRIX_SHEAR
+	.invGlobalBind.shear.m[0][0] = 1.f, .invGlobalBind.shear.m[0][1] = 0.f, .invGlobalBind.shear.m[0][2] = 0.f,
+	.invGlobalBind.shear.m[1][0] = 0.f, .invGlobalBind.shear.m[1][1] = 1.f, .invGlobalBind.shear.m[1][2] = 0.f,
+	.invGlobalBind.shear.m[2][0] = 0.f, .invGlobalBind.shear.m[2][1] = 0.f, .invGlobalBind.shear.m[2][2] = 1.f,
+	#else
 	.invGlobalBind.scale.x = 1.f, .invGlobalBind.scale.y = 1.f, .invGlobalBind.scale.z = 1.f,
+	.invGlobalBind.shear.x = 0.f, .invGlobalBind.shear.y = 0.f, .invGlobalBind.shear.z = 0.f, .invGlobalBind.shear.w = 1.f,
+	#endif
 
 	.parent = valueInvalid(boneIndex)
 };
@@ -169,7 +183,7 @@ skeletonAnimDef *skeleAnimSMDLoad(const char *const restrict skeleAnimPath, cons
 	);
 
 
-	// Load the skeleton!
+	// Load the skeleton animation!
 	skeleAnimFile = fopen(skeleAnimFullPath, "r");
 	if(skeleAnimFile != NULL){
 		return_t success = 1;
@@ -367,8 +381,12 @@ skeletonAnimDef *skeleAnimSMDLoad(const char *const restrict skeleAnimPath, cons
 								quatInitEulerXYZ(&currentState->rot, x, y, z);
 
 								// Set the bone's scale!
+								#ifdef TRANSFORM_MATRIX_SHEAR
+								mat3InitIdentity(&currentState->shear);
+								#else
 								quatInitIdentity(&currentState->shear);
 								vec3InitSet(&currentState->scale, 1.f, 1.f, 1.f);
+								#endif
 
 								//The Source Engine uses Z as its up axis, so we need to fix that with the root bone.
 								if(boneID == 0 && strcmp(skeleAnimPath, "soldier_animations_anims_new/a_flinch01.smd") != 0){
@@ -468,6 +486,15 @@ void skeleAnimUpdate(skeletonAnim *const restrict anim, const float dt){
 	anim->interpTime = animationGetFrameProgress(animData, frameData);
 }
 
+void skeleStateUpdate(skeletonState *const restrict skeleState, const float dt){
+	skeletonAnim *curAnim = skeleState->anims;
+	// Update which frame each animation is currently on!
+	while(curAnim != NULL){
+		skeleAnimUpdate(curAnim, dt);
+		curAnim = moduleSkeletonAnimNext(curAnim);
+	}
+}
+
 #warning "If interpolation is turned off, we don't need to call the transform functions."
 /*
 ** For each animation in the skeleton state, compute the local
@@ -482,9 +509,11 @@ void skeleStatePrependAnimations(
 ){
 
 	const skeletonAnim *curAnim = skeleState->anims;
+	const boneState *localBind = &skeleState->skele->bones[boneID].localBind;
 
 	// Update the bone using each animation!
 	while(curAnim != NULL){
+		#warning "We should cache these so we don't have to look them up every time."
 		const boneIndex animBoneID = skeleAnimFindBone(curAnim, boneName);
 		// Make sure this bone exists in the animation!
 		if(!valueIsInvalid(animBoneID, boneIndex)){
@@ -502,7 +531,25 @@ void skeleStatePrependAnimations(
 			);
 
 			/** TEMPORARY **/
-			// Remove the bind pose's "contribution" to the animation.
+			/** By interpolating from the bind pose and then removing its contribution **/
+			/** rather than removing it and then interpolating from the identity, we   **/
+			/** can do all of the interpolations consecutively. This might be useful   **/
+			/** if we decide to convert back to matrices for the multiplications.      **/
+			if(strcmp(curAnim->animDef->name, "soldier_animations_anims_new/a_flinch01.smd") != 0){
+				boneState invLocalBind;
+
+				// Set the animation's intensity by blending from the bind state.
+				transformInterpSet(localBind, &animState, curAnim->intensity, &animState);
+				// We really just want the difference from the bind state,
+				// so we need to remove its contribution afterwards.
+				transformInvertOut(localBind, &invLocalBind);
+				transformMultiplyP2(&invLocalBind, &animState);
+			}else{
+				transformInterpSet(&g_transformIdentity, &animState, curAnim->intensity, &animState);
+			}
+			transformMultiplyP1(state, &animState);
+			/** TEMPORARY **/
+			/*// Get the animation's offset from the bind pose.
 			if(strcmp(curAnim->animDef->name, "soldier_animations_anims_new/a_flinch01.smd") != 0){
 				boneState invLocalBind;
 				transformInvertOut(&skeleState->skele->bones[boneID].localBind, &invLocalBind);
@@ -510,7 +557,7 @@ void skeleStatePrependAnimations(
 			}
 			// Set the animation's intensity by blending from the identity state.
 			transformInterpSet(&g_transformIdentity, &animState, curAnim->intensity, &animState);
-			transformMultiplyP1(state, &animState);
+			transformMultiplyP1(state, &animState);*/
 		}
 
 		// Continue to the next animation in the list.

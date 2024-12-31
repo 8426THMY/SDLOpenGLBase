@@ -772,28 +772,28 @@ vec4 mat3x4MultiplyVec4C(const mat3x4 m, const vec4 v){
 ** We pad "m2" out to a 4x4 matrix using zeroes on the off-diagonals and one on the diagonal.
 */
 void mat3x4MultiplyMat3(mat3x4 *const restrict m1, const mat3 m2){
-	const mat3x4 tempMatrix1 = *m1;
+	const mat3x4 tempMatrix = *m1;
 
-	m1->m[0][0] = tempMatrix1.m[0][0] * m2.m[0][0] + tempMatrix1.m[1][0] * m2.m[0][1] +
-	              tempMatrix1.m[2][0] * m2.m[0][2];
-	m1->m[0][1] = tempMatrix1.m[0][1] * m2.m[0][0] + tempMatrix1.m[1][1] * m2.m[0][1] +
-	              tempMatrix1.m[2][1] * m2.m[0][2];
-	m1->m[0][2] = tempMatrix1.m[0][2] * m2.m[0][0] + tempMatrix1.m[1][2] * m2.m[0][1] +
-	              tempMatrix1.m[2][2] * m2.m[0][2];
+	m1->m[0][0] = tempMatrix.m[0][0] * m2.m[0][0] + tempMatrix.m[1][0] * m2.m[0][1] +
+	              tempMatrix.m[2][0] * m2.m[0][2];
+	m1->m[0][1] = tempMatrix.m[0][1] * m2.m[0][0] + tempMatrix.m[1][1] * m2.m[0][1] +
+	              tempMatrix.m[2][1] * m2.m[0][2];
+	m1->m[0][2] = tempMatrix.m[0][2] * m2.m[0][0] + tempMatrix.m[1][2] * m2.m[0][1] +
+	              tempMatrix.m[2][2] * m2.m[0][2];
 
-	m1->m[1][0] = tempMatrix1.m[0][0] * m2.m[1][0] + tempMatrix1.m[1][0] * m2.m[1][1] +
-	              tempMatrix1.m[2][0] * m2.m[1][2];
-	m1->m[1][1] = tempMatrix1.m[0][1] * m2.m[1][0] + tempMatrix1.m[1][1] * m2.m[1][1] +
-	              tempMatrix1.m[2][1] * m2.m[1][2];
-	m1->m[1][2] = tempMatrix1.m[0][2] * m2.m[1][0] + tempMatrix1.m[1][2] * m2.m[1][1] +
-	              tempMatrix1.m[2][2] * m2.m[1][2];
+	m1->m[1][0] = tempMatrix.m[0][0] * m2.m[1][0] + tempMatrix.m[1][0] * m2.m[1][1] +
+	              tempMatrix.m[2][0] * m2.m[1][2];
+	m1->m[1][1] = tempMatrix.m[0][1] * m2.m[1][0] + tempMatrix.m[1][1] * m2.m[1][1] +
+	              tempMatrix.m[2][1] * m2.m[1][2];
+	m1->m[1][2] = tempMatrix.m[0][2] * m2.m[1][0] + tempMatrix.m[1][2] * m2.m[1][1] +
+	              tempMatrix.m[2][2] * m2.m[1][2];
 
-	m1->m[2][0] = tempMatrix1.m[0][0] * m2.m[2][0] + tempMatrix1.m[1][0] * m2.m[2][1] +
-	              tempMatrix1.m[2][0] * m2.m[2][2];
-	m1->m[2][1] = tempMatrix1.m[0][1] * m2.m[2][0] + tempMatrix1.m[1][1] * m2.m[2][1] +
-	              tempMatrix1.m[2][1] * m2.m[2][2];
-	m1->m[2][2] = tempMatrix1.m[0][2] * m2.m[2][0] + tempMatrix1.m[1][2] * m2.m[2][1] +
-	              tempMatrix1.m[2][2] * m2.m[2][2];
+	m1->m[2][0] = tempMatrix.m[0][0] * m2.m[2][0] + tempMatrix.m[1][0] * m2.m[2][1] +
+	              tempMatrix.m[2][0] * m2.m[2][2];
+	m1->m[2][1] = tempMatrix.m[0][1] * m2.m[2][0] + tempMatrix.m[1][1] * m2.m[2][1] +
+	              tempMatrix.m[2][1] * m2.m[2][2];
+	m1->m[2][2] = tempMatrix.m[0][2] * m2.m[2][0] + tempMatrix.m[1][2] * m2.m[2][1] +
+	              tempMatrix.m[2][2] * m2.m[2][2];
 }
 
 /*
@@ -846,35 +846,35 @@ mat3x4 mat3x4MultiplyMat3C(const mat3x4 m1, const mat3 m2){
 
 // Left-multiply the 3x4 matrix "m2" by the 3x3 transformation matrix "m1" (m1*m2) and store the result in "m2"!
 void mat3MultiplyMat3x4(const mat3 m1, mat3x4 *const restrict m2){
-	const mat3x4 tempMatrix1 = *m2;
+	const mat3x4 tempMatrix = *m2;
 
-	m2->m[0][0] = m1.m[0][0] * tempMatrix1.m[0][0] + m1.m[1][0] * tempMatrix1.m[0][1] +
-	              m1.m[2][0] * tempMatrix1.m[0][2];
-	m2->m[0][1] = m1.m[0][1] * tempMatrix1.m[0][0] + m1.m[1][1] * tempMatrix1.m[0][1] +
-	              m1.m[2][1] * tempMatrix1.m[0][2];
-	m2->m[0][2] = m1.m[0][2] * tempMatrix1.m[0][0] + m1.m[1][2] * tempMatrix1.m[0][1] +
-	              m1.m[2][2] * tempMatrix1.m[0][2];
+	m2->m[0][0] = m1.m[0][0] * tempMatrix.m[0][0] + m1.m[1][0] * tempMatrix.m[0][1] +
+	              m1.m[2][0] * tempMatrix.m[0][2];
+	m2->m[0][1] = m1.m[0][1] * tempMatrix.m[0][0] + m1.m[1][1] * tempMatrix.m[0][1] +
+	              m1.m[2][1] * tempMatrix.m[0][2];
+	m2->m[0][2] = m1.m[0][2] * tempMatrix.m[0][0] + m1.m[1][2] * tempMatrix.m[0][1] +
+	              m1.m[2][2] * tempMatrix.m[0][2];
 
-	m2->m[1][0] = m1.m[0][0] * tempMatrix1.m[1][0] + m1.m[1][0] * tempMatrix1.m[1][1] +
-	              m1.m[2][0] * tempMatrix1.m[1][2];
-	m2->m[1][1] = m1.m[0][1] * tempMatrix1.m[1][0] + m1.m[1][1] * tempMatrix1.m[1][1] +
-	              m1.m[2][1] * tempMatrix1.m[1][2];
-	m2->m[1][2] = m1.m[0][2] * tempMatrix1.m[1][0] + m1.m[1][2] * tempMatrix1.m[1][1] +
-	              m1.m[2][2] * tempMatrix1.m[1][2];
+	m2->m[1][0] = m1.m[0][0] * tempMatrix.m[1][0] + m1.m[1][0] * tempMatrix.m[1][1] +
+	              m1.m[2][0] * tempMatrix.m[1][2];
+	m2->m[1][1] = m1.m[0][1] * tempMatrix.m[1][0] + m1.m[1][1] * tempMatrix.m[1][1] +
+	              m1.m[2][1] * tempMatrix.m[1][2];
+	m2->m[1][2] = m1.m[0][2] * tempMatrix.m[1][0] + m1.m[1][2] * tempMatrix.m[1][1] +
+	              m1.m[2][2] * tempMatrix.m[1][2];
 
-	m2->m[2][0] = m1.m[0][0] * tempMatrix1.m[2][0] + m1.m[1][0] * tempMatrix1.m[2][1] +
-	              m1.m[2][0] * tempMatrix1.m[2][2];
-	m2->m[2][1] = m1.m[0][1] * tempMatrix1.m[2][0] + m1.m[1][1] * tempMatrix1.m[2][1] +
-	              m1.m[2][1] * tempMatrix1.m[2][2];
-	m2->m[2][2] = m1.m[0][2] * tempMatrix1.m[2][0] + m1.m[1][2] * tempMatrix1.m[2][1] +
-	              m1.m[2][2] * tempMatrix1.m[2][2];
+	m2->m[2][0] = m1.m[0][0] * tempMatrix.m[2][0] + m1.m[1][0] * tempMatrix.m[2][1] +
+	              m1.m[2][0] * tempMatrix.m[2][2];
+	m2->m[2][1] = m1.m[0][1] * tempMatrix.m[2][0] + m1.m[1][1] * tempMatrix.m[2][1] +
+	              m1.m[2][1] * tempMatrix.m[2][2];
+	m2->m[2][2] = m1.m[0][2] * tempMatrix.m[2][0] + m1.m[1][2] * tempMatrix.m[2][1] +
+	              m1.m[2][2] * tempMatrix.m[2][2];
 
-	m2->m[3][0] = m1.m[0][0] * tempMatrix1.m[3][0] + m1.m[1][0] * tempMatrix1.m[3][1] +
-	              m1.m[2][0] * tempMatrix1.m[3][2];
-	m2->m[3][1] = m1.m[0][1] * tempMatrix1.m[3][0] + m1.m[1][1] * tempMatrix1.m[3][1] +
-	              m1.m[2][1] * tempMatrix1.m[3][2];
-	m2->m[3][2] = m1.m[0][2] * tempMatrix1.m[3][0] + m1.m[1][2] * tempMatrix1.m[3][1] +
-	              m1.m[2][2] * tempMatrix1.m[3][2];
+	m2->m[3][0] = m1.m[0][0] * tempMatrix.m[3][0] + m1.m[1][0] * tempMatrix.m[3][1] +
+	              m1.m[2][0] * tempMatrix.m[3][2];
+	m2->m[3][1] = m1.m[0][1] * tempMatrix.m[3][0] + m1.m[1][1] * tempMatrix.m[3][1] +
+	              m1.m[2][1] * tempMatrix.m[3][2];
+	m2->m[3][2] = m1.m[0][2] * tempMatrix.m[3][0] + m1.m[1][2] * tempMatrix.m[3][1] +
+	              m1.m[2][2] * tempMatrix.m[3][2];
 }
 
 // Left-multiply the 3x4 matrix "m2" by the 3x3 transformation matrix "m1" (m1*m2) and store the result in "out"!
@@ -924,35 +924,35 @@ mat3x4 mat3MultiplyMat3x4C(const mat3 m1, const mat3x4 m2){
 ** We pad "m2" out to a 4x4 matrix by adding the row [0, 0, 0, 1].
 */
 void mat3x4MultiplyMat3x4P1(mat3x4 *const restrict m1, const mat3x4 m2){
-	const mat3x4 tempMatrix1 = *m1;
+	const mat3x4 tempMatrix = *m1;
 
-	m1->m[0][0] = tempMatrix1.m[0][0] * m2.m[0][0] + tempMatrix1.m[1][0] * m2.m[0][1] +
-	              tempMatrix1.m[2][0] * m2.m[0][2];
-	m1->m[0][1] = tempMatrix1.m[0][1] * m2.m[0][0] + tempMatrix1.m[1][1] * m2.m[0][1] +
-	              tempMatrix1.m[2][1] * m2.m[0][2];
-	m1->m[0][2] = tempMatrix1.m[0][2] * m2.m[0][0] + tempMatrix1.m[1][2] * m2.m[0][1] +
-	              tempMatrix1.m[2][2] * m2.m[0][2];
+	m1->m[0][0] = tempMatrix.m[0][0] * m2.m[0][0] + tempMatrix.m[1][0] * m2.m[0][1] +
+	              tempMatrix.m[2][0] * m2.m[0][2];
+	m1->m[0][1] = tempMatrix.m[0][1] * m2.m[0][0] + tempMatrix.m[1][1] * m2.m[0][1] +
+	              tempMatrix.m[2][1] * m2.m[0][2];
+	m1->m[0][2] = tempMatrix.m[0][2] * m2.m[0][0] + tempMatrix.m[1][2] * m2.m[0][1] +
+	              tempMatrix.m[2][2] * m2.m[0][2];
 
-	m1->m[1][0] = tempMatrix1.m[0][0] * m2.m[1][0] + tempMatrix1.m[1][0] * m2.m[1][1] +
-	              tempMatrix1.m[2][0] * m2.m[1][2];
-	m1->m[1][1] = tempMatrix1.m[0][1] * m2.m[1][0] + tempMatrix1.m[1][1] * m2.m[1][1] +
-	              tempMatrix1.m[2][1] * m2.m[1][2];
-	m1->m[1][2] = tempMatrix1.m[0][2] * m2.m[1][0] + tempMatrix1.m[1][2] * m2.m[1][1] +
-	              tempMatrix1.m[2][2] * m2.m[1][2];
+	m1->m[1][0] = tempMatrix.m[0][0] * m2.m[1][0] + tempMatrix.m[1][0] * m2.m[1][1] +
+	              tempMatrix.m[2][0] * m2.m[1][2];
+	m1->m[1][1] = tempMatrix.m[0][1] * m2.m[1][0] + tempMatrix.m[1][1] * m2.m[1][1] +
+	              tempMatrix.m[2][1] * m2.m[1][2];
+	m1->m[1][2] = tempMatrix.m[0][2] * m2.m[1][0] + tempMatrix.m[1][2] * m2.m[1][1] +
+	              tempMatrix.m[2][2] * m2.m[1][2];
 
-	m1->m[2][0] = tempMatrix1.m[0][0] * m2.m[2][0] + tempMatrix1.m[1][0] * m2.m[2][1] +
-	              tempMatrix1.m[2][0] * m2.m[2][2];
-	m1->m[2][1] = tempMatrix1.m[0][1] * m2.m[2][0] + tempMatrix1.m[1][1] * m2.m[2][1] +
-	              tempMatrix1.m[2][1] * m2.m[2][2];
-	m1->m[2][2] = tempMatrix1.m[0][2] * m2.m[2][0] + tempMatrix1.m[1][2] * m2.m[2][1] +
-	              tempMatrix1.m[2][2] * m2.m[2][2];
+	m1->m[2][0] = tempMatrix.m[0][0] * m2.m[2][0] + tempMatrix.m[1][0] * m2.m[2][1] +
+	              tempMatrix.m[2][0] * m2.m[2][2];
+	m1->m[2][1] = tempMatrix.m[0][1] * m2.m[2][0] + tempMatrix.m[1][1] * m2.m[2][1] +
+	              tempMatrix.m[2][1] * m2.m[2][2];
+	m1->m[2][2] = tempMatrix.m[0][2] * m2.m[2][0] + tempMatrix.m[1][2] * m2.m[2][1] +
+	              tempMatrix.m[2][2] * m2.m[2][2];
 
-	m1->m[3][0] = tempMatrix1.m[0][0] * m2.m[3][0] + tempMatrix1.m[1][0] * m2.m[3][1] +
-	              tempMatrix1.m[2][0] * m2.m[3][2] + tempMatrix1.m[3][0];
-	m1->m[3][1] = tempMatrix1.m[0][1] * m2.m[3][0] + tempMatrix1.m[1][1] * m2.m[3][1] +
-	              tempMatrix1.m[2][1] * m2.m[3][2] + tempMatrix1.m[3][1];
-	m1->m[3][2] = tempMatrix1.m[0][2] * m2.m[3][0] + tempMatrix1.m[1][2] * m2.m[3][1] +
-	              tempMatrix1.m[2][2] * m2.m[3][2] + tempMatrix1.m[3][2];
+	m1->m[3][0] = tempMatrix.m[0][0] * m2.m[3][0] + tempMatrix.m[1][0] * m2.m[3][1] +
+	              tempMatrix.m[2][0] * m2.m[3][2] + tempMatrix.m[3][0];
+	m1->m[3][1] = tempMatrix.m[0][1] * m2.m[3][0] + tempMatrix.m[1][1] * m2.m[3][1] +
+	              tempMatrix.m[2][1] * m2.m[3][2] + tempMatrix.m[3][1];
+	m1->m[3][2] = tempMatrix.m[0][2] * m2.m[3][0] + tempMatrix.m[1][2] * m2.m[3][1] +
+	              tempMatrix.m[2][2] * m2.m[3][2] + tempMatrix.m[3][2];
 }
 
 /*
@@ -960,35 +960,35 @@ void mat3x4MultiplyMat3x4P1(mat3x4 *const restrict m1, const mat3x4 m2){
 ** We pad "m2" out to a 4x4 matrix by adding the row [0, 0, 0, 1].
 */
 void mat3x4MultiplyMat3x4P2(const mat3x4 m1, mat3x4 *const restrict m2){
-	const mat3x4 tempMatrix1 = *m2;
+	const mat3x4 tempMatrix = *m2;
 
-	m2->m[0][0] = m1.m[0][0] * tempMatrix1.m[0][0] + m1.m[1][0] * tempMatrix1.m[0][1] +
-	              m1.m[2][0] * tempMatrix1.m[0][2];
-	m2->m[0][1] = m1.m[0][1] * tempMatrix1.m[0][0] + m1.m[1][1] * tempMatrix1.m[0][1] +
-	              m1.m[2][1] * tempMatrix1.m[0][2];
-	m2->m[0][2] = m1.m[0][2] * tempMatrix1.m[0][0] + m1.m[1][2] * tempMatrix1.m[0][1] +
-	              m1.m[2][2] * tempMatrix1.m[0][2];
+	m2->m[0][0] = m1.m[0][0] * tempMatrix.m[0][0] + m1.m[1][0] * tempMatrix.m[0][1] +
+	              m1.m[2][0] * tempMatrix.m[0][2];
+	m2->m[0][1] = m1.m[0][1] * tempMatrix.m[0][0] + m1.m[1][1] * tempMatrix.m[0][1] +
+	              m1.m[2][1] * tempMatrix.m[0][2];
+	m2->m[0][2] = m1.m[0][2] * tempMatrix.m[0][0] + m1.m[1][2] * tempMatrix.m[0][1] +
+	              m1.m[2][2] * tempMatrix.m[0][2];
 
-	m2->m[1][0] = m1.m[0][0] * tempMatrix1.m[1][0] + m1.m[1][0] * tempMatrix1.m[1][1] +
-	              m1.m[2][0] * tempMatrix1.m[1][2];
-	m2->m[1][1] = m1.m[0][1] * tempMatrix1.m[1][0] + m1.m[1][1] * tempMatrix1.m[1][1] +
-	              m1.m[2][1] * tempMatrix1.m[1][2];
-	m2->m[1][2] = m1.m[0][2] * tempMatrix1.m[1][0] + m1.m[1][2] * tempMatrix1.m[1][1] +
-	              m1.m[2][2] * tempMatrix1.m[1][2];
+	m2->m[1][0] = m1.m[0][0] * tempMatrix.m[1][0] + m1.m[1][0] * tempMatrix.m[1][1] +
+	              m1.m[2][0] * tempMatrix.m[1][2];
+	m2->m[1][1] = m1.m[0][1] * tempMatrix.m[1][0] + m1.m[1][1] * tempMatrix.m[1][1] +
+	              m1.m[2][1] * tempMatrix.m[1][2];
+	m2->m[1][2] = m1.m[0][2] * tempMatrix.m[1][0] + m1.m[1][2] * tempMatrix.m[1][1] +
+	              m1.m[2][2] * tempMatrix.m[1][2];
 
-	m2->m[2][0] = m1.m[0][0] * tempMatrix1.m[2][0] + m1.m[1][0] * tempMatrix1.m[2][1] +
-	              m1.m[2][0] * tempMatrix1.m[2][2];
-	m2->m[2][1] = m1.m[0][1] * tempMatrix1.m[2][0] + m1.m[1][1] * tempMatrix1.m[2][1] +
-	              m1.m[2][1] * tempMatrix1.m[2][2];
-	m2->m[2][2] = m1.m[0][2] * tempMatrix1.m[2][0] + m1.m[1][2] * tempMatrix1.m[2][1] +
-	              m1.m[2][2] * tempMatrix1.m[2][2];
+	m2->m[2][0] = m1.m[0][0] * tempMatrix.m[2][0] + m1.m[1][0] * tempMatrix.m[2][1] +
+	              m1.m[2][0] * tempMatrix.m[2][2];
+	m2->m[2][1] = m1.m[0][1] * tempMatrix.m[2][0] + m1.m[1][1] * tempMatrix.m[2][1] +
+	              m1.m[2][1] * tempMatrix.m[2][2];
+	m2->m[2][2] = m1.m[0][2] * tempMatrix.m[2][0] + m1.m[1][2] * tempMatrix.m[2][1] +
+	              m1.m[2][2] * tempMatrix.m[2][2];
 
-	m2->m[3][0] = m1.m[0][0] * tempMatrix1.m[3][0] + m1.m[1][0] * tempMatrix1.m[3][1] +
-	              m1.m[2][0] * tempMatrix1.m[3][2] + m1.m[3][0];
-	m2->m[3][1] = m1.m[0][1] * tempMatrix1.m[3][0] + m1.m[1][1] * tempMatrix1.m[3][1] +
-	              m1.m[2][1] * tempMatrix1.m[3][2] + m1.m[3][1];
-	m2->m[3][2] = m1.m[0][2] * tempMatrix1.m[3][0] + m1.m[1][2] * tempMatrix1.m[3][1] +
-	              m1.m[2][2] * tempMatrix1.m[3][2] + m1.m[3][2];
+	m2->m[3][0] = m1.m[0][0] * tempMatrix.m[3][0] + m1.m[1][0] * tempMatrix.m[3][1] +
+	              m1.m[2][0] * tempMatrix.m[3][2] + m1.m[3][0];
+	m2->m[3][1] = m1.m[0][1] * tempMatrix.m[3][0] + m1.m[1][1] * tempMatrix.m[3][1] +
+	              m1.m[2][1] * tempMatrix.m[3][2] + m1.m[3][1];
+	m2->m[3][2] = m1.m[0][2] * tempMatrix.m[3][0] + m1.m[1][2] * tempMatrix.m[3][1] +
+	              m1.m[2][2] * tempMatrix.m[3][2] + m1.m[3][2];
 }
 
 /*
@@ -1058,6 +1058,270 @@ mat3x4 mat3x4MultiplyMat3x4C(const mat3x4 m1, const mat3x4 m2){
 		           m1.m[2][1] * m2.m[3][2] + m1.m[3][1],
 		.m[3][2] = m1.m[0][2] * m2.m[3][0] + m1.m[1][2] * m2.m[3][1] +
 		           m1.m[2][2] * m2.m[3][2] + m1.m[3][2]
+	};
+
+	return(out);
+}
+
+// Left-multiply "m2" transpose by "m1" (m1*m2^T) and store the result in "m1"!
+void mat3x4MultiplyMat3x4TransP1(mat3x4 *const restrict m1, const mat3x4 m2){
+	const mat3x4 tempMatrix = *m1;
+
+	m1->m[0][0] = tempMatrix.m[0][0] * m2.m[0][0] + tempMatrix.m[1][0] * m2.m[1][0] +
+	              tempMatrix.m[2][0] * m2.m[2][0] + tempMatrix.m[3][0] * m2.m[3][0];
+	m1->m[0][1] = tempMatrix.m[0][1] * m2.m[0][0] + tempMatrix.m[1][1] * m2.m[1][0] +
+	              tempMatrix.m[2][1] * m2.m[2][0] + tempMatrix.m[3][1] * m2.m[3][0];
+	m1->m[0][2] = tempMatrix.m[0][2] * m2.m[0][0] + tempMatrix.m[1][2] * m2.m[1][0] +
+	              tempMatrix.m[2][2] * m2.m[2][0] + tempMatrix.m[3][2] * m2.m[3][0];
+
+	m1->m[1][0] = tempMatrix.m[0][0] * m2.m[0][1] + tempMatrix.m[1][0] * m2.m[1][1] +
+	              tempMatrix.m[2][0] * m2.m[2][1] + tempMatrix.m[3][0] * m2.m[3][1];
+	m1->m[1][1] = tempMatrix.m[0][1] * m2.m[0][1] + tempMatrix.m[1][1] * m2.m[1][1] +
+	              tempMatrix.m[2][1] * m2.m[2][1] + tempMatrix.m[3][1] * m2.m[3][1];
+	m1->m[1][2] = tempMatrix.m[0][2] * m2.m[0][1] + tempMatrix.m[1][2] * m2.m[1][1] +
+	              tempMatrix.m[2][2] * m2.m[2][1] + tempMatrix.m[3][2] * m2.m[3][1];
+
+	m1->m[2][0] = tempMatrix.m[0][0] * m2.m[0][2] + tempMatrix.m[1][0] * m2.m[1][2] +
+	              tempMatrix.m[2][0] * m2.m[2][2] + tempMatrix.m[3][0] * m2.m[3][2];
+	m1->m[2][1] = tempMatrix.m[0][1] * m2.m[0][2] + tempMatrix.m[1][1] * m2.m[1][2] +
+	              tempMatrix.m[2][1] * m2.m[2][2] + tempMatrix.m[3][1] * m2.m[3][2];
+	m1->m[2][2] = tempMatrix.m[0][2] * m2.m[0][2] + tempMatrix.m[1][2] * m2.m[1][2] +
+	              tempMatrix.m[2][2] * m2.m[2][2] + tempMatrix.m[3][2] * m2.m[3][2];
+
+	m1->m[3][0] = tempMatrix.m[0][0] * m2.m[0][3] +
+	              tempMatrix.m[2][0] * m2.m[2][3] + tempMatrix.m[3][0];
+	m1->m[3][1] = tempMatrix.m[0][1] * m2.m[0][3] +
+	              tempMatrix.m[2][1] * m2.m[2][3] + tempMatrix.m[3][1];
+	m1->m[3][2] = tempMatrix.m[0][2] * m2.m[0][3] +
+	              tempMatrix.m[2][2] * m2.m[2][3] + tempMatrix.m[3][2];
+}
+
+// Left-multiply "m2" transpose by "m1" (m1*m2^T) and store the result in "m2"!
+void mat3x4MultiplyMat3x4TransP2(const mat3x4 m1, mat3x4 *const restrict m2){
+	const mat3x4 tempMatrix = *m2;
+
+	m2->m[0][0] = m1.m[0][0] * tempMatrix.m[0][0] + m1.m[1][0] * tempMatrix.m[1][0] +
+	              m1.m[2][0] * tempMatrix.m[2][0] + m1.m[3][0] * tempMatrix.m[3][0];
+	m2->m[0][1] = m1.m[0][1] * tempMatrix.m[0][0] + m1.m[1][1] * tempMatrix.m[1][0] +
+	              m1.m[2][1] * tempMatrix.m[2][0] + m1.m[3][1] * tempMatrix.m[3][0];
+	m2->m[0][2] = m1.m[0][2] * tempMatrix.m[0][0] + m1.m[1][2] * tempMatrix.m[1][0] +
+	              m1.m[2][2] * tempMatrix.m[2][0] + m1.m[3][2] * tempMatrix.m[3][0];
+
+	m2->m[1][0] = m1.m[0][0] * tempMatrix.m[0][1] + m1.m[1][0] * tempMatrix.m[1][1] +
+	              m1.m[2][0] * tempMatrix.m[2][1] + m1.m[3][0] * tempMatrix.m[3][1];
+	m2->m[1][1] = m1.m[0][1] * tempMatrix.m[0][1] + m1.m[1][1] * tempMatrix.m[1][1] +
+	              m1.m[2][1] * tempMatrix.m[2][1] + m1.m[3][1] * tempMatrix.m[3][1];
+	m2->m[1][2] = m1.m[0][2] * tempMatrix.m[0][1] + m1.m[1][2] * tempMatrix.m[1][1] +
+	              m1.m[2][2] * tempMatrix.m[2][1] + m1.m[3][2] * tempMatrix.m[3][1];
+
+	m2->m[2][0] = m1.m[0][0] * tempMatrix.m[0][2] + m1.m[1][0] * tempMatrix.m[1][2] +
+	              m1.m[2][0] * tempMatrix.m[2][2] + m1.m[3][0] * tempMatrix.m[3][2];
+	m2->m[2][1] = m1.m[0][1] * tempMatrix.m[0][2] + m1.m[1][1] * tempMatrix.m[1][2] +
+	              m1.m[2][1] * tempMatrix.m[2][2] + m1.m[3][1] * tempMatrix.m[3][2];
+	m2->m[2][2] = m1.m[0][2] * tempMatrix.m[0][2] + m1.m[1][2] * tempMatrix.m[1][2] +
+	              m1.m[2][2] * tempMatrix.m[2][2] + m1.m[3][2] * tempMatrix.m[3][2];
+
+	m2->m[3][0] = m1.m[0][0] * tempMatrix.m[0][3] +
+	              m1.m[2][0] * tempMatrix.m[2][3] + m1.m[3][0];
+	m2->m[3][1] = m1.m[0][1] * tempMatrix.m[0][3] +
+	              m1.m[2][1] * tempMatrix.m[2][3] + m1.m[3][1];
+	m2->m[3][2] = m1.m[0][2] * tempMatrix.m[0][3] +
+	              m1.m[2][2] * tempMatrix.m[2][3] + m1.m[3][2];
+}
+
+// Left-multiply "m2" transpose by "m1" (m1*m2^T) and store the result in "out"!
+void mat3x4MultiplyMat3x4TransOut(const mat3x4 m1, const mat3x4 m2, mat3x4 *const restrict out){
+	out->m[0][0] = m1.m[0][0] * m2.m[0][0] + m1.m[1][0] * m2.m[1][0] +
+	               m1.m[2][0] * m2.m[2][0] + m1.m[3][0] * m2.m[3][0];
+	out->m[0][1] = m1.m[0][1] * m2.m[0][0] + m1.m[1][1] * m2.m[1][0] +
+	               m1.m[2][1] * m2.m[2][0] + m1.m[3][1] * m2.m[3][0];
+	out->m[0][2] = m1.m[0][2] * m2.m[0][0] + m1.m[1][2] * m2.m[1][0] +
+	               m1.m[2][2] * m2.m[2][0] + m1.m[3][2] * m2.m[3][0];
+
+	out->m[1][0] = m1.m[0][0] * m2.m[0][1] + m1.m[1][0] * m2.m[1][1] +
+	               m1.m[2][0] * m2.m[2][1] + m1.m[3][0] * m2.m[3][1];
+	out->m[1][1] = m1.m[0][1] * m2.m[0][1] + m1.m[1][1] * m2.m[1][1] +
+	               m1.m[2][1] * m2.m[2][1] + m1.m[3][1] * m2.m[3][1];
+	out->m[1][2] = m1.m[0][2] * m2.m[0][1] + m1.m[1][2] * m2.m[1][1] +
+	               m1.m[2][2] * m2.m[2][1] + m1.m[3][2] * m2.m[3][1];
+
+	out->m[2][0] = m1.m[0][0] * m2.m[0][2] + m1.m[1][0] * m2.m[1][2] +
+	               m1.m[2][0] * m2.m[2][2] + m1.m[3][0] * m2.m[3][2];
+	out->m[2][1] = m1.m[0][1] * m2.m[0][2] + m1.m[1][1] * m2.m[1][2] +
+	               m1.m[2][1] * m2.m[2][2] + m1.m[3][1] * m2.m[3][2];
+	out->m[2][2] = m1.m[0][2] * m2.m[0][2] + m1.m[1][2] * m2.m[1][2] +
+	               m1.m[2][2] * m2.m[2][2] + m1.m[3][2] * m2.m[3][2];
+
+	out->m[3][0] = m1.m[0][0] * m2.m[0][3] +
+	               m1.m[2][0] * m2.m[2][3] + m1.m[3][0];
+	out->m[3][1] = m1.m[0][1] * m2.m[0][3] +
+	               m1.m[2][1] * m2.m[2][3] + m1.m[3][1];
+	out->m[3][2] = m1.m[0][2] * m2.m[0][3] +
+	               m1.m[2][2] * m2.m[2][3] + m1.m[3][2];
+}
+
+// Left-multiply "m2" transpose by "m1" (m1*m2^T) and return the result!
+mat3x4 mat3x4MultiplyMat3x4TransC(const mat3x4 m1, const mat3x4 m2){
+	const mat3x4 out = {
+		.m[0][0] = m1.m[0][0] * m2.m[0][0] + m1.m[1][0] * m2.m[1][0] +
+		           m1.m[2][0] * m2.m[2][0] + m1.m[3][0] * m2.m[3][0],
+		.m[0][1] = m1.m[0][1] * m2.m[0][0] + m1.m[1][1] * m2.m[1][0] +
+		           m1.m[2][1] * m2.m[2][0] + m1.m[3][1] * m2.m[3][0],
+		.m[0][2] = m1.m[0][2] * m2.m[0][0] + m1.m[1][2] * m2.m[1][0] +
+		           m1.m[2][2] * m2.m[2][0] + m1.m[3][2] * m2.m[3][0],
+
+		.m[1][0] = m1.m[0][0] * m2.m[0][1] + m1.m[1][0] * m2.m[1][1] +
+		           m1.m[2][0] * m2.m[2][1] + m1.m[3][0] * m2.m[3][1],
+		.m[1][1] = m1.m[0][1] * m2.m[0][1] + m1.m[1][1] * m2.m[1][1] +
+		           m1.m[2][1] * m2.m[2][1] + m1.m[3][1] * m2.m[3][1],
+		.m[1][2] = m1.m[0][2] * m2.m[0][1] + m1.m[1][2] * m2.m[1][1] +
+		           m1.m[2][2] * m2.m[2][1] + m1.m[3][2] * m2.m[3][1],
+
+		.m[2][0] = m1.m[0][0] * m2.m[0][2] + m1.m[1][0] * m2.m[1][2] +
+		           m1.m[2][0] * m2.m[2][2] + m1.m[3][0] * m2.m[3][2],
+		.m[2][1] = m1.m[0][1] * m2.m[0][2] + m1.m[1][1] * m2.m[1][2] +
+		           m1.m[2][1] * m2.m[2][2] + m1.m[3][1] * m2.m[3][2],
+		.m[2][2] = m1.m[0][2] * m2.m[0][2] + m1.m[1][2] * m2.m[1][2] +
+		           m1.m[2][2] * m2.m[2][2] + m1.m[3][2] * m2.m[3][2],
+
+		.m[3][0] = m1.m[0][0] * m2.m[0][3] +
+		           m1.m[2][0] * m2.m[2][3] + m1.m[3][0],
+		.m[3][1] = m1.m[0][1] * m2.m[0][3] +
+		           m1.m[2][1] * m2.m[2][3] + m1.m[3][1],
+		.m[3][2] = m1.m[0][2] * m2.m[0][3] +
+		           m1.m[2][2] * m2.m[2][3] + m1.m[3][2]
+	};
+
+	return(out);
+}
+
+// Left-multiply "m2" by "m1" transpose (m1^T*m2) and store the result in "m1"!
+void mat3x4TransMultiplyMat3x4P1(mat3x4 *const restrict m1, const mat3x4 m2){
+	const mat3x4 tempMatrix = *m1;
+
+	m1->m[0][0] = tempMatrix.m[0][0] * m2.m[0][0] + tempMatrix.m[0][1] * m2.m[0][1] +
+	              tempMatrix.m[0][2] * m2.m[0][2];
+	m1->m[0][1] = tempMatrix.m[1][0] * m2.m[0][0] + tempMatrix.m[1][1] * m2.m[0][1] +
+	              tempMatrix.m[1][2] * m2.m[0][2];
+	m1->m[0][2] = tempMatrix.m[2][0] * m2.m[0][0] + tempMatrix.m[2][1] * m2.m[0][1] +
+	              tempMatrix.m[2][2] * m2.m[0][2];
+
+	m1->m[1][0] = tempMatrix.m[0][0] * m2.m[1][0] + tempMatrix.m[0][1] * m2.m[1][1] +
+	              tempMatrix.m[0][2] * m2.m[1][2];
+	m1->m[1][1] = tempMatrix.m[1][0] * m2.m[1][0] + tempMatrix.m[1][1] * m2.m[1][1] +
+	              tempMatrix.m[1][2] * m2.m[1][2];
+	m1->m[1][2] = tempMatrix.m[2][0] * m2.m[1][0] + tempMatrix.m[2][1] * m2.m[1][1] +
+	              tempMatrix.m[2][2] * m2.m[1][2];
+
+	m1->m[2][0] = tempMatrix.m[0][0] * m2.m[2][0] + tempMatrix.m[0][1] * m2.m[2][1] +
+	              tempMatrix.m[0][2] * m2.m[2][2];
+	m1->m[2][1] = tempMatrix.m[1][0] * m2.m[2][0] + tempMatrix.m[1][1] * m2.m[2][1] +
+	              tempMatrix.m[1][2] * m2.m[2][2];
+	m1->m[2][2] = tempMatrix.m[2][0] * m2.m[2][0] + tempMatrix.m[2][1] * m2.m[2][1] +
+	              tempMatrix.m[2][2] * m2.m[2][2];
+
+	m1->m[3][0] = tempMatrix.m[0][0] * m2.m[3][0] + tempMatrix.m[0][1] * m2.m[3][1] +
+	              tempMatrix.m[0][2] * m2.m[3][2];
+	m1->m[3][1] = tempMatrix.m[1][0] * m2.m[3][0] + tempMatrix.m[1][1] * m2.m[3][1] +
+	              tempMatrix.m[1][2] * m2.m[3][2];
+	m1->m[3][2] = tempMatrix.m[2][0] * m2.m[3][0] + tempMatrix.m[2][1] * m2.m[3][1] +
+	              tempMatrix.m[2][2] * m2.m[3][2];
+}
+
+// Left-multiply "m2" by "m1" transpose (m1^T*m2) and store the result in "m2"!
+void mat3x4TransMultiplyMat3x4P2(const mat3x4 m1, mat3x4 *const restrict m2){
+	const mat3x4 tempMatrix = *m2;
+
+	m2->m[0][0] = m1.m[0][0] * tempMatrix.m[0][0] + m1.m[0][1] * tempMatrix.m[0][1] +
+	              m1.m[0][2] * tempMatrix.m[0][2];
+	m2->m[0][1] = m1.m[1][0] * tempMatrix.m[0][0] + m1.m[1][1] * tempMatrix.m[0][1] +
+	              m1.m[1][2] * tempMatrix.m[0][2];
+	m2->m[0][2] = m1.m[2][0] * tempMatrix.m[0][0] + m1.m[2][1] * tempMatrix.m[0][1] +
+	              m1.m[2][2] * tempMatrix.m[0][2];
+
+	m2->m[1][0] = m1.m[0][0] * tempMatrix.m[1][0] + m1.m[0][1] * tempMatrix.m[1][1] +
+	              m1.m[0][2] * tempMatrix.m[1][2];
+	m2->m[1][1] = m1.m[1][0] * tempMatrix.m[1][0] + m1.m[1][1] * tempMatrix.m[1][1] +
+	              m1.m[1][2] * tempMatrix.m[1][2];
+	m2->m[1][2] = m1.m[2][0] * tempMatrix.m[1][0] + m1.m[2][1] * tempMatrix.m[1][1] +
+	              m1.m[2][2] * tempMatrix.m[1][2];
+
+	m2->m[2][0] = m1.m[0][0] * tempMatrix.m[2][0] + m1.m[0][1] * tempMatrix.m[2][1] +
+	              m1.m[0][2] * tempMatrix.m[2][2];
+	m2->m[2][1] = m1.m[1][0] * tempMatrix.m[2][0] + m1.m[1][1] * tempMatrix.m[2][1] +
+	              m1.m[1][2] * tempMatrix.m[2][2];
+	m2->m[2][2] = m1.m[2][0] * tempMatrix.m[2][0] + m1.m[2][1] * tempMatrix.m[2][1] +
+	              m1.m[2][2] * tempMatrix.m[2][2];
+
+	m2->m[3][0] = m1.m[0][0] * tempMatrix.m[3][0] + m1.m[0][1] * tempMatrix.m[3][1] +
+	              m1.m[0][2] * tempMatrix.m[3][2];
+	m2->m[3][1] = m1.m[1][0] * tempMatrix.m[3][0] + m1.m[1][1] * tempMatrix.m[3][1] +
+	              m1.m[1][2] * tempMatrix.m[3][2];
+	m2->m[3][2] = m1.m[2][0] * tempMatrix.m[3][0] + m1.m[2][1] * tempMatrix.m[3][1] +
+	              m1.m[2][2] * tempMatrix.m[3][2];
+}
+
+// Left-multiply "m2" by "m1" transpose (m1^T*m2) and store the result in "out"!
+void mat3x4TransMultiplyMat3x4Out(const mat3x4 m1, const mat3x4 m2, mat3x4 *const restrict out){
+	out->m[0][0] = m1.m[0][0] * m2.m[0][0] + m1.m[0][1] * m2.m[0][1] +
+	               m1.m[0][2] * m2.m[0][2];
+	out->m[0][1] = m1.m[1][0] * m2.m[0][0] + m1.m[1][1] * m2.m[0][1] +
+	               m1.m[1][2] * m2.m[0][2];
+	out->m[0][2] = m1.m[2][0] * m2.m[0][0] + m1.m[2][1] * m2.m[0][1] +
+	               m1.m[2][2] * m2.m[0][2];
+
+	out->m[1][0] = m1.m[0][0] * m2.m[1][0] + m1.m[0][1] * m2.m[1][1] +
+	               m1.m[0][2] * m2.m[1][2];
+	out->m[1][1] = m1.m[1][0] * m2.m[1][0] + m1.m[1][1] * m2.m[1][1] +
+	               m1.m[1][2] * m2.m[1][2];
+	out->m[1][2] = m1.m[2][0] * m2.m[1][0] + m1.m[2][1] * m2.m[1][1] +
+	               m1.m[2][2] * m2.m[1][2];
+
+	out->m[2][0] = m1.m[0][0] * m2.m[2][0] + m1.m[0][1] * m2.m[2][1] +
+	               m1.m[0][2] * m2.m[2][2];
+	out->m[2][1] = m1.m[1][0] * m2.m[2][0] + m1.m[1][1] * m2.m[2][1] +
+	               m1.m[1][2] * m2.m[2][2];
+	out->m[2][2] = m1.m[2][0] * m2.m[2][0] + m1.m[2][1] * m2.m[2][1] +
+	               m1.m[2][2] * m2.m[2][2];
+
+	out->m[3][0] = m1.m[0][0] * m2.m[3][0] + m1.m[0][1] * m2.m[3][1] +
+	               m1.m[0][2] * m2.m[3][2];
+	out->m[3][1] = m1.m[1][0] * m2.m[3][0] + m1.m[1][1] * m2.m[3][1] +
+	               m1.m[1][2] * m2.m[3][2];
+	out->m[3][2] = m1.m[2][0] * m2.m[3][0] + m1.m[2][1] * m2.m[3][1] +
+	               m1.m[2][2] * m2.m[3][2];
+}
+
+// Left-multiply "m2" by "m1" transpose (m1^T*m2) and return the result!
+mat3x4 mat3x4TransMultiplyMat3x4C(const mat3x4 m1, const mat3x4 m2){
+	const mat3x4 out = {
+		.m[0][0] = m1.m[0][0] * m2.m[0][0] + m1.m[0][1] * m2.m[0][1] +
+		           m1.m[0][2] * m2.m[0][2],
+		.m[0][1] = m1.m[1][0] * m2.m[0][0] + m1.m[1][1] * m2.m[0][1] +
+		           m1.m[1][2] * m2.m[0][2],
+		.m[0][2] = m1.m[2][0] * m2.m[0][0] + m1.m[2][1] * m2.m[0][1] +
+		           m1.m[2][2] * m2.m[0][2],
+
+		.m[1][0] = m1.m[0][0] * m2.m[1][0] + m1.m[0][1] * m2.m[1][1] +
+		           m1.m[0][2] * m2.m[1][2],
+		.m[1][1] = m1.m[1][0] * m2.m[1][0] + m1.m[1][1] * m2.m[1][1] +
+		           m1.m[1][2] * m2.m[1][2],
+		.m[1][2] = m1.m[2][0] * m2.m[1][0] + m1.m[2][1] * m2.m[1][1] +
+		           m1.m[2][2] * m2.m[1][2],
+
+		.m[2][0] = m1.m[0][0] * m2.m[2][0] + m1.m[0][1] * m2.m[2][1] +
+		           m1.m[0][2] * m2.m[2][2],
+		.m[2][1] = m1.m[1][0] * m2.m[2][0] + m1.m[1][1] * m2.m[2][1] +
+		           m1.m[1][2] * m2.m[2][2],
+		.m[2][2] = m1.m[2][0] * m2.m[2][0] + m1.m[2][1] * m2.m[2][1] +
+		           m1.m[2][2] * m2.m[2][2],
+
+		.m[3][0] = m1.m[0][0] * m2.m[3][0] + m1.m[0][1] * m2.m[3][1] +
+		           m1.m[0][2] * m2.m[3][2],
+		.m[3][1] = m1.m[1][0] * m2.m[3][0] + m1.m[1][1] * m2.m[3][1] +
+		           m1.m[1][2] * m2.m[3][2],
+		.m[3][2] = m1.m[2][0] * m2.m[3][0] + m1.m[2][1] * m2.m[3][1] +
+		           m1.m[2][2] * m2.m[3][2]
 	};
 
 	return(out);

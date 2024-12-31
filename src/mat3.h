@@ -59,6 +59,14 @@ void mat3MultiplyMat3P1(mat3 *const restrict m1, const mat3 m2);
 void mat3MultiplyMat3P2(const mat3 m1, mat3 *const restrict m2);
 void mat3MultiplyMat3Out(const mat3 m1, const mat3 m2, mat3 *const restrict out);
 mat3 mat3MultiplyMat3C(const mat3 m1, const mat3 m2);
+void mat3MultiplyMat3TransP1(mat3 *const restrict m1, const mat3 m2);
+void mat3MultiplyMat3TransP2(const mat3 m1, mat3 *const restrict m2);
+void mat3MultiplyMat3TransOut(const mat3 m1, const mat3 m2, mat3 *const restrict out);
+mat3 mat3MultiplyMat3TransC(const mat3 m1, const mat3 m2);
+void mat3TransMultiplyMat3P1(mat3 *const restrict m1, const mat3 m2);
+void mat3TransMultiplyMat3P2(const mat3 m1, mat3 *const restrict m2);
+void mat3TransMultiplyMat3Out(const mat3 m1, const mat3 m2, mat3 *const restrict out);
+mat3 mat3TransMultiplyMat3C(const mat3 m1, const mat3 m2);
 
 void mat3RotateByEulerXYZ(mat3 *const restrict m, const float x, const float y, const float z);
 void mat3RotateByEulerZXY(mat3 *const restrict m, const float x, const float y, const float z);

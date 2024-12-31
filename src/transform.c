@@ -6,13 +6,20 @@
 
 #warning "Check if 'scale' is identity before doing the costly stuff with affine transforms."
 #warning "Ideally, we should do this for most of the functions."
+#warning "We should also probably check that we aren't trying to invert scales or shears that aren't invertible."
 
 
 transform g_transformIdentity = {
 	.pos.x   = 0.f, .pos.y   = 0.f, .pos.z   = 0.f,
 	.rot.x   = 0.f, .rot.y   = 0.f, .rot.z   = 0.f, .rot.w = 1.f,
+	#ifdef TRANSFORM_MATRIX_SHEAR
+	.shear.m[0][0] = 1.f, .shear.m[0][1] = 0.f, .shear.m[0][2] = 0.f,
+	.shear.m[1][0] = 0.f, .shear.m[1][1] = 1.f, .shear.m[1][2] = 0.f,
+	.shear.m[2][0] = 0.f, .shear.m[2][1] = 0.f, .shear.m[2][2] = 1.f
+	#else
 	.shear.x = 0.f, .shear.y = 0.f, .shear.z = 0.f, .shear.w = 1.f,
 	.scale.x = 1.f, .scale.y = 1.f, .scale.z = 1.f
+	#endif
 };
 
 
@@ -27,8 +34,18 @@ transform transformInitC(){
 
 // Append the translation of "trans1" to "trans2", and store the result in "trans1".
 void transformAppendPositionP1(transform *const restrict trans1, const transform *const restrict trans2){
-	quat RQ1;
+	#ifdef TRANSFORM_MATRIX_SHEAR
 	vec3 T2;
+
+	// Q_1 S_1 Q_1^T T_2
+	mat3MultiplyVec3Out(&trans1->shear, &trans2->pos, &T2);
+	// R_1 Q_1 S_1 Q_1^T T_2
+	quatRotateVec3Fast(&trans1->rot, &T2);
+	// T = T_1 R_1 Q_1 S_1 Q_1^T T_2
+	vec3AddVec3(&trans1->pos, &T2);
+	#else
+	vec3 T2;
+	quat RQ1;
 
 	// Q_1^T T_2
 	quatConjRotateVec3FastOut(&trans1->shear, &trans2->pos, &T2);
@@ -39,10 +56,19 @@ void transformAppendPositionP1(transform *const restrict trans1, const transform
 	quatRotateVec3Fast(&RQ1, &T2);
 	// T = T_1 R_1 Q_1 S_1 Q_1^T T_2
 	vec3AddVec3(&trans1->pos, &T2);
+	#endif
 }
 
 // Append the translation of "trans1" to "trans2", and store the result in "trans2".
 void transformAppendPositionP2(const transform *const restrict trans1, transform *const restrict trans2){
+	#ifdef TRANSFORM_MATRIX_SHEAR
+	// Q_1 S_1 Q_1^T T_2
+	mat3MultiplyVec3(&trans1->shear, &trans2->pos);
+	// R_1 Q_1 S_1 Q_1^T T_2
+	quatRotateVec3Fast(&trans1->rot, &trans2->pos);
+	// T = T_1 R_1 Q_1 S_1 Q_1^T T_2
+	vec3AddVec3(&trans2->pos, &trans1->pos);
+	#else
 	quat RQ1;
 
 	// Q_1^T T_2
@@ -54,6 +80,7 @@ void transformAppendPositionP2(const transform *const restrict trans1, transform
 	quatRotateVec3Fast(&RQ1, &trans2->pos);
 	// T = T_1 R_1 Q_1 S_1 Q_1^T T_2
 	vec3AddVec3(&trans2->pos, &trans1->pos);
+	#endif
 }
 
 // Append the translation of "trans1" to "trans2", and store the result in "out".
@@ -62,6 +89,14 @@ void transformAppendPositionOut(
 	transform *const restrict out
 ){
 
+	#ifdef TRANSFORM_MATRIX_SHEAR
+	// Q_1 S_1 Q_1^T T_2
+	mat3MultiplyVec3Out(&trans1->shear, &trans2->pos, &out->pos);
+	// R_1 Q_1 S_1 Q_1^T T_2
+	quatRotateVec3Fast(&trans1->rot, &out->pos);
+	// T = T_1 R_1 Q_1 S_1 Q_1^T T_2
+	vec3AddVec3(&out->pos, &trans1->pos);
+	#else
 	quat RQ1;
 
 	// Q_1^T T_2
@@ -73,10 +108,22 @@ void transformAppendPositionOut(
 	quatRotateVec3Fast(&RQ1, &out->pos);
 	// T = T_1 R_1 Q_1 S_1 Q_1^T T_2
 	vec3AddVec3(&out->pos, &trans1->pos);
+	#endif
 }
 
 // Append the scale of "trans1" to "trans2", and store the result in "trans1".
 void transformAppendScaleP1(transform *const restrict trans1, const transform *const restrict trans2){
+	#ifdef TRANSFORM_MATRIX_SHEAR
+	mat3 R2;
+
+	mat3InitQuat(&R2, &trans2->rot);
+	// Q_1 S_1 Q_1^T R_2
+	mat3MultiplyMat3P1(&trans1->shear, R2);
+	// Q_1 S_1 Q_1^T R_2 Q_2 S_2 Q_2^T
+	mat3MultiplyMat3P1(&trans1->shear, trans2->shear);
+	// QSQ^T = R_2^T Q_1 S_1 Q_1^T R_2 Q_2 S_2 Q_2^T
+	mat3TransMultiplyMat3P2(R2, &trans1->shear);
+	#else
 	quat Q1;
 	mat3 QSQT1;
 	mat3 QSQT2;
@@ -99,10 +146,22 @@ void transformAppendScaleP1(transform *const restrict trans1, const transform *c
 		QSQT1.m[0][2]*QSQT2.m[2][0] + QSQT1.m[1][2]*QSQT2.m[2][1] + QSQT1.m[2][2]*QSQT2.m[2][2],
 		&trans1->scale, &trans1->shear
 	);
+	#endif
 }
 
 // Append the scale of "trans1" to "trans2", and store the result in "trans2".
 void transformAppendScaleP2(const transform *const restrict trans1, transform *const restrict trans2){
+	#ifdef TRANSFORM_MATRIX_SHEAR
+	mat3 R2;
+
+	mat3InitQuat(&R2, &trans2->rot);
+	// Q_1 S_1 Q_1^T R_2
+	mat3MultiplyMat3P2(R2, &trans2->shear);
+	// Q_1 S_1 Q_1^T R_2 Q_2 S_2 Q_2^T
+	mat3MultiplyMat3P2(trans1->shear, &trans2->shear);
+	// QSQ^T = R_2^T Q_1 S_1 Q_1^T R_2 Q_2 S_2 Q_2^T
+	mat3TransMultiplyMat3P2(R2, &trans2->shear);
+	#else
 	quat Q1;
 	mat3 QSQT1;
 	mat3 QSQT2;
@@ -125,6 +184,7 @@ void transformAppendScaleP2(const transform *const restrict trans1, transform *c
 		QSQT1.m[0][2]*QSQT2.m[2][0] + QSQT1.m[1][2]*QSQT2.m[2][1] + QSQT1.m[2][2]*QSQT2.m[2][2],
 		&trans2->scale, &trans2->shear
 	);
+	#endif
 }
 
 // Append the scale of "trans1" to "trans2", and store the result in "out".
@@ -133,6 +193,17 @@ void transformAppendScaleOut(
 	transform *const restrict out
 ){
 
+	#ifdef TRANSFORM_MATRIX_SHEAR
+	mat3 R2;
+
+	mat3InitQuat(&R2, &trans2->rot);
+	// Q_1 S_1 Q_1^T R_2
+	mat3MultiplyMat3Out(R2, trans2->shear, &out->shear);
+	// Q_1 S_1 Q_1^T R_2 Q_2 S_2 Q_2^T
+	mat3MultiplyMat3P2(trans1->shear, &out->shear);
+	// QSQ^T = R_2^T Q_1 S_1 Q_1^T R_2 Q_2 S_2 Q_2^T
+	mat3TransMultiplyMat3P2(R2, &out->shear);
+	#else
 	quat Q1;
 	mat3 QSQT1;
 	mat3 QSQT2;
@@ -155,6 +226,7 @@ void transformAppendScaleOut(
 		QSQT1.m[0][2]*QSQT2.m[2][0] + QSQT1.m[1][2]*QSQT2.m[2][1] + QSQT1.m[2][2]*QSQT2.m[2][2],
 		&out->scale, &out->shear
 	);
+	#endif
 }
 
 // Append the rotation of "trans1" to "trans2", and store the result in "trans1".
@@ -314,6 +386,15 @@ transform transformMultiplyC(const transform trans1, const transform trans2){
 
 	// Compute the new position!
 	// T = T_1 R_1 Q_1 S_1 Q_1^T T_2
+	#ifdef TRANSFORM_MATRIX_SHEAR
+	out.pos = vec3AddVec3C(
+		trans1.pos,
+		quatRotateVec3FastC(
+			trans1.rot,
+			mat3MultiplyVec3C(trans1.shear, trans2.pos)
+		)
+	);
+	#else
 	out.pos = vec3AddVec3C(
 		trans1.pos,
 		quatRotateVec3FastC(
@@ -324,12 +405,26 @@ transform transformMultiplyC(const transform trans1, const transform trans2){
 			)
 		)
 	);
+	#endif
 
 	// Compute the new orientation!
 	// R = R_1 R_2
 	out.rot = quatNormalizeQuatC(quatMultiplyQuatC(trans1.rot, trans2.rot));
 
 	// Compute the new scale!
+	#ifdef TRANSFORM_MATRIX_SHEAR
+	{
+		const mat3 R2 = mat3InitQuatC(trans2.rot);
+		// QSQ^T = R_2^T Q_1 S_1 Q_1^T R_2 Q_2 S_2 Q_2^T
+		out.shear = mat3MultiplyMat3C(
+			mat3TransposeC(R2),
+			mat3MultiplyMat3C(
+				trans1.shear,
+				mat3MultiplyMat3C(R2, trans2.shear)
+			)
+		);
+	}
+	#else
 	{
 		// Q_1' S_1 Q_1'^T
 		const mat3 QSQT1 = mat3InitShearQuatC(trans1.scale, quatConjMultiplyQuatC(trans2.rot, trans1.shear));
@@ -348,6 +443,7 @@ transform transformMultiplyC(const transform trans1, const transform trans2){
 			&out.scale, &out.shear
 		);
 	}
+	#endif
 
 	return(out);
 }
@@ -369,34 +465,52 @@ void transformInvert(transform *const restrict trans){
 	**     {S' = S^{-1}.
 	*/
 
+
+	#ifdef TRANSFORM_MATRIX_SHEAR
+	mat3 R;
+	mat3 QSQTInverse;
+
+	// Compute the new scale!
+	mat3InitQuat(&R, &trans->rot);
+	// QS^{-1}Q^T
+	mat3InvertOut(trans->shear, &QSQTInverse);
+	// RQS^{-1}Q^T
+	mat3MultiplyMat3Out(R, QSQTInverse, &trans->shear);
+	// Q' = RQS^{-1}Q^T R^T
+	mat3MultiplyMat3TransP1(&trans->shear, R);
+	#else
 	// Temporarily store the original stretch rotation.
 	const quat Q = trans->shear;
 
 	// Compute the new scale!
-	{
-		// S' = S^{-1}
-		vec3DivideSByFast(&trans->scale, 1.f);
-		// Q' = RQ
-		quatMultiplyQuatP2(trans->rot, &trans->shear);
-	}
+	// S' = S^{-1}
+	vec3DivideSByFast(&trans->scale, 1.f);
+	// Q' = RQ
+	quatMultiplyQuatP2(trans->rot, &trans->shear);
+	#endif
 
 	// Compute the new orientation!
-	{
-		// R' = R^T
-		quatConjugate(&trans->rot);
-	}
+	// R' = R^T
+	quatConjugate(&trans->rot);
 
 	// Compute the new position!
-	{
-		// Q^T R^T T
-		quatConjRotateVec3Fast(&trans->shear, &trans->pos);
-		// S^{-1}Q^T R^T T
-		vec3MultiplyVec3(&trans->pos, &trans->scale);
-		// QS^{-1}Q^T R^T T
-		quatRotateVec3Fast(&Q, &trans->pos);
-		// T' = -QS^{-1}Q^T R^T T
-		vec3Negate(&trans->pos);
-	}
+	#ifdef TRANSFORM_MATRIX_SHEAR
+	// R^T T
+	quatRotateVec3Fast(&trans->rot, &trans->pos);
+	// QS^{-1}Q^T R^T T
+	mat3MultiplyVec3(&QSQTInverse, &trans->pos);
+	// T' = -QS^{-1}Q^T R^T T
+	vec3Negate(&trans->pos);
+	#else
+	// Q^T R^T T
+	quatConjRotateVec3Fast(&trans->shear, &trans->pos);
+	// S^{-1}Q^T R^T T
+	vec3MultiplyVec3(&trans->pos, &trans->scale);
+	// QS^{-1}Q^T R^T T
+	quatRotateVec3Fast(&Q, &trans->pos);
+	// T' = -QS^{-1}Q^T R^T T
+	vec3Negate(&trans->pos);
+	#endif
 }
 
 // Invert all three components of a transformation state.
@@ -417,30 +531,46 @@ void transformInvertOut(const transform *const restrict trans, transform *const 
 	*/
 
 	// Compute the new scale!
-	{
-		// S' = S^{-1}
-		vec3DivideSByFastOut(&trans->scale, 1.f, &out->scale);
-		// Q' = RQ
-		quatMultiplyQuatOut(trans->rot, trans->shear, &out->shear);
-	}
+	#ifdef TRANSFORM_MATRIX_SHEAR
+	mat3 R;
+	mat3 QSQTInverse;
+
+	mat3InitQuat(&R, &trans->rot);
+	// QS^{-1}Q^T
+	mat3InvertOut(trans->shear, &QSQTInverse);
+	// RQS^{-1}Q^T
+	mat3MultiplyMat3Out(R, QSQTInverse, &out->shear);
+	// Q' = RQS^{-1}Q^T R^T
+	mat3MultiplyMat3TransP1(&out->shear, R);
+	#else
+	// S' = S^{-1}
+	vec3DivideSByFastOut(&trans->scale, 1.f, &out->scale);
+	// Q' = RQ
+	quatMultiplyQuatOut(trans->rot, trans->shear, &out->shear);
+	#endif
 
 	// Compute the new orientation!
-	{
-		// R' = R^T
-		quatConjugateOut(&trans->rot, &out->rot);
-	}
+	// R' = R^T
+	quatConjugateOut(&trans->rot, &out->rot);
 
 	// Compute the new position!
-	{
-		// Q^T R^T T
-		quatConjRotateVec3FastOut(&out->shear, &trans->pos, &out->pos);
-		// S^{-1}Q^T R^T T
-		vec3MultiplyVec3(&out->pos, &out->scale);
-		// QS^{-1}Q^T R^T T
-		quatRotateVec3Fast(&trans->shear, &out->pos);
-		// T' = -QS^{-1}Q^T R^T T
-		vec3Negate(&out->pos);
-	}
+	#ifdef TRANSFORM_MATRIX_SHEAR
+	// R^T T
+	quatRotateVec3FastOut(&out->rot, &trans->pos, &out->pos);
+	// QS^{-1}Q^T R^T T
+	mat3MultiplyVec3(&QSQTInverse, &out->pos);
+	// T' = -QS^{-1}Q^T R^T T
+	vec3Negate(&out->pos);
+	#else
+	// Q^T R^T T
+	quatConjRotateVec3FastOut(&out->shear, &trans->pos, &out->pos);
+	// S^{-1}Q^T R^T T
+	vec3MultiplyVec3(&out->pos, &out->scale);
+	// QS^{-1}Q^T R^T T
+	quatRotateVec3Fast(&trans->shear, &out->pos);
+	// T' = -QS^{-1}Q^T R^T T
+	vec3Negate(&out->pos);
+	#endif
 }
 
 transform transformInvertC(const transform trans){
@@ -462,16 +592,36 @@ transform transformInvertC(const transform trans){
 	transform out;
 
 	// Compute the new scale!
+	#ifdef TRANSFORM_MATRIX_SHEAR
+	const mat3 R = mat3InitQuatC(trans.rot);
+	const mat3 QSQTInverse = mat3InvertC(trans.shear);
+
+	// Q' = RQS^{-1}Q^T R^T
+	out.shear = mat3MultiplyMat3TransC(
+		mat3MultiplyMat3C(QSQTInverse, R),
+		R
+	);
+	#else
 	// S' = S^{-1}
 	out.scale = vec3DivideSByFastC(trans.scale, 1.f);
 	// Q' = RQ
 	out.shear = quatMultiplyQuatC(trans.rot, trans.shear);
+	#endif
 
 	// Compute the new orientation!
 	// R' = R^T
 	out.rot = quatConjugateC(trans.rot);
 
 	// Compute the new position!
+	#ifdef TRANSFORM_MATRIX_SHEAR
+	// T' = -QS^{-1}Q^T R^T T
+	out.pos = vec3NegateC(
+		mat3MultiplyVec3C(
+			QSQTInverse,
+			quatRotateVec3FastC(out.rot, trans.pos)
+		)
+	);
+	#else
 	// T' = -QS^{-1}Q^T R^T T
 	out.pos = vec3NegateC(
 		quatRotateVec3FastC(
@@ -482,6 +632,7 @@ transform transformInvertC(const transform trans){
 			)
 		)
 	);
+	#endif
 
 	return(out);
 }
@@ -493,14 +644,44 @@ void transformInterpSet(
 	const float time, transform *const out
 ){
 
+	#ifdef TRANSFORM_MATRIX_SHEAR
+	vec3Lerp(&trans1->pos, &trans2->pos, time, &out->pos);
+	quatSlerpFasterOut(&trans1->rot, &trans2->rot, time, &out->rot);
+	out->shear.m[0][0] = (1.f - time)*trans1->shear.m[0][0] + time*trans2->shear.m[0][0];
+	out->shear.m[0][1] = (1.f - time)*trans1->shear.m[0][1] + time*trans2->shear.m[0][1];
+	out->shear.m[0][2] = (1.f - time)*trans1->shear.m[0][2] + time*trans2->shear.m[0][2];
+	out->shear.m[1][0] = (1.f - time)*trans1->shear.m[1][0] + time*trans2->shear.m[1][0];
+	out->shear.m[1][1] = (1.f - time)*trans1->shear.m[1][1] + time*trans2->shear.m[1][1];
+	out->shear.m[1][2] = (1.f - time)*trans1->shear.m[1][2] + time*trans2->shear.m[1][2];
+	out->shear.m[2][0] = (1.f - time)*trans1->shear.m[2][0] + time*trans2->shear.m[2][0];
+	out->shear.m[2][1] = (1.f - time)*trans1->shear.m[2][1] + time*trans2->shear.m[2][1];
+	out->shear.m[2][2] = (1.f - time)*trans1->shear.m[2][2] + time*trans2->shear.m[2][2];
+	#else
 	vec3Lerp(&trans1->pos, &trans2->pos, time, &out->pos);
 	quatSlerpFasterOut(&trans1->rot, &trans2->rot, time, &out->rot);
 	vec3Lerp(&trans1->scale, &trans2->scale, time, &out->scale);
 	quatSlerpFasterOut(&trans1->shear, &trans2->shear, time, &out->shear);
+	#endif
 }
 
 // Interpolate from "trans1" to "trans2" and return the result!
 transform transformInterpSetC(const transform trans1, const transform trans2, const float time){
+	#ifdef TRANSFORM_MATRIX_SHEAR
+	transform out = {
+		.pos = vec3LerpC(trans1.pos, trans2.pos, time),
+		.rot = quatSlerpFasterC(trans1.rot, trans2.rot, time)
+	};
+	out.shear.m[0][0] = (1.f - time)*trans1.shear.m[0][0] + time*trans2.shear.m[0][0];
+	out.shear.m[0][1] = (1.f - time)*trans1.shear.m[0][1] + time*trans2.shear.m[0][1];
+	out.shear.m[0][2] = (1.f - time)*trans1.shear.m[0][2] + time*trans2.shear.m[0][2];
+	out.shear.m[1][0] = (1.f - time)*trans1.shear.m[1][0] + time*trans2.shear.m[1][0];
+	out.shear.m[1][1] = (1.f - time)*trans1.shear.m[1][1] + time*trans2.shear.m[1][1];
+	out.shear.m[1][2] = (1.f - time)*trans1.shear.m[1][2] + time*trans2.shear.m[1][2];
+	out.shear.m[2][0] = (1.f - time)*trans1.shear.m[2][0] + time*trans2.shear.m[2][0];
+	out.shear.m[2][1] = (1.f - time)*trans1.shear.m[2][1] + time*trans2.shear.m[2][1];
+	out.shear.m[2][2] = (1.f - time)*trans1.shear.m[2][2] + time*trans2.shear.m[2][2];
+	return(out);
+	#else
 	const transform out = {
 		.pos = vec3LerpC(trans1.pos, trans2.pos, time),
 		.rot = quatSlerpFasterC(trans1.rot, trans2.rot, time),
@@ -508,6 +689,7 @@ transform transformInterpSetC(const transform trans1, const transform trans2, co
 		.shear = quatSlerpFasterC(trans1.shear, trans2.shear, time)
 	};
 	return(out);
+	#endif
 }
 
 // Interpolate between two states and add the offsets to "out"!
@@ -538,8 +720,13 @@ transform transformInterpAddC(const transform trans1, const transform trans2, co
 ** This will ignore the translation component!
 */
 void transformToMat3(const transform *const restrict trans, mat3 *const restrict out){
+	#ifdef TRANSFORM_MATRIX_SHEAR
+	*out = trans->shear;
+	mat3RotateByQuat(out, &trans->rot);
+	#else
 	mat3InitShearQuat(out, &trans->scale, &trans->shear);
 	mat3RotateByQuat(out, &trans->rot);
+	#endif
 }
 
 /*
@@ -547,22 +734,41 @@ void transformToMat3(const transform *const restrict trans, mat3 *const restrict
 ** This will ignore the translation component!
 */
 mat3 transformToMat3C(const transform trans){
+	#ifdef TRANSFORM_MATRIX_SHEAR
+	return(mat3RotateByQuatC(trans.shear, trans.rot));
+	#else
 	return(mat3RotateByQuatC(mat3InitShearQuatC(trans.scale, trans.shear), trans.rot));
+	#endif
 }
 
 // Convert a transformation state to a 3x4 transformation matrix.
 void transformToMat3x4(const transform *const restrict trans, mat3x4 *const restrict out){
 	// We use the regular order, that is, we first
 	// scale, then rotate and finally translate.
+	#ifdef TRANSFORM_MATRIX_SHEAR
+	mat3x4InitQuat(out, &trans->rot);
+	mat3x4MultiplyMat3(out, trans->shear);
+	mat3x4TranslateVec3(out, &trans->pos);
+	#else
 	mat3x4InitShearQuat(out, &trans->scale, &trans->shear);
 	mat3x4RotateByQuat(out, &trans->rot);
 	mat3x4TranslateVec3(out, &trans->pos);
+	#endif
 }
 
 // Convert a transformation state to a 3x4 transformation matrix.
 mat3x4 transformToMat3x4C(const transform trans){
 	// We use the regular order, that is, we first
 	// scale, then rotate and finally translate.
+	#ifdef TRANSFORM_MATRIX_SHEAR
+	return(mat3x4TranslateVec3C(
+		mat3x4MultiplyMat3C(
+			mat3x4InitQuatC(trans.rot),
+			trans.shear
+		),
+		trans.pos
+	));
+	#else
 	return(mat3x4TranslateVec3C(
 		mat3x4RotateByQuatC(
 			mat3x4InitShearQuatC(trans.scale, trans.shear),
@@ -570,21 +776,37 @@ mat3x4 transformToMat3x4C(const transform trans){
 		),
 		trans.pos
 	));
+	#endif
 }
 
 // Convert a transformation state to a 4x4 transformation matrix.
 void transformToMat4(const transform *const restrict trans, mat4 *const restrict out){
 	// We use the regular order, that is, we first
 	// scale, then rotate and finally translate.
+	#ifdef TRANSFORM_MATRIX_SHEAR
+	mat4InitQuat(out, &trans->rot);
+	mat4MultiplyMat3(out, trans->shear);
+	mat4TranslateVec3(out, &trans->pos);
+	#else
 	mat4InitShearQuat(out, &trans->scale, &trans->shear);
 	mat4RotateByQuat(out, &trans->rot);
 	mat4TranslateTransformVec3(out, &trans->pos);
+	#endif
 }
 
 // Convert a transformation state to a 4x4 transformation matrix.
 mat4 transformToMat4C(const transform trans){
 	// We use the regular order, that is, we first
 	// scale, then rotate and finally translate.
+	#ifdef TRANSFORM_MATRIX_SHEAR
+	return(mat4TranslateVec3C(
+		mat4MultiplyMat3C(
+			mat4InitQuatC(trans.rot),
+			trans.shear
+		),
+		trans.pos
+	));
+	#else
 	return(mat4TranslateTransformVec3C(
 		mat4RotateByQuatC(
 			mat4InitShearQuatC(trans.scale, trans.shear),
@@ -592,11 +814,20 @@ mat4 transformToMat4C(const transform trans){
 		),
 		trans.pos
 	));
+	#endif
 }
 
 
 // Transform a vec3 by scaling it, rotating it and finally translating it.
 void transformPoint(const transform *const restrict trans, vec3 *const restrict v){
+	#ifdef TRANSFORM_MATRIX_SHEAR
+	// (QSQ^T)v
+	mat3MultiplyVec3(&trans->shear, v);
+	// (RQSQ^T)v
+	quatRotateVec3Fast(&trans->rot, v);
+	// v' = Av = (TRQSQ^T)v
+	vec3AddVec3(v, &trans->pos);
+	#else
 	quat rot;
 
 	// (Q^T)v
@@ -608,10 +839,19 @@ void transformPoint(const transform *const restrict trans, vec3 *const restrict 
 	quatRotateVec3Fast(&rot, v);
 	// v' = Av = (TRQSQ^T)v
 	vec3AddVec3(v, &trans->pos);
+	#endif
 }
 
 // Transform a vec3 by scaling it, rotating it and finally translating it.
 void transformPointOut(const transform *const restrict trans, const vec3 *const v, vec3 *const out){
+	#ifdef TRANSFORM_MATRIX_SHEAR
+	// (QSQ^T)v
+	mat3MultiplyVec3Out(&trans->shear, v, out);
+	// (RQSQ^T)v
+	quatRotateVec3Fast(&trans->rot, out);
+	// v' = Av = (TRQSQ^T)v
+	vec3AddVec3(out, &trans->pos);
+	#else
 	quat rot;
 
 	// (Q^T)v
@@ -623,11 +863,21 @@ void transformPointOut(const transform *const restrict trans, const vec3 *const 
 	quatRotateVec3Fast(&rot, out);
 	// v' = Av = (TRQSQ^T)v
 	vec3AddVec3(out, &trans->pos);
+	#endif
 }
 
 // Transform a vec3 by scaling it, rotating it and finally translating it.
 vec3 transformPointC(const transform trans, const vec3 v){
 	// v' = Av = (TRQSQ^T)v
+	#ifdef TRANSFORM_MATRIX_SHEAR
+	return(vec3AddVec3C(
+		trans.pos,
+		quatRotateVec3FastC(
+			trans.rot,
+			mat3MultiplyVec3C(trans.shear, v)
+		)
+	));
+	#else
 	return(vec3AddVec3C(
 		trans.pos,
 		quatRotateVec3FastC(
@@ -638,10 +888,17 @@ vec3 transformPointC(const transform trans, const vec3 v){
 			)
 		)
 	));
+	#endif
 }
 
 // Transform a vec3 by scaling it and rotating it, but not translating it.
 void transformDirection(const transform *const restrict trans, vec3 *const restrict v){
+	#ifdef TRANSFORM_MATRIX_SHEAR
+	// (QSQ^T)v
+	mat3MultiplyVec3(&trans->shear, v);
+	// v' = (RQSQ^T)v
+	quatRotateVec3Fast(&trans->rot, v);
+	#else
 	quat rot;
 
 	// (Q^T)v
@@ -651,10 +908,17 @@ void transformDirection(const transform *const restrict trans, vec3 *const restr
 	// v' = (RQSQ^T)v
 	quatMultiplyQuatOut(trans->rot, trans->shear, &rot);
 	quatRotateVec3Fast(&rot, v);
+	#endif
 }
 
 // Transform a vec3 by scaling it and rotating it, but not translating it.
 void transformDirectionOut(const transform *const restrict trans, const vec3 *const v, vec3 *const out){
+	#ifdef TRANSFORM_MATRIX_SHEAR
+	// (QSQ^T)v
+	mat3MultiplyVec3Out(&trans->shear, v, out);
+	// v' = (RQSQ^T)v
+	quatRotateVec3Fast(&trans->rot, out);
+	#else
 	quat rot;
 
 	// (Q^T)v
@@ -664,11 +928,18 @@ void transformDirectionOut(const transform *const restrict trans, const vec3 *co
 	// v' = (RQSQ^T)v
 	quatMultiplyQuatOut(trans->rot, trans->shear, &rot);
 	quatRotateVec3Fast(&rot, out);
+	#endif
 }
 
 // Transform a vec3 by scaling it and rotating it, but not translating it.
 vec3 transformDirectionC(const transform trans, const vec3 v){
 	// v' = (RQSQ^T)v
+	#ifdef TRANSFORM_MATRIX_SHEAR
+	return(quatRotateVec3FastC(
+		trans.rot,
+		mat3MultiplyVec3C(trans.shear, v)
+	));
+	#else
 	return(quatRotateVec3FastC(
 		quatMultiplyQuatC(trans.rot, trans.shear),
 		vec3MultiplyVec3C(
@@ -676,4 +947,5 @@ vec3 transformDirectionC(const transform trans, const vec3 v){
 			quatConjRotateVec3FastC(trans.shear, v)
 		)
 	));
+	#endif
 }

@@ -725,6 +725,142 @@ mat3 mat3MultiplyMat3C(const mat3 m1, const mat3 m2){
 	return(out);
 }
 
+// Left-multiply "m2" transpose by "m1" (m1*m2^T) and store the result in "m1"!
+void mat3MultiplyMat3TransP1(mat3 *const restrict m1, const mat3 m2){
+	const mat3 tempMatrix = *m1;
+
+	m1->m[0][0] = tempMatrix.m[0][0] * m2.m[0][0] + tempMatrix.m[1][0] * m2.m[1][0] + tempMatrix.m[2][0] * m2.m[2][0];
+	m1->m[0][1] = tempMatrix.m[0][1] * m2.m[0][0] + tempMatrix.m[1][1] * m2.m[1][0] + tempMatrix.m[2][1] * m2.m[2][0];
+	m1->m[0][2] = tempMatrix.m[0][2] * m2.m[0][0] + tempMatrix.m[1][2] * m2.m[1][0] + tempMatrix.m[2][2] * m2.m[2][0];
+
+	m1->m[1][0] = tempMatrix.m[0][0] * m2.m[0][1] + tempMatrix.m[1][0] * m2.m[1][1] + tempMatrix.m[2][0] * m2.m[2][1];
+	m1->m[1][1] = tempMatrix.m[0][1] * m2.m[0][1] + tempMatrix.m[1][1] * m2.m[1][1] + tempMatrix.m[2][1] * m2.m[2][1];
+	m1->m[1][2] = tempMatrix.m[0][2] * m2.m[0][1] + tempMatrix.m[1][2] * m2.m[1][1] + tempMatrix.m[2][2] * m2.m[2][1];
+
+	m1->m[2][0] = tempMatrix.m[0][0] * m2.m[0][2] + tempMatrix.m[1][0] * m2.m[1][2] + tempMatrix.m[2][0] * m2.m[2][2];
+	m1->m[2][1] = tempMatrix.m[0][1] * m2.m[0][2] + tempMatrix.m[1][1] * m2.m[1][2] + tempMatrix.m[2][1] * m2.m[2][2];
+	m1->m[2][2] = tempMatrix.m[0][2] * m2.m[0][2] + tempMatrix.m[1][2] * m2.m[1][2] + tempMatrix.m[2][2] * m2.m[2][2];
+}
+
+// Left-multiply "m2" transpose by "m1" (m1*m2^T) and store the result in "m2"!
+void mat3MultiplyMat3TransP2(const mat3 m1, mat3 *const restrict m2){
+	const mat3 tempMatrix = *m2;
+
+	m2->m[0][0] = m1.m[0][0] * tempMatrix.m[0][0] + m1.m[1][0] * tempMatrix.m[1][0] + m1.m[2][0] * tempMatrix.m[2][0];
+	m2->m[0][1] = m1.m[0][1] * tempMatrix.m[0][0] + m1.m[1][1] * tempMatrix.m[1][0] + m1.m[2][1] * tempMatrix.m[2][0];
+	m2->m[0][2] = m1.m[0][2] * tempMatrix.m[0][0] + m1.m[1][2] * tempMatrix.m[1][0] + m1.m[2][2] * tempMatrix.m[2][0];
+
+	m2->m[1][0] = m1.m[0][0] * tempMatrix.m[0][1] + m1.m[1][0] * tempMatrix.m[1][1] + m1.m[2][0] * tempMatrix.m[2][1];
+	m2->m[1][1] = m1.m[0][1] * tempMatrix.m[0][1] + m1.m[1][1] * tempMatrix.m[1][1] + m1.m[2][1] * tempMatrix.m[2][1];
+	m2->m[1][2] = m1.m[0][2] * tempMatrix.m[0][1] + m1.m[1][2] * tempMatrix.m[1][1] + m1.m[2][2] * tempMatrix.m[2][1];
+
+	m2->m[2][0] = m1.m[0][0] * tempMatrix.m[0][2] + m1.m[1][0] * tempMatrix.m[1][2] + m1.m[2][0] * tempMatrix.m[2][2];
+	m2->m[2][1] = m1.m[0][1] * tempMatrix.m[0][2] + m1.m[1][1] * tempMatrix.m[1][2] + m1.m[2][1] * tempMatrix.m[2][2];
+	m2->m[2][2] = m1.m[0][2] * tempMatrix.m[0][2] + m1.m[1][2] * tempMatrix.m[1][2] + m1.m[2][2] * tempMatrix.m[2][2];
+}
+
+// Left-multiply "m2" transpose by "m1" (m1*m2^T) and store the result in "out"!
+void mat3MultiplyMat3TransOut(const mat3 m1, const mat3 m2, mat3 *const restrict out){
+	out->m[0][0] = m1.m[0][0] * m2.m[0][0] + m1.m[1][0] * m2.m[1][0] + m1.m[2][0] * m2.m[2][0];
+	out->m[0][1] = m1.m[0][1] * m2.m[0][0] + m1.m[1][1] * m2.m[1][0] + m1.m[2][1] * m2.m[2][0];
+	out->m[0][2] = m1.m[0][2] * m2.m[0][0] + m1.m[1][2] * m2.m[1][0] + m1.m[2][2] * m2.m[2][0];
+
+	out->m[1][0] = m1.m[0][0] * m2.m[0][1] + m1.m[1][0] * m2.m[1][1] + m1.m[2][0] * m2.m[2][1];
+	out->m[1][1] = m1.m[0][1] * m2.m[0][1] + m1.m[1][1] * m2.m[1][1] + m1.m[2][1] * m2.m[2][1];
+	out->m[1][2] = m1.m[0][2] * m2.m[0][1] + m1.m[1][2] * m2.m[1][1] + m1.m[2][2] * m2.m[2][1];
+
+	out->m[2][0] = m1.m[0][0] * m2.m[0][2] + m1.m[1][0] * m2.m[1][2] + m1.m[2][0] * m2.m[2][2];
+	out->m[2][1] = m1.m[0][1] * m2.m[0][2] + m1.m[1][1] * m2.m[1][2] + m1.m[2][1] * m2.m[2][2];
+	out->m[2][2] = m1.m[0][2] * m2.m[0][2] + m1.m[1][2] * m2.m[1][2] + m1.m[2][2] * m2.m[2][2];
+}
+
+// Left-multiply "m2" transpose by "m1" (m1*m2^T) and return the result!
+mat3 mat3MultiplyMat3TransC(const mat3 m1, const mat3 m2){
+	const mat3 out = {
+		.m[0][0] = m1.m[0][0] * m2.m[0][0] + m1.m[1][0] * m2.m[1][0] + m1.m[2][0] * m2.m[2][0],
+		.m[0][1] = m1.m[0][1] * m2.m[0][0] + m1.m[1][1] * m2.m[1][0] + m1.m[2][1] * m2.m[2][0],
+		.m[0][2] = m1.m[0][2] * m2.m[0][0] + m1.m[1][2] * m2.m[1][0] + m1.m[2][2] * m2.m[2][0],
+
+		.m[1][0] = m1.m[0][0] * m2.m[0][1] + m1.m[1][0] * m2.m[1][1] + m1.m[2][0] * m2.m[2][1],
+		.m[1][1] = m1.m[0][1] * m2.m[0][1] + m1.m[1][1] * m2.m[1][1] + m1.m[2][1] * m2.m[2][1],
+		.m[1][2] = m1.m[0][2] * m2.m[0][1] + m1.m[1][2] * m2.m[1][1] + m1.m[2][2] * m2.m[2][1],
+
+		.m[2][0] = m1.m[0][0] * m2.m[0][2] + m1.m[1][0] * m2.m[1][2] + m1.m[2][0] * m2.m[2][2],
+		.m[2][1] = m1.m[0][1] * m2.m[0][2] + m1.m[1][1] * m2.m[1][2] + m1.m[2][1] * m2.m[2][2],
+		.m[2][2] = m1.m[0][2] * m2.m[0][2] + m1.m[1][2] * m2.m[1][2] + m1.m[2][2] * m2.m[2][2]
+	};
+
+	return(out);
+}
+
+// Left-multiply "m2" by "m1" transpose (m1^T*m2) and store the result in "m1"!
+void mat3TransMultiplyMat3P1(mat3 *const restrict m1, const mat3 m2){
+	const mat3 tempMatrix = *m1;
+
+	m1->m[0][0] = tempMatrix.m[0][0] * m2.m[0][0] + tempMatrix.m[0][1] * m2.m[0][1] + tempMatrix.m[0][2] * m2.m[0][2];
+	m1->m[0][1] = tempMatrix.m[1][0] * m2.m[0][0] + tempMatrix.m[1][1] * m2.m[0][1] + tempMatrix.m[1][2] * m2.m[0][2];
+	m1->m[0][2] = tempMatrix.m[2][0] * m2.m[0][0] + tempMatrix.m[2][1] * m2.m[0][1] + tempMatrix.m[2][2] * m2.m[0][2];
+
+	m1->m[1][0] = tempMatrix.m[0][0] * m2.m[1][0] + tempMatrix.m[0][1] * m2.m[1][1] + tempMatrix.m[0][2] * m2.m[1][2];
+	m1->m[1][1] = tempMatrix.m[1][0] * m2.m[1][0] + tempMatrix.m[1][1] * m2.m[1][1] + tempMatrix.m[1][2] * m2.m[1][2];
+	m1->m[1][2] = tempMatrix.m[2][0] * m2.m[1][0] + tempMatrix.m[2][1] * m2.m[1][1] + tempMatrix.m[2][2] * m2.m[1][2];
+
+	m1->m[2][0] = tempMatrix.m[0][0] * m2.m[2][0] + tempMatrix.m[0][1] * m2.m[2][1] + tempMatrix.m[0][2] * m2.m[2][2];
+	m1->m[2][1] = tempMatrix.m[1][0] * m2.m[2][0] + tempMatrix.m[1][1] * m2.m[2][1] + tempMatrix.m[1][2] * m2.m[2][2];
+	m1->m[2][2] = tempMatrix.m[2][0] * m2.m[2][0] + tempMatrix.m[2][1] * m2.m[2][1] + tempMatrix.m[2][2] * m2.m[2][2];
+}
+
+// Left-multiply "m2" by "m1" transpose (m1^T*m2) and store the result in "m2"!
+void mat3TransMultiplyMat3P2(const mat3 m1, mat3 *const restrict m2){
+	const mat3 tempMatrix = *m2;
+
+	m2->m[0][0] = m1.m[0][0] * tempMatrix.m[0][0] + m1.m[0][1] * tempMatrix.m[0][1] + m1.m[0][2] * tempMatrix.m[0][2];
+	m2->m[0][1] = m1.m[1][0] * tempMatrix.m[0][0] + m1.m[1][1] * tempMatrix.m[0][1] + m1.m[1][2] * tempMatrix.m[0][2];
+	m2->m[0][2] = m1.m[2][0] * tempMatrix.m[0][0] + m1.m[2][1] * tempMatrix.m[0][1] + m1.m[2][2] * tempMatrix.m[0][2];
+
+	m2->m[1][0] = m1.m[0][0] * tempMatrix.m[1][0] + m1.m[0][1] * tempMatrix.m[1][1] + m1.m[0][2] * tempMatrix.m[1][2];
+	m2->m[1][1] = m1.m[1][0] * tempMatrix.m[1][0] + m1.m[1][1] * tempMatrix.m[1][1] + m1.m[1][2] * tempMatrix.m[1][2];
+	m2->m[1][2] = m1.m[2][0] * tempMatrix.m[1][0] + m1.m[2][1] * tempMatrix.m[1][1] + m1.m[2][2] * tempMatrix.m[1][2];
+
+	m2->m[2][0] = m1.m[0][0] * tempMatrix.m[2][0] + m1.m[0][1] * tempMatrix.m[2][1] + m1.m[0][2] * tempMatrix.m[2][2];
+	m2->m[2][1] = m1.m[1][0] * tempMatrix.m[2][0] + m1.m[1][1] * tempMatrix.m[2][1] + m1.m[1][2] * tempMatrix.m[2][2];
+	m2->m[2][2] = m1.m[2][0] * tempMatrix.m[2][0] + m1.m[2][1] * tempMatrix.m[2][1] + m1.m[2][2] * tempMatrix.m[2][2];
+}
+
+// Left-multiply "m2" by "m1" transpose (m1^T*m2) and store the result in "out"!
+void mat3TransMultiplyMat3Out(const mat3 m1, const mat3 m2, mat3 *const restrict out){
+	out->m[0][0] = m1.m[0][0] * m2.m[0][0] + m1.m[0][1] * m2.m[0][1] +  m1.m[0][2] * m2.m[0][2];
+	out->m[0][1] = m1.m[1][0] * m2.m[0][0] + m1.m[1][1] * m2.m[0][1] +  m1.m[1][2] * m2.m[0][2];
+	out->m[0][2] = m1.m[2][0] * m2.m[0][0] + m1.m[2][1] * m2.m[0][1] +  m1.m[2][2] * m2.m[0][2];
+
+	out->m[1][0] = m1.m[0][0] * m2.m[1][0] + m1.m[0][1] * m2.m[1][1] +  m1.m[0][2] * m2.m[1][2];
+	out->m[1][1] = m1.m[1][0] * m2.m[1][0] + m1.m[1][1] * m2.m[1][1] +  m1.m[1][2] * m2.m[1][2];
+	out->m[1][2] = m1.m[2][0] * m2.m[1][0] + m1.m[2][1] * m2.m[1][1] +  m1.m[2][2] * m2.m[1][2];
+
+	out->m[2][0] = m1.m[0][0] * m2.m[2][0] + m1.m[0][1] * m2.m[2][1] +  m1.m[0][2] * m2.m[2][2];
+	out->m[2][1] = m1.m[1][0] * m2.m[2][0] + m1.m[1][1] * m2.m[2][1] +  m1.m[1][2] * m2.m[2][2];
+	out->m[2][2] = m1.m[2][0] * m2.m[2][0] + m1.m[2][1] * m2.m[2][1] +  m1.m[2][2] * m2.m[2][2];
+}
+
+// Left-multiply "m2" by "m1" transpose (m1^T*m2) and return the result!
+mat3 mat3TransMultiplyMat3C(const mat3 m1, const mat3 m2){
+	const mat3 out = {
+		.m[0][0] = m1.m[0][0] * m2.m[0][0] + m1.m[0][1] * m2.m[0][1] + m1.m[0][2] * m2.m[0][2],
+		.m[0][1] = m1.m[1][0] * m2.m[0][0] + m1.m[1][1] * m2.m[0][1] + m1.m[1][2] * m2.m[0][2],
+		.m[0][2] = m1.m[2][0] * m2.m[0][0] + m1.m[2][1] * m2.m[0][1] + m1.m[2][2] * m2.m[0][2],
+
+		.m[1][0] = m1.m[0][0] * m2.m[1][0] + m1.m[0][1] * m2.m[1][1] + m1.m[0][2] * m2.m[1][2],
+		.m[1][1] = m1.m[1][0] * m2.m[1][0] + m1.m[1][1] * m2.m[1][1] + m1.m[1][2] * m2.m[1][2],
+		.m[1][2] = m1.m[2][0] * m2.m[1][0] + m1.m[2][1] * m2.m[1][1] + m1.m[2][2] * m2.m[1][2],
+
+		.m[2][0] = m1.m[0][0] * m2.m[2][0] + m1.m[0][1] * m2.m[2][1] + m1.m[0][2] * m2.m[2][2],
+		.m[2][1] = m1.m[1][0] * m2.m[2][0] + m1.m[1][1] * m2.m[2][1] + m1.m[1][2] * m2.m[2][2],
+		.m[2][2] = m1.m[2][0] * m2.m[2][0] + m1.m[2][1] * m2.m[2][1] + m1.m[2][2] * m2.m[2][2]
+	};
+
+	return(out);
+}
+
 
 // Rotate a matrix using XYZ Euler angles!
 void mat3RotateByEulerXYZ(mat3 *const restrict m, const float x, const float y, const float z){
@@ -1740,11 +1876,11 @@ static void ComputeEigenvector1(
 			if(m00abs > MAT3_ZERO_EPSILON || m01abs > MAT3_ZERO_EPSILON){
 				if(m00abs >= m01abs){
 					m01 /= m00;
-					m00 = 1.f/sqrtf(1.f + m01*m01);
+					m00 = invSqrtFast(1.f + m01*m01);
 					m01 *= m00;
 				}else{
 					m00 /= m01;
-					m01 = 1.f/sqrtf(1.f + m00*m00);
+					m01 = invSqrtFast(1.f + m00*m00);
 					m00 *= m01;
 				}
 				evec1->x = m01*u.x - m00*v.x;
@@ -1757,11 +1893,11 @@ static void ComputeEigenvector1(
 			if(m11abs > MAT3_ZERO_EPSILON || m01abs > MAT3_ZERO_EPSILON){
 				if(m11abs >= m01abs){
 					m01 /= m11;
-					m11 = 1.f/sqrtf(1.f + m01*m01);
+					m11 = invSqrtFast(1.f + m01*m01);
 					m01 *= m11;
 				}else{
 					m11 /= m01;
-					m01 = 1.f/sqrtf(1.f + m11*m11);
+					m01 = invSqrtFast(1.f + m11*m11);
 					m11 *= m01;
 				}
 				evec1->x = m11*u.x - m01*v.x;

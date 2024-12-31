@@ -208,6 +208,7 @@ void objectPreparePhysics(object *const restrict obj){
 
 		++curTransform;
 		++curSkeleBone;
+		++curAccumulatorBone;
 	}
 
 	// Remember to free the temporary bone states.
@@ -216,13 +217,8 @@ void objectPreparePhysics(object *const restrict obj){
 
 
 void objectUpdate(object *const restrict obj, const float dt){
-	skeletonAnim *curAnim = obj->skeleState.anims;
-	// Update which frame each animation is currently on!
-	while(curAnim != NULL){
-		skeleAnimUpdate(curAnim, dt);
-		curAnim = moduleSkeletonAnimNext(curAnim);
-	}
-
+	// Update each skeletal animation.
+	skeleStateUpdate(&obj->skeleState, dt);
 	// Generate the object's global bone states.
 	updateBones(obj);
 

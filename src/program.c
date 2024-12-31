@@ -404,6 +404,20 @@ static void update(program *const restrict prg){
 		gui.state.pos.y -= 100.f * prg->step.updateDelta;
 	}
 
+	#ifdef TRANSFORM_MATRIX_SHEAR
+	if(prg->inputMngr.keyStates[SDL_SCANCODE_A]){
+		gui.state.shear.m[0][0] -= 100.f * prg->step.updateDelta;
+	}
+	if(prg->inputMngr.keyStates[SDL_SCANCODE_D]){
+		gui.state.shear.m[0][0] += 100.f * prg->step.updateDelta;
+	}
+	if(prg->inputMngr.keyStates[SDL_SCANCODE_W]){
+		gui.state.shear.m[1][1] -= 100.f * prg->step.updateDelta;
+	}
+	if(prg->inputMngr.keyStates[SDL_SCANCODE_S]){
+		gui.state.shear.m[1][1] += 100.f * prg->step.updateDelta;
+	}
+	#else
 	if(prg->inputMngr.keyStates[SDL_SCANCODE_A]){
 		gui.state.scale.x -= 100.f * prg->step.updateDelta;
 	}
@@ -416,6 +430,7 @@ static void update(program *const restrict prg){
 	if(prg->inputMngr.keyStates[SDL_SCANCODE_S]){
 		gui.state.scale.y += 100.f * prg->step.updateDelta;
 	}
+	#endif
 
 	guiElementUpdate(&gui, prg->step.updateTime);
 }
@@ -630,7 +645,11 @@ static return_t initResources(program *const restrict prg){
 	objectInit(obj, objDef);
 	printf("Ground: %u -> %u\n", obj->physBodies, obj->physBodies->colliders);
 	obj->boneTransforms[0].pos.y = -4.f;
+	#ifdef TRANSFORM_MATRIX_SHEAR
+	obj->boneTransforms[0].shear.m[0][0] = obj->boneTransforms[0].shear.m[2][2] = 100.f;
+	#else
 	obj->boneTransforms[0].scale.x = obj->boneTransforms[0].scale.z = 100.f;
+	#endif
 	physRigidBodySetScale(obj->physBodies, vec3InitSetC(20.f, 0.f, 20.f));
 	obj->physBodies->mass = 0.f;
 	mat3InitZero(&obj->physBodies->invInertiaLocal);
@@ -868,7 +887,11 @@ static return_t initResources(program *const restrict prg){
 	guiElementInit(&gui, GUI_ELEMENT_TYPE_PANEL);
 	gui.state.pos.x = 0.f;
 	gui.state.pos.y = 0.f;
+	#ifdef TRANSFORM_MATRIX_SHEAR
+	gui.state.shear.m[0][0] = gui.state.shear.m[1][1] = 100.f;
+	#else
 	gui.state.scale.x = gui.state.scale.y = 100.f;
+	#endif
 	guiPanelInit(&gui.data.panel);
 
 	gui.data.panel.borderTexState.texGroup = texGroupLoad("gui/border.tdg", sizeof("gui/border.tdg") - 1);
