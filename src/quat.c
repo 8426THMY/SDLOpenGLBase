@@ -1137,12 +1137,12 @@ quat quatConjMultiplyQuatC(const quat q1, const quat q2){
 ** of v'. However, we use an optimized method instead.
 */
 void quatRotateVec3(const quat *const restrict q, vec3 *const restrict v){
-	float qvDot = vec3DotVec3(v, (const vec3 *const restrict)&q->x);
-	const float qNorm = q->w * q->w - vec3MagnitudeSquaredVec3((const vec3 *const restrict)&q->x);
+	float qvDot = vec3DotVec3(v, (const vec3 *)&q->x);
+	const float qNorm = q->w * q->w - vec3MagnitudeSquaredVec3((const vec3 *)&q->x);
 	vec3 qvCross;
 
 	qvDot += qvDot;
-	vec3CrossVec3Out((const vec3 *const restrict)&q->x, v, &qvCross);
+	vec3CrossVec3Out((const vec3 *)&q->x, v, &qvCross);
 	vec3MultiplyS(&qvCross, q->w + q->w);
 
 	v->x = qvDot * q->x + qNorm * v->x + qvCross.x;
@@ -1157,12 +1157,12 @@ void quatRotateVec3(const quat *const restrict q, vec3 *const restrict v){
 ** of v'. However, we use an optimized method instead.
 */
 void quatRotateVec3Out(const quat *const restrict q, const vec3 *const restrict v, vec3 *const restrict out){
-	float qvDot = vec3DotVec3(v, (const vec3 *const restrict)&q->x);
-	const float qNorm = q->w * q->w - vec3MagnitudeSquaredVec3((const vec3 *const restrict)&q->x);
+	float qvDot = vec3DotVec3(v, (const vec3 *)&q->x);
+	const float qNorm = q->w * q->w - vec3MagnitudeSquaredVec3((const vec3 *)&q->x);
 	vec3 qvCross;
 
 	qvDot += qvDot;
-	vec3CrossVec3Out((const vec3 *const restrict)&q->x, v, &qvCross);
+	vec3CrossVec3Out((const vec3 *)&q->x, v, &qvCross);
 	vec3MultiplyS(&qvCross, q->w + q->w);
 
 	out->x = qvDot * q->x + qNorm * v->x + qvCross.x;
@@ -1196,12 +1196,12 @@ vec3 quatRotateVec3C(const quat q, vec3 v){
 ** of v'. However, we use an optimized method instead.
 */
 void quatConjRotateVec3(const quat *const restrict q, vec3 *const restrict v){
-	float qvDot = vec3DotVec3(v, (const vec3 *const restrict)&q->x);
-	const float qNorm = q->w * q->w - vec3MagnitudeSquaredVec3((const vec3 *const restrict)&q->x);
+	float qvDot = vec3DotVec3(v, (const vec3 *)&q->x);
+	const float qNorm = q->w * q->w - vec3MagnitudeSquaredVec3((const vec3 *)&q->x);
 	vec3 qvCross;
 
 	qvDot += qvDot;
-	vec3CrossVec3Out((const vec3 *const restrict)&q->x, v, &qvCross);
+	vec3CrossVec3Out((const vec3 *)&q->x, v, &qvCross);
 	vec3MultiplyS(&qvCross, -q->w - q->w);
 
 	v->x = qvDot * q->x + qNorm * v->x + qvCross.x;
@@ -1216,12 +1216,12 @@ void quatConjRotateVec3(const quat *const restrict q, vec3 *const restrict v){
 ** of v'. However, we use an optimized method instead.
 */
 void quatConjRotateVec3Out(const quat *const restrict q, const vec3 *const restrict v, vec3 *const restrict out){
-	float qvDot = vec3DotVec3(v, (const vec3 *const restrict)&q->x);
-	const float qNorm = q->w * q->w - vec3MagnitudeSquaredVec3((const vec3 *const restrict)&q->x);
+	float qvDot = vec3DotVec3(v, (const vec3 *)&q->x);
+	const float qNorm = q->w * q->w - vec3MagnitudeSquaredVec3((const vec3 *)&q->x);
 	vec3 qvCross;
 
 	qvDot += qvDot;
-	vec3CrossVec3Out((const vec3 *const restrict)&q->x, v, &qvCross);
+	vec3CrossVec3Out((const vec3 *)&q->x, v, &qvCross);
 	vec3MultiplyS(&qvCross, -q->w - q->w);
 
 	out->x = qvDot * q->x + qNorm * v->x + qvCross.x;
@@ -1255,11 +1255,11 @@ vec3 quatConjRotateVec3C(const quat q, vec3 v){
 */
 void quatRotateVec3Fast(const quat *const restrict q, vec3 *const restrict v){
 	vec3 qvCross;
-	vec3CrossVec3Out((const vec3 *const restrict)&q->x, v, &qvCross);
+	vec3CrossVec3Out((const vec3 *)&q->x, v, &qvCross);
 	qvCross.x += q->w * v->x;
 	qvCross.y += q->w * v->y;
 	qvCross.z += q->w * v->z;
-	vec3CrossVec3P2((const vec3 *const restrict)&q->x, &qvCross);
+	vec3CrossVec3P2((const vec3 *)&q->x, &qvCross);
 
 	v->x += 2.f*qvCross.x;
 	v->y += 2.f*qvCross.y;
@@ -1273,11 +1273,11 @@ void quatRotateVec3Fast(const quat *const restrict q, vec3 *const restrict v){
 */
 void quatRotateVec3FastOut(const quat *const restrict q, const vec3 *const restrict v, vec3 *const restrict out){
 	vec3 qvCross;
-	vec3CrossVec3Out((const vec3 *const restrict)&q->x, v, &qvCross);
+	vec3CrossVec3Out((const vec3 *)&q->x, v, &qvCross);
 	qvCross.x += q->w * v->x;
 	qvCross.y += q->w * v->y;
 	qvCross.z += q->w * v->z;
-	vec3CrossVec3P2((const vec3 *const restrict)&q->x, &qvCross);
+	vec3CrossVec3P2((const vec3 *)&q->x, &qvCross);
 
 	out->x = 2.f*qvCross.x + v->x;
 	out->y = 2.f*qvCross.y + v->y;
@@ -1310,7 +1310,7 @@ vec3 quatRotateVec3FastC(const quat q, vec3 v){
 */
 void quatConjRotateVec3Fast(const quat *const restrict q, vec3 *const restrict v){
 	vec3 qvCross;
-	vec3CrossVec3Out((const vec3 *const restrict)&q->x, v, &qvCross);
+	vec3CrossVec3Out((const vec3 *)&q->x, v, &qvCross);
 	// It would perhaps be clearer if we reversed the order
 	// of the cross products, but it actually suffices to
 	// treat the quaternion's conjugate as (-w, x, y, z).
@@ -1318,7 +1318,7 @@ void quatConjRotateVec3Fast(const quat *const restrict q, vec3 *const restrict v
 	qvCross.x -= q->w * v->x;
 	qvCross.y -= q->w * v->y;
 	qvCross.z -= q->w * v->z;
-	vec3CrossVec3P2((const vec3 *const restrict)&q->x, &qvCross);
+	vec3CrossVec3P2((const vec3 *)&q->x, &qvCross);
 
 	v->x += 2.f*qvCross.x;
 	v->y += 2.f*qvCross.y;
@@ -1332,7 +1332,7 @@ void quatConjRotateVec3Fast(const quat *const restrict q, vec3 *const restrict v
 */
 void quatConjRotateVec3FastOut(const quat *const restrict q, const vec3 *const restrict v, vec3 *const restrict out){
 	vec3 qvCross;
-	vec3CrossVec3Out((const vec3 *const restrict)&q->x, v, &qvCross);
+	vec3CrossVec3Out((const vec3 *)&q->x, v, &qvCross);
 	// It would perhaps be clearer if we reversed the order
 	// of the cross products, but it actually suffices to
 	// treat the quaternion's conjugate as (-w, x, y, z).
@@ -1340,7 +1340,7 @@ void quatConjRotateVec3FastOut(const quat *const restrict q, const vec3 *const r
 	qvCross.x -= q->w * v->x;
 	qvCross.y -= q->w * v->y;
 	qvCross.z -= q->w * v->z;
-	vec3CrossVec3P2((const vec3 *const restrict)&q->x, &qvCross);
+	vec3CrossVec3P2((const vec3 *)&q->x, &qvCross);
 
 	out->x = 2.f*qvCross.x + v->x;
 	out->y = 2.f*qvCross.y + v->y;
@@ -1465,7 +1465,7 @@ void quatShortestArcAlt(const vec3 *const restrict v1, const vec3 *const restric
 	// Handle the case where the vectors are
 	// antiparallel to avoid dividing by zero.
 	if(d < -1.f + QUAT_SINGULARITY_THRESHOLD){
-		vec3OrthonormalFast(v1, (vec3 *const restrict)&out->x);
+		vec3OrthonormalFast(v1, (vec3 *)&out->x);
 		out->w = 0.f;
 	}else{
 		const float s = sqrtf(2.f * (1.f + d));
@@ -1490,7 +1490,7 @@ quat quatShortestArcAltC(const vec3 v1, const vec3 v2){
 	// antiparallel to avoid dividing by zero.
 	if(d < -1.f + QUAT_SINGULARITY_THRESHOLD){
 		quat q;
-		*((vec3 *const restrict)&q.x) = vec3OrthonormalFastC(v1);
+		*((vec3 *)&q.x) = vec3OrthonormalFastC(v1);
 		q.w = 0.f;
 		return(q);
 	}else{
@@ -2988,7 +2988,7 @@ quat quatScaleFasterC(quat q, const float time){
 */
 void quatSwingTwist(const quat *const restrict q, const vec3 *const restrict v, quat *const restrict t, quat *const restrict s){
 	// Project the q's rotation axis onto the twist axis "v".
-	float u = vec3DotVec3(v, (const vec3 *const restrict)&q->x);
+	float u = vec3DotVec3(v, (const vec3 *)&q->x);
 	// Quickly compute the inverse magnitude of the projection.
 	float l = q->w*q->w + u*u;
 
@@ -3052,7 +3052,7 @@ void quatSwingTwistC(const quat q, const vec3 v, quat *const restrict t, quat *c
 */
 void quatSwingTwistFast(const quat *const restrict q, const vec3 *const restrict v, quat *const restrict t, quat *const restrict s){
 	// Project the q's rotation axis onto the twist axis "v".
-	float u = vec3DotVec3(v, (const vec3 *const restrict)&q->x);
+	float u = vec3DotVec3(v, (const vec3 *)&q->x);
 	// Quickly compute the inverse magnitude of the projection.
 	const float l = invSqrtFast(q->w*q->w + u*u);
 	u *= l;
@@ -3101,7 +3101,7 @@ void quatSwingTwistFastC(const quat q, const vec3 v, quat *const restrict t, qua
 */
 void quatSwingTwistFaster(const quat *const restrict q, const vec3 *const restrict v, quat *const restrict t, quat *const restrict s){
 	// Project the q's rotation axis onto the twist axis "v".
-	float u = vec3DotVec3(v, (const vec3 *const restrict)&q->x);
+	float u = vec3DotVec3(v, (const vec3 *)&q->x);
 	// Quickly compute the inverse magnitude of the projection.
 	const float l = invSqrtFast(q->w*q->w + u*u);
 	u *= l;

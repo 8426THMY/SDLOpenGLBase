@@ -852,6 +852,68 @@ mat4 mat4AddMat4C(const mat4 m1, const mat4 m2){
 }
 
 
+// Multiply "m" by "x"!
+void mat4MultiplyS(mat4 *const restrict m, const float x){
+	m->m[0][0] *= x;
+	m->m[0][1] *= x;
+	m->m[0][2] *= x;
+	m->m[0][3] *= x;
+	m->m[1][0] *= x;
+	m->m[1][1] *= x;
+	m->m[1][2] *= x;
+	m->m[1][3] *= x;
+	m->m[2][0] *= x;
+	m->m[2][1] *= x;
+	m->m[2][2] *= x;
+	m->m[2][3] *= x;
+	m->m[3][0] *= x;
+	m->m[3][1] *= x;
+	m->m[3][2] *= x;
+	m->m[3][3] *= x;
+}
+
+// Multiply "m" by "x" and store the result in "out"!
+void mat4MultiplySOut(const mat4 *const restrict m, const float x, mat4 *const restrict out){
+	out->m[0][0] = m->m[0][0] * x;
+	out->m[0][1] = m->m[0][1] * x;
+	out->m[0][2] = m->m[0][2] * x;
+	out->m[0][3] = m->m[0][3] * x;
+	out->m[1][0] = m->m[1][0] * x;
+	out->m[1][1] = m->m[1][1] * x;
+	out->m[1][2] = m->m[1][2] * x;
+	out->m[1][3] = m->m[1][3] * x;
+	out->m[2][0] = m->m[2][0] * x;
+	out->m[2][1] = m->m[2][1] * x;
+	out->m[2][2] = m->m[2][2] * x;
+	out->m[2][3] = m->m[2][3] * x;
+	out->m[3][0] = m->m[3][0] * x;
+	out->m[3][1] = m->m[3][1] * x;
+	out->m[3][2] = m->m[3][2] * x;
+	out->m[3][3] = m->m[3][3] * x;
+}
+
+// Multiply "m" by "x"!
+mat4 mat4MultiplySOutC(mat4 m, const float x){
+	m.m[0][0] *= x;
+	m.m[0][1] *= x;
+	m.m[0][2] *= x;
+	m.m[0][3] *= x;
+	m.m[1][0] *= x;
+	m.m[1][1] *= x;
+	m.m[1][2] *= x;
+	m.m[1][3] *= x;
+	m.m[2][0] *= x;
+	m.m[2][1] *= x;
+	m.m[2][2] *= x;
+	m.m[2][3] *= x;
+	m.m[3][0] *= x;
+	m.m[3][1] *= x;
+	m.m[3][2] *= x;
+	m.m[3][3] *= x;
+
+	return(m);
+}
+
 /*
 ** Left-multiply a 3x1 column vector by a matrix (m*v)!
 ** Note that this is really a 4x1 vector with '1' in the last component.
@@ -2456,6 +2518,36 @@ mat4 mat4TransposeC(const mat4 m){
 	};
 
 	return(out);
+}
+
+// Compute the squared Frobenius norm!
+float mat4FrobeniusNormSquared(const mat4 *const restrict m){
+	return(
+		m->m[0][0]*m->m[0][0] + m->m[0][1]*m->m[0][1] + m->m[0][2]*m->m[0][2] + m->m[0][3]*m->m[0][3] +
+		m->m[1][0]*m->m[1][0] + m->m[1][1]*m->m[1][1] + m->m[1][2]*m->m[1][2] + m->m[1][3]*m->m[1][3] +
+		m->m[2][0]*m->m[2][0] + m->m[2][1]*m->m[2][1] + m->m[2][2]*m->m[2][2] + m->m[2][3]*m->m[2][3] +
+		m->m[3][0]*m->m[3][0] + m->m[3][1]*m->m[3][1] + m->m[3][2]*m->m[3][2] + m->m[3][3]*m->m[3][3]
+	);
+}
+
+// Compute the squared Frobenius norm!
+float mat4FrobeniusNormSquaredC(const mat4 m){
+	return(
+		m.m[0][0]*m.m[0][0] + m.m[0][1]*m.m[0][1] + m.m[0][2]*m.m[0][2] + m.m[0][3]*m.m[0][3] +
+		m.m[1][0]*m.m[1][0] + m.m[1][1]*m.m[1][1] + m.m[1][2]*m.m[1][2] + m.m[1][3]*m.m[1][3] +
+		m.m[2][0]*m.m[2][0] + m.m[2][1]*m.m[2][1] + m.m[2][2]*m.m[2][2] + m.m[2][3]*m.m[2][3] +
+		m.m[3][0]*m.m[3][0] + m.m[3][1]*m.m[3][1] + m.m[3][2]*m.m[3][2] + m.m[3][3]*m.m[3][3]
+	);
+}
+
+// Compute the trace of a matrix!
+float mat4Trace(const mat4 *const restrict m){
+	return(m->m[0][0] + m->m[1][1] + m->m[2][2] + m->m[3][3]);
+}
+
+// Compute the trace of a matrix!
+float mat4TraceC(const mat4 m){
+	return(m.m[0][0] + m.m[1][1] + m.m[2][2] + m.m[3][3]);
 }
 
 // Invert a matrix!

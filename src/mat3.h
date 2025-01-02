@@ -49,6 +49,9 @@ void mat3AddMat3(mat3 *const restrict m1, const mat3 *const restrict m2);
 void mat3AddMat3Out(const mat3 *const restrict m1, const mat3 *const restrict m2, mat3 *const restrict out);
 mat3 mat3AddMat3C(const mat3 m1, const mat3 m2);
 
+void mat3MultiplyS(mat3 *const restrict m, const float x);
+void mat3MultiplySOut(const mat3 *const restrict m, const float x, mat3 *const restrict out);
+mat3 mat3MultiplySOutC(mat3 m, const float x);
 void mat3MultiplyVec3(const mat3 *const restrict m, vec3 *const restrict v);
 void mat3MultiplyVec3Out(const mat3 *const restrict m, const vec3 *const restrict v, vec3 *const restrict out);
 vec3 mat3MultiplyVec3C(const mat3 m, vec3 v);
@@ -101,20 +104,26 @@ mat3 mat3ScalePreVec3C(mat3 m, const vec3 v);
 void mat3Transpose(mat3 *const restrict m);
 void mat3TransposeOut(const mat3 m, mat3 *const restrict out);
 mat3 mat3TransposeC(const mat3 m);
+float mat3FrobeniusNormSquared(const mat3 *const restrict m);
+float mat3FrobeniusNormSquaredC(const mat3 m);
+float mat3Trace(const mat3 *const restrict m);
+float mat3TraceC(const mat3 m);
 float mat3Determinant(const mat3 *const restrict m);
 float mat3DeterminantC(const mat3 m);
 float mat3DeterminantColumns(const float *const restrict r0, const float *const restrict r1, const float *const restrict r2);
+void mat3AdjugateTrans(const mat3 *const restrict m, mat3 *const restrict out);
 void mat3Invert(mat3 *const restrict m);
 void mat3InvertOut(const mat3 m, mat3 *const restrict out);
 mat3 mat3InvertC(const mat3 m);
 return_t mat3CanInvert(mat3 *const restrict m);
-return_t mat3CanInvertOut(const mat3 *const restrict m, mat3 *const restrict out);
+return_t mat3CanInvertOut(const mat3 m, mat3 *const restrict out);
 
 void mat3Solve(const mat3 *const restrict A, const vec3 *const restrict b, vec3 *const restrict x);
 vec3 mat3SolveC(const mat3 A, const vec3 b);
 return_t mat3CanSolve(const mat3 *const restrict A, const vec3 *const restrict b, vec3 *const restrict x);
 return_t mat3CanSolveC(const mat3 A, const vec3 b, vec3 *const restrict x);
 
+void mat3PolarDecompose(const mat3 *const restrict A, mat3 *const restrict R);
 void mat3DiagonalizeSymmetric(
 	float a00, float a01, float a02,
 	float a11, float a12, float a22,

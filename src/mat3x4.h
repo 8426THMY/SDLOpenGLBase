@@ -54,6 +54,9 @@ void mat3x4AddMat3x4Out(
 );
 mat3x4 mat3x4AddMat3x4C(const mat3x4 m1, const mat3x4 m2);
 
+void mat3x4MultiplyS(mat3x4 *const restrict m, const float x);
+void mat3x4MultiplySOut(const mat3x4 *const restrict m, const float x, mat3x4 *const restrict out);
+mat3x4 mat3x4MultiplySOutC(mat3x4 m, const float x);
 void mat3x4MultiplyVec3(const mat3x4 *const restrict m, vec3 *const restrict v);
 void mat3x4MultiplyVec3Out(
 	const mat3x4 *const restrict m, const vec3 *const restrict v,
@@ -139,6 +142,11 @@ void mat3x4ScalePre(mat3x4 *const restrict m, const float x, const float y, cons
 mat3x4 mat3x4ScalePreC(mat3x4 m, const float x, const float y, const float z);
 void mat3x4ScalePreVec3(mat3x4 *const restrict m, const vec3 *const restrict v);
 mat3x4 mat3x4ScalePreVec3C(mat3x4 m, const vec3 v);
+
+float mat3x4FrobeniusNormSquared(const mat3x4 *const restrict m);
+float mat3x4FrobeniusNormSquaredC(const mat3x4 m);
+float mat3x4Trace(const mat3x4 *const restrict m);
+float mat3x4TraceC(const mat3x4 m);
 
 void mat3x4View(mat3x4 *const restrict m, const vec3 *const restrict pos, const mat3 *const restrict rot);
 mat3x4 mat3x4ViewC(const vec3 pos, const mat3 rot);

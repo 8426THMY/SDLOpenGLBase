@@ -8,16 +8,16 @@
 
 // We use this value when comparing non-negative numbers with 0.
 #define MAT3_ZERO_EPSILON 0.000001f
-#define TWO_PI_ON_THREE 2.09439510239319549f
 
 
 // Forward-declare any helper functions!
-static void ComputeEigenvector0(
+static float computeTrace(const float a, const float b, const float c);
+static void computeEigenvector0(
 	const float a00, const float a01, const float a02,
 	const float a11, const float a12, const float a22,
 	const float eval0, vec3 *const evec0
 );
-static void ComputeEigenvector1(
+static void computeEigenvector1(
 	const float a00, const float a01, const float a02,
 	const float a11, const float a12, const float a22,
 	const vec3 *const evec0, const float eval1, vec3 *const evec1
@@ -599,6 +599,47 @@ mat3 mat3AddMat3C(const mat3 m1, const mat3 m2){
 	return(out);
 }
 
+
+// Multiply "m" by "x"!
+void mat3MultiplyS(mat3 *const restrict m, const float x){
+	m->m[0][0] *= x;
+	m->m[0][1] *= x;
+	m->m[0][2] *= x;
+	m->m[1][0] *= x;
+	m->m[1][1] *= x;
+	m->m[1][2] *= x;
+	m->m[2][0] *= x;
+	m->m[2][1] *= x;
+	m->m[2][2] *= x;
+}
+
+// Multiply "m" by "x" and store the result in "out"!
+void mat3MultiplySOut(const mat3 *const restrict m, const float x, mat3 *const restrict out){
+	out->m[0][0] = m->m[0][0] * x;
+	out->m[0][1] = m->m[0][1] * x;
+	out->m[0][2] = m->m[0][2] * x;
+	out->m[1][0] = m->m[1][0] * x;
+	out->m[1][1] = m->m[1][1] * x;
+	out->m[1][2] = m->m[1][2] * x;
+	out->m[2][0] = m->m[2][0] * x;
+	out->m[2][1] = m->m[2][1] * x;
+	out->m[2][2] = m->m[2][2] * x;
+}
+
+// Multiply "m" by "x"!
+mat3 mat3MultiplySOutC(mat3 m, const float x){
+	m.m[0][0] *= x;
+	m.m[0][1] *= x;
+	m.m[0][2] *= x;
+	m.m[1][0] *= x;
+	m.m[1][1] *= x;
+	m.m[1][2] *= x;
+	m.m[2][0] *= x;
+	m.m[2][1] *= x;
+	m.m[2][2] *= x;
+
+	return(m);
+}
 
 // Left-multiply a column vector by a matrix (m*v)!
 void mat3MultiplyVec3(const mat3 *const restrict m, vec3 *const restrict v){
@@ -1257,6 +1298,34 @@ mat3 mat3TransposeC(const mat3 m){
 	return(out);
 }
 
+// Compute the squared Frobenius norm!
+float mat3FrobeniusNormSquared(const mat3 *const restrict m){
+	return(
+		m->m[0][0]*m->m[0][0] + m->m[0][1]*m->m[0][1] + m->m[0][2]*m->m[0][2] +
+		m->m[1][0]*m->m[1][0] + m->m[1][1]*m->m[1][1] + m->m[1][2]*m->m[1][2] +
+		m->m[2][0]*m->m[2][0] + m->m[2][1]*m->m[2][1] + m->m[2][2]*m->m[2][2]
+	);
+}
+
+// Compute the squared Frobenius norm!
+float mat3FrobeniusNormSquaredC(const mat3 m){
+	return(
+		m.m[0][0]*m.m[0][0] + m.m[0][1]*m.m[0][1] + m.m[0][2]*m.m[0][2] +
+		m.m[1][0]*m.m[1][0] + m.m[1][1]*m.m[1][1] + m.m[1][2]*m.m[1][2] +
+		m.m[2][0]*m.m[2][0] + m.m[2][1]*m.m[2][1] + m.m[2][2]*m.m[2][2]
+	);
+}
+
+// Compute the trace of a matrix!
+float mat3Trace(const mat3 *const restrict m){
+	return(m->m[0][0] + m->m[1][1] + m->m[2][2]);
+}
+
+// Compute the trace of a matrix!
+float mat3TraceC(const mat3 m){
+	return(m.m[0][0] + m.m[1][1] + m.m[2][2]);
+}
+
 // Calculate the determinant of a matrix!
 float mat3Determinant(const mat3 *const restrict m){
 	return(
@@ -1284,94 +1353,108 @@ float mat3DeterminantColumns(const float *const restrict r0, const float *const 
 	);
 }
 
+// Compute the adjugate transpose of a matrix!
+void mat3AdjugateTrans(const mat3 *const restrict m, mat3 *const restrict out){
+	vec3CrossVec3Out((const vec3 *)m->m[1], (const vec3 *)m->m[2], (vec3 *)out->m[0]);
+	vec3CrossVec3Out((const vec3 *)m->m[2], (const vec3 *)m->m[0], (vec3 *)out->m[1]);
+	vec3CrossVec3Out((const vec3 *)m->m[0], (const vec3 *)m->m[1], (vec3 *)out->m[2]);
+}
+
 // Invert a matrix!
 void mat3Invert(mat3 *const restrict m){
 	const mat3 tempMatrix = *m;
+	vec3 adjRow0;
+	float invDet;
 
-	// We need to use these values twice, but we only need to calculate them once.
-	// These values represent the cofactors c_{0,0}, c_{0,1} and c_{0,2}.
-	const float c00 = tempMatrix.m[1][1] * tempMatrix.m[2][2] - tempMatrix.m[2][1] * tempMatrix.m[1][2];
-	const float c01 = tempMatrix.m[2][1] * tempMatrix.m[0][2] - tempMatrix.m[0][1] * tempMatrix.m[2][2];
-	const float c02 = tempMatrix.m[0][1] * tempMatrix.m[1][2] - tempMatrix.m[1][1] * tempMatrix.m[0][2];
-	// Find the determinant of the matrix!
-	float invDet = tempMatrix.m[0][0] * c00 + tempMatrix.m[1][0] * c01 + tempMatrix.m[2][0] * c02;
+	// Compute the first row of the adjugate matrix.
+	vec3CrossVec3Out((const vec3 *)tempMatrix.m[1], (const vec3 *)tempMatrix.m[2], &adjRow0);
+	// Now compute the determinant using it!
+	invDet = tempMatrix.m[0][0] * adjRow0.x + tempMatrix.m[0][1] * adjRow0.y + tempMatrix.m[0][2] * adjRow0.z;
 
 	// Make sure we don't divide by 0!
 	if(invDet != 0.f){
+		vec3 adjRow1, adjRow2;
+		// Compute the remaining rows of the adjugate matrix.
+		vec3CrossVec3Out((const vec3 *)tempMatrix.m[2], (const vec3 *)tempMatrix.m[0], &adjRow1);
+		vec3CrossVec3Out((const vec3 *)tempMatrix.m[0], (const vec3 *)tempMatrix.m[1], &adjRow2);
+		// Remember to invert the determinant!
 		invDet = 1.f / invDet;
 
-		// Now use the determinant to find the inverse of the matrix!
-		// In terms of the adjugate, m^{-1} = adj(m)/det(m), where
-		//     adj(m)_{i,j} = c_{j,i}.
-		m->m[0][0] = c00 * invDet;
-		m->m[0][1] = c01 * invDet;
-		m->m[0][2] = c02 * invDet;
-		m->m[1][0] = (tempMatrix.m[2][0] * tempMatrix.m[1][2] - tempMatrix.m[1][0] * tempMatrix.m[2][2]) * invDet;
-		m->m[1][1] = (tempMatrix.m[0][0] * tempMatrix.m[2][2] - tempMatrix.m[2][0] * tempMatrix.m[0][2]) * invDet;
-		m->m[1][2] = (tempMatrix.m[0][2] * tempMatrix.m[1][0] - tempMatrix.m[0][0] * tempMatrix.m[1][2]) * invDet;
-		m->m[2][0] = (tempMatrix.m[1][0] * tempMatrix.m[2][1] - tempMatrix.m[2][0] * tempMatrix.m[1][1]) * invDet;
-		m->m[2][1] = (tempMatrix.m[0][1] * tempMatrix.m[2][0] - tempMatrix.m[0][0] * tempMatrix.m[2][1]) * invDet;
-		m->m[2][2] = (tempMatrix.m[0][0] * tempMatrix.m[1][1] - tempMatrix.m[0][1] * tempMatrix.m[1][0]) * invDet;
+		// Now use the adjugate to compute the
+		// inverse, m^{-1} = adj(m)/det(m)!
+		m->m[0][0] = adjRow0.x * invDet;
+		m->m[0][1] = adjRow1.x * invDet;
+		m->m[0][2] = adjRow2.x * invDet;
+		m->m[1][0] = adjRow0.y * invDet;
+		m->m[1][1] = adjRow1.y * invDet;
+		m->m[1][2] = adjRow2.y * invDet;
+		m->m[2][0] = adjRow0.z * invDet;
+		m->m[2][1] = adjRow1.z * invDet;
+		m->m[2][2] = adjRow2.z * invDet;
 	}
 }
 
 // Invert a matrix and store the result in "out"!
 void mat3InvertOut(const mat3 m, mat3 *const restrict out){
-	// We need to use these values twice, but we only need to calculate them once.
-	// These values represent the cofactors c_{0,0}, c_{0,1} and c_{0,2}.
-	const float c00 = m.m[1][1] * m.m[2][2] - m.m[2][1] * m.m[1][2];
-	const float c01 = m.m[2][1] * m.m[0][2] - m.m[0][1] * m.m[2][2];
-	const float c02 = m.m[0][1] * m.m[1][2] - m.m[1][1] * m.m[0][2];
-	// Find the determinant of the matrix!
-	float invDet = m.m[0][0] * c00 + m.m[1][0] * c01 + m.m[2][0] * c02;
+	vec3 adjRow0;
+	float invDet;
+
+	// Compute the first row of the adjugate matrix.
+	vec3CrossVec3Out((const vec3 *)m.m[1], (const vec3 *)m.m[2], &adjRow0);
+	// Now compute the determinant using it!
+	invDet = m.m[0][0] * adjRow0.x + m.m[0][1] * adjRow0.y + m.m[0][2] * adjRow0.z;
 
 	// Make sure we don't divide by 0!
 	if(invDet != 0.f){
+		vec3 adjRow1, adjRow2;
+		// Compute the remaining rows of the adjugate matrix.
+		vec3CrossVec3Out((const vec3 *)m.m[2], (const vec3 *)m.m[0], &adjRow1);
+		vec3CrossVec3Out((const vec3 *)m.m[0], (const vec3 *)m.m[1], &adjRow2);
+		// Remember to invert the determinant!
 		invDet = 1.f / invDet;
 
-		// Now use the determinant to find the inverse of the matrix!
-		// In terms of the adjugate, m^{-1} = adj(m)/det(m), where
-		//     adj(m)_{i,j} = c_{j,i}.
-		out->m[0][0] = c00 * invDet;
-		out->m[0][1] = c01 * invDet;
-		out->m[0][2] = c02 * invDet;
-		out->m[1][0] = (m.m[2][0] * m.m[1][2] - m.m[1][0] * m.m[2][2]) * invDet;
-		out->m[1][1] = (m.m[0][0] * m.m[2][2] - m.m[2][0] * m.m[0][2]) * invDet;
-		out->m[1][2] = (m.m[0][2] * m.m[1][0] - m.m[0][0] * m.m[1][2]) * invDet;
-		out->m[2][0] = (m.m[1][0] * m.m[2][1] - m.m[2][0] * m.m[1][1]) * invDet;
-		out->m[2][1] = (m.m[0][1] * m.m[2][0] - m.m[0][0] * m.m[2][1]) * invDet;
-		out->m[2][2] = (m.m[0][0] * m.m[1][1] - m.m[0][1] * m.m[1][0]) * invDet;
+		// Now use the adjugate to compute the
+		// inverse, m^{-1} = adj(m)/det(m)!
+		out->m[0][0] = adjRow0.x * invDet;
+		out->m[0][1] = adjRow1.x * invDet;
+		out->m[0][2] = adjRow2.x * invDet;
+		out->m[1][0] = adjRow0.y * invDet;
+		out->m[1][1] = adjRow1.y * invDet;
+		out->m[1][2] = adjRow2.y * invDet;
+		out->m[2][0] = adjRow0.z * invDet;
+		out->m[2][1] = adjRow1.z * invDet;
+		out->m[2][2] = adjRow2.z * invDet;
 	}
 }
 
 // Invert a matrix!
 mat3 mat3InvertC(const mat3 m){
-	// We need to use these values twice, but we only need to calculate them once.
-	// These values represent the cofactors c_{0,0}, c_{0,1} and c_{0,2}.
-	const float c00 = m.m[1][1] * m.m[2][2] - m.m[2][1] * m.m[1][2];
-	const float c01 = m.m[2][1] * m.m[0][2] - m.m[0][1] * m.m[2][2];
-	const float c02 = m.m[0][1] * m.m[1][2] - m.m[1][1] * m.m[0][2];
-	// Find the determinant of the matrix!
-	float invDet = m.m[0][0] * c00 + m.m[1][0] * c01 + m.m[2][0] * c02;
+	// Compute the first row of the adjugate matrix.
+	const vec3 adjRow0 = vec3CrossVec3C(*((const vec3 *)m.m[1]), *((const vec3 *)m.m[2]));
+	// Now compute the determinant using it!
+	float invDet = m.m[0][0] * adjRow0.x + m.m[0][1] * adjRow0.y + m.m[0][2] * adjRow0.z;
 
 	// Make sure we don't divide by 0!
 	if(invDet != 0.f){
 		mat3 out;
 
+		// Compute the remaining rows of the adjugate matrix.
+		const vec3 adjRow1 = vec3CrossVec3C(*((const vec3 *)m.m[2]), *((const vec3 *)m.m[0]));
+		const vec3 adjRow2 = vec3CrossVec3C(*((const vec3 *)m.m[0]), *((const vec3 *)m.m[1]));
+		// Remember to invert the determinant!
 		invDet = 1.f / invDet;
 
-		// Now use the determinant to find the inverse of the matrix!
-		// In terms of the adjugate, m^{-1} = adj(m)/det(m), where
-		//     adj(m)_{i,j} = c_{j,i}.
-		out.m[0][0] = c00 * invDet;
-		out.m[0][1] = c01 * invDet;
-		out.m[0][2] = c02 * invDet;
-		out.m[1][0] = (m.m[2][0] * m.m[1][2] - m.m[1][0] * m.m[2][2]) * invDet;
-		out.m[1][1] = (m.m[0][0] * m.m[2][2] - m.m[2][0] * m.m[0][2]) * invDet;
-		out.m[1][2] = (m.m[0][2] * m.m[1][0] - m.m[0][0] * m.m[1][2]) * invDet;
-		out.m[2][0] = (m.m[1][0] * m.m[2][1] - m.m[2][0] * m.m[1][1]) * invDet;
-		out.m[2][1] = (m.m[0][1] * m.m[2][0] - m.m[0][0] * m.m[2][1]) * invDet;
-		out.m[2][2] = (m.m[0][0] * m.m[1][1] - m.m[0][1] * m.m[1][0]) * invDet;
+		// Now use the adjugate to compute the
+		// inverse, m^{-1} = adj(m)/det(m)!
+		out.m[0][0] = adjRow0.x * invDet;
+		out.m[0][1] = adjRow1.x * invDet;
+		out.m[0][2] = adjRow2.x * invDet;
+		out.m[1][0] = adjRow0.y * invDet;
+		out.m[1][1] = adjRow1.y * invDet;
+		out.m[1][2] = adjRow2.y * invDet;
+		out.m[2][0] = adjRow0.z * invDet;
+		out.m[2][1] = adjRow1.z * invDet;
+		out.m[2][2] = adjRow2.z * invDet;
 
 		return(out);
 	}
@@ -1383,31 +1466,34 @@ mat3 mat3InvertC(const mat3 m){
 // Invert a matrix and return whether or not we were successful!
 return_t mat3CanInvert(mat3 *const restrict m){
 	const mat3 tempMatrix = *m;
+	vec3 adjRow0;
+	float invDet;
 
-	// We need to use these values twice, but we only need to calculate them once.
-	// These values represent the cofactors c_{0,0}, c_{0,1} and c_{0,2}.
-	const float c00 = tempMatrix.m[1][1] * tempMatrix.m[2][2] - tempMatrix.m[2][1] * tempMatrix.m[1][2];
-	const float c01 = tempMatrix.m[2][1] * tempMatrix.m[0][2] - tempMatrix.m[0][1] * tempMatrix.m[2][2];
-	const float c02 = tempMatrix.m[0][1] * tempMatrix.m[1][2] - tempMatrix.m[1][1] * tempMatrix.m[0][2];
-	// Find the determinant of the matrix!
-	float invDet = tempMatrix.m[0][0] * c00 + tempMatrix.m[1][0] * c01 + tempMatrix.m[2][0] * c02;
+	// Compute the first row of the adjugate matrix.
+	vec3CrossVec3Out((const vec3 *)tempMatrix.m[1], (const vec3 *)tempMatrix.m[2], &adjRow0);
+	// Now compute the determinant using it!
+	invDet = tempMatrix.m[0][0] * adjRow0.x + tempMatrix.m[0][1] * adjRow0.y + tempMatrix.m[0][2] * adjRow0.z;
 
 	// Make sure we don't divide by 0!
 	if(invDet != 0.f){
+		vec3 adjRow1, adjRow2;
+		// Compute the remaining rows of the adjugate matrix.
+		vec3CrossVec3Out((const vec3 *)tempMatrix.m[2], (const vec3 *)tempMatrix.m[0], &adjRow1);
+		vec3CrossVec3Out((const vec3 *)tempMatrix.m[0], (const vec3 *)tempMatrix.m[1], &adjRow2);
+		// Remember to invert the determinant!
 		invDet = 1.f / invDet;
 
-		// Now use the determinant to find the inverse of the matrix!
-		// In terms of the adjugate, m^{-1} = adj(m)/det(m), where
-		//     adj(m)_{i,j} = c_{j,i}.
-		m->m[0][0] = c00 * invDet;
-		m->m[0][1] = c01 * invDet;
-		m->m[0][2] = c02 * invDet;
-		m->m[1][0] = (tempMatrix.m[2][0] * tempMatrix.m[1][2] - tempMatrix.m[1][0] * tempMatrix.m[2][2]) * invDet;
-		m->m[1][1] = (tempMatrix.m[0][0] * tempMatrix.m[2][2] - tempMatrix.m[2][0] * tempMatrix.m[0][2]) * invDet;
-		m->m[1][2] = (tempMatrix.m[0][2] * tempMatrix.m[1][0] - tempMatrix.m[0][0] * tempMatrix.m[1][2]) * invDet;
-		m->m[2][0] = (tempMatrix.m[1][0] * tempMatrix.m[2][1] - tempMatrix.m[2][0] * tempMatrix.m[1][1]) * invDet;
-		m->m[2][1] = (tempMatrix.m[0][1] * tempMatrix.m[2][0] - tempMatrix.m[0][0] * tempMatrix.m[2][1]) * invDet;
-		m->m[2][2] = (tempMatrix.m[0][0] * tempMatrix.m[1][1] - tempMatrix.m[0][1] * tempMatrix.m[1][0]) * invDet;
+		// Now use the adjugate to compute the
+		// inverse, m^{-1} = adj(m)/det(m)!
+		m->m[0][0] = adjRow0.x * invDet;
+		m->m[0][1] = adjRow1.x * invDet;
+		m->m[0][2] = adjRow2.x * invDet;
+		m->m[1][0] = adjRow0.y * invDet;
+		m->m[1][1] = adjRow1.y * invDet;
+		m->m[1][2] = adjRow2.y * invDet;
+		m->m[2][0] = adjRow0.z * invDet;
+		m->m[2][1] = adjRow1.z * invDet;
+		m->m[2][2] = adjRow2.z * invDet;
 
 
 		return(1);
@@ -1421,33 +1507,35 @@ return_t mat3CanInvert(mat3 *const restrict m){
 ** Invert a matrix, storing the result in "out"
 ** and returning whether or not we were successful!
 */
-return_t mat3CanInvertOut(const mat3 *const restrict m, mat3 *const restrict out){
-	const mat3 tempMatrix = *m;
+return_t mat3CanInvertOut(const mat3 m, mat3 *const restrict out){
+	vec3 adjRow0;
+	float invDet;
 
-	// We need to use these values twice, but we only need to calculate them once.
-	// These values represent the cofactors c_{0,0}, c_{0,1} and c_{0,2}.
-	const float c00 = tempMatrix.m[1][1] * tempMatrix.m[2][2] - tempMatrix.m[2][1] * tempMatrix.m[1][2];
-	const float c01 = tempMatrix.m[2][1] * tempMatrix.m[0][2] - tempMatrix.m[0][1] * tempMatrix.m[2][2];
-	const float c02 = tempMatrix.m[0][1] * tempMatrix.m[1][2] - tempMatrix.m[1][1] * tempMatrix.m[0][2];
-	// Find the determinant of the matrix!
-	float invDet = tempMatrix.m[0][0] * c00 + tempMatrix.m[1][0] * c01 + tempMatrix.m[2][0] * c02;
+	// Compute the first row of the adjugate matrix.
+	vec3CrossVec3Out((const vec3 *)m.m[1], (const vec3 *)m.m[2], &adjRow0);
+	// Now compute the determinant using it!
+	invDet = m.m[0][0] * adjRow0.x + m.m[0][1] * adjRow0.y + m.m[0][2] * adjRow0.z;
 
 	// Make sure we don't divide by 0!
 	if(invDet != 0.f){
+		vec3 adjRow1, adjRow2;
+		// Compute the remaining rows of the adjugate matrix.
+		vec3CrossVec3Out((const vec3 *)m.m[2], (const vec3 *)m.m[0], &adjRow1);
+		vec3CrossVec3Out((const vec3 *)m.m[0], (const vec3 *)m.m[1], &adjRow2);
+		// Remember to invert the determinant!
 		invDet = 1.f / invDet;
 
-		// Now use the determinant to find the inverse of the matrix!
-		// In terms of the adjugate, m^{-1} = adj(m)/det(m), where
-		//     adj(m)_{i,j} = c_{j,i}.
-		out->m[0][0] = c00 * invDet;
-		out->m[0][1] = c01 * invDet;
-		out->m[0][2] = c02 * invDet;
-		out->m[1][0] = (tempMatrix.m[2][0] * tempMatrix.m[1][2] - tempMatrix.m[1][0] * tempMatrix.m[2][2]) * invDet;
-		out->m[1][1] = (tempMatrix.m[0][0] * tempMatrix.m[2][2] - tempMatrix.m[2][0] * tempMatrix.m[0][2]) * invDet;
-		out->m[1][2] = (tempMatrix.m[0][2] * tempMatrix.m[1][0] - tempMatrix.m[0][0] * tempMatrix.m[1][2]) * invDet;
-		out->m[2][0] = (tempMatrix.m[1][0] * tempMatrix.m[2][1] - tempMatrix.m[2][0] * tempMatrix.m[1][1]) * invDet;
-		out->m[2][1] = (tempMatrix.m[0][1] * tempMatrix.m[2][0] - tempMatrix.m[0][0] * tempMatrix.m[2][1]) * invDet;
-		out->m[2][2] = (tempMatrix.m[0][0] * tempMatrix.m[1][1] - tempMatrix.m[0][1] * tempMatrix.m[1][0]) * invDet;
+		// Now use the adjugate to compute the
+		// inverse, m^{-1} = adj(m)/det(m)!
+		out->m[0][0] = adjRow0.x * invDet;
+		out->m[0][1] = adjRow1.x * invDet;
+		out->m[0][2] = adjRow2.x * invDet;
+		out->m[1][0] = adjRow0.y * invDet;
+		out->m[1][1] = adjRow1.y * invDet;
+		out->m[1][2] = adjRow2.y * invDet;
+		out->m[2][0] = adjRow0.z * invDet;
+		out->m[2][1] = adjRow1.z * invDet;
+		out->m[2][2] = adjRow2.z * invDet;
 
 
 		return(1);
@@ -1473,11 +1561,11 @@ void mat3Solve(const mat3 *const restrict A, const vec3 *const restrict b, vec3 
 		invDet = 1.f / invDet;
 
 		// x_0 = det(A_0)/det(A)
-		x->x = mat3DeterminantColumns((const float *const restrict)b, A->m[1], A->m[2]) * invDet;
+		x->x = mat3DeterminantColumns((const float *)b, A->m[1], A->m[2]) * invDet;
 		// x_1 = det(A_1)/det(A)
-		x->y = mat3DeterminantColumns(A->m[0], (const float *const restrict)b, A->m[2]) * invDet;
+		x->y = mat3DeterminantColumns(A->m[0], (const float *)b, A->m[2]) * invDet;
 		// x_2 = det(A_2)/det(A)
-		x->z = mat3DeterminantColumns(A->m[0], A->m[1], (const float *const restrict)b) * invDet;
+		x->z = mat3DeterminantColumns(A->m[0], A->m[1], (const float *)b) * invDet;
 	}else{
 		vec3InitZero(x);
 	}
@@ -1490,11 +1578,11 @@ vec3 mat3SolveC(const mat3 A, const vec3 b){
 
 		return(vec3InitSetC(
 			// x_0 = det(A_0)/det(A)
-			mat3DeterminantColumns((const float *const restrict)&b, A.m[1], A.m[2]) * invDet,
+			mat3DeterminantColumns((const float *)&b, A.m[1], A.m[2]) * invDet,
 			// x_1 = det(A_1)/det(A)
-			mat3DeterminantColumns(A.m[0], (const float *const restrict)&b, A.m[2]) * invDet,
+			mat3DeterminantColumns(A.m[0], (const float *)&b, A.m[2]) * invDet,
 			// x_2 = det(A_2)/det(A)
-			mat3DeterminantColumns(A.m[0], A.m[1], (const float *const restrict)&b) * invDet
+			mat3DeterminantColumns(A.m[0], A.m[1], (const float *)&b) * invDet
 		));
 	}
 
@@ -1511,11 +1599,11 @@ return_t mat3CanSolve(const mat3 *const restrict A, const vec3 *const restrict b
 		invDet = 1.f / invDet;
 
 		// x_0 = det(A_0)/det(A)
-		x->x = mat3DeterminantColumns((const float *const restrict)b, A->m[1], A->m[2]) * invDet;
+		x->x = mat3DeterminantColumns((const float *)b, A->m[1], A->m[2]) * invDet;
 		// x_1 = det(A_1)/det(A)
-		x->y = mat3DeterminantColumns(A->m[0], (const float *const restrict)b, A->m[2]) * invDet;
+		x->y = mat3DeterminantColumns(A->m[0], (const float *)b, A->m[2]) * invDet;
 		// x_2 = det(A_2)/det(A)
-		x->z = mat3DeterminantColumns(A->m[0], A->m[1], (const float *const restrict)b) * invDet;
+		x->z = mat3DeterminantColumns(A->m[0], A->m[1], (const float *)b) * invDet;
 
 		return(1);
 	}else{
@@ -1532,11 +1620,11 @@ return_t mat3CanSolveC(const mat3 A, const vec3 b, vec3 *const restrict x){
 
 		*x = vec3InitSetC(
 			// x_0 = det(A_0)/det(A)
-			mat3DeterminantColumns((const float *const restrict)&b, A.m[1], A.m[2]) * invDet,
+			mat3DeterminantColumns((const float *)&b, A.m[1], A.m[2]) * invDet,
 			// x_1 = det(A_1)/det(A)
-			mat3DeterminantColumns(A.m[0], (const float *const restrict)&b, A.m[2]) * invDet,
+			mat3DeterminantColumns(A.m[0], (const float *)&b, A.m[2]) * invDet,
 			// x_2 = det(A_2)/det(A)
-			mat3DeterminantColumns(A.m[0], A.m[1], (const float *const restrict)&b) * invDet
+			mat3DeterminantColumns(A.m[0], A.m[1], (const float *)&b) * invDet
 		);
 
 		return(1);
@@ -1547,6 +1635,65 @@ return_t mat3CanSolveC(const mat3 A, const vec3 b, vec3 *const restrict x){
 	return(0);
 }
 
+
+/*
+** Given a matrix A, we would like to factor it as A = RS, where
+** R is a rotation (orthogonal matrix) and S is a shear (a positive
+** semi-definite symmetric matrix). We return the matrix R, but
+** the shear can of course easily be computed using S = R^T A.
+**
+** We use the algorithm provided by theorangeduck in their blog post:
+**     https://theorangeduck.com/page/closed-form-matrix-decompositions
+** This is inspired by the 2021 paper of Lin, Chitalu and Komura's,
+** titled "Isotropic ARAP energy using Cauchy-Green invariants".
+**
+** Notably, this method is closed-form, as opposed to the usual
+** iterative solutions. According to their (and my!) benchmarks,
+** it appears to outperform even optimized iterative algorithms.
+*/
+void mat3PolarDecompose(const mat3 *const restrict A, mat3 *const restrict R){
+	mat3 ATA;
+	mat3TransMultiplyMat3Out(*A, *A, &ATA);
+
+	{
+		// We first note that if f = tr(A^T R), then df/dA = R by a general
+		// matrix identity. By a result of Lin, Chitalu and Komura, this
+		// trace is actually the largest real root of the polynomial
+		//     x^4 - 2I_C x^2 - 8Jx + 2II_C - I_C^2 = 0,
+		// where I_C = tr(A^T A), II_C = ||A^T A||_F^2 (||.||_F denotes the
+		// Frobenius norm) and III_C = J^2 = det(M)^2 are the Cauchy-Green
+		// invariants of A.
+		const float IC  = mat3Trace(&ATA);
+		const float IIC = mat3FrobeniusNormSquared(&ATA);
+		const float n8J = -8.f*mat3Determinant(A);
+		// Compute tr(A^T R) by finding the largest
+		// real root of the polynomial given above.
+		const float f = computeTrace(-2.f*IC, n8J, 2.f*IIC - IC*IC);
+
+		// Now, applying the chain rule to R = df/dA, we get
+		//     R = (df/dI_C)(dI_C/dA) + (df/dII_C)(dII_C/dA) + (df/dJ)(dJ/dA),
+		// where these partial derivatives are given as follows.
+		const float f2    = f*f;
+		// Note that we multiply the denominator by
+		// 8 to save some multiplications later on.
+		const float denom = 8.f/(4.f*f2*f - 4.f*IC*f - n8J);
+		mat3 tempMatrix;
+
+		// df/dI_C = (2f^2 + 2I_C)/(4f^3 - 4I_C f - 8J)
+		// dI_C/dA = A
+		mat3MultiplySOut(A, (f2 + IC)*denom/4.f, R);
+		// df/dII_C = -2/(4f^3 - 4I_C f - 8J)
+		// dII_C/dA = 4AA^T A
+		mat3MultiplyMat3Out(*A, ATA, &tempMatrix);
+		mat3MultiplyS(&tempMatrix, -denom);
+		mat3AddMat3(R, &tempMatrix);
+		// df/dJ = 8f/(4f^3 - 4I_C f - 8J)
+		// dJ/dA = adj(A)^T
+		mat3AdjugateTrans(A, &tempMatrix);
+		mat3MultiplyS(&tempMatrix, f*denom);
+		mat3AddMat3(R, &tempMatrix);
+	}
+}
 
 /*
 ** Diagonalize a symmetric 3x3 matrix A and return its eigenvalues
@@ -1637,12 +1784,12 @@ void mat3DiagonalizeSymmetric(
 				// Compute the eigenvectors so that they form
 				// an ordered, right-handed, orthonormal set.
 				if(halfDet >= 0.f){
-					ComputeEigenvector0(a00, a01, a02, a11, a12, a22, evals->z, (vec3 *)Qmat.m[2]);
-					ComputeEigenvector1(a00, a01, a02, a11, a12, a22, (vec3 *)Qmat.m[2], evals->y, (vec3 *)Qmat.m[1]);
+					computeEigenvector0(a00, a01, a02, a11, a12, a22, evals->z, (vec3 *)Qmat.m[2]);
+					computeEigenvector1(a00, a01, a02, a11, a12, a22, (vec3 *)Qmat.m[2], evals->y, (vec3 *)Qmat.m[1]);
 					vec3CrossVec3Out((vec3 *)Qmat.m[1], (vec3 *)Qmat.m[2], (vec3 *)Qmat.m[0]);
 				}else{
-					ComputeEigenvector0(a00, a01, a02, a11, a12, a22, evals->x, (vec3 *)Qmat.m[0]);
-					ComputeEigenvector1(a00, a01, a02, a11, a12, a22, (vec3 *)Qmat.m[0], evals->y, (vec3 *)Qmat.m[1]);
+					computeEigenvector0(a00, a01, a02, a11, a12, a22, evals->x, (vec3 *)Qmat.m[0]);
+					computeEigenvector1(a00, a01, a02, a11, a12, a22, (vec3 *)Qmat.m[0], evals->y, (vec3 *)Qmat.m[1]);
 					vec3CrossVec3Out((vec3 *)Qmat.m[0], (vec3 *)Qmat.m[1], (vec3 *)Qmat.m[2]);
 				}
 				// Convert the matrix for Q to a quaternion.
@@ -1793,8 +1940,87 @@ mat3 quatToMat3C(const quat q){
 }
 
 
+void mat3Lerp(const mat3 *const restrict m1, const mat3 *const restrict m2, const float time, mat3 *const restrict out){
+	out->m[0][0] = floatLerpFast(m1->m[0][0], m2->m[0][0], time);
+	out->m[0][1] = floatLerpFast(m1->m[0][1], m2->m[0][1], time);
+	out->m[0][2] = floatLerpFast(m1->m[0][2], m2->m[0][2], time);
+	out->m[1][0] = floatLerpFast(m1->m[1][0], m2->m[1][0], time);
+	out->m[1][1] = floatLerpFast(m1->m[1][1], m2->m[1][1], time);
+	out->m[1][2] = floatLerpFast(m1->m[1][2], m2->m[1][2], time);
+	out->m[2][0] = floatLerpFast(m1->m[2][0], m2->m[2][0], time);
+	out->m[2][1] = floatLerpFast(m1->m[2][1], m2->m[2][1], time);
+	out->m[2][2] = floatLerpFast(m1->m[2][2], m2->m[2][2], time);
+}
+
+mat3 mat3LerpC(mat3 m1, const mat3 m2, const float time){
+	m1.m[0][0] = floatLerpFast(m1.m[0][0], m2.m[0][0], time);
+	m1.m[0][1] = floatLerpFast(m1.m[0][1], m2.m[0][1], time);
+	m1.m[0][2] = floatLerpFast(m1.m[0][2], m2.m[0][2], time);
+	m1.m[1][0] = floatLerpFast(m1.m[1][0], m2.m[1][0], time);
+	m1.m[1][1] = floatLerpFast(m1.m[1][1], m2.m[1][1], time);
+	m1.m[1][2] = floatLerpFast(m1.m[1][2], m2.m[1][2], time);
+	m1.m[2][0] = floatLerpFast(m1.m[2][0], m2.m[2][0], time);
+	m1.m[2][1] = floatLerpFast(m1.m[2][1], m2.m[2][1], time);
+	m1.m[2][2] = floatLerpFast(m1.m[2][2], m2.m[2][2], time);
+
+	return(m1);
+}
+
+
+/*
+** Find the largest real root of the depressed quartic
+**     x^4 + ax^2 + bx + c = 0,
+** using Ferrari's method. This is used when we compute the
+** trace tr(A^T R) for our polar decomposition algorithm.
+*/
+static float computeTrace(const float a, const float b, const float c){
+	// Rather than solving the quartic directly, we'll
+	// first solve the resolvent cubic, which is given by
+	//     m^3 + am^2 + (a^2/4 - c)m - b^2/8 = 0.
+	// Making the substitution m = y - a/3, we can write
+	//     y^3 + py + q = 0,
+	// where p = -a^2/12 - c and q = -a^3/108 + ac/3 - b^2/8.
+	const float adiv3 = a/3.f;
+	const float adiv3sq = adiv3*adiv3;
+	const float npdiv3 = adiv3sq/4.f + c/3.f;
+	const float qdiv2 = -adiv3sq*adiv3/8.f + adiv3*c/2.f - b*b/16.f;
+	// Compute a scaling of the discriminant. Normally,
+	// D = -4p^3 - 27q^2, but we compute sD = -D/108.
+	const float sD = qdiv2*qdiv2 - npdiv3*npdiv3*npdiv3;
+	float y;
+
+	// If the discriminant is negative, there's only
+	// one real root, so we can use Cardano's formula.
+	if(sD >= 0.f){
+		const float u = cbrt(-qdiv2 + sqrtf(sD));
+        // If u = 0, then sqrt(sD) = q/2, so
+        // cbrt(-q/2 - sqrt(sD)) = -cbrt(q).
+        // Otherwise, it's given by -p/3u.
+        y = (fabsf(u) < MAT3_ZERO_EPSILON) ? -cbrtf(2.f*qdiv2) : (u - npdiv3/u);
+
+	// Otherwise, we have three real roots, so we'll need to
+	// use an ugly trigonometric formula to avoid working
+	// with complex numbers. We also want the largest root.
+	}else{
+		const float rt = sqrtf(npdiv3);
+		const float ac = acosf(-qdiv2/(npdiv3*rt))/3.f;
+		// Note that the third root (where we add -2pi/3)
+		// is actually never the largest, so we can
+		// happily ignore it to simplify things a bit.
+		y = (ac <= M_PI_2) ? 2.f*rt*cosf(ac) : 2.f*rt*cosf(ac + TWO_PI_ON_THREE);
+	}
+
+	// Now that we've computed y, we can easily solve for m,
+	// and it remains to compute x using Ferrari's method:
+	//     x = (sqrt(2m) + sqrt(-(2a + 2m + 2b/sqrt(2m))))/2.
+	{
+		const float rt2m = sqrtf(2.f*(y - adiv3));
+		return(0.5f*(rt2m + sqrtf(-2.f*(2.f*adiv3 + y + b/rt2m))));
+	}
+}
+
 // Compute a normalized eigenvector for eigenvalue 0.
-static void ComputeEigenvector0(
+static void computeEigenvector0(
 	const float a00, const float a01, const float a02,
 	const float a11, const float a12, const float a22,
 	const float eval0, vec3 *const evec0
@@ -1829,7 +2055,7 @@ static void ComputeEigenvector0(
 ** Compute a normalized eigenvector for eigenvalue 1 that
 ** is orthogonal to the one computed for eigenvalue 0.
 */
-static void ComputeEigenvector1(
+static void computeEigenvector1(
 	const float a00, const float a01, const float a02,
 	const float a11, const float a12, const float a22,
 	const vec3 *const evec0, const float eval1, vec3 *const evec1
@@ -1908,31 +2134,4 @@ static void ComputeEigenvector1(
 			}
 		}
 	}
-}
-
-
-void mat3Lerp(const mat3 *const restrict m1, const mat3 *const restrict m2, const float time, mat3 *const restrict out){
-	out->m[0][0] = floatLerpFast(m1->m[0][0], m2->m[0][0], time);
-	out->m[0][1] = floatLerpFast(m1->m[0][1], m2->m[0][1], time);
-	out->m[0][2] = floatLerpFast(m1->m[0][2], m2->m[0][2], time);
-	out->m[1][0] = floatLerpFast(m1->m[1][0], m2->m[1][0], time);
-	out->m[1][1] = floatLerpFast(m1->m[1][1], m2->m[1][1], time);
-	out->m[1][2] = floatLerpFast(m1->m[1][2], m2->m[1][2], time);
-	out->m[2][0] = floatLerpFast(m1->m[2][0], m2->m[2][0], time);
-	out->m[2][1] = floatLerpFast(m1->m[2][1], m2->m[2][1], time);
-	out->m[2][2] = floatLerpFast(m1->m[2][2], m2->m[2][2], time);
-}
-
-mat3 mat3LerpC(mat3 m1, const mat3 m2, const float time){
-	m1.m[0][0] = floatLerpFast(m1.m[0][0], m2.m[0][0], time);
-	m1.m[0][1] = floatLerpFast(m1.m[0][1], m2.m[0][1], time);
-	m1.m[0][2] = floatLerpFast(m1.m[0][2], m2.m[0][2], time);
-	m1.m[1][0] = floatLerpFast(m1.m[1][0], m2.m[1][0], time);
-	m1.m[1][1] = floatLerpFast(m1.m[1][1], m2.m[1][1], time);
-	m1.m[1][2] = floatLerpFast(m1.m[1][2], m2.m[1][2], time);
-	m1.m[2][0] = floatLerpFast(m1.m[2][0], m2.m[2][0], time);
-	m1.m[2][1] = floatLerpFast(m1.m[2][1], m2.m[2][1], time);
-	m1.m[2][2] = floatLerpFast(m1.m[2][2], m2.m[2][2], time);
-
-	return(m1);
 }

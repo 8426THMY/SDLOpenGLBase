@@ -68,6 +68,32 @@ mat2 mat2AddMat2C(const mat2 m1, const mat2 m2){
 }
 
 
+// Multiply "m" by "x"!
+void mat2MultiplyS(mat2 *const restrict m, const float x){
+	m->m[0][0] *= x;
+	m->m[0][1] *= x;
+	m->m[1][0] *= x;
+	m->m[1][1] *= x;
+}
+
+// Multiply "m" by "x" and store the result in "out"!
+void mat2MultiplySOut(const mat2 *const restrict m, const float x, mat2 *const restrict out){
+	out->m[0][0] = m->m[0][0] * x;
+	out->m[0][1] = m->m[0][1] * x;
+	out->m[1][0] = m->m[1][0] * x;
+	out->m[1][1] = m->m[1][1] * x;
+}
+
+// Multiply "m" by "x"!
+mat2 mat2MultiplySOutC(mat2 m, const float x){
+	m.m[0][0] *= x;
+	m.m[0][1] *= x;
+	m.m[1][0] *= x;
+	m.m[1][1] *= x;
+
+	return(m);
+}
+
 // Left-multiply a column vector by a matrix (m*v)!
 void mat2MultiplyVec2(const mat2 *const restrict m, vec2 *const restrict v){
 	const vec2 temp = *v;
@@ -292,6 +318,32 @@ mat2 mat2TransposeC(const mat2 m){
 	};
 
 	return(out);
+}
+
+// Compute the squared Frobenius norm!
+float mat2FrobeniusNormSquared(const mat2 *const restrict m){
+	return(
+		m->m[0][0]*m->m[0][0] + m->m[0][1]*m->m[0][1] +
+		m->m[1][0]*m->m[1][0] + m->m[1][1]*m->m[1][1]
+	);
+}
+
+// Compute the squared Frobenius norm!
+float mat2FrobeniusNormSquaredC(const mat2 m){
+	return(
+		m.m[0][0]*m.m[0][0] + m.m[0][1]*m.m[0][1] +
+		m.m[1][0]*m.m[1][0] + m.m[1][1]*m.m[1][1]
+	);
+}
+
+// Compute the trace of a matrix!
+float mat2Trace(const mat2 *const restrict m){
+	return(m->m[0][0] + m->m[1][1]);
+}
+
+// Compute the trace of a matrix!
+float mat2TraceC(const mat2 m){
+	return(m.m[0][0] + m.m[1][1]);
 }
 
 // Calculate the determinant of a matrix!
