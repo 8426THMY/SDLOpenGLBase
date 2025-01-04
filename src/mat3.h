@@ -123,7 +123,7 @@ vec3 mat3SolveC(const mat3 A, const vec3 b);
 return_t mat3CanSolve(const mat3 *const restrict A, const vec3 *const restrict b, vec3 *const restrict x);
 return_t mat3CanSolveC(const mat3 A, const vec3 b, vec3 *const restrict x);
 
-void mat3PolarDecompose(const mat3 *const restrict A, mat3 *const restrict R);
+void mat3PolarDecompose(mat3 A, mat3 *const restrict R);
 void mat3DiagonalizeSymmetric(
 	float a00, float a01, float a02,
 	float a11, float a12, float a22,

@@ -664,7 +664,6 @@ transform transformInterpSetC(const transform trans1, const transform trans2, co
 		.rot   = quatSlerpFasterC(trans1.rot, trans2.rot, time),
 		.scale = mat3LerpC(trans1.scale, trans2.scale, time)
 	};
-	return(out);
 	#else
 	const transform out = {
 		.pos   = vec3LerpC(trans1.pos, trans2.pos, time),
@@ -672,8 +671,9 @@ transform transformInterpSetC(const transform trans1, const transform trans2, co
 		.scale = vec3LerpC(trans1.scale, trans2.scale, time),
 		.shear = quatSlerpFasterC(trans1.shear, trans2.shear, time)
 	};
-	return(out);
 	#endif
+
+	return(out);
 }
 
 // Interpolate between two states and add the offsets to "out"!
@@ -799,6 +799,221 @@ mat4 transformToMat4C(const transform trans){
 		trans.pos
 	));
 	#endif
+}
+
+// Convert a 3x3 transformation matrix to a transformation state.
+void mat3ToTransform(const mat3 *const restrict A, transform *const restrict out){
+	mat3 rot;
+
+	#ifdef TRANSFORM_MATRIX_SHEAR
+	// A 3x3 matrix has no translation component.
+	vec3InitZero(&out->pos);
+	// Extract the rotation from the total transformation.
+	mat3PolarDecompose(*A, &rot);
+	mat3ToQuat(&rot, &out->rot);
+	// The shear is then given by R^T A.
+	mat3TransMultiplyMat3Out(rot, *A, &out->scale);
+	#else
+	// A 3x3 matrix has no translation component.
+	vec3InitZero(&out->pos);
+	// Extract the rotation from the total transformation.
+	mat3PolarDecompose(*A, &rot);
+	mat3ToQuat(&rot, &out->rot);
+	// The shear is then given by R^T A.
+	// The shear matrices are symmetric, so we
+	// do the multiplication here to save time.
+	mat3DiagonalizeSymmetric(
+		rot.m[0][0]*A->m[0][0] + rot.m[0][1]*A->m[0][1] + rot.m[0][2]*A->m[0][2],
+		rot.m[0][0]*A->m[0][0] + rot.m[0][1]*A->m[1][1] + rot.m[0][2]*A->m[1][2],
+		rot.m[0][0]*A->m[0][0] + rot.m[0][1]*A->m[2][1] + rot.m[0][2]*A->m[2][2],
+		rot.m[1][0]*A->m[0][0] + rot.m[1][1]*A->m[1][1] + rot.m[1][2]*A->m[1][2],
+		rot.m[1][0]*A->m[0][0] + rot.m[1][1]*A->m[2][1] + rot.m[1][2]*A->m[2][2],
+		rot.m[2][0]*A->m[0][0] + rot.m[2][1]*A->m[2][1] + rot.m[2][2]*A->m[2][2],
+		&out->scale, &out->shear
+	);
+	#endif
+}
+
+// Convert a 3x3 transformation matrix to a transformation state.
+transform mat3ToTransformC(const mat3 A){
+	mat3 rot;
+	transform out;
+
+	#ifdef TRANSFORM_MATRIX_SHEAR
+	// A 3x3 matrix has no translation component.
+	out.pos = vec3InitZeroC();
+	// Extract the rotation from the total transformation.
+	mat3PolarDecompose(A, &rot);
+	out.rot = mat3ToQuatC(rot);
+	// The shear is then given by R^T A.
+	out.scale = mat3TransMultiplyMat3C(rot, A);
+	#else
+	// A 3x3 matrix has no translation component.
+	out.pos = vec3InitZeroC();
+	// Extract the rotation from the total transformation.
+	mat3PolarDecompose(A, &rot);
+	out.rot = mat3ToQuatC(rot);
+	// The shear is then given by R^T A.
+	// The shear matrices are symmetric, so we
+	// do the multiplication here to save time.
+	mat3DiagonalizeSymmetric(
+		rot.m[0][0]*A.m[0][0] + rot.m[0][1]*A.m[0][1] + rot.m[0][2]*A.m[0][2],
+		rot.m[0][0]*A.m[0][0] + rot.m[0][1]*A.m[1][1] + rot.m[0][2]*A.m[1][2],
+		rot.m[0][0]*A.m[0][0] + rot.m[0][1]*A.m[2][1] + rot.m[0][2]*A.m[2][2],
+		rot.m[1][0]*A.m[0][0] + rot.m[1][1]*A.m[1][1] + rot.m[1][2]*A.m[1][2],
+		rot.m[1][0]*A.m[0][0] + rot.m[1][1]*A.m[2][1] + rot.m[1][2]*A.m[2][2],
+		rot.m[2][0]*A.m[0][0] + rot.m[2][1]*A.m[2][1] + rot.m[2][2]*A.m[2][2],
+		&out.scale, &out.shear
+	);
+	#endif
+
+	return(out);
+}
+
+// Convert a 3x4 transformation matrix to a transformation state.
+void mat3x4ToTransform(const mat3x4 *const restrict A, transform *const restrict out){
+	mat3 A3;
+	mat3 rot;
+
+	#ifdef TRANSFORM_MATRIX_SHEAR
+	// Extract the translation from the total transformation.
+	out->pos = *((const vec3 *)A->m[3]);
+	// Extract the rotation from the total transformation.
+	mat3InitMat3x4(&A3, A);
+	mat3PolarDecompose(A3, &rot);
+	mat3ToQuat(&rot, &out->rot);
+	// The shear is then given by R^T A.
+	mat3TransMultiplyMat3Out(rot, A3, &out->scale);
+	#else
+	// Extract the translation from the total transformation.
+	out->pos = *((const vec3 *)A->m[3]);
+	// Extract the rotation from the total transformation.
+	mat3InitMat3x4(&A3, A);
+	mat3PolarDecompose(A3, &rot);
+	mat3ToQuat(&rot, &out->rot);
+	// The shear is then given by R^T A.
+	// The shear matrices are symmetric, so we
+	// do the multiplication here to save time.
+	mat3DiagonalizeSymmetric(
+		rot.m[0][0]*A3.m[0][0] + rot.m[0][1]*A3.m[0][1] + rot.m[0][2]*A3.m[0][2],
+		rot.m[0][0]*A3.m[0][0] + rot.m[0][1]*A3.m[1][1] + rot.m[0][2]*A3.m[1][2],
+		rot.m[0][0]*A3.m[0][0] + rot.m[0][1]*A3.m[2][1] + rot.m[0][2]*A3.m[2][2],
+		rot.m[1][0]*A3.m[0][0] + rot.m[1][1]*A3.m[1][1] + rot.m[1][2]*A3.m[1][2],
+		rot.m[1][0]*A3.m[0][0] + rot.m[1][1]*A3.m[2][1] + rot.m[1][2]*A3.m[2][2],
+		rot.m[2][0]*A3.m[0][0] + rot.m[2][1]*A3.m[2][1] + rot.m[2][2]*A3.m[2][2],
+		&out->scale, &out->shear
+	);
+	#endif
+}
+
+// Convert a 3x4 transformation matrix to a transformation state.
+transform mat3x4ToTransformC(const mat3x4 A){
+	const mat3 A3 = mat3InitMat3x4C(A);
+	mat3 rot;
+	transform out;
+
+	#ifdef TRANSFORM_MATRIX_SHEAR
+	// Extract the translation from the total transformation.
+	out.pos = *((const vec3 *)A.m[3]);
+	// Extract the rotation from the total transformation.
+	mat3PolarDecompose(A3, &rot);
+	out.rot = mat3ToQuatC(rot);
+	// The shear is then given by R^T A.
+	out.scale = mat3TransMultiplyMat3C(rot, A3);
+	#else
+	// Extract the translation from the total transformation.
+	out.pos = *((const vec3 *)A.m[3]);
+	// Extract the rotation from the total transformation.
+	mat3PolarDecompose(A3, &rot);
+	out.rot = mat3ToQuatC(rot);
+	// The shear is then given by R^T A.
+	// The shear matrices are symmetric, so we
+	// do the multiplication here to save time.
+	mat3DiagonalizeSymmetric(
+		rot.m[0][0]*A3.m[0][0] + rot.m[0][1]*A3.m[0][1] + rot.m[0][2]*A3.m[0][2],
+		rot.m[0][0]*A3.m[0][0] + rot.m[0][1]*A3.m[1][1] + rot.m[0][2]*A3.m[1][2],
+		rot.m[0][0]*A3.m[0][0] + rot.m[0][1]*A3.m[2][1] + rot.m[0][2]*A3.m[2][2],
+		rot.m[1][0]*A3.m[0][0] + rot.m[1][1]*A3.m[1][1] + rot.m[1][2]*A3.m[1][2],
+		rot.m[1][0]*A3.m[0][0] + rot.m[1][1]*A3.m[2][1] + rot.m[1][2]*A3.m[2][2],
+		rot.m[2][0]*A3.m[0][0] + rot.m[2][1]*A3.m[2][1] + rot.m[2][2]*A3.m[2][2],
+		&out.scale, &out.shear
+	);
+	#endif
+
+	return(out);
+}
+
+// Convert a 4x4 transformation matrix to a transformation state.
+void mat4ToTransform(const mat4 *const restrict A, transform *const restrict out){
+	mat3 A3;
+	mat3 rot;
+
+	#ifdef TRANSFORM_MATRIX_SHEAR
+	// Extract the translation from the total transformation.
+	out->pos = *((const vec3 *)A->m[3]);
+	// Extract the rotation from the total transformation.
+	mat3InitMat4(&A3, A);
+	mat3PolarDecompose(A3, &rot);
+	mat3ToQuat(&rot, &out->rot);
+	// The shear is then given by R^T A.
+	mat3TransMultiplyMat3Out(rot, A3, &out->scale);
+	#else
+	// Extract the translation from the total transformation.
+	out->pos = *((const vec3 *)A->m[3]);
+	// Extract the rotation from the total transformation.
+	mat3InitMat4(&A3, A);
+	mat3PolarDecompose(A3, &rot);
+	mat3ToQuat(&rot, &out->rot);
+	// The shear is then given by R^T A.
+	// The shear matrices are symmetric, so we
+	// do the multiplication here to save time.
+	mat3DiagonalizeSymmetric(
+		rot.m[0][0]*A3.m[0][0] + rot.m[0][1]*A3.m[0][1] + rot.m[0][2]*A3.m[0][2],
+		rot.m[0][0]*A3.m[0][0] + rot.m[0][1]*A3.m[1][1] + rot.m[0][2]*A3.m[1][2],
+		rot.m[0][0]*A3.m[0][0] + rot.m[0][1]*A3.m[2][1] + rot.m[0][2]*A3.m[2][2],
+		rot.m[1][0]*A3.m[0][0] + rot.m[1][1]*A3.m[1][1] + rot.m[1][2]*A3.m[1][2],
+		rot.m[1][0]*A3.m[0][0] + rot.m[1][1]*A3.m[2][1] + rot.m[1][2]*A3.m[2][2],
+		rot.m[2][0]*A3.m[0][0] + rot.m[2][1]*A3.m[2][1] + rot.m[2][2]*A3.m[2][2],
+		&out->scale, &out->shear
+	);
+	#endif
+}
+
+// Convert a 4x4 transformation matrix to a transformation state.
+transform mat4ToTransformC(const mat4 A){
+	const mat3 A3 = mat3InitMat4C(A);
+	mat3 rot;
+	transform out;
+
+	#ifdef TRANSFORM_MATRIX_SHEAR
+	// Extract the translation from the total transformation.
+	out.pos = *((const vec3 *)A.m[3]);
+	// Extract the rotation from the total transformation.
+	mat3PolarDecompose(A3, &rot);
+	out.rot = mat3ToQuatC(rot);
+	// The shear is then given by R^T A.
+	out.scale = mat3TransMultiplyMat3C(rot, A3);
+	#else
+	// Extract the translation from the total transformation.
+	out.pos = *((const vec3 *)A.m[3]);
+	// Extract the rotation from the total transformation.
+	mat3PolarDecompose(A3, &rot);
+	out.rot = mat3ToQuatC(rot);
+	// The shear is then given by R^T A.
+	// The shear matrices are symmetric, so we
+	// do the multiplication here to save time.
+	mat3DiagonalizeSymmetric(
+		rot.m[0][0]*A3.m[0][0] + rot.m[0][1]*A3.m[0][1] + rot.m[0][2]*A3.m[0][2],
+		rot.m[0][0]*A3.m[0][0] + rot.m[0][1]*A3.m[1][1] + rot.m[0][2]*A3.m[1][2],
+		rot.m[0][0]*A3.m[0][0] + rot.m[0][1]*A3.m[2][1] + rot.m[0][2]*A3.m[2][2],
+		rot.m[1][0]*A3.m[0][0] + rot.m[1][1]*A3.m[1][1] + rot.m[1][2]*A3.m[1][2],
+		rot.m[1][0]*A3.m[0][0] + rot.m[1][1]*A3.m[2][1] + rot.m[1][2]*A3.m[2][2],
+		rot.m[2][0]*A3.m[0][0] + rot.m[2][1]*A3.m[2][1] + rot.m[2][2]*A3.m[2][2],
+		&out.scale, &out.shear
+	);
+	#endif
+
+	return(out);
 }
 
 

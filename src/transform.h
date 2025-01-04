@@ -99,13 +99,12 @@ void transformToMat3x4(const transform *const restrict trans, mat3x4 *const rest
 mat3x4 transformToMat3x4C(const transform trans);
 void transformToMat4(const transform *const restrict trans, mat4 *const restrict out);
 mat4 transformToMat4C(const transform trans);
-#warning "It would be good to have functions for converting from matrices to transforms."
-#warning "This requires polar decomposition to extract the rotation from the shear."
-#warning "Theorangeduck has a closed form implementation here, which we would prefer:"
-/** https://theorangeduck.com/page/closed-form-matrix-decompositions **/
-#warning "They also have an iterative version based of Mueller's method:"
-/** https://theorangeduck.com/page/variations-muller **/
-#warning "After some benchmarks, it looks like the closed form is faster, but less accurate."
+void mat3ToTransform(const mat3 *const restrict A, transform *const restrict out);
+transform mat3ToTransformC(const mat3 A);
+void mat3x4ToTransform(const mat3x4 *const restrict A, transform *const restrict out);
+transform mat3x4ToTransformC(const mat3x4 A);
+void mat4ToTransform(const mat4 *const restrict A, transform *const restrict out);
+transform mat4ToTransformC(const mat4 A);
 
 void transformPoint(const transform *const restrict trans, vec3 *const restrict v);
 void transformPointOut(const transform *const restrict trans, const vec3 *const v, vec3 *const out);

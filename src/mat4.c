@@ -777,6 +777,63 @@ mat4 mat4InitShearQuatC(const vec3 v, const quat q){
 	return(m);
 }
 
+// Cast a 4x4 matrix down to a 3x3 one.
+void mat3InitMat4(mat3 *const restrict m1, const mat4 *const restrict m2){
+	memcpy(m1->m[0], m2->m[0], sizeof(m1->m[0]));
+	memcpy(m1->m[1], m2->m[1], sizeof(m1->m[1]));
+	memcpy(m1->m[2], m2->m[2], sizeof(m1->m[2]));
+}
+
+// Cast a 4x4 matrix down to a 3x3 one.
+mat3 mat3InitMat4C(const mat4 m){
+	const mat3 out = {
+		.m[0][0] = m.m[0][0],
+		.m[0][1] = m.m[0][1],
+		.m[0][2] = m.m[0][2],
+
+		.m[1][0] = m.m[1][0],
+		.m[1][1] = m.m[1][1],
+		.m[1][2] = m.m[1][2],
+
+		.m[2][0] = m.m[2][0],
+		.m[2][1] = m.m[2][1],
+		.m[2][2] = m.m[2][2]
+	};
+
+	return(out);
+}
+
+// Cast a 4x4 matrix down to a 3x4 one.
+void mat3x4InitMat4(mat3x4 *const restrict m1, const mat4 *const restrict m2){
+	memcpy(m1->m[0], m2->m[0], sizeof(m1->m[0]));
+	memcpy(m1->m[1], m2->m[1], sizeof(m1->m[1]));
+	memcpy(m1->m[2], m2->m[2], sizeof(m1->m[2]));
+	memcpy(m1->m[3], m2->m[3], sizeof(m1->m[3]));
+}
+
+// Cast a 4x4 matrix down to a 3x4 one.
+mat3x4 mat3x4InitMat4C(const mat4 m){
+	const mat3x4 out = {
+		.m[0][0] = m.m[0][0],
+		.m[0][1] = m.m[0][1],
+		.m[0][2] = m.m[0][2],
+
+		.m[1][0] = m.m[1][0],
+		.m[1][1] = m.m[1][1],
+		.m[1][2] = m.m[1][2],
+
+		.m[2][0] = m.m[2][0],
+		.m[2][1] = m.m[2][1],
+		.m[2][2] = m.m[2][2],
+
+		.m[3][0] = m.m[3][0],
+		.m[3][1] = m.m[3][1],
+		.m[3][2] = m.m[3][2]
+	};
+
+	return(out);
+}
+
 
 // Add the matrix "m2" to "m1"!
 void mat4AddMat4(mat4 *const restrict m1, const mat4 *const restrict m2){

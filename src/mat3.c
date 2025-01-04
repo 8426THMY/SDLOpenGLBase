@@ -1651,54 +1651,68 @@ return_t mat3CanSolveC(const mat3 A, const vec3 b, vec3 *const restrict x){
 ** iterative solutions. According to their (and my!) benchmarks,
 ** it appears to outperform even optimized iterative algorithms.
 */
-void mat3PolarDecompose(const mat3 *const restrict A, mat3 *const restrict R){
-	mat3 ATA;
-	mat3TransMultiplyMat3Out(*A, *A, &ATA);
+void mat3PolarDecompose(mat3 A, mat3 *const restrict R){
+	// Factor out the maximum absolute value of the matrix entries
+	// to prevent floating-point overflow when computing the trace.
+	const float max0 = floatMax(floatMax(fabsf(A.m[0][0]), fabsf(A.m[0][1])), fabsf(A.m[0][2]));
+	const float max1 = floatMax(floatMax(fabsf(A.m[1][0]), fabsf(A.m[1][1])), fabsf(A.m[1][2]));
+	const float max2 = floatMax(floatMax(fabsf(A.m[2][0]), fabsf(A.m[2][1])), fabsf(A.m[2][2]));
+	const float maxAbs = floatMax(floatMax(max0, max1), max2);
+	// If the maximum is 0, A is the zero matrix, so R is identity.
+	if(maxAbs <= MAT3_ZERO_EPSILON){
+		mat3InitIdentity(R);
+	}else{
+		const float invMaxAbs = 1.f/maxAbs;
+		mat3 ATA;
 
-	{
-		// We first note that if f = tr(A^T R), then df/dA = R by a general
-		// matrix identity. By a result of Lin, Chitalu and Komura, this
-		// trace is actually the largest real root of the polynomial
-		//     x^4 - 2I_C x^2 - 8Jx + 2II_C - I_C^2 = 0,
-		// where I_C = tr(A^T A), II_C = ||A^T A||_F^2 (||.||_F denotes the
-		// Frobenius norm) and III_C = J^2 = det(M)^2 are the Cauchy-Green
-		// invariants of A.
-		const float IC  = mat3Trace(&ATA);
-		const float IIC = mat3FrobeniusNormSquared(&ATA);
-		const float n8J = -8.f*mat3Determinant(A);
-		// Compute tr(A^T R) by finding the largest
-		// real root of the polynomial given above.
-		const float f = computeTrace(-2.f*IC, n8J, 2.f*IIC - IC*IC);
+		mat3MultiplyS(&A, invMaxAbs);
+		mat3TransMultiplyMat3Out(A, A, &ATA);
 
-		// Now, applying the chain rule to R = df/dA, we get
-		//     R = (df/dI_C)(dI_C/dA) + (df/dII_C)(dII_C/dA) + (df/dJ)(dJ/dA),
-		// where these partial derivatives are given as follows.
-		const float f2    = f*f;
-		// Note that we multiply the denominator by
-		// 8 to save some multiplications later on.
-		const float denom = 8.f/(4.f*f2*f - 4.f*IC*f - n8J);
-		mat3 tempMatrix;
+		{
+			// We first note that if f = tr(A^T R), then df/dA = R by a general
+			// matrix identity. By a result of Lin, Chitalu and Komura, this
+			// trace is actually the largest real root of the polynomial
+			//     x^4 - 2I_C x^2 - 8Jx + 2II_C - I_C^2 = 0,
+			// where I_C = tr(A^T A), II_C = ||A^T A||_F^2 (||.||_F denotes the
+			// Frobenius norm) and III_C = J^2 = det(M)^2 are the Cauchy-Green
+			// invariants of A.
+			const float IC  = mat3Trace(&ATA);
+			const float IIC = mat3FrobeniusNormSquared(&ATA);
+			const float n8J = -8.f*mat3Determinant(&A);
+			// Compute tr(A^T R) by finding the largest
+			// real root of the polynomial given above.
+			const float f = computeTrace(-2.f*IC, n8J, 2.f*IIC - IC*IC);
 
-		// df/dI_C = (2f^2 + 2I_C)/(4f^3 - 4I_C f - 8J)
-		// dI_C/dA = A
-		mat3MultiplySOut(A, (f2 + IC)*denom/4.f, R);
-		// df/dII_C = -2/(4f^3 - 4I_C f - 8J)
-		// dII_C/dA = 4AA^T A
-		mat3MultiplyMat3Out(*A, ATA, &tempMatrix);
-		mat3MultiplyS(&tempMatrix, -denom);
-		mat3AddMat3(R, &tempMatrix);
-		// df/dJ = 8f/(4f^3 - 4I_C f - 8J)
-		// dJ/dA = adj(A)^T
-		mat3AdjugateTrans(A, &tempMatrix);
-		mat3MultiplyS(&tempMatrix, f*denom);
-		mat3AddMat3(R, &tempMatrix);
+			// Now, applying the chain rule to R = df/dA, we get
+			//     R = (df/dI_C)(dI_C/dA) + (df/dII_C)(dII_C/dA) + (df/dJ)(dJ/dA),
+			// where these partial derivatives are given as follows.
+			const float f2 = f*f;
+			// Note that we multiply the denominator by 8 and the maximum
+			// absolute entry of A to save some multiplications later on.
+			const float denom = 8.f*maxAbs/(4.f*f2*f - 4.f*IC*f - n8J);
+			mat3 tempMatrix;
+
+			// df/dI_C = (2f^2 + 2I_C)/(4f^3 - 4I_C f - 8J)
+			// dI_C/dA = A
+			mat3MultiplySOut(&A, (f2 + IC)*denom/4.f, R);
+			// df/dII_C = -2/(4f^3 - 4I_C f - 8J)
+			// dII_C/dA = 4AA^T A
+			mat3MultiplyMat3Out(A, ATA, &tempMatrix);
+			mat3MultiplyS(&tempMatrix, -denom);
+			mat3AddMat3(R, &tempMatrix);
+			// df/dJ = 8f/(4f^3 - 4I_C f - 8J)
+			// dJ/dA = adj(A)^T
+			mat3AdjugateTrans(&A, &tempMatrix);
+			mat3MultiplyS(&tempMatrix, f*denom);
+			mat3AddMat3(R, &tempMatrix);
+		}
 	}
 }
 
 /*
 ** Diagonalize a symmetric 3x3 matrix A and return its eigenvalues
-** and eigenvectors. Because our input matrix is symmetric, we need
-** only specify the unique values.
+** and normalized eigenvectors as a quaternion rotation. Because our
+** input matrix is symmetric, we need only specify the unique values.
 **
 ** Rather than using an approximate iterative algorithm, we compute
 ** an exact analytic solution. Benchmarks seem to indicate that this
@@ -1723,29 +1737,25 @@ void mat3DiagonalizeSymmetric(
 	const float max0 = floatMax(fabsf(a00), fabsf(a01));
 	const float max1 = floatMax(fabsf(a02), fabsf(a11));
 	const float max2 = floatMax(fabsf(a12), fabsf(a22));
-	const float maxAbsElement = floatMax(floatMax(max0, max1), max2);
+	const float maxAbs = floatMax(floatMax(max0, max1), max2);
 	// If the maximum is 0, A is the zero matrix.
-	if(maxAbsElement <= MAT3_ZERO_EPSILON){
-		evals->x = 0.f;
-		evals->y = 0.f;
-		evals->z = 0.f;
+	if(maxAbs <= MAT3_ZERO_EPSILON){
+		vec3InitZero(evals);
 		quatInitIdentity(Q);
 	}else{
-		const float invMaxAbsElement = 1.f/maxAbsElement;
-		a00 *= invMaxAbsElement;
-		a01 *= invMaxAbsElement;
-		a02 *= invMaxAbsElement;
-		a11 *= invMaxAbsElement;
-		a12 *= invMaxAbsElement;
-		a22 *= invMaxAbsElement;
+		const float invMaxAbs = 1.f/maxAbs;
+		a00 *= invMaxAbs;
+		a01 *= invMaxAbs;
+		a02 *= invMaxAbs;
+		a11 *= invMaxAbs;
+		a12 *= invMaxAbs;
+		a22 *= invMaxAbs;
 
 		{
 			const float norm = a01*a01 + a02*a02 + a12*a12;
 			// Early exit if A is diagonal.
 			if(norm <= MAT3_ZERO_EPSILON){
-				evals->x = a00;
-				evals->y = a11;
-				evals->z = a22;
+				vec3InitSet(evals, a00, a11, a22);
 				quatInitIdentity(Q);
 			}else{
 				mat3 Qmat;
@@ -1798,9 +1808,7 @@ void mat3DiagonalizeSymmetric(
 		}
 
 		// Undo the preconditioning.
-		evals->x *= maxAbsElement;
-		evals->y *= maxAbsElement;
-		evals->z *= maxAbsElement;
+		vec3MultiplyS(evals, maxAbs);
 	}
 }
 
@@ -2003,7 +2011,10 @@ static float computeTrace(const float a, const float b, const float c){
 	// with complex numbers. We also want the largest root.
 	}else{
 		const float rt = sqrtf(npdiv3);
-		const float ac = acosf(-qdiv2/(npdiv3*rt))/3.f;
+		// The input may lie outside the domain of acos,
+		// that is [-1, 1], due to rounding errors, so
+		// we clamp it to this interval.
+		const float ac = acosf(floatClamp(-qdiv2/(npdiv3*rt), -1.f, 1.f))/3.f;
 		// Note that the third root (where we add -2pi/3)
 		// is actually never the largest, so we can
 		// happily ignore it to simplify things a bit.

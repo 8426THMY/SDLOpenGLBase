@@ -46,6 +46,8 @@ void mat3x4InitShearQuat(
 	const vec3 *const restrict v, const quat *const restrict q
 );
 mat3x4 mat3x4InitShearQuatC(const vec3 v, const quat q);
+void mat3InitMat3x4(mat3 *const restrict m1, const mat3x4 *const restrict m2);
+mat3 mat3InitMat3x4C(const mat3x4 m);
 
 void mat3x4AddMat3x4(mat3x4 *const restrict m1, const mat3x4 *const restrict m2);
 void mat3x4AddMat3x4Out(
