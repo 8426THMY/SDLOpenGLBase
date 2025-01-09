@@ -361,11 +361,11 @@ void physRigidBodyIgnoreCollisions(physicsRigidBody *const restrict body){
 
 
 return_t physRigidBodyIsSimulated(physicsRigidBody *const restrict body){
-	return(flagsAreSet(body->flags, PHYSRIGIDBODY_SIMULATE));
+	return(flagsContainsSubset(body->flags, PHYSRIGIDBODY_SIMULATE));
 }
 
 return_t physRigidBodyIsCollidable(physicsRigidBody *const restrict body){
-	return(flagsAreSet(body->flags, PHYSRIGIDBODY_COLLIDE));
+	return(flagsContainsSubset(body->flags, PHYSRIGIDBODY_COLLIDE));
 }
 
 
@@ -414,14 +414,14 @@ return_t physRigidBodyPermitCollision(const physicsRigidBody *const bodyA, const
 ** w_{n + 1} = w_n + T * I^{-1} * dt
 */
 void physRigidBodyIntegrateVelocity(physicsRigidBody *const restrict body, const float dt){
-	if(flagsAreSet(body->flags, PHYSRIGIDBODY_SIMULATE_LINEAR)){
+	if(flagsContainsSubset(body->flags, PHYSRIGIDBODY_SIMULATE_LINEAR)){
 		// Add the linear acceleration to the linear velocity.
 		vec3FmaP2(body->invMass * dt, &body->netForce, &body->linearVelocity);
 	}else{
 		vec3InitZero(&body->linearVelocity);
 	}
 
-	if(flagsAreSet(body->flags, PHYSRIGIDBODY_SIMULATE_ANGULAR)){
+	if(flagsContainsSubset(body->flags, PHYSRIGIDBODY_SIMULATE_ANGULAR)){
 		vec3 angularAcceleration;
 
 		// Update the global inertia tensor.
@@ -453,7 +453,7 @@ void physRigidBodyResetAccumulators(physicsRigidBody *const restrict body){
 ** q_{n + 1} = q_n + dq/dt * dt
 */
 void physRigidBodyIntegratePosition(physicsRigidBody *const restrict body, const float dt){
-	if(flagsAreSet(body->flags, PHYSRIGIDBODY_SIMULATE_LINEAR)){
+	if(flagsContainsSubset(body->flags, PHYSRIGIDBODY_SIMULATE_LINEAR)){
 		// Compute the object's new position.
 		vec3FmaP2(dt, &body->linearVelocity, &body->centroid);
 		flagsSet(body->flags, PHYSRIGIDBODY_TRANSLATED);
@@ -461,7 +461,7 @@ void physRigidBodyIntegratePosition(physicsRigidBody *const restrict body, const
 		flagsUnset(body->flags, PHYSRIGIDBODY_TRANSLATED);
 	}
 
-	if(flagsAreSet(body->flags, PHYSRIGIDBODY_SIMULATE_ANGULAR)){
+	if(flagsContainsSubset(body->flags, PHYSRIGIDBODY_SIMULATE_ANGULAR)){
 		// Calculate the change in orientation.
 		quatIntegrate(&body->state.rot, &body->angularVelocity, dt);
 		// Don't forget to normalize it, as
@@ -587,21 +587,21 @@ void physRigidBodyApplyImpulseBoostInverse(
 #ifdef PHYSCOLLIDER_USE_POSITIONAL_CORRECTION
 // Add a rotational impulse to a rigid body's position.
 void physRigidBodyApplyLinearImpulsePosition(physicsRigidBody *const restrict body, const vec3 *const restrict J){
-	if(flagsAreSet(body->flags, PHYSRIGIDBODY_SIMULATE_LINEAR)){
+	if(flagsContainsSubset(body->flags, PHYSRIGIDBODY_SIMULATE_LINEAR)){
 		vec3FmaP2(body->invMass, J, &body->centroid);
 	}
 }
 
 // Subtract a rotational impulse from a rigid body's position.
 void physRigidBodyApplyLinearImpulsePositionInverse(physicsRigidBody *const restrict body, const vec3 *const restrict J){
-	if(flagsAreSet(body->flags, PHYSRIGIDBODY_SIMULATE_LINEAR)){
+	if(flagsContainsSubset(body->flags, PHYSRIGIDBODY_SIMULATE_LINEAR)){
 		vec3FmaP2(-body->invMass, J, &body->centroid);
 	}
 }
 
 // Add a rotational impulse to a rigid body's position.
 void physRigidBodyApplyAngularImpulsePosition(physicsRigidBody *const restrict body, vec3 J){
-	if(flagsAreSet(body->flags, PHYSRIGIDBODY_SIMULATE_ANGULAR)){
+	if(flagsContainsSubset(body->flags, PHYSRIGIDBODY_SIMULATE_ANGULAR)){
 		quat tempRot;
 		mat3MultiplyVec3(&body->invInertiaGlobal, &J);
 		quatDifferentiateOut(&body->state.rot, &J, &tempRot);
@@ -614,7 +614,7 @@ void physRigidBodyApplyAngularImpulsePosition(physicsRigidBody *const restrict b
 
 // Subtract a rotational impulse from a rigid body's position.
 void physRigidBodyApplyAngularImpulsePositionInverse(physicsRigidBody *const restrict body, vec3 J){
-	if(flagsAreSet(body->flags, PHYSRIGIDBODY_SIMULATE_ANGULAR)){
+	if(flagsContainsSubset(body->flags, PHYSRIGIDBODY_SIMULATE_ANGULAR)){
 		quat tempRot;
 		mat3MultiplyVec3(&body->invInertiaGlobal, &J);
 		quatDifferentiateOut(&body->state.rot, &J, &tempRot);
@@ -628,12 +628,12 @@ void physRigidBodyApplyAngularImpulsePositionInverse(physicsRigidBody *const res
 // Add a translational and rotational impulse to a rigid body's position.
 void physRigidBodyApplyImpulsePosition(physicsRigidBody *const restrict body, const vec3 *const restrict r, const vec3 *const restrict J){
 	// Position.
-	if(flagsAreSet(body->flags, PHYSRIGIDBODY_SIMULATE_LINEAR)){
+	if(flagsContainsSubset(body->flags, PHYSRIGIDBODY_SIMULATE_LINEAR)){
 		vec3FmaP2(body->invMass, J, &body->centroid);
 	}
 
 	// Orientation.
-	if(flagsAreSet(body->flags, PHYSRIGIDBODY_SIMULATE_ANGULAR)){
+	if(flagsContainsSubset(body->flags, PHYSRIGIDBODY_SIMULATE_ANGULAR)){
 		vec3 impulse;
 		quat tempRot;
 		vec3CrossVec3Out(r, J, &impulse);
@@ -649,12 +649,12 @@ void physRigidBodyApplyImpulsePosition(physicsRigidBody *const restrict body, co
 // Subtract a translational and rotational impulse from a rigid body's position.
 void physRigidBodyApplyImpulsePositionInverse(physicsRigidBody *const restrict body, const vec3 *const restrict r, const vec3 *const restrict J){
 	// Position.
-	if(flagsAreSet(body->flags, PHYSRIGIDBODY_SIMULATE_LINEAR)){
+	if(flagsContainsSubset(body->flags, PHYSRIGIDBODY_SIMULATE_LINEAR)){
 		vec3FmaP2(-body->invMass, J, &body->centroid);
 	}
 
 	// Orientation.
-	if(flagsAreSet(body->flags, PHYSRIGIDBODY_SIMULATE_ANGULAR)){
+	if(flagsContainsSubset(body->flags, PHYSRIGIDBODY_SIMULATE_ANGULAR)){
 		vec3 impulse;
 		quat tempRot;
 		vec3CrossVec3Out(r, J, &impulse);
@@ -759,7 +759,7 @@ void physRigidBodyPositionFromCentroid(physicsRigidBody *const restrict body){
 }
 
 void physRigidBodyUpdatePosition(physicsRigidBody *const restrict body){
-	if(flagsAreSet(body->flags, PHYSRIGIDBODY_TRANSFORMED)){
+	if(flagsContainsSubset(body->flags, PHYSRIGIDBODY_TRANSFORMED)){
 		physRigidBodyPositionFromCentroid(body);
 	}
 }

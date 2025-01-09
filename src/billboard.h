@@ -10,6 +10,10 @@
 #include "utilTypes.h"
 
 
+#warning "Pretty much everything here sucks, and is probably wrong to boot."
+#warning "We need to come up with a better way of locking rotation axes."
+
+
 #define BILLBOARD_DISABLED         0x00
 // Stop the renderable from billboarding on certain axes.
 #define BILLBOARD_LOCK_X           0x01

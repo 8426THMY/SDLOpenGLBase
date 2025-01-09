@@ -331,12 +331,12 @@ void objectDefDelete(objectDef *const restrict objDef){
 
 /*
 ** Update an object's skeleton using the following procedure for each bone:
-**     1. Begin with the bone's user transformation, U.
-**     2. Append the bone's local bind pose, B.
+**     1. Begin with the bone's local bind pose, B.
+**     2. Append the bone's user transformation, U.
 **     3. Append the bone's parent's transformation, P.
 **     4. Prepend the bone's animation transformation, A.
 ** If S is the final state and these transformations are treated as matrices, then
-**     S = P*B*U*A.
+**     S = P*U*B*A.
 ** Note that this process implicitly assumes that parent bones are animated before children.
 */
 static void updateBones(object *const restrict obj){
@@ -373,15 +373,15 @@ static void updateBones(object *const restrict obj){
 		// body attached, we should animate it normally.
 		}else{
 			// Prepend any user transformations to the bone's local bind state.
-			// S = B*U
-			transformMultiplyOut(&curSkeleBone->localBind, curTransform, curObjBone);
+			// S = U*B
+			transformMultiplyOut(curTransform, &curSkeleBone->localBind, curObjBone);
 			// If the bone has a parent, append its transformation.
-			// S = P*B*U
+			// S = P*U*B
 			if(!valueIsInvalid(curSkeleBone->parent, boneIndex)){
 				transformMultiplyP2(&obj->skeleState.bones[curSkeleBone->parent], curObjBone);
 			}
 			// Prepend the total animation transformations.
-			// S = P*B*U*A
+			// S = P*U*B*A
 			skeleStatePrependAnimations(curObjBone, &obj->skeleState, curBoneID, curSkeleBone->name);
 
 			// If the current bone has a rigid body that is not simulated,

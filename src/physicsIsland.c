@@ -299,7 +299,7 @@ static void updateRigidBodies(physicsIsland *const restrict island, const float 
 		// If the rigid body allows collisions and has changed in the last update,
 		// we'll need to transform the colliders and re-add them to the island.
 		if(physRigidBodyIsCollidable(curBody)){
-			if(flagsAreSet(curBody->flags, PHYSRIGIDBODY_TRANSFORMED)){
+			if(flagsContainsSubset(curBody->flags, PHYSRIGIDBODY_TRANSFORMED)){
 				// We transform each collider in this funciton.
 				// Note that we never transform colliders when
 				// collision is disabled for the rigid body!
@@ -308,7 +308,7 @@ static void updateRigidBodies(physicsIsland *const restrict island, const float 
 			}
 
 		// Otherwise, we should remove them from the physics island.
-		}else if(flagsAreSet(curBody->flags, PHYSRIGIDBODY_COLLISION_MODIFIED)){
+		}else if(flagsContainsSubset(curBody->flags, PHYSRIGIDBODY_COLLISION_MODIFIED)){
 			removeColliders(island, curBody);
 			flagsUnset(curBody->flags, PHYSRIGIDBODY_COLLISION_MODIFIED);
 		}

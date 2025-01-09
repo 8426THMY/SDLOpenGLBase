@@ -172,7 +172,7 @@ void guiPanelDraw(
 	panelStates[0].uvOffsets.y = bodyFrame->bounds.y;
 	// Scroll the body image if tiling is enabled.
 	// Otherwise, we stretch it to fit the panel.
-	if(flagsAreSet(gui->data.panel.flags, GUI_PANEL_TILE_BODY)){
+	if(flagsContainsSubset(gui->data.panel.flags, GUI_PANEL_TILE_BODY)){
 		panelStates[0].uvOffsets.w = bodyWidth / bodyFrame->tex->width;
 		panelStates[0].uvOffsets.h = bodyHeight / bodyFrame->tex->height;
 	}else{

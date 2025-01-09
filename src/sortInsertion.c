@@ -18,8 +18,8 @@
 ** Note that temp must be large enough to contain at least elementSize bytes.
 */
 void insertionSort(
-	void *const restrict array, const size_t arraySize, const size_t elementSize, void *const restrict temp,
-	sort_t (*const compare)(const void *const restrict e1, const void *const restrict e2)
+	void *const restrict array, const size_t arraySize, const size_t elementSize,
+	void *const restrict temp, compareFunc compare
 ){
 
 	void *sort = nextElement(array, elementSize);

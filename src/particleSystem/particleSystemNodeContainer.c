@@ -88,6 +88,13 @@ void particleSysNodeContainerUpdate(
 			particleSysNodeDelete(curNode);
 			moduleParticleSysNodeFree(&container->instances, curNode, prevNode);
 		}else{
+			#error "How do we get the current and previous parent states?"
+			#error "Remember that particles can inherit less properties after creation."
+			#error "I wonder how Effekseer does this?"
+
+			#warning "Should we update new particles on the same tick we initialize them?"
+			#warning "The way we're currently doing things, they stay stationary for a frame."
+
 			// Update the node's particles.
 			if(curNode->manager.numParticles > 0){
 				particleSysNodeUpdateParticles(curNode, dt);
@@ -97,6 +104,7 @@ void particleSysNodeContainerUpdate(
 				particleSysNodeUpdateEmitters(curNode, dt);
 				curNode->lifetime -= dt;
 			}
+
 			// Sort the node's particles! This should hopefully
 			// mean that sorting them during rendering is faster.
 			particleSysNodePresort(curNode, cam);

@@ -22,14 +22,15 @@
 
 
 typedef struct particle {
-	// Stores the current and previous global transforms
-	// and manages any child particle system nodes.
 	#warning "We shouldn't allow particles to be sheared, as it's way too slow."
 	#warning "If we're desperate, this can be emulated using animated textures or something."
 	#warning "We should be able to solve this when we convert to a structure of arrays."
-	#warning "In fact, particles shouldn't even inherit scale at all, meaning we don't need shearing!"
-	#warning "As far as scaling is concerned, particles should probably only use a single float."
 	#warning "If the parent teleports, the particle might become out of sync since we use global transforms."
+	// Current local transform of the particle. The parent's
+	// state is appended to this to get the global transform.
+	transform localState;
+	// Stores the current and previous global transforms
+	// and manages any child particle system nodes.
 	particleSubsystem subsys;
 
 	// These properties control the particle's motion.
@@ -60,21 +61,18 @@ typedef struct particleRender {
 } particleRender;
 
 
-void particlePreInit(
-	particle *const restrict part,
-	const particleSystemNode *const restrict node
-);
-void particlePostInit(
+void particleInit(
 	particle *const restrict part,
 	const particleSystemNode *const restrict node
 );
 
-void particlePreUpdate(
-	particle *const restrict part,
-	const transform *const restrict parentState,
-	const float dt
-);
+void particlePreUpdate(particle *const restrict part, const float dt);
 void particlePostUpdate(particle *const restrict part, const float dt);
+void particleUpdateGlobalTransform(
+	particle *const restrict part,
+	const transform *const restrict curParentState,
+	const transform *const restrict prevParentState
+);
 return_t particleDead(const particle *const restrict part);
 
 void particleDelete(particle *const restrict part);

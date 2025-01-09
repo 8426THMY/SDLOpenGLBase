@@ -9,6 +9,8 @@
 ** owner to set the current and previous transforms
 */
 void particleSubsysInit(particleSubsystem *const restrict subsys){
+	transformInit(&subsys->state[0]);
+	transformInit(&subsys->state[1]);
 	subsys->nodes = NULL;
 	subsys->numNodes = 0;
 }
@@ -32,11 +34,7 @@ void particleSubsysPrepend(
 }
 
 
-/*
-** Orphan all of the particle system nodes in the subsystem.
-** This typically involves setting their lifetimes to zero
-** and removing any references to the subsystem.
-*/
+// Orphan all of the particle system nodes in the subsystem.
 void particleSubsysOrphan(particleSubsystem *const restrict subsys){
 	particleSystemNode *curNode = subsys->nodes;
 	while(curNode != NULL){

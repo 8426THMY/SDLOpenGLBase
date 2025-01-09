@@ -11,11 +11,11 @@
 	insertionSortDeclare(name, type) \
 	void timsort##name(type *const restrict array, const size_t arraySize);
 
-#define timsortFlexibleDeclare(name, type)                                                    \
-	insertionSortFlexibleDeclare(name, type)                                                  \
-	void timsort##name##Flexible(                                                             \
-		type *const restrict array, const size_t arraySize,                                   \
-		sort_t (*const compare)(const type *const restrict e1, const type *const restrict e2) \
+#define timsortFlexibleDeclare(name, type)                  \
+	insertionSortFlexibleDeclare(name, type)                \
+	void timsort##name##Flexible(                           \
+		type *const restrict array, const size_t arraySize, \
+		compareFunc compare                                 \
 	);
 
 /*
@@ -123,7 +123,7 @@
 	static void mergeHalves##name##Flexible(                                                           \
 		type *array, type *leftArray,                                                                  \
 		type *rightArray, const type *const restrict rightLast,                                        \
-		sort_t (*const compare)(const type *const restrict e1, const type *const restrict e2)          \
+		compareFunc compare                                                                            \
 	){                                                                                                 \
                                                                                                        \
 		const type *const leftLast = rightArray;                                                       \
@@ -162,8 +162,7 @@
 	}                                                                                                  \
                                                                                                        \
 	void timsort##name##Flexible(                                                                      \
-		type *const restrict array, const size_t arraySize,                                            \
-		sort_t (*const compare)(const type *const restrict e1, const type *const restrict e2)          \
+		type *const restrict array, const size_t arraySize, compareFunc compare                        \
 	){                                                                                                 \
                                                                                                        \
 		type *subArray = array;                                                                        \

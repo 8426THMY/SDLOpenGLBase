@@ -22,7 +22,7 @@ void billboardState(
 
 	// Use the camera's axes for billboarding.
 	// We can just use the columns of its view matrix.
-	if(flagsAreSet(billboardData->flags, BILLBOARD_SPRITE)){
+	if(flagsContainsSubset(billboardData->flags, BILLBOARD_SPRITE)){
 		// Note that the view matrix is the inverse of the camera's
 		// transformation matrix. Because rotation matrices are orthogonal,
 		// we can take the rotation matrix's transpose to invert it.
@@ -45,13 +45,13 @@ void billboardState(
 
 
 		// Scale the renderable based on its distance from the camera.
-		if(flagsAreSet(billboardData->flags, BILLBOARD_SCALE)){
+		if(flagsContainsSubset(billboardData->flags, BILLBOARD_SCALE)){
 			const float distance = cameraDistance(cam, centroid) * billboardData->scale;
 			mat3x4ScalePre(&rootState, distance, distance, distance);
 		}
 
 	// Lock some axes to prevent billboarding around them.
-	}else if(flagsAreSet(billboardData->flags, BILLBOARD_LOCK_XYZ)){
+	}else if(flagsContainsSubset(billboardData->flags, BILLBOARD_LOCK_XYZ)){
 		vec3 up;
 		vec3 forward;
 		vec3 trans;
@@ -65,7 +65,7 @@ void billboardState(
 		}
 
 		// Set the eye and target vectors.
-		if(flagsAreSet(billboardData->flags, BILLBOARD_TARGET_SPRITE)){
+		if(flagsContainsSubset(billboardData->flags, BILLBOARD_TARGET_SPRITE)){
 			vec3InitSet(&forward, cam->viewMatrix.m[0][2], cam->viewMatrix.m[1][2], cam->viewMatrix.m[2][2]);
 		}else if(billboardData->target != NULL){
 			vec3SubtractVec3Out(billboardData->target, centroid, &forward);
@@ -74,14 +74,14 @@ void billboardState(
 		}
 
 		// Prevent the renderable from rotating on some axes.
-		if(flagsAreUnset(billboardData->flags, BILLBOARD_LOCK_X)){
+		if(!flagsContainsSubset(billboardData->flags, BILLBOARD_LOCK_X)){
 			forward.y = 0.f;
 		}
-		if(flagsAreUnset(billboardData->flags, BILLBOARD_LOCK_Y)){
+		if(!flagsContainsSubset(billboardData->flags, BILLBOARD_LOCK_Y)){
 			forward.x = 0.f;
 		}
 		vec3NormalizeVec3Fast(&forward);
-		if(flagsAreUnset(billboardData->flags, BILLBOARD_LOCK_Z)){
+		if(!flagsContainsSubset(billboardData->flags, BILLBOARD_LOCK_Z)){
 			vec3InitSet(&up, 0.f, 1.f, 0.f);
 		}
 
@@ -91,7 +91,7 @@ void billboardState(
 		vec3InitZero((vec3 *)rootState.m[3]);
 
 		// Scale the renderable based on its distance from the camera.
-		if(flagsAreSet(billboardData->flags, BILLBOARD_SCALE)){
+		if(flagsContainsSubset(billboardData->flags, BILLBOARD_SCALE)){
 			const float distance = cameraDistance(cam, centroid) * billboardData->scale;
 			mat3x4Scale(&rootState, distance, distance, distance);
 		}
@@ -103,7 +103,7 @@ void billboardState(
 
 	// If we're not using sprites or locking any axes, just use scale billboarding.
 	}else{
-		if(flagsAreSet(billboardData->flags, BILLBOARD_SCALE)){
+		if(flagsContainsSubset(billboardData->flags, BILLBOARD_SCALE)){
 			const float distance = cameraDistance(cam, centroid) * billboardData->scale;
 			mat3x4ScalePre(&rootState, distance, distance, distance);
 		}

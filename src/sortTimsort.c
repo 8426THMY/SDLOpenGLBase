@@ -15,7 +15,7 @@
 static void mergeHalves(
 	void *const restrict array, const size_t elementSize,
 	void *const restrict leftArray, void *const restrict rightArray, const void *const restrict rightLast,
-	sort_t (*const compare)(const void *const restrict e1, const void *const restrict e2)
+	compareFunc compare
 );
 
 
@@ -25,8 +25,8 @@ static void mergeHalves(
 ** In most cases, you'll want to use this.
 */
 void timsort(
-	void *const restrict array, const size_t arraySize, const size_t elementSize,
-	sort_t (*const compare)(const void *const restrict e1, const void *const restrict e2)
+	void *const restrict array, const size_t arraySize,
+	const size_t elementSize, compareFunc compare
 ){
 
 	void *subArray = array;
@@ -127,7 +127,7 @@ timsortFlexibleDefine(KeyValues, keyValue)
 static void mergeHalves(
 	void *array, const size_t elementSize,
 	void *leftArray, void *rightArray, const void *const restrict rightLast,
-	sort_t (*const compare)(const void *const restrict e1, const void *const restrict e2)
+	compareFunc compare
 ){
 	const void *const leftLast = rightArray;
 

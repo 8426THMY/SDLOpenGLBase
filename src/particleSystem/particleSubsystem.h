@@ -20,7 +20,6 @@ typedef struct particleSubsystem {
 	//     2. Add this to newly-created particles (inherit on create).
 	//     3. Add this to particles when rendering (always inherit).
 	// The owner is responsible for updating this.
-	#warning "We should probably move this out."
 	transform state[2];
 	// Linked list of nodes.
 	particleSystemNode *nodes;

@@ -13,8 +13,8 @@
 
 
 void timsort(
-	void *const restrict array, const size_t arraySize, const size_t elementSize,
-	sort_t (*const compare)(const void *const restrict e1, const void *const restrict e2)
+	void *const restrict array, const size_t arraySize,
+	const size_t elementSize, compareFunc compare
 );
 
 timsortFlexibleDeclare(KeyValues, keyValue)

@@ -198,11 +198,19 @@ typedef struct particleSystem {
 } particleSystem;
 
 
+#warning "It would be good to have a way of orphaning particle systems."
+
+#warning "It would also be interesting to store containers in the particleSystemDef."
+#warning "That way all instances of a particle system can use the same containers."
+#warning "This would hopefully make rendering lots of instances more efficient!"
+#warning "The only downside is that we can't easily choose which instances to render..."
+#warning "There's probably a better way of doing things."
+
+
 void particleSysDefInit(particleSystemDef *const restrict partSysDef);
 void particleSysInit(
 	particleSystem *const restrict partSys,
-	const particleSystemDef *const restrict partSysDef,
-	const transformState *const restrict state
+	const particleSystemDef *const restrict partSysDef
 );
 
 void particleSysUpdate(

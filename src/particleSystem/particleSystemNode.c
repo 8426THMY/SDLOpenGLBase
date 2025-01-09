@@ -75,13 +75,71 @@ void particleSysNodeInit(
 
 
 /*
+** Remove any properties of a node's parent state
+** that aren't being inherited. Since the node doesn't
+** store the parent's previous state, we update a
+** temporary copy that is passed into the function.
+*/
+void particleSysNodeUpdateParentTransform(
+	particleSystemNode *const restrict node,
+	transform *const restrict prevParentState
+){
+
+	if(node->parent != NULL){
+		const flags_t inheritFlags = node->inheritFlags;
+		// Calculate the where the particle would have
+		// been had it been alive on the previous frame.
+		// The subsystem pointer should never be NULL here.
+		if(flagsAreSet(inheritFlags, PARTICLE_INHERIT_TRANSFORM)){
+			if(flagsAreSet(inheritFlags, PARTICLE_INHERIT_POSITION)){
+				node->parentState.pos = node->parent.state[0].pos;
+				prevParentState->pos = node->parent.state[1].pos;
+			}else{
+				vec3InitZero(&node->parentState.pos);
+				vec3InitZero(&prevParentState->pos);
+			}
+			if(flagsAreSet(inheritFlags, PARTICLE_INHERIT_ROTATION)){
+				node->parentState.rot = node->parent.state[0].rot;
+				prevParentState->rot = node->parent.state[1].rot;
+			}else{
+				quatInitIdentiy(&node->parentState.rot);
+				quatInitIdentiy(&prevParentState->rot);
+			}
+			if(flagsAreSet(inheritFlags, PARTICLE_INHERIT_SCALE)){
+				#ifdef TRANSFORM_MATRIX_SHEAR
+				node->parentState.scale = node->parent.state[0].scale;
+				prevParentState->scale = node->parent.state[1].scale;
+				#else
+				node->parentState.scale = node->parent.state[0].scale;
+				node->parentState.shear = node->parent.state[0].shear;
+				prevParentState->scale = node->parent.state[1].scale;
+				prevParentState->shear = node->parent.state[1].shear;
+				#endif
+			}else{
+				#ifdef TRANSFORM_MATRIX_SHEAR
+				mat3InitIdentity(&node->parentState.scale);
+				mat3InitIdentity(&prevParentState->scale);
+				#else
+				vec3InitSet(&node->parentState.scale, 1.f, 1.f, 1.f);
+				quatInitIdentiy(&node->parentState.shear);
+				vec3InitSet(&prevParentState->scale, 1.f, 1.f, 1.f);
+				quatInitIdentiy(&prevParentState->shear);
+				#endif
+			}
+		}else{
+			transformInit(&node->parentState);
+			transformInit(prevParentState);
+		}
+	}
+}
+
+/*
 ** Update the node's particles. Note that we don't update any of
 ** the particles' nodes here! These are updated in the main loop.
 ** This should only be called if there are living particles!
 */
 void particleSysNodeUpdateParticles(particleSystemNode *const restrict node, const float dt){
 	const particleSubsysDef *const nodeDef = node->container->nodeDef;
-	const transform *const parentState = (node->parent == NULL) ? NULL : node->parent->state;
 	
 	particle *curParticle = node->manager.particles;
 	const particle *lastParticle = &curParticle[node->manager.numParticles];
@@ -99,6 +157,8 @@ void particleSysNodeUpdateParticles(particleSystemNode *const restrict node, con
 		// done before updating to ensure that particles
 		// always live for at least one tick (unless the
 		// lifetime is set to initialize to zero).
+		#error "This is a bit pointless, since we always update particles one tick after intialization."
+		#error "I think it would be good to update them on the same tick, though."
 		if(particleDead(curParticle)){
 			particleManagerFree(&node->manager, curParticle);
 
@@ -110,10 +170,17 @@ void particleSysNodeUpdateParticles(particleSystemNode *const restrict node, con
 
 		// Update the particle if it survived.
 		}else{
-			particlePreUpdate(part, parentState, dt);
+			particlePreUpdate(part, dt);
 			operateParticle(nodeDef, part, dt);
 			constrainParticle(nodeDef, part, dt);
 			particlePostUpdate(part, dt);
+			// The functions above generate the particle's
+			// local transform, so we need to get its global
+			// one using the parent's current transform.
+			#error "How do we get the current and previous parent states?"
+			#error "Remember that particles can inherit less properties after creation."
+			#error "I wonder how Effekseer does this?"
+			particleUpdateGlobalTransform(part);
 
 			// Move this particle to replace the next dead one.
 			// This ensures that prior to any sorting, particles
@@ -136,9 +203,9 @@ void particleSysNodeUpdateEmitters(particleSystemNode *const restrict node, cons
 	particleEmitter *curEmitter = node->emitters;
 	const particleEmitter *const lastEmitter = &curEmitter[nodeDef->numEmitters];
 	particleEmitterDef *curEmitterDef = nodeDef->emitters;
-	// Update all of the emitters,
+	// Update all of the emitters, and keep a sum of
+	// the number of particles we should emit this tick.
 	for(; curEmitter < lastEmitter; ++curEmitter, ++curEmitterDef){
-		// Check how many particles this emitter should spawn.
 		spawnCount += particleEmitterUpdate(curEmitter, curEmitterDef, dt);
 	}
 
@@ -167,24 +234,26 @@ void particleSysNodePresort(
 	const camera *const restrict cam
 ){
 
-	const flags_t sortFlags = node->container->nodeDef->sortFlags;
+	const flags_t sortFlags = container->nodeDef->sortFlags;
 	if(flagsAreSet(sortFlags, PARTICLE_SORT_DISTANCE)){
 		const particleManager manager = node->manager;
+		// Keep a reference to the comparison function so
+		// we don't have to keep checking which one to use.
+		// Note that the comparison functions look backwards
+		// because our sorting functions go from smallest to
+		// largest, whereas particles are typically sorted
+		// from largest distance to smallest (back to front).
+		compareFunc compare = flagsAreSet(sortFlags, PARTICLE_SORT_REVERSED) ?
+			&keyValueCompare :
+			&keyValueCompareReversed;
+		return_t sorted = 1;
 
 		// Particles are pretty big, so it's more efficient
 		// to first sort an array of smaller key-values.
 		keyValue *const keyValues = memoryManagerGlobalAlloc(
 			sizeof(*keyValues) * manager.numParticles
 		);
-		// Once we've sorted the key-values, we can simply copy
-		// the particles into this new array in sorted order.
-		particle *const sortedArray = memoryManagerGlobalAlloc(
-			sizeof(*sortedArray) * manager.numParticles
-		);
 		if(keyValues == NULL){
-			/** MALLOC FAILED **/
-		}
-		if(sortedArray == NULL){
 			/** MALLOC FAILED **/
 		}
 
@@ -192,46 +261,61 @@ void particleSysNodePresort(
 		{
 			const particle *curParticle = manager.particles;
 			keyValue *curKeyValue = keyValues;
+			keyValue *prevKeyValue = keyValues;
 			unsigned int i;
 			// Our sorting functions sort from smallest to greatest, so this will
 			// sort particles from nearest to farthest distance from the camera.
 			for(i = 0; i < manager.numParticles; ++i, ++curParticle, ++curKeyValue){
 				curKeyValue->value = cameraDistanceSquared(cam, &curParticle->subsys.state[0].pos);
 				curKeyValue->key = curParticle;
+
+				// If the previous element should come after the
+				// current one, the array will need to be sorted.
+				if((*compare)(prevKeyValue->value, curKeyValue->value) == SORT_COMPARE_GREATER){
+					sorted = 0;
+				}
+				prevKeyValue = curKeyValue;
 			}
 		}
 
-		// Sort the key-values! Note that the comparison functions look
-		// backwards because our sorting functions go from smallest to
-		// largest, whereas particles are typically sorted from largest
-		// distance to smallest (back to front).
-		if(flagsAreSet(sortFlags, PARTICLE_SORT_REVERSED)){
-			timsortFlexibleKeyValues(keyValues, manager.numParticles, &keyValueCompare);
+		// If the array is already sorted, we can exit early.
+		if(sorted){
+			memoryManagerGlobalFree(keyValues);
 		}else{
-			timsortFlexibleKeyValues(keyValues, manager.numParticles, &keyValueCompareReversed);
-		}
+			// Once we've sorted the key-values, we can simply copy
+			// the particles into this new array in sorted order.
+			particle *const sortedArray = memoryManagerGlobalAlloc(
+				sizeof(*sortedArray) * manager.numParticles
+			);
+			if(sortedArray == NULL){
+				/** MALLOC FAILED **/
+			}
 
-		// Copy the particles into the new array in sorted order!
-		{
-			particle *curParticle = sortedArray;
-			keyValue *curKeyValue = keyValues;
-			const particle *const lastParticle = &sortedArray[manager.numParticles];
-			for(; curParticle != lastParticle; ++curParticle, ++curKeyValue){
-				particleNode *curChild;
+			// Sort the key-values!
+			timsortFlexibleKeyValues(keyValues, manager.numParticles, compare);
 
-				*curParticle = *((particle *)curKeyValue->key);
+			// Copy the particles into the new array in sorted order!
+			{
+				particle *curParticle = sortedArray;
+				keyValue *curKeyValue = keyValues;
+				const particle *const lastParticle = &sortedArray[manager.numParticles];
+				for(; curParticle != lastParticle; ++curParticle, ++curKeyValue){
+					particleSystemNode *curChild;
 
-				// Update each child nodes' parent pointers.
-				for(curChild = curParticle->children; curChild != NULL; curChild = curChild->nextSibling){
-					curChild->parent = curParticle;
+					*curParticle = *((particle *)curKeyValue->key);
+
+					// Update each child nodes' parent pointers.
+					for(curChild = curParticle->subsys.nodes; curChild != NULL; curChild = curChild->nextSibling){
+						curChild->parent = curParticle;
+					}
 				}
 			}
-		}
-		memoryManagerGlobalFree(keyValues);
-		memoryManagerGlobalFree(node->manager.particles);
+			memoryManagerGlobalFree(keyValues);
+			memoryManagerGlobalFree(node->manager.particles);
 
-		// Overwrite the original array of particles with the new sorted array.
-		node->manager.particles = sortedArray;
+			// Overwrite the original array of particles with the new sorted array.
+			node->manager.particles = sortedArray;
+		}
 	}
 }
 
@@ -248,6 +332,16 @@ keyValue *const void particleSysNodeSort(
 
 	const particleManager manager = node->manager;
 	const flags_t sortFlags = node->container->nodeDef->sortFlags;
+	// Keep a reference to the comparison function so
+	// we don't have to keep checking which one to use.
+	// Note that the comparison functions look backwards
+	// because our sorting functions go from smallest to
+	// largest, whereas particles are typically sorted
+	// from largest distance to smallest (back to front).
+	compareFunc compare = flagsAreSet(sortFlags, PARTICLE_SORT_REVERSED) ?
+		&keyValueCompare :
+		&keyValueCompareReversed;
+	return_t sorted = 1;
 
 	// Particles are pretty big, so it's more efficient
 	// to first sort an array of smaller key-values.
@@ -262,6 +356,7 @@ keyValue *const void particleSysNodeSort(
 	{
 		const particle *curParticle = manager.particles;
 		keyValue *curKeyValue = keyValues;
+		keyValue *prevKeyValue = keyValues;
 		unsigned int i;
 		// Our sorting functions sort from smallest to greatest, so this will
 		// sort particles from nearest to farthest distance from the camera.
@@ -274,29 +369,27 @@ keyValue *const void particleSysNodeSort(
 			);
 			curKeyValue->value = cameraDistanceSquared(cam, &interpPos);
 			curKeyValue->key = curParticle;
+
+			// If the previous element should come after the
+			// current one, the array will need to be sorted.
+			if((*compare)(prevKeyValue->value, curKeyValue->value) == SORT_COMPARE_GREATER){
+				sorted = 0;
+			}
+			prevKeyValue = curKeyValue;
 		}
 	}
 
-	// The key-values only need to be
+	// The key-values also only need to be
 	// sorted if we're sorting by distance.
-	if(flagsAreSet(sortFlags, PARTICLE_SORT_DISTANCE)){
-		if(flagsAreSet(sortFlags, PARTICLE_SORT_REVERSED)){
-			timsortFlexibleKeyValues(keyValues, manager.numParticles, &keyValueCompare);
-		}else{
-			timsortFlexibleKeyValues(keyValues, manager.numParticles, &keyValueCompareReversed);
-		}
+	if(!sorted && flagsAreSet(sortFlags, PARTICLE_SORT_DISTANCE)){
+		timsortFlexibleKeyValues(keyValues, manager.numParticles, compare);
 	}
 	
 	return(keyValues);
 }
 
 
-/*
-** When a particle system node's owner dies, the
-** node itself should be killed as soon as possible.
-*/
 void particleSysNodeOrphan(particleSystemNode *const restrict node){
-	node->lifetime = 0.f;
 	node->parent = NULL;
 	node->prevSibling = NULL;
 	node->nextSibling = NULL;
@@ -338,9 +431,13 @@ static void initializeParticle(
 
 	const particleSubsystemDef *nodeDef = node->container->nodeDef;
 	const particleInitializer *curInitializer = nodeDef->initializers;
+	// If the node's parent is still alive, use its previous state.
+	// Otherwise, the previous state will be the same as the last one.
+	transform *const prevParentState = (node->parent != NULL) ?
+		&node->parent->state[1] :
+		&node->parentState;
 
-	// This prepares the particle for the initializers.
-	particlePreInit(part, node);
+	particleInit(part, node);
 
 	// Run through all of the initializers for this subsystem.
 	if(curInitializer != NULL){
@@ -352,8 +449,11 @@ static void initializeParticle(
 	}
 
 	// Now that we've initialized the particle,
-	// set up some of its subsystem properties.
-	particlePostInit(part, node);
+	// we need to get its global transform.
+	#error "How do we get the current and previous parent states?"
+	#error "Remember that particles can inherit less properties after creation."
+	#error "I wonder how Effekseer does this?"
+	particleUpdateGlobalTransform(part);
 }
 
 /*
@@ -368,7 +468,7 @@ static void emitParticles(
 	// If we're sorting by youngest to oldest, allocate the
 	// new particles at the front of the array. Otherwise,
 	// allocate them at the back.
-	particle *curParticle = (sortFlags == PARTICLE_SORT_CREATION_REVERSED) ?
+	particle *curParticle = flagsAllSet(sortFlags, PARTICLE_SORT_CREATION_REVERSED) ?
 		particleManagerAllocFront(&node->manager, spawnCount) :
 		particleManagerAllocBack(&node->manager, spawnCount);
 	const particle *const lastParticle = &curParticle[spawnCount];

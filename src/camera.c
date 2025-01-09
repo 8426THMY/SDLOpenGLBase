@@ -31,14 +31,14 @@ void cameraUpdateProjectionMatrix(
 ){
 
 	// Use an orthographic projection matrix.
-	if(flagsAreSet(cam->flags, CAMERA_TYPE_ORTHO)){
+	if(flagsContainsSubset(cam->flags, CAMERA_TYPE_ORTHO)){
 		const float aspectRatio = 1.f/((windowWidth < windowHeight) ? windowWidth : windowHeight);
 		const float widthRatio  = windowWidth * aspectRatio;
 		const float heightRatio = windowHeight * aspectRatio;
 		mat4Orthographic(&cam->projectionMatrix, widthRatio, 0.f, heightRatio, 0.f, -CAMERA_Z_THRESHOLD, CAMERA_Z_THRESHOLD);
 
 	// Use a perspective projection matrix.
-	}else if(flagsAreSet(cam->flags, CAMERA_TYPE_FRUSTUM)){
+	}else if(flagsContainsSubset(cam->flags, CAMERA_TYPE_FRUSTUM)){
 		mat4Perspective(&cam->projectionMatrix, cam->fov, windowWidth/windowHeight, 0.1f/cam->fov, CAMERA_Z_THRESHOLD);
 
 	// Use a fixed 1 unit per screen pixel scale for the camera.
@@ -47,7 +47,7 @@ void cameraUpdateProjectionMatrix(
 	// increasing to the right and the y-axis increasing upwards.
 	// This means that when the window is resized, GUI elements are
 	// scaled towards the top-left corner of the screen.
-	}else if(flagsAreSet(cam->flags, CAMERA_TYPE_FIXED_SIZE)){
+	}else if(flagsContainsSubset(cam->flags, CAMERA_TYPE_FIXED_SIZE)){
 		mat4Orthographic(&cam->projectionMatrix, 0.f, windowWidth, -windowHeight, 0.f, -CAMERA_Z_THRESHOLD, CAMERA_Z_THRESHOLD);
 	}else{
 		mat4InitIdentity(&cam->projectionMatrix);

@@ -10,10 +10,9 @@
 #define insertionSortDeclare(name, type) \
 	void insertionSort##name(type *const restrict array, const size_t arraySize);
 
-#define insertionSortFlexibleDeclare(name, type)                                              \
-	void insertionSort##name##Flexible(                                                       \
-		type *const restrict array, const size_t arraySize,                                   \
-		sort_t (*const compare)(const type *const restrict e1, const type *const restrict e2) \
+#define insertionSortFlexibleDeclare(name, type)                                \
+	void insertionSort##name##Flexible(                                         \
+		type *const restrict array, const size_t arraySize, compareFunc compare \
 	);
 
 /*
@@ -38,8 +37,7 @@
 
 #define insertionSortFlexibleDefine(name, type)                                                 \
 	void insertionSort##name##Flexible(                                                         \
-		type *const restrict array, const size_t arraySize,                                     \
-		sort_t (*const compare)(const type *const restrict e1, const type *const restrict e2)   \
+		type *const restrict array, const size_t arraySize, compareFunc compare                 \
 	){                                                                                          \
                                                                                                 \
 		type *sort = array;                                                                     \

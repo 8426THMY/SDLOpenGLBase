@@ -21,53 +21,47 @@ void particleSysDefInit(particleSystemDef *const restrict partSysDef){
 
 void particleSysInit(
 	particleSystem *const restrict partSys,
-	const particleSystemDef *const restrict partSysDef,
-	const transformState *const restrict state
+	const particleSystemDef *const restrict partSysDef
 ){
 
-	// Initialize all of the particle system's containers.
-	{
-		particleSystemNodeContainer *curContainer;
-		particleSystemNodeContainer *firstChild;
-		particleSystemNodeContainer *nextChild;
-		const particleSystemNodeDef *curNodeDef = partSysDef->nodes;
-		const particleSystemNodeDef *lastNodeDef = NULL;
+	particleSystemNodeContainer *curContainer;
+	particleSystemNodeContainer *firstChild;
+	particleSystemNodeContainer *nextChild;
+	const particleSystemNodeDef *curNodeDef = partSysDef->nodes;
+	const particleSystemNodeDef *lastNodeDef = NULL;
 
-		curContainer = memoryManagerGlobalAlloc(sizeof(curContainer) * partSysDef->numNodes);
-		if(curContainer = NULL){
-			/** MALLOC FAILED **/
-		}
-		// Start storing children after all of the root nodes.
-		firstChild = &curContainer[partSysDef->numRoot];
-		nextChild = firstChild;
+	curContainer = memoryManagerGlobalAlloc(sizeof(curContainer) * partSysDef->numNodes);
+	if(curContainer = NULL){
+		/** MALLOC FAILED **/
+	}
+	// Start storing children after all of the root nodes.
+	firstChild = &curContainer[partSysDef->numRoot];
+	nextChild = firstChild;
 
-		partSys->containers = curContainer;
-		partSys->lastContainer = &curContainer[partSysDef->numNodes];
+	partSys->containers = curContainer;
+	partSys->lastContainer = &curContainer[partSysDef->numNodes];
 
-		partSys->subsys.state[0] = *state;
-		partSys->subsys.state[1] = *state;
-		particleSubsysInit(&partSys->subsys);
+	particleSubsysInit(&partSys->subsys);
 
-		// This loop iterates through all of the root-level containers,
-		// whereas the initialization function will set up all of their
-		// children. This is useful, as since we should only instantiate
-		// the root-level nodes at first, we can simply do that here!
-		while(curContainer != firstChild){
-			// This will recursively initialize the container and
-			// all of its children. As a result, containers are
-			// guaranteed to have their children stored sequentially.
-			nextChild = particleSysNodeContainerInit(
-				curContainer, curNodeDef, nextChild
-			);
-			// Add it to the particle system's root subsystem.
-			particleSubsysPrepend(
-				&partSys->subsys,
-				particleSysNodeContainerInstantiate(curContainer)
-			);
+	// This loop iterates through all of the root-level containers,
+	// whereas the initialization function will set up all of their
+	// children. This is useful, as since we should only instantiate
+	// the root-level nodes at first, we can simply do that here!
+	while(curContainer != firstChild){
+		// This will recursively initialize the container and
+		// all of its children. As a result, containers are
+		// guaranteed to have their children stored sequentially.
+		nextChild = particleSysNodeContainerInit(
+			curContainer, curNodeDef, nextChild
+		);
+		// Add it to the particle system's root subsystem.
+		particleSubsysPrepend(
+			&partSys->subsys,
+			particleSysNodeContainerInstantiate(curContainer)
+		);
 
-			++curContainer;
-			curNodeDef = moduleParticleSysNodeDefNext(curNodeDef);
-		}
+		++curContainer;
+		curNodeDef = moduleParticleSysNodeDefNext(curNodeDef);
 	}
 }
 

@@ -297,13 +297,13 @@ void physJointSphereWarmStart(
 
 	// The angular impulse is the sum of the swing and twist impulses.
 	// We recalculate them here because we need the new swing and twist axes.
-	if(flagsAreSet(((physicsJointSphere *)joint)->limitStates, PHYSJOINTSPHERE_LIMITS_SWING)){
+	if(flagsContainsSubset(((physicsJointSphere *)joint)->limitStates, PHYSJOINTSPHERE_LIMITS_SWING)){
 		vec3MultiplySOut(&joint->swingAxis, joint->swingImpulse, &angularImpulse);
 		#ifdef PHYSJOINTSPHERE_SWING_USE_ELLIPSE_NORMAL
 		swingImpulseRemoveTwist(&joint->twistAxis, &angularImpulse);
 		#endif
 	}
-	if(flagsAreSet(((physicsJointSphere *)joint)->limitStates, PHYSJOINTSPHERE_LIMITS_TWIST)){
+	if(flagsContainsSubset(((physicsJointSphere *)joint)->limitStates, PHYSJOINTSPHERE_LIMITS_TWIST)){
 		vec3FmaP2(joint->twistImpulse, &joint->twistAxis, &angularImpulse);
 	}
 
@@ -428,15 +428,15 @@ void physJointSpherePresolve(
 
 
 	// Reset the accumulated impulses if the limits have changed state.
-	if(flagsAreSet(changedLimits, PHYSJOINTSPHERE_LIMITS_SWING)){
+	if(flagsContainsSubset(changedLimits, PHYSJOINTSPHERE_LIMITS_SWING)){
 		((physicsJointSphere *)joint)->swingImpulse = 0.f;
 	}
-	if(flagsAreSet(changedLimits, PHYSJOINTSPHERE_LIMITS_TWIST)){
+	if(flagsContainsSubset(changedLimits, PHYSJOINTSPHERE_LIMITS_TWIST)){
 		((physicsJointSphere *)joint)->twistImpulse = 0.f;
 	}
 	// Disable linear warmstarting while the swing constraint is violated.
 	// This is a little hacky, but seems to give much more accurate results.
-	if(flagsAreSet(((physicsJointSphere *)joint)->limitStates, PHYSJOINTSPHERE_LIMITS_SWING)){
+	if(flagsContainsSubset(((physicsJointSphere *)joint)->limitStates, PHYSJOINTSPHERE_LIMITS_SWING)){
 		vec3InitZero(&((physicsJointSphere *)joint)->linearImpulse);
 	}
 	#ifdef PHYSJOINTSPHERE_WARM_START
@@ -466,7 +466,7 @@ void physJointSphereSolveVelocity(
 
 
 		// Solve the swing constraint.
-		if(flagsAreSet(((physicsJointSphere *)joint)->limitStates, PHYSJOINTSPHERE_LIMITS_SWING)){
+		if(flagsContainsSubset(((physicsJointSphere *)joint)->limitStates, PHYSJOINTSPHERE_LIMITS_SWING)){
 			calculateAngularVelocityImpulse(
 				&relativeVelocity, &((physicsJointSphere *)joint)->swingAxis,
 				((physicsJointSphere *)joint)->swingBias, ((physicsJointSphere *)joint)->swingInvMass,
@@ -478,7 +478,7 @@ void physJointSphereSolveVelocity(
 			#endif
 		}
 		// Solve the twist constraint.
-		if(flagsAreSet(((physicsJointSphere *)joint)->limitStates, PHYSJOINTSPHERE_LIMITS_TWIST)){
+		if(flagsContainsSubset(((physicsJointSphere *)joint)->limitStates, PHYSJOINTSPHERE_LIMITS_TWIST)){
 			calculateAngularVelocityImpulse(
 				&relativeVelocity, &((physicsJointSphere *)joint)->twistAxis,
 				((physicsJointSphere *)joint)->twistBias, ((physicsJointSphere *)joint)->twistInvMass,

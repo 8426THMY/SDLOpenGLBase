@@ -9,8 +9,8 @@
 
 
 void insertionSort(
-	void *const restrict array, const size_t arraySize, const size_t elementSize, void *const restrict temp,
-	sort_t (*const compare)(const void *const restrict e1, const void *const restrict e2)
+	void *const restrict array, const size_t arraySize, const size_t elementSize,
+	void *const restrict temp, compareFunc compare
 );
 
 insertionSortFlexibleDeclare(KeyValues, keyValue)

@@ -4,6 +4,8 @@
 
 #include <stddef.h>
 
+#include "transform.h"
+
 #include "particleEmitter.h"
 #include "particleInitializer.h"
 #include "particleOperator.h"
@@ -14,6 +16,9 @@
 #include "sort.h"
 
 #include "utilTypes.h"
+
+
+#warning "Should particles be able to inherit velocities?"
 
 
 // Never inherit parent properties.
@@ -120,7 +125,17 @@ typedef struct particleSystemNode {
 	// Container that this subsystem lives in.
 	particleSystemNodeContainer *container;
 	// Subsystem that this subsystem lives in.
+	#error "Should we use particles instead of subsystems?"
+	#error "Eventually, we'll need to inherit more than just transforms."
 	particleSubsystem *parent;
+	// When the parent dies, we'll need to know
+	// where it was last say that our particles
+	// know how to calculate their global states.
+	// This is a little inefficient, especially
+	// when a particle spawns multiple nodes, but
+	// the alternative is having particles store
+	// their states separately in memory.
+	transform parentState;
 	// Pointer to the previous and
 	// next nodes in the subsystem.
 	particleSystemNode *prevSibling;
@@ -133,6 +148,10 @@ void particleSysNodeInit(
 	const particleSystemNodeDef *const restrict nodeDef
 );
 
+void particleSysNodeUpdateParentTransform(
+	particleSystemNode *const restrict node,
+	transform *const restrict prevParentState
+);
 void particleSysNodeUpdateParticles(particleSystemNode *const restrict node, const float dt);
 void particleSysNodeUpdateEmitters(particleSystemNode *const restrict node, const float dt);
 

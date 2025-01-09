@@ -18,9 +18,13 @@ typedef int return_t;
 #define flagsUnset(flags, bits) ((flags) &= ~(bits))
 #define flagsMaskSet(flags, bits) ((flags) &= (bits))
 
-#define flagsMask(flags, bits)    ((flags) & (bits))
-#define flagsAreSet(flags, bits)   (((flags) & (bits)) != 0)
-#define flagsAreUnset(flags, bits) (((flags) & (bits)) == 0)
+#define flagsMask(flags, bits)           ((flags) & (bits))
+// True if the flags contains a subset of the bits.
+#define flagsContainsSubset(flags, bits) (((flags) & (bits)) != 0)
+// True if the flags contain the entire set of bits.
+#define flagsContainsSet(flags, bits)    (((flags) & (bits)) == (bits))
+
+
 
 
 #endif

@@ -28,6 +28,7 @@
 
 
 typedef flags_t sort_t;
+typedef sort_t (*const compareFunc)(const void *const restrict e1, const void *const restrict e2);
 
 // For larger structures, it's often faster
 // to sort an array of key-values instead.
