@@ -1,38 +1,38 @@
 #include "particleSubsystem.h"
 
 
+#include "particle.h"
 #include "particleSystemNode.h"
 
 
-/*
-** Initialize the array of children. We expect the
-** owner to set the current and previous transforms
-*/
-void particleSubsysInit(particleSubsystem *const restrict subsys){
-	transformInit(&subsys->state[0]);
-	transformInit(&subsys->state[1]);
-	subsys->nodes = NULL;
-	subsys->numNodes = 0;
-}
-
-
-// Insert a node at the beginning of the subsystem's list.
-void particleSubsysPrepend(
+// Initialize the list of child nodes.
+void particleSubsysInstantiate(
 	particleSubsystem *const restrict subsys,
-	particleSystemNode *const restrict node
+	const particleSystemNodeContainer *const restrict children,
+	const size_t numChildren,
+	particle *const restrict parent
 ){
 
-	node->parent = subsys;
-	node->prevSibling = NULL;
-	node->nextSibling = subsys->nodes;
+	const particleSystemNodeContainer *curChild = children;
+	const particleSystemNodeContainer *const lastChild = &children[numChildren];
 
-	if(subsys->nodes != NULL){
-		subsys->nodes->prevSibling = node;
+	subsys->nodes = NULL;
+	subsys->numNodes = numChildren;
+
+	// Create instances of each of the child nodes.
+	for(; curContainer != lastContainer; ++curContainer){
+		particleSystemNode *const node = particleSysNodeContainerInstantiate(curContainer);
+
+		node->parent = parent;
+		node->prevSibling = NULL;
+		node->nextSibling = subsys->nodes;
+
+		if(subsys->nodes != NULL){
+			subsys->nodes->prevSibling = node;
+		}
+		subsys->nodes = node;
 	}
-	subsys->nodes = node;
-	++subsys->numNodes;
 }
-
 
 // Orphan all of the particle system nodes in the subsystem.
 void particleSubsysOrphan(particleSubsystem *const restrict subsys){

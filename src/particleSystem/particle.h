@@ -21,6 +21,20 @@
 //https://www.cppstories.com/2014/04/flexible-particle-system-container-2/
 
 
+/*
+** These are the base properties of a particle that
+** can be inherited in some way by its children.
+*/
+/**typedef struct particleBase {
+	// Current and previous global transforms.
+	transform state;
+	transform prevState;
+
+	// Local velocities.
+	vec3 linearVelocity;
+	vec3 angularVelocity;
+} particleBase;**/
+
 typedef struct particle {
 	#warning "We shouldn't allow particles to be sheared, as it's way too slow."
 	#warning "If we're desperate, this can be emulated using animated textures or something."
@@ -29,9 +43,9 @@ typedef struct particle {
 	// Current local transform of the particle. The parent's
 	// state is appended to this to get the global transform.
 	transform localState;
-	// Stores the current and previous global transforms
-	// and manages any child particle system nodes.
-	particleSubsystem subsys;
+	// Current and previous global transforms.
+	transform state;
+	transform prevState;
 
 	// These properties control the particle's motion.
 	// Note that they're all stored in local space!
@@ -50,20 +64,17 @@ typedef struct particle {
 	// the particle may live for, it can also represent other
 	// things, such as how long it has been alive for.
 	float lifetime;
+
+	// Manages any child particle system nodes.
+	particleSubsystem subsys;
 } particle;
 
-// 
-typedef struct particleRender {
-	transform state;
-	#if 0
-	textureGroupAnim animData;
-	#endif
-} particleRender;
 
-
+typedef struct particleSystemNodeContainer particleSystemNodeContainer;
 void particleInit(
 	particle *const restrict part,
-	const particleSystemNode *const restrict node
+	const particleSystemNodeContainer *const restrict children,
+	const size_t numChildren,
 );
 
 void particlePreUpdate(particle *const restrict part, const float dt);

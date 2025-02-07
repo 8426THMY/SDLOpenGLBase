@@ -43,7 +43,7 @@ typedef struct billboard {
 	vec3 *target;
 	float scale;
 
-	flags_t flags;
+	flags8_t flags;
 } billboard;
 
 

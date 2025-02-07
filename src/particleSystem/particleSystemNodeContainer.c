@@ -2,14 +2,9 @@
 
 
 #include "particleSystemNode.h"
+#include "particleRenderer.h"
 
 #include "moduleParticle.h"
-
-
-// Forward-declare any helper functions!
-static size_t countParticles(
-	const particleSystemNodeContainer *const restrict container
-);
 
 
 /*
@@ -83,27 +78,19 @@ void particleSysNodeContainerUpdate(
 	while(curNode != NULL){
 		particleSystemNode *const nextNode = moduleParticleSysNodeNext(curNode);
 
-		// Delete the particle system if it's dead.
-		if(curNode->lifetime <= 0.f && curNode->manager.numParticles <= 0){
+		#warning "Should we update new particles on the same tick we initialize them?"
+		#warning "The way we're currently doing things, they stay stationary for a frame."
+
+		// Delete the node if it's dead.
+		if(particleSysNodeDead(curNode)){
 			particleSysNodeDelete(curNode);
 			moduleParticleSysNodeFree(&container->instances, curNode, prevNode);
 		}else{
-			#error "How do we get the current and previous parent states?"
-			#error "Remember that particles can inherit less properties after creation."
-			#error "I wonder how Effekseer does this?"
-
-			#warning "Should we update new particles on the same tick we initialize them?"
-			#warning "The way we're currently doing things, they stay stationary for a frame."
-
-			// Update the node's particles.
-			if(curNode->manager.numParticles > 0){
-				particleSysNodeUpdateParticles(curNode, dt);
-			}
-			// Only emit particles if the node is still alive.
-			if(curNode->lifetime > 0.f){
-				particleSysNodeUpdateEmitters(curNode, dt);
-				curNode->lifetime -= dt;
-			}
+			// We update our particles before emitting them so that
+			// new particles stay where they spawned for one tick.
+			particleSysNodeUpdateParticles(curNode, dt);
+			particleSysNodeUpdateEmitters(curNode, dt);
+			curNode->lifetime -= dt;
 
 			// Sort the node's particles! This should hopefully
 			// mean that sorting them during rendering is faster.
@@ -135,6 +122,7 @@ void particleSysNodeContainerBatch(
 	// For each instance, fill the buffer with its particle data.
 	// If the buffer is filled, we'll need to draw and orphan it.
 	while(curNode != NULL){
+		#error "Is there a better way of doing all of this?"
 		/** Currently, we check if the batch is full after adding  **/
 		/** each particle. This results in minimal draw calls, but **/
 		/** we have to keep checking if the batch is full. One way **/
@@ -189,25 +177,4 @@ void particleSysNodeContainerDelete(
 	}
 	// Free the array of nodes.
 	moduleParticleSysNodeFreeArray(container->instances);
-}
-
-
-/*
-** Count the particles for each instance of a container.
-** Containers are responsible for batch rendering all of
-** their instances, so this lets us preallocate the buffer.
-*/
-static size_t particleSysNodeContainerBufferSize(
-	const particleSystemNodeContainer *const restrict container
-){
-
-	size_t numParticles = 0;
-
-	const particleSystemNode *curNode = container->instances;
-	while(curNode != NULL){
-		numParticles += curNode->numParticles;
-		curNode = moduleParticleSysNodeNext(curNode);
-	}
-
-	return(particleRendererBufferSize(container->nodeDef->renderer, numParticles));
 }

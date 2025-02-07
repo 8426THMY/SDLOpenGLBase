@@ -6,7 +6,9 @@
 
 
 typedef uint_least8_t byte_t;
-typedef uint_least8_t flags_t;
+
+typedef uint_least8_t  flags8_t;
+typedef uint_least16_t flags16_t;
 
 typedef int return_t;
 
@@ -20,9 +22,9 @@ typedef int return_t;
 
 #define flagsMask(flags, bits)           ((flags) & (bits))
 // True if the flags contains a subset of the bits.
-#define flagsContainsSubset(flags, bits) (((flags) & (bits)) != 0)
+#define flagsContainsSubset(flags, bits) (flagsMask((flags), (bits)) != 0)
 // True if the flags contain the entire set of bits.
-#define flagsContainsSet(flags, bits)    (((flags) & (bits)) == (bits))
+#define flagsContainsSet(flags, bits)    (flagsMask((flags), (bits)) == (bits))
 
 
 

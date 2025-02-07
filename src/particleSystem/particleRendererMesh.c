@@ -65,8 +65,8 @@ void particleRendererMeshBatch(
 
 			// Compute the interpolated particle transform.
 			transformInterpSet(
-				&curParticle->subsys.state[1],
-				&curParticle->subsys.state[0],
+				&curParticle->prevState,
+				&curParticle->state,
 				dt, &curTransform
 			);
 			#warning "Temporary, until we know how we want to do billboarding."

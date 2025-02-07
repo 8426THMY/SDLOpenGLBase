@@ -12,15 +12,18 @@
 #include "camera.h"
 
 
-/**
- ** We probably want two texturing modes:
- **     1. The texture goes from one end of the beam to the other.
- **     2. The texture covers each quad of the beam once.
- ** We should also allow the width of the beam to be dilated depending on the particle's scale.
- **/
 typedef struct particleRendererBeam {
-	float halfWidth;
 	unsigned int subdivisions;
+	// Half the vertical size of the beam.
+	float halfWidth;
+	// This value represents how much the horizontal
+	// coordinate of the UVs should be incremented
+	// with each particle in the beam. Subdivisions
+	// should be ignored, as they're accounted for
+	// during rendering. If the tile width is zero,
+	// then the texture will be stretched to exactly
+	// fill the length of the beam.
+	float tileWidth;
 } particleRendererBeam;
 
 

@@ -43,8 +43,10 @@
 #warning "Essentially, what we want is something like the render loop in 'Approaching Zero Driver Overhead'."
 #warning "Another idea is to use the method presented in 'Order your graphics draw calls around!'"
 /* https://realtimecollisiondetection.net/blog/?p=86 */
+/* https://computergraphics.stackexchange.com/questions/37/what-is-the-cost-of-changing-state */
 
 #warning "Maybe limit the scope of global variables that don't need to be seen from the outside?"
+#warning "Our for loops should probably be using '!=' rather than '<' when iterating over pointers."
 
 
 /**
@@ -62,6 +64,21 @@
 ***	4.	Add motors for the physics constraints.
 ***
 ***	5.	Renderer overhaul (see the warnings above).
+**/
+
+
+/**
+*** Lighting Stuff:
+***
+*** 1.	We should eventually implement a clustered forward renderer to allow
+*** 	for lots of light sources. It might be good to do a depth prepass,
+*** 	but this sounds slow, especially if we have skeletal meshes.
+*** 	https://www.aortiz.me/2018/12/21/CG.html
+***
+***	2.	For static lighting, we can use shadow maps and shadow volumes for
+*** 	direct lighting and light probe volumes for indirect lighting.
+***
+*** 3.	I need to think more about dynamic lighting.
 **/
 
 

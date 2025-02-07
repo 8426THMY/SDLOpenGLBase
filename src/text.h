@@ -43,7 +43,7 @@ typedef struct textBuffer {
 	// Byte after the last byte of the buffer.
 	byte_t *end;
 	#ifdef TEXT_BUFFER_USE_FLAG_BYTE
-	flags_t full;
+	flags8_t full;
 	#endif
 } textBuffer;
 

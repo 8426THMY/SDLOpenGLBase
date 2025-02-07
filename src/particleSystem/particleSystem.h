@@ -7,7 +7,7 @@
 #include "transform.h"
 #include "camera.h"
 
-#include "particleSubsystem.h"
+#include "particle.h"
 
 
 /**
@@ -185,16 +185,18 @@ typedef struct particleSystemDef {
 */
 typedef struct particleSystemNodeContainer particleSystemNodeContainer;
 typedef struct particleSystem {
-	// Contains the current and previous transforms, as well
-	// as a list of root-level nodes. These are only spawned
-	// when the particle system is first initialized.
-	particleSubsystem subsys;
 	// Particle system node containers are stored such that
 	// the children of a particular container are sequential.
 	// This just makes the memory a bit easier to manage.
 	particleSystemNodeContainer *containers;
 	// This actually points to the address after the last container.
 	particleSystemNodeContainer *lastContainer;
+	// Contains a list of root-level nodes. These are only
+	// spawned when the particle system is first initialized.
+	// This also contains a whole slew of extra data that the
+	// owner can use to modify the system.
+	#warning "This is quite wasteful, we should consider using a reduced structure..."
+	particle root;
 } particleSystem;
 
 

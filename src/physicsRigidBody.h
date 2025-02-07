@@ -55,7 +55,7 @@ typedef struct physicsRigidBodyDef {
 	mat3 inertia;
 
 	// Default flags for the rigid body.
-	flags_t flags;
+	flags8_t flags;
 } physicsRigidBodyDef;
 
 #warning "Linear and angular damping would also be nice."
@@ -94,7 +94,7 @@ typedef struct physicsRigidBody {
 	// body is body A) are stored at the beginning of the list.
 	physicsJoint *joints;
 
-	flags_t flags;
+	flags8_t flags;
 } physicsRigidBody;
 
 

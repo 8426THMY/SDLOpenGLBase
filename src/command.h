@@ -86,7 +86,7 @@ typedef struct commandSystem {
 	command cmd;
 	// Stores whether the command
 	// is a function or a variable.
-	flags_t type;
+	flags8_t type;
 } commandSystem, commandNode;
 
 

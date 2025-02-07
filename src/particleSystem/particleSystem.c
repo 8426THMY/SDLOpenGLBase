@@ -1,16 +1,14 @@
 #include "particleSystem.h"
 
 
+#include "particleSubsystem.h"
 #include "particleSystemNode.h"
+#include "particleSystemNodeContainer.h"
 
 #include "memoryManager.h"
 #include "moduleParticle.h"
 
 #include "utilMath.h"
-
-
-// Forward-declare any helper functions!
-static size_t calculateMaxBufferSize(const particleSystemNodeContainer *container);
 
 
 void particleSysDefInit(particleSystemDef *const restrict partSysDef){
@@ -41,12 +39,8 @@ void particleSysInit(
 	partSys->containers = curContainer;
 	partSys->lastContainer = &curContainer[partSysDef->numNodes];
 
-	particleSubsysInit(&partSys->subsys);
-
 	// This loop iterates through all of the root-level containers,
-	// whereas the initialization function will set up all of their
-	// children. This is useful, as since we should only instantiate
-	// the root-level nodes at first, we can simply do that here!
+	// while the initialization function sets up all of their children.
 	while(curContainer != firstChild){
 		// This will recursively initialize the container and
 		// all of its children. As a result, containers are
@@ -54,15 +48,15 @@ void particleSysInit(
 		nextChild = particleSysNodeContainerInit(
 			curContainer, curNodeDef, nextChild
 		);
-		// Add it to the particle system's root subsystem.
-		particleSubsysPrepend(
-			&partSys->subsys,
-			particleSysNodeContainerInstantiate(curContainer)
-		);
 
 		++curContainer;
 		curNodeDef = moduleParticleSysNodeDefNext(curNodeDef);
 	}
+
+	// Set up the root particle, and hence create instances of each
+	// root-level container. Here, we abuse the fact that the root
+	// containers are all stored sequentially.
+	particleInit(&partSys->root, partSys->containers, partSysDef->numRoot);
 }
 
 
@@ -128,20 +122,4 @@ void particleSysDefDelete(particleSystemDef *const restrict partSysDef){
 		}
 		moduleParticleSysNodeDefFreeArray(partSysDef->nodes);
 	}
-}
-
-
-/*
-** Calculate the maximum number of bytes required
-** for the particle system's buffer objects.
-*/
-static size_t calculateMaxBufferSize(const particleSystemNodeContainer *container){
-	size_t maxBufferSize = 0;
-	for(; container != partSys->lastContainer; ++container){
-		const size_t curBufferSize = particleSysNodeContainerBufferSize(container);
-		if(curBufferSize > maxBufferSize){
-			maxBufferSize = curBufferSize;
-		}
-	}
-	return(maxBufferSize);
 }

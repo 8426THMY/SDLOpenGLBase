@@ -3,6 +3,8 @@
 
 #include "memoryManager.h"
 
+#include "utilMath.h"
+
 
 void particleManagerInit(particleManager *const restrict manager, const size_t maxParticles){
 	// Allocate enough memory for the maximum number
@@ -17,9 +19,16 @@ void particleManagerInit(particleManager *const restrict manager, const size_t m
 }
 
 
-// Return how many free particles are left.
-size_t particleManagerRemaining(const particleManager *const restrict manager, const size_t maxParticles){
-	return(maxParticles - manager->numParticles);
+/*
+** Return how many of the number of particles
+** specified by "spawnCount" we have room for.
+*/
+size_t particleManagerRemaining(
+	const particleManager *const restrict manager,
+	const size_t maxParticles, const size_t spawnCount
+){
+
+	return(uintMin(maxParticles - manager->numParticles, spawnCount));
 }
 
 /*
@@ -55,6 +64,11 @@ void particleManagerFree(particleManager *const restrict manager, particle *cons
 
 void particleManagerDelete(particleManager *const restrict manager){
 	if(manager->particles != NULL){
+		particle *curParticle = manager->particles;
+		const particle *const lastParticle = &curParticle[manager->numParticles];
+		for(; curParticle != lastParticle; ++curParticle){
+			particleDelete(curParticle);
+		}
 		memoryManagerGlobalFree(manager->particles);
 	}
 }

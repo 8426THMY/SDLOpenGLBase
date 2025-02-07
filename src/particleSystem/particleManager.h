@@ -18,7 +18,10 @@ typedef struct particleManager {
 
 void particleManagerInit(particleManager *const restrict manager, const size_t maxParticles);
 
-size_t particleManagerRemaining(const particleManager *const restrict manager, const size_t maxParticles);
+size_t particleManagerRemaining(
+	const particleManager *const restrict manager,
+	const size_t maxParticles, const size_t spawnCount
+);
 particle *particleManagerAllocFront(particleManager *const restrict manager, const size_t numParticles);
 particle *particleManagerAllocBack(particleManager *const restrict manager, const size_t numParticles);
 void particleManagerFree(particleManager *const restrict manager, particle *const restrict part);

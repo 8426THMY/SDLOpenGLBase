@@ -112,7 +112,7 @@ typedef struct guiPanel {
 	// 7 - Bottom edge.
 	rectangle uvCoords[8];
 
-	flags_t flags;
+	flags8_t flags;
 } guiPanel;
 
 typedef struct guiElement guiElement;

@@ -8,6 +8,7 @@
 #include "spriteRenderer.h"
 
 #include "particleManager.h"
+#include "particleRendererPoint.h"
 #include "particleRendererSprite.h"
 #include "particleRendererBeam.h"
 #include "particleRendererMesh.h"
@@ -17,11 +18,12 @@
 #include "camera.h"
 
 
-#define PARTICLE_RENDERER_NUM_TYPES 3
+#define PARTICLE_RENDERER_NUM_TYPES 4
 
-#define PARTICLE_RENDERER_SPRITE 0
-#define PARTICLE_RENDERER_BEAM   1
-#define PARTICLE_RENDERER_MESH   2
+#define PARTICLE_RENDERER_POINT  0
+#define PARTICLE_RENDERER_SPRITE 1
+#define PARTICLE_RENDERER_BEAM   2
+#define PARTICLE_RENDERER_MESH   3
 
 
 typedef uint_least8_t particleRendererType;
@@ -30,6 +32,7 @@ typedef struct particleRenderer {
 	// This should be large enough
 	// to store any type of renderer.
 	union {
+		particleRendererPoint;
 		particleRendererSprite;
 		particleRendererBeam;
 		particleRendererMesh;

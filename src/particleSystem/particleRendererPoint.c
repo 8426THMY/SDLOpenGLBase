@@ -1,13 +1,10 @@
-#include "particleRendererSprite.h"
+#include "particleRendererPoint.h"
 
-
-#include "mat3x4.h"
-#include "transform.h"
 
 #include "particleManager.h"
 
 
-void particleRendererSpriteInitBatch(
+void particleRendererPointInitBatch(
 	const void *const restrict renderer,
 	spriteRenderer *const restrict batch,
 ){
@@ -25,33 +22,29 @@ void particleRendererSpriteInitBatch(
 }
 
 /*
-** Return the number of indices we'll need for the batch,
-** as we always have at least as many indices as vertices.
-** We also add one to account for primitive restart.
+** Return the number of indices we'll need for the batch.
+** For point sprites, this is just the number of particles.
+** We don't need to worry about primitive restart or anything.
 */
-size_t particleRendererSpriteBatchSize(
+size_t particleRendererPointBatchSize(
 	const void *const restrict renderer, const size_t numParticles
 ){
 
-	return(
-		numParticles * (
-			((const particleRendererSprite *const)renderer)->spriteData.numIndices + 1
-		)
-	);
+	return(numParticles);
 }
 
 /*
 ** Fill the buffer objects up with particle data from
 ** each particle system node in the array specified.
 */
-void particleRendererSpriteBatch(
+void particleRendererPointBatch(
 	const particleRenderer *const restrict renderer,
 	spriteRenderer *const restrict batch,
 	const keyValue *const restrict keyValues, const size_t numParticles,
 	const camera *const restrict cam, const float dt
 ){
 
-	// Exit early if the manager has no particles.
+	/*// Exit early if the manager has no particles.
 	if(numParticles > 0){
 		const particleRendererSprite partRenderer =
 			*((const particleRendererSprite *const)renderer);
@@ -122,5 +115,5 @@ void particleRendererSpriteBatch(
 			// with the next batch if it also fits in the buffer.
 			spriteRendererBatchedAddIndex(batchedRenderer, SPRITE_PRIMITIVE_RESTART_INDEX);
 		}
-	}
+	}*/
 }

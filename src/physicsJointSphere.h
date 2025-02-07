@@ -108,7 +108,7 @@ typedef struct physicsJointSphere {
 	// single bit to say whether the swing limit is broken. For
 	// all other angular limits, we use two bits to say whether
 	// the lower or upper limits have been broken.
-	flags_t limitStates;
+	flags8_t limitStates;
 
 	// The hardness is a real number in [0, 1], where '1' gives
 	// a rigid constraint and '0' gives a totally soft constraint.

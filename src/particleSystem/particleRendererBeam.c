@@ -21,7 +21,7 @@ static void polyboardAddVertices(
 	const vec3 *const restrict prevPos,
 	const vec3 *const restrict nextPos,
 	const vec3 *const restrict camPos,
-	const float r,
+	const float r, const float tileWidth,
 	spriteVertex *const restrict G, spriteVertex *const restrict H
 );
 
@@ -74,19 +74,29 @@ void particleRendererBeamBatch(
 ){
 
 	// A beam renderer needs at least two particles to draw.
-	if(numParticles > 1){
+	if(numParticles >= 2){
 		const particleRendererBeam partRenderer =
 			*((const particleRendererBeam *const)renderer);
-		const float subdivInc = 1.f/(partRenderer.subdivisions + 1);
+		// This is how much we should increment our
+		// spline parameter t for each subdivision.
+		const float subdivInc = 1.f/((float)(partRenderer.subdivisions + 1);
+		// Correct the tile width to account for subdivisions.
+		// If the tile width is set to zero, we should make
+		// the texture span the entire polyboard once.
+		const float tileWidthInc = (partRenderer.tileWidth == 0.f) ?
+			subdivInc/((float)(numParticles - 1)) :
+			subdivInc*partRenderer.tileWidth;
+
 		cubicSpline spline;
-
 		size_t curParticle = 0;
-		spriteRendererBatched *const batchedRenderer = &batch->data.batchedRenderer;
 
-		vec3 curPos = manager->particles->subsys.state[0].pos;
-		vec3 prevPos = curPos;
+		vec3 curPos;
+		vec3 prevPos;
 		const vec3 *const restrict camPos = camera->pos;
+		float tileWidth = 0.f;
 		spriteVertex G, H;
+
+		spriteRendererBatched *const batchedRenderer = &batch->data.batchedRenderer;
 
 
 		// If the batch is full, draw it and start a new one!
@@ -97,6 +107,10 @@ void particleRendererBeamBatch(
 		}
 
 		polyboardSetupSpline(&spline, keyValues, numParticles, dt);
+		// The current and previous positions should
+		// default to the first point on the spline.
+		curPos  = spline.d[i];
+		prevPos = curPos;
 
 		// Construct polyboard vertices for each particle except the last.
 		for(; curParticle < numParticles - 1; ++curParticle){
@@ -115,8 +129,10 @@ void particleRendererBeamBatch(
 				polyboardAddVertices(
 					batchedRenderer,
 					&curPos, &prevPos, &nextPos, camPos,
-					partRenderer.halfWidth, &G, &H
+					partRenderer.halfWidth, tileWidth,
+					&G, &H
 				);
+				tileWidth += tileWidthInc;
 				// Add them to the batch!
 				spriteRendererBatchedAddIndex(batchedRenderer, batchedRenderer->numVertices);
 				spriteRendererBatchedAddVertex(batchedRenderer, G);
@@ -147,7 +163,8 @@ void particleRendererBeamBatch(
 		polyboardAddVertices(
 			batchedRenderer,
 			&curPos, &prevPos, &curPos, camPos,
-			partRenderer.halfWidth, &G, &H
+			partRenderer.halfWidth, tileWidth,
+			&G, &H
 		);
 		// Add them to the batch!
 		spriteRendererBatchedAddIndex(batchedRenderer, batchedRenderer->numVertices);
@@ -183,6 +200,9 @@ static void polyboardSetupSpline(
 		sizeof(*interpPos) * numParticles
 	);
 	vec3 *curInterpPos = interpPos;
+	if(interpPos == NULL){
+		/** MALLOC FAILED **/
+	}
 
 	// Compute the interpolated position of each particle.
 	for(; curKeyValue != lastKeyValue; ++curKeyValue){
@@ -190,8 +210,8 @@ static void polyboardSetupSpline(
 		// We only need the position, so there's no
 		// need to interpolate the full transform.
 		vec3Lerp(
-			&curParticle->subsys.state[1].pos,
-			&curParticle->subsys.state[0].pos,
+			&curParticle->prevState.pos,
+			&curParticle->state.pos,
 			dt, curInterpPos
 		);
 		++curInterpPos;
@@ -209,7 +229,7 @@ static void polyboardAddVertices(
 	const vec3 *const restrict prevPos,
 	const vec3 *const restrict nextPos,
 	const vec3 *const restrict camPos,
-	const float r,
+	const float r, const float tileWidth,
 	spriteVertex *const restrict G, spriteVertex *const restrict H
 ){
 
@@ -227,13 +247,11 @@ static void polyboardAddVertices(
 
 	// G_i = P_i + D_i
 	vec3AddVec3Out(curPos, &D, &G->pos);
-	#warning "Temporary, until we know how we want to do textures and normals."
-	vec2InitSet(&G->uv, 0.f, 0.f);
+	vec2InitSet(&G->uv, tileWidth, 0.f);
 	G->normal = vec3NormalizeVec3(camPos);
 
 	// H_i = P_i - D_i
 	vec3SubtractVec3Out(curPos, &D, &H->pos);
-	#warning "Temporary, until we know how we want to do textures."
-	vec2InitSet(&H->uv, 0.f, 1.f);
+	vec2InitSet(&H->uv, tileWidth, 1.f);
 	H->normal = vec3NormalizeVec3(camPos);
 }

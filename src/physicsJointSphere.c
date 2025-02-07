@@ -217,19 +217,19 @@ static void calculateLinearBias(
 	vec3 *const restrict linearBias
 );
 
-static flags_t calculateAngularBias(
+static flags8_t calculateAngularBias(
 	const physicsJointSphere *const restrict joint,
 	const quat *const restrict rotA, const quat *const restrict rotB,
 	vec3 *const restrict swingAxis, float *const restrict swingBias,
 	vec3 *const restrict twistAxis, float *const restrict twistBias
 );
-static flags_t calculateSwingLimit(
+static flags8_t calculateSwingLimit(
 	const quat *const restrict swing,
 	const quat *const restrict rotOffsetGlobalA, const vec3 *const restrict twistAxis,
 	const float angularLimitsY[2], const float angularLimitsZ[2],
 	vec3 *const restrict swingAxis, float *const restrict swingBias
 );
-static flags_t calculateTwistLimit(
+static flags8_t calculateTwistLimit(
 	const float angle, const float angularLimits[2],
 	vec3 *const restrict axis, float *const restrict angleBias
 );
@@ -325,7 +325,7 @@ void physJointSpherePresolve(
 	#ifdef PHYSJOINTSPHERE_STABILISER_BAUMGARTE
 	const float frequency = 1.f/dt;
 	#endif
-	flags_t changedLimits = ((physicsJointSphere *)joint)->limitStates;
+	flags8_t changedLimits = ((physicsJointSphere *)joint)->limitStates;
 
 
 	updateConstraintData((physicsJointSphere *)joint, bodyA, bodyB);
@@ -551,7 +551,7 @@ return_t physJointSphereSolvePosition(
 		float swingDeviation, twistDeviation;
 		vec3 twistImpulse;
 
-		const flags_t limitStates = calculateAngularBias(
+		const flags8_t limitStates = calculateAngularBias(
 			(physicsJointSphere *)joint,
 			&bodyA->state.rot, &bodyB->state.rot,
 			&impulse, &swingDeviation,
@@ -784,7 +784,7 @@ static void calculateLinearBias(
 ** Calculate the joint's angular bias term. This is used
 ** for clamping the relative orientation of rigid body B.
 */
-static flags_t calculateAngularBias(
+static flags8_t calculateAngularBias(
 	const physicsJointSphere *const restrict joint,
 	const quat *const restrict rotA, const quat *const restrict rotB,
 	vec3 *const restrict swingAxis, float *const restrict swingBias,
@@ -800,7 +800,7 @@ static flags_t calculateAngularBias(
 
 	vec3 xAxisA;
 	quat swing, twist;
-	flags_t limitStates;
+	flags8_t limitStates;
 
 	// Calculate the swing bias.
 	{
@@ -874,7 +874,7 @@ static flags_t calculateAngularBias(
 ** Calculate the swing axis and bias, and return the state of the swing limit!
 ** The swing bias is positive when the constraint is violated, and zero otherwise.
 */
-static flags_t calculateSwingLimit(
+static flags8_t calculateSwingLimit(
 	const quat *const restrict swing,
 	const quat *const restrict rotOffsetGlobalA, const vec3 *const restrict twistAxis,
 	const float angularLimitsY[2], const float angularLimitsZ[2],
@@ -972,7 +972,7 @@ static flags_t calculateSwingLimit(
 ** limit states it's in! We want a positive bias when the constraint is
 ** broken, which means we may need to negate the constraint axis.
 */
-static flags_t calculateTwistLimit(
+static flags8_t calculateTwistLimit(
 	const float angle, const float angularLimits[2],
 	vec3 *const restrict axis, float *const restrict angleBias
 ){

@@ -6,6 +6,7 @@ void (*const particleRendererInitBatchTable[PARTICLE_RENDERER_NUM_TYPES])(
 	spriteRenderer *const restrict batch,
 ) = {
 
+	particleRendererPointInitBatch,
 	particleRendererSpriteInitBatch,
 	particleRendererBeamInitBatch,
 	particleRendererMeshInitBatch
@@ -15,6 +16,7 @@ size_t (*const particleRendererBatchSizeTable[PARTICLE_RENDERER_NUM_TYPES])(
 	const void *const restrict renderer, const size_t numParticles
 ) = {
 
+	particleRendererPointBatchSize,
 	particleRendererSpriteBatchSize,
 	particleRendererBeamBatchSize,
 	particleRendererMeshBatchSize
@@ -27,6 +29,7 @@ void (*const particleRendererBatchTable[PARTICLE_RENDERER_NUM_TYPES])(
 	const camera *const restrict cam, const float dt
 ) = {
 
+	particleRendererPointBatch,
 	particleRendererSpriteBatch,
 	particleRendererBeamBatch,
 	particleRendererMeshBatch

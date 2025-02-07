@@ -15,7 +15,7 @@
 // Forward-declare any helper functions!
 static return_t cmdSysAdd(
 	commandSystem *restrict node,
-	const char *restrict name, const command cmd, const flags_t type
+	const char *restrict name, const command cmd, const flags8_t type
 );
 
 static void cmdNodeInit(commandNode *const restrict cmdNode, const char value);
@@ -292,7 +292,7 @@ void cmdBufferDelete(commandBuffer *const restrict cmdBuffer){
 // Add a new command to a command system!
 return_t cmdSysAdd(
 	commandSystem *restrict node,
-	const char *restrict name, const command cmd, const flags_t type
+	const char *restrict name, const command cmd, const flags8_t type
 ){
 
 	if(cmdNameValid(name)){

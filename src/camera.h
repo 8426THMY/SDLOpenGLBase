@@ -41,12 +41,12 @@ typedef struct camera {
 	mat4 projectionMatrix;
 	mat4 viewProjectionMatrix;
 
-	flags_t flags;
+	flags8_t flags;
 } camera;
 
 
 void cameraInit(
-	camera *const restrict cam, const flags_t flags,
+	camera *const restrict cam, const flags8_t flags,
 	const float windowWidth, const float windowHeight
 );
 

@@ -18,6 +18,9 @@ void cubicSplineInit(
 	// However, each spline function has 4 coefficients, hence we
 	// must allocate memory for 4(n-1) coefficients.
 	spline->a = memoryManagerGlobalAlloc(4*numFuncs*sizeof(*y));
+	if(spline->a == NULL){
+		/** MALLOC FAILED **/
+	}
 	spline->b = &spline->a[numFuncs];
 	spline->c = &spline->b[numFuncs];
 	spline->d = &spline->c[numFuncs];
