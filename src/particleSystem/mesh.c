@@ -25,32 +25,32 @@ void meshInit(
 		// Vertex positions.
 		glEnableVertexAttribArray(0);
 		glVertexAttribPointer(
-			0, 3, GL_FLOAT, GL_FALSE, sizeof(vertex),
-			(GLvoid *)offsetof(vertex, pos)
+			0, 3, GL_FLOAT, GL_FALSE,
+			sizeof(meshVertex), (GLvoid *)offsetof(meshVertex, pos)
 		);
 		// Vertex UVs.
 		glEnableVertexAttribArray(1);
 		glVertexAttribPointer(
-			1, 2, GL_FLOAT, GL_FALSE, sizeof(vertex),
-			(GLvoid *)offsetof(vertex, uv)
+			1, 2, GL_FLOAT, GL_FALSE,
+			sizeof(meshVertex), (GLvoid *)offsetof(meshVertex, uv)
 		);
 		// Vertex normals.
 		glEnableVertexAttribArray(2);
 		glVertexAttribPointer(
-			2, 3, GL_FLOAT, GL_FALSE, sizeof(vertex),
-			(GLvoid *)offsetof(vertex, normal)
+			2, 3, GL_FLOAT, GL_FALSE,
+			sizeof(meshVertex), (GLvoid *)offsetof(meshVertex, normal)
 		);
 		// Vertex bone IDs.
 		glEnableVertexAttribArray(3);
 		glVertexAttribIPointer(
-			3, VERTEX_MAX_WEIGHTS, GL_UNSIGNED_INT, sizeof(vertex),
-			(GLvoid *)offsetof(vertex, boneIDs)
+			3, MESH_VERTEX_MAX_BONE_WEIGHTS, GL_UNSIGNED_INT,
+			sizeof(meshVertex), (GLvoid *)offsetof(meshVertex, boneIDs)
 		);
 		// Vertex bone weights.
 		glEnableVertexAttribArray(4);
 		glVertexAttribPointer(
-			4, VERTEX_MAX_WEIGHTS, GL_FLOAT, GL_FALSE, sizeof(vertex),
-			(GLvoid *)offsetof(vertex, boneWeights)
+			4, MESH_VERTEX_MAX_BONE_WEIGHTS, GL_FLOAT, GL_FALSE,
+			sizeof(meshVertex), (GLvoid *)offsetof(meshVertex, boneWeights)
 		);
 
 

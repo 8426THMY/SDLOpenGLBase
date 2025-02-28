@@ -248,10 +248,10 @@ static void polyboardAddVertices(
 	// G_i = P_i + D_i
 	vec3AddVec3Out(curPos, &D, &G->pos);
 	vec2InitSet(&G->uv, tileWidth, 0.f);
-	G->normal = vec3NormalizeVec3(camPos);
+	G->normal = Z;
 
 	// H_i = P_i - D_i
 	vec3SubtractVec3Out(curPos, &D, &H->pos);
 	vec2InitSet(&H->uv, tileWidth, 1.f);
-	H->normal = vec3NormalizeVec3(camPos);
+	H->normal = Z;
 }

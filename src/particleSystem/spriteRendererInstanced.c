@@ -82,6 +82,7 @@ void spriteRendererInstancedOrphan(spriteRendererInstanced *const restrict insta
 }
 
 
+#error "This should be moved out."
 // Generate buffers to hold our sprite data!
 void spriteInstancedGenerateBuffers(
 	spriteInstanced *const restrict spriteData,

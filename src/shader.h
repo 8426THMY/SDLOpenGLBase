@@ -2,13 +2,13 @@
 #define shader_h
 
 
-#define SHADER_INVALID_ID 0
-
-
 #define GLEW_STATIC
 #include <GL/glew.h>
 
 #include "utilTypes.h"
+
+
+#define SHADER_INVALID_ID 0
 
 
 GLuint shaderLoad(const char *const restrict shaderPath, const GLenum shaderType);

@@ -24,12 +24,5 @@ typedef struct spriteVertex {
 
 typedef uint_least32_t spriteVertexIndex;
 
-typedef struct sprite {
-	spriteVertex *vertices;
-	spriteVertexIndex *indices;
-	size_t numVertices;
-	size_t numIndices;
-} sprite;
-
 
 #endif

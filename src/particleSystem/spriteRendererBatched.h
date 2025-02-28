@@ -9,6 +9,13 @@
 #include "utilTypes.h"
 
 
+typedef struct spriteBatched {
+	spriteVertex *vertices;
+	spriteVertexIndex *indices;
+	size_t numVertices;
+	size_t numIndices;
+} spriteBatched;
+
 /*
 ** We use something similar to the approach proposed by Rob Barris:
 **     https://community.khronos.org/t/vbos-strangely-slow/60109/32
