@@ -2,47 +2,60 @@
 #define mesh_h
 
 
-#include <stdint.h>
-#include <stddef.h>
-
-#include "vec2.h"
-#include "vec3.h"
+#define GLEW_STATIC
+#include <GL/glew.h>
 
 #include "utilTypes.h"
 
 
-#define MESH_VERTEX_MAX_BONE_WEIGHTS 4
-
-
-typedef struct meshVertex {
-	vec3 pos;
-	vec2 uv;
-	vec3 normal;
-
-	size_t boneIDs[MESH_VERTEX_MAX_BONE_WEIGHTS];
-	float boneWeights[MESH_VERTEX_MAX_BONE_WEIGHTS];
-} meshVertex;
-
-typedef uint_least32_t meshVertexIndex;
+typedef GLsizei meshVertexIndex;
 
 typedef struct mesh {
-	unsigned int vertexArrayID;
-	unsigned int vertexBufferID;
-	unsigned int indexBufferID;
-	size_t numIndices;
+	GLuint vertexArrayID;
+	GLuint vertexBufferID;
+	GLuint indexBufferID;
+	meshVertexIndex numIndices;
 } mesh;
 
 
-void meshInit(
+// This represents the data we must send to
+// the shader for each instance of a mesh.
+typedef struct meshInstance {
+	mat3x4 state;
+	rectangle uvOffsets;
+} meshInstance;
+
+
+typedef struct spriteVertex spriteVertex;
+void meshSpriteInit(
 	mesh *const restrict meshData,
-	const meshVertex *const restrict vertices, const size_t numVertices,
-	const meshVertexIndex *const restrict indices, const size_t numIndices
+	const spriteVertex *const restrict vertices, const meshVertexIndex numVertices,
+	const meshVertexIndex *const restrict indices, const meshVertexIndex numIndices
 );
-return_t meshVertexDifferent(
-	const meshVertex *const restrict v1,
-	const meshVertex *const restrict v2
+void meshSpriteInitInstanced(
+	mesh *const restrict meshData,
+	const spriteVertex *const restrict vertices, const meshVertexIndex numVertices,
+	const meshVertexIndex *const restrict indices, const meshVertexIndex numIndices
 );
+typedef struct modelVertex modelVertex;
+void meshModelInit(
+	mesh *const restrict meshData,
+	const modelVertex *const restrict vertices, const meshVertexIndex numVertices,
+	const meshVertexIndex *const restrict indices, const meshVertexIndex numIndices
+);
+void meshModelInitInstanced(
+	mesh *const restrict meshData,
+	const modelVertex *const restrict vertices, const meshVertexIndex numVertices,
+	const meshVertexIndex *const restrict indices, const meshVertexIndex numIndices
+);
+
+void meshDraw(const mesh *const restrict meshData);
+void meshDrawInstanced(const mesh *const restrict meshData, const GLsizei numInstances);
+
 void meshDelete(mesh *const restrict meshData);
+
+return_t meshSetup();
+void meshCleanup();
 
 
 #endif

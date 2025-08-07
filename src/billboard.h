@@ -12,6 +12,7 @@
 
 #warning "Pretty much everything here sucks, and is probably wrong to boot."
 #warning "We need to come up with a better way of locking rotation axes."
+#warning "Check the stuff in program.c."
 
 
 #define BILLBOARD_DISABLED         0x00

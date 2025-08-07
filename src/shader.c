@@ -19,20 +19,18 @@ GLuint shaderLoad(const char *const restrict shaderPath, const GLenum shaderType
 	if((shaderFile = fopen(shaderPath, "rb")) != NULL){
 		GLuint shaderID = glCreateShader(shaderType);
 		// Make sure we were able to create the new shader.
-		if(shaderID != SHADER_INVALID_ID){
+		if(glIsShader(shaderID)){
 			// Check the length of the shader file!
-			fseek(shaderFile, 0, SEEK_END);
-			const long shaderFileSize = ftell(shaderFile);
-			rewind(shaderFile);
-
+			const size_t shaderFileSize = (fseek(shaderFile, 0, SEEK_END), ftell(shaderFile));
 			char *const shaderSource = memoryManagerGlobalAlloc(shaderFileSize + 1);
+
 			// If we were able to allocate memory
 			// for the shader's code, compile it!
 			if(shaderSource != NULL){
 				GLint compiled;
 
-
 				// Read the shader's source from the file!
+				rewind(shaderFile);
 				fread(shaderSource, sizeof(char), shaderFileSize, shaderFile);
 				shaderSource[shaderFileSize] = '\0';
 				fclose(shaderFile);
@@ -66,7 +64,7 @@ GLuint shaderLoad(const char *const restrict shaderPath, const GLenum shaderType
 			}
 
 			// Delete the shader if it couldn't be loaded.
-			glDeleteShader(shaderID);
+			shaderDelete(shaderID);
 		}else{
 			printf(
 				"Failed to create shader!\n"
@@ -92,10 +90,12 @@ GLuint shaderLoadProgram(const GLuint vertexShaderID, const GLuint fragmentShade
 
 		// Create the new shader program and attach our component shaders!
 		const GLuint programID = glCreateProgram();
+		if(!glIsProgram(programID)){
+			return(SHADER_INVALID_ID);
+		}
 		glAttachShader(programID, vertexShaderID);
 		glAttachShader(programID, fragmentShaderID);
 		glLinkProgram(programID);
-
 		glGetProgramiv(programID, GL_LINK_STATUS, &compiled);
 		if(compiled){
 			// We can detach the shaders now that
@@ -109,6 +109,7 @@ GLuint shaderLoadProgram(const GLuint vertexShaderID, const GLuint fragmentShade
 		printf("Shader program could not be compiled!\n");
 		// If the compilation was unsuccessful, try to print the error message!
 		printProgramError(programID);
+		shaderDeleteProgram(programID);
 	}
 
 	return(SHADER_INVALID_ID);

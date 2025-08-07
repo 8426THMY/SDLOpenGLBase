@@ -32,16 +32,16 @@ void animationInit(animationData *const restrict animData, const float speed, co
 /**       (without completing a loop) then the original direction again, it will just stop. **/
 // Update the animation's current frame!
 #warning "This needs a rewrite to make it simpler. We shouldn't handle rewinding (or maybe even play counts) by default."
-void animationUpdate(animationData *const restrict animData, const animationFrameData *const restrict frameData, float time){
-	time = animData->speed*time;
-	animData->animTime += time;
+void animationUpdate(animationData *const restrict animData, const animationFrameData *const restrict frameData, float dt){
+	dt = animData->speed*dt;
+	animData->animTime += dt;
 
 	// If we're animating forwards and haven't finished looping, continue playback!
-	if(time > 0.f && (animData->currentPlayNum == ANIMATION_LOOP_INDEFINITELY || animData->currentPlayNum != frameData->playNum)){
+	if(dt > 0.f && (animData->currentPlayNum == ANIMATION_LOOP_INDEFINITELY || animData->currentPlayNum != frameData->playNum)){
 		getFrameForward(animData, frameData);
 
 	// If we're animating backwards and haven't finished looping, continue rewinding!
-	}else if(time < 0.f && (animData->currentPlayNum == ANIMATION_LOOP_INDEFINITELY || animData->currentPlayNum != 0)){
+	}else if(dt < 0.f && (animData->currentPlayNum == ANIMATION_LOOP_INDEFINITELY || animData->currentPlayNum != 0)){
 		getFrameBackward(animData, frameData);
 	}
 }

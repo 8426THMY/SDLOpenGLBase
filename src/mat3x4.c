@@ -334,16 +334,16 @@ mat3x4 mat3x4InitEulerVec3ZXYC(const vec3 v){
 	return(m);
 }
 
-// Initialize a matrix from an axis and an angle!
+/*
+** Initialize a matrix from an axis and an angle!
+** We assume that the axis is already normalized.
+*/
 void mat3x4InitAxisAngle(mat3x4 *const restrict m, const vec4 *const restrict v){
 	const float c = cosf(v->w);
 	const float s = sinf(v->w);
 	const float t = 1.f - c;
-	vec3 normalAxis;
+	const vec3 normalAxis = *((const vec3 *)v);
 	vec3 tempAxis;
-
-	// Normalize the axis!
-	vec3NormalizeFast(v->x, v->y, v->z, &normalAxis);
 	vec3MultiplySOut(&normalAxis, t, &tempAxis);
 
 	// Convert the axis angle to a rotation matrix!
@@ -364,14 +364,15 @@ void mat3x4InitAxisAngle(mat3x4 *const restrict m, const vec4 *const restrict v)
 	m->m[3][2] = 0.f;
 }
 
-// Initialize a matrix from an axis and an angle!
+/*
+** Initialize a matrix from an axis and an angle!
+** We assume that the axis is already normalized.
+*/
 mat3x4 mat3x4InitAxisAngleC(const vec4 v){
 	const float c = cosf(v.w);
 	const float s = sinf(v.w);
 	const float t = 1.f - c;
-
-	// Normalize the axis!
-	const vec3 normalAxis = vec3NormalizeFastC(v.x, v.y, v.z);
+	const vec3 normalAxis = *((const vec3 *)&v);
 	const vec3 tempAxis = vec3MultiplySC(normalAxis, t);
 
 	// Convert the axis angle to a rotation matrix!

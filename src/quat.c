@@ -102,7 +102,10 @@ quat quatInitVec3FC(const float w, const vec3 v){
 	return(q);
 }
 
-// Initialize a quaternion from an axis-angle representation!
+/*
+** Initialize a quaternion from an axis-angle representation!
+** We assume that the axis is already normalized.
+*/
 void quatInitAxisAngle(quat *const restrict q, const vec3 *const restrict v, const float t){
 	const float tHalf = t*0.5f;
 	const float st = sinf(tHalf);
@@ -112,7 +115,10 @@ void quatInitAxisAngle(quat *const restrict q, const vec3 *const restrict v, con
 	q->w = cosf(tHalf);
 }
 
-// Initialize a quaternion from an axis-angle representation!
+/*
+** Initialize a quaternion from an axis-angle representation!
+** We assume that the axis is already normalized.
+*/
 quat quatInitAxisAngleC(const vec3 v, const float t){
 	const float tHalf = t*0.5f;
 	const float st = sinf(tHalf);
@@ -122,7 +128,7 @@ quat quatInitAxisAngleC(const vec3 v, const float t){
 
 /*
 ** Initialize the quaternion's values to the Euler angles specified (in radians)!
-** The order of rotations is XYZ.
+** The order of rotations is XYZ (read from left to right).
 */
 void quatInitEulerXYZ(quat *const restrict q, const float x, const float y, const float z){
 	const float hx = x * 0.5f;
@@ -149,7 +155,7 @@ void quatInitEulerXYZ(quat *const restrict q, const float x, const float y, cons
 
 /*
 ** Initialize the quaternion's values to the Euler angles specified (in radians)!
-** The order of rotations is ZXY, which is useful for cameras.
+** The order of rotations is ZXY (read from left to right), which is useful for cameras.
 */
 void quatInitEulerZXY(quat *const restrict q, const float x, const float y, const float z){
 	const float hx = x * 0.5f;
@@ -176,7 +182,7 @@ void quatInitEulerZXY(quat *const restrict q, const float x, const float y, cons
 
 /*
 ** Initialize the quaternion's values to the Euler angles specified (in radians)!
-** The order of rotations is XYZ.
+** The order of rotations is XYZ (read from left to right).
 */
 quat quatInitEulerXYZC(const float x, const float y, const float z){
 	const float hx = x * 0.5f;
@@ -207,7 +213,7 @@ quat quatInitEulerXYZC(const float x, const float y, const float z){
 
 /*
 ** Initialize the quaternion's values to the Euler angles specified (in radians)!
-** The order of rotations is ZXY, which is useful for cameras.
+** The order of rotations is ZXY (read from left to right), which is useful for cameras.
 */
 quat quatInitEulerZXYC(const float x, const float y, const float z){
 	const float hx = x * 0.5f;
@@ -238,7 +244,7 @@ quat quatInitEulerZXYC(const float x, const float y, const float z){
 
 /*
 ** Initialize the quaternion's values to the Euler angles specified in "v" (in radians)!
-** The order of rotations is XYZ.
+** The order of rotations is XYZ (read from left to right).
 */
 void quatInitEulerVec3XYZ(quat *const restrict q, const vec3 *const restrict v){
 	quatInitEulerXYZ(q, v->x, v->y, v->z);
@@ -246,7 +252,7 @@ void quatInitEulerVec3XYZ(quat *const restrict q, const vec3 *const restrict v){
 
 /*
 ** Initialize the quaternion's values to the Euler angles specified in "v" (in radians)!
-** The order of rotations is ZXY, which is useful for cameras.
+** The order of rotations is ZXY (read from left to right), which is useful for cameras.
 */
 void quatInitEulerVec3ZXY(quat *const restrict q, const vec3 *const restrict v){
 	quatInitEulerZXY(q, v->x, v->y, v->z);
@@ -254,7 +260,7 @@ void quatInitEulerVec3ZXY(quat *const restrict q, const vec3 *const restrict v){
 
 /*
 ** Initialize the quaternion's values to the Euler angles specified in "v" (in radians)!
-** The order of rotations is XYZ.
+** The order of rotations is XYZ (read from left to right).
 */
 quat quatInitEulerVec3XYZC(const vec3 v){
 	return(quatInitEulerXYZC(v.x, v.y, v.z));
@@ -262,7 +268,7 @@ quat quatInitEulerVec3XYZC(const vec3 v){
 
 /*
 ** Initialize the quaternion's values to the Euler angles specified in "v" (in radians)!
-** The order of rotations is ZXY, which is useful for cameras.
+** The order of rotations is ZXY (read from left to right), which is useful for cameras.
 */
 quat quatInitEulerVec3ZXYC(const vec3 v){
 	return(quatInitEulerZXYC(v.x, v.y, v.z));

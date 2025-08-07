@@ -29,8 +29,8 @@ GLuint batchArrayID;
 // We use a single buffer object plus
 // orphaning for every sprite draw call.
 GLuint batchBufferID;
-// Offsets (in bytes) into the vertex
-// buffer's vertex and index arrays.
+// Offsets into the vertex buffer
+// object's vertex and index arrays.
 size_t vertexOffset;
 size_t indexOffset;
 
@@ -44,21 +44,34 @@ void spriteRendererBatchedSetup(){
 		// We store all of our vertices, then all of our indices.
 		glGenBuffers(1, &batchBufferID);
 		glBindBuffer(GL_ARRAY_BUFFER, batchBufferID);
-			// Enable the vertex attributes, but don't define
-			// them yet. The offsets into the buffer change
-			// between draw calls, so we define them then.
-			glEnableVertexAttribArray(0);
-			glEnableVertexAttribArray(1);
-			glEnableVertexAttribArray(2);
 		// Allocate memory for the maximum number of vertices and indices.
 		glBufferData(GL_ARRAY_BUFFER, SPRITE_RENDERER_BATCHED_BUFFER_SIZE, NULL, GL_STREAM_DRAW);
-		glBindBuffers(GL_ELEMENT_ARRAY_BUFFER, batchBufferID);
+			// I don't think we need to respecify the vertex attribute
+			// pointers, even after reallocating the buffer storage.
+			// Vertex positions.
+			glEnableVertexAttribArray(0);
+			glVertexAttribPointer(
+				0, 3, GL_FLOAT, GL_FALSE,
+				sizeof(spriteVertex), (GLvoid *)offsetof(spriteVertex, pos)
+			);
+			// Vertex UVs.
+			glEnableVertexAttribArray(1);
+			glVertexAttribPointer(
+				1, 2, GL_FLOAT, GL_FALSE,
+				sizeof(spriteVertex), (GLvoid *)offsetof(spriteVertex, uv)
+			);
+			// Vertex normals.
+			glEnableVertexAttribArray(2);
+			glVertexAttribPointer(
+				2, 3, GL_FLOAT, GL_FALSE,
+				sizeof(spriteVertex), (GLvoid *)offsetof(spriteVertex, normal)
+			);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, batchBufferID);
 	// Unbind the array object!
 	glBindVertexArray(0);
 
 	vertexOffset = 0;
-	// The indices begin after all of the vertices.
-	indexOffset  = SPRITE_RENDERER_BATCHED_VERTEX_BUFFER_SIZE;
+	indexOffset  = 0;
 }
 
 
@@ -69,7 +82,11 @@ void spriteRendererBatchedSetup(){
 ** memory is left in it. We don't yet know how big the batch
 ** is, so we can always orphan it later if we really have to.
 */
+#warning "Can we bind the vertex array object here to avoid binds everywhere else?"
 void spriteRendererBatchedInit(spriteRendererBatched *const restrict batchedRenderer){
+	const size_t vertexOffsetBytes = vertexOffset * sizeof(*batchedRenderer->curVertex);
+	const size_t indexOffsetBytes  = indexOffset * sizeof(*batchedRenderer->curIndex);
+
 	glBindBuffer(GL_ARRAY_BUFFER, batchBufferID);
 	// Retrieve pointers to the vertex buffer storage. The flag
 	// GL_MAP_INVALIDATE_RANGE_BIT is a promise that the range we're
@@ -77,14 +94,15 @@ void spriteRendererBatchedInit(spriteRendererBatched *const restrict batchedRend
 	// for any synchronization.
 	batchedRenderer->curVertex = glMapBufferRange(
 		GL_ARRAY_BUFFER,
-		vertexOffset,
-		SPRITE_RENDERER_BATCHED_VERTEX_BUFFER_SIZE - vertexOffset,
+		vertexOffsetBytes,
+		SPRITE_RENDERER_BATCHED_VERTEX_BUFFER_SIZE - vertexOffsetBytes,
 		GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT
 	);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, batchBufferID);
 	batchedRenderer->curIndex = glMapBufferRange(
-		GL_ARRAY_BUFFER,
-		indexOffset,
-		SPRITE_RENDERER_BATCHED_BUFFER_SIZE - indexOffset,
+		GL_ELEMENT_ARRAY_BUFFER,
+		SPRITE_RENDERER_BATCHED_VERTEX_BUFFER_SIZE + indexOffsetBytes,
+		SPRITE_RENDERER_BATCHED_BUFFER_SIZE - indexOffsetBytes,
 		GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT
 	);
 	// Reset the vertex and index counts.
@@ -108,29 +126,11 @@ void spriteRendererBatchedDraw(const spriteRendererBatched *const restrict batch
 		glUniform1ui(shader->sdfTypeID, SPRITE_IMAGE_TYPE_NORMAL);
 		#endif
 
-		// Bind the global sprite buffer!
-		glBindVertexArray(spriteManager.batchArrayID);
-		// Remember to unmap the buffer storage before rendering.
+		// The buffer should be bound before unmapping,
+		// so we might as well bind the array object first.
+		glBindVertexArray(batchArrayID);
 		glUnmapBuffer(GL_ARRAY_BUFFER);
 		glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER);
-		// Since we're using an offset for the vertices, we'll need to
-		// update the vertex attributes to point to the correct positions.
-			// Vertex positions.
-			glVertexAttribPointer(
-				0, 3, GL_FLOAT, GL_FALSE, sizeof(spriteVertex),
-				(GLvoid *)(vertexOffset + offsetof(spriteVertex, pos))
-			);
-			// Vertex UVs.
-			glVertexAttribPointer(
-				1, 2, GL_FLOAT, GL_FALSE, sizeof(spriteVertex),
-				(GLvoid *)(vertexOffset + offsetof(spriteVertex, uv))
-			);
-			// Vertex normals.
-			glVertexAttribPointer(
-				2, 3, GL_FLOAT, GL_FALSE, sizeof(spriteVertex),
-				(GLvoid *)(vertexOffset + offsetof(spriteVertex, normal))
-			);
-		// Draw the sprites!
 		glDrawElements(
 			GL_TRIANGLE_STRIP, batchedRenderer->numIndices,
 			GL_UNSIGNED_INT, (GLvoid *)indexOffset
@@ -139,8 +139,8 @@ void spriteRendererBatchedDraw(const spriteRendererBatched *const restrict batch
 		// Increment the buffer offsets. This allows us to
 		// prepare for a new draw call without interrupting
 		// the old one or allocating a new buffer object.
-		vertexOffset += batchedRenderer->numVertices * sizeof(spriteVertex);
-		indexOffset  += batchedRenderer->numIndices * sizeof(spriteVertexIndex);
+		vertexOffset += batchedRenderer->numVertices;
+		indexOffset  += batchedRenderer->numIndices;
 	}
 }
 
@@ -148,8 +148,8 @@ void spriteRendererBatchedDraw(const spriteRendererBatched *const restrict batch
 void spriteRendererBatchedOrphan(spriteRendererBatched *const restrict batchedRenderer){
 	// Reset the vertex and index offsets.
 	vertexOffset = 0;
-	indexOffset  = SPRITE_RENDERER_BATCHED_VERTEX_BUFFER_SIZE;
-
+	indexOffset  = 0;
+	
 	#warning "This should always be bound, can we remove this?"
 	glBindBuffer(GL_ARRAY_BUFFER, batchBufferID);
 	// Retrieve pointers to the vertex buffer storage. The flag
@@ -161,6 +161,8 @@ void spriteRendererBatchedOrphan(spriteRendererBatched *const restrict batchedRe
 		SPRITE_RENDERER_BATCHED_VERTEX_BUFFER_SIZE,
 		GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT
 	);
+	#warning "This should always be bound, can we remove this?"
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, batchBufferID);
 	// We use GL_MAP_INVALIDATE_RANGE_BIT to avoid reallocating
 	// a new buffer directly after the one we allocate above.
 	batchedRenderer->curIndex = glMapBufferRange(
@@ -185,10 +187,10 @@ return_t spriteRendererBatchedHasRoom(
 ){
 
 	return(
-		(batchedRenderer->numVertices + numVertices) * sizeof(spriteVertexIndex) <=
-		SPRITE_RENDERER_BATCHED_VERTEX_BUFFER_SIZE - vertexOffset ||
-		(batchedRenderer->numIndices + numIndices) * sizeof(spriteVertexIndex) <=
-		SPRITE_RENDERER_BATCHED_BUFFER_SIZE - indexOffset
+		batchedRenderer->numVertices + numVertices <=
+		SPRITE_RENDERER_BATCHED_BUFFER_MAX_VERTICES - vertexOffset ||
+		batchedRenderer->numIndices + numIndices <=
+		SPRITE_RENDERER_BATCHED_BUFFER_MAX_INDICES - indexOffset
 	);
 }
 
@@ -214,8 +216,6 @@ void spriteRendererBatchedAddIndex(
 
 
 void spriteRendererBatchedCleanup(){
-	// This works because the buffer IDs are in consecutive memory,
-	// though it does require our structure to have no padding.
-	glDeleteBuffers(3, &batchBufferID);
 	glDeleteVertexArrays(1, &batchArrayID);
+	glDeleteBuffers(1, &batchBufferID);
 }

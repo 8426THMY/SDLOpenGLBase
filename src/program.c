@@ -316,6 +316,15 @@ static void updateObjects(program *const restrict prg){
 		); **/
 	}
 	if(controlObj != NULL){
+		/*quat twist, swing;
+		quatSwingTwistFasterC(quatConjugateC(mat4ToQuatC(prg->cam.viewMatrix)), vec3InitSetC(0.f, 1.f, 0.f), &twist, &swing);
+		controlObj->boneTransforms[0].rot = twist;*/
+		/*mat3 test;
+		vec3 camPos = vec3InitSetC(prg->cam.viewMatrix.m[0][2], prg->cam.viewMatrix.m[1][2], prg->cam.viewMatrix.m[2][2]);
+		vec3InitSet((vec3 *)&test.m[1][0], 1.f/sqrtf(2.f), 1.f/sqrtf(2.f), 0.f);
+		*((vec3 *)&test.m[2][0]) = vec3NormalizeVec3FastC(vec3SubtractVec3C(camPos, vec3MultiplySC(*((vec3 *)&test.m[1][0]), vec3DotVec3(&camPos, (vec3 *)&test.m[1][0]))));
+		vec3CrossVec3Out((vec3 *)&test.m[1][0], (vec3 *)&test.m[2][0], (vec3 *)&test.m[0][0]);
+		controlObj->boneTransforms[0].rot = mat3ToQuatC(test);*/
 		//controlObj->boneTransforms[0].rot = mat3x4ToQuatC(mat3x4RotateToFaceC(controlObj->boneTransforms[0].pos, prg->cam.pos, vec3InitSetC(0.f, 1.f, 0.f)));
 	}
 	#warning "Remove debug object when done."
@@ -533,6 +542,7 @@ static return_t initLibs(program *const restrict prg){
 
 
 	// Initialize the GLEW library!
+	glewExperimental = GL_TRUE;
 	GLenum glewError = glewInit();
 	if(glewError != GLEW_OK){
 		printf(
@@ -541,8 +551,6 @@ static return_t initLibs(program *const restrict prg){
 		);
 		return(0);
 	}
-
-	glewExperimental = GL_TRUE;
 
 
 	glEnable(GL_DEPTH_TEST);
