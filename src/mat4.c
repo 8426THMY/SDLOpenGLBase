@@ -442,7 +442,11 @@ void mat4InitAxisAngle(mat4 *const restrict m, const vec4 *const restrict v){
 	const float c = cosf(v->w);
 	const float s = sinf(v->w);
 	const float t = 1.f - c;
-	const vec3 normalAxis = *((const vec3 *)v);
+	const vec3 normalAxis = {
+		.x = v->x,
+		.y = v->y,
+		.z = v->z
+	};
 	vec3 tempAxis;
 	vec3MultiplySOut(&normalAxis, t, &tempAxis);
 
@@ -476,7 +480,11 @@ mat4 mat4InitAxisAngleC(const vec4 v){
 	const float c = cosf(v.w);
 	const float s = sinf(v.w);
 	const float t = 1.f - c;
-	const vec3 normalAxis = *((const vec3 *)&v);
+	const vec3 normalAxis = {
+		.x = v.x,
+		.y = v.y,
+		.z = v.z
+	};
 	const vec3 tempAxis = vec3MultiplySC(normalAxis, t);
 
 	// Convert the axis angle to a rotation matrix!
@@ -774,6 +782,71 @@ mat4 mat4InitShearQuatC(const vec3 v, const quat q){
 	m.m[3][1] = 0.f;
 	m.m[3][2] = 0.f;
 	m.m[3][3] = 1.f;
+
+	return(m);
+}
+
+/*
+** Construct a matrix that reflects by the specified plane.
+** We assume that the plane's normal component is unit length.
+** This should be multipled by matrices on the right!
+*/
+void mat4InitReflect(mat4 *const restrict m, const vec4 *const restrict plane){
+	const float x2 = 2.f*plane->x;
+	const float y2 = 2.f*plane->y;
+	const float z2 = 2.f*plane->z;
+
+	m->m[0][0] = 1.f - x2*plane->x;
+	m->m[0][1] = -x2*plane->y;
+	m->m[0][2] = -x2*plane->z;
+	m->m[0][3] = -x2*plane->w;
+
+	m->m[1][0] = m->m[0][1];
+	m->m[1][1] = 1.f - y2*plane->y;
+	m->m[1][2] = -y2*plane->z;
+	m->m[1][3] = -y2*plane->w;
+
+	m->m[2][0] = m->m[0][2];
+	m->m[2][1] = m->m[1][2];
+	m->m[2][2] = 1.f - z2*plane->z;
+	m->m[2][3] = -z2*plane->w;
+
+	m->m[3][0] = 0.f;
+	m->m[3][1] = 0.f;
+	m->m[3][2] = 0.f;
+	m->m[3][3] = 1.f - 2.f*plane->w*plane->w;
+}
+
+/*
+** Construct a matrix that reflects by the specified plane.
+** We assume that the plane's normal component is unit length.
+** This should be multipled by matrices on the right!
+*/
+mat4 mat4InitReflectC(const vec4 plane){
+	const float x2 = 2.f*plane.x;
+	const float y2 = 2.f*plane.y;
+	const float z2 = 2.f*plane.z;
+	mat4 m;
+
+	m.m[0][0] = 1.f - x2*plane.x;
+	m.m[0][1] = -x2*plane.y;
+	m.m[0][2] = -x2*plane.z;
+	m.m[0][3] = -x2*plane.w;
+
+	m.m[1][0] = m.m[0][1];
+	m.m[1][1] = 1.f - y2*plane.y;
+	m.m[1][2] = -y2*plane.z;
+	m.m[1][3] = -y2*plane.w;
+
+	m.m[2][0] = m.m[0][2];
+	m.m[2][1] = m.m[1][2];
+	m.m[2][2] = 1.f - z2*plane.z;
+	m.m[2][3] = -z2*plane.w;
+
+	m.m[3][0] = 0.f;
+	m.m[3][1] = 0.f;
+	m.m[3][2] = 0.f;
+	m.m[3][3] = 1.f - 2.f*plane.w*plane.w;
 
 	return(m);
 }
@@ -3353,6 +3426,72 @@ mat4 mat4ViewLookAtC(const vec3 eye, const vec3 target, const vec3 worldUp){
 	};
 
 	return(m);
+}
+
+/*
+** Reflect the matrix "m" by the plane specified.
+** We assume that the plane's normal component is unit length.
+*/
+void mat3x4Reflect(mat3x4 *const restrict m, const vec4 *const restrict plane){
+	mat4 reflect;
+	mat4InitReflect(&reflect, plane);
+	mat3x4MultiplyMat4(m, reflect);
+}
+
+/*
+** Reflect a matrix by a plane and store the result in "out".
+** We assume that the plane's normal component is unit length.
+*/
+void mat3x4ReflectOut(
+	const mat3x4 *const restrict m,
+	const vec4 *const restrict plane,
+	mat3x4 *const restrict out
+){
+
+	mat4 reflect;
+	mat4InitReflect(&reflect, plane);
+	mat3x4MultiplyMat4Out(*m, reflect, out);
+}
+
+/*
+** Return the result of "m" reflected by the plane specified.
+** We assume that the plane's normal component is unit length.
+*/
+mat3x4 mat3x4ReflectC(const mat3x4 m, const vec4 plane){
+	return(mat3x4MultiplyMat4C(m, mat4InitReflectC(plane)));
+}
+
+/*
+** Reflect the matrix "m" by the plane specified.
+** We assume that the plane's normal component is unit length.
+*/
+void mat4Reflect(mat4 *const restrict m, const vec4 *const restrict plane){
+	mat4 reflect;
+	mat4InitReflect(&reflect, plane);
+	mat4MultiplyMat4P1(m, reflect);
+}
+
+/*
+** Reflect a matrix by a plane and store the result in "out".
+** We assume that the plane's normal component is unit length.
+*/
+void mat4ReflectOut(
+	const mat4 *const restrict m,
+	const vec4 *const restrict plane,
+	mat4 *const restrict out
+){
+
+	mat4 reflect;
+	mat4InitReflect(&reflect, plane);
+	mat4MultiplyMat4Out(*m, reflect, out);
+}
+
+/*
+** Return the result of "m" reflected by the plane specified.
+** We assume that the plane's normal component is unit length.
+*/
+mat4 mat4ReflectC(const mat4 m, const vec4 plane){
+	return(mat4MultiplyMat4C(m, mat4InitReflectC(plane)));
 }
 
 

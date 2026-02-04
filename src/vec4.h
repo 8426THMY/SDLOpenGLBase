@@ -2,9 +2,9 @@
 #define vec4_h
 
 
-#include "utilTypes.h"
-
 #include "vec3.h"
+
+#include "utilTypes.h"
 
 
 typedef struct vec4 {

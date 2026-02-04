@@ -2,12 +2,12 @@
 #define mat3x4_h
 
 
-#include "utilTypes.h"
-
 #include "vec3.h"
 #include "vec4.h"
 #include "mat3.h"
 #include "quat.h"
+
+#include "utilTypes.h"
 
 
 // Note: Our matrices are column-major, just the way OpenGL likes them.

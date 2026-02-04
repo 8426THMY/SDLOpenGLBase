@@ -7,6 +7,7 @@
 
 #include "vec2.h"
 #include "vec3.h"
+#include "vec4.h"
 #include "quat.h"
 
 
@@ -98,8 +99,33 @@ void segmentClosestPoints(
 
 void triangleNormal(const vec3 *const restrict a, const vec3 *const restrict b, const vec3 *const restrict c, vec3 *const restrict out);
 
-float pointPlaneDist(const vec3 *const restrict point, const vec3 *const restrict vertex, const vec3 *const restrict normal);
-void pointPlaneProject(const vec3 *const restrict point, const vec3 *const restrict vertex, const vec3 *const restrict normal, vec3 *const restrict out);
+void planeInit(
+	vec4 *const restrict plane,
+	const vec3 *const restrict planeNormal,
+	const vec3 *const restrict planePoint
+);
+void planeNormalize(vec4 *const restrict plane);
+void planeNormalizeFast(vec4 *const restrict plane);
+float planePointDist(
+	const vec4 *const restrict plane,
+	const vec3 *const restrict point
+);
+float planePointDistAlt(
+	const vec3 *const restrict planeNormal,
+	const vec3 *const restrict planePoint,
+	const vec3 *const restrict point
+);
+void planePointProject(
+	const vec4 *const restrict plane,
+	const vec3 *const restrict point,
+	vec3 *const restrict out
+);
+void planePointProjectAlt(
+	const vec3 *const restrict planeNormal,
+	const vec3 *const restrict planePoint,
+	const vec3 *const restrict point,
+	vec3 *const restrict out
+);
 
 float clampEllipseDistanceFast(const float Ex, const float Ey, const float Ea, const float Eb);
 float clampEllipseDistanceNormalFast(const float Ex, const float Ey, const float Ea, const float Eb, vec2 *const restrict normal);

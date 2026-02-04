@@ -6,8 +6,10 @@
 #include "mat4.h"
 
 
-// A vec4 p = (p_x, p_y, p_z, p_w) defines a plane as follows:
-//     p_x x + p_y y + p_z z + p_w = 0.
+/*
+** A vec4 p = (n_x, n_y, n_z, d) defines a plane as follows:
+**     n_x x + n_y y + n_z z + d = 0.
+*/
 typedef vec4 renderFrustumPlane;
 
 typedef struct renderFrustum {

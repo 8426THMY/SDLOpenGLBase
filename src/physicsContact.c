@@ -1039,8 +1039,8 @@ float solvePosition(
 
 	// With the contact points now in global space,
 	// we can find the new separation between them.
-	vec3SubtractVec3P2(&rB, &rA);
-	separation = vec3DotVec3(&rA, &normal);
+	vec3SubtractVec3P1(&rB, &rA);
+	separation = vec3DotVec3(&rB, &normal);
 
 	constraint = PHYSCONTACT_BAUMGARTE_BIAS * (separation + PHYSCONTACT_LINEAR_SLOP);
 

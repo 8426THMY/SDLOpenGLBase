@@ -10,7 +10,7 @@
 // Forward-declare any helper functions!
 static void visCellPopulateRenderQueues(
 	visCell *const restrict cell,
-	renderView *const restrict view
+	renderView *const restrict view,
 	const unsigned int viewID,
 	const unsigned int frameID,
 	const float dt
@@ -21,7 +21,7 @@ static void visCellDelete(visCell *const restrict cell);
 
 void visCullerPortalPopulateRenderView(
 	visCullerPortal *const restrict vcPortal,
-	renderView *const restrict view
+	renderView *const restrict view,
 	const unsigned int viewID,
 	const unsigned int frameID,
 	const float dt

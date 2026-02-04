@@ -274,7 +274,11 @@ void mat3InitAxisAngle(mat3 *const restrict m, const vec4 *const restrict v){
 	const float c = cosf(v->w);
 	const float s = sinf(v->w);
 	const float t = 1.f - c;
-	const vec3 normalAxis = *((const vec3 *)v);
+	const vec3 normalAxis = {
+		.x = v->x,
+		.y = v->y,
+		.z = v->z
+	};
 	vec3 tempAxis;
 	vec3MultiplySOut(&normalAxis, t, &tempAxis);
 
@@ -300,7 +304,11 @@ mat3 mat3InitAxisAngleC(const vec4 v){
 	const float c = cosf(v.w);
 	const float s = sinf(v.w);
 	const float t = 1.f - c;
-	const vec3 normalAxis = *((const vec3 *)&v);
+	const vec3 normalAxis = {
+		.x = v.x,
+		.y = v.y,
+		.z = v.z
+	};
 	const vec3 tempAxis = vec3MultiplySC(normalAxis, t);
 
 	// Convert the axis angle to a rotation matrix!

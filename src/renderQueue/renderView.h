@@ -54,10 +54,7 @@ void renderViewInit(
 );
 
 void renderViewPreDraw(renderView *const restrict view);
-void renderViewDrawQueue(
-	renderView *const restrict view,
-	const renderQueueID id
-);
+void renderViewDraw(renderView *const restrict view);
 
 
 #endif

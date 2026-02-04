@@ -5,6 +5,8 @@
 #include <math.h>
 #include <string.h>
 
+#include "vec4.h"
+
 #include "utilMath.h"
 #include "utilFile.h"
 
@@ -912,10 +914,10 @@ static return_t faceSeparation(
 	};
 
 	return(
-		pointPlaneDist(
-			colliderHullSupport(hullB, &invNormal),
+		planePointDistAlt(
+			normal,
 			&hullA->vertices[hullA->edges[hullA->faces[cs->featureA]].startVertexIndex],
-			normal
+			colliderHullSupport(hullB, &invNormal)
 		) > 0.f
 	);
 }
@@ -1121,10 +1123,10 @@ static return_t noSeparatingFace(
 		// First, find the point on "hullB" farthest in the
 		// direction opposite the current face's normal.
 		// Then, find the distance between the two.
-		const float curDistance = pointPlaneDist(
-			colliderHullSupport(hullB, &invNormal),
+		const float curDistance = planePointDistAlt(
+			curNormal,
 			&hullA->vertices[hullA->edges[*curFace].startVertexIndex],
-			curNormal
+			colliderHullSupport(hullB, &invNormal)
 		);
 
 		// If the distance is greater than zero, we can
@@ -1397,6 +1399,7 @@ static void clipFaceContact(
 	// on the incident hull whose normal is most opposite it.
 	const colliderFaceIndex incIndex = findIncidentFace(hullB, &refNormal);
 
+	vec4 clipPlane;
 	float curDist;
 
 	const vec3 *refVertex;
@@ -1467,7 +1470,6 @@ static void clipFaceContact(
 	// clip each incident vertex against its normal.
 	do {
 		const vertexClip *prevVertex;
-		const vec3 *adjNormal;
 
 		refVertex = &hullA->vertices[curEdge->startVertexIndex];
 		// Edges are shared by both faces that use
@@ -1475,10 +1477,18 @@ static void clipFaceContact(
 		// the reference face is this edge's twin
 		// face to make sure we get the right data.
 		if(curEdge->faceIndex == refIndex){
-			adjNormal = &hullA->normals[curEdge->twinFaceIndex];
+			planeInit(
+				&clipPlane,
+				&hullA->normals[curEdge->twinFaceIndex],
+				refVertex
+			);
 			outEdgeIndex = curEdge->nextIndex;
 		}else{
-			adjNormal = &hullA->normals[curEdge->faceIndex];
+			planeInit(
+				&clipPlane,
+				&hullA->normals[curEdge->faceIndex],
+				refVertex
+			);
 			outEdgeIndex = curEdge->twinNextIndex;
 		}
 		curEdge = &hullA->edges[outEdgeIndex];
@@ -1486,11 +1496,11 @@ static void clipFaceContact(
 		curVertex = loopVertices;
 		clipVertex.v = clipVertices.v;
 		prevVertex = lastVertex;
-		curDist = pointPlaneDist(&prevVertex->v, refVertex, adjNormal);
+		curDist = planePointDist(&clipPlane, &prevVertex->v);
 		// For each edge on the incident face, clip
 		// it against the current reference face.
 		do {
-			const float nextDist = pointPlaneDist(&curVertex->v, refVertex, adjNormal);
+			const float nextDist = planePointDist(&clipPlane, &curVertex->v);
 			// The starting vertex is inside the clipping
 			// region, so we will have to keep it.
 			if(curDist <= 0.f){
@@ -1605,6 +1615,9 @@ static void clipFaceContact(
 	// We don't really need to set "curVertex" to
 	// "loopVertices" as we do it in the loop above.
 
+	// Set the clip plane for the upcoming loop.
+	planeInit(&clipPlane, &refNormal, refVertex);
+
 	// We haven't found any contact points yet.
 	cm->numContacts = 0;
 	// Keep any points below the reference face and project them
@@ -1618,13 +1631,13 @@ static void clipFaceContact(
 		// Use the distance between the current
 		// vertex and the reference face to ensure
 		// that it is within the clipping region.
-		curDist = pointPlaneDist(&curVertex->v, refVertex, &refNormal);
+		curDist = planePointDist(&clipPlane, &curVertex->v);
 		if(curDist <= 0.f){
 			*loopVertex = *curVertex;
 			++loopVertex;
 			// Project the vertex onto the reference
 			// face and store it in "clipVertices".
-			pointPlaneProject(&curVertex->v, refVertex, &refNormal, &clipVertex.p->v);
+			planePointProject(&clipPlane, &curVertex->v, &clipVertex.p->v);
 			// Keep the vertex's separation, too.
 			clipVertex.p->dist = curDist;
 			++clipVertex.p;

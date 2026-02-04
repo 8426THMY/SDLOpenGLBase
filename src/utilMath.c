@@ -292,37 +292,100 @@ void triangleNormal(const vec3 *const restrict a, const vec3 *const restrict b, 
 
 
 /*
+** Initialize a plane from a normal and a point.
+** Our planes are stored as p = (n_x, n_y, n_z, d):
+**     n_x x + n_y y + n_z z + d = 0.
+*/
+void planeInit(
+	vec4 *const restrict plane,
+	const vec3 *const restrict planeNormal,
+	const vec3 *const restrict planePoint
+){
+
+	plane->x = planeNormal->x;
+	plane->y = planeNormal->y;
+	plane->z = planeNormal->z;
+	plane->w = -vec3DotVec3(planeNormal, planePoint);
+}
+
+// Normalize a plane by making its normal a unit vector.
+void planeNormalize(vec4 *const restrict plane){
+	const float planeMagnitude = invSqrt(vec3MagnitudeSquaredVec3((vec3 *)plane));
+	vec4MultiplyS(plane, planeMagnitude);
+}
+
+// Normalize a plane by making its normal a unit vector.
+void planeNormalizeFast(vec4 *const restrict plane){
+	const float planeMagnitude = invSqrtFast(vec3MagnitudeSquaredVec3((vec3 *)plane));
+	vec4MultiplyS(plane, planeMagnitude);
+}
+
+/*
 ** Return the distance between a point and a plane.
-** The variable "vertex" can be any point on the
+** We assume that the plane is normalized.
+*/
+float planePointDist(
+	const vec4 *const restrict plane,
+	const vec3 *const restrict point
+){
+
+	return(vec3DotVec3((vec3 *)plane, point) + plane->w);
+}
+
+/*
+** Return the distance between a point and a plane.
+** The variable "planePoint" can be any point on the
 ** plane, but the plane's normal must be a unit vector.
 */
-float pointPlaneDist(const vec3 *const restrict point, const vec3 *const restrict vertex, const vec3 *const restrict normal){
-	// point - vertex
+float planePointDistAlt(
+	const vec3 *const restrict planeNormal,
+	const vec3 *const restrict planePoint,
+	const vec3 *const restrict point
+){
+
+	// point - planePoint
 	const vec3 offset = {
-		.x = point->x - vertex->x,
-		.y = point->y - vertex->y,
-		.z = point->z - vertex->z
+		.x = point->x - planePoint->x,
+		.y = point->y - planePoint->y,
+		.z = point->z - planePoint->z
 	};
 
-	return(vec3DotVec3(normal, &offset));
+	return(vec3DotVec3(planeNormal, &offset));
+}
+
+/*
+** Project a point onto a plane.
+** We assume that the plane is normalized.
+*/
+void planePointProject(
+	const vec4 *const restrict plane,
+	const vec3 *const restrict point,
+	vec3 *const restrict out
+){
+
+	// point - dist * planeNormal
+	vec3FmaOut(
+		-planePointDist(plane, point),
+		(vec3 *)plane, point, out
+	);
 }
 
 /*
 ** Project a point onto a plane. The variable
-** "vertex" can be any point on the plane.
+** "planePoint" can be any point on the plane.
 */
-void pointPlaneProject(const vec3 *const restrict point, const vec3 *const restrict vertex, const vec3 *const restrict normal, vec3 *const restrict out){
-	// point - vertex
-	const vec3 offset = {
-		.x = point->x - vertex->x,
-		.y = point->y - vertex->y,
-		.z = point->z - vertex->z
-	};
-	const float dist = vec3DotVec3(normal, &offset);
+void planePointProjectAlt(
+	const vec3 *const restrict planeNormal,
+	const vec3 *const restrict planePoint,
+	const vec3 *const restrict point,
+	vec3 *const restrict out
+){
 
-	out->x = point->x - dist * normal->x;
-	out->y = point->y - dist * normal->y;
-	out->z = point->z - dist * normal->z;
+	// point - dist * planeNormal
+	vec3FmaOut(
+		-planePointDistAlt(planeNormal, planePoint, point),
+		planeNormal, point, out
+	);
 }
 
 

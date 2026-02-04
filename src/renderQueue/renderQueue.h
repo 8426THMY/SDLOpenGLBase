@@ -60,8 +60,7 @@
 
 
 #warning "Should we split up the material component into shader, texture and pass components?"
-#warning "It might also be smart to have two queues, one for opaque and one for translucent objects."
-#warning "In fact, since we're running out of bits, can we use even more 'buckets'?"
+#warning "Since we're running out of bits, can we use even more buckets?"
 
 
 typedef RENDER_QUEUE_KEY_TYPE renderQueueKey;

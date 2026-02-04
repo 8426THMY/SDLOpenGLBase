@@ -2,13 +2,13 @@
 #define mat4_h
 
 
-#include "utilTypes.h"
-
 #include "vec3.h"
 #include "vec4.h"
 #include "mat3.h"
 #include "mat3x4.h"
 #include "quat.h"
+
+#include "utilTypes.h"
 
 
 // Note: Our matrices are column-major, just the way OpenGL likes them.
@@ -54,6 +54,8 @@ void mat4InitShearQuat(
 	const vec3 *const restrict v, const quat *const restrict q
 );
 mat4 mat4InitShearQuatC(const vec3 v, const quat q);
+void mat4InitReflect(mat4 *const restrict m, const vec4 *const restrict plane);
+mat4 mat4InitReflectC(const vec4 plane);
 void mat3InitMat4(mat3 *const restrict m1, const mat4 *const restrict m2);
 mat3 mat3InitMat4C(const mat4 m);
 void mat3x4InitMat4(mat3x4 *const restrict m1, const mat4 *const restrict m2);
@@ -199,6 +201,20 @@ void mat4ViewLookAt(
 	const vec3 *const restrict worldUp
 );
 mat4 mat4ViewLookAtC(const vec3 eye, const vec3 target, const vec3 worldUp);
+void mat3x4Reflect(mat3x4 *const restrict m, const vec4 *const restrict plane);
+void mat3x4ReflectOut(
+	const mat3x4 *const restrict m,
+	const vec4 *const restrict plane,
+	mat3x4 *const restrict out
+);
+mat3x4 mat3x4ReflectC(const mat3x4 m, const vec4 plane);
+void mat4Reflect(mat4 *const restrict m, const vec4 *const restrict plane);
+void mat4ReflectOut(
+	const mat4 *const restrict m,
+	const vec4 *const restrict plane,
+	mat4 *const restrict out
+);
+mat4 mat4ReflectC(mat4 m, const vec4 plane);
 
 void mat4Orthographic(
 	mat4 *const restrict m,

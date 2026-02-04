@@ -2,9 +2,9 @@
 #define mat2_h
 
 
-#include "utilTypes.h"
-
 #include "vec2.h"
+
+#include "utilTypes.h"
 
 
 // Note: Our matrices are column-major, just the way OpenGL likes them.

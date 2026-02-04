@@ -30,22 +30,20 @@ void renderTargetPreDraw(
 		#warning "This should be done on a separate thread..."
 		renderViewPreDraw(curView);
 
+		target->lastView = curView;
 		curView = moduleRenderViewNext(curView);
 	} while(curView != NULL);
 }
 
 
 void renderTargetDraw(const renderTarget *const target){
-	renderQueueID id;
-	for(id = 0; id < RENDER_VIEW_NUM_BUCKETS; ++id){
-		renderView *curView = target->views;
-		do {
-			renderViewDrawQueue(curView, id);
-			curView = moduleRenderViewNext(curView);
-		} while(curView != NULL);
-	}
-
-	// Clear the views, ready for the next frame.
-	#warning "This will scramble the underlying memorySingleList."
-	#warning "We probably need a way of doing it in the right order..."
+	renderView *curView = target->lastView;
+	// We draw our render views starting from the end of the list.
+	// Dependencies like mirrors are usually added after the main
+	// view, so this means transluscent objects in front of them
+	// will appear correctly.
+	do {
+		renderViewDraw(curView);
+		curView = moduleRenderViewPrev(curView);
+	} while(curView != NULL);
 }

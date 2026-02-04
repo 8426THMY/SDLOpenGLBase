@@ -70,7 +70,7 @@ typedef struct visCullerPortal {
 typedef struct renderView renderView;
 void visCullerPortalPopulateRenderView(
 	visCullerPortal *const restrict vcPortal,
-	renderView *const restrict view
+	renderView *const restrict view,
 	const unsigned int viewID,
 	const unsigned int frameID,
 	const float dt

@@ -20,9 +20,10 @@ void renderViewInit(
 	view->numLights = 0;
 
 	{
-		size_t i;
-		for(i = 0; i < RENDER_TARGET_NUM_BUCKETS; ++i){
-			view->queues[i].numKeyVals = 0;
+		const renderQueue *curQueue = view->queues;
+		const renderQueue *const lastQueue = &view->queues[RENDER_VIEW_NUM_BUCKETS];
+		for(; curQueue < lastQueue; ++curQueue){
+			curQueue->numKeyVals = 0;
 		}
 	}
 }
@@ -30,20 +31,25 @@ void renderViewInit(
 
 void renderViewPreDraw(renderView *const restrict view){
 	// Light clusters.
-	// Sort the render queues.
+
+	{
+		size_t i;
+		for(i = 0; i < RENDER_TARGET_NUM_BUCKETS; ++i){
+			// Sort the render queues.
+		}
+	}
 }
 
 // Draw every render object in the specified render queue!
-void renderViewDrawQueue(
-	renderView *const restrict view,
-	const renderQueueID id
-){
-
-	const renderQueue *const queue = &view->queues[id];
-	const renderQueueKeyValue *curKeyVal = queue->keyVals;
-	const renderQueueKeyValue *lastKeyVal = &curKeyVal[queue->numKeyVals];
-	while(curKeyVal != lastKeyVal){
-		renderObjectDraw((const renderObject *)curKeyVal->value);
-		++curKeyVal;
+void renderViewDraw(renderView *const restrict view){
+	const renderQueue *curQueue = view->queues;
+	const renderQueue *const lastQueue = &view->queues[RENDER_VIEW_NUM_BUCKETS];
+	for(; curQueue != lastQueue; ++curQueue){
+		const renderQueueKeyValue *curKeyVal = curQueue->keyVals;
+		const renderQueueKeyValue *const lastKeyVal = &curKeyVal[curQueue->numKeyVals];
+		// Draw each render object in this render queue!
+		for(; curKeyVal != lastKeyVal; ++curKeyVal){
+			renderObjectDraw((const renderObject *)curKeyVal->value);
+		}
 	}
 }

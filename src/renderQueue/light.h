@@ -9,6 +9,8 @@
 #include "lightSpotOrtho.h"
 #include "lightOrtho.h"
 
+#include "utilTypes.h"
+
 
 #define LIGHT_NUM_TYPES 4
 
@@ -40,6 +42,34 @@ typedef struct light {
 	// The global transform should only be updated once per frame.
 	unsigned int frameID;
 } light;
+
+
+return_t lightInFrustum(
+	const light *const restrict l,
+	const renderFrustum *const restrict frustum
+);
+void lightUpdateGlobalTransform(light *const restrict l);
+void lightPreDraw(
+	const light *const restrict l,
+	renderView *const restrict view
+);
+void lightDraw(const light *const restrict l);
+
+
+extern return_t (*const lightInFrustumTable[LIGHT_NUM_TYPES])(
+	const light *const restrict l,
+	const renderFrustum *const restrict frustum
+);
+extern void (*const lightUpdateGlobalTransformTable[LIGHT_NUM_TYPES])(
+	light *const restrict l
+);
+extern void (*const lightPreDrawTable[LIGHT_NUM_TYPES])(
+	const light *const restrict l,
+	renderView *const restrict view
+);
+extern void (*const lightDrawTable[LIGHT_NUM_TYPES])(
+	const light *const restrict l
+);
 
 
 #endif

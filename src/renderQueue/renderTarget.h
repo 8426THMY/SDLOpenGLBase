@@ -17,6 +17,8 @@ typedef struct renderTarget {
 	// Doubly linked list of views
 	// drawn to this render target.
 	renderView *views;
+	// Render views are drawn from last to first.
+	renderView *lastView;
 
 	// Views may have their own cameras, but
 	// we need a camera for the base view.

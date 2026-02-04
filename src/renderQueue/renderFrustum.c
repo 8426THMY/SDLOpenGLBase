@@ -1,6 +1,9 @@
 #include "renderFrustum.h"
 
 
+#include "utilMath.h"
+
+
 /*
 ** Compute the six planes of the viewing
 ** frustum using Gribb and Hartmann's method.
@@ -46,4 +49,11 @@ void renderFrustumInit(
 		vpMatrix->m[2][3] - vpMatrix->m[2][2],
 		vpMatrix->m[3][3] - vpMatrix->m[3][2]
 	);
+
+	planeNormalizeFast(&frustum->left);
+	planeNormalizeFast(&frustum->right);
+	planeNormalizeFast(&frustum->bottom);
+	planeNormalizeFast(&frustum->top);
+	planeNormalizeFast(&frustum->near);
+	planeNormalizeFast(&frustum->far);
 }
