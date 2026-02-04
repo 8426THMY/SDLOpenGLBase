@@ -245,6 +245,7 @@ typedef struct memoryQuadList {
 } memoryQuadList;
 
 
+void memQuadListInitRegion(memoryQuadList *const restrict quadList, memoryRegion *const restrict region);
 void *memQuadListInit(memoryQuadList *const restrict quadList, void *const restrict memory, const size_t memorySize, const size_t blockSize);
 
 void *memQuadListAlloc(memoryQuadList *const restrict quadList);
@@ -256,9 +257,6 @@ void *memQuadListInsertSorted(
 
 void memQuadListFree(memoryQuadList *const restrict quadList, void **const restrict start, void *const restrict data);
 void memQuadListFreeArray(memoryQuadList *const restrict quadList, void *const restrict start);
-
-void memQuadListClearRegion(memoryQuadList *const restrict quadList, memoryRegion *const restrict region, const byte_t flag, void *next);
-void memQuadListClearLastRegion(memoryQuadList *const restrict quadList, memoryRegion *const restrict region);
 void memQuadListClear(memoryQuadList *const restrict quadList);
 
 #ifdef MEMORYREGION_EXTEND_ALLOCATORS

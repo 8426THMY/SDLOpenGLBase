@@ -30,13 +30,14 @@
 typedef flags8_t sort_t;
 typedef sort_t (*const compareFunc)(const void *const restrict e1, const void *const restrict e2);
 
+#warning "We should replace this with 'keyValue32' and 'keyValue64' types, probably."
 // For larger structures, it's often faster
 // to sort an array of key-values instead.
 typedef struct keyValue {
-	// Value to sort by.
-	float value;
+	// Key to sort by.
+	float key;
 	// Pointer to the represented object.
-	void *key;
+	void *value;
 } keyValue;
 
 

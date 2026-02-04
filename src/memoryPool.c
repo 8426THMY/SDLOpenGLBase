@@ -12,6 +12,33 @@
 #define memPoolBlockUsedDataGetFlag(block) memPoolBlockDataGetFlag(block)
 
 
+/*
+** Initialise every block in a region, setting the flag
+** to invalid and the last block's next pointer to NULL.
+*/
+void memPoolInitRegion(memoryPool *const restrict pool, memoryRegion *const restrict region){
+	const size_t blockSize = pool->blockSize;
+	void *currentBlock = region->start;
+	void *nextBlock = memPoolBlockGetNextBlock(currentBlock, blockSize);
+
+	// Set the flag and next pointer for each block!
+	while(nextBlock < (void *)region){
+		//*memPoolBlockFreeNextGetFlag(currentBlock) = MEMPOOL_FLAG_INVALID;
+		//memPoolBlockFreeGetNext(currentBlock) = nextBlock;
+		memPoolBlockGetFlag(currentBlock) = MEMPOOL_FLAG_INVALID;
+		*memPoolBlockFreeFlagGetNext(currentBlock) = (void *)memPoolBlockFreeFlagGetNext(nextBlock);
+
+		currentBlock = nextBlock;
+		nextBlock = memPoolBlockGetNextBlock(currentBlock, blockSize);
+	}
+
+	// Set the flag and next pointer for the last block!
+	//*memPoolBlockFreeNextGetFlag(currentBlock) = MEMPOOL_FLAG_INVALID;
+	//memPoolBlockFreeGetNext(currentBlock) = NULL;
+	memPoolBlockGetFlag(currentBlock) = MEMPOOL_FLAG_INVALID;
+	*memPoolBlockFreeFlagGetNext(currentBlock) = NULL;
+}
+
 void *memPoolInit(memoryPool *const restrict pool, void *const restrict memory, const size_t memorySize, const size_t blockSize){
 	// Make sure the user isn't being difficult.
 	if(memory != NULL){
@@ -23,7 +50,7 @@ void *memPoolInit(memoryPool *const restrict pool, void *const restrict memory, 
 		//region->start = memPoolBlockFreeFlagGetNext(memory);
 		region->start = memory;
 		region->next = NULL;
-		memPoolClearLastRegion(pool, region);
+		memPoolInitRegion(pool, region);
 
 		pool->nextFreeBlock = (void *)memPoolBlockFreeFlagGetNext(memory);
 		#ifdef MEMPOOL_COUNT_USED_BLOCKS
@@ -65,66 +92,12 @@ void memPoolFree(memoryPool *const restrict pool, void *const restrict data){
 	#endif
 }
 
-
-/*
-** Initialise every block in a region, setting the flag
-** to "flag" and the last block's next pointer to "next".
-*/
-void memPoolClearRegion(memoryPool *const restrict pool, memoryRegion *const restrict region, const byte_t flag, void *const restrict next){
-	const size_t blockSize = pool->blockSize;
-	void *currentBlock = region->start;
-	void *nextBlock = memPoolBlockGetNextBlock(currentBlock, blockSize);
-
-	// Set the flag and next pointer for each block!
-	while(nextBlock < (void *)region){
-		//*memPoolBlockFreeNextGetFlag(currentBlock) = flag;
-		//memPoolBlockFreeGetNext(currentBlock) = nextBlock;
-		memPoolBlockGetFlag(currentBlock) = flag;
-		*memPoolBlockFreeFlagGetNext(currentBlock) = (void *)memPoolBlockFreeFlagGetNext(nextBlock);
-
-		currentBlock = nextBlock;
-		nextBlock = memPoolBlockGetNextBlock(currentBlock, blockSize);
-	}
-
-	// Set the flag and next pointer for the last block!
-	//*memPoolBlockFreeNextGetFlag(currentBlock) = flag;
-	//memPoolBlockFreeGetNext(currentBlock) = next;
-	memPoolBlockGetFlag(currentBlock) = flag;
-	*memPoolBlockFreeFlagGetNext(currentBlock) = next;
-}
-
-/*
-** Initialise every block in a region, setting the flag
-** to invalid and the last block's next pointer to NULL.
-*/
-void memPoolClearLastRegion(memoryPool *const restrict pool, memoryRegion *const restrict region){
-	const size_t blockSize = pool->blockSize;
-	void *currentBlock = region->start;
-	void *nextBlock = memPoolBlockGetNextBlock(currentBlock, blockSize);
-
-	// Set the flag and next pointer for each block!
-	while(nextBlock < (void *)region){
-		//*memPoolBlockFreeNextGetFlag(currentBlock) = MEMPOOL_FLAG_INVALID;
-		//memPoolBlockFreeGetNext(currentBlock) = nextBlock;
-		memPoolBlockGetFlag(currentBlock) = MEMPOOL_FLAG_INVALID;
-		*memPoolBlockFreeFlagGetNext(currentBlock) = (void *)memPoolBlockFreeFlagGetNext(nextBlock);
-
-		currentBlock = nextBlock;
-		nextBlock = memPoolBlockGetNextBlock(currentBlock, blockSize);
-	}
-
-	// Set the flag and next pointer for the last block!
-	//*memPoolBlockFreeNextGetFlag(currentBlock) = MEMPOOL_FLAG_INVALID;
-	//memPoolBlockFreeGetNext(currentBlock) = NULL;
-	memPoolBlockGetFlag(currentBlock) = MEMPOOL_FLAG_INVALID;
-	*memPoolBlockFreeFlagGetNext(currentBlock) = NULL;
-}
-
 /*
 ** Clear every memory region in the allocator.
 ** This assumes that there is at least one region.
 */
 void memPoolClear(memoryPool *const restrict pool){
+	const size_t blockSize = pool->blockSize;
 	memoryRegion *region = pool->region;
 	//pool->nextFreeBlock = region->start;
 	pool->nextFreeBlock = (void *)memPoolBlockFreeFlagGetNext(region->start);
@@ -135,19 +108,36 @@ void memPoolClear(memoryPool *const restrict pool){
 	// Loop through every region in the allocator.
 	for(;;){
 		memoryRegion *const nextRegion = region->next;
+		void *currentBlock = region->start;
+		void *nextBlock = memPoolBlockGetNextBlock(currentBlock, blockSize);
 
-		// If this is not the last region, make this region's
-		// last block point to the first in the next region.
-		if(nextRegion != NULL){
-			//memPoolClearRegion(pool, region, MEMPOOL_FLAG_INVALID, nextRegion->start);
-			memPoolClearRegion(pool, region, MEMPOOL_FLAG_INVALID, (void *)memPoolBlockFreeFlagGetNext(nextRegion->start));
+		// Set the flag and next pointer for each block!
+		do {
+			// If we've found an invalid block,
+			// we've finished clearing everything.
+			if(memPoolBlockGetFlag(currentBlock) == MEMPOOL_FLAG_INVALID){
+				return;
+			}
+			//*memPoolBlockFreeNextGetFlag(currentBlock) = MEMPOOL_FLAG_INVALID;
+			//memPoolBlockFreeGetNext(currentBlock) = nextBlock;
+			memPoolBlockGetFlag(currentBlock) = MEMPOOL_FLAG_INVALID;
+			*memPoolBlockFreeFlagGetNext(currentBlock) = (void *)memPoolBlockFreeFlagGetNext(nextBlock);
 
-		// Otherwise, make it point to NULL and break the loop.
-		}else{
-			memPoolClearLastRegion(pool, region);
+			currentBlock = nextBlock;
+			nextBlock = memPoolBlockGetNextBlock(currentBlock, blockSize);
+		} while(nextBlock < (void *)region);
+
+		// Set the flag and next pointer for the last block!
+		//*memPoolBlockFreeNextGetFlag(currentBlock) = MEMPOOL_FLAG_INVALID;
+		memPoolBlockGetFlag(currentBlock) = MEMPOOL_FLAG_INVALID;
+		if(nextRegion == NULL){
+			//memPoolBlockFreeGetNext(currentBlock) = NULL;
+			*memPoolBlockFreeFlagGetNext(currentBlock) = NULL;
 			break;
+		}else{
+			//memPoolBlockFreeGetNext(currentBlock) = nextRegion->start;
+			*memPoolBlockFreeFlagGetNext(currentBlock) = memPoolBlockFreeFlagGetNext(nextRegion->start);
 		}
-
 		region = nextRegion;
 	}
 }
@@ -162,7 +152,7 @@ void *memPoolExtend(memoryPool *const restrict pool, void *const restrict memory
 		memoryRegionAppend(&pool->region, newRegion, memory);
 		//newRegion->start = memPoolBlockFreeFlagGetNext(memory);
 		// Set up its memory!
-		memPoolClearLastRegion(pool, newRegion);
+		memPoolInitRegion(pool, newRegion);
 
 		pool->nextFreeBlock = (void *)memPoolBlockFreeFlagGetNext(memory);
 	}

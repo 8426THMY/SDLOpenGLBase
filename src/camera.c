@@ -8,7 +8,7 @@
 
 void cameraInit(
 	camera *const restrict cam, const flags8_t flags,
-	const float windowWidth, const float windowHeight
+	const float width, const float height
 ){
 
 	vec3InitZero(&cam->pos);
@@ -20,26 +20,26 @@ void cameraInit(
 	cam->flags = flags;
 
 	mat4InitIdentity(&cam->viewMatrix);
-	cameraUpdateProjectionMatrix(cam, windowWidth, windowHeight);
-	mat4InitIdentity(&cam->viewProjectionMatrix);
+	cameraUpdateProjectionMatrix(cam, width, height);
+	mat4InitIdentity(&cam->vpMatrix);
 }
 
 
 void cameraUpdateProjectionMatrix(
 	camera *const restrict cam,
-	const float windowWidth, const float windowHeight
+	const float width, const float height
 ){
 
 	// Use an orthographic projection matrix.
 	if(flagsContainsSubset(cam->flags, CAMERA_TYPE_ORTHO)){
-		const float aspectRatio = 1.f/((windowWidth < windowHeight) ? windowWidth : windowHeight);
-		const float widthRatio  = windowWidth * aspectRatio;
-		const float heightRatio = windowHeight * aspectRatio;
-		mat4Orthographic(&cam->projectionMatrix, widthRatio, 0.f, heightRatio, 0.f, -CAMERA_Z_THRESHOLD, CAMERA_Z_THRESHOLD);
+		const float aspectRatio = 1.f/((width < height) ? width : height);
+		const float widthRatio  = width * aspectRatio;
+		const float heightRatio = height * aspectRatio;
+		mat4Orthographic(&cam->projMatrix, widthRatio, 0.f, heightRatio, 0.f, CAMERA_NEAR, CAMERA_FAR);
 
 	// Use a perspective projection matrix.
 	}else if(flagsContainsSubset(cam->flags, CAMERA_TYPE_FRUSTUM)){
-		mat4Perspective(&cam->projectionMatrix, cam->fov, windowWidth/windowHeight, 0.1f/cam->fov, CAMERA_Z_THRESHOLD);
+		mat4Perspective(&cam->projMatrix, cam->fov, width/height, CAMERA_NEAR, CAMERA_FAR);
 
 	// Use a fixed 1 unit per screen pixel scale for the camera.
 	// This is usually used for GUI elements, so we treat the
@@ -48,15 +48,15 @@ void cameraUpdateProjectionMatrix(
 	// This means that when the window is resized, GUI elements are
 	// scaled towards the top-left corner of the screen.
 	}else if(flagsContainsSubset(cam->flags, CAMERA_TYPE_FIXED_SIZE)){
-		mat4Orthographic(&cam->projectionMatrix, 0.f, windowWidth, -windowHeight, 0.f, -CAMERA_Z_THRESHOLD, CAMERA_Z_THRESHOLD);
+		mat4Orthographic(&cam->projMatrix, 0.f, width, -height, 0.f, 0.f, CAMERA_FAR);
 	}else{
-		mat4InitIdentity(&cam->projectionMatrix);
+		mat4InitIdentity(&cam->projMatrix);
 	}
 }
 
 // Only update the view projection matrix if the others have been changed.
 void cameraUpdateViewProjectionMatrix(camera *const restrict cam){
-	mat4MultiplyMat4Out(cam->projectionMatrix, cam->viewMatrix, &cam->viewProjectionMatrix);
+	mat4MultiplyMat4Out(cam->projMatrix, cam->viewMatrix, &cam->vpMatrix);
 }
 
 

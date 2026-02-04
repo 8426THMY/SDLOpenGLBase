@@ -184,6 +184,10 @@ typedef struct memorySingleList {
 } memorySingleList;
 
 
+void memSingleListInitRegion(
+	memorySingleList *const restrict singleList,
+	memoryRegion *const restrict region
+);
 void *memSingleListInit(
 	memorySingleList *const restrict singleList,
 	void *const restrict memory, const size_t memorySize, const size_t blockSize
@@ -202,12 +206,6 @@ void memSingleListFree(
 	void **const restrict start, void *const restrict data, void *const restrict prev
 );
 void memSingleListFreeArray(memorySingleList *const restrict singleList, void *const restrict start);
-
-void memSingleListClearRegion(
-	memorySingleList *const restrict singleList,
-	memoryRegion *const restrict region, const byte_t flag, void *const restrict next
-);
-void memSingleListClearLastRegion(memorySingleList *const restrict singleList, memoryRegion *const restrict region);
 void memSingleListClear(memorySingleList *const restrict singleList);
 
 #ifdef MEMORYREGION_EXTEND_ALLOCATORS

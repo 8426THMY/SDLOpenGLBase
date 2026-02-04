@@ -170,14 +170,12 @@ typedef struct memoryPool {
 } memoryPool;
 
 
+void memPoolInitRegion(memoryPool *const restrict pool, memoryRegion *const restrict region);
 void *memPoolInit(memoryPool *const restrict pool, void *const restrict memory, const size_t memorySize, const size_t blockSize);
 
 void *memPoolAlloc(memoryPool *const restrict pool);
 
 void memPoolFree(memoryPool *const restrict pool, void *const restrict data);
-
-void memPoolClearRegion(memoryPool *const restrict pool, memoryRegion *const restrict region, const byte_t flag, void *const restrict next);
-void memPoolClearLastRegion(memoryPool *const restrict pool, memoryRegion *const restrict region);
 void memPoolClear(memoryPool *const restrict pool);
 
 #ifdef MEMORYREGION_EXTEND_ALLOCATORS

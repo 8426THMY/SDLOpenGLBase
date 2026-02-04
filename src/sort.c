@@ -27,9 +27,9 @@ sort_t compareFloatReversed(const float x, const float y){
 }
 
 sort_t compareKeyValue(const keyValue *const restrict kv1, const keyValue *const restrict kv2){
-	return(compareFloat(kv1->value, kv2->value));
+	return(compareFloat(kv1->key, kv2->key));
 }
 
 sort_t compareKeyValueReversed(const keyValue *const restrict kv1, const keyValue *const restrict kv2){
-	return(compareFloatReversed(kv1->value, kv2->value));
+	return(compareFloatReversed(kv1->key, kv2->key));
 }

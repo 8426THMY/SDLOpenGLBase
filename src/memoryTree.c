@@ -134,13 +134,23 @@ static void treeRotateLeft(memoryTree *const restrict tree, memTreeNode *const n
 static void treeRotateRight(memoryTree *const restrict tree, memTreeNode *const node);
 
 
+// Create a tree node that takes up all of the memory in the region.
+memTreeNode *memTreeInitRegion(void *const restrict memory, const size_t memorySize){
+	// Set up the starting block's list components.
+	((memTreeListNode *)memory)->prevSize = listNodeSetInfo(0, MEMTREE_FLAG_ONLY);
+	((memTreeListNode *)memory)->size = memorySize;
+
+	// Set up the starting block's tree components.
+	return(listNodeGetTree((memTreeListNode *)memory));
+}
+
 void *memTreeInit(memoryTree *const restrict tree, void *const restrict memory, const size_t memorySize){
 	// Make sure the user isn't being difficult.
 	if(memory != NULL){
 		const size_t regionSize = memoryGetRegionSize(memorySize);
 
 		// Create a free block to occupy all of the allocated memory.
-		tree->root = memTreeClearRegion(memory, regionSize);
+		tree->root = memTreeInitRegion(memory, regionSize);
 		memset(tree->root, (uintptr_t)NULL, sizeof(*tree->root));
 
 		// Set up the tree's memory region footer.
@@ -520,17 +530,6 @@ void memTreeFree(memoryTree *const restrict tree, void *block){
 	treeInsert(tree, block, newSize);
 }
 
-
-// Create a tree node that takes up all of the memory in the region.
-memTreeNode *memTreeClearRegion(void *const restrict memory, const size_t memorySize){
-	// Set up the starting block's list components.
-	((memTreeListNode *)memory)->prevSize = listNodeSetInfo(0, MEMTREE_FLAG_ONLY);
-	((memTreeListNode *)memory)->size = memorySize;
-
-	// Set up the starting block's tree components.
-	return(listNodeGetTree((memTreeListNode *)memory));
-}
-
 /*
 ** Clear every memory region in the allocator.
 ** This assumes that there is at least one region.
@@ -539,7 +538,7 @@ void memTreeClear(memoryTree *const restrict tree, void *const restrict memory, 
 	memoryRegion *region = tree->region;
 	// Clear the first region here so we
 	// can set the first node in the tree.
-	tree->root = memTreeClearRegion(memory, (size_t)((byte_t *)region->start - (byte_t *)region));
+	tree->root = memTreeInitRegion(memory, (size_t)((byte_t *)region->start - (byte_t *)region));
 	memset(tree->root, (uintptr_t)NULL, sizeof(*tree->root));
 
 	region = region->next;
@@ -547,7 +546,7 @@ void memTreeClear(memoryTree *const restrict tree, void *const restrict memory, 
 	while(region != NULL){
 		const size_t regionSize = (size_t)((byte_t *)region->start - (byte_t *)region);
 		// Create a free block to occupy all of the region's memory.
-		treeInsert(tree, memTreeClearRegion(region->start, regionSize), regionSize);
+		treeInsert(tree, memTreeInitRegion(region->start, regionSize), regionSize);
 
 		region = region->next;
 	}
@@ -563,7 +562,7 @@ void *memTreeExtend(memoryTree *const restrict tree, void *const restrict memory
 		// Add the new region to the end of the list!
 		memoryRegionAppend(&tree->region, newRegion, memory);
 		// Create a free block to occupy all of the allocated memory.
-		treeInsert(tree, memTreeClearRegion(memory, regionSize), regionSize);
+		treeInsert(tree, memTreeInitRegion(memory, regionSize), regionSize);
 	}
 
 	return(memory);

@@ -26,23 +26,6 @@ static void polyboardAddVertices(
 );
 
 
-void particleRendererBeamInitBatch(
-	const void *const restrict renderer,
-	spriteRenderer *const restrict batch,
-){
-
-	// Draw the old batch if it isn't compatible with the new one!
-	#warning "We need to check the textures in use here."
-	#warning "Renderers should probably have a shared component that lets us check compatibility easily."
-	if(batch->type != SPRITE_RENDERER_TYPE_BATCHED){
-		#error "This is all probably incorrect. Same for the other renderers."
-		spriteRendererDraw(batch);
-		spriteRendererInit(batch, SPRITE_RENDERER_TYPE_BATCHED);
-
-		#warning "Bind any textures or uniforms here!"
-	}
-}
-
 /*
 ** Return the number of indices we'll need for the batch.
 ** This is really just the number of vertices, though we
@@ -54,7 +37,7 @@ size_t particleRendererBeamBatchSize(
 
 	return(
 		2*(numParticles + (numParticles - 1) *
-		((const particleRendererBeam *const)renderer)->subdivisions) + 1
+		renderer->data.beam.subdivisions) + 1
 	);
 }
 
@@ -67,7 +50,7 @@ size_t particleRendererBeamBatchSize(
 ** and Computer Graphics, Third Edition".
 */
 void particleRendererBeamBatch(
-	const particleRenderer *const restrict renderer,
+	const void *const restrict renderer,
 	spriteRenderer *const restrict batch,
 	const keyValue *const restrict keyValues, const size_t numParticles,
 	const camera *const restrict cam, const float dt
@@ -75,17 +58,17 @@ void particleRendererBeamBatch(
 
 	// A beam renderer needs at least two particles to draw.
 	if(numParticles >= 2){
-		const particleRendererBeam partRenderer =
+		const particleRendererBeam beamRenderer =
 			*((const particleRendererBeam *const)renderer);
 		// This is how much we should increment our
 		// spline parameter t for each subdivision.
-		const float subdivInc = 1.f/((float)(partRenderer.subdivisions + 1);
+		const float subdivInc = 1.f/((float)(beamRenderer.subdivisions + 1);
 		// Correct the tile width to account for subdivisions.
 		// If the tile width is set to zero, we should make
 		// the texture span the entire polyboard once.
-		const float tileWidthInc = (partRenderer.tileWidth == 0.f) ?
+		const float tileWidthInc = (beamRenderer.tileWidth == 0.f) ?
 			subdivInc/((float)(numParticles - 1)) :
-			subdivInc*partRenderer.tileWidth;
+			subdivInc*beamRenderer.tileWidth;
 
 		cubicSpline spline;
 		size_t curParticle = 0;
@@ -117,7 +100,7 @@ void particleRendererBeamBatch(
 			unsigned int curSubdiv = 0;
 			float t = subdivInc;
 			// Subdivide the beam between particles.
-			for(; curSubdiv <= partRenderer.subdivisions; ++curSubdiv){
+			for(; curSubdiv <= beamRenderer.subdivisions; ++curSubdiv){
 				vec3 nextPos;
 
 				// Compute the next interpolated position.
@@ -129,7 +112,7 @@ void particleRendererBeamBatch(
 				polyboardAddVertices(
 					batchedRenderer,
 					&curPos, &prevPos, &nextPos, camPos,
-					partRenderer.halfWidth, tileWidth,
+					beamRenderer.halfWidth, tileWidth,
 					&G, &H
 				);
 				tileWidth += tileWidthInc;
@@ -163,7 +146,7 @@ void particleRendererBeamBatch(
 		polyboardAddVertices(
 			batchedRenderer,
 			&curPos, &prevPos, &curPos, camPos,
-			partRenderer.halfWidth, tileWidth,
+			beamRenderer.halfWidth, tileWidth,
 			&G, &H
 		);
 		// Add them to the batch!
@@ -206,7 +189,7 @@ static void polyboardSetupSpline(
 
 	// Compute the interpolated position of each particle.
 	for(; curKeyValue != lastKeyValue; ++curKeyValue){
-		const particle *const curParticle = curKeyValue->key;
+		const particle *const curParticle = curKeyValue->value;
 		// We only need the position, so there's no
 		// need to interpolate the full transform.
 		vec3Lerp(

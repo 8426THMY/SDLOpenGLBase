@@ -13,21 +13,16 @@
 
 #error "These should still use the batched renderer, but we might need to do some modifications to make it work."
 typedef struct particleRendererPoint {
-	#warning "We should have something here for the size."
-	//
+	#warning "Do we need to revert the point size back to 1 when we're done? If we're using glPointSize we would, but if we use a uniform and set gl_PointSize in the shader, probably not."
+	float size;
 } particleRendererPoint;
 
 
-void particleRendererPointInitBatch(
-	const void *const restrict renderer,
-	spriteRenderer *const restrict batch,
-);
-typedef struct particleManager particleManager;
 size_t particleRendererPointBatchSize(
 	const void *const restrict renderer, const size_t numParticles
 );
 void particleRendererPointBatch(
-	const particleRenderer *const restrict renderer,
+	const void *const restrict renderer,
 	spriteRenderer *const restrict batch,
 	const keyValue *const restrict keyValues, const size_t numParticles,
 	const camera *const restrict cam, const float dt

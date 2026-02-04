@@ -17,7 +17,6 @@ void particleSubsysInstantiate(
 	const particleSystemNodeContainer *const lastChild = &children[numChildren];
 
 	subsys->nodes = NULL;
-	subsys->numNodes = numChildren;
 
 	// Create instances of each of the child nodes.
 	for(; curContainer != lastContainer; ++curContainer){
@@ -34,7 +33,31 @@ void particleSubsysInstantiate(
 	}
 }
 
-// Orphan all of the particle system nodes in the subsystem.
+// Update each child nodes' parent pointers.
+void particleSubsysUpdateParentPointers(particleSubsystem *const restrict subsys){
+	particleSystemNode *curNode;
+	for(; curNode != NULL; curNode = curNode->nextSibling){
+		curChild->parent = &curParticle->subsys;
+	}
+}
+
+// Update the parent state for each node in the subsystem.
+void particleSubsysUpdateParentTransforms(
+	particleSubsystem *const restrict subsys,
+	const transform *const restrict parentState
+){
+
+	particleSystemNode *curNode;
+	for(; curNode != NULL; curNode = curNode->nextSibling){
+		particleSysNodeUpdateParentTransform(curNode, parentState);
+	}
+}
+
+/*
+** Orphan all of the particle system nodes in the subsystem.
+** Any nodes that aren't allowed to survive without their
+** parent will die the next time they're updated.
+*/
 void particleSubsysOrphan(particleSubsystem *const restrict subsys){
 	particleSystemNode *curNode = subsys->nodes;
 	while(curNode != NULL){
@@ -44,7 +67,11 @@ void particleSubsysOrphan(particleSubsystem *const restrict subsys){
 	}
 }
 
-// Remove a node from within the subsystem's list.
+/*
+** Remove a node from within the subsystem's list.
+** This is only used when the node is deleted, so
+** we don't need to set its parent pointer.
+*/
 void particleSubsysRemove(
 	particleSubsystem *const restrict subsys,
 	particleSystemNode *const restrict node

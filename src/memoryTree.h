@@ -80,6 +80,7 @@ typedef struct memoryTree {
 } memoryTree;
 
 
+memTreeNode *memTreeInitRegion(void *const restrict memory, const size_t memorySize);
 void *memTreeInit(memoryTree *const restrict tree, void *const restrict memory, const size_t memorySize);
 
 void *memTreeAlloc(memoryTree *const restrict tree, const size_t blockSize);
@@ -87,8 +88,6 @@ void *memTreeResize(memoryTree *const restrict tree, void *const restrict block,
 void *memTreeRealloc(memoryTree *const restrict tree, void *const restrict block, const size_t blockSize);
 
 void memTreeFree(memoryTree *const restrict tree, void *block);
-
-memTreeNode *memTreeClearRegion(void *const restrict memory, const size_t memorySize);
 void memTreeClear(memoryTree *const restrict tree, void *const restrict memory, const size_t memorySize);
 
 #ifdef MEMORYREGION_EXTEND_ALLOCATORS

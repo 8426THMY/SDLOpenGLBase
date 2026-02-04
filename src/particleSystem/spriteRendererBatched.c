@@ -72,6 +72,14 @@ void spriteRendererBatchedSetup(){
 
 	vertexOffset = 0;
 	indexOffset  = 0;
+
+	// Enable primitive restart. Since we mostly use triangle
+	// strips for our batches, this lets us start drawing a new
+	// sprite without needing a separate draw call.
+	glEnable(GL_PRIMITIVE_RESTART);
+	glPrimitiveRestartIndex(SPRITE_PRIMITIVE_RESTART_INDEX);
+	// Allow the size of points to be changed.
+	glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
 }
 
 

@@ -4,14 +4,18 @@
 
 #include <stddef.h>
 
+#include "colliderAABB.h"
+
 #include "transform.h"
 
+#include "particleSubsystem.h"
 #include "particleEmitter.h"
 #include "particleInitializer.h"
 #include "particleOperator.h"
 #include "particleConstraint.h"
 #include "particleRenderer.h"
 #include "particleManager.h"
+#include "particleSubsystem.h"
 
 #include "sort.h"
 
@@ -100,6 +104,7 @@ typedef struct particleSystemNodeDef {
 	// We can achieve the effect of multiple renderers
 	// by simply making a child subsystem that inherits
 	// the transformation of its parent subsystem.
+	#warning "It's probably fine to support multiple renderers."
 	particleRenderer renderer;
 
 	// How long the system should be alive for.
@@ -108,6 +113,10 @@ typedef struct particleSystemNodeDef {
 	// The maximum number of particles
 	// that can be active at once.
 	size_t maxParticles;
+	// The bounding box for the effect, used for
+	// culling. This should be big enough to enclose
+	// the total area that the effect can take up.
+	colliderAABB aabb;
 	flags16_t flags;
 
 	// Because this node's children are stored sequentially
@@ -138,11 +147,17 @@ typedef struct particleSystemNode {
 
 	// How much longer the system should live for.
 	float lifetime;
+	// This bounding box tightly encloses the effect,
+	// and is used as a narrowphase culling check.
+	#warning "Should we create the AABB when updating the system or when rendering?"
+	#warning "If we do it when rendering, it'll work with interpolation, but we're doing a lot of extra work."
+	#warning "What if we generate an AABB for both updates, then interpolate them?"
+	colliderAABB aabb;
 
 	// Container that this subsystem lives in.
 	particleSystemNodeContainer *container;
-	// Particle that spawned this node.
-	particle *parent;
+	// Subsystems that spawned this node.
+	particleSubsystem *parent;
 	// When the parent dies, we'll need to know where it was
 	// last so that our particles know how to calculate their 
 	// global states. This is a little inefficient, especially
@@ -162,7 +177,7 @@ void particleSysNodeInit(
 
 void particleSysNodeUpdateParentTransform(
 	particleSystemNode *const restrict node,
-	transform *const restrict prevParentState
+	const transform *const restrict parentState
 );
 void particleSysNodeUpdateParticles(particleSystemNode *const restrict node, const float dt);
 void particleSysNodeUpdateEmitters(particleSystemNode *const restrict node, const float dt);

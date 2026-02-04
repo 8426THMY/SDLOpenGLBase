@@ -1,9 +1,6 @@
 #include "debugDraw.h"
 
 
-#define GLEW_STATIC
-#include <GL/glew.h>
-
 #include "shader.h"
 
 #include "skeleton.h"
@@ -49,7 +46,7 @@ static void debugMeshDelete(const debugMesh *const restrict meshData);
 
 
 debugDrawInfo debugDrawInfoInit(
-	const unsigned int drawMode, const unsigned int fillMode,
+	const GLenum drawMode, const GLenum fillMode,
 	const vec3 colour, const float size
 ){
 

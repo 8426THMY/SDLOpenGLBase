@@ -22,7 +22,7 @@
 
 // Forward-declare any helper functions!
 #ifdef C_MOUSEMOVE_FAST
-static void mouseMotionIntToStr(char *str, const int i);
+static void mouseMotionIntToStr(const int i, char *str);
 #endif
 static void mouseMotionAddCommand(
 	commandBuffer *const restrict cmdBuffer,
@@ -265,7 +265,7 @@ void inputMngrDelete(inputManager *const restrict inputMngr){
 ** We choose 60 as any values larger are guaranteed
 ** not to be special command system characters.
 */
-static void mouseMotionIntToStr(char *str, const int i){
+static void mouseMotionIntToStr(const int i, char *str){
 	unsigned int curIndex = 1;
 	char *flagChar = str;
 
@@ -305,10 +305,10 @@ static void mouseMotionAddCommand(
 		char motionCommand[MOTION_CMD_BUFFER_MAX_LENGTH];
 
 		// Construct the command string.
-		memcpy(&motionCommand[0], "mousemove ", 10);
-		mouseMotionIntToStr(&motionCommand[10], *mouseDeltaX);
+		memcpy(&motionCommand[0], "mousemove ", sizeof("mousemove "));
+		mouseMotionIntToStr(*mouseDeltaX, &motionCommand[10]);
 		motionCommand[15] = ' ';
-		mouseMotionIntToStr(&motionCommand[16], *mouseDeltaY);
+		mouseMotionIntToStr(*mouseDeltaY, &motionCommand[16]);
 		motionCommand[21] = '\0';
 		// Add the command to the command buffer.
 		cmdBufferAddCommand(cmdBuffer, motionCommand, MOTION_CMD_BUFFER_MAX_LENGTH, mouseDeltaTime, 0);

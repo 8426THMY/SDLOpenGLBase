@@ -243,19 +243,19 @@ void objectDraw(
 		if(obj->skeleState.skele->numBones > 1){
 			debugDrawSkeleton(&obj->skeleState, debugDrawInfoInit(
 				GL_LINES, GL_LINE, vec3InitSetC(0.f, 1.f, 0.f), 1.f
-			), &cam->viewProjectionMatrix);
+			), &cam->vpMatrix);
 		}
 		if(obj->physBodies != NULL){
 			if(obj->physBodies->colliders->node != NULL){
 				debugDrawColliderAABB(&(obj->physBodies->colliders->node->aabb), debugDrawInfoInit(
 					GL_TRIANGLES, GL_LINE, vec3InitSetC(1.f, 0.4f, 0.f), 1.f
-				), &cam->viewProjectionMatrix);
+				), &cam->vpMatrix);
 			}
 			// We don't update the colliders when they aren't collidable.
 			if(physRigidBodyIsCollidable(obj->physBodies)){
 				debugDrawColliderHull(&(obj->physBodies->colliders->global.data.hull), debugDrawInfoInit(
 					GL_TRIANGLES, GL_LINE, vec3InitSetC(1.f, 0.4f, 0.f), 1.f
-				), &cam->viewProjectionMatrix);
+				), &cam->vpMatrix);
 			}
 		}
 	}

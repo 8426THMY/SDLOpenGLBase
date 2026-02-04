@@ -7,35 +7,18 @@
 #include "particleManager.h"
 
 
-void particleRendererSpriteInitBatch(
-	const void *const restrict renderer,
-	spriteRenderer *const restrict batch,
-){
-
-	// Draw the old batch if it isn't compatible with the new one!
-	#warning "We need to check the textures in use here."
-	#warning "Renderers should probably have a shared component that lets us check compatibility easily."
-	if(batch->type != SPRITE_RENDERER_TYPE_BATCHED){
-		#error "This is all probably incorrect. Same for the other renderers."
-		spriteRendererDraw(batch);
-		spriteRendererInit(batch, SPRITE_RENDERER_TYPE_BATCHED);
-
-		#warning "Bind any textures or uniforms here!"
-	}
-}
-
 /*
 ** Return the number of indices we'll need for the batch,
 ** as we always have at least as many indices as vertices.
 ** We also add one to account for primitive restart.
 */
 size_t particleRendererSpriteBatchSize(
-	const void *const restrict renderer, const size_t numParticles
+	const particleRenderer *const restrict renderer, const size_t numParticles
 ){
 
 	return(
 		numParticles * (
-			((const particleRendererSprite *const)renderer)->spriteData.numIndices + 1
+			renderer->data.sprite.spriteData.numIndices + 1
 		)
 	);
 }
@@ -53,19 +36,19 @@ void particleRendererSpriteBatch(
 
 	// Exit early if the manager has no particles.
 	if(numParticles > 0){
-		const particleRendererSprite partRenderer =
+		const particleRendererSprite spriteRenderer =
 			*((const particleRendererSprite *const)renderer);
-		const spriteVertex *const lastBaseVertex     = &baseVertex[partRenderer.spriteData.numVertices];
-		const spriteVertexIndex *const lastBaseIndex = &baseIndex[partRenderer.spriteData.numIndices];
+		const spriteVertex *const lastBaseVertex     = &baseVertex[spriteRenderer.spriteData.numVertices];
+		const spriteVertexIndex *const lastBaseIndex = &baseIndex[spriteRenderer.spriteData.numIndices];
 
 		const keyValue *curKeyValue = keyValues;
 		const keyValue *const lastKeyValue = &keyValues[numParticles];
 		spriteRendererBatched *const batchedRenderer = &batch->data.batchedRenderer;
 
 		for(; curKeyValue != lastKeyValue; ++curKeyValue){
-			const particle *const curParticle = (particle *)curKeyValue->key;
-			const spriteVertex *baseVertex     = partRenderer.spriteData.vertices;
-			const spriteVertexIndex *baseIndex = partRenderer.spriteData.indices;
+			const particle *const curParticle = (particle *)curKeyValue->value;
+			const spriteVertex *baseVertex     = spriteRenderer.spriteData.vertices;
+			const spriteVertexIndex *baseIndex = spriteRenderer.spriteData.indices;
 			transform curTransform;
 			mat3x4 curState;
 			size_t startIndex;
@@ -74,8 +57,8 @@ void particleRendererSpriteBatch(
 			// We add an extra index to account for primitive restart.
 			if(spriteRendererBatchedHasRoom(
 				batchedRenderer
-				partRenderer.spriteData.numVertices,
-				partRenderer.spriteData.numIndices + 1
+				spriteRenderer.spriteData.numVertices,
+				spriteRenderer.spriteData.numIndices + 1
 			)){
 
 				spriteRendererBatchedDraw(batchedRenderer);

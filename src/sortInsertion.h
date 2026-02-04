@@ -13,7 +13,7 @@ void insertionSort(
 	void *const restrict temp, compareFunc compare
 );
 
-insertionSortFlexibleDeclare(KeyValues, keyValue)
+insertionSortDeclare(KeyValues, keyValue)
 
 
 #endif

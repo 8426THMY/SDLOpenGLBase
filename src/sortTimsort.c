@@ -117,7 +117,7 @@ void timsort(
 ** Timsort arrays of key-values using the macros defined
 ** in "sortInsertionTemplate.h" and "sortTimsortTemplate.h".
 */
-timsortFlexibleDefine(KeyValues, keyValue)
+timsortDefine(KeyValues, keyValue, compareKeyValue)
 
 
 /*

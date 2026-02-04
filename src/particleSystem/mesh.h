@@ -5,6 +5,9 @@
 #define GLEW_STATIC
 #include <GL/glew.h>
 
+#include "mat3x4.h"
+#include "rectangle.h"
+
 #include "utilTypes.h"
 
 

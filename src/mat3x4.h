@@ -150,8 +150,18 @@ float mat3x4FrobeniusNormSquaredC(const mat3x4 m);
 float mat3x4Trace(const mat3x4 *const restrict m);
 float mat3x4TraceC(const mat3x4 m);
 
-void mat3x4View(mat3x4 *const restrict m, const vec3 *const restrict pos, const mat3 *const restrict rot);
+void mat3x4View(
+	mat3x4 *const restrict m,
+	const vec3 *const restrict pos,
+	const mat3 *const restrict rot
+);
+void mat3x4ViewQuat(
+	mat3x4 *const restrict m,
+	const vec3 *const restrict pos,
+	const quat *const restrict q
+);
 mat3x4 mat3x4ViewC(const vec3 pos, const mat3 rot);
+mat3x4 mat3x4ViewQuatC(const vec3 pos, const quat q);
 void mat3x4ViewLookAt(
 	mat3x4 *const restrict m,
 	const vec3 *const restrict eye, const vec3 *const restrict target,

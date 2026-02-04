@@ -84,6 +84,12 @@ mat4 mat4MultiplyMat3C(const mat4 m1, const mat3 m2);
 void mat3MultiplyMat4(const mat3 m1, mat4 *const restrict m2);
 void mat3MultiplyMat4Out(const mat3 m1, const mat4 m2, mat4 *const restrict out);
 mat4 mat3MultiplyMat4C(const mat3 m1, const mat4 m2);
+void mat4MultiplyMat3x4(mat4 *const restrict m1, const mat3x4 m2);
+void mat4MultiplyMat3x4Out(const mat4 m1, const mat3x4 m2, mat4 *const restrict out);
+mat4 mat4MultiplyMat3x4C(const mat4 m1, const mat3x4 m2);
+void mat3x4MultiplyMat4(mat3x4 *const restrict m1, const mat4 m2);
+void mat3x4MultiplyMat4Out(const mat3x4 m1, const mat4 m2, mat3x4 *const restrict out);
+mat3x4 mat3x4MultiplyMat4C(const mat3x4 m1, const mat4 m2);
 void mat4MultiplyMat4P1(mat4 *const restrict m1, const mat4 m2);
 void mat4MultiplyMat4P2(const mat4 m1, mat4 *const restrict m2);
 void mat4MultiplyMat4Out(const mat4 m1, const mat4 m2, mat4 *const restrict out);
@@ -175,8 +181,18 @@ mat4 mat4InvertC(const mat4 m);
 return_t mat4CanInvert(mat4 *const restrict m);
 return_t mat4CanInvertOut(const mat4 m, mat4 *const restrict out);
 
-void mat4View(mat4 *const restrict m, const vec3 *const restrict pos, const mat3 *const restrict rot);
+void mat4View(
+	mat4 *const restrict m,
+	const vec3 *const restrict pos,
+	const mat3 *const restrict rot
+);
+void mat4ViewQuat(
+	mat4 *const restrict m,
+	const vec3 *const restrict pos,
+	const quat *const restrict q
+);
 mat4 mat4ViewC(const vec3 pos, const mat3 rot);
+mat4 mat4ViewQuatC(const vec3 pos, const quat q);
 void mat4ViewLookAt(
 	mat4 *const restrict m,
 	const vec3 *const restrict eye, const vec3 *const restrict target,

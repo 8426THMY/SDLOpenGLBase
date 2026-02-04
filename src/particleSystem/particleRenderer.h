@@ -6,6 +6,7 @@
 #include <stdint.h>
 
 #include "spriteRenderer.h"
+#include "spriteRendererCommon.h"
 
 #include "particleManager.h"
 #include "particleRendererPoint.h"
@@ -37,6 +38,7 @@ typedef struct particleRenderer {
 		particleRendererBeam;
 		particleRendererMesh;
 	} data;
+	spriteRendererCommon common;
 	// Stores which type of
 	// renderer this object is.
 	particleRendererType type;
@@ -58,13 +60,10 @@ void particleRendererBatch(
 );
 
 
-extern void (*const particleRendererInitBatchTable[PARTICLE_RENDERER_NUM_TYPES])(
-	const void *const restrict renderer,
-	spriteRenderer *const restrict batch
-);
+extern spriteRendererType particleRendererTypeTable[PARTICLE_RENDERER_NUM_TYPES];
 
 extern size_t (*const particleRendererBatchSizeTable[PARTICLE_RENDERER_NUM_TYPES])(
-	const void *const restrict renderer, const size_t numParticles
+	const particleRenderer *const restrict renderer, const size_t numParticles
 );
 
 extern void (*const particleRendererBatchTable[PARTICLE_RENDERER_NUM_TYPES])(

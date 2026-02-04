@@ -91,14 +91,12 @@ typedef struct memoryFreeList {
 } memoryFreeList;
 
 
+void memFreeListInitRegion(memoryFreeList *const restrict freeList, memoryRegion *const restrict region);
 void *memFreeListInit(memoryFreeList *const restrict freeList, void *const restrict memory, const size_t memorySize, const size_t blockSize);
 
 void *memFreeListAlloc(memoryFreeList *const restrict freeList);
 
 void memFreeListFree(memoryFreeList *const restrict freeList, void *const restrict data);
-
-void memFreeListClearRegion(memoryFreeList *const restrict freeList, memoryRegion *const restrict region, void *const restrict next);
-void memFreeListClearLastRegion(memoryFreeList *const restrict freeList, memoryRegion *const restrict region);
 void memFreeListClear(memoryFreeList *const restrict freeList);
 
 #ifdef MEMORYREGION_EXTEND_ALLOCATORS

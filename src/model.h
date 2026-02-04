@@ -17,6 +17,7 @@ typedef struct modelDef {
 
 	// Models use an individual mesh
 	// for each separate texture group.
+	#warning "It would be better to store everything in a single mesh, then store where the indices start and end for each submesh."
 	mesh *meshes;
 	// This is an array of texture group pointers, one per mesh.
 	// The texture groups are stored in their respective allocator.

@@ -196,6 +196,7 @@ typedef struct memoryDoubleList {
 } memoryDoubleList;
 
 
+void memDoubleListInitRegion(memoryDoubleList *const restrict doubleList, memoryRegion *const restrict region);
 void *memDoubleListInit(
 	memoryDoubleList *const restrict doubleList,
 	void *const memory, const size_t memorySize, const size_t blockSize
@@ -218,12 +219,6 @@ void memDoubleListFree(
 	void **const restrict start, void *const restrict data
 );
 void memDoubleListFreeArray(memoryDoubleList *const restrict doubleList, void *const restrict start);
-
-void memDoubleListClearRegion(
-	memoryDoubleList *const restrict doubleList,
-	memoryRegion *const restrict region, const byte_t flag, void *const next
-);
-void memDoubleListClearLastRegion(memoryDoubleList *const restrict doubleList, memoryRegion *const restrict region);
 void memDoubleListClear(memoryDoubleList *const restrict doubleList);
 
 #ifdef MEMORYREGION_EXTEND_ALLOCATORS

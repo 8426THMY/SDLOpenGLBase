@@ -7,7 +7,7 @@
 #include "transform.h"
 #include "camera.h"
 
-#include "particle.h"
+#include "particleSubsystem.h"
 
 
 /**
@@ -155,10 +155,6 @@
 ** get the next global transformation from the previous one if we know the
 ** the previous and current global transformations of the parent. Hence,
 ** particles must store both their previous and current transformations.
-**
-** In order to facilitate sorting, particles also store pointers to the
-** particles that come before and after them. These pointers are always
-** handled by the particle manager.
 */
 
 
@@ -193,20 +189,16 @@ typedef struct particleSystem {
 	particleSystemNodeContainer *lastContainer;
 	// Contains a list of root-level nodes. These are only
 	// spawned when the particle system is first initialized.
-	// This also contains a whole slew of extra data that the
-	// owner can use to modify the system.
-	#warning "This is quite wasteful, we should consider using a reduced structure..."
-	particle root;
+	particleSubsystem subsys;
 } particleSystem;
 
 
 #warning "It would be good to have a way of orphaning particle systems."
-
-#warning "It would also be interesting to store containers in the particleSystemDef."
-#warning "That way all instances of a particle system can use the same containers."
-#warning "This would hopefully make rendering lots of instances more efficient!"
-#warning "The only downside is that we can't easily choose which instances to render..."
-#warning "There's probably a better way of doing things."
+#warning "The best way to do this would be to have particleSystemDefs store containers"
+#warning "We can then merge particleSystems and particleSubsystems."
+#warning "Owners should only be responsible for updating the parent states."
+#warning "To update the rest of our systems, we should just loop through all containers."
+#warning "This loop is also a good time to move around them in any visCullers."
 
 
 void particleSysDefInit(particleSystemDef *const restrict partSysDef);

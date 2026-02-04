@@ -50,15 +50,15 @@ void guiElementDraw(
 	const spriteShader *const restrict shader
 ){
 
-	mat4 viewProjectionMatrix;
+	mat4 vpMatrix;
 
 	// We use a scale matrix as the view-projection matrix
 	// so our interface's size can be specified in pixels.
 	//
 	// We treat the top-left corner of the screen as the origin, with the
 	// x-axis increasing to the right and the y-axis increasing upwards.
-	mat4Orthographic(&viewProjectionMatrix, (float)windowWidth, 0.f, 0.f, -(float)windowHeight, 0.f, 1.f);
-	glUniformMatrix4fv(shader->vpMatrixID, 1, GL_FALSE, (GLfloat *)&viewProjectionMatrix);
+	mat4Orthographic(&vpMatrix, (float)windowWidth, 0.f, 0.f, -(float)windowHeight, 0.f, 1.f);
+	glUniformMatrix4fv(shader->vpMatrixID, 1, GL_FALSE, (GLfloat *)&vpMatrix);
 
 	guiElementDrawTable[gui->type](gui, shader);
 }

@@ -1,19 +1,15 @@
 #include "particleRenderer.h"
 
 
-void (*const particleRendererInitBatchTable[PARTICLE_RENDERER_NUM_TYPES])(
-	const void *const restrict renderer,
-	spriteRenderer *const restrict batch,
-) = {
-
-	particleRendererPointInitBatch,
-	particleRendererSpriteInitBatch,
-	particleRendererBeamInitBatch,
-	particleRendererMeshInitBatch
+spriteRendererType particleRendererTypeTable[PARTICLE_RENDERER_NUM_TYPES] = {
+	SPRITE_RENDERER_TYPE_BATCHED,
+	SPRITE_RENDERER_TYPE_BATCHED,
+	SPRITE_RENDERER_TYPE_BATCHED,
+	SPRITE_RENDERER_TYPE_INSTANCED
 };
 
 size_t (*const particleRendererBatchSizeTable[PARTICLE_RENDERER_NUM_TYPES])(
-	const void *const restrict renderer, const size_t numParticles
+	const particleRenderer *const restrict renderer, const size_t numParticles
 ) = {
 
 	particleRendererPointBatchSize,
@@ -42,9 +38,14 @@ void particleRendererInitBatch(
 	spriteRenderer *const restrict batch
 ){
 
-	particleRendererInitBatchTable[renderer->type](
-		(const void *const)&renderer->data, batch
-	);
+	const spriteRendererType type = particleRendererTypeTable[renderer->type];
+	// Draw the old batch if it isn't compatible with the new one!
+	if(!spriteRendererCompatible(batch, &renderer->common, type)){
+		spriteRendererDraw(batch);
+		spriteRendererInit(batch, &renderer->common, type);
+
+		#warning "Bind any textures or uniforms here!"
+	}
 }
 
 // Return the size of the batch for this renderer and manager pair.
@@ -53,7 +54,7 @@ size_t particleRendererBatchSize(
 ){
 
 	particleRendererBatchSizeTable[renderer->type](
-		(const void *const)&renderer->data, numParticles
+		&renderer->data, numParticles
 	);
 }
 
@@ -70,7 +71,7 @@ void particleRendererBatch(
 ){
 
 	particleRendererBatchTable[renderer->type](
-		(const void *const)&renderer->data,
+		&renderer->data,
 		batch,
 		keyValues, numParticles,
 		cam, dt

@@ -45,7 +45,7 @@
 	extern memoryDoubleList manager;
 #define moduleDeclareDoubleListFree(name, type)                                         \
 	void module##name##Free(type **const restrict start, type *const restrict element); \
-	void module##name##Array(type **const restrict start);                              \
+	void module##name##FreeArray(type **const restrict start);                          \
 	void module##name##Clear();                                                         \
 	void module##name##Delete();
 
@@ -106,16 +106,10 @@
 	}                                                      \
                                                            \
 	void module##name##Clear(){                            \
-		MEMPOOL_LOOP_BEGIN(manager, i, type)               \
-			module##name##Free(i);                         \
-		MEMPOOL_LOOP_END(manager, i)                       \
 		memPoolClear(&manager);                            \
 	}                                                      \
                                                            \
 	void module##name##Delete(){                           \
-		MEMPOOL_LOOP_BEGIN(manager, i, type)               \
-			module##name##Free(i);                         \
-		MEMPOOL_LOOP_END(manager, i)                       \
 		memoryManagerGlobalDeleteRegions(manager.region);  \
 	}
 #define moduleDefinePoolFreeFlexible(name, type, manager, func) \
@@ -260,16 +254,10 @@
 	}                                                                                                              \
                                                                                                                    \
 	void module##name##Clear(){                                                                                    \
-		MEMSINGLELIST_LOOP_BEGIN(manager, i, type)                                                                 \
-			module##name##Free(NULL, i, NULL);                                                                     \
-		MEMSINGLELIST_LOOP_END(manager, i)                                                                         \
 		memSingleListClear(&manager);                                                                              \
 	}                                                                                                              \
                                                                                                                    \
 	void module##name##Delete(){                                                                                   \
-		MEMSINGLELIST_LOOP_BEGIN(manager, i, type)                                                                 \
-			module##name##Free(NULL, i, NULL);                                                                     \
-		MEMSINGLELIST_LOOP_END(manager, i)                                                                         \
 		memoryManagerGlobalDeleteRegions(manager.region);                                                          \
 	}
 #define moduleDefineSingleListFreeFlexible(name, type, manager, func)                                              \
@@ -448,16 +436,10 @@
 	}                                                                                   \
                                                                                         \
 	void module##name##Clear(){                                                         \
-		MEMDOUBLELIST_LOOP_BEGIN(manager, i, type)                                      \
-			module##name##Free(NULL, i);                                                \
-		MEMDOUBLELIST_LOOP_END(manager, i)                                              \
 		memDoubleListClear(&manager);                                                   \
 	}                                                                                   \
                                                                                         \
 	void module##name##Delete(){                                                        \
-		MEMDOUBLELIST_LOOP_BEGIN(manager, i, type)                                      \
-			module##name##Free(NULL, i);                                                \
-		MEMDOUBLELIST_LOOP_END(manager, i)                                              \
 		memoryManagerGlobalDeleteRegions(manager.region);                               \
 	}
 #define moduleDefineDoubleListFreeFlexible(name, type, manager, func)                   \

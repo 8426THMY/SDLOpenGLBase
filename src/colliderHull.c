@@ -671,8 +671,8 @@ return_t colliderHullSeparated(
 ** Return whether or not two hulls are colliding using
 ** the Separating Axis Theorem. Special thanks to Dirk
 ** Gregorius for his GDC 2013 presentation "The Separating
-** Axis Test between Convex Polyhedra", which utilizes
-** Gauss maps and Minkowski space to optimise this!
+** Axis Test between Convex Polyhedra", the results of
+** which we use to optimize this!
 */
 return_t colliderHullCollidingSAT(
 	const void *const restrict hullA, const void *const restrict hullB,
@@ -689,7 +689,9 @@ return_t colliderHullCollidingSAT(
 			if(noSeparatingEdge((colliderHull *)hullA, (colliderHull *)hullB, &cd.edgeData, separation)){
 				// If there are no separating axes, the hulls are colliding and
 				// we can clip the colliding area to create a contact manifold.
-				clipManifoldSHC((colliderHull *)hullA, (colliderHull *)hullB, &cd, cm);
+				if(cm != NULL){
+					clipManifoldSHC((colliderHull *)hullA, (colliderHull *)hullB, &cd, cm);
+				}
 
 				return(1);
 			}

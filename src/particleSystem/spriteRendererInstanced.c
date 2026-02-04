@@ -9,13 +9,9 @@
 #include "settingsSprites.h"
 
 
-#warning "It might be a good idea to double check that we're using buffer orphaning correctly."
-/// https://community.khronos.org/t/vbos-strangely-slow/60109/33
-/// https://community.khronos.org/t/buffer-orphaning-question-streaming-vbos/61550
-#warning "Our current method should be fine, but we can do better by handling synchronization ourselves."
-#warning "It's a bit more annoying with uniform buffer objects, since we need to think about alignment."
-
-#error "We should move the instance buffer stuff to our mesh file."
+#warning "It's probably possible to do this using vertex attributes."
+#warning "That is, we create a new array buffer for the instance data and enable the attributes for them."
+#warning "Our instance data uses a lot of vertex attributes, though..."
 
 
 // The shader used for instanced rendering has a uniform
@@ -34,7 +30,7 @@ size_t instanceOffset;
 
 // Initialize the global instance buffer.
 void spriteRendererInstancedSetup(){
-	glGenBuffers(1, &instanceBufferID);	
+	glGenBuffers(1, &instanceBufferID);
 	instanceOffset = 0;
 }
 
@@ -84,6 +80,9 @@ void spriteRendererInstancedDraw(const spriteRendererInstanced *const restrict i
 		// The buffer should be bound before unmapping,
 		// so we might as well bind the array object first.
 		glBindVertexArray(meshData->vertexArrayID);
+		#warning "This should be done when binding the shader."
+		//instanceBlockID = glGetUniformBlockIndex(objectProgramID, "instanceBlock");
+		//glBindBufferBase(GL_UNIFORM_BUFFER, instanceBlockID, instanceBufferID);
 		glUnmapBuffer(GL_UNIFORM_BUFFER);
 		glDrawElementsInstanced(GL_TRIANGLES, instancedRenderer->base->numIndices, GL_UNSIGNED_INT, NULL, instancedRenderer->numInstances);
 
@@ -100,10 +99,15 @@ void spriteRendererInstancedOrphan(spriteRendererInstanced *const restrict insta
 	instanceOffset = 0;
 	
 	glBindBuffer(GL_UNIFORM_BUFFER, instanceBufferID);
-	// Orphan the old instance buffer and allocate a new one.
-	glBufferData(GL_UNIFORM_BUFFER, SPRITE_RENDERER_INSTANCED_BUFFER_SIZE, NULL, GL_STREAM_DRAW);
-	// Obtain a mapping to the new storage!
-	instancedRenderer->curInstance = glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
+	// Retrieve pointers to the vertex buffer storage. The flag
+	// GL_MAP_INVALIDATE_BUFFER_BIT indicates that the original
+	// buffer should be orphaned, and a new one allocated.
+	instancedRenderer->curInstance = glMapBufferRange(
+		GL_UNIFORM_BUFFER,
+		0,
+		SPRITE_RENDERER_INSTANCED_BUFFER_SIZE,
+		GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT
+	);
 }
 
 

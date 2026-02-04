@@ -44,4 +44,4 @@ void insertionSort(
 
 
 // Timsort arrays of key-values using the macro defined in "sortInsertionTemplate.h".
-insertionSortFlexibleDefine(KeyValues, keyValue)
+insertionSortDefine(KeyValues, keyValue, compareKeyValue)

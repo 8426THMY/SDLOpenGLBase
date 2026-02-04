@@ -86,13 +86,15 @@ void programLoop(program *const restrict prg){
 
 		// Note: This loop freezes the game if our input and update
 		//       functions take longer than "prg->step.updateTime".
-		if(curTime >= nextUpdate){
+		while(curTime >= nextUpdate){
 			input(prg);
 			update(prg);
 			nextUpdate += prg->step.updateTimeScaled;
+			curTime = timerGetTimeFloat();
+		}
 
 		// Make sure we don't exceed our framerate cap!
-		}else if(curTime >= nextRender){
+		if(curTime >= nextRender){
 			prg->step.renderDelta = floatClamp(
 				1.f - (nextUpdate - curTime) * prg->step.updateTickrateScaled,
 				0.f, 1.f
@@ -104,7 +106,7 @@ void programLoop(program *const restrict prg){
 				// the last frame we missed. This will make us render again as soon as
 				// possible, but only while we're consistently missing our deadlines.
 				if(curTime - nextRender >= prg->step.renderTime){
-					nextRender = curTime - fmod(curTime - nextRender, prg->step.renderTime);
+					nextRender += floorf((curTime - nextRender)/prg->step.renderTime)*prg->step.renderTime;
 
 				// Otherwise, pace the frames as usual.
 				}else{
@@ -188,6 +190,7 @@ static void input(program *const restrict prg){
 
 
 	// Handle user inputs and any other SDL2 events.
+	#warning "Currently, the buffer only has room for 128 commands. If it overflows, we just crash!"
 	inputMngrTakeInput(&prg->inputMngr, &prg->cmdBuffer);
 	SDL_SetRelativeMouseMode(SDL_TRUE);
 }
@@ -456,7 +459,7 @@ static void render(program *const restrict prg){
 
 	glUseProgram(prg->objectShader.programID);
 	// Send the new model view projection matrix to the shader!
-	glUniformMatrix4fv(prg->objectShader.vpMatrixID, 1, GL_FALSE, (GLfloat *)&prg->cam.viewProjectionMatrix);
+	glUniformMatrix4fv(prg->objectShader.vpMatrixID, 1, GL_FALSE, (GLfloat *)&prg->cam.vpMatrix);
 	// Render each object.
 	MEMSINGLELIST_LOOP_BEGIN(g_objectManager, curObj, object)
 		#warning "We'll need the camera in this function for billboards. Just pass it instead of the matrix."

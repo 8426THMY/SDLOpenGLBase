@@ -5,7 +5,6 @@
 
 #warning "Should we use our 'R' math functions? It would also be a good idea to stop passing so many things by pointer."
 #warning "We can't be naive about it though, in some situations (such as adding one vector to another) it's better to use the pointer functions rather than doing an extra copy."
-#warning "Maybe consider adding 3x4 matrices too, as most of our uses for 4x4 matrices don't even need the last row."
 
 #warning "Should resource arrays be sorted? Then we could use a binary search to find particular items by name."
 #warning "What if we just load everything in alphabetical order? Is that possible?"
@@ -44,9 +43,19 @@
 #warning "Another idea is to use the method presented in 'Order your graphics draw calls around!'"
 /* https://realtimecollisiondetection.net/blog/?p=86 */
 /* https://computergraphics.stackexchange.com/questions/37/what-is-the-cost-of-changing-state */
+/* https://gamedev.net/tutorials/programming/graphics/opengl-api-overhead-r4614/ */
 
 #warning "Maybe limit the scope of global variables that don't need to be seen from the outside?"
 #warning "Our for loops should probably be using '!=' rather than '<' when iterating over pointers."
+
+#warning "The free functions for most of the memory allocators kind of suck."
+#warning "We should probably have some way of coalescing consecutive free blocks."
+#warning "This would help improve coherence when allocating new arrays of elements."
+#warning "It might be good to delete the unused 'FreeArray' functions, too."
+
+#warning "We should eventually update the naming conventions for our math functions."
+#warning "I sort of like what Dan does. Instead of using the 'Out' suffix, just use 'P'!"
+#warning "Might as well clean up some of the useless 'SubtractFrom' functions, too."
 
 
 /**
@@ -74,6 +83,8 @@
 *** 	for lots of light sources. It might be good to do a depth prepass,
 *** 	but this sounds slow, especially if we have skeletal meshes.
 *** 	https://www.aortiz.me/2018/12/21/CG.html
+*** 	Here's another implementation that skips the depth prepass:
+*** 	https://flexw.github.io/posts/rendering-thousands-of-point-lights-efficiently/
 ***
 ***	2.	For static lighting, we can use shadow maps and shadow volumes for
 *** 	direct lighting and light probe volumes for indirect lighting.

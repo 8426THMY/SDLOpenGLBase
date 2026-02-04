@@ -4,6 +4,8 @@
 
 #include <stddef.h>
 
+#include "transform.h"
+
 
 // Used to manage a doubly-linked list of particle system
 // nodes that share the same owner and live on the same level
@@ -13,7 +15,6 @@ typedef struct particleSystemNode particleSystemNode;
 typedef struct particleSubsystem {
 	// Linked list of nodes.
 	particleSystemNode *nodes;
-	size_t numNodes;
 } particleSubsystem;
 
 
@@ -22,6 +23,11 @@ void particleSubsysInstantiate(
 	particleSubsystem *const restrict subsys,
 	const particleSystemNodeContainer *const restrict container,
 	particle *const restrict parent
+);
+void particleSubsysUpdateParentPointers(particleSubsystem *const restrict subsys);
+void particleSubsysUpdateParentTransforms(
+	particleSubsystem *const restrict subsys,
+	const transform *const restrict parentState
 );
 void particleSubsysOrphan(particleSubsystem *const restrict subsys);
 void particleSubsysRemove(

@@ -874,7 +874,7 @@ void mat3x4MultiplyMat3(mat3x4 *const restrict m1, const mat3 m2){
 }
 
 /*
-** Right-multiply the 4x4 matrix "m1" by the 3x3 transformation matrix "m2" (m1*m2) and store the result in "out"!
+** Right-multiply the 3x4 matrix "m1" by the 3x3 transformation matrix "m2" (m1*m2) and store the result in "out"!
 ** We pad "m2" out to a 4x4 matrix using zeroes on the off-diagonals and one on the diagonal.
 */
 void mat3x4MultiplyMat3Out(const mat3x4 m1, const mat3 m2, mat3x4 *const restrict out){
@@ -896,7 +896,7 @@ void mat3x4MultiplyMat3Out(const mat3x4 m1, const mat3 m2, mat3x4 *const restric
 }
 
 /*
-** Right-multiply the 4x4 matrix "m1" by the 3x3 transformation matrix "m2" (m1*m2) and return the result!
+** Right-multiply the 3x4 matrix "m1" by the 3x3 transformation matrix "m2" (m1*m2) and return the result!
 ** We pad "m2" out to a 4x4 matrix using zeroes on the off-diagonals and one on the diagonal.
 */
 mat3x4 mat3x4MultiplyMat3C(const mat3x4 m1, const mat3 m2){
@@ -973,7 +973,7 @@ void mat3MultiplyMat3x4Out(const mat3 m1, const mat3x4 m2, mat3x4 *const restric
 	out->m[3][2] = m1.m[0][2] * m2.m[3][0] + m1.m[1][2] * m2.m[3][1] + m1.m[2][2] * m2.m[3][2];
 }
 
-// Left-multiply the 4x4 matrix "m2" by the 3x3 transformation matrix "m1" (m1*m2) and return the result!
+// Left-multiply the 3x4 matrix "m2" by the 3x3 transformation matrix "m1" (m1*m2) and return the result!
 mat3x4 mat3MultiplyMat3x4C(const mat3 m1, const mat3x4 m2){
 	const mat3x4 out = {
 		.m[0][0] = m1.m[0][0] * m2.m[0][0] + m1.m[1][0] * m2.m[0][1] + m1.m[2][0] * m2.m[0][2],
@@ -1933,7 +1933,12 @@ float mat3x4TraceC(const mat3x4 m){
 ** where R is a rotation to whatever we want to look at and
 ** T is a translation to the camera's position.
 */
-void mat3x4View(mat3x4 *const restrict m, const vec3 *const restrict pos, const mat3 *const restrict rot){
+void mat3x4View(
+	mat3x4 *const restrict m,
+	const vec3 *const restrict pos,
+	const mat3 *const restrict rot
+){
+
 	// We take the transpose of the rotation to invert it.
 	m->m[0][0] = rot->m[0][0];
 	m->m[0][1] = rot->m[1][0];
@@ -1963,6 +1968,55 @@ void mat3x4View(mat3x4 *const restrict m, const vec3 *const restrict pos, const 
 ** where R is a rotation to whatever we want to look at and
 ** T is a translation to the camera's position.
 */
+void mat3x4ViewQuat(
+	mat3x4 *const restrict m,
+	const vec3 *const restrict pos,
+	const quat *const restrict q
+){
+
+	const float xx = q->x*q->x;
+	const float yy = q->y*q->y;
+	const float zz = q->z*q->z;
+	float temp1;
+	float temp2;
+
+	m->m[0][0] = 1.f - 2.f*(yy + zz);
+	m->m[1][1] = 1.f - 2.f*(xx + zz);
+	m->m[2][2] = 1.f - 2.f*(xx + yy);
+
+	// We want the conjugate quaternion,
+	// hence the negative signs here.
+	temp1 =  q->x*q->y;
+	temp2 = -q->z*q->w;
+	m->m[0][1] = 2.f*(temp1 + temp2);
+	m->m[1][0] = 2.f*(temp1 - temp2);
+
+	temp1 =  q->x*q->z;
+	temp2 = -q->y*q->w;
+	m->m[0][2] = 2.f*(temp1 - temp2);
+	m->m[2][0] = 2.f*(temp1 + temp2);
+
+	temp1 =  q->y*q->z;
+	temp2 = -q->x*q->w;
+	m->m[1][2] = 2.f*(temp1 + temp2);
+	m->m[2][1] = 2.f*(temp1 - temp2);
+
+	// Our matrices are column-major, so the rows are the basis vectors.
+	// We negate the dot products to effectively invert the translation.
+	m->m[3][0] = -vec3DotVec3((vec3 *)&m->m[0], pos);
+	m->m[3][1] = -vec3DotVec3((vec3 *)&m->m[1], pos);
+	m->m[3][2] = -vec3DotVec3((vec3 *)&m->m[2], pos);
+}
+
+/*
+** Initialize a view matrix from a position and a rotation!
+** Recall that a view matrix can be generally written as
+**
+** V = (TR)^{-1},
+**
+** where R is a rotation to whatever we want to look at and
+** T is a translation to the camera's position.
+*/
 mat3x4 mat3x4ViewC(const vec3 pos, const mat3 rot){
 	const mat3x4 m = {
 		// We take the transpose of the rotation to invert it.
@@ -1976,6 +2030,51 @@ mat3x4 mat3x4ViewC(const vec3 pos, const mat3 rot){
 		.m[3][2] = -vec3DotVec3C(*((vec3 *)&rot.m[2]), pos),
 	};
 	return(m);
+}
+
+/*
+** Initialize a view matrix from a position and a rotation!
+** Recall that a view matrix can be generally written as
+**
+** V = (TR)^{-1},
+**
+** where R is a rotation to whatever we want to look at and
+** T is a translation to the camera's position.
+*/
+mat3x4 mat3x4ViewQuatC(const vec3 pos, const quat q){
+	const float xx = q.x*q.x;
+	const float yy = q.y*q.y;
+	const float zz = q.z*q.z;
+	float temp1;
+	float temp2;
+	mat3x4 out;
+
+	out.m[0][0] = 1.f - 2.f*(yy + zz);
+	out.m[1][1] = 1.f - 2.f*(xx + zz);
+	out.m[2][2] = 1.f - 2.f*(xx + yy);
+
+	// We want the conjugate quaternion,
+	// hence the negative signs here.
+	temp1 =  q.x*q.y;
+	temp2 = -q.z*q.w;
+	out.m[0][1] = 2.f*(temp1 + temp2);
+	out.m[1][0] = 2.f*(temp1 - temp2);
+
+	temp1 =  q.x*q.z;
+	temp2 = -q.y*q.w;
+	out.m[0][2] = 2.f*(temp1 - temp2);
+	out.m[2][0] = 2.f*(temp1 + temp2);
+
+	temp1 =  q.y*q.z;
+	temp2 = -q.x*q.w;
+	out.m[1][2] = 2.f*(temp1 + temp2);
+	out.m[2][1] = 2.f*(temp1 - temp2);
+
+	out.m[3][0] = -vec3DotVec3C(*((vec3 *)&out.m[0]), pos);
+	out.m[3][1] = -vec3DotVec3C(*((vec3 *)&out.m[1]), pos);
+	out.m[3][2] = -vec3DotVec3C(*((vec3 *)&out.m[2]), pos);
+
+	return(out);
 }
 
 // Generate a look-at matrix!
@@ -2118,27 +2217,27 @@ void quatToMat3x4(const quat *const restrict q, mat3x4 *const restrict out){
 	float temp1;
 	float temp2;
 
-	out->m[0][0] = 1 - 2*(yy + zz);
-	out->m[1][1] = 1 - 2*(xx + zz);
-	out->m[2][2] = 1 - 2*(xx + yy);
+	out->m[0][0] = 1.f - 2.f*(yy + zz);
+	out->m[1][1] = 1.f - 2.f*(xx + zz);
+	out->m[2][2] = 1.f - 2.f*(xx + yy);
 
 	temp1 = q->x*q->y;
 	temp2 = q->z*q->w;
-	out->m[0][1] = 2*(temp1 + temp2);
-	out->m[1][0] = 2*(temp1 - temp2);
+	out->m[0][1] = 2.f*(temp1 + temp2);
+	out->m[1][0] = 2.f*(temp1 - temp2);
 
 	temp1 = q->x*q->z;
 	temp2 = q->y*q->w;
-	out->m[0][2] = 2*(temp1 - temp2);
-	out->m[2][0] = 2*(temp1 + temp2);
+	out->m[0][2] = 2.f*(temp1 - temp2);
+	out->m[2][0] = 2.f*(temp1 + temp2);
 
 	temp1 = q->y*q->z;
 	temp2 = q->x*q->w;
-	out->m[1][2] = 2*(temp1 + temp2);
-	out->m[2][1] = 2*(temp1 - temp2);
+	out->m[1][2] = 2.f*(temp1 + temp2);
+	out->m[2][1] = 2.f*(temp1 - temp2);
 
-	out->m[3][0] =
-	out->m[3][1] =
+	out->m[3][0] = 0.f;
+	out->m[3][1] = 0.f;
 	out->m[3][2] = 0.f;
 }
 
@@ -2154,27 +2253,27 @@ mat3x4 quatToMat3x4C(const quat q){
 	float temp2;
 	mat3x4 out;
 
-	out.m[0][0] = 1 - 2*(yy + zz);
-	out.m[1][1] = 1 - 2*(xx + zz);
-	out.m[2][2] = 1 - 2*(xx + yy);
+	out.m[0][0] = 1.f - 2.f*(yy + zz);
+	out.m[1][1] = 1.f - 2.f*(xx + zz);
+	out.m[2][2] = 1.f - 2.f*(xx + yy);
 
 	temp1 = q.x*q.y;
 	temp2 = q.z*q.w;
-	out.m[0][1] = 2*(temp1 + temp2);
-	out.m[1][0] = 2*(temp1 - temp2);
+	out.m[0][1] = 2.f*(temp1 + temp2);
+	out.m[1][0] = 2.f*(temp1 - temp2);
 
 	temp1 = q.x*q.z;
 	temp2 = q.y*q.w;
-	out.m[0][2] = 2*(temp1 - temp2);
-	out.m[2][0] = 2*(temp1 + temp2);
+	out.m[0][2] = 2.f*(temp1 - temp2);
+	out.m[2][0] = 2.f*(temp1 + temp2);
 
 	temp1 = q.y*q.z;
 	temp2 = q.x*q.w;
-	out.m[1][2] = 2*(temp1 + temp2);
-	out.m[2][1] = 2*(temp1 - temp2);
+	out.m[1][2] = 2.f*(temp1 + temp2);
+	out.m[2][1] = 2.f*(temp1 - temp2);
 
-	out.m[3][0] =
-	out.m[3][1] =
+	out.m[3][0] = 0.f;
+	out.m[3][1] = 0.f;
 	out.m[3][2] = 0.f;
 
 	return(out);

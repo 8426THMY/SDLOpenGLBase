@@ -19,6 +19,37 @@
 #define memSingleListBlockMakeInvalid(next) memSingleListBlockSetFlag(next, MEMSINGLELIST_FLAG_INVALID)
 
 
+/*
+** Initialise every block in a region, setting the flag
+** to invalid and the last block's next pointer to NULL.
+*/
+void memSingleListInitRegion(
+	memorySingleList *const restrict singleList,
+	memoryRegion *const restrict region
+){
+
+	const size_t blockSize = singleList->blockSize;
+	void *currentBlock = region->start;
+	void *nextBlock = memSingleListBlockGetNextBlock(currentBlock, blockSize);
+
+	// Set the flag and next pointer for each block!
+	while(nextBlock < (void *)region){
+		//*memSingleListBlockFreeNextGetFlag(currentBlock) = MEMSINGLELIST_FLAG_INVALID;
+		//memSingleListBlockFreeGetNext(currentBlock) = nextBlock;
+		memSingleListBlockFreeGetFlag(currentBlock) = MEMSINGLELIST_FLAG_INVALID;
+		*memSingleListBlockFreeFlagGetNext(currentBlock) = (void *)memSingleListBlockFreeFlagGetNext(nextBlock);
+
+		currentBlock = nextBlock;
+		nextBlock = memSingleListBlockGetNextBlock(currentBlock, blockSize);
+	}
+
+	// Set the flag and next pointer for the last block!
+	//*memSingleListBlockFreeNextGetFlag(currentBlock) = MEMSINGLELIST_FLAG_INVALID;
+	//memSingleListBlockFreeGetNext(currentBlock) = NULL;
+	memSingleListBlockFreeGetFlag(currentBlock) = MEMSINGLELIST_FLAG_INVALID;
+	*memSingleListBlockFreeFlagGetNext(currentBlock) = NULL;
+}
+
 void *memSingleListInit(
 	memorySingleList *const restrict singleList,
 	void *const restrict memory, const size_t memorySize, const size_t blockSize
@@ -34,7 +65,7 @@ void *memSingleListInit(
 		//region->start = (void *)memSingleListBlockFreeFlagGetNext(memory);
 		region->start = memory;
 		region->next = NULL;
-		memSingleListClearLastRegion(singleList, region);
+		memSingleListInitRegion(singleList, region);
 
 		singleList->nextFreeBlock = (void *)memSingleListBlockFreeFlagGetNext(memory);
 		#ifdef MEMSINGLELIST_COUNT_USED_BLOCKS
@@ -189,7 +220,11 @@ void memSingleListFree(
 	#endif
 }
 
-// Free every block in a single array.
+/*
+** Free every block in a single array. This is currently unusued, since
+** we usually want to call a function when freeing blocks. It's certainly
+** not correct either, as blocks aren't added to the free list.
+*/
 void memSingleListFreeArray(memorySingleList *const restrict singleList, void *const restrict start){
 	if(start != NULL){
 		void *block = start;
@@ -208,70 +243,12 @@ void memSingleListFreeArray(memorySingleList *const restrict singleList, void *c
 	}
 }
 
-
-/*
-** Initialise every block in a region, setting the flag
-** to "flag" and the last block's next pointer to "next".
-*/
-void memSingleListClearRegion(
-	memorySingleList *const restrict singleList,
-	memoryRegion *const restrict region, const byte_t flag, void *const restrict next
-){
-
-	const size_t blockSize = singleList->blockSize;
-	void *currentBlock = region->start;
-	void *nextBlock = memSingleListBlockGetNextBlock(currentBlock, blockSize);
-
-	// Set the flag and next pointer for each block!
-	while(nextBlock < (void *)region){
-		//*memSingleListBlockFreeNextGetFlag(currentBlock) = flag;
-		//memSingleListBlockFreeGetNext(currentBlock) = nextBlock;
-		memSingleListBlockFreeGetFlag(currentBlock) = flag;
-		*memSingleListBlockFreeFlagGetNext(currentBlock) = (void *)memSingleListBlockFreeFlagGetNext(nextBlock);
-
-		currentBlock = nextBlock;
-		nextBlock = memSingleListBlockGetNextBlock(currentBlock, blockSize);
-	}
-
-	// Set the flag and next pointer for the last block!
-	//*memSingleListBlockFreeNextGetFlag(currentBlock) = flag;
-	//memSingleListBlockFreeGetNext(currentBlock) = next;
-	memSingleListBlockFreeGetFlag(currentBlock) = flag;
-	*memSingleListBlockFreeFlagGetNext(currentBlock) = next;
-}
-
-/*
-** Initialise every block in a region, setting the flag
-** to invalid and the last block's next pointer to NULL.
-*/
-void memSingleListClearLastRegion(memorySingleList *const restrict singleList, memoryRegion *const restrict region){
-	const size_t blockSize = singleList->blockSize;
-	void *currentBlock = region->start;
-	void *nextBlock = memSingleListBlockGetNextBlock(currentBlock, blockSize);
-
-	// Set the flag and next pointer for each block!
-	while(nextBlock < (void *)region){
-		//*memSingleListBlockFreeNextGetFlag(currentBlock) = MEMSINGLELIST_FLAG_INVALID;
-		//memSingleListBlockFreeGetNext(currentBlock) = nextBlock;
-		memSingleListBlockFreeGetFlag(currentBlock) = MEMSINGLELIST_FLAG_INVALID;
-		*memSingleListBlockFreeFlagGetNext(currentBlock) = (void *)memSingleListBlockFreeFlagGetNext(nextBlock);
-
-		currentBlock = nextBlock;
-		nextBlock = memSingleListBlockGetNextBlock(currentBlock, blockSize);
-	}
-
-	// Set the flag and next pointer for the last block!
-	//*memSingleListBlockFreeNextGetFlag(currentBlock) = MEMSINGLELIST_FLAG_INVALID;
-	//memSingleListBlockFreeGetNext(currentBlock) = NULL;
-	memSingleListBlockFreeGetFlag(currentBlock) = MEMSINGLELIST_FLAG_INVALID;
-	*memSingleListBlockFreeFlagGetNext(currentBlock) = NULL;
-}
-
 /*
 ** Clear every memory region in the allocator.
 ** This assumes that there is at least one region.
 */
 void memSingleListClear(memorySingleList *const restrict singleList){
+	const size_t blockSize = singleList->blockSize;
 	memoryRegion *region = singleList->region;
 	//singleList->nextFreeBlock = region->start;
 	singleList->nextFreeBlock = (void *)memSingleListBlockFreeFlagGetNext(region->start);
@@ -282,19 +259,36 @@ void memSingleListClear(memorySingleList *const restrict singleList){
 	// Loop through every region in the allocator.
 	for(;;){
 		memoryRegion *const nextRegion = region->next;
+		void *currentBlock = region->start;
+		void *nextBlock = memSingleListBlockGetNextBlock(currentBlock, blockSize);
 
-		// If this is not the last region, make this region's
-		// last block point to the first in the next region.
-		if(nextRegion != NULL){
-			//memSingleListClearRegion(singleList, region, MEMSINGLELIST_FLAG_INVALID, nextRegion->start);
-			memSingleListClearRegion(singleList, region, MEMSINGLELIST_FLAG_INVALID, (void *)memSingleListBlockFreeFlagGetNext(nextRegion->start));
+		// Set the flag and next pointer for each block!
+		do {
+			// If we've found an invalid block,
+			// we've finished clearing everything.
+			if(memSingleListBlockFreeGetFlag(currentBlock) == MEMSINGLELIST_FLAG_INVALID){
+				return;
+			}
+			//*memSingleListBlockFreeNextGetFlag(currentBlock) = MEMSINGLELIST_FLAG_INVALID;
+			//memSingleListBlockFreeGetNext(currentBlock) = nextBlock;
+			memSingleListBlockFreeGetFlag(currentBlock) = MEMSINGLELIST_FLAG_INVALID;
+			*memSingleListBlockFreeFlagGetNext(currentBlock) = (void *)memSingleListBlockFreeFlagGetNext(nextBlock);
 
-		// Otherwise, make it point to NULL and break the loop.
-		}else{
-			memSingleListClearLastRegion(singleList, region);
+			currentBlock = nextBlock;
+			nextBlock = memSingleListBlockGetNextBlock(currentBlock, blockSize);
+		} while(nextBlock < (void *)region);
+
+		// Set the flag and next pointer for the last block!
+		//*memSingleListBlockFreeNextGetFlag(currentBlock) = MEMSINGLELIST_FLAG_INVALID;
+		memSingleListBlockFreeGetFlag(currentBlock) = MEMSINGLELIST_FLAG_INVALID;
+		if(nextRegion == NULL){
+			//memSingleListBlockFreeGetNext(currentBlock) = NULL;
+			*memSingleListBlockFreeFlagGetNext(currentBlock) = NULL;
 			break;
+		}else{
+			//memSingleListBlockFreeGetNext(currentBlock) = nextRegion->start;
+			*memSingleListBlockFreeFlagGetNext(currentBlock) = memSingleListBlockFreeFlagGetNext(nextRegion->start);
 		}
-
 		region = nextRegion;
 	}
 }
@@ -309,7 +303,7 @@ void *memSingleListExtend(memorySingleList *const restrict singleList, void *con
 		memoryRegionAppend(&singleList->region, newRegion, memory);
 		//newRegion->start = (void *)memSingleListBlockFreeFlagGetNext(memory);
 		// Set up its memory!
-		memSingleListClearLastRegion(singleList, newRegion);
+		memSingleListInitRegion(singleList, newRegion);
 
 		singleList->nextFreeBlock = (void *)memSingleListBlockFreeFlagGetNext(memory);
 	}

@@ -17,7 +17,7 @@ void timsort(
 	const size_t elementSize, compareFunc compare
 );
 
-timsortFlexibleDeclare(KeyValues, keyValue)
+timsortDeclare(KeyValues, keyValue)
 
 
 #endif

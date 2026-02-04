@@ -7,23 +7,6 @@
 #include "particleManager.h"
 
 
-void particleRendererMeshInitBatch(
-	const void *const restrict renderer,
-	spriteRenderer *const restrict batch,
-){
-
-	// Draw the old batch if it isn't compatible with the new one!
-	#warning "We need to check the textures in use here."
-	#warning "Renderers should probably have a shared component that lets us check compatibility easily."
-	if(batch->type != SPRITE_RENDERER_TYPE_INSTANCED){
-		#error "This is all probably incorrect. Same for the other renderers."
-		spriteRendererDraw(batch);
-		spriteRendererInit(batch, SPRITE_RENDERER_TYPE_INSTANCED);
-
-		#warning "Bind any textures or uniforms here!"
-	}
-}
-
 // The batch size is just the number of instances.
 size_t particleRendererMeshBatchSize(
 	const void *const restrict renderer, const size_t numParticles
@@ -37,7 +20,7 @@ size_t particleRendererMeshBatchSize(
 ** each particle system node in the array specified.
 */
 void particleRendererMeshBatch(
-	const particleRenderer *const restrict renderer,
+	const void *const restrict renderer,
 	spriteRenderer *const restrict batch,
 	const keyValue *const restrict keyValues, const size_t numParticles,
 	const camera *const restrict cam, const float dt
@@ -45,15 +28,12 @@ void particleRendererMeshBatch(
 
 	// Exit early if the manager has no particles.
 	if(numParticles > 0){
-		const particleRendererMesh partRenderer =
-			*((const particleRendererMesh *const)renderer);
-
 		const keyValue *curKeyValue = keyValues;
 		const keyValue *const lastKeyValue = &keyValues[numParticles];
 		spriteRendererInstanced *const instancedRenderer = &batch->data.instancedRenderer;
 
 		for(; curKeyValue != lastKeyValue; ++curKeyValue){
-			const particle *const curParticle = curKeyValue->key;
+			const particle *const curParticle = curKeyValue->value;
 			transform curTransform;
 			spriteInstancedData curInstance;
 

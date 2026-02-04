@@ -598,7 +598,7 @@ transform transformInvertC(const transform trans){
 
 	// Q' = RQS^{-1}Q^T R^T
 	out.scale = mat3MultiplyMat3TransC(
-		mat3MultiplyMat3C(QSQTInverse, R),
+		mat3MultiplyMat3C(R, QSQTInverse),
 		R
 	);
 	#else

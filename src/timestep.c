@@ -40,12 +40,7 @@ void timestepInit(
 ** and will not affect the logic performed during each update.
 */
 void timestepSetTimeSpeed(timestep *const restrict step, const float timeSpeed){
-	// If "timeSpeed" is the percentage of ordinary speed, we can think
-	// of "timeScale" as how much to stretch out time. A value greater
-	// than '1' will stretch updates further apart, whereas a value
-	// between '0' and '1' will pull them closer together.
-	const float timeScale = 1.f / timeSpeed;
 	step->timeSpeed = timeSpeed;
-	step->updateTickrateScaled = timeScale * step->updateTickrate;
-	step->updateTimeScaled     = timeScale * step->updateTime;
+	step->updateTickrateScaled = step->updateTickrate * timeSpeed;
+	step->updateTimeScaled     = step->updateTime     / timeSpeed;
 }

@@ -55,7 +55,10 @@ typedef struct particle {
 	vec3 netTorque;
 
 	#warning "Depending on the renderer, we might want to store colours instead of texture data."
+	#warning "Alternatively, we can have both, and use the alpha channel for the colour."
+	#warning "Note that we're kind of duplicating a textureGroupState here. Should we have a type for this?"
 	#if 0
+	size_t currentAnim;
 	// Animation progress.
 	textureGroupAnim animData;
 	#endif
@@ -81,8 +84,7 @@ void particlePreUpdate(particle *const restrict part, const float dt);
 void particlePostUpdate(particle *const restrict part, const float dt);
 void particleUpdateGlobalTransform(
 	particle *const restrict part,
-	const transform *const restrict curParentState,
-	const transform *const restrict prevParentState
+	const transform *const restrict parentState
 );
 return_t particleDead(const particle *const restrict part);
 

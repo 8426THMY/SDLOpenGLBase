@@ -303,6 +303,7 @@ void physManifoldPersist(
 		physicsContactPoint *pmSwap = pm->contacts;
 		do {
 			// We've found a matching key pair, so the point is persistent!
+			// This works since our contact keys have no padding.
 			if(memcmp(&pmSwap->key, &cmContact->key, sizeof(pmSwap->key)) == 0){
 				// We want contacts in the old physics manifold to be moved
 				// to their new positions in the current manifold. This will

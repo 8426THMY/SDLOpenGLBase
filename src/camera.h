@@ -9,8 +9,12 @@
 #include "utilTypes.h"
 
 
-#ifndef CAMERA_Z_THRESHOLD
-	#define CAMERA_Z_THRESHOLD 1000.f
+#ifndef CAMERA_FAR
+	#define CAMERA_FAR 1000.f
+#endif
+
+#ifndef CAMERA_NEAR
+	#define CAMERA_NEAR 0.1f
 #endif
 
 
@@ -38,8 +42,8 @@ typedef struct camera {
 	mat4 viewMatrix;
 	// The projection matrix is generally updated right before
 	// the view projection matrix, and is handled by the camera.
-	mat4 projectionMatrix;
-	mat4 viewProjectionMatrix;
+	mat4 projMatrix;
+	mat4 vpMatrix;
 
 	flags8_t flags;
 } camera;
@@ -47,12 +51,12 @@ typedef struct camera {
 
 void cameraInit(
 	camera *const restrict cam, const flags8_t flags,
-	const float windowWidth, const float windowHeight
+	const float width, const float height
 );
 
 void cameraUpdateProjectionMatrix(
 	camera *const restrict cam,
-	const float windowWidth, const float windowHeight
+	const float width, const float height
 );
 void cameraUpdateViewProjectionMatrix(camera *const restrict cam);
 
