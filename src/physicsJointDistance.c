@@ -96,11 +96,15 @@
 // Forward-declare any helper functions!
 static void updateConstraintData(
 	physicsJointDistance *const restrict joint,
-	const physicsRigidBody *const restrict bodyA, const physicsRigidBody *const restrict bodyB
+	const physicsRigidBody *const restrict bodyA,
+	const physicsRigidBody *const restrict bodyB
 );
 static float calculateEffectiveMass(
-	const vec3 *const restrict rA, const vec3 *const restrict rB, const vec3 *const restrict rAB,
-	const physicsRigidBody *const restrict bodyA, const physicsRigidBody *const restrict bodyB
+	const vec3 *const restrict rA,
+	const vec3 *const restrict rB,
+	const vec3 *const restrict rAB,
+	const physicsRigidBody *const restrict bodyA,
+	const physicsRigidBody *const restrict bodyB
 );
 static void calculateBias(physicsJointDistance *const restrict joint, const float dt);
 
@@ -134,7 +138,12 @@ void physJointDistanceInit(
 ** Joints are always active so we always warm start.
 */
 #ifdef PHYSJOINTDISTANCE_WARM_START
-void physJointDistanceWarmStart(const physicsJointDistance *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB){
+void physJointDistanceWarmStart(
+	const physicsJointDistance *const restrict joint,
+	physicsRigidBody *const restrict bodyA,
+	physicsRigidBody *const restrict bodyB
+){
+
 	vec3 impulse;
 	vec3MultiplySOut(&joint->rAB, joint->impulse, &impulse);
 
@@ -150,20 +159,22 @@ void physJointDistanceWarmStart(const physicsJointDistance *const restrict joint
 ** the bodies that it is affecting.
 */
 void physJointDistancePresolve(
-	void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB, const float dt
+	physicsJointDistance *const restrict joint,
+	physicsRigidBody *const restrict bodyA,
+	physicsRigidBody *const restrict bodyB, const float dt
 ){
 
-	updateConstraintData((physicsJointDistance *)joint, bodyA, bodyB);
+	updateConstraintData(joint, bodyA, bodyB);
 	// We don't invert the effective mass just yet, as we need it for the bias.
-	((physicsJointDistance *)joint)->invEffectiveMass = calculateEffectiveMass(
-		&((physicsJointDistance *)joint)->rA, &((physicsJointDistance *)joint)->rB,
-		&((physicsJointDistance *)joint)->rAB, bodyA, bodyB
+	joint->invEffectiveMass = calculateEffectiveMass(
+		&joint->rA, &joint->rB,
+		&joint->rAB, bodyA, bodyB
 	);
 	calculateBias((physicsJointDistance *)joint, dt);
 	// Now we can invert it.
-	((physicsJointDistance *)joint)->invEffectiveMass = 1.f/((physicsJointDistance *)joint)->invEffectiveMass;
+	joint->invEffectiveMass = 1.f/joint->invEffectiveMass;
 	#ifdef PHYSJOINTDISTANCE_WARM_START
-	physJointDistanceWarmStart((physicsJointDistance *)joint, bodyA, bodyB);
+	physJointDistanceWarmStart(joint, bodyA, bodyB);
 	#endif
 }
 
@@ -173,7 +184,9 @@ void physJointDistancePresolve(
 ** This may be called multiple times with sequential impulse.
 */
 void physJointDistanceSolveVelocity(
-	void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB
+	physicsJointDistance *const restrict joint,
+	physicsRigidBody *const restrict bodyA,
+	physicsRigidBody *const restrict bodyB
 ){
 
 	float lambda;
@@ -186,10 +199,10 @@ void physJointDistanceSolveVelocity(
 	// v_relative = vB_anchor - vA_anchor
 
 	// Calculate the total velocity of the anchor point on body A.
-	vec3CrossVec3Out(&bodyA->angularVelocity, &((physicsJointDistance *)joint)->rA, &impulse);
+	vec3CrossVec3Out(&bodyA->angularVelocity, &joint->rA, &impulse);
 	vec3AddVec3(&impulse, &bodyA->linearVelocity);
 	// Calculate the total velocity of the anchor point on body B.
-	vec3CrossVec3Out(&bodyB->angularVelocity, &((physicsJointDistance *)joint)->rB, &relativeVelocity);
+	vec3CrossVec3Out(&bodyB->angularVelocity, &joint->rB, &relativeVelocity);
 	vec3AddVec3(&relativeVelocity, &bodyB->linearVelocity);
 	// Calculate the relative velocity between the two points.
 	vec3SubtractVec3P1(&relativeVelocity, &impulse);
@@ -197,14 +210,14 @@ void physJointDistanceSolveVelocity(
 
 	// lambda = -(JV + b)/(JM^{-1}J^T)
 	//        = -((v_relative . d) + b)/K
-	lambda = -(vec3DotVec3(&relativeVelocity, &((physicsJointDistance *)joint)->rAB) + ((physicsJointDistance *)joint)->bias +
-	         ((physicsJointDistance *)joint)->gamma * ((physicsJointDistance *)joint)->impulse) * ((physicsJointDistance *)joint)->invEffectiveMass;
-	((physicsJointDistance *)joint)->impulse += lambda;
-	vec3MultiplySOut(&((physicsJointDistance *)joint)->rAB, lambda, &impulse);
+	lambda = -(vec3DotVec3(&relativeVelocity, &joint->rAB) + joint->bias +
+	         joint->gamma * joint->impulse) * joint->invEffectiveMass;
+	joint->impulse += lambda;
+	vec3MultiplySOut(&joint->rAB, lambda, &impulse);
 
 	// Apply the correctional impulse.
-	physRigidBodyApplyImpulseInverse(bodyA, &((physicsJointDistance *)joint)->rA, &impulse);
-	physRigidBodyApplyImpulse(bodyB, &((physicsJointDistance *)joint)->rB, &impulse);
+	physRigidBodyApplyImpulseInverse(bodyA, &joint->rA, &impulse);
+	physRigidBodyApplyImpulse(bodyB, &joint->rB, &impulse);
 }
 
 /*
@@ -214,21 +227,23 @@ void physJointDistanceSolveVelocity(
 ** the amount of error we'll know when to stop.
 */
 return_t physJointDistanceSolvePosition(
-	const void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB
+	const physicsJointDistance *const restrict joint,
+	physicsRigidBody *const restrict bodyA,
+	physicsRigidBody *const restrict bodyB
 ){
 
 	#ifdef PHYSJOINTDISTANCE_STABILISER_GAUSS_SEIDEL
 	// If we're not using soft constraints, we can perform positional correction.
-	if(((physicsJointDistance *)joint)->stiffness <= 0.f){
+	if(joint->stiffness <= 0.f){
 		vec3 rA;
 		vec3 rB;
 		vec3 rAB;
 
 		// Transform the anchor points using the bodies' new scales and rotations.
 		// We subtract the local centroid positions to get them relative to the centroids.
-		vec3SubtractVec3Out(&((physicsJointDistance *)joint)->anchorA, &bodyA->base->centroid, &rA);
+		vec3SubtractVec3Out(&joint->anchorA, &bodyA->base->centroid, &rA);
 		transformDirection(&bodyA->state, &rA);
-		vec3SubtractVec3Out(&((physicsJointDistance *)joint)->anchorB, &bodyB->base->centroid, &rB);
+		vec3SubtractVec3Out(&joint->anchorB, &bodyB->base->centroid, &rB);
 		transformDirection(&bodyB->state, &rB);
 
 		// Find the relative position of the two bodies.
@@ -240,7 +255,7 @@ return_t physJointDistanceSolvePosition(
 
 		{
 			const float distance = vec3MagnitudeVec3(&rAB);
-			const float error = distance - ((physicsJointDistance *)joint)->distance;
+			const float error = distance - joint->distance;
 			if(distance > PHYSJOINT_LINEAR_SLOP){
 				// Clamp the constraint value.
 				const float constraint = error;/*floatClamp(
@@ -274,7 +289,8 @@ return_t physJointDistanceSolvePosition(
 */
 static void updateConstraintData(
 	physicsJointDistance *const restrict joint,
-	const physicsRigidBody *const restrict bodyA, const physicsRigidBody *const restrict bodyB
+	const physicsRigidBody *const restrict bodyA,
+	const physicsRigidBody *const restrict bodyB
 ){
 
 	float distance;
@@ -314,8 +330,11 @@ static void updateConstraintData(
 ** per update. Note that we take its inverse elsewhere.
 */
 static float calculateEffectiveMass(
-	const vec3 *const restrict rA, const vec3 *const restrict rB, const vec3 *const restrict rAB,
-	const physicsRigidBody *const restrict bodyA, const physicsRigidBody *const restrict bodyB
+	const vec3 *const restrict rA,
+	const vec3 *const restrict rB,
+	const vec3 *const restrict rAB,
+	const physicsRigidBody *const restrict bodyA,
+	const physicsRigidBody *const restrict bodyB
 ){
 
 	vec3 rAd;

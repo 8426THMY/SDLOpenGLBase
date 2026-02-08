@@ -30,12 +30,12 @@ mat4 mat4InitTranslateVec3C(const vec3 v);
 void mat4InitTranslateVec4(mat4 *const restrict m, const vec4 *const restrict v);
 mat4 mat4InitTranslateVec4C(const vec4 v);
 void mat4InitEulerXYZ(mat4 *const restrict m, const float x, const float y, const float z);
-void mat4InitEulerZXY(mat4 *const restrict m, const float x, const float y, const float z);
 mat4 mat4InitEulerXYZC(const float x, const float y, const float z);
+void mat4InitEulerZXY(mat4 *const restrict m, const float x, const float y, const float z);
 mat4 mat4InitEulerZXYC(const float x, const float y, const float z);
 void mat4InitEulerVec3XYZ(mat4 *const restrict m, const vec3 *const restrict v);
-void mat4InitEulerVec3ZXY(mat4 *const restrict m, const vec3 *const restrict v);
 mat4 mat4InitEulerVec3XYZC(const vec3 v);
+void mat4InitEulerVec3ZXY(mat4 *const restrict m, const vec3 *const restrict v);
 mat4 mat4InitEulerVec3ZXYC(const vec3 v);
 void mat4InitAxisAngle(mat4 *const restrict m, const vec4 *const restrict v);
 mat4 mat4InitAxisAngleC(const vec4 v);
@@ -123,12 +123,12 @@ void mat4TranslateTransformPreVec3(mat4 *const restrict m, const vec3 *const res
 mat4 mat4TranslateTransformPreVec3C(const mat4 m, const vec3 v);
 
 void mat4RotateByEulerXYZ(mat4 *const restrict m, const float x, const float y, const float z);
-void mat4RotateByEulerZXY(mat4 *const restrict m, const float x, const float y, const float z);
 mat4 mat4RotateByEulerXYZC(const mat4 m, const float x, const float y, const float z);
+void mat4RotateByEulerZXY(mat4 *const restrict m, const float x, const float y, const float z);
 mat4 mat4RotateByEulerZXYC(const mat4 m, const float x, const float y, const float z);
 void mat4RotateByVec3EulerXYZ(mat4 *const restrict m, const vec3 *const restrict v);
-void mat4RotateByVec3EulerZXY(mat4 *const restrict m, const vec3 *const restrict v);
 mat4 mat4RotateByVec3EulerXYZC(const mat4 m, const vec3 v);
+void mat4RotateByVec3EulerZXY(mat4 *const restrict m, const vec3 *const restrict v);
 mat4 mat4RotateByVec3EulerZXYC(const mat4 m, const vec3 v);
 void mat4RotateByAxisAngle(mat4 *const restrict m, const vec4 *const restrict v);
 mat4 mat4RotateByAxisAngleC(const mat4 m, const vec4 v);
@@ -188,12 +188,12 @@ void mat4View(
 	const vec3 *const restrict pos,
 	const mat3 *const restrict rot
 );
+mat4 mat4ViewC(const vec3 pos, const mat3 rot);
 void mat4ViewQuat(
 	mat4 *const restrict m,
 	const vec3 *const restrict pos,
 	const quat *const restrict q
 );
-mat4 mat4ViewC(const vec3 pos, const mat3 rot);
 mat4 mat4ViewQuatC(const vec3 pos, const quat q);
 void mat4ViewLookAt(
 	mat4 *const restrict m,
@@ -201,20 +201,13 @@ void mat4ViewLookAt(
 	const vec3 *const restrict worldUp
 );
 mat4 mat4ViewLookAtC(const vec3 eye, const vec3 target, const vec3 worldUp);
-void mat3x4Reflect(mat3x4 *const restrict m, const vec4 *const restrict plane);
-void mat3x4ReflectOut(
-	const mat3x4 *const restrict m,
-	const vec4 *const restrict plane,
-	mat3x4 *const restrict out
-);
-mat3x4 mat3x4ReflectC(const mat3x4 m, const vec4 plane);
-void mat4Reflect(mat4 *const restrict m, const vec4 *const restrict plane);
-void mat4ReflectOut(
+void mat4ViewReflect(mat4 *const restrict m, const vec4 *const restrict plane);
+void mat4ViewReflectOut(
 	const mat4 *const restrict m,
 	const vec4 *const restrict plane,
 	mat4 *const restrict out
 );
-mat4 mat4ReflectC(mat4 m, const vec4 plane);
+mat4 mat4ViewReflectC(const mat4 m, const vec4 plane);
 
 void mat4Orthographic(
 	mat4 *const restrict m,

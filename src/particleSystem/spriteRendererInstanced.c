@@ -23,14 +23,14 @@
 
 // We use a single state buffer plus
 // orphaning for all instanced rendering.
-GLuint instanceBufferID;
+GLuint instanceDataBufferID;
 // Offset into the instance buffer.
 size_t instanceOffset;
 
 
 // Initialize the global instance buffer.
 void spriteRendererInstancedSetup(){
-	glGenBuffers(1, &instanceBufferID);
+	glGenBuffers(1, &instanceDataBufferID);
 	instanceOffset = 0;
 }
 
@@ -45,7 +45,7 @@ void spriteRendererInstancedSetup(){
 void spriteRendererInstancedInit(spriteRendererInstanced *const restrict instancedRenderer){
 	const size_t instanceOffsetBytes = instanceOffset * sizeof(*instancedRenderer->curInstance);
 
-	glBindBuffer(GL_UNIFORM_BUFFER, instanceBufferID);
+	glBindBuffer(GL_UNIFORM_BUFFER, instanceDataBufferID);
 	// Retrieve pointers to the instance buffer storage. The flag
 	// GL_MAP_INVALIDATE_RANGE_BIT is a promise that the range we're
 	// requesting is not in use by any draw call, so there's no need
@@ -80,9 +80,9 @@ void spriteRendererInstancedDraw(const spriteRendererInstanced *const restrict i
 		// The buffer should be bound before unmapping,
 		// so we might as well bind the array object first.
 		glBindVertexArray(meshData->vertexArrayID);
-		#warning "This should be done when binding the shader."
-		//instanceBlockID = glGetUniformBlockIndex(objectProgramID, "instanceBlock");
-		//glBindBufferBase(GL_UNIFORM_BUFFER, instanceBlockID, instanceBufferID);
+		#warning "This should be done when creating the shader."
+		//instanceDataID = glGetUniformBlockIndex(objectProgramID, "instanceData");
+		//glBindBufferBase(GL_UNIFORM_BUFFER, instanceDataID, instanceDataBufferID);
 		glUnmapBuffer(GL_UNIFORM_BUFFER);
 		glDrawElementsInstanced(GL_TRIANGLES, instancedRenderer->base->numIndices, GL_UNSIGNED_INT, NULL, instancedRenderer->numInstances);
 
@@ -98,7 +98,7 @@ void spriteRendererInstancedOrphan(spriteRendererInstanced *const restrict insta
 	// Reset the instance offset.
 	instanceOffset = 0;
 	
-	glBindBuffer(GL_UNIFORM_BUFFER, instanceBufferID);
+	glBindBuffer(GL_UNIFORM_BUFFER, instanceDataBufferID);
 	// Retrieve pointers to the vertex buffer storage. The flag
 	// GL_MAP_INVALIDATE_BUFFER_BIT indicates that the original
 	// buffer should be orphaned, and a new one allocated.
@@ -127,5 +127,5 @@ void spriteRendererInstancedAddInstance(
 
 
 void spriteRendererInstancedCleanup(){
-	glDeleteBuffers(1, &instanceBufferID);
+	glDeleteBuffers(1, &instanceDataBufferID);
 }

@@ -4,40 +4,28 @@
 #include "renderView.h"
 
 
-void (*const visCullerPopulateRenderViewTable[VISCULLER_NUM_TYPES])(
-	void *const restrict vc,
-	renderView *const restrict view,
-	const unsigned int viewID,
-	const unsigned int frameID,
-	const float dt
-) = {
-
-	visCullerPortalPopulateRenderView
-};
-
-
-void (*const visCullerDeleteTable[VISCULLER_NUM_TYPES])(
-	void *const restrict vc
-) = {
-
-	visCullerPortalDelete
-};
-
-
 void visCullerPopulateRenderView(
-	visCuller *const restrict vc,
+	const visCuller *const restrict vc,
 	renderView *const restrict view,
 	const unsigned int viewID,
 	const unsigned int frameID,
 	const float dt
 ){
 
-	visCullerPopulateRenderViewTable[vc->type](
-		(void *)(&vc->data), view, viewID, frameID, dt
-	);
+	switch(vc->type){
+		case VISCULLER_TYPE_PORTAL:
+			visCullerPortalPopulateRenderView(
+				&vc->data.portal, view, viewID, frameID, dt
+			);
+		break;
+	}
 }
 
 
 void visCullerDelete(visCuller *const restrict vc){
-	visCullerDeleteTable[vc->type]((void *)(&vc->data));
+	switch(vc->type){
+		case VISCULLER_TYPE_PORTAL:
+			visCullerPortalDelete(&vc->data.portal);
+		break;
+	}
 }

@@ -4,8 +4,10 @@
 
 #include <stdint.h>
 
-#include "renderFrustum.h"
+#include "framebuffer.h"
 #include "light.h"
+
+#include "renderFrustum.h"
 #include "renderQueue.h"
 
 
@@ -50,7 +52,7 @@ typedef camera camera;
 void renderViewInit(
 	renderView *const restrict view,
 	const camera *const restrict cam, const float dt,
-	const renderViewport *const restrict viewport
+	const framebufferViewport *const restrict viewport
 );
 
 void renderViewPreDraw(renderView *const restrict view);

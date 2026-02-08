@@ -50,7 +50,7 @@
 ** Finally, adding a potential bias term, we have
 **
 ** b = b_separation + b_restitution
-**   = B/dt * C(x) + e * C'(x),
+**   = B/dt * C(x)  + e * C'(x),
 **
 ** C' : JV + b >= 0,
 **

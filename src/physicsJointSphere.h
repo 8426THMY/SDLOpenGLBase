@@ -170,17 +170,25 @@ void physJointSphereInit(
 #ifdef PHYSJOINTSPHERE_WARM_START
 void physJointSphereWarmStart(
 	const physicsJointSphere *const restrict joint,
-	physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB
+	physicsRigidBody *const restrict bodyA,
+	physicsRigidBody *const restrict bodyB
 );
 #endif
 void physJointSpherePresolve(
-	void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB, const float dt
+	physicsJointSphere *const restrict joint,
+	physicsRigidBody *const restrict bodyA,
+	physicsRigidBody *const restrict bodyB,
+	const float dt
 );
 void physJointSphereSolveVelocity(
-	void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB
+	physicsJointSphere *const restrict joint,
+	physicsRigidBody *const restrict bodyA,
+	physicsRigidBody *const restrict bodyB
 );
 return_t physJointSphereSolvePosition(
-	const void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB
+	const physicsJointSphere *const restrict joint,
+	physicsRigidBody *const restrict bodyA,
+	physicsRigidBody *const restrict bodyB
 );
 
 

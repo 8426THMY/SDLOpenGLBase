@@ -13,14 +13,11 @@
 ** We also add one to account for primitive restart.
 */
 size_t particleRendererSpriteBatchSize(
-	const particleRenderer *const restrict renderer, const size_t numParticles
+	const particleRendererSprite *const restrict renderer,
+	const size_t numParticles
 ){
 
-	return(
-		numParticles * (
-			renderer->data.sprite.spriteData.numIndices + 1
-		)
-	);
+	return(numParticles * (renderer->spriteData.numIndices + 1));
 }
 
 /*
@@ -28,7 +25,7 @@ size_t particleRendererSpriteBatchSize(
 ** each particle system node in the array specified.
 */
 void particleRendererSpriteBatch(
-	const particleRenderer *const restrict renderer,
+	const particleRendererSprite *const restrict renderer,
 	spriteRenderer *const restrict batch,
 	const keyValue *const restrict keyValues, const size_t numParticles,
 	const camera *const restrict cam, const float dt
@@ -36,10 +33,8 @@ void particleRendererSpriteBatch(
 
 	// Exit early if the manager has no particles.
 	if(numParticles > 0){
-		const particleRendererSprite spriteRenderer =
-			*((const particleRendererSprite *const)renderer);
-		const spriteVertex *const lastBaseVertex     = &baseVertex[spriteRenderer.spriteData.numVertices];
-		const spriteVertexIndex *const lastBaseIndex = &baseIndex[spriteRenderer.spriteData.numIndices];
+		const spriteVertex *const lastBaseVertex     = &baseVertex[renderer->spriteData.numVertices];
+		const spriteVertexIndex *const lastBaseIndex = &baseIndex[renderer->spriteData.numIndices];
 
 		const keyValue *curKeyValue = keyValues;
 		const keyValue *const lastKeyValue = &keyValues[numParticles];
@@ -47,8 +42,8 @@ void particleRendererSpriteBatch(
 
 		for(; curKeyValue != lastKeyValue; ++curKeyValue){
 			const particle *const curParticle = (particle *)curKeyValue->value;
-			const spriteVertex *baseVertex     = spriteRenderer.spriteData.vertices;
-			const spriteVertexIndex *baseIndex = spriteRenderer.spriteData.indices;
+			const spriteVertex *baseVertex     = renderer->spriteData.vertices;
+			const spriteVertexIndex *baseIndex = renderer->spriteData.indices;
 			transform curTransform;
 			mat3x4 curState;
 			size_t startIndex;
@@ -57,8 +52,8 @@ void particleRendererSpriteBatch(
 			// We add an extra index to account for primitive restart.
 			if(spriteRendererBatchedHasRoom(
 				batchedRenderer
-				spriteRenderer.spriteData.numVertices,
-				spriteRenderer.spriteData.numIndices + 1
+				renderer->spriteData.numVertices,
+				renderer->spriteData.numIndices + 1
 			)){
 
 				spriteRendererBatchedDraw(batchedRenderer);

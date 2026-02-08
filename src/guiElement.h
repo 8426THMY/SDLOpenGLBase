@@ -18,6 +18,9 @@
 
 #define GUI_ELEMENT_NUM_TYPES 2
 
+#define GUI_ELEMENT_TYPE_PANEL 0
+#define GUI_ELEMENT_TYPE_TEXT  1
+
 
 /*#error "Work on GUIs a bit. How about a GUI animation system?"
 #error "Maybe even better, let users specify an 'update' function for guiElements that manages the state machine."
@@ -61,18 +64,6 @@ void guiElementDelete(guiElement *const restrict gui);
 return_t guiElementSetup();
 void guiElementCleanup();
 
-
-extern void (*const guiElementUpdateTable[GUI_ELEMENT_NUM_TYPES])(
-	guiElement *const restrict gui,
-	const float dt
-);
-extern void (*const guiElementDrawTable[GUI_ELEMENT_NUM_TYPES])(
-	const guiElement *const restrict gui,
-	const spriteShader *const restrict shader
-);
-extern void (*const guiElementDeleteTable[GUI_ELEMENT_NUM_TYPES])(
-	guiElement *const restrict gui
-);
 
 extern sprite g_guiSpriteDefault;
 

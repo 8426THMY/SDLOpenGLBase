@@ -33,10 +33,10 @@ typedef struct particleRenderer {
 	// This should be large enough
 	// to store any type of renderer.
 	union {
-		particleRendererPoint;
-		particleRendererSprite;
-		particleRendererBeam;
-		particleRendererMesh;
+		particleRendererPoint pointRenderer;
+		particleRendererSprite spriteRenderer;
+		particleRendererBeam beamRenderer;
+		particleRendererMesh meshRenderer;
 	} data;
 	spriteRendererCommon common;
 	// Stores which type of
@@ -53,20 +53,6 @@ size_t particleRendererBatchSize(
 	const particleRenderer *const restrict renderer, const size_t numParticles
 );
 void particleRendererBatch(
-	const particleRenderer *const restrict renderer,
-	spriteRenderer *const restrict batch,
-	const keyValue *const restrict keyValues, const size_t numParticles,
-	const camera *const restrict cam, const float dt
-);
-
-
-extern spriteRendererType particleRendererTypeTable[PARTICLE_RENDERER_NUM_TYPES];
-
-extern size_t (*const particleRendererBatchSizeTable[PARTICLE_RENDERER_NUM_TYPES])(
-	const particleRenderer *const restrict renderer, const size_t numParticles
-);
-
-extern void (*const particleRendererBatchTable[PARTICLE_RENDERER_NUM_TYPES])(
 	const particleRenderer *const restrict renderer,
 	spriteRenderer *const restrict batch,
 	const keyValue *const restrict keyValues, const size_t numParticles,

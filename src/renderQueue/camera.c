@@ -89,6 +89,7 @@ void cameraUpdateViewProjectionMatrix(camera *const restrict cam){
 }
 
 
+#if 0
 // Compute a target's distance from a camera!
 float cameraDistance(const camera *const restrict cam, const vec3 *const restrict target){
 	return(vec3DistanceVec3(&cam->pos, target));
@@ -131,6 +132,7 @@ float cameraSignedDistanceSquared(const camera *const restrict cam, const vec3 *
 		vec3DotVec3Float(&tc, cam->viewMatrix.m[0][2], cam->viewMatrix.m[1][2], cam->viewMatrix.m[2][2])
 	));
 }
+#endif
 
 
 static void cameraStateInit(cameraState *const restrict state){

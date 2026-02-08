@@ -12,23 +12,6 @@
 sprite g_guiSpriteDefault;
 
 
-void (*const guiElementUpdateTable[GUI_ELEMENT_NUM_TYPES])(guiElement *const restrict gui, const float dt) = {
-	guiPanelUpdate,
-	guiTextUpdate
-};
-void (*const guiElementDrawTable[GUI_ELEMENT_NUM_TYPES])(
-	const guiElement *const restrict gui, const spriteShader *const restrict shader
-) = {
-
-	guiPanelDraw,
-	guiTextDraw
-};
-void (*const guiElementDeleteTable[GUI_ELEMENT_NUM_TYPES])(guiElement *const restrict gui) = {
-	guiPanelDelete,
-	guiTextDelete
-};
-
-
 // We need to initialise the element's data outside this function.
 void guiElementInit(guiElement *const restrict gui, const guiElementType type){
 	gui->type = type;
@@ -41,7 +24,14 @@ void guiElementInit(guiElement *const restrict gui, const guiElementType type){
 
 
 void guiElementUpdate(guiElement *const restrict gui, const float dt){
-	guiElementUpdateTable[gui->type](gui, dt);
+	switch(gui->type){
+		case GUI_ELEMENT_TYPE_PANEL:
+			guiPanelUpdate(gui, dt);
+		break;
+		case GUI_ELEMENT_TYPE_TEXT:
+			guiTextUpdate(gui, dt);
+		break;
+	}
 }
 
 void guiElementDraw(
@@ -60,12 +50,26 @@ void guiElementDraw(
 	mat4Orthographic(&vpMatrix, (float)windowWidth, 0.f, 0.f, -(float)windowHeight, 0.f, 1.f);
 	glUniformMatrix4fv(shader->vpMatrixID, 1, GL_FALSE, (GLfloat *)&vpMatrix);
 
-	guiElementDrawTable[gui->type](gui, shader);
+	switch(gui->type){
+		case GUI_ELEMENT_TYPE_PANEL:
+			guiPanelDraw(gui, shader);
+		break;
+		case GUI_ELEMENT_TYPE_TEXT:
+			guiTextDraw(gui, shader);
+		break;
+	}
 }
 
 
 void guiElementDelete(guiElement *const restrict gui){
-	guiElementDeleteTable[gui->type](gui);
+	switch(gui->type){
+		case GUI_ELEMENT_TYPE_PANEL:
+			guiPanelDelete(gui);
+		break;
+		case GUI_ELEMENT_TYPE_TEXT:
+			guiTextDelete(gui);
+		break;
+	}
 }
 
 

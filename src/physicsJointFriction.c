@@ -114,7 +114,12 @@
 ** we can make the constraint converge more quickly.
 */
 #ifdef PHYSJOINTFRICTION_WARM_START
-void physJointFrictionWarmStart(const physicsJointFriction *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB){
+void physJointFrictionWarmStart(
+	const physicsJointFriction *const restrict joint,
+	physicsRigidBody *const restrict bodyA,
+	physicsRigidBody *const restrict bodyB
+){
+
 	vec3 linearImpulse;
 	vec3 angularImpulse;
 
@@ -139,7 +144,8 @@ void physJointFrictionWarmStart(const physicsJointFriction *const restrict joint
 */
 void physJointFrictionCalculateInverseEffectiveMass(
 	physicsJointFriction *const restrict joint,
-	const physicsRigidBody *const restrict bodyA, const physicsRigidBody *const restrict bodyB
+	const physicsRigidBody *const restrict bodyA,
+	const physicsRigidBody *const restrict bodyB
 ){
 
 	const float invMass = bodyA->invMass + bodyB->invMass;
@@ -199,7 +205,8 @@ void physJointFrictionCalculateInverseEffectiveMass(
 */
 void physJointFrictionSolveVelocity(
 	physicsJointFriction *const restrict joint,
-	physicsRigidBody *const restrict bodyA, physicsRigidBody *bodyB,
+	physicsRigidBody *const restrict bodyA,
+	physicsRigidBody *bodyB,
 	const float maxForce
 ){
 

@@ -1,0 +1,80 @@
+#version 330 core
+
+
+#define MAX_BONES_NUM 128
+#define MAX_VERTEX_WEIGHTS 4
+
+
+struct bone {
+	vec3 pos;
+	vec4 rot;
+	vec3 scale;
+};
+
+
+layout(std140) uniform sharedData {
+	mat4 vpMatrix;
+};
+layout(std140) uniform modelData {
+	mat4x3 boneStates[MAX_BONES_NUM];
+};
+
+float uvOffsets[4];
+
+layout(location = 0) in vec3 vertexPos;
+layout(location = 1) in vec2 vertexUV;
+layout(location = 2) in vec3 vertexNormal;
+layout(location = 3) in uvec4 vertexBoneIDs;
+layout(location = 4) in vec4 vertexBoneWeights;
+
+out vec2 uv;
+
+
+/*void vertexRotate(in vec3 v, in vec4 q, out vec3 outVec){
+	outVec = 2.f * cross(q.xyz, q.w * v + cross(q.xyz, v)) + v;
+	
+	// Should use less temporary variables, not
+	// that I'd claim to know how GLSL works.
+	//vec3 qvCross = cross(q.xyz, v);
+	//vec3 tempVec = q.w * v;
+	//qvCross += tempVec;
+	//qvCross = cross(q.xyz, qvCross);
+	//tempVec = 2.f * qvCross;
+	//outVec += tempVec;
+}
+
+// This is slower than multiplying by a matrix.
+void vertexTransform(out vec3 outPos, uint boneID, float boneWeight){
+	//Scale the vertex!
+	outPos *= boneScale[boneID];
+	//Rotate the vertex!
+	vertexRotate(outPos, boneRot[boneID], outPos);
+	//Translate the vertex!
+	outPos += bonePos[boneID];
+	
+	//Multiply it by the weight!
+	outPos *= boneWeight;
+}*/
+
+
+void main(){
+	//vec4 transformPos = vec4(vertexPos, 1.f);
+	vec4 vertexPos4 = vec4(vertexPos, 1.f);
+	vec4 transformPos = vec4(0.f, 0.f, 0.f, 1.f);
+	
+	uint i;
+	for(i = uint(0); i < uint(MAX_VERTEX_WEIGHTS); ++i){
+		uint id = vertexBoneIDs[i];
+		float weight = vertexBoneWeights[i];
+		if(id != uint(-1) && weight != 0.f){
+			transformPos.xyz += boneStates[id] * vertexPos4 * weight;
+		}else{
+			break;
+		}
+	}
+	gl_Position = vpMatrix * transformPos;
+	
+	// Only use the area of the texture specified in the uvOffsets array!
+	uv.x = (vertexUV.x * uvOffsets[2]) + uvOffsets[0];
+	uv.y = (vertexUV.y * uvOffsets[3]) + uvOffsets[1];
+}

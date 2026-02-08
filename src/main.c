@@ -57,6 +57,8 @@
 #warning "I sort of like what Dan does. Instead of using the 'Out' suffix, just use 'P'!"
 #warning "Might as well clean up some of the useless 'SubtractFrom' functions, too."
 
+#warning "We use lookup tables in a lot of places where it would probably be more readable to just use a switch statement."
+
 
 /**
 *** Important To-Do List:

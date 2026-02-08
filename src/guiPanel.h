@@ -9,8 +9,6 @@
 #include "utilTypes.h"
 
 
-#define GUI_ELEMENT_TYPE_PANEL 0
-
 #define GUI_PANEL_TILE_BORDER 0x01
 #define GUI_PANEL_TILE_BODY   0x02
 

@@ -154,10 +154,4 @@ void textCMapDelete(textCMapHeader *const restrict cmap);
 void textCMapOutputCodePoints(const textCMapHeader *const restrict cmap, const char *const restrict filePath, const char delim);
 
 
-extern uint32_t (*textCMapIndexTable[TEXT_CMAP_NUM_SUPPORTED_FORMATS])(
-	const textCMapHeader *const restrict cmap,
-	const textCMapCodeUnit code
-);
-
-
 #endif

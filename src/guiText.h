@@ -7,9 +7,6 @@
 #include "text.h"
 
 
-#define GUI_ELEMENT_TYPE_TEXT 1
-
-
 typedef struct guiText {
 	textBuffer buffer;
 	const textFont *font;

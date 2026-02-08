@@ -186,21 +186,4 @@ return_t physJointSolvePosition(const physicsJoint *const restrict joint);
 void physJointDelete(physicsJoint *const restrict joint);
 
 
-extern void (*const physJointPresolveTable[PHYSJOINT_NUM_TYPES])(
-	void *const restrict joint,
-	physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB,
-	const float dt
-);
-extern void (*const physJointSolveVelocityTable[PHYSJOINT_NUM_TYPES])(
-	void *const restrict joint,
-	physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB
-);
-#ifdef PHYSJOINT_USE_POSITIONAL_CORRECTION
-extern return_t (*const physJointSolvePositionTable[PHYSJOINT_NUM_TYPES])(
-	const void *const restrict joint,
-	physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB
-);
-#endif
-
-
 #endif

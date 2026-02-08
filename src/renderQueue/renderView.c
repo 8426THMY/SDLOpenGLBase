@@ -7,12 +7,12 @@
 void renderViewInit(
 	renderView *const restrict view,
 	const camera *const restrict cam, const float dt,
-	const renderViewport *const restrict viewport
+	const framebufferViewport *const restrict viewport
 ){
 
 	cameraComputeViewMatrix(cam, dt, &view->viewMatrix);
 	cameraComputeProjectionMatrix(
-		cam, dt, viewport->width, viewport->height, &view->vpMatrix
+		cam, dt, viewport->w, viewport->h, &view->vpMatrix
 	);
 	mat4MultiplyMat3x4(&view->vpMatrix, &view->viewMatrix);
 	renderFrustumInit(&view->frustum, &view->vpMatrix);
@@ -44,6 +44,10 @@ void renderViewPreDraw(renderView *const restrict view){
 void renderViewDraw(renderView *const restrict view){
 	const renderQueue *curQueue = view->queues;
 	const renderQueue *const lastQueue = &view->queues[RENDER_VIEW_NUM_BUCKETS];
+
+	// Send the view projection matrix to the shader.
+	shaderPrgLoadSharedUniforms(&view->vpMatrix);
+
 	for(; curQueue != lastQueue; ++curQueue){
 		const renderQueueKeyValue *curKeyVal = curQueue->keyVals;
 		const renderQueueKeyValue *const lastKeyVal = &curKeyVal[curQueue->numKeyVals];

@@ -10,8 +10,8 @@
 
 #warning "Renderables might need to store a flag that says whether they're visible."
 #warning "We would set this flag when iterating over cells, and reset it when we're done."
-#warning "Alternatively, we could do what Source does and store the current frame I.D."
-#warning "We'd have to update the current frame I.D. before populating any queue, though."
+#warning "Alternatively, we could do what Source does and store the current frame ID."
+#warning "We'd have to update the current frame ID before populating any queue, though."
 
 
 /*
@@ -69,7 +69,7 @@ typedef struct visCullerPortal {
 
 typedef struct renderView renderView;
 void visCullerPortalPopulateRenderView(
-	visCullerPortal *const restrict vcPortal,
+	const visCullerPortal *const restrict vcPortal,
 	renderView *const restrict view,
 	const unsigned int viewID,
 	const unsigned int frameID,

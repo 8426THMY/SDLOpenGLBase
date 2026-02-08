@@ -26,12 +26,12 @@ mat3x4 mat3x4InitTranslateC(const float x, const float y, const float z);
 void mat3x4InitTranslateVec3(mat3x4 *const restrict m, const vec3 *const restrict v);
 mat3x4 mat3x4InitTranslateVec3C(const vec3 v);
 void mat3x4InitEulerXYZ(mat3x4 *const restrict m, const float x, const float y, const float z);
-void mat3x4InitEulerZXY(mat3x4 *const restrict m, const float x, const float y, const float z);
 mat3x4 mat3x4InitEulerXYZC(const float x, const float y, const float z);
+void mat3x4InitEulerZXY(mat3x4 *const restrict m, const float x, const float y, const float z);
 mat3x4 mat3x4InitEulerZXYC(const float x, const float y, const float z);
 void mat3x4InitEulerVec3XYZ(mat3x4 *const restrict m, const vec3 *const restrict v);
-void mat3x4InitEulerVec3ZXY(mat3x4 *const restrict m, const vec3 *const restrict v);
 mat3x4 mat3x4InitEulerVec3XYZC(const vec3 v);
+void mat3x4InitEulerVec3ZXY(mat3x4 *const restrict m, const vec3 *const restrict v);
 mat3x4 mat3x4InitEulerVec3ZXYC(const vec3 v);
 void mat3x4InitAxisAngle(mat3x4 *const restrict m, const vec4 *const restrict v);
 mat3x4 mat3x4InitAxisAngleC(const vec4 v);
@@ -46,6 +46,8 @@ void mat3x4InitShearQuat(
 	const vec3 *const restrict v, const quat *const restrict q
 );
 mat3x4 mat3x4InitShearQuatC(const vec3 v, const quat q);
+void mat3x4InitReflect(mat3x4 *const restrict m, const vec4 *const restrict plane);
+mat3x4 mat3x4InitReflectC(const vec4 plane);
 void mat3InitMat3x4(mat3 *const restrict m1, const mat3x4 *const restrict m2);
 mat3 mat3InitMat3x4C(const mat3x4 m);
 
@@ -106,12 +108,12 @@ void mat3x4TranslatePreVec3(mat3x4 *const restrict m, const vec3 *const restrict
 mat3x4 mat3x4TranslatePreVec3C(const mat3x4 m, const vec3 v);
 
 void mat3x4RotateByEulerXYZ(mat3x4 *const restrict m, const float x, const float y, const float z);
-void mat3x4RotateByEulerZXY(mat3x4 *const restrict m, const float x, const float y, const float z);
 mat3x4 mat3x4RotateByEulerXYZC(const mat3x4 m, const float x, const float y, const float z);
+void mat3x4RotateByEulerZXY(mat3x4 *const restrict m, const float x, const float y, const float z);
 mat3x4 mat3x4RotateByEulerZXYC(const mat3x4 m, const float x, const float y, const float z);
 void mat3x4RotateByVec3EulerXYZ(mat3x4 *const restrict m, const vec3 *const restrict v);
-void mat3x4RotateByVec3EulerZXY(mat3x4 *const restrict m, const vec3 *const restrict v);
 mat3x4 mat3x4RotateByVec3EulerXYZC(const mat3x4 m, const vec3 v);
+void mat3x4RotateByVec3EulerZXY(mat3x4 *const restrict m, const vec3 *const restrict v);
 mat3x4 mat3x4RotateByVec3EulerZXYC(const mat3x4 m, const vec3 v);
 void mat3x4RotateByAxisAngle(mat3x4 *const restrict m, const vec4 *const restrict v);
 mat3x4 mat3x4RotateByAxisAngleC(const mat3x4 m, const vec4 v);
@@ -149,6 +151,11 @@ float mat3x4FrobeniusNormSquared(const mat3x4 *const restrict m);
 float mat3x4FrobeniusNormSquaredC(const mat3x4 m);
 float mat3x4Trace(const mat3x4 *const restrict m);
 float mat3x4TraceC(const mat3x4 m);
+void mat3x4Invert(mat3x4 *const restrict m);
+void mat3x4InvertOut(const mat3x4 m, mat3x4 *const restrict out);
+mat3x4 mat3x4InvertC(const mat3x4 m);
+return_t mat3x4CanInvert(mat3x4 *const restrict m);
+return_t mat3x4CanInvertOut(const mat3x4 m, mat3x4 *const restrict out);
 
 void mat3x4View(
 	mat3x4 *const restrict m,
@@ -168,6 +175,13 @@ void mat3x4ViewLookAt(
 	const vec3 *const restrict worldUp
 );
 mat3x4 mat3x4ViewLookAtC(const vec3 eye, const vec3 target, const vec3 worldUp);
+void mat3x4ViewReflect(mat3x4 *const restrict m, const vec4 *const restrict plane);
+void mat3x4ViewReflectOut(
+	const mat3x4 *const restrict m,
+	const vec4 *const restrict plane,
+	mat3x4 *const restrict out
+);
+mat3x4 mat3x4ViewReflectC(const mat3x4 m, const vec4 plane);
 
 void mat3x4ToQuat(const mat3x4 *const restrict m, quat *const restrict out);
 quat mat3x4ToQuatC(const mat3x4 m);

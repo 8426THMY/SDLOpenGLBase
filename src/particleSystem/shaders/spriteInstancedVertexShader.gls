@@ -7,7 +7,7 @@
 // Each sprite instance requires this data to be drawn.
 // Note that this structure is compatible with the std140
 // layout, as it is really just an array of vec4's.
-struct instanceData {
+struct instanceState {
     mat4x3 state;
     vec4 uvOffsets;
 };
@@ -16,9 +16,9 @@ struct instanceData {
 uniform mat4 vpMatrix;
 // Array of data for each sprite instance we can draw.
 // The size must be less than GL_MAX_UNIFORM_BLOCK_SIZE.
-layout (std140) uniform instanceBlock {
-	instanceData data[MAX_INSTANCES];
-} instances;
+layout (std140) uniform instanceData {
+	instanceState states[MAX_INSTANCES];
+};
 
 layout(location = 0) in vec3 vertexPos;
 layout(location = 1) in vec2 vertexUV;
@@ -28,7 +28,7 @@ out vec2 uv;
 
 void main(){
 	// Grab the current instance's data.
-	instanceData curInstance = instances.data[gl_InstanceID];
+	instanceData curInstance = states[gl_InstanceID];
 
 	gl_Position = vpMatrix * vec4(curInstance.state * vec4(vertexPos, 1.f), 1.f);
 	// Only use the area of the texture specified in the uvOffsets array!

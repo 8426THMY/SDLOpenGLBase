@@ -345,14 +345,10 @@ static textCMapHeader *readCmapTable(FILE *const restrict file){
 		if(platformID == TTF_CMAP_PLATFORMID_UNICODE && encodingID <= TTF_CMAP_ENCODINGID_2_0_BMP){
 			const long oldPos = ftell(file);
 			const uint16_t format = (fseek(file, tableStart + offset, SEEK_SET), readUint16LE(file));
-			textCMapHeader *(*const cmapLoadFunc)(FILE *const restrict file) = textCMapLoadTable[format];
-			// If the subtable has a supported format, we can load the map!
-			if(cmapLoadFunc != NULL){
-				textCMapHeader *const cmap = (*cmapLoadFunc)(file);
-				// Return the map if it was loaded successfully!
-				if(cmap != NULL){
-					return(cmap);
-				}
+			textCMapHeader *const cmap = textCMapLoadTable[format](file);
+			// Return the map if it was loaded successfully!
+			if(cmap != NULL){
+				return(cmap);
 			}
 			fseek(file, oldPos, SEEK_SET);
 		}

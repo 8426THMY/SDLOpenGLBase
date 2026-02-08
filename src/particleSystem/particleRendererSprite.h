@@ -18,10 +18,11 @@ typedef struct particleRendererSprite {
 
 
 size_t particleRendererSpriteBatchSize(
-	const void *const restrict renderer, const size_t numParticles
+	const particleRendererSprite *const restrict renderer,
+	const size_t numParticles
 );
 void particleRendererSpriteBatch(
-	const void *const restrict renderer,
+	const particleRendererSprite *const restrict renderer,
 	spriteRenderer *const restrict batch,
 	const keyValue *const restrict keyValues, const size_t numParticles,
 	const camera *const restrict cam, const float dt

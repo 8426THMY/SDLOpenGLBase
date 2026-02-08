@@ -38,6 +38,10 @@ void renderTargetPreDraw(
 
 void renderTargetDraw(const renderTarget *const target){
 	renderView *curView = target->lastView;
+
+	// Bind the framebuffer and set up the viewport.
+	framebufferBind(target->fb, target->viewport);
+
 	// We draw our render views starting from the end of the list.
 	// Dependencies like mirrors are usually added after the main
 	// view, so this means transluscent objects in front of them

@@ -34,11 +34,11 @@ typedef struct light {
 	} data;
 	lightType type;
 
-	// This is the I.D. of the last render view to draw this light.
+	// This is the ID of the last render view to draw this light.
 	// A light can be in multiple leaves of the visibility culler,
 	// so we use this to make sure it doesn't get drawn more than once.
 	unsigned int viewID;
-	// This is the I.D. of the last frame this light was drawn on.
+	// This is the ID of the last frame this light was drawn on.
 	// The global transform should only be updated once per frame.
 	unsigned int frameID;
 } light;
@@ -54,22 +54,6 @@ void lightPreDraw(
 	renderView *const restrict view
 );
 void lightDraw(const light *const restrict l);
-
-
-extern return_t (*const lightInFrustumTable[LIGHT_NUM_TYPES])(
-	const light *const restrict l,
-	const renderFrustum *const restrict frustum
-);
-extern void (*const lightUpdateGlobalTransformTable[LIGHT_NUM_TYPES])(
-	light *const restrict l
-);
-extern void (*const lightPreDrawTable[LIGHT_NUM_TYPES])(
-	const light *const restrict l,
-	renderView *const restrict view
-);
-extern void (*const lightDrawTable[LIGHT_NUM_TYPES])(
-	const light *const restrict l
-);
 
 
 #endif

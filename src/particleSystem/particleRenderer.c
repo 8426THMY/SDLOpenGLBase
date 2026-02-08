@@ -8,29 +8,6 @@ spriteRendererType particleRendererTypeTable[PARTICLE_RENDERER_NUM_TYPES] = {
 	SPRITE_RENDERER_TYPE_INSTANCED
 };
 
-size_t (*const particleRendererBatchSizeTable[PARTICLE_RENDERER_NUM_TYPES])(
-	const particleRenderer *const restrict renderer, const size_t numParticles
-) = {
-
-	particleRendererPointBatchSize,
-	particleRendererSpriteBatchSize,
-	particleRendererBeamBatchSize,
-	particleRendererMeshBatchSize
-};
-
-void (*const particleRendererBatchTable[PARTICLE_RENDERER_NUM_TYPES])(
-	const particleRenderer *const restrict renderer,
-	spriteRenderer *const restrict batch,
-	const keyValue *const restrict keyValues, const size_t numParticles,
-	const camera *const restrict cam, const float dt
-) = {
-
-	particleRendererPointBatch,
-	particleRendererSpriteBatch,
-	particleRendererBeamBatch,
-	particleRendererMeshBatch
-};
-
 
 // Initialize a render batch using a particle renderer.
 void particleRendererInitBatch(
@@ -53,9 +30,29 @@ size_t particleRendererBatchSize(
 	const particleRenderer *const restrict renderer, const size_t numParticles
 ){
 
-	particleRendererBatchSizeTable[renderer->type](
-		&renderer->data, numParticles
-	);
+	switch(renderer->type){
+		case PARTICLE_RENDERER_POINT:
+			return(particleRendererPointBatchSize(
+				&renderer->data.pointRenderer, numParticles
+			));
+		break;
+		case PARTICLE_RENDERER_SPRITE:
+			return(particleRendererSpriteBatchSize(
+				&renderer->data.spriteRenderer, numParticles
+			));
+		break;
+		case PARTICLE_RENDERER_BEAM:
+			return(particleRendererPointBatchSize(
+				&renderer->data.beamRenderer, numParticles
+			));
+		break;
+		case PARTICLE_RENDERER_MESH:
+			return(particleRendererPointBatchSize(
+				&renderer->data.meshRenderer, numParticles
+			));
+		break;
+	}
+	return(0);
 }
 
 /*
@@ -70,10 +67,30 @@ void particleRendererBatch(
 	const camera *const restrict cam, const float dt
 ){
 
-	particleRendererBatchTable[renderer->type](
-		&renderer->data,
-		batch,
-		keyValues, numParticles,
-		cam, dt
-	);
+	switch(renderer->type){
+		case PARTICLE_RENDERER_POINT:
+			particleRendererPointBatch(
+				&renderer->data.pointRenderer, batch,
+				keyValues, numParticles, cam, dt
+			);
+		break;
+		case PARTICLE_RENDERER_SPRITE:
+			particleRendererSpriteBatch(
+				&renderer->data.spriteRenderer, batch,
+				keyValues, numParticles, cam, dt
+			);
+		break;
+		case PARTICLE_RENDERER_BEAM:
+			particleRendererPointBatch(
+				&renderer->data.beamRenderer, batch,
+				keyValues, numParticles, cam, dt
+			);
+		break;
+		case PARTICLE_RENDERER_MESH:
+			particleRendererPointBatch(
+				&renderer->data.meshRenderer, batch,
+				keyValues, numParticles, cam, dt
+			);
+		break;
+	}
 }

@@ -32,11 +32,11 @@ typedef struct renderObject {
 	} data;
 	renderObjectType type;
 
-	// This is the I.D. of the last render view to draw this render object.
+	// This is the ID of the last render view to draw this render object.
 	// A render object can be in multiple leaves of the visibility culler,
 	// so we use this to make sure it doesn't get drawn more than once.
 	unsigned int viewID;
-	// This is the I.D. of the last frame this render object was drawn on.
+	// This is the ID of the last frame this render object was drawn on.
 	// The global transform should only be updated once per frame.
 	unsigned int frameID;
 } renderObject;
@@ -50,32 +50,14 @@ renderQueueID renderObjGetRenderQueueKey(
 	const renderObject *const restrict obj,
 	renderQueueKey *const restrict key
 );
-void renderObjUpdateGlobalTransform(renderObject *const restrict obj);
+void renderObjUpdateGlobalTransform(
+	renderObject *const restrict obj, const float dt
+);
 void renderObjPreDraw(
 	const renderObject *const restrict obj,
 	renderView *const restrict view
 );
 void renderObjDraw(const renderObject *const restrict obj);
-
-
-extern return_t (*const renderObjInFrustumTable[RENDEROBJECT_NUM_TYPES])(
-	const renderObject *const restrict obj,
-	const renderFrustum *const restrict frustum
-);
-extern renderQueueID (*const renderObjGetRenderQueueKeyTable[RENDEROBJECT_NUM_TYPES])(
-	const renderObject *const restrict obj,
-	renderQueueKey *const restrict key
-);
-extern void (*const renderObjUpdateGlobalTransformTable[RENDEROBJECT_NUM_TYPES])(
-	renderObject *const restrict obj
-);
-extern void (*const renderObjPreDrawTable[RENDEROBJECT_NUM_TYPES])(
-	const renderObject *const restrict obj,
-	renderView *const restrict view
-);
-extern void (*const renderObjDrawTable[RENDEROBJECT_NUM_TYPES])(
-	const renderObject *const restrict obj
-);
 
 
 #endif

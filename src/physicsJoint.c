@@ -4,46 +4,6 @@
 #include "physicsRigidBody.h"
 
 
-void (*const physJointPresolveTable[PHYSJOINT_NUM_TYPES])(
-	void *const restrict joint,
-	physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB,
-	const float dt
-) = {
-
-	physJointDistancePresolve,
-	physJointFixedPresolve,
-	physJointRevolutePresolve,
-	physJointPrismaticPresolve,
-	physJointSpherePresolve
-};
-
-void (*const physJointSolveVelocityTable[PHYSJOINT_NUM_TYPES])(
-	void *const restrict joint,
-	physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB
-) = {
-
-	physJointDistanceSolveVelocity,
-	physJointFixedSolveVelocity,
-	physJointRevoluteSolveVelocity,
-	physJointPrismaticSolveVelocity,
-	physJointSphereSolveVelocity
-};
-
-#ifdef PHYSJOINT_USE_POSITIONAL_CORRECTION
-return_t (*const physJointSolvePositionTable[PHYSJOINT_NUM_TYPES])(
-	const void *const restrict joint,
-	physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB
-) = {
-
-	physJointDistanceSolvePosition,
-	physJointFixedSolvePosition,
-	physJointRevoluteSolvePosition,
-	physJointPrismaticSolvePosition,
-	physJointSphereSolvePosition
-};
-#endif
-
-
 // Insert a joint into the rigid body's linked lists.
 void physJointAdd(
 	physicsJoint *const restrict joint,
@@ -93,19 +53,97 @@ void physJointAdd(
 
 #warning "We probably shouldn't just take in dt here, as we need 1/dt too."
 void physJointPresolve(physicsJoint *const restrict joint, const float dt){
-	physJointPresolveTable[joint->type]((void *)(&joint->data), joint->bodyA, joint->bodyB, dt);
+	switch(joint->type){
+		case PHYSJOINT_TYPE_DISTANCE:
+			physJointDistancePresolve(
+				&joint->data.distance, joint->bodyA, joint->bodyB, dt
+			);
+		break;
+		case PHYSJOINT_TYPE_FIXED:
+			physJointFixedPresolve(
+				&joint->data.fixed, joint->bodyA, joint->bodyB, dt
+			);
+		break;
+		case PHYSJOINT_TYPE_REVOLUTE:
+			physJointRevolutePresolve(
+				&joint->data.revolute, joint->bodyA, joint->bodyB, dt
+			);
+		break;
+		case PHYSJOINT_TYPE_PRISMATIC:
+			physJointPrismaticPresolve(
+				&joint->data.prismatic, joint->bodyA, joint->bodyB, dt
+			);
+		break;
+		case PHYSJOINT_TYPE_SPHERE:
+			physJointSpherePresolve(
+				&joint->data.sphere, joint->bodyA, joint->bodyB, dt
+			);
+		break;
+	}
 }
 
 void physJointSolveVelocity(physicsJoint *const restrict joint){
-	physJointSolveVelocityTable[joint->type]((void *)(&joint->data), joint->bodyA, joint->bodyB);
+	switch(joint->type){
+		case PHYSJOINT_TYPE_DISTANCE:
+			physJointDistanceSolveVelocity(
+				&joint->data.distance, joint->bodyA, joint->bodyB
+			);
+		break;
+		case PHYSJOINT_TYPE_FIXED:
+			physJointFixedSolveVelocity(
+				&joint->data.fixed, joint->bodyA, joint->bodyB
+			);
+		break;
+		case PHYSJOINT_TYPE_REVOLUTE:
+			physJointRevoluteSolveVelocity(
+				&joint->data.revolute, joint->bodyA, joint->bodyB
+			);
+		break;
+		case PHYSJOINT_TYPE_PRISMATIC:
+			physJointPrismaticSolveVelocity(
+				&joint->data.prismatic, joint->bodyA, joint->bodyB
+			);
+		break;
+		case PHYSJOINT_TYPE_SPHERE:
+			physJointSphereSolveVelocity(
+				&joint->data.sphere, joint->bodyA, joint->bodyB
+			);
+		break;
+	}
 }
 
 #ifdef PHYSJOINT_USE_POSITIONAL_CORRECTION
 return_t physJointSolvePosition(const physicsJoint *const restrict joint){
-	return(physJointSolvePositionTable[joint->type]((void *)(&joint->data), joint->bodyA, joint->bodyB));
+	switch(joint->type){
+		case PHYSJOINT_TYPE_DISTANCE:
+			return(physJointDistanceSolvePosition(
+				&joint->data.distance, joint->bodyA, joint->bodyB
+			));
+		break;
+		case PHYSJOINT_TYPE_FIXED:
+			return(physJointFixedSolvePosition(
+				&joint->data.fixed, joint->bodyA, joint->bodyB
+			));
+		break;
+		case PHYSJOINT_TYPE_REVOLUTE:
+			return(physJointRevoluteSolvePosition(
+				&joint->data.revolute, joint->bodyA, joint->bodyB
+			));
+		break;
+		case PHYSJOINT_TYPE_PRISMATIC:
+			return(physJointPrismaticSolvePosition(
+				&joint->data.prismatic, joint->bodyA, joint->bodyB
+			));
+		break;
+		case PHYSJOINT_TYPE_SPHERE:
+			return(physJointSphereSolvePosition(
+				&joint->data.sphere, joint->bodyA, joint->bodyB
+			));
+		break;
+	}
+	return(1);
 }
 #endif
-
 
 
 /*

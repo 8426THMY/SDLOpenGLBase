@@ -164,12 +164,14 @@
 // Forward-declare any helper functions!
 static void updateConstraintData(
 	physicsJointFixed *const restrict joint,
-	const physicsRigidBody *const restrict bodyA, const physicsRigidBody *const restrict bodyB
+	const physicsRigidBody *const restrict bodyA,
+	const physicsRigidBody *const restrict bodyB
 );
 
 static void calculateLinearMass(
 	const vec3 rA, const vec3 rB,
-	const physicsRigidBody *const restrict bodyA, const physicsRigidBody *const restrict bodyB,
+	const physicsRigidBody *const restrict bodyA,
+	const physicsRigidBody *const restrict bodyB,
 	mat3 *const restrict linearMass
 );
 #ifdef PHYSJOINTFIXED_ACCURATE_ANGULAR_MASS
@@ -206,7 +208,8 @@ void physJointFixedInit(
 #ifdef PHYSJOINTFIXED_WARM_START
 void physJointFixedWarmStart(
 	const physicsJointFixed *const restrict joint,
-	physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB
+	physicsRigidBody *const restrict bodyA,
+	physicsRigidBody *const restrict bodyB
 ){
 
 	// Apply the accumulated angular impulses.
@@ -224,13 +227,16 @@ void physJointFixedWarmStart(
 ** Such values include the effective mass and the bias.
 */
 void physJointFixedPresolve(
-	void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB, const float dt
+	physicsJointFixed *const restrict joint,
+	physicsRigidBody *const restrict bodyA,
+	physicsRigidBody *const restrict bodyB,
+	const float dt
 ){
 
 	const float frequency = 1.f/dt;
 
 
-	updateConstraintData((physicsJointFixed *)joint, bodyA, bodyB);
+	updateConstraintData(joint, bodyA, bodyB);
 
 
 	{
@@ -238,22 +244,23 @@ void physJointFixedPresolve(
 		#ifdef PHYSJOINTFIXED_ACCURATE_ANGULAR_MASS
 		// Clamp out angular biases that are
 		// too small to help prevent jittering.
-		if(vec3MagnitudeSquaredVec3((vec3 *)&((physicsJointFixed *)joint)->qR.x) > PHYSJOINT_ANGULAR_SLOP_SQUARED){
+		if(vec3MagnitudeSquaredVec3((vec3 *)&joint->qR.x) > PHYSJOINT_ANGULAR_SLOP_SQUARED){
 			// b = B/dt * C = B/dt * 2proj(qR)
 			vec3MultiplySOut(
-				(vec3 *)&((physicsJointFixed *)joint)->qR.x, 2.f * PHYSJOINTFIXED_BAUMGARTE_BIAS * frequency,
-				&((physicsJointFixed *)joint)->angularBias
+				(vec3 *)&joint->qR.x,
+				2.f * PHYSJOINTFIXED_BAUMGARTE_BIAS * frequency,
+				&joint->angularBias
 			);
 		}else{
-			vec3InitZero(&((physicsJointFixed *)joint)->angularBias);
+			vec3InitZero(&joint->angularBias);
 		}
 		#else
 		quat qR;
 		quat rotOffsetGlobalB;
 
 		// Get the global constraint orientations for the rigid bodies.
-		quatMultiplyQuatOut(bodyA->state.rot, ((physicsJointFixed *)joint)->rotOffsetA, &qR);
-		quatMultiplyQuatOut(bodyB->state.rot, ((physicsJointFixed *)joint)->rotOffsetB, &rotOffsetGlobalB);
+		quatMultiplyQuatOut(bodyA->state.rot, joint->rotOffsetA, &qR);
+		quatMultiplyQuatOut(bodyB->state.rot, joint->rotOffsetB, &rotOffsetGlobalB);
 		// Get the relative orientation from body A to body B:
 		// qR = (qB*RB)*conj(qA*RA).
 		quatMultiplyQuatConjP2(rotOffsetGlobalB, &qR);
@@ -263,31 +270,32 @@ void physJointFixedPresolve(
 		if(vec3MagnitudeSquaredVec3((vec3 *)&qR.x) > PHYSJOINT_ANGULAR_SLOP_SQUARED){
 			// b = B/dt * C = B/dt * 2proj(qR)
 			vec3MultiplySOut(
-				(vec3 *)&qR.x, 2.f * PHYSJOINTFIXED_BAUMGARTE_BIAS * frequency,
-				&((physicsJointFixed *)joint)->angularBias
+				(vec3 *)&qR.x,
+				2.f * PHYSJOINTFIXED_BAUMGARTE_BIAS * frequency,
+				&joint->angularBias
 			);
 		}else{
-			vec3InitZero(&((physicsJointFixed *)joint)->angularBias);
+			vec3InitZero(&joint->angularBias);
 		}
 		#endif
 		#else
-		vec3InitZero(&((physicsJointFixed *)joint)->angularBias);
+		vec3InitZero(&joint->angularBias);
 		#endif
 
 		#ifdef PHYSJOINTFIXED_ACCURATE_ANGULAR_MASS
 		calculateAngularMass(
 			&bodyA->invInertiaGlobal, &bodyB->invInertiaGlobal,
-			((physicsJointFixed *)joint)->qR, &((physicsJointFixed *)joint)->angularInvMass
+			joint->qR, &joint->angularInvMass
 		);
 		#else
 		// K2 = IA^{-1} + IB^{-1}
-		mat3AddMat3Out(&bodyA->invInertiaGlobal, &bodyB->invInertiaGlobal, &((physicsJointFixed *)joint)->angularInvMass);
+		mat3AddMat3Out(&bodyA->invInertiaGlobal, &bodyB->invInertiaGlobal, &joint->angularInvMass);
 		#endif
 		// The performance of solving using Cramer's rule seems similar
 		// to inverting. However, since we do our velocity solve step
 		// multiple times using the same matrix for sequential impulse,
 		// it's much faster to invert it here when we're presolving.
-		mat3Invert(&((physicsJointFixed *)joint)->angularInvMass);
+		mat3Invert(&joint->angularInvMass);
 	}
 
 
@@ -296,30 +304,30 @@ void physJointFixedPresolve(
 		// Compute the linear bias term.
 		calculateLinearBias(
 			&bodyA->centroid, &bodyB->centroid,
-			&((physicsJointFixed *)joint)->rA, &((physicsJointFixed *)joint)->rB,
-			&((physicsJointFixed *)joint)->linearBias
+			&joint->rA, &joint->rB,
+			&joint->linearBias
 		);
 		// b = B/dt * C
-		vec3MultiplyS(&((physicsJointFixed *)joint)->linearBias, PHYSJOINTFIXED_BAUMGARTE_BIAS * frequency);
+		vec3MultiplyS(&joint->linearBias, PHYSJOINTFIXED_BAUMGARTE_BIAS * frequency);
 		#else
-		vec3InitZero(&((physicsJointFixed *)joint)->linearBias);
+		vec3InitZero(&joint->linearBias);
 		#endif
 
 		calculateLinearMass(
-			((physicsJointFixed *)joint)->rA, ((physicsJointFixed *)joint)->rB,
-			bodyA, bodyB, &((physicsJointFixed *)joint)->linearInvMass
+			joint->rA, joint->rB,
+			bodyA, bodyB, &joint->linearInvMass
 		);
 		// The performance of solving using Cramer's rule seems similar
 		// to inverting. However, since we do our velocity solve step
 		// multiple times using the same matrix for sequential impulse,
 		// it's much faster to invert it here when we're presolving.
-		mat3Invert(&((physicsJointFixed *)joint)->linearInvMass);
+		mat3Invert(&joint->linearInvMass);
 	}
 
 
 	#ifdef PHYSJOINTFIXED_WARM_START
 	// Warm start the constraint if the old limit states match the new ones.
-	physJointFixedWarmStart((physicsJointFixed *)joint, bodyA, bodyB);
+	physJointFixedWarmStart(joint, bodyA, bodyB);
 	#endif
 }
 
@@ -329,7 +337,9 @@ void physJointFixedPresolve(
 ** This may be called multiple times with sequential impulse.
 */
 void physJointFixedSolveVelocity(
-	void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB
+	physicsJointFixed *const restrict joint,
+	physicsRigidBody *const restrict bodyA,
+	physicsRigidBody *const restrict bodyB
 ){
 
 	vec3 relativeVelocity;
@@ -343,7 +353,7 @@ void physJointFixedSolveVelocity(
 	#warning "We didn't differentiate the quaternions properly."
 	{
 		#ifdef PHYSJOINTFIXED_ACCURATE_ANGULAR_MASS
-		const quat qR = ((physicsJointFixed *)joint)->qR;
+		const quat qR = joint->qR;
 		//          [ q_w, -q_z,  q_y]
 		// Q_L(q) = [ q_z,  q_w, -q_x].
 		//          [-q_y,  q_x,  q_w]
@@ -376,13 +386,13 @@ void physJointFixedSolveVelocity(
 		#endif
 
 		// Subtract the bias term.
-		vec3SubtractVec3P1(&impulse, &((physicsJointFixed *)joint)->angularBias);
+		vec3SubtractVec3P1(&impulse, &joint->angularBias);
 
 		// Solve for the linear impulse:
 		// J2*V + b2 = C2' + b2,
 		// K2*lambda = -(J2*V + b2).
-		mat3MultiplyVec3(&((physicsJointFixed *)joint)->angularInvMass, &impulse);
-		vec3AddVec3(&((physicsJointFixed *)joint)->angularImpulse, &impulse);
+		mat3MultiplyVec3(&joint->angularInvMass, &impulse);
+		vec3AddVec3(&joint->angularImpulse, &impulse);
 
 		// Apply the correctional impulse.
 		physRigidBodyApplyAngularImpulseInverse(bodyA, impulse);
@@ -399,28 +409,28 @@ void physJointFixedSolveVelocity(
 
 		// Calculate the total velocity of the
 		// socket and store it in "relativeVelocity".
-		vec3CrossVec3Out(&bodyA->angularVelocity, &((physicsJointFixed *)joint)->rA, &relativeVelocity);
+		vec3CrossVec3Out(&bodyA->angularVelocity, &joint->rA, &relativeVelocity);
 		vec3AddVec3(&relativeVelocity, &bodyA->linearVelocity);
 		// Calculate the total velocity of
 		// the ball and store it in "impulse".
-		vec3CrossVec3Out(&bodyB->angularVelocity, &((physicsJointFixed *)joint)->rB, &impulse);
+		vec3CrossVec3Out(&bodyB->angularVelocity, &joint->rB, &impulse);
 		vec3AddVec3(&impulse, &bodyB->linearVelocity);
 		// Calculate the relative velocity between the ball and socket.
 		// Note that we actually compute "-v_relative" and store it in "impulse".
 		vec3SubtractVec3P2(&relativeVelocity, &impulse);
 		// Subtract the bias term from the negative relative velocity.
-		vec3SubtractVec3P1(&impulse, &((physicsJointFixed *)joint)->linearBias);
+		vec3SubtractVec3P1(&impulse, &joint->linearBias);
 
 
 		// Solve for the linear impulse:
 		// J1*V + b1 = v_relative + b1,
 		// K1*lambda = -(J1*V + b1).
-		mat3MultiplyVec3(&((physicsJointFixed *)joint)->linearInvMass, &impulse);
-		vec3AddVec3(&((physicsJointFixed *)joint)->linearImpulse, &impulse);
+		mat3MultiplyVec3(&joint->linearInvMass, &impulse);
+		vec3AddVec3(&joint->linearImpulse, &impulse);
 
 		// Apply the correctional impulse.
-		physRigidBodyApplyImpulseInverse(bodyA, &((physicsJointFixed *)joint)->rA, &impulse);
-		physRigidBodyApplyImpulse(bodyB, &((physicsJointFixed *)joint)->rB, &impulse);
+		physRigidBodyApplyImpulseInverse(bodyA, &joint->rA, &impulse);
+		physRigidBodyApplyImpulse(bodyB, &joint->rB, &impulse);
 	}
 }
 
@@ -431,7 +441,9 @@ void physJointFixedSolveVelocity(
 ** the amount of error we'll know when to stop.
 */
 return_t physJointFixedSolvePosition(
-	const void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB
+	const physicsJointFixed *const restrict joint,
+	physicsRigidBody *const restrict bodyA,
+	physicsRigidBody *const restrict bodyB
 ){
 
 	#ifdef PHYSJOINTFIXED_STABILISER_GAUSS_SEIDEL
@@ -448,8 +460,8 @@ return_t physJointFixedSolvePosition(
 		quat rotOffsetGlobalB;
 
 		// Get the global constraint orientations for the rigid bodies.
-		quatMultiplyQuatOut(bodyA->state.rot, ((physicsJointFixed *)joint)->rotOffsetA, &qR);
-		quatMultiplyQuatOut(bodyB->state.rot, ((physicsJointFixed *)joint)->rotOffsetB, &rotOffsetGlobalB);
+		quatMultiplyQuatOut(bodyA->state.rot, joint->rotOffsetA, &qR);
+		quatMultiplyQuatOut(bodyB->state.rot, joint->rotOffsetB, &rotOffsetGlobalB);
 		// Get the relative orientation from body A to body B:
 		// qR = (qB*RB)*conj(qA*RA).
 		quatMultiplyQuatConjP2(rotOffsetGlobalB, &qR);
@@ -482,9 +494,9 @@ return_t physJointFixedSolvePosition(
 		vec3 rA;
 		vec3 rB;
 
-		vec3SubtractVec3Out(&((physicsJointFixed *)joint)->anchorA, &bodyA->base->centroid, &rA);
+		vec3SubtractVec3Out(&joint->anchorA, &bodyA->base->centroid, &rA);
 		transformDirection(&bodyA->state, &rA);
-		vec3SubtractVec3Out(&((physicsJointFixed *)joint)->anchorB, &bodyB->base->centroid, &rB);
+		vec3SubtractVec3Out(&joint->anchorB, &bodyB->base->centroid, &rB);
 		transformDirection(&bodyB->state, &rB);
 
 		// Calculate the displacement from the ball to the socket:
@@ -524,7 +536,8 @@ return_t physJointFixedSolvePosition(
 */
 static void updateConstraintData(
 	physicsJointFixed *const restrict joint,
-	const physicsRigidBody *const restrict bodyA, const physicsRigidBody *const restrict bodyB
+	const physicsRigidBody *const restrict bodyA,
+	const physicsRigidBody *const restrict bodyB
 ){
 
 	#ifdef PHYSJOINTFIXED_ACCURATE_ANGULAR_MASS
@@ -553,7 +566,8 @@ static void updateConstraintData(
 */
 static void calculateLinearMass(
 	const vec3 rA, const vec3 rB,
-	const physicsRigidBody *const restrict bodyA, const physicsRigidBody *const restrict bodyB,
+	const physicsRigidBody *const restrict bodyA,
+	const physicsRigidBody *const restrict bodyB,
 	mat3 *const restrict linearMass
 ){
 

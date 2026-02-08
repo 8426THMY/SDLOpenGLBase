@@ -68,17 +68,25 @@ void physJointFixedInit(
 #ifdef PHYSJOINTFIXED_WARM_START
 void physJointFixedWarmStart(
 	const physicsJointFixed *const restrict joint,
-	physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB
+	physicsRigidBody *const restrict bodyA,
+	physicsRigidBody *const restrict bodyB
 );
 #endif
 void physJointFixedPresolve(
-	void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB, const float dt
+	physicsJointFixed *const restrict joint,
+	physicsRigidBody *const restrict bodyA,
+	physicsRigidBody *const restrict bodyB,
+	const float dt
 );
 void physJointFixedSolveVelocity(
-	void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB
+	physicsJointFixed *const restrict joint,
+	physicsRigidBody *const restrict bodyA,
+	physicsRigidBody *const restrict bodyB
 );
 return_t physJointFixedSolvePosition(
-	const void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB
+	const physicsJointFixed *const restrict joint,
+	physicsRigidBody *const restrict bodyA,
+	physicsRigidBody *const restrict bodyB
 );
 
 

@@ -118,34 +118,6 @@ void mat3x4InitEulerXYZ(mat3x4 *const restrict m, const float x, const float y, 
 	m->m[3][2] = 0.f;
 }
 
-// Initialize a matrix from ZXY Euler angles (in radians)!
-void mat3x4InitEulerZXY(mat3x4 *const restrict m, const float x, const float y, const float z){
-	const float cx = cosf(x);
-	const float sx = sinf(x);
-	const float cy = cosf(y);
-	const float sy = sinf(y);
-	const float cz = cosf(z);
-	const float sz = sinf(z);
-	const float sxsy = sx * sy;
-	const float sxcy = sx * cy;
-
-	m->m[0][0] = sxsy*sz + cy*cz;
-	m->m[0][1] = cx*sz;
-	m->m[0][2] = sxcy*sz - sy*cz;
-
-	m->m[1][0] = sxsy*cz - cy*sz;
-	m->m[1][1] = cx*cz;
-	m->m[1][2] = sxcy*cz + sy*sz;
-
-	m->m[2][0] = cx*sy;
-	m->m[2][1] = -sx;
-	m->m[2][2] = cx*cy;
-
-	m->m[3][0] = 0.f;
-	m->m[3][1] = 0.f;
-	m->m[3][2] = 0.f;
-}
-
 // Initialize a matrix from XYZ Euler angles (in radians)!
 mat3x4 mat3x4InitEulerXYZC(const float x, const float y, const float z){
 	const float cx = cosf(x);
@@ -177,6 +149,34 @@ mat3x4 mat3x4InitEulerXYZC(const float x, const float y, const float z){
 
 
 	return(m);
+}
+
+// Initialize a matrix from ZXY Euler angles (in radians)!
+void mat3x4InitEulerZXY(mat3x4 *const restrict m, const float x, const float y, const float z){
+	const float cx = cosf(x);
+	const float sx = sinf(x);
+	const float cy = cosf(y);
+	const float sy = sinf(y);
+	const float cz = cosf(z);
+	const float sz = sinf(z);
+	const float sxsy = sx * sy;
+	const float sxcy = sx * cy;
+
+	m->m[0][0] = sxsy*sz + cy*cz;
+	m->m[0][1] = cx*sz;
+	m->m[0][2] = sxcy*sz - sy*cz;
+
+	m->m[1][0] = sxsy*cz - cy*sz;
+	m->m[1][1] = cx*cz;
+	m->m[1][2] = sxcy*cz + sy*sz;
+
+	m->m[2][0] = cx*sy;
+	m->m[2][1] = -sx;
+	m->m[2][2] = cx*cy;
+
+	m->m[3][0] = 0.f;
+	m->m[3][1] = 0.f;
+	m->m[3][2] = 0.f;
 }
 
 // Initialize a matrix from ZXY Euler angles (in radians)!
@@ -240,34 +240,6 @@ void mat3x4InitEulerVec3XYZ(mat3x4 *const restrict m, const vec3 *const restrict
 	m->m[3][2] = 0.f;
 }
 
-// Initialize a matrix from ZXY Euler angles (in radians)!
-void mat3x4InitEulerVec3ZXY(mat3x4 *const restrict m, const vec3 *const restrict v){
-	const float cx = cosf(v->x);
-	const float sx = sinf(v->x);
-	const float cy = cosf(v->y);
-	const float sy = sinf(v->y);
-	const float cz = cosf(v->z);
-	const float sz = sinf(v->z);
-	const float sxsy = sx * sy;
-	const float sxcy = sx * cy;
-
-	m->m[0][0] = sxsy*sz + cy*cz;
-	m->m[0][1] = cx*sz;
-	m->m[0][2] = sxcy*sz - sy*cz;
-
-	m->m[1][0] = sxsy*cz - cy*sz;
-	m->m[1][1] = cx*cz;
-	m->m[1][2] = sxcy*cz + sy*sz;
-
-	m->m[2][0] = cx*sy;
-	m->m[2][1] = -sx;
-	m->m[2][2] = cx*cy;
-
-	m->m[3][0] = 0.f;
-	m->m[3][1] = 0.f;
-	m->m[3][2] = 0.f;
-}
-
 // Initialize a matrix from XYZ Euler angles (in radians)!
 mat3x4 mat3x4InitEulerVec3XYZC(const vec3 v){
 	const float cx = cosf(v.x);
@@ -299,6 +271,34 @@ mat3x4 mat3x4InitEulerVec3XYZC(const vec3 v){
 
 
 	return(m);
+}
+
+// Initialize a matrix from ZXY Euler angles (in radians)!
+void mat3x4InitEulerVec3ZXY(mat3x4 *const restrict m, const vec3 *const restrict v){
+	const float cx = cosf(v->x);
+	const float sx = sinf(v->x);
+	const float cy = cosf(v->y);
+	const float sy = sinf(v->y);
+	const float cz = cosf(v->z);
+	const float sz = sinf(v->z);
+	const float sxsy = sx * sy;
+	const float sxcy = sx * cy;
+
+	m->m[0][0] = sxsy*sz + cy*cz;
+	m->m[0][1] = cx*sz;
+	m->m[0][2] = sxcy*sz - sy*cz;
+
+	m->m[1][0] = sxsy*cz - cy*sz;
+	m->m[1][1] = cx*cz;
+	m->m[1][2] = sxcy*cz + sy*sz;
+
+	m->m[2][0] = cx*sy;
+	m->m[2][1] = -sx;
+	m->m[2][2] = cx*cy;
+
+	m->m[3][0] = 0.f;
+	m->m[3][1] = 0.f;
+	m->m[3][2] = 0.f;
 }
 
 // Initialize a matrix from ZXY Euler angles (in radians)!
@@ -592,6 +592,63 @@ mat3x4 mat3x4InitShearQuatC(const vec3 v, const quat q){
 	m.m[3][0] = 0.f;
 	m.m[3][1] = 0.f;
 	m.m[3][2] = 0.f;
+
+	return(m);
+}
+
+/*
+** Construct a matrix that reflects by the specified plane.
+** We assume that the plane's normal component is unit length.
+** This should be multipled by matrices on the left!
+*/
+void mat3x4InitReflect(mat3x4 *const restrict m, const vec4 *const restrict plane){
+	const float x2 = 2.f*plane->x;
+	const float y2 = 2.f*plane->y;
+	const float z2 = 2.f*plane->z;
+
+	m->m[0][0] = 1.f - x2*plane->x;
+	m->m[0][1] =     - x2*plane->y;
+	m->m[0][2] =     - x2*plane->z;
+
+	m->m[1][0] = m->m[0][1];
+	m->m[1][1] = 1.f - y2*plane->y;
+	m->m[1][2] =     - y2*plane->z;
+
+	m->m[2][0] = m->m[0][2];
+	m->m[2][1] = m->m[1][2];
+	m->m[2][2] = 1.f - z2*plane->z;
+
+	m->m[3][0] =     - x2*plane->w;
+	m->m[3][1] =     - y2*plane->w;
+	m->m[3][2] =     - z2*plane->w;
+}
+
+/*
+** Construct a matrix that reflects by the specified plane.
+** We assume that the plane's normal component is unit length.
+** This should be multipled by matrices on the left!
+*/
+mat3x4 mat3x4InitReflectC(const vec4 plane){
+	const float x2 = 2.f*plane.x;
+	const float y2 = 2.f*plane.y;
+	const float z2 = 2.f*plane.z;
+	mat3x4 m;
+
+	m.m[0][0] = 1.f - x2*plane.x;
+	m.m[0][1] =     - x2*plane.y;
+	m.m[0][2] =     - x2*plane.z;
+
+	m.m[1][0] = m.m[0][1];
+	m.m[1][1] = 1.f - y2*plane.y;
+	m.m[1][2] =     - y2*plane.z;
+
+	m.m[2][0] = m.m[0][2];
+	m.m[2][1] = m.m[1][2];
+	m.m[2][2] = 1.f - z2*plane.z;
+
+	m.m[3][0] =     - x2*plane.w;
+	m.m[3][1] =     - y2*plane.w;
+	m.m[3][2] =     - z2*plane.w;
 
 	return(m);
 }
@@ -1473,17 +1530,17 @@ void mat3x4RotateByEulerXYZ(mat3x4 *const restrict m, const float x, const float
 	mat3x4MultiplyMat3x4P2(rotMatrix, m);
 }
 
+// Rotate a matrix using XYZ Euler angles!
+mat3x4 mat3x4RotateByEulerXYZC(const mat3x4 m, const float x, const float y, const float z){
+	const mat3x4 rotMatrix = mat3x4InitEulerXYZC(x, y, z);
+	return(mat3x4MultiplyMat3x4C(rotMatrix, m));
+}
+
 // Rotate a matrix using ZXY Euler angles!
 void mat3x4RotateByEulerZXY(mat3x4 *const restrict m, const float x, const float y, const float z){
 	mat3x4 rotMatrix;
 	mat3x4InitEulerZXY(&rotMatrix, x, y, z);
 	mat3x4MultiplyMat3x4P2(rotMatrix, m);
-}
-
-// Rotate a matrix using XYZ Euler angles!
-mat3x4 mat3x4RotateByEulerXYZC(const mat3x4 m, const float x, const float y, const float z){
-	const mat3x4 rotMatrix = mat3x4InitEulerXYZC(x, y, z);
-	return(mat3x4MultiplyMat3x4C(rotMatrix, m));
 }
 
 // Rotate a matrix using ZXY Euler angles!
@@ -1497,14 +1554,14 @@ void mat3x4RotateByVec3EulerXYZ(mat3x4 *const restrict m, const vec3 *const rest
 	mat3x4RotateByEulerXYZ(m, v->x, v->y, v->z);
 }
 
-// Rotate a matrix by a vec3 using ZXY Euler angles!
-void mat3x4RotateByVec3EulerZXY(mat3x4 *const restrict m, const vec3 *const restrict v){
-	mat3x4RotateByEulerZXY(m, v->x, v->y, v->z);
-}
-
 // Rotate a matrix by a vec3 using XYZ Euler angles!
 mat3x4 mat3x4RotateByVec3EulerXYZC(const mat3x4 m, const vec3 v){
 	return(mat3x4RotateByEulerXYZC(m, v.x, v.y, v.z));
+}
+
+// Rotate a matrix by a vec3 using ZXY Euler angles!
+void mat3x4RotateByVec3EulerZXY(mat3x4 *const restrict m, const vec3 *const restrict v){
+	mat3x4RotateByEulerZXY(m, v->x, v->y, v->z);
 }
 
 // Rotate a matrix by a vec3 using ZXY Euler angles!
@@ -1931,6 +1988,117 @@ float mat3x4TraceC(const mat3x4 m){
 	return(m.m[0][0] + m.m[1][1] + m.m[2][2] + 1.f);
 }
 
+/*
+** Invert a 3x4 matrix treated as a 4x4 matrix! If we write
+**         [R, v]
+**     M = [0, 1],
+** for some 3x3 matrix R and 3x1 vector v, then we compute
+**              [R^{-1}, R^{-1}v]
+**     M^{-1} = [     0,       1].
+*/
+void mat3x4Invert(mat3x4 *const restrict m){
+	mat3 tempMatrix;
+
+	// Invert the upper-left 3x3 matrix.
+	mat3InitMat3x4(&tempMatrix, m);
+	mat3Invert(&tempMatrix);
+	// Copy the columns into our 3x4 matrix.
+	memcpy(m->m[0], tempMatrix.m[0], sizeof(tempMatrix.m[0]));
+	memcpy(m->m[1], tempMatrix.m[1], sizeof(tempMatrix.m[1]));
+	memcpy(m->m[2], tempMatrix.m[2], sizeof(tempMatrix.m[2]));
+	// Invert the translation column.
+	mat3MultiplyVec3(&tempMatrix, (vec3 *)m->m[3]);
+}
+
+/*
+** Invert a 3x4 matrix treated as a 4x4 matrix
+** and store the result in "out"! If we write
+**         [R, v]
+**     M = [0, 1],
+** for some 3x3 matrix R and 3x1 vector v, then we compute
+**              [R^{-1}, R^{-1}v]
+**     M^{-1} = [     0,       1].
+*/
+void mat3x4InvertOut(const mat3x4 m, mat3x4 *const restrict out){
+	mat3 tempMatrix;
+
+	// Invert the upper-left 3x3 matrix.
+	mat3InitMat3x4(&tempMatrix, &m);
+	mat3Invert(&tempMatrix);
+	// Copy the columns into our 3x4 matrix.
+	memcpy(out->m[0], tempMatrix.m[0], sizeof(tempMatrix.m[0]));
+	memcpy(out->m[1], tempMatrix.m[1], sizeof(tempMatrix.m[1]));
+	memcpy(out->m[2], tempMatrix.m[2], sizeof(tempMatrix.m[2]));
+	// Invert the translation column.
+	mat3MultiplyVec3Out(&tempMatrix, (const vec3 *)m.m[3], (vec3 *)out->m[3]);
+}
+
+/*
+** Invert a 3x4 matrix treated as a 4x4 matrix! If we write
+**         [R, v]
+**     M = [0, 1],
+** for some 3x3 matrix R and 3x1 vector v, then we compute
+**              [R^{-1}, R^{-1}v]
+**     M^{-1} = [     0,       1].
+*/
+mat3x4 mat3x4InvertC(const mat3x4 m){
+	// Invert the upper-left 3x3 matrix.
+	const mat3 tempMatrix = mat3InvertC(mat3InitMat3x4C(m));
+
+	mat3x4 out;
+	// Copy the columns into our 3x4 matrix.
+	memcpy(out.m[0], tempMatrix.m[0], sizeof(tempMatrix.m[0]));
+	memcpy(out.m[1], tempMatrix.m[1], sizeof(tempMatrix.m[1]));
+	memcpy(out.m[2], tempMatrix.m[2], sizeof(tempMatrix.m[2]));
+	// Invert the translation column.
+	*((vec3 *)out.m[3]) = mat3MultiplyVec3C(tempMatrix, *((const vec3 *)m.m[3]));
+
+	return(out);
+}
+
+// Invert a 3x4 matrix and return whether or not we were successful!
+return_t mat3x4CanInvert(mat3x4 *const restrict m){
+	mat3 tempMatrix;
+
+	// Invert the upper-left 3x3 matrix.
+	mat3InitMat3x4(&tempMatrix, m);
+	if(mat3CanInvert(&tempMatrix)){
+		// Copy the columns into our 3x4 matrix.
+		memcpy(m->m[0], tempMatrix.m[0], sizeof(tempMatrix.m[0]));
+		memcpy(m->m[1], tempMatrix.m[1], sizeof(tempMatrix.m[1]));
+		memcpy(m->m[2], tempMatrix.m[2], sizeof(tempMatrix.m[2]));
+		// Invert the translation column.
+		mat3MultiplyVec3(&tempMatrix, (vec3 *)m->m[3]);
+
+		return(1);
+	}
+
+	return(0);
+}
+
+/*
+** Invert a 3x4 matrix, storing the result in "out"
+** and returning whether or not we were successful!
+*/
+return_t mat3x4CanInvertOut(const mat3x4 m, mat3x4 *const restrict out){
+	mat3 tempMatrix;
+
+	// Invert the upper-left 3x3 matrix.
+	mat3InitMat3x4(&tempMatrix, &m);
+	if(mat3CanInvert(&tempMatrix)){
+		// Copy the columns into our 3x4 matrix.
+		memcpy(out->m[0], tempMatrix.m[0], sizeof(tempMatrix.m[0]));
+		memcpy(out->m[1], tempMatrix.m[1], sizeof(tempMatrix.m[1]));
+		memcpy(out->m[2], tempMatrix.m[2], sizeof(tempMatrix.m[2]));
+		// Invert the translation column.
+		mat3MultiplyVec3Out(&tempMatrix, (const vec3 *)m.m[3], (vec3 *)out->m[3]);
+
+		return(1);
+	}
+
+	return(0);
+}
+
 
 /*
 ** Initialize a view matrix from a position and a rotation!
@@ -1962,9 +2130,33 @@ void mat3x4View(
 
 	// Our matrices are column-major, so the rows are the basis vectors.
 	// We negate the dot products to effectively invert the translation.
-	m->m[3][0] = -vec3DotVec3((vec3 *)&rot->m[0], pos);
-	m->m[3][1] = -vec3DotVec3((vec3 *)&rot->m[1], pos);
-	m->m[3][2] = -vec3DotVec3((vec3 *)&rot->m[2], pos);
+	m->m[3][0] = -vec3DotVec3((vec3 *)rot->m[0], pos);
+	m->m[3][1] = -vec3DotVec3((vec3 *)rot->m[1], pos);
+	m->m[3][2] = -vec3DotVec3((vec3 *)rot->m[2], pos);
+}
+
+/*
+** Initialize a view matrix from a position and a rotation!
+** Recall that a view matrix can be generally written as
+**
+** V = (TR)^{-1},
+**
+** where R is a rotation to whatever we want to look at and
+** T is a translation to the camera's position.
+*/
+mat3x4 mat3x4ViewC(const vec3 pos, const mat3 rot){
+	const mat3x4 m = {
+		// We take the transpose of the rotation to invert it.
+		.m[0][0] = rot.m[0][0], .m[0][1] = rot.m[1][0], .m[0][2] = rot.m[2][0],
+		.m[1][0] = rot.m[0][1], .m[1][1] = rot.m[1][1], .m[1][2] = rot.m[2][1],
+		.m[2][0] = rot.m[0][2], .m[2][1] = rot.m[1][2], .m[2][2] = rot.m[2][2],
+		// Our matrices are column-major, so the rows are the basis vectors.
+		// We negate the dot products to effectively invert the translation.
+		.m[3][0] = -vec3DotVec3C(*((vec3 *)rot.m[0]), pos),
+		.m[3][1] = -vec3DotVec3C(*((vec3 *)rot.m[1]), pos),
+		.m[3][2] = -vec3DotVec3C(*((vec3 *)rot.m[2]), pos),
+	};
+	return(m);
 }
 
 /*
@@ -2011,33 +2203,9 @@ void mat3x4ViewQuat(
 
 	// Our matrices are column-major, so the rows are the basis vectors.
 	// We negate the dot products to effectively invert the translation.
-	m->m[3][0] = -vec3DotVec3((vec3 *)&m->m[0], pos);
-	m->m[3][1] = -vec3DotVec3((vec3 *)&m->m[1], pos);
-	m->m[3][2] = -vec3DotVec3((vec3 *)&m->m[2], pos);
-}
-
-/*
-** Initialize a view matrix from a position and a rotation!
-** Recall that a view matrix can be generally written as
-**
-** V = (TR)^{-1},
-**
-** where R is a rotation to whatever we want to look at and
-** T is a translation to the camera's position.
-*/
-mat3x4 mat3x4ViewC(const vec3 pos, const mat3 rot){
-	const mat3x4 m = {
-		// We take the transpose of the rotation to invert it.
-		.m[0][0] = rot.m[0][0], .m[0][1] = rot.m[1][0], .m[0][2] = rot.m[2][0],
-		.m[1][0] = rot.m[0][1], .m[1][1] = rot.m[1][1], .m[1][2] = rot.m[2][1],
-		.m[2][0] = rot.m[0][2], .m[2][1] = rot.m[1][2], .m[2][2] = rot.m[2][2],
-		// Our matrices are column-major, so the rows are the basis vectors.
-		// We negate the dot products to effectively invert the translation.
-		.m[3][0] = -vec3DotVec3C(*((vec3 *)&rot.m[0]), pos),
-		.m[3][1] = -vec3DotVec3C(*((vec3 *)&rot.m[1]), pos),
-		.m[3][2] = -vec3DotVec3C(*((vec3 *)&rot.m[2]), pos),
-	};
-	return(m);
+	m->m[3][0] = -vec3DotVec3((vec3 *)m->m[0], pos);
+	m->m[3][1] = -vec3DotVec3((vec3 *)m->m[1], pos);
+	m->m[3][2] = -vec3DotVec3((vec3 *)m->m[2], pos);
 }
 
 /*
@@ -2078,9 +2246,9 @@ mat3x4 mat3x4ViewQuatC(const vec3 pos, const quat q){
 	out.m[1][2] = 2.f*(temp1 + temp2);
 	out.m[2][1] = 2.f*(temp1 - temp2);
 
-	out.m[3][0] = -vec3DotVec3C(*((vec3 *)&out.m[0]), pos);
-	out.m[3][1] = -vec3DotVec3C(*((vec3 *)&out.m[1]), pos);
-	out.m[3][2] = -vec3DotVec3C(*((vec3 *)&out.m[2]), pos);
+	out.m[3][0] = -vec3DotVec3C(*((vec3 *)out.m[0]), pos);
+	out.m[3][1] = -vec3DotVec3C(*((vec3 *)out.m[1]), pos);
+	out.m[3][2] = -vec3DotVec3C(*((vec3 *)out.m[2]), pos);
 
 	return(out);
 }
@@ -2136,6 +2304,54 @@ mat3x4 mat3x4ViewLookAtC(const vec3 eye, const vec3 target, const vec3 worldUp){
 	};
 
 	return(m);
+}
+
+/*
+** Reflect the matrix "m" by the plane specified.
+** We assume that the plane's normal component is unit length.
+** This changes the handedness of our coordinate system!
+*/
+void mat3x4ViewReflect(mat3x4 *const restrict m, const vec4 *const restrict plane){
+	mat3x4 reflect;
+	mat3x4InitReflect(&reflect, plane);
+	// If M is the mirror matrix and V = (TR)^{-1} is the
+	// old view matrix, the new view matrix is given by
+	//     V' = (MTR)^{-1} = VM.
+	// Here, we use the fact that reflections are involutory.
+	mat3x4MultiplyMat3x4P1(m, reflect);
+}
+
+/*
+** Reflect a matrix by a plane and store the result in "out".
+** We assume that the plane's normal component is unit length.
+** This changes the handedness of our coordinate system!
+*/
+void mat3x4ViewReflectOut(
+	const mat3x4 *const restrict m,
+	const vec4 *const restrict plane,
+	mat3x4 *const restrict out
+){
+
+	mat3x4 reflect;
+	mat3x4InitReflect(&reflect, plane);
+	// If M is the mirror matrix and V = (TR)^{-1} is the
+	// old view matrix, the new view matrix is given by
+	//     V' = (MTR)^{-1} = VM.
+	// Here, we use the fact that reflections are involutory.
+	mat3x4MultiplyMat3x4Out(*m, reflect, out);
+}
+
+/*
+** Return the result of "m" reflected by the plane specified.
+** We assume that the plane's normal component is unit length.
+** This changes the handedness of our coordinate system!
+*/
+mat3x4 mat3x4ViewReflectC(const mat3x4 m, const vec4 plane){
+	// If M is the mirror matrix and V = (TR)^{-1} is the
+	// old view matrix, the new view matrix is given by
+	//     V' = (MTR)^{-1} = VM.
+	// Here, we use the fact that reflections are involutory.
+	return(mat3x4MultiplyMat3x4C(m, mat3x4InitReflectC(plane)));
 }
 
 

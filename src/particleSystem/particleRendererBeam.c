@@ -32,12 +32,12 @@ static void polyboardAddVertices(
 ** add an extra index for primitive restart.
 */
 size_t particleRendererBeamBatchSize(
-	const void *const restrict renderer, const size_t numParticles
+	const particleRendererBeam *const restrict renderer,
+	const size_t numParticles
 ){
 
 	return(
-		2*(numParticles + (numParticles - 1) *
-		renderer->data.beam.subdivisions) + 1
+		2*(numParticles + (numParticles - 1) * renderer->subdivisions) + 1
 	);
 }
 
@@ -50,7 +50,7 @@ size_t particleRendererBeamBatchSize(
 ** and Computer Graphics, Third Edition".
 */
 void particleRendererBeamBatch(
-	const void *const restrict renderer,
+	const particleRendererBeam *const restrict renderer,
 	spriteRenderer *const restrict batch,
 	const keyValue *const restrict keyValues, const size_t numParticles,
 	const camera *const restrict cam, const float dt
@@ -58,17 +58,15 @@ void particleRendererBeamBatch(
 
 	// A beam renderer needs at least two particles to draw.
 	if(numParticles >= 2){
-		const particleRendererBeam beamRenderer =
-			*((const particleRendererBeam *const)renderer);
 		// This is how much we should increment our
 		// spline parameter t for each subdivision.
-		const float subdivInc = 1.f/((float)(beamRenderer.subdivisions + 1);
+		const float subdivInc = 1.f/((float)(renderer->subdivisions + 1);
 		// Correct the tile width to account for subdivisions.
 		// If the tile width is set to zero, we should make
 		// the texture span the entire polyboard once.
-		const float tileWidthInc = (beamRenderer.tileWidth == 0.f) ?
+		const float tileWidthInc = (renderer->tileWidth == 0.f) ?
 			subdivInc/((float)(numParticles - 1)) :
-			subdivInc*beamRenderer.tileWidth;
+			subdivInc*renderer->tileWidth;
 
 		cubicSpline spline;
 		size_t curParticle = 0;
@@ -100,7 +98,7 @@ void particleRendererBeamBatch(
 			unsigned int curSubdiv = 0;
 			float t = subdivInc;
 			// Subdivide the beam between particles.
-			for(; curSubdiv <= beamRenderer.subdivisions; ++curSubdiv){
+			for(; curSubdiv <= renderer->subdivisions; ++curSubdiv){
 				vec3 nextPos;
 
 				// Compute the next interpolated position.
@@ -112,7 +110,7 @@ void particleRendererBeamBatch(
 				polyboardAddVertices(
 					batchedRenderer,
 					&curPos, &prevPos, &nextPos, camPos,
-					beamRenderer.halfWidth, tileWidth,
+					renderer->halfWidth, tileWidth,
 					&G, &H
 				);
 				tileWidth += tileWidthInc;
@@ -146,7 +144,7 @@ void particleRendererBeamBatch(
 		polyboardAddVertices(
 			batchedRenderer,
 			&curPos, &prevPos, &curPos, camPos,
-			beamRenderer.halfWidth, tileWidth,
+			renderer->halfWidth, tileWidth,
 			&G, &H
 		);
 		// Add them to the batch!

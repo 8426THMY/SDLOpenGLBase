@@ -38,7 +38,7 @@ typedef struct visCuller {
 
 typedef renderView renderView;
 void visCullerPopulateRenderView(
-	visCuller *const restrict vc,
+	const visCuller *const restrict vc,
 	renderView *const restrict view,
 	const unsigned int viewID,
 	const unsigned int frameID,
@@ -46,19 +46,6 @@ void visCullerPopulateRenderView(
 );
 
 void visCullerDelete(visCuller *const restrict vc);
-
-
-extern void (*const visCullerPopulateRenderViewTable[VISCULLER_NUM_TYPES])(
-	void *const restrict vc,
-	renderView *const restrict view,
-	const unsigned int viewID,
-	const unsigned int frameID,
-	const float dt
-);
-
-extern void (*const visCullerDeleteTable[VISCULLER_NUM_TYPES])(
-	void *const restrict vc
-);
 
 
 #endif

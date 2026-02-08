@@ -2,16 +2,11 @@
 #define renderTarget_h
 
 
+#include "framebuffer.h"
+
 #include "camera.h"
 #include "renderView.h"
 
-
-typedef struct renderViewport {
-	int x;
-	int y;
-	unsigned int width;
-	unsigned int height;
-} renderViewport;
 
 typedef struct renderTarget {
 	// Doubly linked list of views
@@ -23,8 +18,10 @@ typedef struct renderTarget {
 	// Views may have their own cameras, but
 	// we need a camera for the base view.
 	camera cam;
-	renderViewport viewport;
-	//renderFramebuffer *framebuffer;
+	// Multiple render targets may share the same
+	// framebuffer (splitscreen, for example).
+	framebuffer *fb;
+	framebufferViewport viewport;
 } renderTarget;
 
 

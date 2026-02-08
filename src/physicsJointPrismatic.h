@@ -87,16 +87,27 @@ typedef struct physicsRigidBody physicsRigidBody;
 void physJointPrismaticInit(physicsJointPrismatic *const restrict joint);
 
 #ifdef PHYSJOINTPRISMATIC_WARM_START
-void physJointPrismaticWarmStart(const physicsJointPrismatic *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB);
+void physJointPrismaticWarmStart(
+	const physicsJointPrismatic *const restrict joint,
+	physicsRigidBody *const restrict bodyA,
+	physicsRigidBody *const restrict bodyB
+);
 #endif
 void physJointPrismaticPresolve(
-	void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB, const float dt
+	physicsJointPrismatic *const restrict joint,
+	physicsRigidBody *const restrict bodyA,
+	physicsRigidBody *const restrict bodyB,
+	const float dt
 );
 void physJointPrismaticSolveVelocity(
-	void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB
+	physicsJointPrismatic *const restrict joint,
+	physicsRigidBody *const restrict bodyA,
+	physicsRigidBody *const restrict bodyB
 );
 return_t physJointPrismaticSolvePosition(
-	const void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB
+	const physicsJointPrismatic *const restrict joint,
+	physicsRigidBody *const restrict bodyA,
+	physicsRigidBody *const restrict bodyB
 );
 
 

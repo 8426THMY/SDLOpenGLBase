@@ -19,10 +19,11 @@ typedef struct particleRendererPoint {
 
 
 size_t particleRendererPointBatchSize(
-	const void *const restrict renderer, const size_t numParticles
+	const particleRendererPoint *const restrict renderer,
+	const size_t numParticles
 );
 void particleRendererPointBatch(
-	const void *const restrict renderer,
+	const particleRendererPoint *const restrict renderer,
 	spriteRenderer *const restrict batch,
 	const keyValue *const restrict keyValues, const size_t numParticles,
 	const camera *const restrict cam, const float dt

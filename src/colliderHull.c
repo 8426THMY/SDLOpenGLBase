@@ -108,14 +108,24 @@ typedef struct vertexProject {
 #warning "Ideally, this macro shouldn't exist. We should check if weights were specified, then call the correct functions."
 #ifdef COLLIDER_HULL_DEFAULT_VERTEX_WEIGHT
 static void generateCentroidWeighted(
-	const colliderHull *const restrict hull, const float *restrict vertexWeights, vec3 *const restrict centroid
+	const colliderHull *const restrict hull,
+	const float *restrict vertexWeights,
+	vec3 *const restrict centroid
 );
 static void generateInertiaWeighted(
-	const colliderHull *const restrict hull, const float *restrict vertexWeights, mat3 *const restrict inertia
+	const colliderHull *const restrict hull,
+	const float *restrict vertexWeights,
+	mat3 *const restrict inertia
 );
 #else
-static void generateCentroid(const colliderHull *const restrict hull, vec3 *const restrict centroid);
-static void generateInertia(const colliderHull *const restrict hull, mat3 *const restrict inertia);
+static void generateCentroid(
+	const colliderHull *const restrict hull,
+	vec3 *const restrict centroid
+);
+static void generateInertia(
+	const colliderHull *const restrict hull,
+	mat3 *const restrict inertia
+);
 #endif
 
 static void hullFaceDataInit(hullFaceData *const restrict faceData);
@@ -123,10 +133,14 @@ static void hullEdgeDataInit(hullEdgeData *const restrict edgeData);
 static void collisionDataInit(collisionData *const restrict cd);
 
 static return_t faceSeparation(
-	const colliderHull *const restrict hullA, const colliderHull *const restrict hullB, contactSeparation *const restrict cs
+	const colliderHull *const restrict hullA,
+	const colliderHull *const restrict hullB,
+	contactSeparation *const restrict cs
 );
 static return_t edgeSeparation(
-	const colliderHull *const restrict hullA, const colliderHull *const restrict hullB, contactSeparation *const restrict cs
+	const colliderHull *const restrict hullA,
+	const colliderHull *const restrict hullB,
+	contactSeparation *const restrict cs
 );
 
 static void clipManifoldSHC(
@@ -144,22 +158,35 @@ static float edgeDistSquared(
 );
 
 static return_t noSeparatingFace(
-	const colliderHull *const restrict hullA, const colliderHull *const restrict hullB, hullFaceData *const restrict faceData,
-	contactSeparation *const restrict separation, const separationType type
+	const colliderHull *const restrict hullA,
+	const colliderHull *const restrict hullB,
+	hullFaceData *const restrict faceData,
+	contactSeparation *const restrict separation,
+	const separationType type
 );
 static return_t noSeparatingEdge(
 	const colliderHull *const restrict hullA, const colliderHull *const restrict hullB,
 	hullEdgeData *const restrict edgeData, contactSeparation *const restrict separation
 );
 
-static colliderFaceIndex findIncidentFace(const colliderHull *const restrict hull, const vec3 *const restrict refNormal);
+static colliderFaceIndex findIncidentFace(
+	const colliderHull *const restrict hull,
+	const vec3 *const restrict refNormal
+);
 static void reduceContacts(
-	const vertexProject *const restrict vProj, const vertexProject *const restrict vLast, const vertexClip *const restrict vClip,
-	const vec3 *const restrict refNormal, const unsigned int swapped, contactManifold *const restrict cm
+	const vertexProject *const restrict vProj,
+	const vertexProject *const restrict vLast,
+	const vertexClip *const restrict vClip,
+	const vec3 *const restrict refNormal,
+	const unsigned int swapped,
+	contactManifold *const restrict cm
 );
 static void clipFaceContact(
-	const colliderHull *const restrict hullA, const colliderHull *const restrict hullB,
-	const colliderFaceIndex refIndex, const unsigned int swapped, contactManifold *const restrict cm
+	const colliderHull *const restrict hullA,
+	const colliderHull *const restrict hullB,
+	const colliderFaceIndex refIndex,
+	const unsigned int swapped,
+	contactManifold *const restrict cm
 );
 static void clipEdgeContact(
 	const colliderHull *const restrict hullA, const colliderHull *const restrict hullB,
@@ -172,23 +199,27 @@ void colliderHullInit(colliderHull *hull){
 	memset(hull, 0, sizeof(*hull));
 }
 
-void colliderHullInstantiate(void *const restrict hull, const void *const restrict base){
+void colliderHullInstantiate(
+	colliderHull *const restrict hull,
+	const colliderHull *const restrict base
+){
+
 	// Allocate memory for the instance's arrays.
-	((colliderHull *)hull)->vertices = memoryManagerGlobalAlloc(
-		sizeof(*(((colliderHull *)hull)->vertices)) * ((colliderHull *)base)->numVertices
+	hull->vertices = memoryManagerGlobalAlloc(
+		sizeof(*hull->vertices) * base->numVertices
 	);
-	if(((colliderHull *)hull)->vertices == NULL){
+	if(hull->vertices == NULL){
 		/** MALLOC FAILED **/
 	}
-	((colliderHull *)hull)->normals = memoryManagerGlobalAlloc(
-		sizeof(*(((colliderHull *)hull)->normals)) * ((colliderHull *)base)->numFaces
+	hull->normals = memoryManagerGlobalAlloc(
+		sizeof(*hull->normals) * base->numFaces
 	);
-	if(((colliderHull *)hull)->normals == NULL){
+	if(hull->normals == NULL){
 		/** MALLOC FAILED **/
 	}
 
 	// Copy the rest of the components over from the base collider.
-	memcpy(&((colliderHull *)hull)->faces, &((colliderHull *)base)->faces, COLLIDER_HULL_INSTANCE_STATIC_BYTES);
+	memcpy(&hull->faces, &base->faces, COLLIDER_HULL_INSTANCE_STATIC_BYTES);
 }
 
 
@@ -200,7 +231,7 @@ void colliderHullInstantiate(void *const restrict hull, const void *const restri
 ** and its moment of inertia tensor.
 */
 return_t colliderHullLoad(
-	void *const restrict hull, FILE *const restrict hullFile,
+	colliderHull *const restrict hull, FILE *const restrict hullFile,
 	vec3 *const restrict centroid, mat3 *const restrict inertia
 ){
 
@@ -528,7 +559,7 @@ return_t colliderHullLoad(
 		/** REALLOC FAILED **/
 	}
 
-	*((colliderHull *)hull) = tempHull;
+	*hull = tempHull;
 
 
 	return(1);
@@ -540,14 +571,14 @@ return_t colliderHullLoad(
 ** information supplied and, in doing so, generate a new bounding box.
 */
 void colliderHullUpdate(
-	void *const restrict hull, const vec3 *const restrict hullCentroid,
-	const void *const restrict base, const vec3 *const restrict baseCentroid,
+	colliderHull *const restrict hull, const vec3 *const restrict hullCentroid,
+	const colliderHull *const restrict base, const vec3 *const restrict baseCentroid,
 	const transform *const restrict trans, colliderAABB *const restrict aabb
 ){
 
-	vec3 *curFeature = ((colliderHull *)hull)->vertices;
-	const vec3 *baseFeature = ((colliderHull *)base)->vertices;
-	const vec3 *lastFeature = &curFeature[((colliderHull *)hull)->numVertices];
+	vec3 *curFeature = hull->vertices;
+	const vec3 *baseFeature = base->vertices;
+	const vec3 *lastFeature = &curFeature[hull->numVertices];
 	mat3 transMatrix;
 
 	// It's generally faster to transform by a matrix rather than a transform.
@@ -555,9 +586,9 @@ void colliderHullUpdate(
 	transformToMat3(trans, &transMatrix);
 
 	// Compute the collider's new centroid!
-	mat3MultiplyVec3Out(&transMatrix, &(((colliderHull *)base)->centroid), &(((colliderHull *)hull)->centroid));
+	mat3MultiplyVec3Out(&transMatrix, &base->centroid, &hull->centroid);
 	// Perform the translation manually.
-	vec3AddVec3(&(((colliderHull *)hull)->centroid), &trans->pos);
+	vec3AddVec3(&hull->centroid, &trans->pos);
 
 	// We can only update the hull's vertices if it actually has any.
 	if(curFeature < lastFeature){
@@ -605,9 +636,9 @@ void colliderHullUpdate(
 		}
 
 
-		curFeature = ((colliderHull *)hull)->normals;
-		baseFeature = ((colliderHull *)base)->normals;
-		lastFeature = &curFeature[((colliderHull *)hull)->numFaces];
+		curFeature = hull->normals;
+		baseFeature = base->normals;
+		lastFeature = &curFeature[hull->numFaces];
 
 		// The hull's faces have been rotated, so we
 		// need to scale and rotate their normals.
@@ -631,7 +662,11 @@ void colliderHullUpdate(
 
 
 // Return a pointer to the vertex farthest from the origin in the direction "dir".
-const vec3 *colliderHullSupport(const colliderHull *const restrict hull, const vec3 *const restrict dir){
+const vec3 *colliderHullSupport(
+	const colliderHull *const restrict hull,
+	const vec3 *const restrict dir
+){
+
 	const vec3 *bestVertex = hull->vertices;
 	float bestDistance = vec3DotVec3(bestVertex, dir);
 
@@ -654,18 +689,26 @@ const vec3 *colliderHullSupport(const colliderHull *const restrict hull, const v
 
 // Check if a separation still exists between two hulls.
 return_t colliderHullSeparated(
-	const void *const restrict hullA, const void *const restrict hullB, contactSeparation *const restrict cs
+	const void *const restrict hullA,
+	const void *const restrict hullB,
+	contactSeparation *const restrict cs
 ){
 
 	switch(cs->type){
 		case COLLIDER_HULL_SEPARATION_FACE_A:
-			return(faceSeparation(hullA, hullB, cs));
+			return(faceSeparation(
+				(colliderHull *)hullA, (colliderHull *)hullB, cs
+			));
 		break;
 		case COLLIDER_HULL_SEPARATION_FACE_B:
-			return(faceSeparation(hullB, hullA, cs));
+			return(faceSeparation(
+				(colliderHull *)hullB, (colliderHull *)hullA, cs
+			));
 		break;
 		default:
-			return(edgeSeparation(hullA, hullB, cs));
+			return(edgeSeparation(
+				(colliderHull *)hullA, (colliderHull *)hullB, cs
+			));
 	}
 }
 
@@ -704,27 +747,27 @@ return_t colliderHullCollidingSAT(
 }
 
 
-void colliderHullDeleteInstance(void *const restrict hull){
-	if(((colliderHull *)hull)->vertices != NULL){
-		memoryManagerGlobalFree(((colliderHull *)hull)->vertices);
+void colliderHullDeleteInstance(colliderHull *const restrict hull){
+	if(hull->vertices != NULL){
+		memoryManagerGlobalFree(hull->vertices);
 	}
-	if(((colliderHull *)hull)->normals != NULL){
-		memoryManagerGlobalFree(((colliderHull *)hull)->normals);
+	if(hull->normals != NULL){
+		memoryManagerGlobalFree(hull->normals);
 	}
 }
 
-void colliderHullDelete(void *const restrict hull){
-	if(((colliderHull *)hull)->vertices != NULL){
-		memoryManagerGlobalFree(((colliderHull *)hull)->vertices);
+void colliderHullDelete(colliderHull *const restrict hull){
+	if(hull->vertices != NULL){
+		memoryManagerGlobalFree(hull->vertices);
 	}
-	if(((colliderHull *)hull)->normals != NULL){
-		memoryManagerGlobalFree(((colliderHull *)hull)->normals);
+	if(hull->normals != NULL){
+		memoryManagerGlobalFree(hull->normals);
 	}
-	if(((colliderHull *)hull)->edges != NULL){
-		memoryManagerGlobalFree(((colliderHull *)hull)->edges);
+	if(hull->edges != NULL){
+		memoryManagerGlobalFree(hull->edges);
 	}
-	if(((colliderHull *)hull)->faces != NULL){
-		memoryManagerGlobalFree(((colliderHull *)hull)->faces);
+	if(hull->faces != NULL){
+		memoryManagerGlobalFree(hull->faces);
 	}
 }
 
@@ -736,7 +779,9 @@ void colliderHullDelete(void *const restrict hull){
 ** hull's vertices.
 */
 static void generateCentroidWeighted(
-	const colliderHull *const restrict hull, const float *restrict vertexWeights, vec3 *const restrict centroid
+	const colliderHull *const restrict hull,
+	const float *restrict vertexWeights,
+	vec3 *const restrict centroid
 ){
 
 	const colliderVertexIndex numVertices = hull->numVertices;
@@ -768,7 +813,9 @@ static void generateCentroidWeighted(
 ** greater contribution to the final tensor.
 */
 static void generateInertiaWeighted(
-	const colliderHull *const restrict hull, const float *restrict vertexWeights, mat3 *const restrict inertia
+	const colliderHull *const restrict hull,
+	const float *restrict vertexWeights,
+	mat3 *const restrict inertia
 ){
 
 	const vec3 *const centroid = &hull->centroid;
@@ -815,7 +862,11 @@ static void generateInertiaWeighted(
 ** To do this, we calculate the average of the
 ** hull's vertices.
 */
-static void generateCentroid(const colliderHull *const restrict hull, vec3 *const restrict centroid){
+static void generateCentroid(
+	const colliderHull *const restrict hull,
+	vec3 *const restrict centroid
+){
+
 	const colliderVertexIndex numVertices = hull->numVertices;
 
 	// We don't want to divide by zero.
@@ -838,7 +889,11 @@ static void generateCentroid(const colliderHull *const restrict hull, vec3 *cons
 }
 
 // Calculate the collider's inertia tensor.
-static void generateInertia(const colliderHull *const restrict hull, mat3 *const restrict inertia){
+static void generateInertia(
+	const colliderHull *const restrict hull,
+	mat3 *const restrict inertia
+){
+
 	const vec3 *const centroid = &hull->centroid;
 	const vec3 *curVertex = hull->vertices;
 	const vec3 *const lastVertex = &curVertex[hull->numVertices];
@@ -903,7 +958,9 @@ static void collisionDataInit(collisionData *const restrict cd){
 
 // Return whether a face separation between two convex hulls still exists.
 static return_t faceSeparation(
-	const colliderHull *const restrict hullA, const colliderHull *const restrict hullB, contactSeparation *const restrict cs
+	const colliderHull *const restrict hullA,
+	const colliderHull *const restrict hullB,
+	contactSeparation *const restrict cs
 ){
 
 	const vec3 *const normal = &hullA->normals[cs->featureA];
@@ -924,7 +981,9 @@ static return_t faceSeparation(
 
 // Return whether an edge separation between two convex hulls still exists.
 static return_t edgeSeparation(
-	const colliderHull *const restrict hullA, const colliderHull *const restrict hullB, contactSeparation *const restrict cs
+	const colliderHull *const restrict hullA,
+	const colliderHull *const restrict hullB,
+	contactSeparation *const restrict cs
 ){
 
 	const colliderHullEdge *const edgeA = &hullA->edges[cs->featureA];
@@ -1076,7 +1135,12 @@ static float edgeDistSquared(
 	vec3CrossVec3Out(edgeDirA, edgeDirB, &edgeNormal);
 	edgeNormalMagnitude = vec3MagnitudeSquaredVec3(&edgeNormal);
 	// If the two edges are parallel, we can exit early.
-	if(edgeNormalMagnitude < COLLISION_PARALLEL_THRESHOLD_SQUARED * vec3MagnitudeSquaredVec3(edgeDirA) * vec3MagnitudeSquaredVec3(edgeDirB)){
+	if(
+		edgeNormalMagnitude < COLLISION_PARALLEL_THRESHOLD_SQUARED *
+		                      vec3MagnitudeSquaredVec3(edgeDirA) *
+		                      vec3MagnitudeSquaredVec3(edgeDirB)
+	){
+
 		return(-INFINITY);
 	}
 
@@ -1106,8 +1170,11 @@ static float edgeDistSquared(
 ** the variable "faceData".
 */
 static return_t noSeparatingFace(
-	const colliderHull *const restrict hullA, const colliderHull *const restrict hullB, hullFaceData *const restrict faceData,
-	contactSeparation *const restrict separation, const separationType type
+	const colliderHull *const restrict hullA,
+	const colliderHull *const restrict hullB,
+	hullFaceData *const restrict faceData,
+	contactSeparation *const restrict separation,
+	const separationType type
 ){
 
 	const vec3 *curNormal = hullA->normals;
@@ -1228,7 +1295,11 @@ static return_t noSeparatingEdge(
 ** is defined as the face farthest in the direction
 ** opposite the reference face's normal.
 */
-static colliderFaceIndex findIncidentFace(const colliderHull *const restrict hull, const vec3 *const restrict refNormal){
+static colliderFaceIndex findIncidentFace(
+	const colliderHull *const restrict hull,
+	const vec3 *const restrict refNormal
+){
+
 	const vec3 *curNormal = hull->normals;
 	colliderFaceIndex bestFace = 0;
 	float bestDistance = vec3DotVec3(curNormal, refNormal);
@@ -1254,8 +1325,12 @@ static colliderFaceIndex findIncidentFace(const colliderHull *const restrict hul
 ** the greatest total area.
 */
 static void reduceContacts(
-	const vertexProject *const restrict vProj, const vertexProject *const restrict vLast, const vertexClip *const restrict vClip,
-	const vec3 *const restrict refNormal, const unsigned int swapped, contactManifold *const restrict cm
+	const vertexProject *const restrict vProj,
+	const vertexProject *const restrict vLast,
+	const vertexClip *const restrict vClip,
+	const vec3 *const restrict refNormal,
+	const unsigned int swapped,
+	contactManifold *const restrict cm
 ){
 
 	// We start with our best and worst vertices as the
@@ -1365,8 +1440,11 @@ static void reduceContacts(
 ** "hullA" and the incident face is always assumed to be on "hullB".
 */
 static void clipFaceContact(
-	const colliderHull *const restrict hullA, const colliderHull *const restrict hullB,
-	const colliderFaceIndex refIndex, const unsigned int swapped, contactManifold *const restrict cm
+	const colliderHull *const restrict hullA,
+	const colliderHull *const restrict hullB,
+	const colliderFaceIndex refIndex,
+	const unsigned int swapped,
+	contactManifold *const restrict cm
 ){
 
 	// Meshes store the number of edges that their largest faces have,

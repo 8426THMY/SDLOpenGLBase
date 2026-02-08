@@ -154,7 +154,10 @@
 ** Such values include the effective mass and the bias.
 */
 void physJointRevolutePresolve(
-	void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB, const float dt
+	physicsJointRevolute *const restrict joint,
+	physicsRigidBody *const restrict bodyA,
+	physicsRigidBody *const restrict bodyB,
+	const float dt
 ){
 
 	//
@@ -166,7 +169,9 @@ void physJointRevolutePresolve(
 ** This may be called multiple times with sequential impulse.
 */
 void physJointRevoluteSolveVelocity(
-	void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB
+	physicsJointRevolute *const restrict joint,
+	physicsRigidBody *const restrict bodyA,
+	physicsRigidBody *const restrict bodyB
 ){
 
 	//
@@ -179,7 +184,9 @@ void physJointRevoluteSolveVelocity(
 ** the amount of error we'll know when to stop.
 */
 return_t physJointRevoluteSolvePosition(
-	const void *const restrict joint, physicsRigidBody *const restrict bodyA, physicsRigidBody *const restrict bodyB
+	const physicsJointRevolute *const restrict joint,
+	physicsRigidBody *const restrict bodyA,
+	physicsRigidBody *const restrict bodyB
 ){
 
 	#ifdef PHYSJOINTREVOLUTE_STABILISER_GAUSS_SEIDEL

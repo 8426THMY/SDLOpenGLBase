@@ -9,7 +9,8 @@
 
 // The batch size is just the number of instances.
 size_t particleRendererMeshBatchSize(
-	const void *const restrict renderer, const size_t numParticles
+	const particleRendererMesh *const restrict renderer,
+	const size_t numParticles
 ){
 
 	return(numParticles);
@@ -20,7 +21,7 @@ size_t particleRendererMeshBatchSize(
 ** each particle system node in the array specified.
 */
 void particleRendererMeshBatch(
-	const void *const restrict renderer,
+	const particleRendererMesh *const restrict renderer,
 	spriteRenderer *const restrict batch,
 	const keyValue *const restrict keyValues, const size_t numParticles,
 	const camera *const restrict cam, const float dt
