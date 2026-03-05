@@ -35,8 +35,10 @@ return_t colliderLoad(
 		case 0:
 			return(colliderHullLoad(&c->data.hull, cFile, centroid, inertia));
 		break;
+		default:
+			return(0);
 	}
-	return(0);
+	
 }
 
 // Update a collider instance and return its new bounding box.

@@ -51,8 +51,9 @@ textureGroup g_texGroupDefault = {
 	.texAnims = &texGroupAnimDefault,
 	.numAnims = 1
 };
-// A lot of structures store arrays of texture group pointers,
-// so it's useful to have a double pointer on the stack.
+// A lot of structures store arrays of texture group pointers.
+// By having a pointer on the stack, we can create a double pointer
+// to the default texture group without any memory allocation.
 textureGroup *g_texGroupArrayDefault = &g_texGroupDefault;
 
 

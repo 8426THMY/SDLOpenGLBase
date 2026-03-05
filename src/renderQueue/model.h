@@ -9,7 +9,7 @@
 
 #include "mesh.h"
 #include "skeleton.h"
-#include "textureGroup.h"
+#include "material.h"
 
 #include "colliderAABB.h"
 #include "collider.h"
@@ -51,7 +51,7 @@ typedef struct modelDef {
 	// This is an array of texture group pointers, one per mesh.
 	// The texture groups are stored in their respective allocator.
 	#warning "Maybe we should have texture groups in the same sense as the Source engine?"
-	textureGroup **texGroups;
+	materialDef **mats;
 	size_t numMeshes;
 
 	skeleton *skele;
@@ -84,7 +84,7 @@ typedef struct model {
 
 	// The size of this array should
 	// always be equal to "mdlDef->numMeshes".
-	textureGroupState *texStates;
+	material *mats;
 
 	// Controls the object's position, orientation and scale.
 	// This transformation is applied to the root bone during animation.
@@ -95,8 +95,6 @@ typedef struct model {
 	// This can be used by physics or to simply move the object.
 	boneState *boneTransforms;
 	// Stores the skeleton and animations that this object is using.
-	#warning "We shouldn't have skeleton states store another skeleton pointer."
-	#warning "Instead, we should have animations store lookups into the model's skeleton."
 	skeletonState skeleState;
 
 	// Array of colliders stored in global space.

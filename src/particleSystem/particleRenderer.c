@@ -51,8 +51,9 @@ size_t particleRendererBatchSize(
 				&renderer->data.meshRenderer, numParticles
 			));
 		break;
+		default:
+			return(0);
 	}
-	return(0);
 }
 
 /*

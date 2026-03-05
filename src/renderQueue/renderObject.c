@@ -13,8 +13,9 @@ return_t renderObjInFrustum(
 		case RENDEROBJECT_PARTICLE_SYSTEM:
 			return(particleSysInFrustum(&obj->data.partSys, frustum));
 		break;
+		default:
+			return(0);
 	}
-	return(0);
 }
 
 renderQueueID renderObjGetRenderQueueKey(
@@ -29,8 +30,9 @@ renderQueueID renderObjGetRenderQueueKey(
 		case RENDEROBJECT_PARTICLE_SYSTEM:
 			return(particleSysGetRenderQueueKey(&obj->data.partSys, key));
 		break;
+		default:
+			return(0);
 	}
-	return(0);
 }
 
 void renderObjUpdateGlobalTransform(
@@ -59,8 +61,9 @@ renderQueueKey renderObjPreDraw(
 		case RENDEROBJECT_PARTICLE_SYSTEM:
 			particleSysPreDraw(&obj->data.partSys, view);
 		break;
+		default:
+			return(0);
 	}
-	return(0);
 }
 
 void renderObjDraw(const renderObject *const restrict obj){

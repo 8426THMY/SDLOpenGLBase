@@ -63,7 +63,7 @@ typedef struct skeletonAnimDef {
 // Stores data for an entity-specific instance of an animation.
 typedef struct skeletonAnim {
 	// Pointer to the animation being used.
-	skeletonAnimDef *animDef;
+	const skeletonAnimDef *animDef;
 
 	// For each bone in the owner's skeleton, store the
 	// index of the corresponding bone in the animation.
@@ -102,7 +102,7 @@ void skeleInitSet(
 );
 void skeleAnimDefInit(skeletonAnimDef *animDef);
 void skeleAnimInit(
-	skeletonAnim *const restrict anim, skeletonAnimDef *const restrict animDef,
+	skeletonAnim *const restrict anim, const skeletonAnimDef *const restrict animDef,
 	const skeleton *const restrict skele, const float speed, const float intensity
 );
 void skeleStateInit(skeletonState *const restrict skeleState, const skeleton *const restrict skele);

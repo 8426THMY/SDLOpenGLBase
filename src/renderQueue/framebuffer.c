@@ -31,7 +31,8 @@ void framebufferBind(
 }
 
 void framebufferDelete(framebuffer *const restrict fb){
-	if(fb->id != FRAMEBUFFER_DEFAULT_ID){
-		glDeleteFramebuffers(1, &fb->id);
+	glDeleteFramebuffers(1, &fb->id);
+	if(curFramebufferID == fb->id){
+		curFramebufferID = FRAMEBUFFER_DEFAULT_ID;
 	}
 }

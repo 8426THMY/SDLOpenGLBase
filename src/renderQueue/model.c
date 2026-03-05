@@ -8,6 +8,8 @@
 #include "mat3x4.h"
 #include "transform.h"
 
+#include "shader.h"
+
 #include "memoryManager.h"
 #include "moduleModel.h"
 #include "moduleSkeleton.h"
@@ -39,7 +41,7 @@ modelDef g_mdlDefDefault = {
 	.name      = "error",
 
 	.meshes    = &mdlDefMeshDefault,
-	.texGroups = &g_texGroupArrayDefault,
+	.mats      = &g_materialDefArrayDefault,
 	.numMeshes = 1,
 
 	.skele     = &g_skeleDefault,
@@ -64,7 +66,7 @@ modelDef g_mdlDefDefault = {
 // We need to store an array of vertices and indices for each mesh
 // we're loading. We use a separate mesh for each texture group.
 typedef struct modelMeshData {
-	char *texGroupPath;
+	char *materialPath;
 
 	modelVertexIndex tempVerticesSize;
 	modelVertexIndex tempVerticesCapacity;
@@ -86,19 +88,19 @@ void modelInit(model *const restrict mdl, const modelDef *const restrict mdlDef)
 
 	// Allocate an array of texture group states for the model.
 	// Note that "mdl->numMeshes" is always greater than zero.
-	mdl->texStates = memoryManagerGlobalAlloc(mdlDef->numMeshes * sizeof(*mdl->texStates));
-	if(mdl->texStates == NULL){
+	mdl->mats = memoryManagerGlobalAlloc(mdlDef->numMeshes * sizeof(*mdl->mats));
+	if(mdl->mats == NULL){
 		/** MALLOC FAILED **/
 	}else{
-		const textureGroup **curTexGroup = (const textureGroup **)mdlDef->texGroups;
-		textureGroupState *curTexState = mdl->texStates;
-		const textureGroupState *const lastTexState = &curTexState[mdlDef->numMeshes];
+		const materialDef **curMatDef = (const materialDef **)mdlDef->mats;
+		material *curMat = mdl->mats;
+		const material *const lastMat = &curMat[mdlDef->numMeshes];
 		do {
-			texGroupStateInit(curTexState, *curTexGroup);
+			materialInit(curMat, *curMatDef);
 
-			++curTexGroup;
-			++curTexState;
-		} while(curTexState < lastTexState);
+			++curMatDef;
+			++curMat;
+		} while(curMat < lastMat);
 	}
 
 	transformInit(&mdl->state);
@@ -267,11 +269,11 @@ modelDef *modelDefOBJLoad(const char *const restrict mdlDefPath, const size_t md
 
 			// Texture group path.
 			}else if(lineLength >= 8 && memcmp(line, "usemtl ", 7) == 0){
-				char *const texGroupPath = memoryManagerGlobalAlloc((lineLength - 6) * sizeof(*texGroupPath));
-				if(texGroupPath == NULL){
+				char *const materialPath = memoryManagerGlobalAlloc((lineLength - 6) * sizeof(*materialPath));
+				if(materialPath == NULL){
 					/** MALLOC FAILED **/
 				}
-				fileParseResourcePath(texGroupPath, &line[7], lineLength - 7, NULL);
+				fileParseResourcePath(materialPath, &line[7], lineLength - 7, NULL);
 
 				// If we've seen this texture group before,
 				// we should switch to the mesh that uses it.
@@ -280,8 +282,8 @@ modelDef *modelDefOBJLoad(const char *const restrict mdlDefPath, const size_t md
 					for(curMeshData = tempMeshData; curMeshData < lastMeshData; ++curMeshData){
 						// If we've seen this texture group before, we'll need
 						// to free the memory we allocated for the new path.
-						if(strcmp(texGroupPath, curMeshData->texGroupPath) == 0){
-							memoryManagerGlobalFree(texGroupPath);
+						if(strcmp(materialPath, curMeshData->materialPath) == 0){
+							memoryManagerGlobalFree(materialPath);
 							break;
 						}
 					}
@@ -301,7 +303,7 @@ modelDef *modelDefOBJLoad(const char *const restrict mdlDefPath, const size_t md
 
 						// Initialize the new mesh data!
 						curMeshData = &tempMeshData[tempMeshDataSize];
-						curMeshData->texGroupPath = texGroupPath;
+						curMeshData->materialPath = materialPath;
 						curMeshData->tempVerticesSize = 0;
 						curMeshData->tempVerticesCapacity = BASE_VERTEX_CAPACITY;
 						curMeshData->tempVertices = memoryManagerGlobalAlloc(
@@ -332,7 +334,7 @@ modelDef *modelDefOBJLoad(const char *const restrict mdlDefPath, const size_t md
 				// allocate a new mesh using the default one.
 				if(curMeshData == NULL){
 					curMeshData = tempMeshData;
-					curMeshData->texGroupPath = NULL;
+					curMeshData->materialPath = NULL;
 					curMeshData->tempVerticesSize = 0;
 					curMeshData->tempVerticesCapacity = BASE_VERTEX_CAPACITY;
 					curMeshData->tempVertices = memoryManagerGlobalAlloc(
@@ -494,7 +496,7 @@ modelDef *modelDefOBJLoad(const char *const restrict mdlDefPath, const size_t md
 				// If the mesh is invalid, clean it up
 				// now so we don't have to do it later.
 				}else{
-					memoryManagerGlobalFree(curMeshData->texGroupPath);
+					memoryManagerGlobalFree(curMeshData->materialPath);
 					memoryManagerGlobalFree(curMeshData->tempVertices);
 					memoryManagerGlobalFree(curMeshData->tempIndices);
 				}
@@ -503,7 +505,7 @@ modelDef *modelDefOBJLoad(const char *const restrict mdlDefPath, const size_t md
 			// If there's at least one valid mesh, the model should be valid.
 			if(numMeshes > 0){
 				mesh *curMesh;
-				textureGroup **curTexGroup;
+				materialDef **curMatDef;
 
 				mdlDef = moduleModelDefAlloc();
 				if(mdlDef == NULL){
@@ -518,15 +520,15 @@ modelDef *modelDefOBJLoad(const char *const restrict mdlDefPath, const size_t md
 				if(mdlDef->meshes == NULL){
 					/** MALLOC FAILED **/
 				}
-				mdlDef->texGroups = memoryManagerGlobalAlloc(numMeshes * sizeof(*mdlDef->texGroups));
-				if(mdlDef->texGroups == NULL){
+				mdlDef->mats = memoryManagerGlobalAlloc(numMeshes * sizeof(*mdlDef->mats));
+				if(mdlDef->mats == NULL){
 					/** MALLOC FAILED **/
 				}
 				mdlDef->numMeshes = numMeshes;
 				mdlDef->skele = &g_skeleDefault;
 
 				curMesh = mdlDef->meshes;
-				curTexGroup = mdlDef->texGroups;
+				curMatDef = mdlDef->mats;
 				// Generate buffer objects for each valid
 				// mesh and load their texture groups.
 				for(curMeshData = tempMeshData; curMeshData < lastMeshData; ++curMeshData){
@@ -536,23 +538,23 @@ modelDef *modelDefOBJLoad(const char *const restrict mdlDefPath, const size_t md
 							curMeshData->tempVertices, curMeshData->tempVerticesSize,
 							curMeshData->tempIndices, curMeshData->tempIndicesSize
 						);
-						if(curMeshData->texGroupPath == NULL){
-							*curTexGroup = &g_texGroupDefault;
+						if(curMeshData->materialPath == NULL){
+							*curMatDef = &g_materialDefDefault;
 						}else{
-							*curTexGroup = texGroupLoad(
-								curMeshData->texGroupPath,
-								strlen(curMeshData->texGroupPath)
+							*curMatDef = materialDefLoad(
+								curMeshData->materialPath,
+								strlen(curMeshData->materialPath)
 							);
 						}
 
 						// The mesh and texture group should allocate
 						// their own memory, so we don't need these anymore.
-						memoryManagerGlobalFree(curMeshData->texGroupPath);
+						memoryManagerGlobalFree(curMeshData->materialPath);
 						memoryManagerGlobalFree(curMeshData->tempVertices);
 						memoryManagerGlobalFree(curMeshData->tempIndices);
 
 						++curMesh;
-						++curTexGroup;
+						++curMatDef;
 					}
 				}
 			}
@@ -804,14 +806,14 @@ modelDef *modelDefSMDLoad(const char *const restrict mdlDefPath, const size_t md
 					}else if(dataType == 3){
 						// Texture group for the following face.
 						if(data == 0){
-							char *const texGroupPath = memoryManagerGlobalAlloc((lineLength + 5) * sizeof(*texGroupPath));
-							size_t texGroupPathLength;
-							if(texGroupPath == NULL){
+							char *const materialPath = memoryManagerGlobalAlloc((lineLength + 5) * sizeof(*materialPath));
+							size_t materialPathLength;
+							if(materialPath == NULL){
 								/** MALLOC FAILED **/
 							}
-							texGroupPathLength = fileParseResourcePath(texGroupPath, line, lineLength, NULL);
+							materialPathLength = fileParseResourcePath(materialPath, line, lineLength, NULL);
 							// Add the file extension!
-							memcpy(&texGroupPath[texGroupPathLength], ".tdg", sizeof(".tdg"));
+							memcpy(&materialPath[materialPathLength], ".tdg", sizeof(".tdg"));
 
 							// If we've seen this texture group before,
 							// we should switch to the mesh that uses it.
@@ -820,8 +822,8 @@ modelDef *modelDefSMDLoad(const char *const restrict mdlDefPath, const size_t md
 								for(curMeshData = tempMeshData; curMeshData < lastMeshData; ++curMeshData){
 									// If we've seen this texture group before, we'll need
 									// to free the memory we allocated for the new path.
-									if(strcmp(texGroupPath, curMeshData->texGroupPath) == 0){
-										memoryManagerGlobalFree(texGroupPath);
+									if(strcmp(materialPath, curMeshData->materialPath) == 0){
+										memoryManagerGlobalFree(materialPath);
 										break;
 									}
 								}
@@ -841,7 +843,7 @@ modelDef *modelDefSMDLoad(const char *const restrict mdlDefPath, const size_t md
 
 									// Initialize the new mesh data!
 									curMeshData = &tempMeshData[tempMeshDataSize];
-									curMeshData->texGroupPath = texGroupPath;
+									curMeshData->materialPath = materialPath;
 									curMeshData->tempVerticesSize = 0;
 									curMeshData->tempVerticesCapacity = BASE_VERTEX_CAPACITY;
 									curMeshData->tempVertices = memoryManagerGlobalAlloc(
@@ -1004,7 +1006,7 @@ modelDef *modelDefSMDLoad(const char *const restrict mdlDefPath, const size_t md
 								// allocate a new mesh using the default one.
 								if(curMeshData == NULL){
 									curMeshData = tempMeshData;
-									curMeshData->texGroupPath = NULL;
+									curMeshData->materialPath = NULL;
 									curMeshData->tempVerticesSize = 0;
 									curMeshData->tempVerticesCapacity = BASE_VERTEX_CAPACITY;
 									curMeshData->tempVertices = memoryManagerGlobalAlloc(
@@ -1102,7 +1104,7 @@ modelDef *modelDefSMDLoad(const char *const restrict mdlDefPath, const size_t md
 				// If the mesh is invalid, clean it up
 				// now so we don't have to do it later.
 				}else{
-					memoryManagerGlobalFree(curMeshData->texGroupPath);
+					memoryManagerGlobalFree(curMeshData->materialPath);
 					memoryManagerGlobalFree(curMeshData->tempVertices);
 					memoryManagerGlobalFree(curMeshData->tempIndices);
 				}
@@ -1111,7 +1113,7 @@ modelDef *modelDefSMDLoad(const char *const restrict mdlDefPath, const size_t md
 			// If there's at least one valid mesh, the model should be valid.
 			if(numMeshes > 0){
 				mesh *curMesh;
-				textureGroup **curTexGroup;
+				materialDef **curMatDef;
 
 				mdlDef = moduleModelDefAlloc();
 				if(mdlDef == NULL){
@@ -1126,8 +1128,8 @@ modelDef *modelDefSMDLoad(const char *const restrict mdlDefPath, const size_t md
 				if(mdlDef->meshes == NULL){
 					/** MALLOC FAILED **/
 				}
-				mdlDef->texGroups = memoryManagerGlobalAlloc(numMeshes * sizeof(*mdlDef->texGroups));
-				if(mdlDef->texGroups == NULL){
+				mdlDef->mats = memoryManagerGlobalAlloc(numMeshes * sizeof(*mdlDef->mats));
+				if(mdlDef->mats == NULL){
 					/** MALLOC FAILED **/
 				}
 				mdlDef->numMeshes = numMeshes;
@@ -1148,7 +1150,7 @@ modelDef *modelDefSMDLoad(const char *const restrict mdlDefPath, const size_t md
 				}
 
 				curMesh = mdlDef->meshes;
-				curTexGroup = mdlDef->texGroups;
+				curMatDef = mdlDef->mats;
 				// Generate buffer objects for each valid
 				// mesh and load their texture groups.
 				for(curMeshData = tempMeshData; curMeshData < lastMeshData; ++curMeshData){
@@ -1158,18 +1160,18 @@ modelDef *modelDefSMDLoad(const char *const restrict mdlDefPath, const size_t md
 							curMeshData->tempVertices, curMeshData->tempVerticesSize,
 							curMeshData->tempIndices, curMeshData->tempIndicesSize
 						);
-						if(curMeshData->texGroupPath == NULL){
-							*curTexGroup = &g_texGroupDefault;
+						if(curMeshData->materialPath == NULL){
+							*curMatDef = &g_materialDefault;
 						}else{
-							*curTexGroup = texGroupLoad(
-								curMeshData->texGroupPath,
-								strlen(curMeshData->texGroupPath)
+							*curMatDef = materialDefLoad(
+								curMeshData->materialPath,
+								strlen(curMeshData->materialPath)
 							);
 						}
 
 						// The mesh and texture group should allocate
 						// their own memory, so we don't need these anymore.
-						memoryManagerGlobalFree(curMeshData->texGroupPath);
+						memoryManagerGlobalFree(curMeshData->materialPath);
 						memoryManagerGlobalFree(curMeshData->tempVertices);
 						memoryManagerGlobalFree(curMeshData->tempIndices);
 
@@ -1202,13 +1204,13 @@ modelDef *modelDefSMDLoad(const char *const restrict mdlDefPath, const size_t md
 // Update a model's current state.
 void modelUpdate(model *const restrict mdl, const float dt){
 	{
-		textureGroupState *curTexState = mdl->texStates;
-		const textureGroupState *const lastTexState = &curTexState[mdl->mdlDef->numMeshes];
+		material *curMat = mdl->mats;
+		const material *const lastMat = &curMat[mdl->mdlDef->numMeshes];
 		// Update each texture group.
 		do {
-			texGroupStateUpdate(curTexState, dt);
-			++curTexState;
-		} while(curTexState < lastTexState);
+			materialUpdate(curMat, dt);
+			++curMat;
+		} while(curMat < lastMat);
 	}
 
 	// Update each skeletal animation.
@@ -1286,7 +1288,7 @@ void modelPreDraw(
 void modelDraw(const model *const restrict mdl){
 	const mesh *curMesh = mdl->mdlDef->meshes;
 	const mesh *const lastMesh = &curMesh[mdl->mdlDef->numMeshes];
-	const textureGroupState *curTexState = mdl->texStates;
+	const material *curMat = mdl->mats;
 
 	/** TEMPORARY DEBUG DRAW TEST **/
 	{
@@ -1322,38 +1324,25 @@ void modelDraw(const model *const restrict mdl){
 		}
 	}
 
-	shaderPrgModelLoadSharedUniforms(mdl->skeleState.interpStates);
+	shaderLoadBlockData(
+		SHADER_BLOCK_SKELETONDATA,
+		offsetof(shaderBlockSkeletonData, boneStates),
+		mdl->mdlDef->skele.numBones * sizeof(*mdl->skeleState.interpStates),
+		mdl->skeleState.interpStates
+	);
 	do {
-		const textureGroupFrame *const texFrame = texGroupStateGetFrame(curTexState);
-		/*
-		materialBind(const material *const restrict mat){
-			size_t i;
-			const texture *curTex = mat->textures;
-			const rectangle *curUVs = mat->uvOffsets;
-
-			shaderPrgBind(mat->shader);
-
-			// Bind each texture to its texture unit.
-			for(i = 0; i < mat->numTextures; ++i){
-				textureBind(curTex, curUVs, i);
-
-				++curTex;
-				++curUVs;
-			}
-		}
-		// somehow bind UV offsets for animated textures
+		materialBind(curMat);
 		meshDraw(curMesh);
-		*/
 
 		++curMesh;
-		++curTexState;
+		++curMat;
 	} while(curMesh < lastMesh);
 }
 
 
 void modelDelete(model *const restrict mdl){
-	if(mdl->texStates != NULL){
-		memoryManagerGlobalFree(mdl->texStates);
+	if(mdl->mats != NULL){
+		memoryManagerGlobalFree(mdl->mats);
 	}
 }
 
@@ -1372,7 +1361,7 @@ void modelDefDelete(modelDef *const restrict mdlDef){
 			meshDelete(curMesh);
 		}
 		memoryManagerGlobalFree(mdlDef->meshes);
-		memoryManagerGlobalFree(mdlDef->texGroups);
+		memoryManagerGlobalFree(mdlDef->mats);
 	}
 }
 

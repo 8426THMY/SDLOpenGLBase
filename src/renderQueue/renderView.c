@@ -3,6 +3,8 @@
 
 #include "camera.h"
 
+#include "shader.h"
+
 
 void renderViewInit(
 	renderView *const restrict view,
@@ -46,7 +48,12 @@ void renderViewDraw(renderView *const restrict view){
 	const renderQueue *const lastQueue = &view->queues[RENDER_VIEW_NUM_BUCKETS];
 
 	// Send the view projection matrix to the shader.
-	shaderPrgLoadSharedUniforms(&view->vpMatrix);
+	shaderLoadBlockData(
+		SHADER_BLOCK_SHAREDDATA,
+		offsetof(shaderBlockSharedData, vpMatrix),
+		sizeof(view->vpMatrix),
+		&view->vpMatrix
+	);
 
 	for(; curQueue != lastQueue; ++curQueue){
 		const renderQueueKeyValue *curKeyVal = curQueue->keyVals;

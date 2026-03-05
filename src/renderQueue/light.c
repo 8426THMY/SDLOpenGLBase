@@ -19,8 +19,9 @@ return_t lightInFrustum(
 		case LIGHT_TYPE_ORTHO:
 			return(lightOrthoInFrustum(&l->data.ortho, frustum));
 		break;
+		default:
+			return(0);
 	}
-	return(0);
 }
 
 void lightUpdateGlobalTransform(light *const restrict l){

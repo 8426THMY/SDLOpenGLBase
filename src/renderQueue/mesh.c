@@ -4,16 +4,9 @@
 #define GLEW_STATIC
 #include <GL/glew.h>
 
+#include "bufferObject.h"
 #include "sprite.h"
 #include "model.h"
-
-
-#define MESH_INVALID_VAO_ID 0
-
-
-#warning "We'll probably need to move the particle rendering stuff here so this works."
-#warning "We can make both instanced and batched drawing use the same buffer."
-GLuint curVertexArrayID = MESH_INVALID_VAO_ID;
 
 
 #warning "We should use a global vertex buffer with orphaning for instancing."
@@ -29,10 +22,10 @@ void meshSpriteInit(
 
 	// Generate a vertex array object for our sprite and bind it!
 	glGenVertexArrays(1, &meshData->vertexArrayID);
-	glBindVertexArray(meshData->vertexArrayID);
+	bufferObjectBindVertexArray(meshData->vertexArrayID);
 		// Generate a buffer object for our vertex data and bind it!
 		glGenBuffers(1, &meshData->vertexBufferID);
-		glBindBuffer(GL_ARRAY_BUFFER, meshData->vertexBufferID);
+		bufferObjectBindArrayBuffer(meshData->vertexBufferID);
 		// Now add all our data to it!
 		glBufferData(GL_ARRAY_BUFFER, sizeof(*vertices) * numVertices, vertices, GL_STATIC_DRAW);
 			// Set up the vertex attributes that require this buffer!
@@ -48,14 +41,14 @@ void meshSpriteInit(
 				1, 2, GL_FLOAT, GL_FALSE,
 				sizeof(spriteVertex), (GLvoid *)offsetof(spriteVertex, uv)
 			);
-		// Generate a buffer object for our indices and bind it!
+		// Generate a buffer object for our indices!
+		// Note that binding the index buffer is stored
+		// as part of the vertex array object's state.
 		glGenBuffers(1, &meshData->indexBufferID);
-		// Bind the buffer to the vertex array object.
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, meshData->indexBufferID);
 		// Now add all our data to it!
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(*indices) * numIndices, indices, GL_STATIC_DRAW);
-	// Unbind the array object!
-	glBindVertexArray(MESH_INVALID_VAO_ID);
+	// There's no need to unbind the vertex array object.
 
 	meshData->numIndices = numIndices;
 }
@@ -74,10 +67,10 @@ void meshSpriteInitInstanced(
 
 	// Generate a vertex array object for our sprite and bind it!
 	glGenVertexArrays(1, &meshData->vertexArrayID);
-	glBindVertexArray(meshData->vertexArrayID);
+	bufferObjectBindVertexArray(meshData->vertexArrayID);
 		// Generate a buffer object for our vertex data and bind it!
 		glGenBuffers(1, &meshData->vertexBufferID);
-		glBindBuffer(GL_ARRAY_BUFFER, meshData->vertexBufferID);
+		bufferObjectBindArrayBuffer(meshData->vertexBufferID);
 		// Now add all our data to it!
 		glBufferData(GL_ARRAY_BUFFER, sizeof(*vertices) * numVertices, vertices, GL_STATIC_DRAW);
 			// Set up the vertex attributes that require this buffer!
@@ -95,7 +88,7 @@ void meshSpriteInitInstanced(
 			);
 		#if 0
 		// Bind the global mesh instance buffer.
-		glBindBuffer(GL_ARRAY_BUFFER, instanceDataBufferID);
+		bufferObjectBindArrayBuffer(instanceDataBufferID);
 			// Set up the vertex attributes that require this buffer!
 			// Because the transformation state is a 3x4 matrix, it needs four vertex attributes.
 			// Transformation state first column.
@@ -134,14 +127,14 @@ void meshSpriteInitInstanced(
 			);
 			glVertexAttribDivisor(6, 1);
 		#endif
-		// Generate a buffer object for our indices and bind it!
+		// Generate a buffer object for our indices!
+		// Note that binding the index buffer is stored
+		// as part of the vertex array object's state.
 		glGenBuffers(1, &meshData->indexBufferID);
-		// Bind the buffer to the vertex array object.
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, meshData->indexBufferID);
 		// Now add all our data to it!
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(*indices) * numIndices, indices, GL_STATIC_DRAW);
-	// Unbind the array object!
-	glBindVertexArray(MESH_INVALID_VAO_ID);
+	// There's no need to unbind the vertex array object.
 
 	meshData->numIndices = numIndices;
 }
@@ -155,10 +148,10 @@ void meshModelInit(
 
 	// Generate a vertex array object for our mesh and bind it!
 	glGenVertexArrays(1, &meshData->vertexArrayID);
-	glBindVertexArray(meshData->vertexArrayID);
+	bufferObjectBindVertexArray(meshData->vertexArrayID);
 		// Generate a buffer object for our vertex data and bind it!
 		glGenBuffers(1, &meshData->vertexBufferID);
-		glBindBuffer(GL_ARRAY_BUFFER, meshData->vertexBufferID);
+		bufferObjectBindArrayBuffer(meshData->vertexBufferID);
 		// Now add all our data to it!
 		glBufferData(GL_ARRAY_BUFFER, sizeof(*vertices) * numVertices, vertices, GL_STATIC_DRAW);
 			// Set up the vertex attributes that require this buffer!
@@ -192,13 +185,14 @@ void meshModelInit(
 				4, MODEL_VERTEX_MAX_BONE_WEIGHTS, GL_FLOAT, GL_FALSE,
 				sizeof(meshVertex), (GLvoid *)offsetof(meshVertex, boneWeights)
 			);
-		// Generate a buffer object for our indices and bind it!
+		// Generate a buffer object for our indices!
+		// Note that binding the index buffer is stored
+		// as part of the vertex array object's state.
 		glGenBuffers(1, &meshData->indexBufferID);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, meshData->indexBufferID);
 		// Now add all our data to it!
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(*indices) * numIndices, indices, GL_STATIC_DRAW);
-	// Unbind the array object!
-	glBindVertexArray(MESH_INVALID_VAO_ID);
+	// There's no need to unbind the vertex array object.
 
 	meshData->numIndices = numIndices;
 }
@@ -217,10 +211,10 @@ void meshModelInitInstanced(
 
 	// Generate a vertex array object for our mesh and bind it!
 	glGenVertexArrays(1, &meshData->vertexArrayID);
-	glBindVertexArray(meshData->vertexArrayID);
+	bufferObjectBindVertexArray(meshData->vertexArrayID);
 		// Generate a buffer object for our vertex data and bind it!
 		glGenBuffers(1, &meshData->vertexBufferID);
-		glBindBuffer(GL_ARRAY_BUFFER, meshData->vertexBufferID);
+		bufferObjectBindArrayBuffer(meshData->vertexBufferID);
 		// Now add all our data to it!
 		glBufferData(GL_ARRAY_BUFFER, sizeof(*vertices) * numVertices, vertices, GL_STATIC_DRAW);
 			// Set up the vertex attributes that require this buffer!
@@ -256,7 +250,7 @@ void meshModelInitInstanced(
 			);
 		#if 0
 		// Bind the global mesh instance buffer.
-		glBindBuffer(GL_ARRAY_BUFFER, instanceDataBufferID);
+		bufferObjectBindArrayBuffer(instanceDataBufferID);
 			// Set up the vertex attributes that require this buffer!
 			// Because the transformation state is a 3x4 matrix, it needs four vertex attributes.
 			// Transformation state first column.
@@ -295,13 +289,14 @@ void meshModelInitInstanced(
 			);
 			glVertexAttribDivisor(6, 1);
 		#endif
-		// Generate a buffer object for our indices and bind it!
+		// Generate a buffer object for our indices!
+		// Note that binding the index buffer is stored
+		// as part of the vertex array object's state.
 		glGenBuffers(1, &meshData->indexBufferID);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, meshData->indexBufferID);
 		// Now add all our data to it!
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(*indices) * numIndices, indices, GL_STATIC_DRAW);
-	// Unbind the array object!
-	glBindVertexArray(MESH_INVALID_VAO_ID);
+	// There's no need to unbind the vertex array object.
 
 	meshData->numIndices = numIndices;
 }
@@ -312,10 +307,7 @@ void meshModelInitInstanced(
 ** textures and uniforms have been bound.
 */
 void meshDraw(const mesh *const restrict meshData){
-	if(meshData->vertexArrayID != curVertexArrayID){
-		curVertexArrayID = meshData->vertexArrayID;
-		glBindVertexArray(curVertexArrayID);
-	}
+	bufferObjectBindVertexArray(meshData->vertexArrayID);
 	glDrawElements(GL_TRIANGLES, meshData->numIndices, GL_UNSIGNED_INT, NULL);
 }
 
@@ -324,18 +316,15 @@ void meshDraw(const mesh *const restrict meshData){
 ** of the textures and uniforms have been bound.
 */
 void meshDrawInstanced(const mesh *const restrict meshData, const size_t numInstances){
-	if(meshData->vertexArrayID != curVertexArrayID){
-		curVertexArrayID = meshData->vertexArrayID;
-		glBindVertexArray(curVertexArrayID);
-	}
+	bufferObjectBindVertexArray(meshData->vertexArrayID);
 	#warning "We probably should either unmap buffers or upload instance data here."
 	glDrawElementsInstanced(GL_TRIANGLES, meshData->numIndices, GL_UNSIGNED_INT, NULL, numInstances);
 }
 
 
 void meshDelete(mesh *const restrict meshData){
-	glDeleteVertexArrays(1, &meshData->vertexArrayID);
-	glDeleteBuffers(1, &meshData->vertexBufferID);
+	bufferObjectDeleteVertexArray(meshData->vertexArrayID);
+	bufferObjectDeleteArrayBuffer(meshData->vertexBufferID);
 	glDeleteBuffers(1, &meshData->indexBufferID);
 }
 

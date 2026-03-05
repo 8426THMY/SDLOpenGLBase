@@ -47,14 +47,14 @@ void spriteRendererInstancedInit(spriteRendererInstanced *const restrict instanc
 
 	glBindBuffer(GL_UNIFORM_BUFFER, instanceDataBufferID);
 	// Retrieve pointers to the instance buffer storage. The flag
-	// GL_MAP_INVALIDATE_RANGE_BIT is a promise that the range we're
+	// GL_MAP_UNSYNCHRONIZED_BIT is a promise that the range we're
 	// requesting is not in use by any draw call, so there's no need
 	// for any synchronization.
 	instancedRenderer->curInstance = glMapBufferRange(
 		GL_UNIFORM_BUFFER,
 		instanceOffsetBytes,
 		SPRITE_RENDERER_INSTANCED_BUFFER_SIZE - instanceOffsetBytes,
-		GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT
+		GL_MAP_WRITE_BIT | GL_MAP_UNSYNCHRONIZED_BIT
 	);
 	// Reset the instance counts.
 	batchedRenderer->numInstances = 0;

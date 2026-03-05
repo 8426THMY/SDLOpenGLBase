@@ -15,7 +15,7 @@ struct bone {
 layout(std140) uniform sharedData {
 	mat4 vpMatrix;
 };
-layout(std140) uniform modelData {
+layout(std140) uniform skeletonData {
 	mat4x3 boneStates[MAX_BONES_NUM];
 };
 

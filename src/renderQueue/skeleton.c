@@ -118,7 +118,7 @@ void skeleAnimDefInit(skeletonAnimDef *const restrict animDef){
 }
 
 void skeleAnimInit(
-	skeletonAnim *const restrict anim, skeletonAnimDef *const restrict animDef,
+	skeletonAnim *const restrict anim, const skeletonAnimDef *const restrict animDef,
 	const skeleton *const restrict skele, const float speed, const float intensity
 ){
 

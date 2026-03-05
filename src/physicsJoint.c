@@ -140,8 +140,9 @@ return_t physJointSolvePosition(const physicsJoint *const restrict joint){
 				&joint->data.sphere, joint->bodyA, joint->bodyB
 			));
 		break;
+		default:
+			return(1);
 	}
-	return(1);
 }
 #endif
 

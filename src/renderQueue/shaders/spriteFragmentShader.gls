@@ -8,11 +8,9 @@
 
 uniform sampler2D baseTex0;
 
-layout(std140) uniform spriteData {
-	uint sdfType;
-	vec4 sdfColour;
-	vec4 sdfBackground;
-};
+uniform uint sdfType;
+uniform vec4 sdfColour;
+uniform vec4 sdfBackground;
 
 in vec2 uv;
 out vec4 colour;

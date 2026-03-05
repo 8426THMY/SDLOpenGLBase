@@ -104,14 +104,14 @@ void spriteRendererBatchedInit(spriteRendererBatched *const restrict batchedRend
 		GL_ARRAY_BUFFER,
 		vertexOffsetBytes,
 		SPRITE_RENDERER_BATCHED_VERTEX_BUFFER_SIZE - vertexOffsetBytes,
-		GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT
+		GL_MAP_WRITE_BIT | GL_MAP_UNSYNCHRONIZED_BIT
 	);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, batchBufferID);
 	batchedRenderer->curIndex = glMapBufferRange(
 		GL_ELEMENT_ARRAY_BUFFER,
 		SPRITE_RENDERER_BATCHED_VERTEX_BUFFER_SIZE + indexOffsetBytes,
 		SPRITE_RENDERER_BATCHED_BUFFER_SIZE - indexOffsetBytes,
-		GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT
+		GL_MAP_WRITE_BIT | GL_MAP_UNSYNCHRONIZED_BIT
 	);
 	// Reset the vertex and index counts.
 	batchedRenderer->numVertices = 0;
@@ -174,7 +174,7 @@ void spriteRendererBatchedOrphan(spriteRendererBatched *const restrict batchedRe
 	// We use GL_MAP_INVALIDATE_RANGE_BIT to avoid reallocating
 	// a new buffer directly after the one we allocate above.
 	batchedRenderer->curIndex = glMapBufferRange(
-		GL_ARRAY_BUFFER,
+		GL_ELEMENT_ARRAY_BUFFER,
 		SPRITE_RENDERER_BATCHED_VERTEX_BUFFER_SIZE,
 		SPRITE_RENDERER_BATCHED_INDEX_BUFFER_SIZE,
 		GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT
