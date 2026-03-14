@@ -4,6 +4,8 @@
 
 #include <stdint.h>
 
+#include "mat3x4.h"
+
 #include "renderFrustum.h"
 #include "renderView.h"
 
@@ -42,12 +44,16 @@ typedef struct renderObject {
 } renderObject;
 
 
+void renderObjUpdateGlobalBounds(
+	renderObject *const restrict obj, const float dt
+);
 return_t renderObjInFrustum(
 	const renderObject *const restrict obj,
 	const renderFrustum *const restrict frustum
 );
 renderQueueID renderObjGetRenderQueueKey(
 	const renderObject *const restrict obj,
+	const mat3x4 *const restrict viewMatrix, const float dt,
 	renderQueueKey *const restrict key
 );
 void renderObjUpdateGlobalTransform(

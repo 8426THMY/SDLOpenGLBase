@@ -53,13 +53,14 @@ void cameraComputeProjectionMatrix(
 	mat4 *const restrict projMatrix
 );
 
-#warning "We should get the interpolated state for these..."
-#if 0
-float cameraDistance(const camera *const restrict cam, const vec3 *const restrict target);
-float cameraDistanceSquared(const camera *const restrict cam, const vec3 *const restrict target);
-float cameraSignedDistance(const camera *const restrict cam, const vec3 *const restrict target);
-float cameraSignedDistanceSquared(const camera *const restrict cam, const vec3 *const restrict target);
-#endif
+float cameraDistance(
+	const mat3x4 *const restrict viewMatrix,
+	const vec3 *const restrict target
+);
+bfloat16 cameraDistance16(
+	const mat3x4 *const restrict viewMatrix,
+	const vec3 *const restrict target
+);
 
 
 #endif

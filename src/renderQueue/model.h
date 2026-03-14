@@ -6,6 +6,7 @@
 
 #include "vec2.h"
 #include "vec3.h"
+#include "mat3x4.h"
 
 #include "mesh.h"
 #include "skeleton.h"
@@ -47,6 +48,7 @@ typedef struct modelDef {
 	// Models use an individual mesh
 	// for each separate texture group.
 	#warning "It would be cool if we supported something like Source's bodygroups."
+	#warning "We should also consider putting all meshes in the same vertex buffer object.
 	mesh *meshes;
 	// This is an array of texture group pointers, one per mesh.
 	// The texture groups are stored in their respective allocator.
@@ -88,7 +90,6 @@ typedef struct model {
 
 	// Controls the object's position, orientation and scale.
 	// This transformation is applied to the root bone during animation.
-	#warning "This is a terrible way of doing it. The root bone should have its own dedicated transform, and this state should control everything."
 	#warning "We should let whatever owns the model control this."
 	boneState state;
 	// Array of custom transformations to apply to each bone.
@@ -118,12 +119,16 @@ modelDef *modelDefSMDLoad(const char *const restrict mdlDefPath, const size_t md
 
 void modelUpdate(model *const restrict mdl, const float dt);
 
+void modelUpdateGlobalBounds(
+	model *const restrict mdl, const float dt
+);
 return_t modelInFrustum(
 	const model *const restrict mdl,
 	const renderFrustum *const restrict frustum
 );
 renderQueueID modelGetRenderQueueKey(
 	const model *const restrict mdl,
+	const mat3x4 *const restrict viewMatrix, const float dt,
 	renderQueueKey *const restrict key
 );
 void modelUpdateGlobalTransform(

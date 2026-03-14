@@ -44,7 +44,7 @@ void renderTargetDraw(const renderTarget *const target){
 
 	// We draw our render views starting from the end of the list.
 	// Dependencies like mirrors are usually added after the main
-	// view, so this means transluscent objects in front of them
+	// view, so this means translucent objects in front of them
 	// will appear correctly.
 	do {
 		renderViewDraw(curView);

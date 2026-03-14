@@ -53,18 +53,29 @@
 #endif
 
 
+// Half-precision float, used for depth sorting.
+typedef uint16_t bfloat16;
+
 // These unions are used for performing
 // bitwise operations on floats and doubles.
+typedef union bitBfloat16 {
+	bfloat16 f;
+	uint16_t i;
+} bitBfloat16;
+
 typedef union bitFloat {
 	float f;
-	uint32_t l;
+	uint32_t i;
 } bitFloat;
 
 typedef union bitDouble {
-	double d;
-	uint64_t l;
+	double f;
+	uint64_t i;
 } bitDouble;
 
+
+bfloat16 floatToBfloat16(const float x);
+float bfloat16ToFloat(const bfloat16 x);
 
 float floatMin(const float x, const float y);
 float floatMax(const float x, const float y);
@@ -108,9 +119,13 @@ void planeNormalize(vec4 *const restrict plane);
 void planeNormalizeFast(vec4 *const restrict plane);
 float planePointDist(
 	const vec4 *const restrict plane,
+	const float x, const float y, const float z
+);
+float planePointDistVec3(
+	const vec4 *const restrict plane,
 	const vec3 *const restrict point
 );
-float planePointDistAlt(
+float planePointDistVec3Alt(
 	const vec3 *const restrict planeNormal,
 	const vec3 *const restrict planePoint,
 	const vec3 *const restrict point

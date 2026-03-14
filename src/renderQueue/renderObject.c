@@ -1,6 +1,20 @@
 #include "renderObject.h"
 
 
+void renderObjUpdateGlobalBounds(
+	renderObject *const restrict obj, const float dt
+){
+
+	switch(obj->type){
+		case RENDEROBJECT_ANIMATED_MODEL:
+			modelUpdateGlobalBounds(&obj->data.mdl, dt);
+		break;
+		case RENDEROBJECT_PARTICLE_SYSTEM:
+			particleSysUpdateBoundingBox(&obj->data.partSys, dt);
+		break;
+	}
+}
+
 return_t renderObjInFrustum(
 	const renderObject *const restrict obj,
 	const renderFrustum *const restrict frustum
@@ -20,15 +34,16 @@ return_t renderObjInFrustum(
 
 renderQueueID renderObjGetRenderQueueKey(
 	const renderObject *const restrict obj,
+	const mat3x4 *const restrict viewMatrix, const float dt,
 	renderQueueKey *const restrict key
 ){
 
 	switch(obj->type){
 		case RENDEROBJECT_ANIMATED_MODEL:
-			return(modelGetRenderQueueKey(&obj->data.mdl, key));
+			return(modelGetRenderQueueKey(&obj->data.mdl, viewMatrix, dt, key));
 		break;
 		case RENDEROBJECT_PARTICLE_SYSTEM:
-			return(particleSysGetRenderQueueKey(&obj->data.partSys, key));
+			return(particleSysGetRenderQueueKey(&obj->data.partSys, viewMatrix, dt, key));
 		break;
 		default:
 			return(0);

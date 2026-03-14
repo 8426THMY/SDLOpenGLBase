@@ -4,7 +4,12 @@
 
 #include <stdint.h>
 
+#include "vec2.h"
+#include "vec3.h"
+#include "vec4.h"
+#include "mat3.h"
 #include "mat3x4.h"
+#include "mat4.h"
 #include "skeleton.h"
 
 #include "utilTypes.h"
@@ -69,6 +74,45 @@ void shaderCompInit(
 	const shaderComponentType type, const char *const restrict shaderPath
 );
 void shaderCompDelete(shaderComponent *const restrict shaderComp);
+
+#warning "It would be nice to instead have functions for each of our uniforms."
+#warning "The benefit is that callers don't need to know anything."
+#warning "However, that would have a lot of duplicated code."
+void shaderUniformBindFloat(
+	const shaderUniform *const restrict uniform,
+	const size_t count,
+	const float *const restrict data
+);
+void shaderUniformBindVec2(
+	const shaderUniform *const restrict uniform,
+	const size_t count,
+	const vec2 *const restrict data
+);
+void shaderUniformBindVec3(
+	const shaderUniform *const restrict uniform,
+	const size_t count,
+	const vec3 *const restrict data
+);
+void shaderUniformBindVec4(
+	const shaderUniform *const restrict uniform,
+	const size_t count,
+	const vec4 *const restrict data
+);
+void shaderUniformBindMat3(
+	const shaderUniform *const restrict uniform,
+	const size_t count,
+	const mat3 *const restrict data
+);
+void shaderUniformBindMat3x4(
+	const shaderUniform *const restrict uniform,
+	const size_t count,
+	const mat3x4 *const restrict data
+);
+void shaderUniformBindMat4(
+	const shaderUniform *const restrict uniform,
+	const size_t count,
+	const mat4 *const restrict data
+);
 
 void shaderInit(
 	shader *const restrict prg, const shaderType type

@@ -5,10 +5,13 @@
 #include <string.h>
 
 #include "quat.h"
-#include "mat3x4.h"
 #include "transform.h"
 
+#include "camera.h"
+
 #include "shader.h"
+
+#include "renderQueue.h"
 
 #include "memoryManager.h"
 #include "moduleModel.h"
@@ -1220,29 +1223,77 @@ void modelUpdate(model *const restrict mdl, const float dt){
 }
 
 
+void modelUpdateGlobalBounds(
+	model *const restrict mdl, const float dt
+){
+
+	boneState interpBone;
+	// Compute the global root bone transform!
+	transformInterpSet(
+		&mdl->skeleState.prevStates[0],
+		&mdl->skeleState.states[0],
+		dt, &interpBone
+	);
+	// Compute the global bounding box!
+	colliderAABB(&mdl->aabb, &mdl->mdlDef->aabb, &interpBone);
+}
+
 // Return whether the model's bounding box is within the frustum.
 return_t modelInFrustum(
 	const model *const restrict mdl,
 	const renderFrustum *const restrict frustum
 ){
 
-	#warning "Finish this!!"
-	return 1;
+	return(renderFrustumCollidingAABB(frustum, &mdl->aabb));
 }
 
 /*
-** Create and return a render queue key for the model.
-** If the model has multiple meshes and textures, this
-** will just return the key for the first one.
+** Create a render queue key for the model and return which
+** queue it should go in. If the model has multiple meshes and
+** textures, this will just return the key for the first one
+** (or the first translucent one, if it exists).
 */
 renderQueueID modelGetRenderQueueKey(
 	const model *const restrict mdl,
+	const mat3x4 *const restrict viewMatrix, const float dt,
 	renderQueueKey *const restrict key
 ){
 
-	#warning "Finish this!!"
-	*key = 0;
-	return 0;
+	const material *curMat = mdl->mats;
+	const material *const lastMat = &curMat[mdl->mdlDef->numMeshes];
+	vec3 interpPos;
+	bfloat16 depth;
+
+	// Compute the global root bone position!
+	vec3Lerp(
+		&mdl->skeleState.prevStates[0].pos,
+		&mdl->skeleState.states[0].pos,
+		dt, &interpPos
+	);
+	// Compute the (signed) distance from the camera
+	// to the root bone and store it in a bfloat16.
+	depth = cameraDistance16(viewMatrix, &interpPos);
+
+	// If the model has at least one translucent material,
+	// we'll need to put it in the translucent queue.
+	for(; curMat != lastMat; ++curMat){
+		if(materialTransluscent(curMat)){
+			*key = renderQueueKeyTranslucent(
+				depth,
+				mdl->mdlDef->mesh->vertexArrayID,
+				curMat->matDef->id
+			);
+			return(RENDER_VIEW_TRANSLUSCENT_BUCKET);
+		}
+	}
+
+	// Otherwise, throw it into the opaque queue!
+	*key = renderQueueKeyOpaque(
+		depth,
+		mdl->mdlDef->mesh->vertexArrayID,
+		mdl->mats->matDef->id
+	);
+	return(RENDER_VIEW_OPAQUE_BUCKET);
 }
 
 /*
@@ -1258,20 +1309,21 @@ void modelUpdateGlobalTransform(
 	model *const restrict mdl, const float dt
 ){
 
-	const boneState *curStateBone = mdl->skeleState.states;
-	const boneState *const lastStateBone = &curStateBone[mdl->mdlDef->skele->numBones];
-	const boneState *prevStateBone = mdl->skeleState.prevStates;
-	const mat3x4 *interpState = mdl->skeleState.interpStates;
+	const bone *const curBone  = mdl->mdlDef->skele.bones;
+	const bone *const lastBone = &curBone[mdl->mdlDef->skele->numBones];
+	const boneState *curState  = mdl->skeleState.states;
+	const boneState *prevState = mdl->skeleState.prevStates;
+	const mat3x4 *interpState  = mdl->skeleState.interpStates;
 
-	for(; curStateBone < lastStateBone; ++curStateBone){
-		boneState tempBone;
+	for(; curBone < lastBone; ++curBone){
+		boneState interpBone;
 
-		transformInterpSet(prevStateBone, curStateBone, dt, &tempBone);
-		transformToMat3x4(&tempBone, interpState);
-		mat3x4MultiplyMat3x4P1(interpState, &curSkeleBone->invGlobalBind);
+		transformInterpSet(prevState, curState, dt, &interpBone);
+		transformToMat3x4(&interpBone, interpState);
+		mat3x4MultiplyMat3x4P1(interpState, &curBone->invGlobalBind);
 
-		++curSkeleBone;
-		++prevStateBone;
+		++curState;
+		++prevState;
 		++interpState;
 	}
 }

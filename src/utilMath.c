@@ -8,6 +8,33 @@
 #warning "We initialize a lot of vectors to a difference here. It'd be better to do it using the function for when we add SSE support. Check colliderHull.c for more details."
 
 
+// Convert a normal float to a bfloat16!
+// We basically just truncate the least
+// significant 16 bits of the significand.
+bfloat16 floatToBfloat16(const float x){
+	const union {
+		float f;
+		struct {
+			uint16_t lower;
+			uint16_t upper;
+		} bits;
+	} bf = {.f = x};
+	return(bf.bits.upper);
+}
+
+// Convert a bfloat16 to a normal float!
+float bfloat16ToFloat(const bfloat16 x){
+	const union {
+		float f;
+		struct {
+			uint16_t lower;
+			uint16_t upper;
+		} bits;
+	} bf = {.bits.lower = 0, .bits.upper = x};
+	return(bf.f);
+}
+
+
 float floatMin(const float x, const float y){
 	return(x < y ? x : y);
 }
@@ -54,10 +81,10 @@ float floatLerpDiff(const float x, const float y, const float t){
 
 // Return a number that uses the magnitude of x and the sign of y.
 float copySign(const float x, const float y){
-	const bitFloat i = {.f = x};
-	const bitFloat j = {.f = y};
-	const bitFloat k = {.l = (i.l & MATH_FLOAT_MAGNITUDE) | (j.l & MATH_FLOAT_SIGN)};
-	return(k.f);
+	const bitFloat bfx = {.f = x};
+	const bitFloat bfy = {.f = y};
+	const bitFloat out = {.i = (bfx.i & MATH_FLOAT_MAGNITUDE) | (bfy.i & MATH_FLOAT_SIGN)};
+	return(out.f);
 }
 
 /*
@@ -66,10 +93,10 @@ float copySign(const float x, const float y){
 */
 float copySignZero(const float x, const float y){
 	if(y != 0.f){
-		const bitFloat i = {.f = x};
-		const bitFloat j = {.f = y};
-		const bitFloat k = {.l = (i.l & MATH_FLOAT_MAGNITUDE) | (j.l & MATH_FLOAT_SIGN)};
-		return(k.f);
+		const bitFloat bfx = {.f = x};
+		const bitFloat bfy = {.f = y};
+		const bitFloat out = {.i = (bfx.i & MATH_FLOAT_MAGNITUDE) | (bfy.i & MATH_FLOAT_SIGN)};
+		return(out.f);
 	}
 	return(0.f);
 }
@@ -85,43 +112,43 @@ float fastInvSqrt(const float x){
 	const float x2 = x * 0.5f;
 	// By using a union here, we can avoid the
 	// compiler warnings that the original had.
-	bitFloat i = {.f = x};
+	bitFloat bfx = {.f = x};
 	// The original magic number, "0x5F3759DF", is supposedly an
 	// approximation of the square root of 2 to the power of 127.
 	// I have found that the magic number "0x5F3504F3", being a
 	// more accurate approximation of this value, provides far more
 	// accurate results after any number of Newton-Raphson iterations.
-	i.l = 0x5F3504F3 - (i.l >> 1);
+	bfx.i = 0x5F3504F3 - (bfx.i >> 1);
 
 	// Use the Newton-Raphson method to
 	// gain a more accurate approximation.
-	i.f *= 1.5f - x2 * i.f * i.f;
+	bfx.f *= 1.5f - x2 * bfx.f * bfx.f;
 
 
-	return(i.f);
+	return(bfx.f);
 }
 
 float fastInvSqrtAccurate(const float x){
 	const float x2 = x * 0.5f;
 	// By using a union here, we can avoid the
 	// compiler warnings that the original had.
-	bitFloat i = {.f = x};
+	bitFloat bfx = {.f = x};
 	// The original magic number, "0x5F3759DF", is supposedly an
 	// approximation of the square root of 2 to the power of 127.
 	// I have found that the magic number "0x5F3504F3", being a
 	// more accurate approximation of this value, provides far more
 	// accurate results after any number of Newton-Raphson iterations.
-	i.l = 0x5F3504F3 - (i.l >> 1);
+	bfx.i = 0x5F3504F3 - (bfx.i >> 1);
 
 	// Use the Newton-Raphson method to
 	// gain a more accurate approximation.
-	i.f *= 1.5f - x2 * i.f * i.f;
+	bfx.f *= 1.5f - x2 * bfx.f * bfx.f;
 	// A second iteration provides
 	// an even more accurate result.
-	i.f *= 1.5f - x2 * i.f * i.f;
+	bfx.f *= 1.5f - x2 * bfx.f * bfx.f;
 
 
-	return(i.f);
+	return(bfx.f);
 }
 
 
@@ -321,10 +348,22 @@ void planeNormalizeFast(vec4 *const restrict plane){
 }
 
 /*
-** Return the distance between a point and a plane.
+** Return the signed distance of a point from a plane.
 ** We assume that the plane is normalized.
 */
 float planePointDist(
+	const vec4 *const restrict plane,
+	const float x, const float y, const float z
+){
+
+	return(vec3Dot((vec3 *)plane, x, y, z) + plane->w);
+}
+
+/*
+** Return the distance between a point and a plane.
+** We assume that the plane is normalized.
+*/
+float planePointDistVec3(
 	const vec4 *const restrict plane,
 	const vec3 *const restrict point
 ){
@@ -333,11 +372,11 @@ float planePointDist(
 }
 
 /*
-** Return the distance between a point and a plane.
+** Return the signed distance of a point from a plane.
 ** The variable "planePoint" can be any point on the
 ** plane, but the plane's normal must be a unit vector.
 */
-float planePointDistAlt(
+float planePointDistVec3Alt(
 	const vec3 *const restrict planeNormal,
 	const vec3 *const restrict planePoint,
 	const vec3 *const restrict point

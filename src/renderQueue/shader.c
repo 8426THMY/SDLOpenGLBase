@@ -114,6 +114,70 @@ void shaderCompDelete(shaderComponent *const restrict shaderComp){
 }
 
 
+void shaderUniformBindFloat(
+	const shaderUniform *const restrict uniform,
+	const size_t count,
+	const float *const restrict data
+){
+
+	glUniform1fv(uniform->id, count, (GLfloat *)data);
+}
+
+void shaderUniformBindVec2(
+	const shaderUniform *const restrict uniform,
+	const size_t count,
+	const vec2 *const restrict data
+){
+
+	glUniform2fv(uniform->id, count, (GLfloat *)data);
+}
+
+void shaderUniformBindVec3(
+	const shaderUniform *const restrict uniform,
+	const size_t count,
+	const vec3 *const restrict data
+){
+
+	glUniform3fv(uniform->id, count, (GLfloat *)data);
+}
+
+void shaderUniformBindVec4(
+	const shaderUniform *const restrict uniform,
+	const size_t count,
+	const vec4 *const restrict data
+){
+
+	glUniform4fv(uniform->id, count, (GLfloat *)data);
+}
+
+void shaderUniformBindMat3(
+	const shaderUniform *const restrict uniform,
+	const size_t count,
+	const mat3 *const restrict data
+){
+
+	glUniformMatrix3fv(uniform->id, count, GL_FALSE, (GLfloat *)data);
+}
+
+void shaderUniformBindMat3x4(
+	const shaderUniform *const restrict uniform,
+	const size_t count,
+	const mat3x4 *const restrict data
+){
+
+	glUniformMatrix4x3fv(uniform->id, count, GL_FALSE, (GLfloat *)data);
+}
+
+void shaderUniformBindMat4(
+	const shaderUniform *const restrict uniform,
+	const size_t count,
+	const mat4 *const restrict data
+){
+
+	glUniformMatrix4fv(uniform->id, count, GL_FALSE, (GLfloat *)data);
+}
+
+
 /*
 ** Compile a shader program that uses the vertex and fragment
 ** shaders specified, and return whether or not we were successful!

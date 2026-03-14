@@ -971,7 +971,7 @@ static return_t faceSeparation(
 	};
 
 	return(
-		planePointDistAlt(
+		planePointDistVec3Alt(
 			normal,
 			&hullA->vertices[hullA->edges[hullA->faces[cs->featureA]].startVertexIndex],
 			colliderHullSupport(hullB, &invNormal)
@@ -1190,7 +1190,7 @@ static return_t noSeparatingFace(
 		// First, find the point on "hullB" farthest in the
 		// direction opposite the current face's normal.
 		// Then, find the distance between the two.
-		const float curDistance = planePointDistAlt(
+		const float curDistance = planePointDistVec3Alt(
 			curNormal,
 			&hullA->vertices[hullA->edges[*curFace].startVertexIndex],
 			colliderHullSupport(hullB, &invNormal)
@@ -1574,11 +1574,11 @@ static void clipFaceContact(
 		curVertex = loopVertices;
 		clipVertex.v = clipVertices.v;
 		prevVertex = lastVertex;
-		curDist = planePointDist(&clipPlane, &prevVertex->v);
+		curDist = planePointDistVec3(&clipPlane, &prevVertex->v);
 		// For each edge on the incident face, clip
 		// it against the current reference face.
 		do {
-			const float nextDist = planePointDist(&clipPlane, &curVertex->v);
+			const float nextDist = planePointDistVec3(&clipPlane, &curVertex->v);
 			// The starting vertex is inside the clipping
 			// region, so we will have to keep it.
 			if(curDist <= 0.f){
@@ -1709,7 +1709,7 @@ static void clipFaceContact(
 		// Use the distance between the current
 		// vertex and the reference face to ensure
 		// that it is within the clipping region.
-		curDist = planePointDist(&clipPlane, &curVertex->v);
+		curDist = planePointDistVec3(&clipPlane, &curVertex->v);
 		if(curDist <= 0.f){
 			*loopVertex = *curVertex;
 			++loopVertex;

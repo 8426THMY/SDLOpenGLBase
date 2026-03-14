@@ -231,7 +231,7 @@ float readFloatLE(FILE *const restrict file){
 	byte_t bytes[4];
 	bitFloat val;
 	fread((void *)bytes, sizeof(bytes), 1, file);
-	val.l =
+	val.i =
 		((uint32_t)bytes[0] << 24) |
 		((uint32_t)bytes[1] << 16) |
 		((uint32_t)bytes[2] << 8)  |
@@ -243,7 +243,7 @@ float readFloatBE(FILE *const restrict file){
 	byte_t bytes[4];
 	bitFloat val;
 	fread((void *)bytes, sizeof(bytes), 1, file);
-	val.l =
+	val.i =
 		(uint32_t)bytes[0]         |
 		((uint32_t)bytes[1] << 8)  |
 		((uint32_t)bytes[2] << 16) |

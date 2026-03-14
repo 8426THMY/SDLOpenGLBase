@@ -89,50 +89,36 @@ void cameraUpdateViewProjectionMatrix(camera *const restrict cam){
 }
 
 
-#if 0
-// Compute a target's distance from a camera!
-float cameraDistance(const camera *const restrict cam, const vec3 *const restrict target){
-	return(vec3DistanceVec3(&cam->pos, target));
-}
+/*
+** Compute the signed distance from the camera!
+** The sign is positive if the target is in front
+** of the camera and positive otherwise.
+*/
+float cameraDistance(
+	const mat3x4 *const restrict viewMatrix,
+	const vec3 *const restrict target
+){
 
-// Compute a target's distance from a camera! This is useful for depth sorting.
-float cameraDistanceSquared(const camera *const restrict cam, const vec3 *const restrict target){
-	return(vec3DistanceSquaredVec3(&cam->pos, target));
+	// We're really just computing the negative
+	// z-coordinate of viewMatrix * target.
+	return(-vec3DotVec3Float(
+		target,
+		viewMatrix->m[0][2], viewMatrix->m[1][2], viewMatrix->m[2][2]
+	) - viewMatrix->m[3][2]);
 }
 
 /*
-** Compute a target's distance from a camera!
-** The sign is negative if the target is
-** behind the camera and positive otherwise.
+** Compute the distance from a camera as a 16-bit
+** float! The sign is positive if the target is in
+** front of the camera and positive otherwise.
 */
-float cameraSignedDistance(const camera *const restrict cam, const vec3 *const restrict target){
-	vec3 tc;
-	vec3SubtractVec3Out(&cam->pos, target, &tc);
-	// The dot product of the camera's backward vector
-	// and the vector from the target to the camera is
-	// negative if the target is behind the camera.
-	return(copySign(
-		vec3MagnitudeVec3(&tc),
-		vec3DotVec3Float(&tc, cam->viewMatrix.m[0][2], cam->viewMatrix.m[1][2], cam->viewMatrix.m[2][2])
-	));
-}
+bfloat16 cameraDistance16(
+	const mat3x4 *const restrict viewMatrix,
+	const vec3 *const restrict target
+){
 
-/*
-** Compute a target's distance from a camera! This is useful for depth sorting.
-** The sign is negative if the target is behind the camera and positive otherwise.
-*/
-float cameraSignedDistanceSquared(const camera *const restrict cam, const vec3 *const restrict target){
-	vec3 tc;
-	vec3SubtractVec3Out(&cam->pos, target, &tc);
-	// The dot product of the camera's backward vector
-	// and the vector from the target to the camera is
-	// negative if the target is behind the camera.
-	return(copySign(
-		vec3MagnitudeSquaredVec3(&tc),
-		vec3DotVec3Float(&tc, cam->viewMatrix.m[0][2], cam->viewMatrix.m[1][2], cam->viewMatrix.m[2][2])
-	));
+	return(floatToBfloat16(cameraDistance(viewMatrix, target)));
 }
-#endif
 
 
 static void cameraStateInit(cameraState *const restrict state){

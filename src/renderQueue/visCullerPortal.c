@@ -86,12 +86,21 @@ static void visCellPopulateRenderQueues(
 		renderObject *curObj = cell->objs;
 		const renderObject *const lastObj = &curObj[cell->numObjs];
 		for(; curObj < lastObj; ++curObj){
+			// Update the bounding box if we haven't already. Note
+			// that we don't set the frame I.D. here, as that will
+			// prevent us from updating the global transform later.
+			if(curObj->frameID != frameID){
+				renderObjUpdateGlobalBounds(curObj, dt);
+			}
+
 			// If the current render object hasn't already been added to this
 			// view and it's in the viewing frustum, add it to the queue!
 			if(curObj->viewID != viewID && renderObjInFrustum(curObj, &view->frustum)){
 				renderQueueKey key;
-				renderQueue *const queue =
-					&view->queues[renderObjGetRenderQueueKey(curObj, &key)];
+				#warning "It may be better to use the view projection matrix. That way, levels of detail look better with high fields of view."
+				renderQueue *const queue = &view->queues[
+					renderObjGetRenderQueueKey(curObj, &view->viewMatrix, dt, &key)
+				];
 
 				// Make sure we don't add this render object to
 				// the queue again if it's in any other cells.

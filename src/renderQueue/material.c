@@ -1,6 +1,8 @@
 #include "material.h"
 
 
+#include "renderQueue.h"
+
 #include "memoryManager.h"
 
 
@@ -8,6 +10,7 @@
 // when the desired one can't be found or loaded.
 materialDef g_materialDefDefault = {
 	.name         = "error",
+	.id           = -1,
 
 	.texGroups    = g_texGroupArrayDefault,
 	.numTexGroups = 1,
@@ -29,6 +32,15 @@ materialDef g_materialDefDefault = {
 // By having a pointer on the stack, we can create a double pointer
 // to the default texture group without any memory allocation.
 materialDef *g_materialDefArrayDefault = &g_materialDefDefault;
+
+
+materialDef *materialDefLoad(
+	const char *const restrict materialPath,
+	const size_t materialPathLength
+){
+
+	return(NULL);
+}
 
 
 void materialInit(
@@ -72,10 +84,16 @@ void materialUpdate(material *const restrict mat, const float dt){
 	}
 }
 
+#warning "We currently assume all materials are opaque!"
+return_t materialIsTranslucent(const material *const restrict mat){
+	return(0);
+}
+
 void materialBind(const material *const restrict mat){
 	const shader *prg = mat->matDef->prg;
 	shaderUniform *curUniform = prg->uniforms;
 	const shaderUniform *lastUniform = &curUniform[prg->numUniforms];
+	const size_t numTexGroups = mat->matDef->numTexGroups;
 
 	#warning "We probably need to update the material's animations/proxies somewhere."
 	//const textureGroupFrame *const texFrame = texGroupStateGetFrame(curTexState);
@@ -85,20 +103,18 @@ void materialBind(const material *const restrict mat){
 	for(; curUniform != lastUniform; ++curUniform){
 		switch(curUniform->name){
 			case SHADER_UNIFORM_TEXTURE0:
-				textureBind(&mat->texStates[0], 0);
+				if(numTexGroups > 0){
+					textureBind(&mat->texStates[0], 0);
+				}
 			break;
+			#warning "We should probably use a 2x3 matrix here instead."
 			case SHADER_UNIFORM_TEXTURE0TRANSFORM:
-				// bind UV offsets (maybe we should use a 2x3 matrix instead?
+				if(numTexGroups > 0){
+					const textureGroupFrame *const texFrame =
+						texGroupStateGetFrame(mat->texStates[0]);
+					shaderUniformBindFloat(curUniform->id, 4, &texFrame->bounds);
+				}
 			break;
 		}
 	}
-}
-
-
-materialDef *materialDefLoad(
-	const char *const restrict materialPath,
-	const size_t materialPathLength
-){
-
-	return(NULL);
 }
