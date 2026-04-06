@@ -48,7 +48,7 @@ typedef struct renderView {
 } renderView;
 
 
-typedef camera camera;
+typedef struct camera camera;
 void renderViewInit(
 	renderView *const restrict view,
 	const camera *const restrict cam, const float dt,

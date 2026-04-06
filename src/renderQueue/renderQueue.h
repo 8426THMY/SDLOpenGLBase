@@ -63,6 +63,18 @@
 )
 
 
+#define renderQueueKeyOpaque(depth, vao, material) (          \
+	((depth)    << RENDER_QUEUE_KEY_OPAQUE_OFFSET_DEPTH)    | \
+	((vao)      << RENDER_QUEUE_KEY_OPAQUE_OFFSET_VAO)      | \
+	((material) << RENDER_QUEUE_KEY_OPAQUE_OFFSET_MATERIAL)   \
+)
+#define renderQueueKeyTranslucent(depth, vao, material) (          \
+	((depth)    << RENDER_QUEUE_KEY_TRANSLUCENT_OFFSET_DEPTH)    | \
+	((vao)      << RENDER_QUEUE_KEY_TRANSLUCENT_OFFSET_VAO)      | \
+	((material) << RENDER_QUEUE_KEY_TRANSLUCENT_OFFSET_MATERIAL)   \
+)
+
+
 #warning "Should we split up the material component into shader, texture and pass components?"
 #warning "Since we're running out of bits, can we use even more buckets?"
 
@@ -78,18 +90,6 @@ typedef struct renderQueue {
 	renderQueueKeyValue keyVals[RENDER_QUEUE_MAX_ITEMS];
 	size_t numKeyVals;
 } renderQueue;
-
-
-renderQueueKey renderQueueKeyOpaque(
-	const bfloat16 depth,
-	const unsigned int vao,
-	const unsigned int material
-);
-renderQueueKey renderQueueKeyTranslucent(
-	const bfloat16 depth,
-	const unsigned int vao,
-	const unsigned int material
-);
 
 
 #endif

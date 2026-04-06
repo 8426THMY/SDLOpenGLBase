@@ -17,7 +17,7 @@ typedef uint_least8_t visCullerType;
 /**
 *** It might be good to support a few different methods of visibility
 *** culling, such as portals for indoor areas and maybe something like
-*** an octree or kd-tree for outdoor areas.
+*** an octree or kd-tree for outdoor areas (and quadtree for 2D areas).
 ***     https://30fps.net/pages/pvs-portals-and-quake/
 *** This engine also implements visibility culling on kd-trees:
 ***     https://www.visualizationlibrary.org/documentation/pag_guide_portals.html
